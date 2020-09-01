@@ -11,7 +11,6 @@ import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -22,31 +21,23 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
+  innerRef: { current: any },
 };
 
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  editor = React.createRef<any>();
 
   focusAtStart = () => {
-    if (this.editor.current) {
-      this.editor.current.focusAtStart();
+    if (this.props.innerRef.current) {
+      this.props.innerRef.current.focusAtStart();
     }
   };
 
   focusAtEnd = () => {
-    if (this.editor.current) {
-      this.editor.current.focusAtEnd();
+    if (this.props.innerRef.current) {
+      this.props.innerRef.current.focusAtEnd();
     }
-  };
-
-  getHeadings = () => {
-    if (this.editor.current) {
-      return this.editor.current.getHeadings();
-    }
-
-    return [];
   };
 
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
@@ -72,49 +63,46 @@ class DocumentEditor extends React.Component<Props> {
       isDraft,
       isShare,
       readOnly,
+      innerRef,
     } = this.props;
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
 
     return (
       <Flex auto column>
-        <React.Suspense fallback={<LoadingPlaceholder />}>
-          <Title
-            type="text"
-            onChange={onChangeTitle}
-            onKeyDown={this.handleTitleKeyDown}
-            placeholder={document.placeholder}
-            value={!title && readOnly ? document.titleWithDefault : title}
-            style={
-              startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined
-            }
-            readOnly={readOnly}
-            autoFocus={!title}
-            maxLength={100}
+        <Title
+          type="text"
+          onChange={onChangeTitle}
+          onKeyDown={this.handleTitleKeyDown}
+          placeholder={document.placeholder}
+          value={!title && readOnly ? document.titleWithDefault : title}
+          style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
+          readOnly={readOnly}
+          autoFocus={!title}
+          maxLength={100}
+        />
+        <DocumentMetaWithViews
+          isDraft={isDraft}
+          document={document}
+          to={documentHistoryUrl(document)}
+        />
+        <Editor
+          ref={innerRef}
+          autoFocus={title && !this.props.defaultValue}
+          placeholder="…the rest is up to you"
+          onHoverLink={this.handleLinkActive}
+          scrollTo={window.location.hash}
+          grow
+          {...this.props}
+        />
+        {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
+        {this.activeLinkEvent && !isShare && readOnly && (
+          <HoverPreview
+            node={this.activeLinkEvent.target}
+            event={this.activeLinkEvent}
+            onClose={this.handleLinkInactive}
           />
-          <DocumentMetaWithViews
-            isDraft={isDraft}
-            document={document}
-            to={documentHistoryUrl(document)}
-          />
-          <Editor
-            ref={this.editor}
-            autoFocus={title && !this.props.defaultValue}
-            placeholder="…the rest is up to you"
-            onHoverLink={this.handleLinkActive}
-            scrollTo={window.location.hash}
-            grow
-            {...this.props}
-          />
-          {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-          {this.activeLinkEvent && !isShare && readOnly && (
-            <HoverPreview
-              node={this.activeLinkEvent.target}
-              event={this.activeLinkEvent}
-              onClose={this.handleLinkInactive}
-            />
-          )}
-        </React.Suspense>
+        )}
       </Flex>
     );
   }

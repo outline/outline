@@ -18,6 +18,7 @@ import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import Time from "components/Time";
@@ -67,7 +68,7 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  @observable editor: ?any;
+  @observable editor = React.createRef();
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
@@ -380,7 +381,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth
               archived={document.isArchived}
-              tocVisible={ui.tocVisible}
+              tocVisible={ui.tocVisible && readOnly}
               column
               auto
             >
@@ -412,50 +413,52 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Flex auto={!readOnly}>
-                {ui.tocVisible && readOnly && (
-                  <Contents
-                    headings={this.editor ? this.editor.getHeadings() : []}
+              <React.Suspense fallback={<LoadingPlaceholder />}>
+                <Flex auto={!readOnly}>
+                  {ui.tocVisible && readOnly && (
+                    <Contents
+                      headings={
+                        this.editor.current
+                          ? this.editor.current.getHeadings()
+                          : []
+                      }
+                    />
+                  )}
+                  <Editor
+                    id={document.id}
+                    innerRef={this.editor}
+                    isShare={isShare}
+                    isDraft={document.isDraft}
+                    template={document.isTemplate}
+                    key={[injectTemplate, disableEmbeds].join("-")}
+                    title={revision ? revision.title : this.title}
+                    document={document}
+                    value={readOnly ? value : undefined}
+                    defaultValue={value}
+                    disableEmbeds={disableEmbeds}
+                    onImageUploadStart={this.onImageUploadStart}
+                    onImageUploadStop={this.onImageUploadStop}
+                    onSearchLink={this.props.onSearchLink}
+                    onCreateLink={this.props.onCreateLink}
+                    onChangeTitle={this.onChangeTitle}
+                    onChange={this.onChange}
+                    onSave={this.onSave}
+                    onPublish={this.onPublish}
+                    onCancel={this.goBack}
+                    readOnly={readOnly}
+                    readOnlyWriteCheckboxes={readOnly && abilities.update}
+                    ui={this.props.ui}
                   />
+                </Flex>
+                {readOnly && !isShare && !revision && (
+                  <>
+                    <MarkAsViewed document={document} />
+                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                      <References document={document} />
+                    </ReferencesWrapper>
+                  </>
                 )}
-                <Editor
-                  id={document.id}
-                  ref={(ref) => {
-                    if (ref) {
-                      this.editor = ref;
-                    }
-                  }}
-                  isShare={isShare}
-                  isDraft={document.isDraft}
-                  template={document.isTemplate}
-                  key={[injectTemplate, disableEmbeds].join("-")}
-                  title={revision ? revision.title : this.title}
-                  document={document}
-                  value={readOnly ? value : undefined}
-                  defaultValue={value}
-                  disableEmbeds={disableEmbeds}
-                  onImageUploadStart={this.onImageUploadStart}
-                  onImageUploadStop={this.onImageUploadStop}
-                  onSearchLink={this.props.onSearchLink}
-                  onCreateLink={this.props.onCreateLink}
-                  onChangeTitle={this.onChangeTitle}
-                  onChange={this.onChange}
-                  onSave={this.onSave}
-                  onPublish={this.onPublish}
-                  onCancel={this.goBack}
-                  readOnly={readOnly}
-                  readOnlyWriteCheckboxes={readOnly && abilities.update}
-                  ui={this.props.ui}
-                />
-              </Flex>
-              {readOnly && !isShare && !revision && (
-                <>
-                  <MarkAsViewed document={document} />
-                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                    <References document={document} />
-                  </ReferencesWrapper>
-                </>
-              )}
+              </React.Suspense>
             </MaxWidth>
           </Container>
         </Background>

@@ -3,7 +3,6 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
-
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -15,10 +14,10 @@ import DocumentTemplatize from "scenes/DocumentTemplatize";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Modal from "components/Modal";
 import {
-  documentUrl,
-  documentMoveUrl,
-  editDocumentUrl,
   documentHistoryUrl,
+  documentMoveUrl,
+  documentUrl,
+  editDocumentUrl,
   newDocumentUrl,
 } from "utils/routeHelpers";
 
@@ -104,6 +103,11 @@ class DocumentMenu extends React.Component<Props> {
   handleRestore = async (ev: SyntheticEvent<>) => {
     await this.props.document.restore();
     this.props.ui.showToast("Document restored");
+  };
+
+  handleUnpublish = async (ev: SyntheticEvent<>) => {
+    await this.props.document.unpublish();
+    this.props.ui.showToast("Document unpublished");
   };
 
   handlePin = (ev: SyntheticEvent<>) => {
@@ -223,6 +227,11 @@ class DocumentMenu extends React.Component<Props> {
               title="Create a nested document inside the current document"
             >
               New nested document
+            </DropdownMenuItem>
+          )}
+          {can.unpublish && (
+            <DropdownMenuItem onClick={this.handleUnpublish}>
+              Unpublish
             </DropdownMenuItem>
           )}
           {can.update && !document.isTemplate && (

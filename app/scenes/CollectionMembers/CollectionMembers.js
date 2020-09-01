@@ -132,7 +132,7 @@ class CollectionMembers extends React.Component<Props> {
               collection. You can make this collection visible to the entire
               team by{" "}
               <a role="button" onClick={this.props.onEdit}>
-                changing its visibility
+                changing the visibility
               </a>
               .
             </HelpText>

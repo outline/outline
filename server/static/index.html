@@ -31,8 +31,8 @@
 <body>
   <div id="root"></div>
   <script>//inject-env//</script>
-  <script src="https://browser.sentry-cdn.com/5.12.1/bundle.min.js"
-    integrity="sha384-y+an4eARFKvjzOivf/Z7JtMJhaN6b+lLQ5oFbBbUwZNNVir39cYtkjW1r6Xjbxg3" crossorigin="anonymous">
+  <script src="https://browser.sentry-cdn.com/5.22.3/bundle.min.js"
+    integrity="sha384-A1qzcXXJWl+bzYr+r8AdFzSaLbdcbYRFmG37MEDKr4EYjtraUyoZ6UiMw31jHcV9" crossorigin="anonymous">
     </script>
   <script>
     if ('//inject-sentry-dsn//') {
@@ -44,6 +44,7 @@
           'NotFoundError',
           'OfflineError',
           'UpdateRequiredError',
+          'ChunkLoadError'
         ],
       });
     }
