@@ -127,6 +127,7 @@ class CollectionMenu extends React.Component<Props> {
             collection={collection}
             onSubmit={this.handleMembersModalClose}
             handleEditCollectionOpen={this.handleEditCollectionOpen}
+            onEdit={this.handleEditCollectionOpen}
           />
         </Modal>
         <DropdownMenu onOpen={onOpen} onClose={onClose} position={position}>

@@ -1001,7 +1001,7 @@ router.post("documents.delete", auth(), async (ctx) => {
   const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, "delete", document);
 
-  await document.delete();
+  await document.delete(user.id);
 
   await Event.create({
     name: "documents.delete",

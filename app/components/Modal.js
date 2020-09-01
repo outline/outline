@@ -9,6 +9,7 @@ import breakpoint from "styled-components-breakpoint";
 import { fadeAndScaleIn } from "shared/styles/animations";
 import Flex from "components/Flex";
 import NudeButton from "components/NudeButton";
+import Scrollable from "components/Scrollable";
 
 ReactModal.setAppElement("#root");
 
@@ -27,7 +28,8 @@ const GlobalStyles = createGlobalStyle`
   }
 
   ${breakpoint("tablet")`
-    .ReactModalPortal + .ReactModalPortal {
+    .ReactModalPortal + .ReactModalPortal,
+    .ReactModalPortal + [data-react-modal-body-trap] + .ReactModalPortal {
       .ReactModal__Overlay {
         margin-left: 12px;
         box-shadow: 0 -2px 10px ${(props) => props.theme.shadow};
@@ -36,13 +38,15 @@ const GlobalStyles = createGlobalStyle`
       }
     }
 
-    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal {
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal,
+    .ReactModalPortal + .ReactModalPortal + [data-react-modal-body-trap] + .ReactModalPortal {
       .ReactModal__Overlay {
         margin-left: 24px;
       }
     }
 
-    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + .ReactModalPortal {
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + .ReactModalPortal,
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + [data-react-modal-body-trap] + .ReactModalPortal {
       .ReactModal__Overlay {
         margin-left: 36px;
       }
@@ -72,10 +76,11 @@ const Modal = ({
         isOpen={isOpen}
         {...rest}
       >
-        <Content onClick={(ev) => ev.stopPropagation()} column>
-          {title && <h1>{title}</h1>}
-
-          {children}
+        <Content>
+          <Centered onClick={(ev) => ev.stopPropagation()} column>
+            {title && <h1>{title}</h1>}
+            {children}
+          </Centered>
         </Content>
         <Back onClick={onRequestClose}>
           <BackIcon size={32} color="currentColor" />
@@ -89,10 +94,20 @@ const Modal = ({
   );
 };
 
-const Content = styled(Flex)`
+const Content = styled(Scrollable)`
+  width: 100%;
+  padding: 8vh 2rem 2rem;
+
+  ${breakpoint("tablet")`
+    padding-top: 13vh;
+  `};
+`;
+
+const Centered = styled(Flex)`
   width: 640px;
   max-width: 100%;
   position: relative;
+  margin: 0 auto;
 `;
 
 const StyledModal = styled(ReactModal)`
@@ -107,16 +122,9 @@ const StyledModal = styled(ReactModal)`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  overflow-x: hidden;
-  overflow-y: auto;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
-  padding: 8vh 2rem 2rem;
   outline: none;
-
-  ${breakpoint("tablet")`
-    padding-top: 13vh;
-  `};
 `;
 
 const Text = styled.span`
@@ -147,7 +155,7 @@ const Close = styled(NudeButton)`
 `;
 
 const Back = styled(NudeButton)`
-  position: fixed;
+  position: absolute;
   display: none;
   align-items: center;
   top: 2rem;
