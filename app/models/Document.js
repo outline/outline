@@ -1,7 +1,7 @@
 // @flow
 import addDays from "date-fns/add_days";
 import invariant from "invariant";
-import { action, set, observable, computed } from "mobx";
+import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
 import DocumentsStore from "stores/DocumentsStore";
@@ -143,6 +143,10 @@ export default class Document extends BaseModel {
 
   restore = (revision: Revision) => {
     return this.store.restore(this, revision);
+  };
+
+  unpublish = () => {
+    return this.store.unpublish(this);
   };
 
   @action

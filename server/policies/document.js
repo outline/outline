@@ -157,3 +157,27 @@ allow(
   Revision,
   (document, revision) => document.id === revision.documentId
 );
+
+allow(User, "unpublish", Document, (user, document) => {
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+
+  if (!document.publishedAt || !!document.deletedAt || !!document.archivedAt)
+    return false;
+
+  if (cannot(user, "update", document.collection)) return false;
+
+  const documentID = document.id;
+  const hasChild = (documents) =>
+    documents.some((doc) => {
+      if (doc.id === documentID) return doc.children.length > 0;
+      return hasChild(doc.children);
+    });
+
+  return (
+    !hasChild(document.collection.documentStructure) &&
+    user.teamId === document.teamId
+  );
+});

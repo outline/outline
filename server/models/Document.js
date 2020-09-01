@@ -1,10 +1,9 @@
 // @flow
 import removeMarkdown from "@tommoor/remove-markdown";
-import { map, find, compact, uniq } from "lodash";
+import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import Sequelize, { type Transaction } from "sequelize";
+import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
-
 import isUUID from "validator/lib/isUUID";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
@@ -551,6 +550,18 @@ Document.prototype.publish = async function (options) {
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
+  await this.save(options);
+
+  return this;
+};
+
+Document.prototype.unpublish = async function (options) {
+  if (!this.publishedAt) return this;
+
+  const collection = await this.getCollection();
+  await collection.removeDocumentInStructure(this);
+
+  this.publishedAt = null;
   await this.save(options);
 
   return this;
