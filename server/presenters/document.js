@@ -69,8 +69,10 @@ export default async function present(
     lastViewedAt: undefined,
   };
 
-  const view = await View.findByDocumentAndUser(document.id, userId);
-  if (!!view) data.lastViewedAt = view.updatedAt;
+  if (!!userId) {
+    const view = await View.findByDocumentAndUser(document.id, userId);
+    if (!!view) data.lastViewedAt = view.updatedAt;
+  }
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;
