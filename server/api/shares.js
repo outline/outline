@@ -171,9 +171,12 @@ router.post("shares.revoke", auth(), async (ctx) => {
   const share = await Share.findByPk(id);
   authorize(user, "revoke", share);
 
-  await share.revoke(user.id);
-
   const document = await Document.findByPk(share.documentId);
+  if (!document) {
+    throw new NotFoundError();
+  }
+
+  await share.revoke(user.id);
 
   await Event.create({
     name: "shares.revoke",
