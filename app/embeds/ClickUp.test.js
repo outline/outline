@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import ClickUp from "./Typeform";
+import ClickUp from "./ClickUp";
 
 describe("ClickUp", () => {
   const match = ClickUp.ENABLED[0];
