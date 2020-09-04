@@ -468,11 +468,10 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   import = async (
-    options: ImportOptions,
-    collectionId: string,
     title: string,
-    text: ?string,
-    parentDocumentId: ?string
+    parentDocumentId: string,
+    collectionId: string,
+    options: ImportOptions
   ) => {
     const formData = new FormData();
 
@@ -480,7 +479,6 @@ export default class DocumentsStore extends BaseStore<Document> {
       { key: "parentDocumentId", value: parentDocumentId },
       { key: "collectionId", value: collectionId },
       { key: "title", value: title },
-      { key: "text", value: text },
     ].map((info) => {
       if (typeof info.value === "string" && info.value) {
         formData.append(info.key, info.value);

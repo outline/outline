@@ -19,11 +19,10 @@ const importFile = async ({
   // non plain text support
   if (documents.importFiletypesServer.includes(file.type)) {
     return await documents.import(
-      { publish: true, file },
-      collectionId,
       file.name.replace(/\.[^/.]+$/, ""),
-      null,
-      documentId
+      documentId,
+      collectionId,
+      { publish: true, file }
     );
   }
 
