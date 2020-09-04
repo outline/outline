@@ -3,7 +3,6 @@ FROM node:14-alpine
 ENV PATH /opt/outline/node_modules/.bin:/opt/node_modules/.bin:$PATH
 ENV NODE_PATH /opt/outline/node_modules:/opt/node_modules
 ENV APP_PATH /opt/outline
-ENV NODE_ENV production
 RUN mkdir -p $APP_PATH
 
 WORKDIR $APP_PATH
