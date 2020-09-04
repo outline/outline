@@ -41,7 +41,11 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter" || event.key === "Tab") {
+    if (
+      event.key === "Enter" ||
+      event.key === "Tab" ||
+      event.key === "ArrowDown"
+    ) {
       event.preventDefault();
       this.focusAtStart();
     }
@@ -78,6 +82,7 @@ class DocumentEditor extends React.Component<Props> {
           value={!title && readOnly ? document.titleWithDefault : title}
           style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
           readOnly={readOnly}
+          disabled={readOnly}
           autoFocus={!title}
           maxLength={100}
         />
