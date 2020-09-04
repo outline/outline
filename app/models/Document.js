@@ -1,5 +1,6 @@
 // @flow
 import addDays from "date-fns/add_days";
+import differenceInDays from "date-fns/difference_in_days";
 import invariant from "invariant";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
@@ -76,7 +77,10 @@ export default class Document extends BaseModel {
 
   @computed
   get new(): boolean {
-    return !this.lastViewedAt;
+    return (
+      !this.lastViewedAt &&
+      differenceInDays(new Date(), new Date(this.createdAt)) < 14
+    );
   }
 
   @computed
