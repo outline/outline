@@ -40,12 +40,22 @@ class DocumentEditor extends React.Component<Props> {
     }
   };
 
+  insertParagraph = () => {
+    if (this.props.innerRef.current) {
+      const { view } = this.props.innerRef.current;
+      const { dispatch, state } = view;
+      dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
+    }
+  };
+
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (
-      event.key === "Enter" ||
-      event.key === "Tab" ||
-      event.key === "ArrowDown"
-    ) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      this.insertParagraph();
+      this.focusAtStart();
+      return;
+    }
+    if (event.key === "Tab" || event.key === "ArrowDown") {
       event.preventDefault();
       this.focusAtStart();
     }
