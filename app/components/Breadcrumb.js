@@ -127,12 +127,12 @@ export const Slash = styled(GoToIcon)`
 
 const Overflow = styled(MoreIcon)`
   flex-shrink: 0;
-  opacity: 0.25;
   transition: opacity 100ms ease-in-out;
+  fill: ${(props) => props.theme.divider};
 
-  &:hover,
-  &:active {
-    opacity: 1;
+  &:active,
+  &:hover {
+    fill: ${(props) => props.theme.text};
   }
 `;
 
