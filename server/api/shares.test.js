@@ -288,13 +288,27 @@ describe("#shares.info", () => {
   });
 
   it("should not find revoked share", async () => {
-    const { user, admin, document } = await seed();
+    const { user, document } = await seed();
     const share = await buildShare({
       documentId: document.id,
-      teamId: admin.teamId,
-      userId: admin.id,
+      teamId: user.teamId,
+      userId: user.id,
     });
     await share.revoke();
+    const res = await server.post("/api/shares.info", {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    expect(res.status).toEqual(404);
+  });
+
+  it("should not find share for deleted document", async () => {
+    const { user, document } = await seed();
+    await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await document.delete(user.id);
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });

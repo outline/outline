@@ -29,7 +29,7 @@ router.post("shares.info", auth(), async (ctx) => {
           revokedAt: { [Op.eq]: null },
         },
   });
-  if (!share) {
+  if (!share || !share.document) {
     throw new NotFoundError();
   }
 

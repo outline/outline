@@ -55,7 +55,9 @@ export default class Backlinks {
         await Promise.all(
           addedLinkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId);
-            if (linkedDocument.id === event.documentId) return;
+            if (!linkedDocument || linkedDocument.id === event.documentId) {
+              return;
+            }
 
             await Backlink.findOrCreate({
               where: {

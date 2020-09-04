@@ -229,14 +229,14 @@ class DocumentMenu extends React.Component<Props> {
               New nested document
             </DropdownMenuItem>
           )}
-          {can.unpublish && (
-            <DropdownMenuItem onClick={this.handleUnpublish}>
-              Unpublish
-            </DropdownMenuItem>
-          )}
           {can.update && !document.isTemplate && (
             <DropdownMenuItem onClick={this.handleOpenTemplateModal}>
               Create template…
+            </DropdownMenuItem>
+          )}
+          {can.unpublish && (
+            <DropdownMenuItem onClick={this.handleUnpublish}>
+              Unpublish
             </DropdownMenuItem>
           )}
           {can.update && (
