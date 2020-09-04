@@ -3,6 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
 import Figma from "./Figma";
 import Framer from "./Framer";
@@ -56,6 +57,13 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "ClickUp",
+    keywords: "project",
+    icon: () => <Img src="/images/clickup.png" />,
+    component: ClickUp,
+    matcher: matcher(ClickUp),
   },
   {
     title: "Codepen",
