@@ -208,11 +208,24 @@ Document.associate = (models) => {
       { model: models.User, as: "updatedBy", paranoid: false },
     ],
   });
-  Document.addScope("withViews", (userId) => ({
-    include: [
-      { model: models.View, as: "views", where: { userId }, required: false },
-    ],
-  }));
+  Document.addScope("withViews", (userId) => {
+    if (!userId)
+      return {
+        include: [
+          {
+            model: models.View,
+            as: "views",
+            required: false,
+          },
+        ],
+      };
+
+    return {
+      include: [
+        { model: models.View, as: "views", where: { userId }, required: false },
+      ],
+    };
+  });
   Document.addScope("withStarred", (userId) => ({
     include: [
       { model: models.Star, as: "starred", where: { userId }, required: false },
