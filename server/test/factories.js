@@ -85,7 +85,6 @@ export async function buildCollection(overrides: Object = {}) {
     name: `Test Collection ${count}`,
     description: "Test collection description",
     creatorId: overrides.userId,
-    type: "atlas",
     ...overrides,
   });
 }

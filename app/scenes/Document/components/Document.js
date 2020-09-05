@@ -6,7 +6,7 @@ import { InputIcon } from "outline-icons";
 import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
-import type { Location, RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory, Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
@@ -18,17 +18,19 @@ import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
 import DocumentMove from "./DocumentMove";
+import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
+import { type LocationWithState } from "types";
 import { emojiToUrl } from "utils/emoji";
 import {
   collectionUrl,
@@ -38,7 +40,6 @@ import {
   documentUrl,
 } from "utils/routeHelpers";
 
-let EditorImport;
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 const DISCARD_CHANGES = `
@@ -53,7 +54,7 @@ Are you sure you want to discard them?
 type Props = {
   match: Match,
   history: RouterHistory,
-  location: Location,
+  location: LocationWithState,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -67,8 +68,7 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  @observable editor: ?any;
-  @observable editorComponent = EditorImport;
+  @observable editor = React.createRef();
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
@@ -83,7 +83,6 @@ class DocumentScene extends React.Component<Props> {
     super();
     this.title = props.document.title;
     this.lastRevision = props.document.revision;
-    this.loadEditor();
   }
 
   componentDidMount() {
@@ -135,7 +134,7 @@ class DocumentScene extends React.Component<Props> {
     ev.preventDefault();
     const { document, abilities } = this.props;
 
-    if (abilities.update) {
+    if (abilities.move) {
       this.props.history.push(documentMoveUrl(document));
     }
   }
@@ -195,22 +194,6 @@ class DocumentScene extends React.Component<Props> {
       ui.showTableOfContents();
     }
   }
-
-  loadEditor = async () => {
-    if (this.editorComponent) return;
-
-    try {
-      const EditorImport = await import("./Editor");
-      this.editorComponent = EditorImport.default;
-    } catch (err) {
-      console.error(err);
-
-      // If the editor bundle fails to load then reload the entire window. This
-      // can happen if a deploy happens between the user loading the initial JS
-      // bundle and the async-loaded editor JS bundle as the hash will change.
-      window.location.reload();
-    }
-  };
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
@@ -334,19 +317,13 @@ class DocumentScene extends React.Component<Props> {
       document,
       revision,
       readOnly,
-      location,
       abilities,
       auth,
       ui,
       match,
     } = this.props;
     const team = auth.team;
-    const Editor = this.editorComponent;
     const isShare = !!match.params.shareId;
-
-    if (!Editor) {
-      return <Loading location={location} />;
-    }
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
@@ -404,7 +381,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth
               archived={document.isArchived}
-              tocVisible={ui.tocVisible}
+              tocVisible={ui.tocVisible && readOnly}
               column
               auto
             >
@@ -436,50 +413,52 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Flex auto={!readOnly}>
-                {ui.tocVisible && readOnly && (
-                  <Contents
-                    headings={this.editor ? this.editor.getHeadings() : []}
+              <React.Suspense fallback={<LoadingPlaceholder />}>
+                <Flex auto={!readOnly}>
+                  {ui.tocVisible && readOnly && (
+                    <Contents
+                      headings={
+                        this.editor.current
+                          ? this.editor.current.getHeadings()
+                          : []
+                      }
+                    />
+                  )}
+                  <Editor
+                    id={document.id}
+                    innerRef={this.editor}
+                    isShare={isShare}
+                    isDraft={document.isDraft}
+                    template={document.isTemplate}
+                    key={[injectTemplate, disableEmbeds].join("-")}
+                    title={revision ? revision.title : this.title}
+                    document={document}
+                    value={readOnly ? value : undefined}
+                    defaultValue={value}
+                    disableEmbeds={disableEmbeds}
+                    onImageUploadStart={this.onImageUploadStart}
+                    onImageUploadStop={this.onImageUploadStop}
+                    onSearchLink={this.props.onSearchLink}
+                    onCreateLink={this.props.onCreateLink}
+                    onChangeTitle={this.onChangeTitle}
+                    onChange={this.onChange}
+                    onSave={this.onSave}
+                    onPublish={this.onPublish}
+                    onCancel={this.goBack}
+                    readOnly={readOnly}
+                    readOnlyWriteCheckboxes={readOnly && abilities.update}
+                    ui={this.props.ui}
                   />
+                </Flex>
+                {readOnly && !isShare && !revision && (
+                  <>
+                    <MarkAsViewed document={document} />
+                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                      <References document={document} />
+                    </ReferencesWrapper>
+                  </>
                 )}
-                <Editor
-                  id={document.id}
-                  ref={(ref) => {
-                    if (ref) {
-                      this.editor = ref;
-                    }
-                  }}
-                  isShare={isShare}
-                  isDraft={document.isDraft}
-                  template={document.isTemplate}
-                  key={[injectTemplate, disableEmbeds].join("-")}
-                  title={revision ? revision.title : this.title}
-                  document={document}
-                  value={readOnly ? value : undefined}
-                  defaultValue={value}
-                  disableEmbeds={disableEmbeds}
-                  onImageUploadStart={this.onImageUploadStart}
-                  onImageUploadStop={this.onImageUploadStop}
-                  onSearchLink={this.props.onSearchLink}
-                  onCreateLink={this.props.onCreateLink}
-                  onChangeTitle={this.onChangeTitle}
-                  onChange={this.onChange}
-                  onSave={this.onSave}
-                  onPublish={this.onPublish}
-                  onCancel={this.goBack}
-                  readOnly={readOnly}
-                  readOnlyWriteCheckboxes={readOnly && abilities.update}
-                  ui={this.props.ui}
-                />
-              </Flex>
-              {readOnly && !isShare && !revision && (
-                <>
-                  <MarkAsViewed document={document} />
-                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                    <References document={document} />
-                  </ReferencesWrapper>
-                </>
-              )}
+              </React.Suspense>
             </MaxWidth>
           </Container>
         </Background>

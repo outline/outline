@@ -9,9 +9,10 @@ import * as React from "react";
 import ReactDOM from "react-dom";
 import keydown from "react-keydown";
 import { withRouter, Link } from "react-router-dom";
-import type { Location, RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory, Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -32,13 +33,14 @@ import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
+import { type LocationWithState } from "types";
 import { meta } from "utils/keyboard";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
   match: Match,
-  location: Location,
+  location: LocationWithState,
   documents: DocumentsStore,
   users: UsersStore,
   notFound: ?boolean,
@@ -46,7 +48,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?typeof DocumentPreview;
+  firstDocument: ?React.Component<typeof DocumentPreview>;
 
   @observable
   query: string = decodeURIComponent(this.props.match.params.term || "");
@@ -222,6 +224,7 @@ class Search extends React.Component<Props> {
   };
 
   setFirstDocumentRef = (ref) => {
+    // $FlowFixMe
     this.firstDocument = ref;
   };
 
@@ -385,6 +388,12 @@ const Filters = styled(Flex)`
   margin-bottom: 12px;
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
+  overflow-y: auto;
+  padding: 8px 0;
+
+  ${breakpoint("tablet")`	
+    padding: 0;
+  `};
 
   &:hover {
     opacity: 1;

@@ -3,7 +3,7 @@ import { find } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentPresenceStore from "stores/DocumentPresenceStore";
@@ -13,6 +13,7 @@ import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ViewsStore from "stores/ViewsStore";
+import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
 
 export const SocketContext: any = React.createContext();
 
@@ -31,12 +32,42 @@ type Props = {
 
 @observer
 class SocketProvider extends React.Component<Props> {
-  @observable socket;
+  @observable socket: Socket;
 
   componentDidMount() {
+    this.createConnection();
+
+    document.addEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  componentWillUnmount() {
+    if (this.socket) {
+      this.socket.authenticated = false;
+      this.socket.disconnect();
+    }
+
+    document.removeEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  checkConnection = () => {
+    if (this.socket && this.socket.disconnected && getPageVisible()) {
+      // null-ifying this reference is important, do not remove. Without it
+      // references to old sockets are potentially held in context
+      this.socket.close();
+      this.socket = null;
+
+      this.createConnection();
+    }
+  };
+
+  createConnection = () => {
     this.socket = io(window.location.origin, {
       path: "/realtime",
+      transports: ["websocket"],
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 30000,
     });
+
     this.socket.authenticated = false;
 
     const {
@@ -65,12 +96,12 @@ class SocketProvider extends React.Component<Props> {
       // when the socket is disconnected we need to clear all presence state as
       // it's no longer reliable.
       presence.clear();
+    });
 
-      if (reason === "io server disconnect") {
-        // the disconnection was initiated by the server, need to reconnect
-        // manually, else the socket will automatically try to reconnect
-        this.socket.connect();
-      }
+    // on reconnection, reset the transports option, as the Websocket
+    // connection may have failed (caused by proxy, firewall, browser, ...)
+    this.socket.on("reconnect_attempt", () => {
+      this.socket.io.opts.transports = ["polling", "websocket"];
     });
 
     this.socket.on("authenticated", () => {
@@ -260,14 +291,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("user.presence", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
-  }
-
-  componentWillUnmount() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket.authenticated = false;
-    }
-  }
+  };
 
   render() {
     return (

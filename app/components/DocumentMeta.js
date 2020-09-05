@@ -1,39 +1,123 @@
 // @flow
-import { inject } from "mobx-react";
+import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
-import ViewsStore from "stores/ViewsStore";
+import AuthStore from "stores/AuthStore";
+import CollectionsStore from "stores/CollectionsStore";
 import Document from "models/Document";
-import PublishingInfo from "components/PublishingInfo";
+import Breadcrumb from "components/Breadcrumb";
+import Flex from "components/Flex";
+import Time from "components/Time";
 
-type Props = {|
-  views: ViewsStore,
+const Container = styled(Flex)`
+  color: ${(props) => props.theme.textTertiary};
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+`;
+
+const Modified = styled.span`
+  color: ${(props) =>
+    props.highlight ? props.theme.text : props.theme.textTertiary};
+  font-weight: ${(props) => (props.highlight ? "600" : "400")};
+`;
+
+type Props = {
+  collections: CollectionsStore,
+  auth: AuthStore,
+  showCollection?: boolean,
+  showPublished?: boolean,
   document: Document,
-  isDraft: boolean,
-|};
+  children: React.Node,
+  to?: string,
+};
 
-function DocumentMeta({ views, isDraft, document }: Props) {
-  const totalViews = views.countForDocument(document.id);
+function DocumentMeta({
+  auth,
+  collections,
+  showPublished,
+  showCollection,
+  document,
+  children,
+  to,
+  ...rest
+}: Props) {
+  const {
+    modifiedSinceViewed,
+    updatedAt,
+    updatedBy,
+    createdAt,
+    publishedAt,
+    archivedAt,
+    deletedAt,
+    isDraft,
+  } = document;
+
+  // Prevent meta information from displaying if updatedBy is not available.
+  // Currently the situation where this is true is rendering share links.
+  if (!updatedBy) {
+    return null;
+  }
+
+  let content;
+
+  if (deletedAt) {
+    content = (
+      <span>
+        deleted <Time dateTime={deletedAt} /> ago
+      </span>
+    );
+  } else if (archivedAt) {
+    content = (
+      <span>
+        archived <Time dateTime={archivedAt} /> ago
+      </span>
+    );
+  } else if (createdAt === updatedAt) {
+    content = (
+      <span>
+        created <Time dateTime={updatedAt} /> ago
+      </span>
+    );
+  } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
+    content = (
+      <span>
+        published <Time dateTime={publishedAt} /> ago
+      </span>
+    );
+  } else if (isDraft) {
+    content = (
+      <span>
+        saved <Time dateTime={updatedAt} /> ago
+      </span>
+    );
+  } else {
+    content = (
+      <Modified highlight={modifiedSinceViewed}>
+        updated <Time dateTime={updatedAt} /> ago
+      </Modified>
+    );
+  }
+
+  const collection = collections.get(document.collectionId);
+  const updatedByMe = auth.user && auth.user.id === updatedBy.id;
 
   return (
-    <Meta document={document}>
-      {totalViews && !isDraft ? (
-        <>
-          &nbsp;&middot; Viewed{" "}
-          {totalViews === 1 ? "once" : `${totalViews} times`}
-        </>
-      ) : null}
-    </Meta>
+    <Container align="center" {...rest}>
+      {updatedByMe ? "You" : updatedBy.name}&nbsp;
+      {to ? <Link to={to}>{content}</Link> : content}
+      {showCollection && collection && (
+        <span>
+          &nbsp;in&nbsp;
+          <strong>
+            <Breadcrumb document={document} onlyText />
+          </strong>
+        </span>
+      )}
+      {children}
+    </Container>
   );
 }
 
-const Meta = styled(PublishingInfo)`
-  margin: -12px 0 2em 0;
-  font-size: 14px;
-
-  @media print {
-    display: none;
-  }
-`;
-
-export default inject("views")(DocumentMeta);
+export default inject("collections", "auth")(observer(DocumentMeta));

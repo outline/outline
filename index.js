@@ -17,9 +17,8 @@ if (process.env.AWS_ACCESS_KEY_ID) {
     "AWS_REGION",
     "AWS_SECRET_ACCESS_KEY",
     "AWS_S3_UPLOAD_BUCKET_URL",
-    "AWS_S3_UPLOAD_BUCKET_NAME",
     "AWS_S3_UPLOAD_MAX_SIZE",
-  ].forEach(key => {
+  ].forEach((key) => {
     if (!process.env[key]) {
       console.error(`The ${key} env variable must be set when using AWS`);
       // $FlowFixMe

@@ -4,7 +4,7 @@ import { observable, action, autorun, computed } from "mobx";
 import { v4 } from "uuid";
 import Collection from "models/Collection";
 import Document from "models/Document";
-import type { Toast } from "../types";
+import type { Toast } from "types";
 
 const UI_STORE = "UI_STORE";
 
@@ -14,8 +14,6 @@ class UiStore {
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable systemTheme: "light" | "dark";
-  @observable activeModalName: ?string;
-  @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
@@ -34,16 +32,18 @@ class UiStore {
     }
 
     // system theme listeners
-    const colorSchemeQueryList = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
+    if (window.matchMedia) {
+      const colorSchemeQueryList = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
 
-    const setSystemTheme = (event) => {
-      this.systemTheme = event.matches ? "dark" : "light";
-    };
-    setSystemTheme(colorSchemeQueryList);
-    if (colorSchemeQueryList.addListener) {
-      colorSchemeQueryList.addListener(setSystemTheme);
+      const setSystemTheme = (event) => {
+        this.systemTheme = event.matches ? "dark" : "light";
+      };
+      setSystemTheme(colorSchemeQueryList);
+      if (colorSchemeQueryList.addListener) {
+        colorSchemeQueryList.addListener(setSystemTheme);
+      }
     }
 
     // persisted keys
@@ -66,18 +66,6 @@ class UiStore {
     if (window.localStorage) {
       window.localStorage.setItem("theme", this.theme);
     }
-  };
-
-  @action
-  setActiveModal = (name: string, props: ?Object): void => {
-    this.activeModalName = name;
-    this.activeModalProps = props;
-  };
-
-  @action
-  clearActiveModal = (): void => {
-    this.activeModalName = undefined;
-    this.activeModalProps = undefined;
   };
 
   @action
@@ -121,34 +109,34 @@ class UiStore {
   };
 
   @action
-  enableEditMode() {
+  enableEditMode = () => {
     this.editMode = true;
-  }
+  };
 
   @action
-  disableEditMode() {
+  disableEditMode = () => {
     this.editMode = false;
-  }
+  };
 
   @action
-  enableProgressBar() {
+  enableProgressBar = () => {
     this.progressBarVisible = true;
-  }
+  };
 
   @action
-  disableProgressBar() {
+  disableProgressBar = () => {
     this.progressBarVisible = false;
-  }
+  };
 
   @action
-  toggleMobileSidebar() {
+  toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
-  }
+  };
 
   @action
-  hideMobileSidebar() {
+  hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
-  }
+  };
 
   @action
   showToast = (

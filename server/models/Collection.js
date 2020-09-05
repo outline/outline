@@ -23,12 +23,6 @@ const Collection = sequelize.define(
     color: DataTypes.STRING,
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
-    type: {
-      type: DataTypes.STRING,
-      validate: { isIn: [["atlas", "journal"]] },
-    },
-
-    /* type: atlas */
     documentStructure: DataTypes.JSONB,
   },
   {
@@ -256,11 +250,13 @@ Collection.prototype.addDocumentToStructure = async function (
     }
 
     // Sequelize doesn't seem to set the value with splice on JSONB field
-    this.documentStructure = this.documentStructure;
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
 
     if (options.save !== false) {
       await this.save({
         ...options,
+        fields: ["documentStructure"],
         transaction,
       });
       if (transaction) {

@@ -9,7 +9,7 @@
           "version": "2",
           "proposals": true
         },
-        "useBuiltIns": "usage",
+        "useBuiltIns": "usage"
       }
     ]
   ],

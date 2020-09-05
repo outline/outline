@@ -19,7 +19,6 @@ import Flex from "components/Flex";
 
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
-import Modals from "components/Modals";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import {
@@ -45,21 +44,22 @@ class Layout extends React.Component<Props> {
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  componentWillMount() {
-    this.updateBackground();
+  constructor(props) {
+    super();
+    this.updateBackground(props);
   }
 
   componentDidUpdate() {
-    this.updateBackground();
+    this.updateBackground(this.props);
 
     if (this.redirectTo) {
       this.redirectTo = undefined;
     }
   }
 
-  updateBackground() {
+  updateBackground(props) {
     // ensure the wider page color always matches the theme
-    window.document.body.style.background = this.props.theme.background;
+    window.document.body.style.background = props.theme.background;
   }
 
   @keydown("shift+/")
@@ -127,7 +127,6 @@ class Layout extends React.Component<Props> {
             />
           </Switch>
         </Container>
-        <Modals ui={ui} />
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}

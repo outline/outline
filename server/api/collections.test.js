@@ -1062,7 +1062,6 @@ describe("#collections.delete", () => {
       urlId: "blah",
       teamId: user.teamId,
       creatorId: user.id,
-      type: "atlas",
     });
 
     const res = await server.post("/api/collections.delete", {

@@ -17,7 +17,7 @@ import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
-import UiStore from "stores/UiStore";
+import CollectionNew from "scenes/CollectionNew";
 import Invite from "scenes/Invite";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
@@ -34,21 +34,25 @@ type Props = {
   auth: AuthStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
-  ui: UiStore,
 };
 
 @observer
 class MainSidebar extends React.Component<Props> {
-  @observable inviteModalOpen: boolean = false;
+  @observable inviteModalOpen = false;
+  @observable createCollectionModalOpen = false;
 
   componentDidMount() {
     this.props.documents.fetchDrafts();
     this.props.documents.fetchTemplates();
   }
 
-  handleCreateCollection = (ev: SyntheticEvent<>) => {
+  handleCreateCollectionModalOpen = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.props.ui.setActiveModal("collection-new");
+    this.createCollectionModalOpen = true;
+  };
+
+  handleCreateCollectionModalClose = (ev: SyntheticEvent<>) => {
+    this.createCollectionModalOpen = false;
   };
 
   handleInviteModalOpen = (ev: SyntheticEvent<>) => {
@@ -134,7 +138,9 @@ class MainSidebar extends React.Component<Props> {
               />
             </Section>
             <Section>
-              <Collections onCreateCollection={this.handleCreateCollection} />
+              <Collections
+                onCreateCollection={this.handleCreateCollectionModalOpen}
+              />
             </Section>
             <Section>
               <SidebarLink
@@ -175,6 +181,13 @@ class MainSidebar extends React.Component<Props> {
         >
           <Invite onSubmit={this.handleInviteModalClose} />
         </Modal>
+        <Modal
+          title="Create a collection"
+          onRequestClose={this.handleCreateCollectionModalClose}
+          isOpen={this.createCollectionModalOpen}
+        >
+          <CollectionNew onSubmit={this.handleCreateCollectionModalClose} />
+        </Modal>
       </Sidebar>
     );
   }
@@ -184,4 +197,4 @@ const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default inject("documents", "policies", "auth", "ui")(MainSidebar);
+export default inject("documents", "policies", "auth")(MainSidebar);

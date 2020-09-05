@@ -1,10 +1,9 @@
 // @flow
 import removeMarkdown from "@tommoor/remove-markdown";
-import { map, find, compact, uniq } from "lodash";
+import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import Sequelize, { type Transaction } from "sequelize";
+import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
-
 import isUUID from "validator/lib/isUUID";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
@@ -441,7 +440,7 @@ Document.addHook("beforeSave", async (model) => {
   }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") {
+  if (!collection) {
     return;
   }
 
@@ -455,7 +454,7 @@ Document.addHook("afterCreate", async (model) => {
   }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") {
+  if (!collection) {
     return;
   }
 
@@ -548,11 +547,21 @@ Document.prototype.publish = async function (options) {
   if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
-  if (collection.type !== "atlas") return this.save(options);
-
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
+  await this.save(options);
+
+  return this;
+};
+
+Document.prototype.unpublish = async function (options) {
+  if (!this.publishedAt) return this;
+
+  const collection = await this.getCollection();
+  await collection.removeDocumentInStructure(this);
+
+  this.publishedAt = null;
   await this.save(options);
 
   return this;
@@ -572,7 +581,7 @@ Document.prototype.archive = async function (userId) {
 };
 
 // Restore an archived document back to being visible to the team
-Document.prototype.unarchive = async function (userId) {
+Document.prototype.unarchive = async function (userId: string) {
   const collection = await this.getCollection();
 
   // check to see if the documents parent hasn't been archived also
@@ -604,23 +613,27 @@ Document.prototype.unarchive = async function (userId) {
 };
 
 // Delete a document, archived or otherwise.
-Document.prototype.delete = function (options) {
-  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    if (!this.archivedAt) {
-      // delete any children and remove from the document structure
-      const collection = await this.getCollection();
-      if (collection) await collection.deleteDocument(this, { transaction });
+Document.prototype.delete = function (userId: string) {
+  return sequelize.transaction(
+    async (transaction: Transaction): Promise<Document> => {
+      if (!this.archivedAt && !this.template) {
+        // delete any children and remove from the document structure
+        const collection = await this.getCollection();
+        if (collection) await collection.deleteDocument(this, { transaction });
+      }
+
+      await Revision.destroy({
+        where: { documentId: this.id },
+        transaction,
+      });
+
+      this.lastModifiedById = userId;
+      this.deletedAt = new Date();
+
+      await this.save({ transaction });
+      return this;
     }
-
-    await Revision.destroy({
-      where: { documentId: this.id },
-      transaction,
-    });
-
-    await this.destroy({ transaction, ...options });
-
-    return this;
-  });
+  );
 };
 
 Document.prototype.getTimestamp = function () {

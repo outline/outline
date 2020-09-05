@@ -1,16 +1,16 @@
 // @flow
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import { lighten } from "polished";
 import * as React from "react";
 import { withRouter, type RouterHistory } from "react-router-dom";
-import RichMarkdownEditor from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 import UiStore from "stores/UiStore";
+import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
 import isInternalUrl from "utils/isInternalUrl";
 import { uploadFile } from "utils/uploadFile";
+
+const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
 
 const EMPTY_ARRAY = [];
 
@@ -24,14 +24,11 @@ type Props = {
 };
 
 type PropsWithRef = Props & {
-  forwardedRef: React.Ref<RichMarkdownEditor>,
+  forwardedRef: React.Ref<any>,
   history: RouterHistory,
 };
 
-@observer
 class Editor extends React.Component<PropsWithRef> {
-  @observable redirectTo: ?string;
-
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;
@@ -72,15 +69,17 @@ class Editor extends React.Component<PropsWithRef> {
 
   render() {
     return (
-      <StyledEditor
-        ref={this.props.forwardedRef}
-        uploadImage={this.onUploadImage}
-        onClickLink={this.onClickLink}
-        onShowToast={this.onShowToast}
-        embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
-        tooltip={EditorTooltip}
-        {...this.props}
-      />
+      <ErrorBoundary reloadOnChunkMissing>
+        <StyledEditor
+          ref={this.props.forwardedRef}
+          uploadImage={this.onUploadImage}
+          onClickLink={this.onClickLink}
+          onShowToast={this.onShowToast}
+          embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
+          tooltip={EditorTooltip}
+          {...this.props}
+        />
+      </ErrorBoundary>
     );
   }
 }

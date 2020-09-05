@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/outline
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
       - image: circleci/redis:latest
       - image: circleci/postgres:9.6.5-alpine-ram
     environment:
@@ -30,11 +30,14 @@ jobs:
           name: migrate
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
       - run:
-          name: test
-          command: yarn test
-      - run:
           name: lint
           command: yarn lint
       - run:
           name: flow
           command: yarn flow check --max-workers 4
+      - run:
+          name: test
+          command: yarn test
+      - run:
+          name: build
+          command: yarn build

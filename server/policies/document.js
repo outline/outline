@@ -58,7 +58,7 @@ allow(User, "update", Document, (user, document) => {
 
 allow(User, "createChildDocument", Document, (user, document) => {
   if (document.archivedAt) return false;
-  if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
   if (document.template) return false;
   if (!document.publishedAt) return false;
 
@@ -71,7 +71,21 @@ allow(User, "createChildDocument", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["move", "pin", "unpin"], Document, (user, document) => {
+allow(User, "move", Document, (user, document) => {
+  if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
+  if (!document.publishedAt) return false;
+
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "update", document.collection)) return false;
+
+  return user.teamId === document.teamId;
+});
+
+allow(User, ["pin", "unpin"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
@@ -112,15 +126,15 @@ allow(User, "restore", Document, (user, document) => {
 });
 
 allow(User, "archive", Document, (user, document) => {
+  if (!document.publishedAt) return false;
+  if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
+
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
   if (cannot(user, "update", document.collection)) return false;
-
-  if (!document.publishedAt) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });
@@ -143,3 +157,27 @@ allow(
   Revision,
   (document, revision) => document.id === revision.documentId
 );
+
+allow(User, "unpublish", Document, (user, document) => {
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+
+  if (!document.publishedAt || !!document.deletedAt || !!document.archivedAt)
+    return false;
+
+  if (cannot(user, "update", document.collection)) return false;
+
+  const documentID = document.id;
+  const hasChild = (documents) =>
+    documents.some((doc) => {
+      if (doc.id === documentID) return doc.children.length > 0;
+      return hasChild(doc.children);
+    });
+
+  return (
+    !hasChild(document.collection.documentStructure) &&
+    user.teamId === document.teamId
+  );
+});

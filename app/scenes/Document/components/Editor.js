@@ -7,10 +7,11 @@ import styled from "styled-components";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
-import DocumentMeta from "components/DocumentMeta";
+import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
+import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
@@ -20,35 +21,41 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
+  innerRef: { current: any },
 };
 
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  editor = React.createRef<typeof Editor>();
 
   focusAtStart = () => {
-    if (this.editor.current) {
-      this.editor.current.focusAtStart();
+    if (this.props.innerRef.current) {
+      this.props.innerRef.current.focusAtStart();
     }
   };
 
   focusAtEnd = () => {
-    if (this.editor.current) {
-      this.editor.current.focusAtEnd();
+    if (this.props.innerRef.current) {
+      this.props.innerRef.current.focusAtEnd();
     }
   };
 
-  getHeadings = () => {
-    if (this.editor.current) {
-      return this.editor.current.getHeadings();
+  insertParagraph = () => {
+    if (this.props.innerRef.current) {
+      const { view } = this.props.innerRef.current;
+      const { dispatch, state } = view;
+      dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
     }
-
-    return [];
   };
 
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter" || event.key === "Tab") {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      this.insertParagraph();
+      this.focusAtStart();
+      return;
+    }
+    if (event.key === "Tab" || event.key === "ArrowDown") {
       event.preventDefault();
       this.focusAtStart();
     }
@@ -70,6 +77,7 @@ class DocumentEditor extends React.Component<Props> {
       isDraft,
       isShare,
       readOnly,
+      innerRef,
     } = this.props;
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
@@ -84,12 +92,17 @@ class DocumentEditor extends React.Component<Props> {
           value={!title && readOnly ? document.titleWithDefault : title}
           style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
           readOnly={readOnly}
+          disabled={readOnly}
           autoFocus={!title}
           maxLength={100}
         />
-        <DocumentMeta isDraft={isDraft} document={document} />
+        <DocumentMetaWithViews
+          isDraft={isDraft}
+          document={document}
+          to={documentHistoryUrl(document)}
+        />
         <Editor
-          ref={this.editor}
+          ref={innerRef}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}

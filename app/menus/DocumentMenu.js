@@ -3,21 +3,21 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
-
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
+import DocumentShare from "scenes/DocumentShare";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Modal from "components/Modal";
 import {
-  documentUrl,
-  documentMoveUrl,
-  editDocumentUrl,
   documentHistoryUrl,
+  documentMoveUrl,
+  documentUrl,
+  editDocumentUrl,
   newDocumentUrl,
 } from "utils/routeHelpers";
 
@@ -40,8 +40,9 @@ type Props = {
 @observer
 class DocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
-  @observable showDeleteModal: boolean = false;
-  @observable showTemplateModal: boolean = false;
+  @observable showDeleteModal = false;
+  @observable showTemplateModal = false;
+  @observable showShareModal = false;
 
   componentDidUpdate() {
     this.redirectTo = undefined;
@@ -104,6 +105,11 @@ class DocumentMenu extends React.Component<Props> {
     this.props.ui.showToast("Document restored");
   };
 
+  handleUnpublish = async (ev: SyntheticEvent<>) => {
+    await this.props.document.unpublish();
+    this.props.ui.showToast("Document unpublished");
+  };
+
   handlePin = (ev: SyntheticEvent<>) => {
     this.props.document.pin();
   };
@@ -129,7 +135,11 @@ class DocumentMenu extends React.Component<Props> {
   handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     await document.share();
-    this.props.ui.setActiveModal("document-share", { document });
+    this.showShareModal = true;
+  };
+
+  handleCloseShareModal = () => {
+    this.showShareModal = false;
   };
 
   render() {
@@ -224,6 +234,11 @@ class DocumentMenu extends React.Component<Props> {
               Create template…
             </DropdownMenuItem>
           )}
+          {can.unpublish && (
+            <DropdownMenuItem onClick={this.handleUnpublish}>
+              Unpublish
+            </DropdownMenuItem>
+          )}
           {can.update && (
             <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
           )}
@@ -280,6 +295,16 @@ class DocumentMenu extends React.Component<Props> {
           <DocumentTemplatize
             document={this.props.document}
             onSubmit={this.handleCloseTemplateModal}
+          />
+        </Modal>
+        <Modal
+          title="Share document"
+          onRequestClose={this.handleCloseShareModal}
+          isOpen={this.showShareModal}
+        >
+          <DocumentShare
+            document={this.props.document}
+            onSubmit={this.handleCloseShareModal}
           />
         </Modal>
       </>

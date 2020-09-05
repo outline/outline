@@ -72,11 +72,13 @@ export default async function present(document: Document, options: ?Options) {
     data.updatedBy = presentUser(document.updatedBy);
 
     // TODO: This could be further optimized
-    data.collaborators = await User.findAll({
-      where: {
-        id: takeRight(document.collaboratorIds, 10) || [],
-      },
-    }).map(presentUser);
+    data.collaborators = (
+      await User.findAll({
+        where: {
+          id: takeRight(document.collaboratorIds, 10) || [],
+        },
+      })
+    ).map(presentUser);
   }
 
   return data;

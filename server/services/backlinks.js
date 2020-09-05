@@ -1,8 +1,8 @@
 // @flow
 import { difference } from "lodash";
-import parseDocumentIds from "../../shared/utils/parseDocumentIds";
 import type { DocumentEvent } from "../events";
 import { Document, Revision, Backlink } from "../models";
+import parseDocumentIds from "../utils/parseDocumentIds";
 import slugify from "../utils/slugify";
 
 export default class Backlinks {
@@ -55,7 +55,9 @@ export default class Backlinks {
         await Promise.all(
           addedLinkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId);
-            if (linkedDocument.id === event.documentId) return;
+            if (!linkedDocument || linkedDocument.id === event.documentId) {
+              return;
+            }
 
             await Backlink.findOrCreate({
               where: {

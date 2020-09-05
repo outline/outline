@@ -8,9 +8,11 @@ import CenteredContent from "components/CenteredContent";
 import HelpText from "components/HelpText";
 import PageTitle from "components/PageTitle";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
+import env from "env";
 
 type Props = {
   children: React.Node,
+  reloadOnChunkMissing?: boolean,
 };
 
 @observer
@@ -22,13 +24,25 @@ class ErrorBoundary extends React.Component<Props> {
     this.error = error;
     console.error(error);
 
+    if (
+      this.props.reloadOnChunkMissing &&
+      error.message &&
+      error.message.match(/chunk/)
+    ) {
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload(true);
+      return;
+    }
+
     if (window.Sentry) {
       window.Sentry.captureException(error);
     }
   }
 
   handleReload = () => {
-    window.location.reload();
+    window.location.reload(true);
   };
 
   handleShowDetails = () => {
@@ -41,7 +55,26 @@ class ErrorBoundary extends React.Component<Props> {
 
   render() {
     if (this.error) {
-      const isReported = !!window.Sentry;
+      const error = this.error;
+      const isReported = !!window.Sentry && env.DEPLOYMENT === "hosted";
+      const isChunkError = this.error.message.match(/chunk/);
+
+      if (isChunkError) {
+        return (
+          <CenteredContent>
+            <PageTitle title="Module failed to load" />
+            <h1>Loading Failed</h1>
+            <HelpText>
+              Sorry, part of the application failed to load. This may be because
+              it was updated since you opened the tab or because of a failed
+              network request. Please try reloading.
+            </HelpText>
+            <p>
+              <Button onClick={this.handleReload}>Reload</Button>
+            </p>
+          </CenteredContent>
+        );
+      }
 
       return (
         <CenteredContent>
@@ -52,7 +85,7 @@ class ErrorBoundary extends React.Component<Props> {
             {isReported && " – our engineers have been notified"}. Please try
             reloading the page, it may have been a temporary glitch.
           </HelpText>
-          {this.showDetails && <Pre>{this.error.toString()}</Pre>}
+          {this.showDetails && <Pre>{error.toString()}</Pre>}
           <p>
             <Button onClick={this.handleReload}>Reload</Button>{" "}
             {this.showDetails ? (

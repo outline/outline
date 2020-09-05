@@ -232,7 +232,7 @@ const Label = styled(Flex).attrs({
   justify: "center",
   align: "center",
 })`
-  z-index: 1000;
+  z-index: ${(props) => props.theme.depths.menu};
   cursor: pointer;
 `;
 
@@ -244,7 +244,7 @@ const Position = styled.div`
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
   ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
   max-height: 75%;
-  z-index: 1000;
+  z-index: ${(props) => props.theme.depths.menu};
   transform: ${(props) =>
     props.position === "center" ? "translateX(-50%)" : "initial"};
   pointer-events: none;

@@ -50,7 +50,7 @@ class CollectionDelete extends React.Component<Props> {
             cannot be restored, however documents within will be moved to the
             trash.
           </HelpText>
-          <Button type="submit" disabled={this.isDeleting} danger>
+          <Button type="submit" disabled={this.isDeleting} autoFocus danger>
             {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>
         </form>

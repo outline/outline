@@ -4,7 +4,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
-import PublishingInfo from "components/PublishingInfo";
+import DocumentMeta from "components/DocumentMeta";
 import type { NavigationNode } from "types";
 
 type Props = {
@@ -60,7 +60,7 @@ class ReferenceListItem extends React.Component<Props> {
       >
         <Title>{document.title}</Title>
         {document.updatedBy && (
-          <PublishingInfo document={document} showCollection={showCollection} />
+          <DocumentMeta document={document} showCollection={showCollection} />
         )}
       </DocumentLink>
     );
