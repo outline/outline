@@ -435,6 +435,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     res.data.documents.forEach(this.add);
     res.data.collections.forEach(this.rootStore.collections.add);
+    this.addPolicies(res.policies);
   };
 
   @action
@@ -533,8 +534,10 @@ export default class DocumentsStore extends BaseStore<Document> {
       revisionId: revision ? revision.id : undefined,
     });
     runInAction("Document#restore", () => {
-      invariant(res && res.data, "Data should be available");
-      document.updateFromJson(res.data);
+      invariant(res && res.data, "Data not available");
+
+      res.data.documents.forEach(this.add);
+      res.data.collections.forEach(this.rootStore.collections.add);
       this.addPolicies(res.policies);
     });
 
