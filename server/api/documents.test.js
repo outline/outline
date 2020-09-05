@@ -1137,7 +1137,109 @@ describe("#documents.pin", () => {
   });
 });
 
+describe("#documents.move", () => {
+  it("should move the document", async () => {
+    const { user, document } = await seed();
+    const collection = await buildCollection({ teamId: user.teamId });
+
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+  });
+
+  it("should not allow moving the document to a collection the user cannot access", async () => {
+    const { user, document } = await seed();
+    const collection = await buildCollection();
+
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.move");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should require authorization", async () => {
+    const { document, collection } = await seed();
+    const user = await buildUser();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe("#documents.restore", () => {
+  it("should allow restore of trashed documents", async () => {
+    const { user, document } = await seed();
+    await document.destroy(user.id);
+
+    const res = await server.post("/api/documents.restore", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].deletedAt).toEqual(null);
+  });
+
+  it("should allow restore of trashed documents with collectionId", async () => {
+    const { user, document } = await seed();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await document.destroy(user.id);
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].deletedAt).toEqual(null);
+    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+  });
+
+  it("should now allow restore of trashed documents to collection user cannot access", async () => {
+    const { user, document } = await seed();
+    const collection = await buildCollection();
+
+    await document.destroy(user.id);
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should allow restore of archived documents", async () => {
     const { user, document } = await seed();
     await document.archive(user.id);
@@ -1146,7 +1248,9 @@ describe("#documents.restore", () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     const body = await res.json();
-    expect(body.data.archivedAt).toEqual(null);
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].archivedAt).toEqual(null);
   });
 
   it("should restore archived when previous parent is archived", async () => {
@@ -1164,8 +1268,10 @@ describe("#documents.restore", () => {
       body: { token: user.getJwtToken(), id: childDocument.id },
     });
     const body = await res.json();
-    expect(body.data.parentDocumentId).toEqual(undefined);
-    expect(body.data.archivedAt).toEqual(null);
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].parentDocumentId).toEqual(undefined);
+    expect(body.data.documents[0].archivedAt).toEqual(null);
   });
 
   it("should restore the document to a previous version", async () => {
@@ -1184,7 +1290,9 @@ describe("#documents.restore", () => {
       body: { token: user.getJwtToken(), id: document.id, revisionId },
     });
     const body = await res.json();
-    expect(body.data.text).toEqual(previousText);
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].text).toEqual(previousText);
   });
 
   it("should not allow restoring a revision in another document", async () => {

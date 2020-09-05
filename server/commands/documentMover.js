@@ -14,7 +14,7 @@ export default async function documentMover({
   user: Context,
   document: Document,
   collectionId: string,
-  parentDocumentId: string,
+  parentDocumentId?: string,
   index?: number,
   ip: string,
 }) {

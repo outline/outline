@@ -1,5 +1,7 @@
 // @flow
+import invariant from "invariant";
 import Router from "koa-router";
+import { find } from "lodash";
 import Sequelize from "sequelize";
 import documentMover from "../commands/documentMover";
 import { InvalidRequestError } from "../errors";
@@ -444,14 +446,40 @@ router.post("documents.export", auth({ required: false }), async (ctx) => {
 });
 
 router.post("documents.restore", auth(), async (ctx) => {
-  const { id, revisionId } = ctx.body;
+  const { id, collectionId, revisionId } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id, {
+  let document = await Document.findByPk(id, {
     userId: user.id,
     paranoid: false,
   });
+
+  let documents = [document];
+  let collections = [];
+
+  if (collectionId) {
+    ctx.assertUuid(collectionId, "collectionId must be a uuid");
+    authorize(user, "restore", document);
+
+    const collection = await Collection.findByPk(collectionId);
+    authorize(user, "update", collection);
+
+    const response = await documentMover({
+      user,
+      document,
+      collectionId,
+      ip: ctx.request.ip,
+    });
+
+    documents = response.documents;
+    collections = response.collections;
+    document = find(response.documents, { id });
+    invariant(
+      document,
+      "Original document could not be found in documentMover response"
+    );
+  }
 
   if (document.deletedAt) {
     authorize(user, "restore", document);
@@ -508,8 +536,15 @@ router.post("documents.restore", auth(), async (ctx) => {
   }
 
   ctx.body = {
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
+    data: {
+      documents: await Promise.all(
+        documents.map((document) => presentDocument(document))
+      ),
+      collections: await Promise.all(
+        collections.map((collection) => presentCollection(collection))
+      ),
+    },
+    policies: presentPolicies(user, documents),
   };
 });
 
@@ -937,6 +972,9 @@ router.post("documents.move", auth(), async (ctx) => {
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, "move", document);
+
+  const collection = await Collection.findByPk(collectionId);
+  authorize(user, "update", collection);
 
   if (parentDocumentId) {
     const parent = await Document.findByPk(parentDocumentId, {
