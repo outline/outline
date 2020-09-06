@@ -51,9 +51,16 @@ class DataLoader extends React.Component<Props> {
     // the user has
     if (this.document) {
       const document = this.document;
+
+      // we have a special case renderer for deleted documents
+      // so no need to do any further data loading
+      if (document.isDeleted) {
+        return;
+      }
+
       const policy = this.props.policies.get(document.id);
 
-      if (!policy && !this.error && !document.isDeleted) {
+      if (!policy && !this.error) {
         this.loadDocument();
       }
     }

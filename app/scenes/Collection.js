@@ -36,6 +36,7 @@ import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import CollectionMenu from "menus/CollectionMenu";
+import { AuthorizationError } from "utils/errors";
 import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -96,7 +97,7 @@ class CollectionScene extends React.Component<Props> {
         });
       }
     } catch (error) {
-      if (error.name === "AuthorizationError") {
+      if (error instanceof AuthorizationError) {
         this.collection = null;
       }
     } finally {

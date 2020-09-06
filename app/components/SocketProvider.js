@@ -174,14 +174,19 @@ class SocketProvider extends React.Component<Props> {
           const collection = collections.get(collectionId) || {};
 
           if (event.event === "collections.delete") {
-            documents.removeCollectionDocuments(collectionId);
-            memberships.removeCollectionMemberships(collectionId);
-
             const collection = collections.get(collectionId);
             if (collection) {
               collection.deletedAt = collectionDescriptor.updatedAt;
             }
 
+            const deletedDocuments = documents.inCollection(collectionId);
+            deletedDocuments.forEach((doc) => {
+              doc.deletedAt = collectionDescriptor.updatedAt;
+              policies.remove(doc.id);
+            });
+
+            documents.removeCollectionDocuments(collectionId);
+            memberships.removeCollectionMemberships(collectionId);
             collections.remove(collectionId);
             policies.remove(collectionId);
             continue;
