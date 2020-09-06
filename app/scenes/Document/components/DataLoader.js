@@ -50,9 +50,10 @@ class DataLoader extends React.Component<Props> {
     // reload from the server otherwise the UI will not know which authorizations
     // the user has
     if (this.document) {
-      const policy = this.props.policies.get(this.document.id);
+      const document = this.document;
+      const policy = this.props.policies.get(document.id);
 
-      if (!policy && !this.error) {
+      if (!policy && !this.error && !document.isDeleted) {
         this.loadDocument();
       }
     }

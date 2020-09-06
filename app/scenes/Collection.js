@@ -65,6 +65,15 @@ class CollectionScene extends React.Component<Props> {
   componentDidUpdate(prevProps) {
     const { id } = this.props.match.params;
 
+    if (this.collection) {
+      const { collection } = this;
+      const policy = this.props.policies.get(collection.id);
+
+      if (!policy) {
+        this.loadContent(collection.id);
+      }
+    }
+
     if (id && id !== prevProps.match.params.id) {
       this.loadContent(id);
     }
@@ -75,18 +84,24 @@ class CollectionScene extends React.Component<Props> {
   }
 
   loadContent = async (id: string) => {
-    const collection = await this.props.collections.fetch(id);
+    try {
+      const collection = await this.props.collections.fetch(id);
 
-    if (collection) {
-      this.props.ui.setActiveCollection(collection);
-      this.collection = collection;
+      if (collection) {
+        this.props.ui.setActiveCollection(collection);
+        this.collection = collection;
 
-      await this.props.documents.fetchPinned({
-        collectionId: id,
-      });
+        await this.props.documents.fetchPinned({
+          collectionId: id,
+        });
+      }
+    } catch (error) {
+      if (error.name === "AuthorizationError") {
+        this.collection = null;
+      }
+    } finally {
+      this.isFetching = false;
     }
-
-    this.isFetching = false;
   };
 
   onNewDocument = (ev: SyntheticEvent<>) => {
