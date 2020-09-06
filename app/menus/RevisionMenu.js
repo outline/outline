@@ -24,7 +24,7 @@ type Props = {
 class RevisionMenu extends React.Component<Props> {
   handleRestore = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    await this.props.document.restore(this.props.revision);
+    await this.props.document.restore({ revisionId: this.props.revision.id });
     this.props.ui.showToast("Document restored");
     this.props.history.push(this.props.document.url);
   };

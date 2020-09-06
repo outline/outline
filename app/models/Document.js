@@ -141,8 +141,8 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (revision: Revision) => {
-    return this.store.restore(this, revision);
+  restore = (options) => {
+    return this.store.restore(this, options);
   };
 
   unpublish = () => {

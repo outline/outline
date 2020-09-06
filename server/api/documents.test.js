@@ -1198,7 +1198,7 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.documents[0].deletedAt).toEqual(null);
+    expect(body.data.deletedAt).toEqual(null);
   });
 
   it("should allow restore of trashed documents with collectionId", async () => {
@@ -1220,8 +1220,8 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.documents[0].deletedAt).toEqual(null);
-    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(collection.id);
   });
 
   it("should now allow restore of trashed documents to collection user cannot access", async () => {
@@ -1250,7 +1250,7 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.documents[0].archivedAt).toEqual(null);
+    expect(body.data.archivedAt).toEqual(null);
   });
 
   it("should restore archived when previous parent is archived", async () => {
@@ -1270,8 +1270,8 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.documents[0].parentDocumentId).toEqual(undefined);
-    expect(body.data.documents[0].archivedAt).toEqual(null);
+    expect(body.data.parentDocumentId).toEqual(undefined);
+    expect(body.data.archivedAt).toEqual(null);
   });
 
   it("should restore the document to a previous version", async () => {
@@ -1292,7 +1292,7 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.documents[0].text).toEqual(previousText);
+    expect(body.data.text).toEqual(previousText);
   });
 
   it("should not allow restoring a revision in another document", async () => {

@@ -450,13 +450,10 @@ router.post("documents.restore", auth(), async (ctx) => {
   ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
-  let document = await Document.findByPk(id, {
+  const document = await Document.findByPk(id, {
     userId: user.id,
     paranoid: false,
   });
-
-  let documents = [document];
-  let collections = [];
 
   if (collectionId) {
     ctx.assertUuid(collectionId, "collectionId must be a uuid");
@@ -465,20 +462,7 @@ router.post("documents.restore", auth(), async (ctx) => {
     const collection = await Collection.findByPk(collectionId);
     authorize(user, "update", collection);
 
-    const response = await documentMover({
-      user,
-      document,
-      collectionId,
-      ip: ctx.request.ip,
-    });
-
-    documents = response.documents;
-    collections = response.collections;
-    document = find(response.documents, { id });
-    invariant(
-      document,
-      "Original document could not be found in documentMover response"
-    );
+    document.collectionId = collectionId;
   }
 
   if (document.deletedAt) {
@@ -536,15 +520,8 @@ router.post("documents.restore", auth(), async (ctx) => {
   }
 
   ctx.body = {
-    data: {
-      documents: await Promise.all(
-        documents.map((document) => presentDocument(document))
-      ),
-      collections: await Promise.all(
-        collections.map((collection) => presentCollection(collection))
-      ),
-    },
-    policies: presentPolicies(user, documents),
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 
