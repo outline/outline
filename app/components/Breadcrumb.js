@@ -1,11 +1,13 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import {
-  PadlockIcon,
+  ArchiveIcon,
+  EditIcon,
   GoToIcon,
   MoreIcon,
+  PadlockIcon,
   ShapesIcon,
-  EditIcon,
+  TrashIcon,
 } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -25,6 +27,58 @@ type Props = {
   onlyText: boolean,
 };
 
+function Icon({ document }) {
+  if (document.isDeleted) {
+    return (
+      <>
+        <CollectionName to="/trash">
+          <TrashIcon color="currentColor" />
+          &nbsp;
+          <span>Trash</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  if (document.isArchived) {
+    return (
+      <>
+        <CollectionName to="/archive">
+          <ArchiveIcon color="currentColor" />
+          &nbsp;
+          <span>Archive</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  if (document.isDraft) {
+    return (
+      <>
+        <CollectionName to="/drafts">
+          <EditIcon color="currentColor" />
+          &nbsp;
+          <span>Drafts</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  if (document.isTemplate) {
+    return (
+      <>
+        <CollectionName to="/templates">
+          <ShapesIcon color="currentColor" />
+          &nbsp;
+          <span>Templates</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  return null;
+}
+
 const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   let collection = collections.get(document.collectionId);
   if (!collection) {
@@ -32,7 +86,8 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
 
     collection = {
       id: document.collectionId,
-      name: "Deleted",
+      name: "Deleted Collection",
+      color: "currentColor",
     };
   }
 
@@ -59,34 +114,13 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
     );
   }
 
-  const isTemplate = document.isTemplate;
-  const isDraft = !document.publishedAt && !isTemplate;
   const isNestedDocument = path.length > 1;
   const lastPath = path.length ? path[path.length - 1] : undefined;
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
     <Wrapper justify="flex-start" align="center">
-      {isTemplate && (
-        <>
-          <CollectionName to="/templates">
-            <ShapesIcon color="currentColor" />
-            &nbsp;
-            <span>Templates</span>
-          </CollectionName>
-          <Slash />
-        </>
-      )}
-      {isDraft && (
-        <>
-          <CollectionName to="/drafts">
-            <EditIcon color="currentColor" />
-            &nbsp;
-            <span>Drafts</span>
-          </CollectionName>
-          <Slash />
-        </>
-      )}
+      <Icon document={document} />
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />
         &nbsp;
