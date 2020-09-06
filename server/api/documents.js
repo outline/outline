@@ -407,11 +407,15 @@ async function loadDocument({ id, shareId, user }) {
       authorize(user, "read", document);
     }
   } else {
-    document = await Document.findByPk(
-      id,
-      user ? { userId: user.id } : undefined
-    );
-    authorize(user, "read", document);
+    document = await Document.findByPk(id, {
+      userId: user ? user.id : undefined,
+      paranoid: false,
+    });
+    if (document.deletedAt) {
+      authorize(user, "restore", document);
+    } else {
+      authorize(user, "read", document);
+    }
   }
 
   return document;

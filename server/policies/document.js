@@ -122,6 +122,7 @@ allow(User, "delete", Document, (user, document) => {
 
 allow(User, "restore", Document, (user, document) => {
   if (!document.deletedAt) return false;
+  if (document.collection.deletedAt) return false;
   return user.teamId === document.teamId;
 });
 
