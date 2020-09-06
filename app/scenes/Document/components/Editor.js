@@ -21,6 +21,7 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
+  onSave: () => mixed,
   innerRef: { current: any },
 };
 
@@ -58,6 +59,12 @@ class DocumentEditor extends React.Component<Props> {
     if (event.key === "Tab" || event.key === "ArrowDown") {
       event.preventDefault();
       this.focusAtStart();
+      return;
+    }
+    if (event.key === "s" && event.metaKey) {
+      event.preventDefault();
+      this.props.onSave();
+      return;
     }
   };
 
