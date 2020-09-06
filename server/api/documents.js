@@ -1,7 +1,5 @@
 // @flow
-import invariant from "invariant";
 import Router from "koa-router";
-import { find } from "lodash";
 import Sequelize from "sequelize";
 import documentMover from "../commands/documentMover";
 import { InvalidRequestError } from "../errors";

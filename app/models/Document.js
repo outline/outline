@@ -6,7 +6,6 @@ import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
 import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
-import Revision from "models/Revision";
 import User from "models/User";
 
 type SaveOptions = {
