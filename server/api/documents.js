@@ -457,7 +457,9 @@ router.post("documents.restore", auth(), async (ctx) => {
     ctx.assertUuid(collectionId, "collectionId must be a uuid");
     authorize(user, "restore", document);
 
-    const collection = await Collection.findByPk(collectionId);
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
     authorize(user, "update", collection);
 
     document.collectionId = collectionId;
@@ -948,7 +950,9 @@ router.post("documents.move", auth(), async (ctx) => {
   const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, "move", document);
 
-  const collection = await Collection.findByPk(collectionId);
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findByPk(collectionId);
   authorize(user, "update", collection);
 
   if (parentDocumentId) {
