@@ -21,6 +21,17 @@ const Collection = sequelize.define(
     description: DataTypes.STRING,
     icon: DataTypes.STRING,
     color: DataTypes.STRING,
+    defaultSort: {
+      type: DataTypes.STRING,
+      validate: {
+        isEven(value) {
+          const direction = value.split(",")[1];
+          if (!["ASC", "DESC"].includes(direction)) {
+            throw new Error("Invalid sort direction");
+          }
+        },
+      },
+    },
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
     documentStructure: DataTypes.JSONB,
