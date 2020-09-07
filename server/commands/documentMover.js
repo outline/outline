@@ -14,7 +14,7 @@ export default async function documentMover({
   user: Context,
   document: Document,
   collectionId: string,
-  parentDocumentId: string,
+  parentDocumentId?: string,
   index?: number,
   ip: string,
 }) {
@@ -39,6 +39,7 @@ export default async function documentMover({
       // remove from original collection
       const collection = await Collection.findByPk(document.collectionId, {
         transaction,
+        paranoid: false,
       });
       const documentJson = await collection.removeDocumentInStructure(
         document,

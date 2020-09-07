@@ -46,8 +46,9 @@ class CollectionDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the{" "}
-            <strong>{collection.name}</strong> collection is permanent and will
-            also delete all of the documents within it, so be extra careful.
+            <strong>{collection.name}</strong> collection is permanent and
+            cannot be restored, however documents within will be moved to the
+            trash.
           </HelpText>
           <Button type="submit" disabled={this.isDeleting} autoFocus danger>
             {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}

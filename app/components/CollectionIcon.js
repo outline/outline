@@ -18,7 +18,7 @@ function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
   // If the chosen icon color is very dark then we invert it in dark mode
   // otherwise it will be impossible to see against the dark background.
   const color =
-    ui.resolvedTheme === "dark"
+    ui.resolvedTheme === "dark" && collection.color !== "currentColor"
       ? getLuminance(collection.color) > 0.12
         ? collection.color
         : "currentColor"

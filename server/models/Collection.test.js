@@ -144,7 +144,9 @@ describe("#updateDocument", () => {
 
     await collection.updateDocument(newDocument);
 
-    expect(collection.documentStructure[0].children[0].title).toBe(
+    const reloaded = await Collection.findByPk(collection.id);
+
+    expect(reloaded.documentStructure[0].children[0].title).toBe(
       "Updated title"
     );
   });
@@ -224,8 +226,10 @@ describe("#removeDocument", () => {
     // Remove the document
     await collection.deleteDocument(newDocument);
 
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].children.length).toBe(0);
+    const reloaded = await Collection.findByPk(collection.id);
+
+    expect(reloaded.documentStructure.length).toBe(1);
+    expect(reloaded.documentStructure[0].children.length).toBe(0);
 
     const collectionDocuments = await Document.findAndCountAll({
       where: {

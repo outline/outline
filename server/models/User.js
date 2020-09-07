@@ -71,13 +71,14 @@ User.associate = (models) => {
 };
 
 // Instance methods
-User.prototype.collectionIds = async function (paranoid: boolean = true) {
+User.prototype.collectionIds = async function (options = {}) {
   const collectionStubs = await Collection.scope({
     method: ["withMembership", this.id],
   }).findAll({
     attributes: ["id", "private"],
     where: { teamId: this.teamId },
-    paranoid,
+    paranoid: true,
+    ...options,
   });
 
   return collectionStubs
