@@ -50,7 +50,7 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.metaKey) {
       event.preventDefault();
       this.insertParagraph();
       this.focusAtStart();
