@@ -304,7 +304,12 @@ Collection.prototype.updateDocument = async function (
     };
 
     this.documentStructure = updateChildren(this.documentStructure);
-    await this.save({ transaction });
+
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+
+    await this.save({ fields: ["documentStructure"], transaction });
     await transaction.commit();
   } catch (err) {
     if (transaction) {
@@ -357,10 +362,11 @@ Collection.prototype.removeDocumentInStructure = async function (
       document.id
     );
 
-    await this.save({
-      ...options,
-      transaction,
-    });
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+
+    await this.save({ ...options, fields: ["documentStructure"], transaction });
     await transaction.commit();
   } catch (err) {
     if (transaction) {
