@@ -13,7 +13,15 @@ import HelpText from "components/HelpText";
 import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
 import InputRich from "components/InputRich";
+import InputSelect from "components/InputSelect";
 import Switch from "components/Switch";
+
+const SORT_OPTIONS = [
+  { label: "Newest", value: "createdAt,DESC" },
+  { label: "Oldest", value: "createdAt,ASC" },
+  { label: "Recently updated", value: "updatedAt,DESC" },
+  { label: "Least recently updated", value: "updatedAt,ASC" },
+];
 
 type Props = {
   history: RouterHistory,
@@ -28,6 +36,7 @@ class CollectionNew extends React.Component<Props> {
   @observable description: string = "";
   @observable icon: string = "";
   @observable color: string = "#4E5C6E";
+  @observable defaultSort: string = "updatedAt,DESC";
   @observable private: boolean = false;
   @observable isSaving: boolean;
   hasOpenedIconPicker: boolean = false;
@@ -39,6 +48,7 @@ class CollectionNew extends React.Component<Props> {
       {
         name: this.name,
         description: this.description,
+        defaultSort: this.defaultSort,
         icon: this.icon,
         color: this.color,
         private: this.private,
@@ -92,6 +102,10 @@ class CollectionNew extends React.Component<Props> {
     this.private = ev.target.checked;
   };
 
+  handleSortChange = (ev) => {
+    this.defaultSort = ev.target.value;
+  };
+
   handleChange = (color: string, icon: string) => {
     this.color = color;
     this.icon = icon;
@@ -130,6 +144,12 @@ class CollectionNew extends React.Component<Props> {
           placeholder="More details about this collection…"
           minHeight={68}
           maxHeight={200}
+        />
+        <InputSelect
+          label="Sort"
+          onChange={this.handleSortChange}
+          options={SORT_OPTIONS}
+          value={this.defaultSort}
         />
         <Switch
           id="private"

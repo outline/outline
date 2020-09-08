@@ -27,6 +27,7 @@ export default function present(collection: Collection) {
     icon: collection.icon,
     color: collection.color || "#4E5C6E",
     private: collection.private,
+    defaultSort: collection.defaultSort,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,

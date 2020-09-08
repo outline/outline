@@ -30,7 +30,7 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("collections.create", auth(), async (ctx) => {
-  const { name, color, description, icon } = ctx.body;
+  const { name, color, defaultSort, description, icon } = ctx.body;
   const isPrivate = ctx.body.private;
   ctx.assertPresent(name, "name is required");
 
@@ -46,6 +46,7 @@ router.post("collections.create", auth(), async (ctx) => {
     description,
     icon,
     color,
+    defaultSort,
     teamId: user.teamId,
     creatorId: user.id,
     private: isPrivate,
@@ -445,7 +446,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
 });
 
 router.post("collections.update", auth(), async (ctx) => {
-  const { id, name, description, icon, color } = ctx.body;
+  const { id, name, description, defaultSort, icon, color } = ctx.body;
   const isPrivate = ctx.body.private;
   ctx.assertPresent(name, "name is required");
 
@@ -483,6 +484,8 @@ router.post("collections.update", auth(), async (ctx) => {
   collection.icon = icon;
   collection.color = color;
   collection.private = isPrivate;
+
+  if (defaultSort) collection.defaultSort = defaultSort;
 
   await collection.save();
 
