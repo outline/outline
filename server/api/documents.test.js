@@ -185,6 +185,15 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
   });
 
+  it("should not error if document doesn't exist", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/documents.info", {
+      body: { token: user.getJwtToken(), id: "test" },
+    });
+    expect(res.status).toEqual(404);
+  });
+
   it("should require authorization without token", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.info", {
@@ -1307,6 +1316,15 @@ describe("#documents.restore", () => {
       body: { token: user.getJwtToken(), id: document.id, revisionId },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should not error if document doesn't exist", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/documents.restore", {
+      body: { token: user.getJwtToken(), id: "test" },
+    });
+    expect(res.status).toEqual(404);
   });
 
   it("should require authentication", async () => {

@@ -2,7 +2,7 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import documentMover from "../commands/documentMover";
-import { InvalidRequestError } from "../errors";
+import { NotFoundError, InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
 import {
   Backlink,
@@ -411,6 +411,10 @@ async function loadDocument({ id, shareId, user }) {
       userId: user ? user.id : undefined,
       paranoid: false,
     });
+    if (!document) {
+      throw new NotFoundError();
+    }
+
     if (document.deletedAt) {
       authorize(user, "restore", document);
     } else {
@@ -456,6 +460,9 @@ router.post("documents.restore", auth(), async (ctx) => {
     userId: user.id,
     paranoid: false,
   });
+  if (!document) {
+    throw new NotFoundError();
+  }
 
   if (collectionId) {
     ctx.assertUuid(collectionId, "collectionId must be a uuid");
