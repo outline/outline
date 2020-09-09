@@ -1,6 +1,6 @@
 // @flow
 import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { observer, Observer } from "mobx-react";
 import * as React from "react";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
@@ -9,7 +9,10 @@ import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import DropToImport from "components/DropToImport";
 import Flex from "components/Flex";
+import { SidebarDnDContext } from "./Collections";
 import DocumentLink from "./DocumentLink";
+import Draggable from "./Draggable";
+import Droppable from "./Droppable";
 import SidebarLink from "./SidebarLink";
 import CollectionMenu from "menus/CollectionMenu";
 
@@ -41,39 +44,64 @@ class CollectionLink extends React.Component<Props> {
         collectionId={collection.id}
         activeClassName="activeDropZone"
       >
-        <SidebarLink
-          key={collection.id}
-          to={collection.url}
-          icon={<CollectionIcon collection={collection} expanded={expanded} />}
-          iconColor={collection.color}
-          expanded={expanded}
-          hideDisclosure
-          menuOpen={this.menuOpen}
-          label={collection.name}
-          exact={false}
-          menu={
-            <CollectionMenu
-              position="right"
-              collection={collection}
-              onOpen={() => (this.menuOpen = true)}
-              onClose={() => (this.menuOpen = false)}
-            />
-          }
-        >
-          <Flex column>
-            {collection.documents.map((node) => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                documents={documents}
-                collection={collection}
-                activeDocument={activeDocument}
-                prefetchDocument={prefetchDocument}
-                depth={1.5}
-              />
-            ))}
-          </Flex>
-        </SidebarLink>
+        <SidebarDnDContext.Consumer>
+          {({ draggingDocumentId, isDragging }) => (
+            <Droppable collectionId={collection.id}>
+              {(provided, snapshot) => (
+                <SidebarLink
+                  key={collection.id}
+                  to={collection.url}
+                  icon={
+                    <CollectionIcon
+                      collection={collection}
+                      expanded={expanded}
+                    />
+                  }
+                  iconColor={collection.color}
+                  expanded={
+                    isDragging ? expanded || snapshot.isDraggingOver : expanded
+                  }
+                  hideDisclosure
+                  menuOpen={this.menuOpen}
+                  label={collection.name}
+                  exact={false}
+                  menu={
+                    <CollectionMenu
+                      position="right"
+                      collection={collection}
+                      onOpen={() => (this.menuOpen = true)}
+                      onClose={() => (this.menuOpen = false)}
+                    />
+                  }
+                >
+                  <Flex column>
+                    <Observer>
+                      {() =>
+                        collection.documents.map((node, index) => (
+                          <Draggable
+                            key={node.id}
+                            draggableId={node.id}
+                            index={index}
+                          >
+                            <DocumentLink
+                              key={node.id}
+                              node={node}
+                              documents={documents}
+                              collection={collection}
+                              activeDocument={activeDocument}
+                              prefetchDocument={prefetchDocument}
+                              depth={1.5}
+                            />
+                          </Draggable>
+                        ))
+                      }
+                    </Observer>
+                  </Flex>
+                </SidebarLink>
+              )}
+            </Droppable>
+          )}
+        </SidebarDnDContext.Consumer>
       </DropToImport>
     );
   }

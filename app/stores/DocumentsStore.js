@@ -15,7 +15,12 @@ import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-import type { FetchOptions, PaginationParams, SearchResult } from "types";
+import type {
+  FetchOptions,
+  PaginationParams,
+  SearchResult,
+  NavigationNode,
+} from "types";
 import { client } from "utils/ApiClient";
 
 export default class DocumentsStore extends BaseStore<Document> {
@@ -422,15 +427,49 @@ export default class DocumentsStore extends BaseStore<Document> {
   move = async (
     document: Document,
     collectionId: string,
-    parentDocumentId: ?string
+    parentDocumentId: ?string,
+    index: ?number
   ) => {
+    const oldCollection = this.rootStore.collections.get(document.collectionId);
+    let newCollection = oldCollection;
+
+    if (document.collectionId !== collectionId) {
+      newCollection = this.rootStore.collections.get(collectionId);
+    }
+
+    // Update UI
+    if (oldCollection && newCollection) {
+      // Retrive all children documents
+      const childDocuments = oldCollection.getDocumentChildren(document.id);
+      // Remove document from old collection
+      oldCollection.removeDocumentInStructure(document.id);
+
+      // Recreate navigation node object
+      const navigationNode: NavigationNode = {
+        id: document.id,
+        title: document.title,
+        url: document.url,
+        children: childDocuments,
+      };
+
+      // Move document to new location
+      newCollection.addDocumentToStructure(
+        navigationNode,
+        parentDocumentId,
+        index
+      );
+    }
+
+    // Send data to server
     const res = await client.post("/documents.move", {
       id: document.id,
       collectionId,
       parentDocumentId,
+      index: String(index),
     });
     invariant(res && res.data, "Data not available");
 
+    // Apply data from the server
     res.data.documents.forEach(this.add);
     res.data.collections.forEach(this.rootStore.collections.add);
     this.addPolicies(res.policies);

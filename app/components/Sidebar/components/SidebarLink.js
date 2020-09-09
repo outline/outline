@@ -95,7 +95,7 @@ function SidebarLink({
         </Label>
         {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
       </StyledNavLink>
-      {expanded && children}
+      <ChildrenWrapper expanded={expanded}>{children}</ChildrenWrapper>
     </Wrapper>
   );
 }
@@ -170,5 +170,9 @@ const Disclosure = styled(CollapsedIcon)`
 
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
+
+const ChildrenWrapper = styled.div(({ expanded }) => ({
+  display: expanded ? "block" : "none",
+}));
 
 export default withRouter(withTheme(observer(SidebarLink)));

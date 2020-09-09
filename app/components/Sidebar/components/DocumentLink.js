@@ -1,6 +1,6 @@
 // @flow
 import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { observer, Observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
@@ -9,6 +9,9 @@ import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import { SidebarDnDContext } from "./Collections";
+import Draggable from "./Draggable";
+import Droppable from "./Droppable";
 import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
@@ -16,11 +19,12 @@ import { type NavigationNode } from "types";
 type Props = {
   node: NavigationNode,
   documents: DocumentsStore,
-  collection?: Collection,
+  collection: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
+  isDropDisabled?: boolean,
 };
 
 @observer
@@ -69,6 +73,7 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
+      isDropDisabled,
     } = this.props;
 
     const showChildren = !!(
@@ -82,6 +87,11 @@ class DocumentLink extends React.Component<Props> {
     );
     const document = documents.get(node.id);
 
+    let hideDisclosure;
+    if (!this.hasChildDocuments()) {
+      hideDisclosure = true;
+    }
+
     return (
       <Flex
         column
@@ -90,45 +100,74 @@ class DocumentLink extends React.Component<Props> {
         onMouseEnter={this.handleMouseEnter}
       >
         <DropToImport documentId={node.id} activeClassName="activeDropZone">
-          <SidebarLink
-            to={{
-              pathname: node.url,
-              state: { title: node.title },
+          <SidebarDnDContext.Consumer>
+            {({ draggingDocumentId, isDragging }) => {
+              const disableChildDrops =
+                isDropDisabled || draggingDocumentId === node.id;
+
+              return (
+                <SidebarLink
+                  to={{
+                    pathname: node.url,
+                    state: { title: node.title },
+                  }}
+                  expanded={showChildren ? true : undefined}
+                  hideDisclosure={hideDisclosure}
+                  label={node.title || "Untitled"}
+                  depth={depth}
+                  exact={false}
+                  menuOpen={this.menuOpen}
+                  menu={
+                    document ? (
+                      <Fade>
+                        <DocumentMenu
+                          position="right"
+                          document={document}
+                          onOpen={() => (this.menuOpen = true)}
+                          onClose={() => (this.menuOpen = false)}
+                        />
+                      </Fade>
+                    ) : undefined
+                  }
+                >
+                  {this.hasChildDocuments() && !disableChildDrops && (
+                    <Droppable
+                      collectionId={collection.id}
+                      documentId={node.id}
+                      isDropDisabled={disableChildDrops}
+                    >
+                      {(provided, snapshot) => (
+                        <DocumentChildren column>
+                          <Observer>
+                            {() =>
+                              node.children.map((childNode, index) => (
+                                <Draggable
+                                  key={childNode.id}
+                                  draggableId={childNode.id}
+                                  index={index}
+                                >
+                                  <DocumentLink
+                                    key={childNode.id}
+                                    collection={collection}
+                                    node={childNode}
+                                    documents={documents}
+                                    activeDocument={activeDocument}
+                                    prefetchDocument={prefetchDocument}
+                                    depth={depth + 1}
+                                    isDropDisabled={disableChildDrops}
+                                  />
+                                </Draggable>
+                              ))
+                            }
+                          </Observer>
+                        </DocumentChildren>
+                      )}
+                    </Droppable>
+                  )}
+                </SidebarLink>
+              );
             }}
-            expanded={showChildren ? true : undefined}
-            label={node.title || "Untitled"}
-            depth={depth}
-            exact={false}
-            menuOpen={this.menuOpen}
-            menu={
-              document ? (
-                <Fade>
-                  <DocumentMenu
-                    position="right"
-                    document={document}
-                    onOpen={() => (this.menuOpen = true)}
-                    onClose={() => (this.menuOpen = false)}
-                  />
-                </Fade>
-              ) : undefined
-            }
-          >
-            {this.hasChildDocuments() && (
-              <DocumentChildren column>
-                {node.children.map((childNode) => (
-                  <DocumentLink
-                    key={childNode.id}
-                    collection={collection}
-                    node={childNode}
-                    documents={documents}
-                    activeDocument={activeDocument}
-                    prefetchDocument={prefetchDocument}
-                    depth={depth + 1}
-                  />
-                ))}
-              </DocumentChildren>
-            )}
-          </SidebarLink>
+          </SidebarDnDContext.Consumer>
         </DropToImport>
       </Flex>
     );
