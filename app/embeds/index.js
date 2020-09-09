@@ -19,6 +19,7 @@ import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
 import Prezi from "./Prezi";
 import Spotify from "./Spotify";
+import ToriiCatalog from "./ToriiCatalog";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
@@ -167,6 +168,13 @@ export default [
     icon: () => <Img src="/images/spotify.png" />,
     component: Spotify,
     matcher: matcher(Spotify),
+  },
+  {
+    title: "Torii",
+    keywords: "catalog",
+    icon: () => <Img src="/images/torii.png" />,
+    component: ToriiCatalog,
+    matcher: matcher(ToriiCatalog),
   },
   {
     title: "Trello",
