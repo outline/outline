@@ -102,6 +102,11 @@ class DataLoader extends React.Component<Props> {
   loadDocument = async () => {
     const { shareId, documentSlug, revisionId } = this.props.match.params;
 
+    // sets the document as active in the sidebar if we already have it loaded
+    if (this.document) {
+      this.props.ui.setActiveDocument(this.document);
+    }
+
     try {
       this.document = await this.props.documents.fetch(documentSlug, {
         shareId,
