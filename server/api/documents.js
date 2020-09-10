@@ -571,7 +571,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   const documents = results.map((result) => result.document);
   const data = await Promise.all(
     results.map(async (result) => {
-      const document = await presentDocument(result.document, user.id);
+      const document = await presentDocument(result.document);
       return { ...result, document };
     })
   );

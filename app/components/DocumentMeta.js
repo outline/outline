@@ -106,7 +106,7 @@ function DocumentMeta({
 
   const timeSinceNow = () => {
     if (!lastViewedAt)
-      return <Modified highlight={true}>Never Viewed</Modified>;
+      return <Modified highlight={true}>Never viewed</Modified>;
 
     return (
       <span>

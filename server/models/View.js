@@ -52,19 +52,6 @@ View.findByDocument = async (documentId) => {
   });
 };
 
-View.findByDocumentAndUser = async (documentId, userId) => {
-  return View.findOne({
-    where: { documentId, userId },
-    order: [["updatedAt", "DESC"]],
-    include: [
-      {
-        model: User,
-        paranoid: false,
-      },
-    ],
-  });
-};
-
 View.findRecentlyEditingByDocument = async (documentId) => {
   return View.findAll({
     where: {

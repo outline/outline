@@ -50,7 +50,7 @@ export default class Document extends BaseModel {
   constructor(fields: Object, store: DocumentsStore) {
     super(fields, store);
 
-    if (this.isNew && this.isFromTemplate) {
+    if (this.isNewDocument && this.isFromTemplate) {
       this.title = "";
     }
   }
@@ -76,7 +76,7 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get new(): boolean {
+  get isNew(): boolean {
     return (
       !this.lastViewedAt &&
       differenceInDays(new Date(), new Date(this.createdAt)) < 14
@@ -123,7 +123,7 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get isNew(): boolean {
+  get isNewDocument(): boolean {
     return this.createdAt === this.updatedAt;
   }
 

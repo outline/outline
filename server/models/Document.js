@@ -209,16 +209,7 @@ Document.associate = (models) => {
     ],
   });
   Document.addScope("withViews", (userId) => {
-    if (!userId)
-      return {
-        include: [
-          {
-            model: models.View,
-            as: "views",
-            required: false,
-          },
-        ],
-      };
+    if (!userId) return {};
 
     return {
       include: [
