@@ -20,6 +20,7 @@ import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
 import { type LocationWithState } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
+import isInternalUrl from "utils/isInternalUrl";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
@@ -70,6 +71,8 @@ class DataLoader extends React.Component<Props> {
   }
 
   onSearchLink = async (term: string) => {
+    if (isInternalUrl(term)) console.log("INTERNAL");
+
     const results = await this.props.documents.search(term);
 
     return results
