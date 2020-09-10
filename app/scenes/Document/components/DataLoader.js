@@ -5,6 +5,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
+import parseDocumentSlugFromUrl from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
@@ -71,8 +72,27 @@ class DataLoader extends React.Component<Props> {
   }
 
   onSearchLink = async (term: string) => {
-    if (isInternalUrl(term)) console.log("INTERNAL");
+    if (isInternalUrl(term)) {
+      // search for exact internal document
+      const slug = parseDocumentSlugFromUrl(term);
+      try {
+        const document = await this.props.documents.fetch(slug);
+        return [
+          {
+            title: document.title,
+            url: document.url,
+          },
+        ];
+      } catch (err) {}
+    } else {
+      try {
+        // don't search at all if term is a non-internal url
+        new URL(term);
+        return;
+      } catch (err) {}
+    }
 
+    // default search for anything that doesn't look like a URL
     const results = await this.props.documents.search(term);
 
     return results
