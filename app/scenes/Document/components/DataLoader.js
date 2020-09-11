@@ -83,13 +83,12 @@ class DataLoader extends React.Component<Props> {
             url: document.url,
           },
         ];
-      } catch (err) {}
-    } else {
-      try {
-        // don't search at all if term is a non-internal url
-        new URL(term);
-        return;
-      } catch (err) {}
+      } catch (error) {
+        // NotFoundError could not find document for slug
+        if (!(error instanceof NotFoundError)) {
+          throw error;
+        }
+      }
     }
 
     // default search for anything that doesn't look like a URL
