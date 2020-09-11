@@ -23,6 +23,7 @@ function eachMinute(fn) {
 type Props = {
   dateTime: string,
   children?: React.Node,
+  tooltipDelay?: number,
 };
 
 class Time extends React.Component<Props> {
@@ -42,6 +43,7 @@ class Time extends React.Component<Props> {
     return (
       <Tooltip
         tooltip={format(this.props.dateTime, "MMMM Do, YYYY h:mm a")}
+        delay={this.props.tooltipDelay}
         placement="bottom"
       >
         <time dateTime={this.props.dateTime}>
