@@ -15,11 +15,13 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
+import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UsersStore from "stores/UsersStore";
 
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
+import CollectionPreview from "components/CollectionPreview";
 import DocumentPreview from "components/DocumentPreview";
 import Empty from "components/Empty";
 import Fade from "components/Fade";
@@ -42,6 +44,7 @@ type Props = {
   match: Match,
   location: LocationWithState,
   documents: DocumentsStore,
+  collections: CollectionsStore,
   users: UsersStore,
   notFound: ?boolean,
 };
@@ -196,6 +199,8 @@ class Search extends React.Component<Props> {
           userId: this.userId,
         });
 
+        !this.collectionId && (await this.props.collections.search(this.query));
+
         this.pinToTop = true;
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
@@ -229,9 +234,16 @@ class Search extends React.Component<Props> {
   };
 
   render() {
-    const { documents, notFound, location } = this.props;
+    const { documents, notFound, location, collections } = this.props;
     const results = documents.searchResults(this.query);
-    const showEmpty = !this.isFetching && this.query && results.length === 0;
+    const collectionResults = !this.collectionId
+      ? collections.searchResults(this.query)
+      : [];
+    const showEmpty =
+      !this.isFetching &&
+      this.query &&
+      results.length === 0 &&
+      collectionResults.length === 0;
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
 
@@ -319,6 +331,18 @@ class Search extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
+              {collectionResults.map((result) => {
+                const collection = collections.data.get(result.collection.id);
+                if (!collection) return null;
+
+                return (
+                  <CollectionPreview
+                    key={collection.id}
+                    collection={collection}
+                    highlight={this.query}
+                  />
+                );
+              })}
               {results.map((result, index) => {
                 const document = documents.data.get(result.document.id);
                 if (!document) return null;
@@ -400,4 +424,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withRouter(inject("documents")(Search));
+export default withRouter(inject("collections", "documents")(Search));

@@ -1,5 +1,6 @@
 // @flow
 import { type Location } from "react-router-dom";
+import Collection from "models/Collection";
 import Document from "models/Document";
 
 export type LocationWithState = Location & {
@@ -53,4 +54,8 @@ export type SearchResult = {
   ranking: number,
   context: string,
   document: Document,
+};
+
+export type CollectionSearchResult = {
+  collection: Collection,
 };

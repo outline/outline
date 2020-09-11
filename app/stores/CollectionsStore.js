@@ -1,11 +1,12 @@
 // @flow
-import { concat, filter, last } from "lodash";
-import { computed } from "mobx";
+import { concat, filter, last, compact } from "lodash";
+import { computed, observable, action } from "mobx";
 
 import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import type { CollectionSearchResult } from "types";
 import { client } from "utils/ApiClient";
 
 export type DocumentPathItem = {
@@ -21,6 +22,8 @@ export type DocumentPath = DocumentPathItem & {
 };
 
 export default class CollectionsStore extends BaseStore<Collection> {
+  @observable searchCache: Map<string, CollectionSearchResult[]> = new Map();
+
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
   }
@@ -87,6 +90,28 @@ export default class CollectionsStore extends BaseStore<Collection> {
       };
     });
   }
+
+  searchResults(query: string): CollectionSearchResult[] {
+    return this.searchCache.get(query) || [];
+  }
+
+  @action
+  search = async (query: string): Promise<CollectionSearchResult[]> => {
+    const results: CollectionSearchResult[] = compact(
+      this.orderedData.map((collection) => {
+        if (!collection.name.toLowerCase().includes(query.toLowerCase())) {
+          return null;
+        }
+
+        return {
+          collection,
+        };
+      })
+    );
+    this.searchCache.set(query, results);
+
+    return results;
+  };
 
   getPathForDocument(documentId: string): ?DocumentPath {
     return this.pathsToDocuments.find((path) => path.id === documentId);
