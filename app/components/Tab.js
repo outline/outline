@@ -10,7 +10,6 @@ type Props = {
 
 const StyledNavLink = styled(NavLink)`
   position: relative;
-  bottom: -1px;
 
   display: inline-block;
   font-weight: 500;
