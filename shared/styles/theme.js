@@ -159,7 +159,7 @@ export const light = {
   quote: colors.slateLight,
   codeBackground: colors.smoke,
   codeBorder: colors.smokeDark,
-  embedBorder: "#DDD #DDD #CCC",
+  embedBorder: colors.slateLight,
   horizontalRule: colors.smokeDark,
 
   noticeInfoBackground: colors.warmGrey,
