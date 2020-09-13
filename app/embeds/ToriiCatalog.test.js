@@ -2,7 +2,7 @@
 import ToriiCatalog from "./ToriiCatalog";
 
 describe("ToriiCatalog", () => {
-  const match = Figma.ENABLED[0];
+  const match = ToriiCatalog.ENABLED[0];
   test("to be enabled on file link", () => {
     expect(
       "https://catalog.toriihq.com/toriihq".match(match)
