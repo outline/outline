@@ -3,7 +3,7 @@ import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentSlug";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
@@ -15,7 +15,7 @@ type Props = {
 };
 
 function HoverPreviewDocument({ url, documents, children }: Props) {
-  const slug = parseDocumentSlugFromUrl(url);
+  const slug = parseDocumentSlug(url);
 
   documents.prefetchDocument(slug, {
     prefetch: true,
