@@ -1,6 +1,6 @@
 // @flow
 
-export default function parseDocumentSlugFromUrl(url: string) {
+export default function parseDocumentSlug(url: string) {
   let parsed;
   if (url[0] === "/") {
     parsed = url;
