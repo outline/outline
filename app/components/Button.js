@@ -1,6 +1,6 @@
 // @flow
 import { ExpandedIcon } from "outline-icons";
-import { darken, lighten } from "polished";
+import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 
