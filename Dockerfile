@@ -1,4 +1,4 @@
-FROM node:12-alpine
+FROM node:14-alpine
 
 ENV PATH /opt/outline/node_modules/.bin:/opt/node_modules/.bin:$PATH
 ENV NODE_PATH /opt/outline/node_modules:/opt/node_modules
@@ -11,6 +11,7 @@ COPY . $APP_PATH
 RUN yarn install --pure-lockfile
 RUN yarn build
 RUN cp -r /opt/outline/node_modules /opt/node_modules
+ENV NODE_ENV production
 
 CMD yarn start
 
