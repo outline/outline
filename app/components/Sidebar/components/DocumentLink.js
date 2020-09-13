@@ -9,6 +9,7 @@ import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
@@ -49,6 +50,18 @@ class DocumentLink extends React.Component<Props> {
     prefetchDocument(node.id);
   };
 
+  handleTitleChange = async (title: string) => {
+    const document = this.props.documents.get(this.props.node.id);
+    if (!document) return;
+
+    await this.props.documents.update({
+      id: document.id,
+      lastRevision: document.revision,
+      text: document.text,
+      title,
+    });
+  };
+
   isActiveDocument = () => {
     return (
       this.props.activeDocument &&
@@ -81,6 +94,7 @@ class DocumentLink extends React.Component<Props> {
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
+    const title = node.title || "Untitled";
 
     return (
       <Flex
@@ -96,7 +110,9 @@ class DocumentLink extends React.Component<Props> {
               state: { title: node.title },
             }}
             expanded={showChildren ? true : undefined}
-            label={node.title || "Untitled"}
+            label={
+              <EditableTitle title={title} onSubmit={this.handleTitleChange} />
+            }
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}

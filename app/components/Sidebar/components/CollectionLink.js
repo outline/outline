@@ -10,6 +10,7 @@ import CollectionIcon from "components/CollectionIcon";
 import DropToImport from "components/DropToImport";
 import Flex from "components/Flex";
 import DocumentLink from "./DocumentLink";
+import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import CollectionMenu from "menus/CollectionMenu";
 
@@ -24,6 +25,10 @@ type Props = {
 @observer
 class CollectionLink extends React.Component<Props> {
   @observable menuOpen = false;
+
+  handleTitleChange = async (name: string) => {
+    await this.props.collection.save({ name });
+  };
 
   render() {
     const {
@@ -49,7 +54,12 @@ class CollectionLink extends React.Component<Props> {
           expanded={expanded}
           hideDisclosure
           menuOpen={this.menuOpen}
-          label={collection.name}
+          label={
+            <EditableTitle
+              title={collection.name}
+              onSubmit={this.handleTitleChange}
+            />
+          }
           exact={false}
           menu={
             <CollectionMenu

@@ -1,0 +1,89 @@
+// @flow
+import * as React from "react";
+import styled from "styled-components";
+import useStores from "hooks/useStores";
+
+type Props = {|
+  onSubmit: (title: string) => Promise<void>,
+  title: string,
+|};
+
+function EditableTitle({ title, onSubmit }: Props) {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [originalValue, setOriginalValue] = React.useState(title);
+  const [value, setValue] = React.useState(title);
+  const { ui } = useStores();
+
+  const handleChange = React.useCallback((event) => {
+    setValue(event.target.value);
+  }, []);
+
+  const handleDoubleClick = React.useCallback((event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsEditing(true);
+  }, []);
+
+  const handleKeyDown = React.useCallback(
+    (event) => {
+      if (event.key === "Escape") {
+        setIsEditing(false);
+        setValue(originalValue);
+      }
+    },
+    [originalValue]
+  );
+
+  const handleSave = React.useCallback(async () => {
+    setIsEditing(false);
+
+    if (value === originalValue) {
+      return;
+    }
+
+    if (document) {
+      try {
+        await onSubmit(value);
+        setOriginalValue(value);
+      } catch (error) {
+        setValue(originalValue);
+        ui.showToast(error.message);
+        throw error;
+      }
+    }
+  }, [ui, originalValue, value, onSubmit]);
+
+  return (
+    <span onDoubleClick={handleDoubleClick}>
+      {isEditing ? (
+        <form onSubmit={handleSave}>
+          <Input
+            type="text"
+            value={value}
+            onKeyDown={handleKeyDown}
+            onChange={handleChange}
+            onBlur={handleSave}
+            autoFocus
+          />
+        </form>
+      ) : (
+        value
+      )}
+    </span>
+  );
+}
+
+const Input = styled.input`
+  margin-left: -2px;
+  background: ${(props) => props.theme.background};
+  width: calc(100% - 10px);
+  border-radius: 3px;
+  border: 1px solid ${(props) => props.theme.inputBorderFocused};
+  padding: 1px 2px;
+
+  &:focus {
+    outline-color: ${(props) => props.theme.primary};
+  }
+`;
+
+export default EditableTitle;
