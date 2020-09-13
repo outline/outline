@@ -26,22 +26,24 @@ export default class Websockets {
           paranoid: false,
         });
 
-        return socketio
-          .to(`collection-${document.collectionId}`)
-          .emit("entities", {
-            event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
-            collectionIds: [
-              {
-                id: document.collectionId,
-              },
-            ],
-          });
+        const channel = document.publishedAt
+          ? `collection-${document.collectionId}`
+          : `user-${event.actorId}`;
+
+        return socketio.to(channel).emit("entities", {
+          event: event.name,
+          documentIds: [
+            {
+              id: document.id,
+              updatedAt: document.updatedAt,
+            },
+          ],
+          collectionIds: [
+            {
+              id: document.collectionId,
+            },
+          ],
+        });
       }
       case "documents.delete": {
         const document = await Document.findByPk(event.documentId, {
@@ -84,17 +86,19 @@ export default class Websockets {
           paranoid: false,
         });
 
-        return socketio
-          .to(`collection-${document.collectionId}`)
-          .emit("entities", {
-            event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
-          });
+        const channel = document.publishedAt
+          ? `collection-${document.collectionId}`
+          : `user-${event.actorId}`;
+
+        return socketio.to(channel).emit("entities", {
+          event: event.name,
+          documentIds: [
+            {
+              id: document.id,
+              updatedAt: document.updatedAt,
+            },
+          ],
+        });
       }
       case "documents.create": {
         const document = await Document.findByPk(event.documentId);
