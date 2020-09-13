@@ -40,6 +40,15 @@ Revision.associate = (models) => {
   );
 };
 
+Revision.findLatest = function (documentId) {
+  return Revision.findOne({
+    where: {
+      documentId,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+};
+
 Revision.prototype.migrateVersion = function () {
   let migrated = false;
 

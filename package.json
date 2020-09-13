@@ -66,7 +66,7 @@
     "@babel/preset-flow": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
     "@rehooks/window-scroll-position": "^1.0.1",
-    "@sentry/node": "^5.22.3",
+    "@sentry/node": "^5.23.0",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
     "autotrack": "^2.4.1",
@@ -88,6 +88,7 @@
     "exports-loader": "^0.6.4",
     "file-loader": "^1.1.6",
     "flow-typed": "^2.6.2",
+    "focus-visible": "^5.1.0",
     "fs-extra": "^4.0.2",
     "google-auth-library": "^5.5.1",
     "http-errors": "1.4.0",
@@ -138,7 +139,7 @@
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "rich-markdown-editor": "^10.6.5",
+    "rich-markdown-editor": "^11.0.0-4",
     "semver": "^7.3.2",
     "sequelize": "^6.3.4",
     "sequelize-cli": "^6.2.0",
@@ -191,5 +192,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },
-  "version": "0.46.1"
+  "version": "0.47.1"
 }

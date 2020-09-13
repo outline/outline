@@ -21,6 +21,7 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
+  onSave: () => mixed,
   innerRef: { current: any },
 };
 
@@ -40,10 +41,30 @@ class DocumentEditor extends React.Component<Props> {
     }
   };
 
+  insertParagraph = () => {
+    if (this.props.innerRef.current) {
+      const { view } = this.props.innerRef.current;
+      const { dispatch, state } = view;
+      dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
+    }
+  };
+
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter" || event.key === "Tab") {
+    if (event.key === "Enter" && !event.metaKey) {
+      event.preventDefault();
+      this.insertParagraph();
+      this.focusAtStart();
+      return;
+    }
+    if (event.key === "Tab" || event.key === "ArrowDown") {
       event.preventDefault();
       this.focusAtStart();
+      return;
+    }
+    if (event.key === "s" && event.metaKey) {
+      event.preventDefault();
+      this.props.onSave();
+      return;
     }
   };
 
@@ -78,6 +99,7 @@ class DocumentEditor extends React.Component<Props> {
           value={!title && readOnly ? document.titleWithDefault : title}
           style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
           readOnly={readOnly}
+          disabled={readOnly}
           autoFocus={!title}
           maxLength={100}
         />

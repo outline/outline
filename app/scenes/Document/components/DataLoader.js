@@ -5,6 +5,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
@@ -20,6 +21,7 @@ import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
 import { type LocationWithState } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
+import isInternalUrl from "utils/isInternalUrl";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
@@ -50,7 +52,8 @@ class DataLoader extends React.Component<Props> {
     // reload from the server otherwise the UI will not know which authorizations
     // the user has
     if (this.document) {
-      const policy = this.props.policies.get(this.document.id);
+      const document = this.document;
+      const policy = this.props.policies.get(document.id);
 
       if (!policy && !this.error) {
         this.loadDocument();
@@ -69,6 +72,26 @@ class DataLoader extends React.Component<Props> {
   }
 
   onSearchLink = async (term: string) => {
+    if (isInternalUrl(term)) {
+      // search for exact internal document
+      const slug = parseDocumentSlug(term);
+      try {
+        const document = await this.props.documents.fetch(slug);
+        return [
+          {
+            title: document.title,
+            url: document.url,
+          },
+        ];
+      } catch (error) {
+        // NotFoundError could not find document for slug
+        if (!(error instanceof NotFoundError)) {
+          throw error;
+        }
+      }
+    }
+
+    // default search for anything that doesn't look like a URL
     const results = await this.props.documents.search(term);
 
     return results
@@ -100,6 +123,11 @@ class DataLoader extends React.Component<Props> {
 
   loadDocument = async () => {
     const { shareId, documentSlug, revisionId } = this.props.match.params;
+
+    // sets the document as active in the sidebar if we already have it loaded
+    if (this.document) {
+      this.props.ui.setActiveDocument(this.document);
+    }
 
     try {
       this.document = await this.props.documents.fetch(documentSlug, {

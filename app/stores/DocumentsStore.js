@@ -12,11 +12,9 @@ import {
 } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
-
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
 
@@ -435,6 +433,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     res.data.documents.forEach(this.add);
     res.data.collections.forEach(this.rootStore.collections.add);
+    this.addPolicies(res.policies);
   };
 
   @action
@@ -500,6 +499,13 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);
     });
 
+    // check to see if we have any shares related to this document already
+    // loaded in local state. If so we can go ahead and remove those too.
+    const share = this.rootStore.shares.getByDocumentId(document.id);
+    if (share) {
+      this.rootStore.shares.remove(share.id);
+    }
+
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
   }
@@ -520,12 +526,28 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  restore = async (document: Document, revision?: Revision) => {
+  restore = async (document: Document, options = {}) => {
     const res = await client.post("/documents.restore", {
       id: document.id,
-      revisionId: revision ? revision.id : undefined,
+      ...options,
     });
     runInAction("Document#restore", () => {
+      invariant(res && res.data, "Data should be available");
+      document.updateFromJson(res.data);
+      this.addPolicies(res.policies);
+    });
+
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.refresh();
+  };
+
+  @action
+  unpublish = async (document: Document) => {
+    const res = await client.post("/documents.unpublish", {
+      id: document.id,
+    });
+
+    runInAction("Document#unpublish", () => {
       invariant(res && res.data, "Data should be available");
       document.updateFromJson(res.data);
       this.addPolicies(res.policies);

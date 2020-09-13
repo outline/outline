@@ -1,10 +1,9 @@
 // @flow
 import removeMarkdown from "@tommoor/remove-markdown";
-import { map, find, compact, uniq } from "lodash";
+import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import Sequelize, { type Transaction } from "sequelize";
+import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
-
 import isUUID from "validator/lib/isUUID";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
@@ -19,15 +18,14 @@ const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
 
-const createRevision = (doc, options = {}) => {
+const createRevision = async (doc, options = {}) => {
   // we don't create revisions for autosaves
   if (options.autosave) return;
 
+  const previous = await Revision.findLatest(doc.id);
+
   // we don't create revisions if identical to previous
-  if (
-    doc.text === doc.previous("text") &&
-    doc.title === doc.previous("title")
-  ) {
+  if (previous && doc.text === previous.text && doc.title === previous.title) {
     return;
   }
 
@@ -551,6 +549,18 @@ Document.prototype.publish = async function (options) {
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
+  await this.save(options);
+
+  return this;
+};
+
+Document.prototype.unpublish = async function (options) {
+  if (!this.publishedAt) return this;
+
+  const collection = await this.getCollection();
+  await collection.removeDocumentInStructure(this);
+
+  this.publishedAt = null;
   await this.save(options);
 
   return this;

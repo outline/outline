@@ -1,12 +1,11 @@
 // @flow
 import addDays from "date-fns/add_days";
 import invariant from "invariant";
-import { action, set, observable, computed } from "mobx";
+import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
 import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
-import Revision from "models/Revision";
 import User from "models/User";
 
 type SaveOptions = {
@@ -141,8 +140,12 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (revision: Revision) => {
-    return this.store.restore(this, revision);
+  restore = (options) => {
+    return this.store.restore(this, options);
+  };
+
+  unpublish = () => {
+    return this.store.unpublish(this);
   };
 
   @action

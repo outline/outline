@@ -5,7 +5,7 @@ import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import { fadeAndSlideIn } from "shared/styles/animations";
-import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentSlug";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
 import isInternalUrl from "utils/isInternalUrl";
@@ -21,7 +21,7 @@ type Props = {
 };
 
 function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
-  const slug = parseDocumentSlugFromUrl(node.href);
+  const slug = parseDocumentSlug(node.href);
 
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef();

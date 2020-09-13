@@ -12,6 +12,8 @@ import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
+const EMPTY_OBJECT = {};
+
 type Props = {
   children?: React.Node,
   onSuccess: (string) => void | Promise<void>,
@@ -123,10 +125,8 @@ class ImageUpload extends React.Component<Props> {
       <Dropzone
         accept="image/png, image/jpeg"
         onDropAccepted={this.onDropAccepted}
-        style={{}}
+        style={EMPTY_OBJECT}
         disablePreview
-        onSuccess={this.props.onSuccess}
-        onError={this.props.onError}
       >
         {this.props.children}
       </Dropzone>

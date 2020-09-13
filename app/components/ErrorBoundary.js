@@ -55,7 +55,26 @@ class ErrorBoundary extends React.Component<Props> {
 
   render() {
     if (this.error) {
+      const error = this.error;
       const isReported = !!window.Sentry && env.DEPLOYMENT === "hosted";
+      const isChunkError = this.error.message.match(/chunk/);
+
+      if (isChunkError) {
+        return (
+          <CenteredContent>
+            <PageTitle title="Module failed to load" />
+            <h1>Loading Failed</h1>
+            <HelpText>
+              Sorry, part of the application failed to load. This may be because
+              it was updated since you opened the tab or because of a failed
+              network request. Please try reloading.
+            </HelpText>
+            <p>
+              <Button onClick={this.handleReload}>Reload</Button>
+            </p>
+          </CenteredContent>
+        );
+      }
 
       return (
         <CenteredContent>
@@ -66,7 +85,7 @@ class ErrorBoundary extends React.Component<Props> {
             {isReported && " – our engineers have been notified"}. Please try
             reloading the page, it may have been a temporary glitch.
           </HelpText>
-          {this.showDetails && <Pre>{this.error.toString()}</Pre>}
+          {this.showDetails && <Pre>{error.toString()}</Pre>}
           <p>
             <Button onClick={this.handleReload}>Reload</Button>{" "}
             {this.showDetails ? (

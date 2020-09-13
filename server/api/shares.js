@@ -21,13 +21,15 @@ router.post("shares.info", auth(), async (ctx) => {
     where: id
       ? {
           id,
+          revokedAt: { [Op.eq]: null },
         }
       : {
           documentId,
           userId: user.id,
+          revokedAt: { [Op.eq]: null },
         },
   });
-  if (!share) {
+  if (!share || !share.document) {
     throw new NotFoundError();
   }
 
@@ -63,6 +65,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
       {
         model: Document,
         required: true,
+        paranoid: true,
         as: "document",
         where: {
           collectionId: collectionIds,
@@ -168,9 +171,12 @@ router.post("shares.revoke", auth(), async (ctx) => {
   const share = await Share.findByPk(id);
   authorize(user, "revoke", share);
 
-  await share.revoke(user.id);
-
   const document = await Document.findByPk(share.documentId);
+  if (!document) {
+    throw new NotFoundError();
+  }
+
+  await share.revoke(user.id);
 
   await Event.create({
     name: "shares.revoke",
