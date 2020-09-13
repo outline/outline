@@ -76,4 +76,12 @@ export default createGlobalStyle`
     height: 0;
     border-top: 1px solid ${(props) => props.theme.divider};
   }
+
+  .js-focus-visible :focus:not(.focus-visible) {
+    outline: none;
+  }
+
+  .js-focus-visible .focus-visible {
+    outline-color: ${(props) => props.theme.primary};
+  }
 `;

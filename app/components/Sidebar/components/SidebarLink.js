@@ -143,7 +143,6 @@ const StyledNavLink = styled(NavLink)`
   &:focus {
     color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.black05};
-    outline: none;
   }
 
   &:hover {
