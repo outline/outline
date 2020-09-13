@@ -32,6 +32,32 @@ describe("documents.update", () => {
     expect(backlinks.length).toBe(1);
   });
 
+  test("should not fail when previous revision is different document version", async () => {
+    const otherDocument = await buildDocument();
+    const document = await buildDocument({
+      version: null,
+      text: `[ ] checklist item`,
+    });
+
+    document.text = `[this is a link](${otherDocument.url})`;
+    await document.save();
+
+    await Backlinks.on({
+      name: "documents.update",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      data: { autosave: false },
+    });
+
+    const backlinks = await Backlink.findAll({
+      where: { reverseDocumentId: document.id },
+    });
+
+    expect(backlinks.length).toBe(1);
+  });
+
   test("should create new backlink records", async () => {
     const otherDocument = await buildDocument();
     const document = await buildDocument();
