@@ -148,6 +148,7 @@ const Title = styled(Textarea)`
 
   &::placeholder {
     color: ${(props) => props.theme.placeholder};
+    -webkit-text-fill-color: ${(props) => props.theme.placeholder};
   }
 `;
 
