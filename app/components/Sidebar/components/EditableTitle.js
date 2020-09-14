@@ -15,6 +15,10 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
   const [value, setValue] = React.useState(title);
   const { ui } = useStores();
 
+  React.useEffect(() => {
+    setValue(title);
+  }, [title]);
+
   const handleChange = React.useCallback((event) => {
     setValue(event.target.value);
   }, []);
