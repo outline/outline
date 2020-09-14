@@ -199,8 +199,6 @@ class Search extends React.Component<Props> {
           userId: this.userId,
         });
 
-        !this.collectionId && (await this.props.collections.search(this.query));
-
         this.pinToTop = true;
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
@@ -237,7 +235,7 @@ class Search extends React.Component<Props> {
     const { documents, notFound, location, collections } = this.props;
     const results = documents.searchResults(this.query);
     const collectionResults = !this.collectionId
-      ? collections.searchResults(this.query)
+      ? this.props.collections.search(this.query)
       : [];
     const showEmpty =
       !this.isFetching &&

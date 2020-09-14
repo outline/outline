@@ -1,6 +1,6 @@
 // @flow
 import { concat, filter, last, compact } from "lodash";
-import { computed, observable, action } from "mobx";
+import { computed } from "mobx";
 
 import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
@@ -22,8 +22,6 @@ export type DocumentPath = DocumentPathItem & {
 };
 
 export default class CollectionsStore extends BaseStore<Collection> {
-  @observable searchCache: Map<string, CollectionSearchResult[]> = new Map();
-
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
   }
@@ -91,12 +89,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
     });
   }
 
-  searchResults(query: string): CollectionSearchResult[] {
-    return this.searchCache.get(query) || [];
-  }
-
-  @action
-  search = async (query: string): Promise<CollectionSearchResult[]> => {
+  search = (query: string): CollectionSearchResult[] => {
     const results: CollectionSearchResult[] = compact(
       this.orderedData.map((collection) => {
         if (!collection.name.toLowerCase().includes(query.toLowerCase())) {
@@ -108,7 +101,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
         };
       })
     );
-    this.searchCache.set(query, results);
 
     return results;
   };

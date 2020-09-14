@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { Link } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import Collection from "models/Collection";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
@@ -13,24 +13,22 @@ type Props = {
   highlight?: ?string,
 };
 
-class CollectionPreview extends React.Component<Props> {
-  render() {
-    const { collection, highlight } = this.props;
+function CollectionPreview(props: Props) {
+  const { collection, highlight } = props;
 
-    return (
-      <CollectionLink to={collection.url}>
-        <Heading>
-          <IconWrapper>
-            <CollectionIcon collection={collection} />
-          </IconWrapper>
-          <Title text={collection.name} highlight={highlight} />
-          <SecondaryActions>
-            <CollectionMenu collection={collection} position="right" />
-          </SecondaryActions>
-        </Heading>
-      </CollectionLink>
-    );
-  }
+  return (
+    <CollectionLink to={collection.url}>
+      <Heading>
+        <IconWrapper>
+          <CollectionIcon collection={collection} />
+        </IconWrapper>
+        <Title text={collection.name} highlight={highlight} />
+        <SecondaryActions>
+          <CollectionMenu collection={collection} position="right" />
+        </SecondaryActions>
+      </Heading>
+    </CollectionLink>
+  );
 }
 
 const SecondaryActions = styled(Flex)`
@@ -46,9 +44,6 @@ const CollectionLink = styled(Link)`
   margin: 10px -8px;
   padding: 6px 8px;
   border-radius: 8px;
-  max-height: 50vh;
-  min-width: 100%;
-  max-width: calc(100vw - 40px);
   overflow: hidden;
   position: relative;
 
@@ -60,7 +55,6 @@ const CollectionLink = styled(Link)`
   &:active,
   &:focus {
     background: ${(props) => props.theme.listItemHoverBackground};
-    outline: none;
 
     ${SecondaryActions} {
       opacity: 1;
@@ -77,8 +71,6 @@ const Heading = styled.h3`
   overflow: hidden;
   white-space: nowrap;
   color: ${(props) => props.theme.text};
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
 const Title = styled(Highlight)`
@@ -93,4 +85,4 @@ const IconWrapper = styled.span`
   height: 24px;
 `;
 
-export default withTheme(CollectionPreview);
+export default CollectionPreview;
