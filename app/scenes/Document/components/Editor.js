@@ -135,10 +135,10 @@ const Title = styled(Textarea)`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
-  text: ${(props) => props.theme.text};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   color: ${(props) => props.theme.text};
+  -webkit-text-fill-color: ${(props) => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
   outline: none;
