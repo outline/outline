@@ -6,9 +6,10 @@ import useStores from "hooks/useStores";
 type Props = {|
   onSubmit: (title: string) => Promise<void>,
   title: string,
+  canUpdate: boolean,
 |};
 
-function EditableTitle({ title, onSubmit }: Props) {
+function EditableTitle({ title, onSubmit, canUpdate }: Props) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
@@ -54,7 +55,7 @@ function EditableTitle({ title, onSubmit }: Props) {
   }, [ui, originalValue, value, onSubmit]);
 
   return (
-    <span onDoubleClick={handleDoubleClick}>
+    <>
       {isEditing ? (
         <form onSubmit={handleSave}>
           <Input
@@ -67,9 +68,11 @@ function EditableTitle({ title, onSubmit }: Props) {
           />
         </form>
       ) : (
-        value
+        <span onDoubleClick={canUpdate ? handleDoubleClick : undefined}>
+          {value}
+        </span>
       )}
-    </span>
+    </>
   );
 }
 

@@ -14,15 +14,16 @@ import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
-type Props = {
+type Props = {|
   node: NavigationNode,
   documents: DocumentsStore,
+  canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
-};
+|};
 
 @observer
 class DocumentLink extends React.Component<Props> {
@@ -82,6 +83,7 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
+      canUpdate,
     } = this.props;
 
     const showChildren = !!(
@@ -111,7 +113,11 @@ class DocumentLink extends React.Component<Props> {
             }}
             expanded={showChildren ? true : undefined}
             label={
-              <EditableTitle title={title} onSubmit={this.handleTitleChange} />
+              <EditableTitle
+                title={title}
+                onSubmit={this.handleTitleChange}
+                canUpdate={canUpdate}
+              />
             }
             depth={depth}
             exact={false}
@@ -140,6 +146,7 @@ class DocumentLink extends React.Component<Props> {
                     activeDocument={activeDocument}
                     prefetchDocument={prefetchDocument}
                     depth={depth + 1}
+                    canUpdate={canUpdate}
                   />
                 ))}
               </DocumentChildren>

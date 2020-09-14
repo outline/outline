@@ -14,13 +14,14 @@ import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import CollectionMenu from "menus/CollectionMenu";
 
-type Props = {
+type Props = {|
   collection: Collection,
   ui: UiStore,
+  canUpdate: boolean,
   documents: DocumentsStore,
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
-};
+|};
 
 @observer
 class CollectionLink extends React.Component<Props> {
@@ -36,6 +37,7 @@ class CollectionLink extends React.Component<Props> {
       documents,
       activeDocument,
       prefetchDocument,
+      canUpdate,
       ui,
     } = this.props;
     const expanded = collection.id === ui.activeCollectionId;
@@ -58,6 +60,7 @@ class CollectionLink extends React.Component<Props> {
             <EditableTitle
               title={collection.name}
               onSubmit={this.handleTitleChange}
+              canUpdate={canUpdate}
             />
           }
           exact={false}
@@ -79,6 +82,7 @@ class CollectionLink extends React.Component<Props> {
                 collection={collection}
                 activeDocument={activeDocument}
                 prefetchDocument={prefetchDocument}
+                canUpdate={canUpdate}
                 depth={1.5}
               />
             ))}
