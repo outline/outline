@@ -215,6 +215,7 @@ const Pointer = styled.div`
   height: 22px;
   position: absolute;
   transform: translateX(-50%);
+  pointer-events: none;
 
   &:before,
   &:after {
