@@ -81,12 +81,14 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
 }
 
 const Input = styled.input`
-  margin-left: -2px;
+  margin-left: -4px;
   background: ${(props) => props.theme.background};
   width: calc(100% - 10px);
   border-radius: 3px;
   border: 1px solid ${(props) => props.theme.inputBorderFocused};
-  padding: 1px 2px;
+  padding: 5px 6px;
+  margin: -4px;
+  height: 32px;
 
   &:focus {
     outline-color: ${(props) => props.theme.primary};
