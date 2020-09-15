@@ -148,7 +148,15 @@ Team.prototype.provisionFirstCollection = async function (userId) {
   ];
   for (const title of onboardingDocs) {
     const text = await readFile(
-      path.join(__dirname, "..", "onboarding", `${title}.md`),
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "server",
+        "onboarding",
+        `${title}.md`
+      ),
       "utf8"
     );
     const document = await Document.create({
