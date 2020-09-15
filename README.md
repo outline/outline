@@ -22,11 +22,35 @@ If you'd like to run your own copy of Outline or contribute to development then 
 
 Outline requires the following dependencies:
 
-- Node.js >= 12
-- Postgres >=9.5
-- Redis >= 4
-- AWS S3 storage bucket for media and other attachments
+- [Node.js](https://nodejs.org/) >= 12
+- [Yarn](https://yarnpkg.com)
+- [Postgres](https://www.postgresql.org/download/) >=9.5
+- [Redis](https://redis.io/) >= 4
+- AWS S3 bucket or compatible API for file storage
 - Slack or Google developer application for authentication
+
+
+### Production
+
+For a manual self-hosted production installation these are the suggested steps:
+
+1. Clone this repo and install dependencies with `yarn install`
+1. Build the source code with `yarn build`
+1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
+    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
+    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
+    1. `URL` (the public facing URL of your installation)
+    1. `AWS_` (all of the keys beginning with AWS)
+1. Migrate database schema with `yarn sequelize:migrate`
+1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline `
+1. Visit http://you_server_ip:3000 and you should be able to see Outline page
+
+   > Port number can be changed using the `PORT` environment variable
+
+1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
 
 ### Development
@@ -48,32 +72,6 @@ In development you can quickly get an environment running using Docker by follow
     1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
     1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
-
-
-### Production
-
-For a self-hosted production installation there is more flexibility, but these are the suggested steps:
-
-1. Clone this repo and install dependencies with `yarn` or `npm install`
-
-   > Requires [Node.js](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
-
-1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
-1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
-    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
-    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
-    1. `URL` (the public facing URL of your installation)
-    1. `AWS_` (all of the keys beginning with AWS)
-1. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate `
-1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start index.js --name outline `
-1. Visit http://you_server_ip:3000 and you should be able to see Outline page
-
-   > Port number can be changed in the `.env` file
-
-1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
 
 ## Development
