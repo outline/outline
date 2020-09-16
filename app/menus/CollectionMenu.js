@@ -114,9 +114,7 @@ class CollectionMenu extends React.Component<Props> {
             ref={(ref) => (this.file = ref)}
             onChange={this.onFilePicked}
             onClick={(ev) => ev.stopPropagation()}
-            accept={this.props.documents.importFiletypesClient
-              .concat(this.props.documents.importFiletypesServer)
-              .join(", ")}
+            accept={this.props.documents.importFileTypes.join(", ")}
           />
         </VisuallyHidden>
 

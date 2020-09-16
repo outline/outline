@@ -14,11 +14,12 @@ import { observable, action, computed, runInAction } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
-import Document, { type SaveOptions } from "models/Document";
+import Document from "models/Document";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
 
-type ImportOptions = SaveOptions & {
+type ImportOptions = {
+  publish?: boolean,
   file: File,
 };
 
@@ -28,14 +29,19 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
 
-  importFiletypesClient: string[] = ["text/markdown", "text/plain"];
-  importFiletypesServer: string[] = [
+  importFileTypesClient: string[] = ["text/markdown", "text/plain"];
+  importFileTypesServer: string[] = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/html",
   ];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
+  }
+
+  @computed
+  get importFileTypes() {
+    return this.importFileTypesClient.concat(this.importFileTypesServer);
   }
 
   @computed

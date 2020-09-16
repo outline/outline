@@ -95,7 +95,7 @@ class DropToImport extends React.Component<Props> {
 
     return (
       <Dropzone
-        accept="text/markdown, text/plain"
+        accept={documents.importFileTypes.join(", ")}
         onDropAccepted={this.onDropAccepted}
         style={EMPTY_OBJECT}
         disableClick

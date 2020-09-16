@@ -8,7 +8,7 @@ import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
 import User from "models/User";
 
-export type SaveOptions = {
+type SaveOptions = {
   publish?: boolean,
   done?: boolean,
   autosave?: boolean,

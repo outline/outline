@@ -16,14 +16,14 @@ const importFile = async ({
   documentId,
   collectionId,
 }: Options): Promise<Document> => {
+  const fileName = file.name.replace(/\.[^/.]+$/, "");
+
   // non plain text support
-  if (documents.importFiletypesServer.includes(file.type)) {
-    return await documents.import(
-      file.name.replace(/\.[^/.]+$/, ""),
-      documentId,
-      collectionId,
-      { publish: true, file }
-    );
+  if (documents.importFileTypesServer.includes(file.type)) {
+    return await documents.import(fileName, documentId, collectionId, {
+      publish: true,
+      file,
+    });
   }
 
   return new Promise((resolve, reject) => {
@@ -43,7 +43,7 @@ const importFile = async ({
 
           // otherwise, just use the filename without the extension as our best guess
         } else {
-          title = file.name.replace(/\.[^/.]+$/, "");
+          title = fileName;
         }
 
         let document = new Document(
