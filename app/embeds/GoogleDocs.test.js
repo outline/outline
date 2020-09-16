@@ -14,14 +14,19 @@ describe("GoogleDocs", () => {
         match
       )
     ).toBeTruthy();
+    expect(
+      "https://docs.google.com/document/d/1SsDfWzFFTjZM2LanvpyUzjKhqVQpwpTMeiPeYxhVqOg/edit".match(
+        match
+      )
+    ).toBeTruthy();
+    expect(
+      "https://docs.google.com/document/d/1SsDfWzFFTjZM2LanvpyUzjKhqVQpwpTMeiPeYxhVqOg/preview".match(
+        match
+      )
+    ).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {
-    expect(
-      "https://docs.google.com/document/d/e/2PACX-1vTdddHPoZ5M_47wmSHCoigR/edit".match(
-        match
-      )
-    ).toBe(null);
     expect("https://docs.google.com/document".match(match)).toBe(null);
     expect("https://docs.google.com".match(match)).toBe(null);
     expect("https://www.google.com".match(match)).toBe(null);
