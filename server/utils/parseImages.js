@@ -3,12 +3,15 @@ import { parser } from "rich-markdown-editor";
 
 export default function parseImages(text: string): string[] {
   const value = parser.parse(text);
-  let images = [];
+  const images = [];
 
   function findImages(node) {
-    // get text nodes
     if (node.type.name === "image") {
-      images.push(node.attrs.src);
+      if (!images.includes(node.attrs.src)) {
+        images.push(node.attrs.src);
+      }
+
+      return;
     }
 
     if (!node.content.size) {
