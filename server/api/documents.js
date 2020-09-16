@@ -1,10 +1,7 @@
 // @flow
-import fs from "fs";
 import Router from "koa-router";
-import mammoth from "mammoth";
 import Sequelize from "sequelize";
-import TurndownService from "turndown";
-import uuid from "uuid";
+import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
 import { NotFoundError, InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
@@ -18,7 +15,6 @@ import {
   Star,
   User,
   View,
-  Attachment,
 } from "../models";
 import policy from "../policies";
 import {
@@ -27,39 +23,11 @@ import {
   presentPolicies,
 } from "../presenters";
 import { sequelize } from "../sequelize";
-import dataURItoBuffer from "../utils/dataURItoBuffer";
-import parseImages from "../utils/parseImages";
-import { uploadToS3FromBuffer } from "../utils/s3";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
 const { authorize, cannot } = policy;
 const router = new Router();
-
-// https://github.com/domchristie/turndown#options
-const turndownService = new TurndownService({
-  hr: "---",
-  bulletListMarker: "-",
-});
-
-type FileToMarkdown = (filePath: string) => Promise<string>;
-
-interface ImportableFile {
-  type: string;
-  getMarkdown: FileToMarkdown;
-}
-
-const allImportableFiles: ImportableFile[] = [
-  {
-    type:
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    getMarkdown: getDocxMarkdown,
-  },
-  {
-    type: "text/html",
-    getMarkdown: getHtmlMarkdown,
-  },
-];
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
   const {
@@ -743,44 +711,15 @@ router.post("documents.unstar", auth(), async (ctx) => {
 router.post("documents.create", auth(), createDocumentFromContext);
 router.post("documents.import", auth(), async (ctx) => {
   const file: any = Object.values(ctx.request.files)[0];
-  const { path, type } = file;
-
-  const fileInfo = allImportableFiles.filter((item) => item.type === type)[0];
-  let text = await fileInfo.getMarkdown(path);
 
   const user = ctx.state.user;
+  authorize(user, "create", Document);
 
-  // find data urls, convert to blobs, upload and write attachments
-  const images = parseImages(text);
-  const dataURIs = images.filter((href) => href.startsWith("data:"));
-
-  for (const uri of dataURIs) {
-    const name = "imported";
-    const key = `uploads/${user.id}/${uuid.v4()}/${name}`;
-    const acl = process.env.AWS_S3_ACL || "private";
-    const { buffer, type } = dataURItoBuffer(uri);
-    const url = await uploadToS3FromBuffer(buffer, type, key, acl);
-
-    const attachment = await Attachment.create({
-      key,
-      acl,
-      url,
-      size: buffer.length,
-      contentType: type,
-      teamId: user.teamId,
-      userId: user.id,
-    });
-
-    await Event.create({
-      name: "attachments.create",
-      data: { name },
-      teamId: user.teamId,
-      userId: user.id,
-      ip: ctx.request.ip,
-    });
-
-    text = text.replace(uri, `/api/attachments.redirect?id=${attachment.id}`);
-  }
+  const text = await documentImporter({
+    user,
+    file,
+    ip: ctx.request.ip,
+  });
 
   ctx.body.text = text;
 
@@ -1051,8 +990,6 @@ router.post("documents.unpublish", auth(), async (ctx) => {
   };
 });
 
-export default router;
-
 // TODO: update to actual `ctx` type
 export async function createDocumentFromContext(ctx: any) {
   const {
@@ -1156,12 +1093,4 @@ export async function createDocumentFromContext(ctx: any) {
   });
 }
 
-async function getDocxMarkdown(filePath: string): Promise<string> {
-  const { value } = await mammoth.convertToHtml({ path: filePath });
-  return turndownService.turndown(value);
-}
-
-async function getHtmlMarkdown(filePath: string): Promise<string> {
-  const value = await fs.promises.readFile(filePath, "utf8");
-  return turndownService.turndown(value);
-}
+export default router;
