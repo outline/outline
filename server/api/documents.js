@@ -10,6 +10,7 @@ import {
   Document,
   Event,
   Revision,
+  SearchQuery,
   Share,
   Star,
   User,
@@ -589,6 +590,13 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
       return { ...result, document };
     })
   );
+
+  SearchQuery.saveQuery({
+    userId: user.id,
+    teamId: user.teamId,
+    source: "app",
+    query,
+  });
 
   const policies = presentPolicies(user, documents);
 
