@@ -20,10 +20,12 @@ import routes from "./routes";
 import updates from "./utils/updates";
 
 const app = new Koa();
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
 app.use(compress());
 
-if (process.env.NODE_ENV === "production") {
+if (isProduction) {
   // Force redirect to HTTPS protocol unless explicitly disabled
   if (process.env.FORCE_HTTPS !== "false") {
     app.use(
@@ -37,7 +39,7 @@ if (process.env.NODE_ENV === "production") {
 
   // trust header fields set by our proxy. eg X-Forwarded-For
   app.proxy = true;
-} else {
+} else if (!isTest) {
   /* eslint-disable global-require */
   const convert = require("koa-convert");
   const webpack = require("webpack");
@@ -167,10 +169,7 @@ app.use(mount(routes));
  *
  * Set ENABLE_UPDATES=false to disable them for your installation
  */
-if (
-  process.env.ENABLE_UPDATES !== "false" &&
-  process.env.NODE_ENV === "production"
-) {
+if (process.env.ENABLE_UPDATES !== "false" && isProduction) {
   updates();
   setInterval(updates, 24 * 3600 * 1000);
 }
