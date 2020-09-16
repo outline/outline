@@ -18,15 +18,14 @@ const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
 
-const createRevision = (doc, options = {}) => {
+const createRevision = async (doc, options = {}) => {
   // we don't create revisions for autosaves
   if (options.autosave) return;
 
+  const previous = await Revision.findLatest(doc.id);
+
   // we don't create revisions if identical to previous
-  if (
-    doc.text === doc.previous("text") &&
-    doc.title === doc.previous("title")
-  ) {
+  if (previous && doc.text === previous.text && doc.title === previous.title) {
     return;
   }
 

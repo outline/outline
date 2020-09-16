@@ -11,7 +11,12 @@ import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentShare from "scenes/DocumentShare";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import CollectionIcon from "components/CollectionIcon";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  Header,
+} from "components/DropdownMenu";
 import Modal from "components/Modal";
 import {
   documentHistoryUrl,
@@ -33,6 +38,7 @@ type Props = {
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
+  label?: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
 };
@@ -100,8 +106,11 @@ class DocumentMenu extends React.Component<Props> {
     this.props.ui.showToast("Document archived");
   };
 
-  handleRestore = async (ev: SyntheticEvent<>) => {
-    await this.props.document.restore();
+  handleRestore = async (
+    ev: SyntheticEvent<>,
+    options?: { collectionId: string }
+  ) => {
+    await this.props.document.restore(options);
     this.props.ui.showToast("Document restored");
   };
 
@@ -154,6 +163,8 @@ class DocumentMenu extends React.Component<Props> {
       showPrint,
       showPin,
       auth,
+      collections,
+      label,
       onOpen,
       onClose,
     } = this.props;
@@ -161,6 +172,7 @@ class DocumentMenu extends React.Component<Props> {
     const can = policies.abilities(document.id);
     const canShareDocuments = can.share && auth.team && auth.team.sharing;
     const canViewHistory = can.read && !can.restore;
+    const collection = collections.get(document.collectionId);
 
     return (
       <>
@@ -169,12 +181,47 @@ class DocumentMenu extends React.Component<Props> {
           position={position}
           onOpen={onOpen}
           onClose={onClose}
+          label={label}
         >
-          {(can.unarchive || can.restore) && (
+          {can.unarchive && (
             <DropdownMenuItem onClick={this.handleRestore}>
               Restore
             </DropdownMenuItem>
           )}
+          {can.restore &&
+            (collection ? (
+              <DropdownMenuItem onClick={this.handleRestore}>
+                Restore
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenu
+                label={<DropdownMenuItem>Restore…</DropdownMenuItem>}
+                style={{
+                  left: -170,
+                  position: "relative",
+                  top: -40,
+                }}
+                hover
+              >
+                <Header>Choose a collection</Header>
+                {collections.orderedData.map((collection) => {
+                  const can = policies.abilities(collection.id);
+
+                  return (
+                    <DropdownMenuItem
+                      key={collection.id}
+                      onClick={(ev) =>
+                        this.handleRestore(ev, { collectionId: collection.id })
+                      }
+                      disabled={!can.update}
+                    >
+                      <CollectionIcon collection={collection} />
+                      &nbsp;{collection.name}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenu>
+            ))}
           {showPin &&
             (document.pinned
               ? can.unpin && (

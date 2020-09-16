@@ -1,6 +1,6 @@
 // @flow
 import { ExpandedIcon } from "outline-icons";
-import { darken, lighten } from "polished";
+import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 
@@ -19,7 +19,6 @@ const RealButton = styled.button`
   height: 32px;
   text-decoration: none;
   flex-shrink: 0;
-  outline: none;
   cursor: pointer;
   user-select: none;
 
@@ -34,13 +33,6 @@ const RealButton = styled.button`
 
   &:hover {
     background: ${(props) => darken(0.05, props.theme.buttonBackground)};
-  }
-
-  &:focus {
-    transition-duration: 0.05s;
-    box-shadow: ${(props) => lighten(0.4, props.theme.buttonBackground)} 0px 0px
-      0px 3px;
-    outline: none;
   }
 
   &:disabled {
@@ -70,13 +62,6 @@ const RealButton = styled.button`
       border: 1px solid ${props.theme.buttonNeutralBorder};
     }
 
-    &:focus {
-      transition-duration: 0.05s;
-      border: 1px solid ${lighten(0.4, props.theme.buttonBackground)};
-      box-shadow: ${lighten(0.4, props.theme.buttonBackground)} 0px 0px
-        0px 2px;
-    }
-
     &:disabled {
       color: ${props.theme.textTertiary};
     }
@@ -88,12 +73,6 @@ const RealButton = styled.button`
 
     &:hover {
       background: ${darken(0.05, props.theme.danger)};
-    }
-
-    &:focus {
-      transition-duration: 0.05s;
-      box-shadow: ${lighten(0.4, props.theme.danger)} 0px 0px
-        0px 3px;
     }
   `};
 `;

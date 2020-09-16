@@ -44,6 +44,14 @@ export default class Backlinks {
           order: [["createdAt", "desc"]],
           limit: 2,
         });
+
+        // before parsing document text we must make sure it's been migrated to
+        // the latest version or the parser may fail on version differences
+        await currentRevision.migrateVersion();
+        if (previousRevision) {
+          await previousRevision.migrateVersion();
+        }
+
         const previousLinkIds = previousRevision
           ? parseDocumentIds(previousRevision.text)
           : [];

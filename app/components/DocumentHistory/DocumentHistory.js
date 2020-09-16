@@ -193,6 +193,7 @@ const Header = styled(Flex)`
   padding: 12px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   color: ${(props) => props.theme.text};
+  flex-shrink: 0;
 `;
 
 export default inject("documents", "revisions")(DocumentHistory);

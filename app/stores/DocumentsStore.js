@@ -12,11 +12,9 @@ import {
 } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
-
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document, { type SaveOptions } from "models/Document";
-import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
 
@@ -445,6 +443,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     res.data.documents.forEach(this.add);
     res.data.collections.forEach(this.rootStore.collections.add);
+    this.addPolicies(res.policies);
   };
 
   @action
@@ -572,10 +571,10 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  restore = async (document: Document, revision?: Revision) => {
+  restore = async (document: Document, options = {}) => {
     const res = await client.post("/documents.restore", {
       id: document.id,
-      revisionId: revision ? revision.id : undefined,
+      ...options,
     });
     runInAction("Document#restore", () => {
       invariant(res && res.data, "Data should be available");

@@ -9,14 +9,14 @@ describe("GoogleSheets", () => {
         match
       )
     ).toBeTruthy();
-  });
-
-  test("to not be enabled elsewhere", () => {
     expect(
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTdddHPoZ5M_47wmSHCoigR/edit".match(
         match
       )
-    ).toBe(null);
+    ).toBeTruthy();
+  });
+
+  test("to not be enabled elsewhere", () => {
     expect("https://docs.google.com/spreadsheets".match(match)).toBe(null);
     expect("https://docs.google.com".match(match)).toBe(null);
     expect("https://www.google.com".match(match)).toBe(null);

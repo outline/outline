@@ -21,6 +21,7 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
+  onSave: () => mixed,
   innerRef: { current: any },
 };
 
@@ -40,10 +41,30 @@ class DocumentEditor extends React.Component<Props> {
     }
   };
 
+  insertParagraph = () => {
+    if (this.props.innerRef.current) {
+      const { view } = this.props.innerRef.current;
+      const { dispatch, state } = view;
+      dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
+    }
+  };
+
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter" || event.key === "Tab") {
+    if (event.key === "Enter" && !event.metaKey) {
+      event.preventDefault();
+      this.insertParagraph();
+      this.focusAtStart();
+      return;
+    }
+    if (event.key === "Tab" || event.key === "ArrowDown") {
       event.preventDefault();
       this.focusAtStart();
+      return;
+    }
+    if (event.key === "s" && event.metaKey) {
+      event.preventDefault();
+      this.props.onSave();
+      return;
     }
   };
 
@@ -78,6 +99,7 @@ class DocumentEditor extends React.Component<Props> {
           value={!title && readOnly ? document.titleWithDefault : title}
           style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
           readOnly={readOnly}
+          disabled={readOnly}
           autoFocus={!title}
           maxLength={100}
         />
@@ -113,10 +135,10 @@ const Title = styled(Textarea)`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
-  text: ${(props) => props.theme.text};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   color: ${(props) => props.theme.text};
+  -webkit-text-fill-color: ${(props) => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
   outline: none;
@@ -126,6 +148,7 @@ const Title = styled(Textarea)`
 
   &::placeholder {
     color: ${(props) => props.theme.placeholder};
+    -webkit-text-fill-color: ${(props) => props.theme.placeholder};
   }
 `;
 

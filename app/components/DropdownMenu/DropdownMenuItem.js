@@ -80,7 +80,6 @@ const MenuItem = styled.a`
   &:focus {
     color: ${props.theme.white};
     background: ${props.theme.primary};
-    outline: none;
   }
   `};
 `;
