@@ -105,7 +105,7 @@ export default async function documentImporter({
       ip,
     });
 
-    text = text.replace(uri, `/api/attachments.redirect?id=${attachment.id}`);
+    text = text.replace(uri, attachment.redirectUrl);
   }
 
   return { text, title };
