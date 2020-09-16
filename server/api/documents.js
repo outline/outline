@@ -4,6 +4,7 @@ import Router from "koa-router";
 import mammoth from "mammoth";
 import Sequelize from "sequelize";
 import TurndownService from "turndown";
+import uuid from "uuid";
 import documentMover from "../commands/documentMover";
 import { NotFoundError, InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
@@ -17,6 +18,7 @@ import {
   Star,
   User,
   View,
+  Attachment,
 } from "../models";
 import policy from "../policies";
 import {
@@ -25,12 +27,22 @@ import {
   presentPolicies,
 } from "../presenters";
 import { sequelize } from "../sequelize";
+import dataURItoBuffer from "../utils/dataURItoBuffer";
+import parseImages from "../utils/parseImages";
+import { uploadToS3FromBuffer } from "../utils/s3";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
 const { authorize, cannot } = policy;
 const router = new Router();
-const turndownService = new TurndownService();
+
+// https://github.com/domchristie/turndown#options
+const turndownService = new TurndownService({
+  hr: "---",
+  bulletListMarker: "-",
+});
+
+type FileToMarkdown = (filePath: string) => Promise<string>;
 
 interface ImportableFile {
   type: string;
@@ -48,8 +60,6 @@ const allImportableFiles: ImportableFile[] = [
     getMarkdown: getHtmlMarkdown,
   },
 ];
-
-type FileToMarkdown = (filePath: string) => Promise<string>;
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
   const {
@@ -735,12 +745,44 @@ router.post("documents.import", auth(), async (ctx) => {
   const file: any = Object.values(ctx.request.files)[0];
   const { path, type } = file;
 
-  const fileInfo: ImportableFile = allImportableFiles.filter(
-    (t: ImportableFile) => t.type === type
-  )[0];
+  const fileInfo = allImportableFiles.filter((item) => item.type === type)[0];
+  let text = await fileInfo.getMarkdown(path);
 
-  const markdown = await fileInfo.getMarkdown(path);
-  ctx.body.text = markdown;
+  const user = ctx.state.user;
+
+  // find data urls, convert to blobs, upload and write attachments
+  const images = parseImages(text);
+  const dataURIs = images.filter((href) => href.startsWith("data:"));
+
+  for (const uri of dataURIs) {
+    const name = "imported";
+    const key = `uploads/${user.id}/${uuid.v4()}/${name}`;
+    const acl = process.env.AWS_S3_ACL || "private";
+    const { buffer, type } = dataURItoBuffer(uri);
+    const url = await uploadToS3FromBuffer(buffer, type, key, acl);
+
+    const attachment = await Attachment.create({
+      key,
+      acl,
+      url,
+      size: buffer.length,
+      contentType: type,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await Event.create({
+      name: "attachments.create",
+      data: { name },
+      teamId: user.teamId,
+      userId: user.id,
+      ip: ctx.request.ip,
+    });
+
+    text = text.replace(uri, `/api/attachments.redirect?id=${attachment.id}`);
+  }
+
+  ctx.body.text = text;
 
   await createDocumentFromContext(ctx);
 });
