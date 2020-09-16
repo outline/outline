@@ -75,15 +75,9 @@ class DocumentScene extends React.Component<Props> {
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
   @observable moveModalOpen: boolean = false;
-  @observable lastRevision: number;
-  @observable title: string;
+  @observable lastRevision: number = this.props.document.revision;
+  @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
-
-  constructor(props) {
-    super();
-    this.title = props.document.title;
-    this.lastRevision = props.document.revision;
-  }
 
   componentDidMount() {
     this.updateIsDirty();
@@ -112,10 +106,13 @@ class DocumentScene extends React.Component<Props> {
       }
     }
 
-    if (document.injectTemplate) {
-      this.isDirty = true;
+    if (!this.isDirty && document.title !== this.title) {
       this.title = document.title;
+    }
+
+    if (document.injectTemplate) {
       document.injectTemplate = false;
+      this.isDirty = true;
     }
 
     this.updateBackground();

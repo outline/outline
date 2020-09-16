@@ -9,7 +9,7 @@
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:server",
     "start": "node ./build/server/index.js",
-    "dev": "nodemon --exec \"yarn build:server && node build/server/index.js\" -e js --ignore build/",
+    "dev": "nodemon --exec \"yarn build:server && node build/server/index.js\" -e js --ignore build/ --ignore app/",
     "lint": "eslint app server shared",
     "flow": "flow",
     "deploy": "git push heroku master",
