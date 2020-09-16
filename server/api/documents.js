@@ -715,13 +715,14 @@ router.post("documents.import", auth(), async (ctx) => {
   const user = ctx.state.user;
   authorize(user, "create", Document);
 
-  const text = await documentImporter({
+  const { text, title } = await documentImporter({
     user,
     file,
     ip: ctx.request.ip,
   });
 
   ctx.body.text = text;
+  ctx.body.title = title;
 
   await createDocumentFromContext(ctx);
 });

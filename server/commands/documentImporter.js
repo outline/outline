@@ -3,6 +3,7 @@ import fs from "fs";
 import mammoth from "mammoth";
 import TurndownService from "turndown";
 import uuid from "uuid";
+import parseTitle from "../../shared/utils/parseTitle";
 import { Attachment, Event, User } from "../models";
 import dataURItoBuffer from "../utils/dataURItoBuffer";
 import parseImages from "../utils/parseImages";
@@ -12,13 +13,12 @@ import { uploadToS3FromBuffer } from "../utils/s3";
 const turndownService = new TurndownService({
   hr: "---",
   bulletListMarker: "-",
+  headingStyle: "atx",
 });
-
-type FileToMarkdown = (filePath: string) => Promise<string>;
 
 interface ImportableFile {
   type: string;
-  getMarkdown: FileToMarkdown;
+  getMarkdown: (file: any) => Promise<string>;
 }
 
 const importMapping: ImportableFile[] = [
@@ -31,15 +31,27 @@ const importMapping: ImportableFile[] = [
     type: "text/html",
     getMarkdown: getHtmlMarkdown,
   },
+  {
+    type: "text/plain",
+    getMarkdown: getPlainMarkdown,
+  },
+  {
+    type: "text/markdown",
+    getMarkdown: getPlainMarkdown,
+  },
 ];
 
-async function getDocxMarkdown(filePath: string): Promise<string> {
-  const { value } = await mammoth.convertToHtml({ path: filePath });
+async function getPlainMarkdown(file): Promise<string> {
+  return fs.promises.readFile(file.path, "utf8");
+}
+
+async function getDocxMarkdown(file): Promise<string> {
+  const { value } = await mammoth.convertToHtml(file);
   return turndownService.turndown(value);
 }
 
-async function getHtmlMarkdown(filePath: string): Promise<string> {
-  const value = await fs.promises.readFile(filePath, "utf8");
+async function getHtmlMarkdown(file): Promise<string> {
+  const value = await fs.promises.readFile(file.path, "utf8");
   return turndownService.turndown(value);
 }
 
@@ -49,13 +61,20 @@ export default async function documentImporter({
   ip,
 }: {
   user: User,
-  file: any,
+  file: File,
   ip: string,
-}): Promise<string> {
-  const { path, type } = file;
+}): Promise<{ text: string, title: string }> {
+  const fileInfo = importMapping.filter((item) => item.type === file.type)[0];
+  let title = file.name.replace(/\.[^/.]+$/, "");
+  let text = await fileInfo.getMarkdown(file);
 
-  const fileInfo = importMapping.filter((item) => item.type === type)[0];
-  let text = await fileInfo.getMarkdown(path);
+  // If the first line of the imported text looks like a markdown heading
+  // then we can use this as the document title
+  if (text.trim().startsWith("# ")) {
+    const result = parseTitle(text);
+    title = result.title;
+    text = text.replace(`# ${title}\n`, "");
+  }
 
   // find data urls, convert to blobs, upload and write attachments
   const images = parseImages(text);
@@ -89,5 +108,5 @@ export default async function documentImporter({
     text = text.replace(uri, `/api/attachments.redirect?id=${attachment.id}`);
   }
 
-  return text;
+  return { text, title };
 }

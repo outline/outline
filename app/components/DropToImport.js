@@ -8,7 +8,6 @@ import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import LoadingIndicator from "components/LoadingIndicator";
-import importFile from "utils/importFile";
 
 const EMPTY_OBJECT = {};
 let importingLock = false;
@@ -61,12 +60,12 @@ class DropToImport extends React.Component<Props> {
       }
 
       for (const file of files) {
-        const doc = await importFile({
-          documents: this.props.documents,
+        const doc = await this.props.documents.import(
           file,
           documentId,
           collectionId,
-        });
+          { publish: true }
+        );
 
         if (redirect) {
           this.props.history.push(doc.url);

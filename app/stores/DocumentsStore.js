@@ -20,7 +20,6 @@ import { client } from "utils/ApiClient";
 
 type ImportOptions = {
   publish?: boolean,
-  file: File,
 };
 
 export default class DocumentsStore extends BaseStore<Document> {
@@ -29,19 +28,15 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
 
-  importFileTypesClient: string[] = ["text/markdown", "text/plain"];
-  importFileTypesServer: string[] = [
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  importFileTypes: string[] = [
+    "text/markdown",
+    "text/plain",
     "text/html",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
-  }
-
-  @computed
-  get importFileTypes() {
-    return this.importFileTypesClient.concat(this.importFileTypesServer);
   }
 
   @computed
@@ -473,31 +468,31 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   import = async (
-    title: string,
+    file: File,
     parentDocumentId: string,
     collectionId: string,
     options: ImportOptions
   ) => {
+    const title = file.name.replace(/\.[^/.]+$/, "");
     const formData = new FormData();
 
     [
       { key: "parentDocumentId", value: parentDocumentId },
       { key: "collectionId", value: collectionId },
       { key: "title", value: title },
+      { key: "publish", value: options.publish },
+      { key: "file", value: file },
     ].map((info) => {
       if (typeof info.value === "string" && info.value) {
         formData.append(info.key, info.value);
       }
+      if (typeof info.value === "boolean") {
+        formData.append(info.key, info.value.toString());
+      }
+      if (info.value instanceof File) {
+        formData.append(info.key, info.value);
+      }
     });
-
-    Object.keys(options).forEach((key) =>
-      formData.append(
-        key,
-        options[key] instanceof File
-          ? options[key]
-          : (options[key] || "").toString()
-      )
-    );
 
     const res = await client.post("/documents.import", formData);
     invariant(res && res.data, "Data should be available");
