@@ -1,5 +1,6 @@
 // @flow
 import path from "path";
+import AWS from "aws-sdk";
 import File from "formidable/lib/file";
 import { Attachment } from "../models";
 import { buildUser } from "../test/factories";
@@ -7,6 +8,7 @@ import { flushdb } from "../test/support";
 import documentImporter from "./documentImporter";
 
 beforeEach(() => flushdb());
+afterEach(() => AWS.clearAllMocks());
 
 describe("documentImporter", () => {
   const ip = "127.0.0.1";
@@ -28,8 +30,8 @@ describe("documentImporter", () => {
     });
 
     const attachments = await Attachment.count();
-
     expect(attachments).toEqual(1);
+
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");
     expect(response.title).toEqual("images");
