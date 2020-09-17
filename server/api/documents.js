@@ -591,11 +591,12 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     })
   );
 
-  SearchQuery.saveQuery({
+  SearchQuery.create({
     userId: user.id,
     teamId: user.teamId,
     source: "app",
     query,
+    results: results.length,
   });
 
   const policies = presentPolicies(user, documents);

@@ -30,7 +30,6 @@ module.exports = {
       results: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: 1,
       },
       createdAt: {
         allowNull: false,

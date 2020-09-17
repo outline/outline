@@ -157,11 +157,12 @@ router.post("hooks.slack", async (ctx) => {
     ? await Document.searchForUser(user, text, options)
     : await Document.searchForTeam(team, text, options);
 
-  SearchQuery.saveQuery({
+  SearchQuery.create({
     userId: user ? user.id : null,
     teamId: team.id,
     source: "slack",
     query: text,
+    results: results.length,
   });
 
   if (results.length) {
