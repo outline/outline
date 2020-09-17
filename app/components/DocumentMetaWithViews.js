@@ -1,20 +1,20 @@
 // @flow
-import { inject } from "mobx-react";
+import { useObserver } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import ViewsStore from "stores/ViewsStore";
 import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
+import useStores from "../hooks/useStores";
 
 type Props = {|
-  views: ViewsStore,
   document: Document,
   isDraft: boolean,
   to?: string,
 |};
 
-function DocumentMetaWithViews({ views, to, isDraft, document }: Props) {
-  const totalViews = views.countForDocument(document.id);
+function DocumentMetaWithViews({ to, isDraft, document }: Props) {
+  const { views } = useStores();
+  const totalViews = useObserver(() => views.countForDocument(document.id));
 
   return (
     <Meta document={document} to={to}>
@@ -45,4 +45,4 @@ const Meta = styled(DocumentMeta)`
   }
 `;
 
-export default inject("views")(DocumentMetaWithViews);
+export default DocumentMetaWithViews;
