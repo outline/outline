@@ -1238,13 +1238,6 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@mapbox/aws-sdk-jest@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@mapbox/aws-sdk-jest/-/aws-sdk-jest-0.0.1.tgz#452608a31f7bf6795758d3fb7ee887d7953590ef"
-  integrity sha512-7qmhXJUisxs6E/ygaBygDD8QBwv1H1+F/x/lR351PF6slmHieCKn3fQaMCGZ1xCD6K9hYhEmGA4SHUtXg+avQA==
-  dependencies:
-    traverse "^0.6.6"
-
 "@npmcli/move-file@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@npmcli/move-file/-/move-file-1.0.1.tgz#de103070dac0f48ce49cf6693c23af59c0f70464"
@@ -11256,11 +11249,6 @@ tr46@^2.0.2:
   version "0.3.9"
   resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.3.9.tgz#717b8f220cc0bb7b44e40514c22b2e8bbc70d8b9"
   integrity sha1-cXuPIgzAu3tE5AUUwisui7xw2Lk=
-
-traverse@^0.6.6:
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.6.6.tgz#cbdf560fd7b9af632502fed40f918c157ea97137"
-  integrity sha1-y99WD9e5r2MlAv7UD5GMFX6pcTc=
 
 tsconfig-paths@^3.9.0:
   version "3.9.0"

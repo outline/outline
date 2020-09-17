@@ -163,7 +163,6 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
-    "@mapbox/aws-sdk-jest": "^0.0.1",
     "@relative-ci/agent": "^1.3.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
