@@ -1,5 +1,6 @@
 // @flow
 import fs from "fs";
+import File from "formidable/lib/file";
 import mammoth from "mammoth";
 import TurndownService from "turndown";
 import uuid from "uuid";
@@ -25,32 +26,32 @@ const importMapping: ImportableFile[] = [
   {
     type:
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    getMarkdown: getDocxMarkdown,
+    getMarkdown: docxToMarkdown,
   },
   {
     type: "text/html",
-    getMarkdown: getHtmlMarkdown,
+    getMarkdown: htmlToMarkdown,
   },
   {
     type: "text/plain",
-    getMarkdown: getPlainMarkdown,
+    getMarkdown: fileToMarkdown,
   },
   {
     type: "text/markdown",
-    getMarkdown: getPlainMarkdown,
+    getMarkdown: fileToMarkdown,
   },
 ];
 
-async function getPlainMarkdown(file): Promise<string> {
+async function fileToMarkdown(file): Promise<string> {
   return fs.promises.readFile(file.path, "utf8");
 }
 
-async function getDocxMarkdown(file): Promise<string> {
+async function docxToMarkdown(file): Promise<string> {
   const { value } = await mammoth.convertToHtml(file);
   return turndownService.turndown(value);
 }
 
-async function getHtmlMarkdown(file): Promise<string> {
+async function htmlToMarkdown(file): Promise<string> {
   const value = await fs.promises.readFile(file.path, "utf8");
   return turndownService.turndown(value);
 }

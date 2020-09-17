@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import userInviter from "../commands/userInviter";
 import { buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
+import userInviter from "./userInviter";
 
 beforeEach(() => flushdb());
 
