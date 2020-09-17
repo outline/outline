@@ -15,7 +15,6 @@ import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Modal from "components/Modal";
 import VisuallyHidden from "components/VisuallyHidden";
 import getDataTransferFiles from "utils/getDataTransferFiles";
-import importFile from "utils/importFile";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -55,11 +54,13 @@ class CollectionMenu extends React.Component<Props> {
     const files = getDataTransferFiles(ev);
 
     try {
-      const document = await importFile({
-        file: files[0],
-        documents: this.props.documents,
-        collectionId: this.props.collection.id,
-      });
+      const file = files[0];
+      const document = await this.props.documents.import(
+        file,
+        null,
+        this.props.collection.id,
+        { publish: true }
+      );
       this.props.history.push(document.url);
     } catch (err) {
       this.props.ui.showToast(err.message);
@@ -103,7 +104,14 @@ class CollectionMenu extends React.Component<Props> {
   };
 
   render() {
-    const { policies, collection, position, onOpen, onClose } = this.props;
+    const {
+      policies,
+      documents,
+      collection,
+      position,
+      onOpen,
+      onClose,
+    } = this.props;
     const can = policies.abilities(collection.id);
 
     return (
@@ -114,7 +122,7 @@ class CollectionMenu extends React.Component<Props> {
             ref={(ref) => (this.file = ref)}
             onChange={this.onFilePicked}
             onClick={(ev) => ev.stopPropagation()}
-            accept="text/markdown, text/plain"
+            accept={documents.importFileTypes.join(", ")}
           />
         </VisuallyHidden>
 

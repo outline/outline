@@ -1,6 +1,5 @@
 // @flow
-import { type Context } from "koa";
-import { Document, Collection, Event } from "../models";
+import { Document, Collection, User, Event } from "../models";
 import { sequelize } from "../sequelize";
 
 export default async function documentMover({
@@ -11,7 +10,7 @@ export default async function documentMover({
   index,
   ip,
 }: {
-  user: Context,
+  user: User,
   document: Document,
   collectionId: string,
   parentDocumentId?: string,
