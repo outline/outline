@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import CollectionIcon from "components/CollectionIcon";
-import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import CollectionMenu from "menus/CollectionMenu";
 
@@ -40,8 +39,6 @@ const CollectionLink = styled(Link)`
   margin: 10px -8px;
   padding: 6px 8px;
   border-radius: 8px;
-  overflow: hidden;
-  position: relative;
 
   ${SecondaryActions} {
     opacity: 0;
