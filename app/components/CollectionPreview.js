@@ -31,12 +31,8 @@ function CollectionPreview(props: Props) {
   );
 }
 
-const SecondaryActions = styled(Flex)`
-  align-items: center;
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
+const SecondaryActions = styled.div`
+  margin-right: 8px;
 `;
 
 const CollectionLink = styled(Link)`
@@ -64,18 +60,18 @@ const CollectionLink = styled(Link)`
 
 const Heading = styled.h3`
   display: flex;
+  flex-grow: 1;
   align-items: center;
-  height: 24px;
-  margin-top: 0;
-  margin-bottom: 0.25em;
+  height: 30px;
+  margin: 0;
   overflow: hidden;
   white-space: nowrap;
   color: ${(props) => props.theme.text};
 `;
 
 const Title = styled(Highlight)`
-  max-width: 90%;
   overflow: hidden;
+  flex-grow: 1;
   text-overflow: ellipsis;
 `;
 
