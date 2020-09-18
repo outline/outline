@@ -235,7 +235,7 @@ class Search extends React.Component<Props> {
     const { documents, notFound, location, collections } = this.props;
     const results = documents.searchResults(this.query);
     const collectionResults = !this.collectionId
-      ? this.props.collections.search(this.query)
+      ? collections.search(this.query)
       : [];
     const showEmpty =
       !this.isFetching &&
@@ -329,18 +329,13 @@ class Search extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {collectionResults.map((result) => {
-                const collection = collections.data.get(result.collection.id);
-                if (!collection) return null;
-
-                return (
-                  <CollectionPreview
-                    key={collection.id}
-                    collection={collection}
-                    highlight={this.query}
-                  />
-                );
-              })}
+              {collectionResults.map((collection) => (
+                <CollectionPreview
+                  key={collection.id}
+                  collection={collection}
+                  highlight={this.query}
+                />
+              ))}
               {results.map((result, index) => {
                 const document = documents.data.get(result.document.id);
                 if (!document) return null;

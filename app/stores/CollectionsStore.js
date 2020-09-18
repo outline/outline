@@ -1,12 +1,11 @@
 // @flow
-import { concat, filter, last, compact } from "lodash";
+import { concat, filter, last } from "lodash";
 import { computed } from "mobx";
 
 import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import type { CollectionSearchResult } from "types";
 import { client } from "utils/ApiClient";
 
 export type DocumentPathItem = {
@@ -89,21 +88,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
     });
   }
 
-  search = (query: string): CollectionSearchResult[] => {
-    const results: CollectionSearchResult[] = compact(
-      this.orderedData.map((collection) => {
-        if (!collection.name.toLowerCase().includes(query.toLowerCase())) {
-          return null;
-        }
-
-        return {
-          collection,
-        };
-      })
+  search = (query: string): Collection[] =>
+    this.orderedData.filter((collection) =>
+      collection.name.toLowerCase().includes(query.toLowerCase())
     );
-
-    return results;
-  };
 
   getPathForDocument(documentId: string): ?DocumentPath {
     return this.pathsToDocuments.find((path) => path.id === documentId);
