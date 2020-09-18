@@ -89,6 +89,10 @@ class DocumentScene extends React.Component<Props> {
 
     if (this.props.readOnly) {
       this.lastRevision = document.revision;
+
+      if (document.title !== this.title) {
+        this.title = document.title;
+      }
     } else if (prevProps.document.revision !== this.lastRevision) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
         this.props.ui.showToast(
@@ -106,12 +110,9 @@ class DocumentScene extends React.Component<Props> {
       }
     }
 
-    if (!this.isDirty && document.title !== this.title) {
-      this.title = document.title;
-    }
-
     if (document.injectTemplate) {
       document.injectTemplate = false;
+      this.title = document.title;
       this.isDirty = true;
     }
 
