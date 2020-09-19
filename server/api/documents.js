@@ -573,7 +573,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     );
   }
 
-  const results = await Document.searchForUser(user, query, {
+  const response = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === "true",
     includeDrafts: includeDrafts === "true",
     collaboratorIds,
@@ -582,6 +582,8 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     offset,
     limit,
   });
+
+  const { data: results, totalCount } = response;
 
   const documents = results.map((result) => result.document);
   const data = await Promise.all(
@@ -596,7 +598,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     teamId: user.teamId,
     source: "app",
     query,
-    results: results.length,
+    results: totalCount,
   });
 
   const policies = presentPolicies(user, documents);

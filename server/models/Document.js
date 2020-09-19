@@ -242,9 +242,13 @@ Document.findByPk = async function (id, options = {}) {
 };
 
 type SearchResult = {
-  ranking: number,
-  context: string,
-  document: Document,
+  data: {
+    ranking: number,
+    context: string,
+    document: Document,
+  }[],
+  totalCount: number,
+  currentPage: number,
 };
 
 type SearchOptions = {
@@ -267,7 +271,7 @@ Document.searchForTeam = async (
   team,
   query,
   options: SearchOptions = {}
-): Promise<SearchResult[]> => {
+): Promise<SearchResult> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -275,21 +279,25 @@ Document.searchForTeam = async (
 
   // If the team has access no public collections then shortcircuit the rest of this
   if (!collectionIds.length) {
-    return [];
+    return { data: [], totalCount: 0, currentPage: 0 };
   }
 
   // Build the SQL query to get documentIds, ranking, and search term context
-  const sql = `
+  const whereClause = `
+  "searchVector" @@ to_tsquery('english', :query) AND
+    "teamId" = :teamId AND
+    "collectionId" IN(:collectionIds) AND
+    "deletedAt" IS NULL AND
+    "publishedAt" IS NOT NULL
+  `;
+
+  const selectSql = `
     SELECT
       id,
       ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
       ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
     FROM documents
-    WHERE "searchVector" @@ to_tsquery('english', :query) AND
-      "teamId" = :teamId AND
-      "collectionId" IN(:collectionIds) AND
-      "deletedAt" IS NULL AND
-      "publishedAt" IS NOT NULL
+    WHERE ${whereClause}
     ORDER BY
       "searchRanking" DESC,
       "updatedAt" DESC
@@ -297,16 +305,33 @@ Document.searchForTeam = async (
     OFFSET :offset;
   `;
 
-  const results = await sequelize.query(sql, {
+  const countSql = `
+    SELECT COUNT(id)
+    FROM documents
+    WHERE ${whereClause}
+  `;
+
+  const queryReplacements = {
+    teamId: team.id,
+    query: wildcardQuery,
+    collectionIds,
+  };
+
+  const resultsQuery = sequelize.query(selectSql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      teamId: team.id,
-      query: wildcardQuery,
+      ...queryReplacements,
       limit,
       offset,
-      collectionIds,
     },
   });
+
+  const countQuery = sequelize.query(countSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: queryReplacements,
+  });
+
+  const [results, [{ count }]] = await Promise.all([resultsQuery, countQuery]);
 
   // Final query to get associated document data
   const documents = await Document.findAll({
@@ -320,20 +345,24 @@ Document.searchForTeam = async (
     ],
   });
 
-  return map(results, (result) => ({
-    ranking: result.searchRanking,
-    context: removeMarkdown(unescape(result.searchContext), {
-      stripHTML: false,
-    }),
-    document: find(documents, { id: result.id }),
-  }));
+  return {
+    data: map(results, (result) => ({
+      ranking: result.searchRanking,
+      context: removeMarkdown(unescape(result.searchContext), {
+        stripHTML: false,
+      }),
+      document: find(documents, { id: result.id }),
+    })),
+    totalCount: count,
+    currentPage: Math.floor(offset / limit),
+  };
 };
 
 Document.searchForUser = async (
   user,
   query,
   options: SearchOptions = {}
-): Promise<SearchResult[]> => {
+): Promise<SearchResult> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -350,7 +379,7 @@ Document.searchForUser = async (
 
   // If the user has access to no collections then shortcircuit the rest of this
   if (!collectionIds.length) {
-    return [];
+    return { data: [], totalCount: 0, currentPage: 0 };
   }
 
   let dateFilter;
@@ -359,13 +388,8 @@ Document.searchForUser = async (
   }
 
   // Build the SQL query to get documentIds, ranking, and search term context
-  const sql = `
-  SELECT
-    id,
-    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
-  FROM documents
-  WHERE "searchVector" @@ to_tsquery('english', :query) AND
+  const whereClause = `
+  "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
@@ -383,27 +407,52 @@ Document.searchForUser = async (
         ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
         : '"publishedAt" IS NOT NULL'
     }
+  `;
+
+  const selectSql = `
+  SELECT
+    id,
+    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+  FROM documents
+  WHERE ${whereClause}
   ORDER BY
     "searchRanking" DESC,
     "updatedAt" DESC
   LIMIT :limit
   OFFSET :offset;
-`;
+  `;
 
-  const results = await sequelize.query(sql, {
+  const countSql = `
+    SELECT COUNT(id)
+    FROM documents
+    WHERE ${whereClause}
+  `;
+
+  const queryReplacements = {
+    teamId: user.teamId,
+    userId: user.id,
+    collaboratorIds: options.collaboratorIds,
+    query: wildcardQuery,
+    collectionIds,
+    dateFilter,
+  };
+
+  const resultsQuery = sequelize.query(selectSql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      teamId: user.teamId,
-      userId: user.id,
-      collaboratorIds: options.collaboratorIds,
-      query: wildcardQuery,
+      ...queryReplacements,
       limit,
       offset,
-      collectionIds,
-      dateFilter,
     },
   });
 
+  const countQuery = sequelize.query(countSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: queryReplacements,
+  });
+
+  const [results, [{ count }]] = await Promise.all([resultsQuery, countQuery]);
   // Final query to get associated document data
   const documents = await Document.scope(
     {
@@ -422,13 +471,17 @@ Document.searchForUser = async (
     ],
   });
 
-  return map(results, (result) => ({
-    ranking: result.searchRanking,
-    context: removeMarkdown(unescape(result.searchContext), {
-      stripHTML: false,
-    }),
-    document: find(documents, { id: result.id }),
-  }));
+  return {
+    data: map(results, (result) => ({
+      ranking: result.searchRanking,
+      context: removeMarkdown(unescape(result.searchContext), {
+        stripHTML: false,
+      }),
+      document: find(documents, { id: result.id }),
+    })),
+    totalCount: count,
+    currentPage: Math.floor(offset / limit),
+  };
 };
 
 // Hooks

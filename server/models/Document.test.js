@@ -201,7 +201,8 @@ describe("#searchForTeam", () => {
       title: "test",
     });
 
-    const results = await Document.searchForTeam(team, "test");
+    const response = await Document.searchForTeam(team, "test");
+    const { data: results } = response;
     expect(results.length).toBe(1);
     expect(results[0].document.id).toBe(document.id);
   });
@@ -218,13 +219,15 @@ describe("#searchForTeam", () => {
       title: "test",
     });
 
-    const results = await Document.searchForTeam(team, "test");
+    const response = await Document.searchForTeam(team, "test");
+    const { data: results } = response;
     expect(results.length).toBe(0);
   });
 
   test("should handle no collections", async () => {
     const team = await buildTeam();
-    const results = await Document.searchForTeam(team, "test");
+    const response = await Document.searchForTeam(team, "test");
+    const { data: results } = response;
     expect(results.length).toBe(0);
   });
 });
