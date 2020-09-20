@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Authentication } from "../models";
+import { Authentication, SearchQuery } from "../models";
 import * as Slack from "../slack";
 import { buildDocument } from "../test/factories";
 import { flushdb, seed } from "../test/support";
@@ -130,6 +130,28 @@ describe("#hooks.slack", () => {
     expect(body.attachments[0].text).toEqual(
       "This title *contains* a search term"
     );
+  });
+
+  it("should save search term, hits and source", async (done) => {
+    const { user, team } = await seed();
+    await server.post("/api/hooks.slack", {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.serviceId,
+        team_id: team.slackId,
+        text: "contains",
+      },
+    });
+
+    setTimeout(async () => {
+      const searchQuery = await SearchQuery.findAll({
+        where: { query: "contains" },
+      });
+      expect(searchQuery.length).toBe(1);
+      expect(searchQuery[0].results).toBe(0);
+      expect(searchQuery[0].source).toBe("slack");
+      done();
+    }, 100);
   });
 
   it("should respond with help content for help keyword", async () => {

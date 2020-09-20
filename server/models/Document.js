@@ -241,14 +241,13 @@ Document.findByPk = async function (id, options = {}) {
   }
 };
 
-type SearchResult = {
-  data: {
+type SearchResponse = {
+  results: {
     ranking: number,
     context: string,
     document: Document,
   }[],
   totalCount: number,
-  currentPage: number,
 };
 
 type SearchOptions = {
@@ -271,7 +270,7 @@ Document.searchForTeam = async (
   team,
   query,
   options: SearchOptions = {}
-): Promise<SearchResult> => {
+): Promise<SearchResponse> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -279,7 +278,7 @@ Document.searchForTeam = async (
 
   // If the team has access no public collections then shortcircuit the rest of this
   if (!collectionIds.length) {
-    return { data: [], totalCount: 0, currentPage: 0 };
+    return { results: [], totalCount: 0 };
   }
 
   // Build the SQL query to get documentIds, ranking, and search term context
@@ -346,7 +345,7 @@ Document.searchForTeam = async (
   });
 
   return {
-    data: map(results, (result) => ({
+    results: map(results, (result) => ({
       ranking: result.searchRanking,
       context: removeMarkdown(unescape(result.searchContext), {
         stripHTML: false,
@@ -354,7 +353,6 @@ Document.searchForTeam = async (
       document: find(documents, { id: result.id }),
     })),
     totalCount: count,
-    currentPage: Math.floor(offset / limit),
   };
 };
 
@@ -362,7 +360,7 @@ Document.searchForUser = async (
   user,
   query,
   options: SearchOptions = {}
-): Promise<SearchResult> => {
+): Promise<SearchResponse> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -379,7 +377,7 @@ Document.searchForUser = async (
 
   // If the user has access to no collections then shortcircuit the rest of this
   if (!collectionIds.length) {
-    return { data: [], totalCount: 0, currentPage: 0 };
+    return { results: [], totalCount: 0 };
   }
 
   let dateFilter;
@@ -472,7 +470,7 @@ Document.searchForUser = async (
   });
 
   return {
-    data: map(results, (result) => ({
+    results: map(results, (result) => ({
       ranking: result.searchRanking,
       context: removeMarkdown(unescape(result.searchContext), {
         stripHTML: false,
@@ -480,7 +478,6 @@ Document.searchForUser = async (
       document: find(documents, { id: result.id }),
     })),
     totalCount: count,
-    currentPage: Math.floor(offset / limit),
   };
 };
 

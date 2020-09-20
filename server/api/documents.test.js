@@ -8,6 +8,7 @@ import {
   Revision,
   Backlink,
   CollectionUser,
+  SearchQuery,
 } from "../models";
 import {
   buildShare,
@@ -953,6 +954,23 @@ describe("#documents.search", () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it("should save search term, hits and source", async (done) => {
+    const { user } = await seed();
+    await server.post("/api/documents.search", {
+      body: { token: user.getJwtToken(), query: "my term" },
+    });
+
+    setTimeout(async () => {
+      const searchQuery = await SearchQuery.findAll({
+        where: { query: "my term" },
+      });
+      expect(searchQuery.length).toBe(1);
+      expect(searchQuery[0].results).toBe(0);
+      expect(searchQuery[0].source).toBe("app");
+      done();
+    }, 100);
   });
 });
 

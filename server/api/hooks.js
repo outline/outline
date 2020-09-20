@@ -153,11 +153,9 @@ router.post("hooks.slack", async (ctx) => {
   const options = {
     limit: 5,
   };
-  const response = user
+  const { results, totalCount } = user
     ? await Document.searchForUser(user, text, options)
     : await Document.searchForTeam(team, text, options);
-
-  const { data: results, totalCount } = response;
 
   SearchQuery.create({
     userId: user ? user.id : null,
