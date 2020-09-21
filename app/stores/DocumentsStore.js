@@ -23,7 +23,6 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends BaseStore<Document> {
-  @observable recentlyViewedIds: string[] = [];
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
@@ -50,8 +49,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   @computed
   get recentlyViewed(): Document[] {
     return orderBy(
-      compact(this.recentlyViewedIds.map((id) => this.data.get(id))),
-      "updatedAt",
+      filter(this.all, (d) => d.lastViewedAt),
+      "lastViewedAt",
       "desc"
     );
   }
@@ -299,15 +298,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   fetchRecentlyViewed = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchNamedPage("viewed", options);
-
-    runInAction("DocumentsStore#fetchRecentlyViewed", () => {
-      // $FlowFixMe
-      this.recentlyViewedIds.replace(
-        uniq(this.recentlyViewedIds.concat(map(data, "id")))
-      );
-    });
-    return data;
+    return this.fetchNamedPage("viewed", options);
   };
 
   @action
@@ -540,10 +531,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   async delete(document: Document) {
     await super.delete(document);
-
-    runInAction(() => {
-      this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);
-    });
 
     // check to see if we have any shares related to this document already
     // loaded in local state. If so we can go ahead and remove those too.

@@ -21,11 +21,11 @@ export default class Document extends BaseModel {
   @observable isSaving: boolean = false;
   @observable embedsDisabled: boolean = false;
   @observable injectTemplate: boolean = false;
+  @observable lastViewedAt: ?string;
   store: DocumentsStore;
 
   collaborators: User[];
   collectionId: string;
-  @observable lastViewedAt: ?string;
   createdAt: string;
   createdBy: User;
   updatedAt: string;

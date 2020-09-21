@@ -6,7 +6,8 @@ const Badge = styled.span`
   padding: 2px 6px 3px;
   background-color: ${({ yellow, primary, theme }) =>
     yellow ? theme.yellow : primary ? theme.primary : theme.textTertiary};
-  color: ${({ primary, theme }) => (primary ? theme.white : theme.background)};
+  color: ${({ primary, yellow, theme }) =>
+    primary ? theme.white : yellow ? theme.text : theme.background};
   border-radius: 4px;
   font-size: 11px;
   font-weight: 500;

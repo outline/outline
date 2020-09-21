@@ -24,6 +24,8 @@ type Props = {
   dateTime: string,
   children?: React.Node,
   tooltipDelay?: number,
+  addSuffix?: boolean,
+  shorten?: boolean,
 };
 
 class Time extends React.Component<Props> {
@@ -40,6 +42,18 @@ class Time extends React.Component<Props> {
   }
 
   render() {
+    const { shorten, addSuffix } = this.props;
+    let content = distanceInWordsToNow(this.props.dateTime, {
+      addSuffix,
+    });
+
+    if (shorten) {
+      content = content
+        .replace("about", "")
+        .replace("minute", "min")
+        .replace("less than a minute ago", "just now");
+    }
+
     return (
       <Tooltip
         tooltip={format(this.props.dateTime, "MMMM Do, YYYY h:mm a")}
@@ -47,7 +61,7 @@ class Time extends React.Component<Props> {
         placement="bottom"
       >
         <time dateTime={this.props.dateTime}>
-          {this.props.children || distanceInWordsToNow(this.props.dateTime)}
+          {this.props.children || content}
         </time>
       </Tooltip>
     );

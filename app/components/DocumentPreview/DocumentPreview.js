@@ -86,6 +86,7 @@ class DocumentPreview extends React.Component<Props> {
       >
         <Heading>
           <Title text={document.titleWithDefault} highlight={highlight} />
+          {document.isNew && <Badge yellow>New</Badge>}
           {!document.isDraft &&
             !document.isArchived &&
             !document.isTemplate && (
@@ -105,7 +106,6 @@ class DocumentPreview extends React.Component<Props> {
           {document.isTemplate && showTemplate && (
             <Badge primary>Template</Badge>
           )}
-          {document.isNew && <Badge yellow>New</Badge>}
           <SecondaryActions>
             {document.isTemplate &&
               !document.isArchived &&
@@ -134,6 +134,7 @@ class DocumentPreview extends React.Component<Props> {
           document={document}
           showCollection={showCollection}
           showPublished={showPublished}
+          showLastViewed
         />
       </DocumentLink>
     );

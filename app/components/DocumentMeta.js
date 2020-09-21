@@ -18,8 +18,7 @@ const Container = styled(Flex)`
 `;
 
 const Modified = styled.span`
-  color: ${(props) =>
-    props.highlight ? props.theme.text : props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
@@ -28,6 +27,7 @@ type Props = {
   auth: AuthStore,
   showCollection?: boolean,
   showPublished?: boolean,
+  showLastViewed?: boolean,
   document: Document,
   children: React.Node,
   to?: string,
@@ -38,6 +38,7 @@ function DocumentMeta({
   collections,
   showPublished,
   showCollection,
+  showLastViewed,
   document,
   children,
   to,
@@ -66,37 +67,37 @@ function DocumentMeta({
   if (deletedAt) {
     content = (
       <span>
-        deleted <Time dateTime={deletedAt} /> ago
+        deleted <Time dateTime={deletedAt} addSuffix />
       </span>
     );
   } else if (archivedAt) {
     content = (
       <span>
-        archived <Time dateTime={archivedAt} /> ago
+        archived <Time dateTime={archivedAt} addSuffix />
       </span>
     );
   } else if (createdAt === updatedAt) {
     content = (
       <span>
-        created <Time dateTime={updatedAt} /> ago
+        created <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
     content = (
       <span>
-        published <Time dateTime={publishedAt} /> ago
+        published <Time dateTime={publishedAt} addSuffix />
       </span>
     );
   } else if (isDraft) {
     content = (
       <span>
-        saved <Time dateTime={updatedAt} /> ago
+        saved <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else {
     content = (
       <Modified highlight={modifiedSinceViewed}>
-        updated <Time dateTime={updatedAt} /> ago
+        updated <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
   }
@@ -105,12 +106,20 @@ function DocumentMeta({
   const updatedByMe = auth.user && auth.user.id === updatedBy.id;
 
   const timeSinceNow = () => {
-    if (!lastViewedAt)
-      return <Modified highlight={true}>Never viewed</Modified>;
+    if (isDraft || !showLastViewed) {
+      return null;
+    }
+    if (!lastViewedAt) {
+      return (
+        <>
+          •&nbsp;<Modified highlight>Never viewed</Modified>
+        </>
+      );
+    }
 
     return (
       <span>
-        Viewed <Time dateTime={updatedAt} /> ago
+        •&nbsp;Viewed <Time dateTime={lastViewedAt} addSuffix shorten />
       </span>
     );
   };
@@ -127,7 +136,7 @@ function DocumentMeta({
           </strong>
         </span>
       )}
-      &nbsp;•&nbsp;{timeSinceNow()}
+      &nbsp;{timeSinceNow()}
       {children}
     </Container>
   );

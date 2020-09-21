@@ -283,7 +283,11 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
-  const documents = views.map((view) => view.document);
+  const documents = views.map((view) => {
+    const document = view.document;
+    document.views = [view];
+    return document;
+  });
   const data = await Promise.all(
     documents.map((document) => presentDocument(document))
   );
