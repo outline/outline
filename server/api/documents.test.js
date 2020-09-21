@@ -962,6 +962,8 @@ describe("#documents.search", () => {
       body: { token: user.getJwtToken(), query: "my term" },
     });
 
+    // setTimeout is needed here because SearchQuery is saved asynchronously
+    // in order to not slow down the response time.
     setTimeout(async () => {
       const searchQuery = await SearchQuery.findAll({
         where: { query: "my term" },

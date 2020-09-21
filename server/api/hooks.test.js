@@ -143,6 +143,8 @@ describe("#hooks.slack", () => {
       },
     });
 
+    // setTimeout is needed here because SearchQuery is saved asynchronously
+    // in order to not slow down the response time.
     setTimeout(async () => {
       const searchQuery = await SearchQuery.findAll({
         where: { query: "contains" },
