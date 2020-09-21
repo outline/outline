@@ -4,9 +4,7 @@ import ToriiCatalog from "./ToriiCatalog";
 describe("ToriiCatalog", () => {
   const match = ToriiCatalog.ENABLED[0];
   test("to be enabled on file link", () => {
-    expect(
-      "https://catalog.toriihq.com/toriihq".match(match)
-    ).toBeTruthy();
+    expect("https://catalog.toriihq.com/toriihq".match(match)).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {

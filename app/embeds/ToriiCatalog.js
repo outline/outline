@@ -2,9 +2,7 @@
 import * as React from "react";
 import Frame from "./components/Frame";
 
-const URL_REGEX = new RegExp(
-  "https:\/\/catalog.toriihq.com\/(.*)$"
-);
+const URL_REGEX = new RegExp("https://catalog.toriihq.com/(.*)$");
 
 type Props = {|
   attrs: {|
@@ -18,11 +16,7 @@ export default class ToriiCatalog extends React.Component<Props> {
 
   render() {
     return (
-      <Frame
-        src={this.props.attrs.href}
-        title="Torii Catalog Embed"
-        border
-      />
+      <Frame src={this.props.attrs.href} title="Torii Catalog Embed" border />
     );
   }
 }
