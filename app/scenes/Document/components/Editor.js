@@ -21,7 +21,7 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
-  onSave: () => mixed,
+  onSave: ({ publish?: boolean, done?: boolean }) => mixed,
   innerRef: { current: any },
 };
 
@@ -50,8 +50,13 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter" && !event.metaKey) {
+    if (event.key === "Enter") {
       event.preventDefault();
+      if (event.metaKey) {
+        this.props.onSave({ publish: true, done: true });
+        return;
+      }
+
       this.insertParagraph();
       this.focusAtStart();
       return;
