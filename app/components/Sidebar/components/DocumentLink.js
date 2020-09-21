@@ -160,8 +160,4 @@ class DocumentLink extends React.Component<Props> {
 
 const DocumentChildren = styled(Flex)``;
 
-const Title = styled.div`
-  font-weight: ${(props) => (props.bold ? 900 : "normal")};
-`;
-
 export default DocumentLink;
