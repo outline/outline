@@ -18,7 +18,7 @@ const readFile = util.promisify(fs.readFile);
 
 const readIndexFile = async (ctx) => {
   if (isProduction) {
-    return readFile(path.join(__dirname, "../dist/index.html"));
+    return readFile(path.join(__dirname, "../app/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
@@ -39,7 +39,7 @@ const readIndexFile = async (ctx) => {
 
 // serve static assets
 koa.use(
-  serve(path.resolve(__dirname, "../public"), {
+  serve(path.resolve(__dirname, "../../public"), {
     maxage: 60 * 60 * 24 * 30 * 1000,
   })
 );
@@ -52,10 +52,7 @@ if (process.env.NODE_ENV === "production") {
       "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
     });
 
-    await sendfile(
-      ctx,
-      path.join(__dirname, "../dist/", ctx.path.substring(8))
-    );
+    await sendfile(ctx, path.join(__dirname, "../app/", ctx.path.substring(8)));
   });
 }
 

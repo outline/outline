@@ -36,7 +36,7 @@ class RevisionListItem extends React.Component<Props> {
           {revision.createdBy.name}
         </Author>
         <Meta>
-          <Time dateTime={revision.createdAt}>
+          <Time dateTime={revision.createdAt} tooltipDelay={250}>
             {format(revision.createdAt, "MMMM Do, YYYY h:mm a")}
           </Time>
         </Meta>

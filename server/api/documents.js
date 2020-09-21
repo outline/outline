@@ -2,7 +2,7 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import documentMover from "../commands/documentMover";
-import { InvalidRequestError } from "../errors";
+import { NotFoundError, InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
 import {
   Backlink,
@@ -216,7 +216,7 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
-  const collectionIds = await user.collectionIds();
+  const collectionIds = await user.collectionIds({ paranoid: false });
 
   const collectionScope = { method: ["withCollection", user.id] };
   const viewScope = { method: ["withViews", user.id] };
@@ -416,11 +416,19 @@ async function loadDocument({ id, shareId, user }) {
       authorize(user, "read", document);
     }
   } else {
-    document = await Document.findByPk(
-      id,
-      user ? { userId: user.id } : undefined
-    );
-    authorize(user, "read", document);
+    document = await Document.findByPk(id, {
+      userId: user ? user.id : undefined,
+      paranoid: false,
+    });
+    if (!document) {
+      throw new NotFoundError();
+    }
+
+    if (document.deletedAt) {
+      authorize(user, "restore", document);
+    } else {
+      authorize(user, "read", document);
+    }
   }
 
   return document;
@@ -453,7 +461,7 @@ router.post("documents.export", auth({ required: false }), async (ctx) => {
 });
 
 router.post("documents.restore", auth(), async (ctx) => {
-  const { id, revisionId } = ctx.body;
+  const { id, collectionId, revisionId } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
@@ -461,6 +469,21 @@ router.post("documents.restore", auth(), async (ctx) => {
     userId: user.id,
     paranoid: false,
   });
+  if (!document) {
+    throw new NotFoundError();
+  }
+
+  if (collectionId) {
+    ctx.assertUuid(collectionId, "collectionId must be a uuid");
+    authorize(user, "restore", document);
+
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
+    authorize(user, "update", collection);
+
+    document.collectionId = collectionId;
+  }
 
   if (document.deletedAt) {
     authorize(user, "restore", document);
@@ -946,6 +969,11 @@ router.post("documents.move", auth(), async (ctx) => {
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, "move", document);
+
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findByPk(collectionId);
+  authorize(user, "update", collection);
 
   if (parentDocumentId) {
     const parent = await Document.findByPk(parentDocumentId, {

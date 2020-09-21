@@ -20,10 +20,26 @@ import routes from "./routes";
 import updates from "./utils/updates";
 
 const app = new Koa();
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
 app.use(compress());
 
-if (process.env.NODE_ENV === "development") {
+if (isProduction) {
+  // Force redirect to HTTPS protocol unless explicitly disabled
+  if (process.env.FORCE_HTTPS !== "false") {
+    app.use(
+      enforceHttps({
+        trustProtoHeader: true,
+      })
+    );
+  } else {
+    console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
+  }
+
+  // trust header fields set by our proxy. eg X-Forwarded-For
+  app.proxy = true;
+} else if (!isTest) {
   /* eslint-disable global-require */
   const convert = require("koa-convert");
   const webpack = require("webpack");
@@ -72,20 +88,6 @@ if (process.env.NODE_ENV === "development") {
   app.use(logger());
 
   app.use(mount("/emails", emails));
-} else if (process.env.NODE_ENV === "production") {
-  // Force redirect to HTTPS protocol unless explicitly disabled
-  if (process.env.FORCE_HTTPS !== "false") {
-    app.use(
-      enforceHttps({
-        trustProtoHeader: true,
-      })
-    );
-  } else {
-    console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
-  }
-
-  // trust header fields set by our proxy. eg X-Forwarded-For
-  app.proxy = true;
 }
 
 // catch errors in one place, automatically set status and response headers
@@ -167,10 +169,7 @@ app.use(mount(routes));
  *
  * Set ENABLE_UPDATES=false to disable them for your installation
  */
-if (
-  process.env.ENABLE_UPDATES !== "false" &&
-  process.env.NODE_ENV === "production"
-) {
+if (process.env.ENABLE_UPDATES !== "false" && isProduction) {
   updates();
   setInterval(updates, 24 * 3600 * 1000);
 }

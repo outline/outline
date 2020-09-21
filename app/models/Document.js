@@ -7,7 +7,6 @@ import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
 import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
-import Revision from "models/Revision";
 import User from "models/User";
 import View from "./View";
 
@@ -151,8 +150,8 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (revision: Revision) => {
-    return this.store.restore(this, revision);
+  restore = (options) => {
+    return this.store.restore(this, options);
   };
 
   unpublish = () => {

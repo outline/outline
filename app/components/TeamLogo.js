@@ -6,7 +6,7 @@ const TeamLogo = styled.img`
   height: 38px;
   border-radius: 4px;
   background: ${(props) => props.theme.background};
-  border: 1px solid ${(props) => props.theme.divider};
+  outline: 1px solid ${(props) => props.theme.divider};
 `;
 
 export default TeamLogo;

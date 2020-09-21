@@ -34,14 +34,14 @@ class Editor extends React.Component<PropsWithRef> {
     return result.url;
   };
 
-  onClickLink = (href: string) => {
+  onClickLink = (href: string, event: MouseEvent) => {
     // on page hash
     if (href[0] === "#") {
       window.location.href = href;
       return;
     }
 
-    if (isInternalUrl(href)) {
+    if (isInternalUrl(href) && !event.metaKey && !event.shiftKey) {
       // relative
       let navigateTo = href;
 
