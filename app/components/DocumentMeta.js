@@ -52,6 +52,7 @@ function DocumentMeta({
     archivedAt,
     deletedAt,
     isDraft,
+    lastViewedAt,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -103,6 +104,17 @@ function DocumentMeta({
   const collection = collections.get(document.collectionId);
   const updatedByMe = auth.user && auth.user.id === updatedBy.id;
 
+  const timeSinceNow = () => {
+    if (!lastViewedAt)
+      return <Modified highlight={true}>Never viewed</Modified>;
+
+    return (
+      <span>
+        Viewed <Time dateTime={updatedAt} /> ago
+      </span>
+    );
+  };
+
   return (
     <Container align="center" {...rest}>
       {updatedByMe ? "You" : updatedBy.name}&nbsp;
@@ -115,6 +127,7 @@ function DocumentMeta({
           </strong>
         </span>
       )}
+      &nbsp;•&nbsp;{timeSinceNow()}
       {children}
     </Container>
   );

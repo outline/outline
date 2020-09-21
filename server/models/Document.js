@@ -207,11 +207,15 @@ Document.associate = (models) => {
       { model: models.User, as: "updatedBy", paranoid: false },
     ],
   });
-  Document.addScope("withViews", (userId) => ({
-    include: [
-      { model: models.View, as: "views", where: { userId }, required: false },
-    ],
-  }));
+  Document.addScope("withViews", (userId) => {
+    if (!userId) return {};
+
+    return {
+      include: [
+        { model: models.View, as: "views", where: { userId }, required: false },
+      ],
+    };
+  });
   Document.addScope("withStarred", (userId) => ({
     include: [
       { model: models.Star, as: "starred", where: { userId }, required: false },
@@ -222,9 +226,15 @@ Document.associate = (models) => {
 Document.findByPk = async function (id, options = {}) {
   // allow default preloading of collection membership if `userId` is passed in find options
   // almost every endpoint needs the collection membership to determine policy permissions.
-  const scope = this.scope("withUnpublished", {
-    method: ["withCollection", options.userId],
-  });
+  const scope = this.scope(
+    "withUnpublished",
+    {
+      method: ["withCollection", options.userId],
+    },
+    {
+      method: ["withViews", options.userId],
+    }
+  );
 
   if (isUUID(id)) {
     return scope.findOne({

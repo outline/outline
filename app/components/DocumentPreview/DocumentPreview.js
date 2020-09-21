@@ -105,6 +105,7 @@ class DocumentPreview extends React.Component<Props> {
           {document.isTemplate && showTemplate && (
             <Badge primary>Template</Badge>
           )}
+          {document.isNew && <Badge yellow>New</Badge>}
           <SecondaryActions>
             {document.isTemplate &&
               !document.isArchived &&

@@ -1,5 +1,6 @@
 // @flow
 import addDays from "date-fns/add_days";
+import differenceInDays from "date-fns/difference_in_days";
 import invariant from "invariant";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
@@ -7,6 +8,7 @@ import unescape from "shared/utils/unescape";
 import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
 import User from "models/User";
+import View from "./View";
 
 type SaveOptions = {
   publish?: boolean,
@@ -23,7 +25,7 @@ export default class Document extends BaseModel {
 
   collaborators: User[];
   collectionId: string;
-  lastViewedAt: ?string;
+  @observable lastViewedAt: ?string;
   createdAt: string;
   createdBy: User;
   updatedAt: string;
@@ -47,7 +49,7 @@ export default class Document extends BaseModel {
   constructor(fields: Object, store: DocumentsStore) {
     super(fields, store);
 
-    if (this.isNew && this.isFromTemplate) {
+    if (this.isNewDocument && this.isFromTemplate) {
       this.title = "";
     }
   }
@@ -70,6 +72,14 @@ export default class Document extends BaseModel {
   @computed
   get modifiedSinceViewed(): boolean {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
+  }
+
+  @computed
+  get isNew(): boolean {
+    return (
+      !this.lastViewedAt &&
+      differenceInDays(new Date(), new Date(this.createdAt)) < 14
+    );
   }
 
   @computed
@@ -112,7 +122,7 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get isNew(): boolean {
+  get isNewDocument(): boolean {
     return this.createdAt === this.updatedAt;
   }
 
@@ -197,6 +207,11 @@ export default class Document extends BaseModel {
   @action
   view = () => {
     return this.store.rootStore.views.create({ documentId: this.id });
+  };
+
+  @action
+  updateLastViewed = (view: View) => {
+    this.lastViewedAt = view.lastViewedAt;
   };
 
   @action

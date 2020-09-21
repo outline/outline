@@ -399,7 +399,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetch = async (
     id: string,
-    options?: FetchOptions = {}
+    options: FetchOptions = {}
   ): Promise<?Document> => {
     if (!options.prefetch) this.isFetching = true;
 

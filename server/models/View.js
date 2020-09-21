@@ -2,7 +2,7 @@
 import subMilliseconds from "date-fns/sub_milliseconds";
 import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 import { User } from "../models";
-import { Op, DataTypes, sequelize } from "../sequelize";
+import { DataTypes, Op, sequelize } from "../sequelize";
 
 const View = sequelize.define(
   "view",

@@ -98,10 +98,12 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // add the users starred state to the response by default
   const starredScope = { method: ["withStarred", user.id] };
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
     starredScope,
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where,
     order: [[sort, direction]],
@@ -137,10 +139,12 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
 
   const starredScope = { method: ["withStarred", user.id] };
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
     starredScope,
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where: {
       teamId: user.teamId,
@@ -176,9 +180,11 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const collectionIds = await user.collectionIds();
 
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where: {
       teamId: user.teamId,
@@ -214,7 +220,8 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const collectionIds = await user.collectionIds({ paranoid: false });
 
   const collectionScope = { method: ["withCollection", user.id] };
-  const documents = await Document.scope(collectionScope).findAll({
+  const viewScope = { method: ["withViews", user.id] };
+  const documents = await Document.scope(collectionScope, viewScope).findAll({
     where: {
       teamId: user.teamId,
       collectionId: collectionIds,
@@ -349,9 +356,11 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const collectionIds = await user.collectionIds();
 
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where: {
       userId: user.id,
