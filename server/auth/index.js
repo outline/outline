@@ -1,7 +1,7 @@
 // @flow
 import addMonths from "date-fns/add_months";
 import Koa from "koa";
-import bodyParser from "koa-bodyparser";
+import bodyParser from "koa-body";
 import Router from "koa-router";
 import auth from "../middlewares/authentication";
 import validation from "../middlewares/validation";

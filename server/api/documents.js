@@ -1,6 +1,7 @@
 // @flow
 import Router from "koa-router";
 import Sequelize from "sequelize";
+import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
 import { NotFoundError, InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
@@ -707,106 +708,23 @@ router.post("documents.unstar", auth(), async (ctx) => {
   };
 });
 
-router.post("documents.create", auth(), async (ctx) => {
-  const {
-    title = "",
-    text = "",
-    publish,
-    collectionId,
-    parentDocumentId,
-    templateId,
-    template,
-    index,
-  } = ctx.body;
-  const editorVersion = ctx.headers["x-editor-version"];
-
-  ctx.assertUuid(collectionId, "collectionId must be an uuid");
-  if (parentDocumentId) {
-    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
-  }
-
-  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+router.post("documents.create", auth(), createDocumentFromContext);
+router.post("documents.import", auth(), async (ctx) => {
+  const file: any = Object.values(ctx.request.files)[0];
 
   const user = ctx.state.user;
   authorize(user, "create", Document);
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findOne({
-    where: {
-      id: collectionId,
-      teamId: user.teamId,
-    },
-  });
-  authorize(user, "publish", collection);
-
-  let parentDocument;
-  if (parentDocumentId) {
-    parentDocument = await Document.findOne({
-      where: {
-        id: parentDocumentId,
-        collectionId: collection.id,
-      },
-    });
-    authorize(user, "read", parentDocument, { collection });
-  }
-
-  let templateDocument;
-  if (templateId) {
-    templateDocument = await Document.findByPk(templateId, { userId: user.id });
-    authorize(user, "read", templateDocument);
-  }
-
-  let document = await Document.create({
-    parentDocumentId,
-    editorVersion,
-    collectionId: collection.id,
-    teamId: user.teamId,
-    userId: user.id,
-    lastModifiedById: user.id,
-    createdById: user.id,
-    template,
-    templateId: templateDocument ? templateDocument.id : undefined,
-    title: templateDocument ? templateDocument.title : title,
-    text: templateDocument ? templateDocument.text : text,
-  });
-
-  await Event.create({
-    name: "documents.create",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: { title: document.title, templateId },
+  const { text, title } = await documentImporter({
+    user,
+    file,
     ip: ctx.request.ip,
   });
 
-  if (publish) {
-    await document.publish();
+  ctx.body.text = text;
+  ctx.body.title = title;
 
-    await Event.create({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: { title: document.title },
-      ip: ctx.request.ip,
-    });
-  }
-
-  // reload to get all of the data needed to present (user, collection etc)
-  // we need to specify publishedAt to bypass default scope that only returns
-  // published documents
-  document = await Document.findOne({
-    where: { id: document.id, publishedAt: document.publishedAt },
-  });
-  document.collection = collection;
-
-  ctx.body = {
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
-  };
+  await createDocumentFromContext(ctx);
 });
 
 router.post("documents.templatize", auth(), async (ctx) => {
@@ -1072,5 +990,108 @@ router.post("documents.unpublish", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
+// TODO: update to actual `ctx` type
+export async function createDocumentFromContext(ctx: any) {
+  const {
+    title = "",
+    text = "",
+    publish,
+    collectionId,
+    parentDocumentId,
+    templateId,
+    template,
+    index,
+  } = ctx.body;
+  const editorVersion = ctx.headers["x-editor-version"];
+
+  ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
+  }
+
+  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+
+  const user = ctx.state.user;
+  authorize(user, "create", Document);
+
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findOne({
+    where: {
+      id: collectionId,
+      teamId: user.teamId,
+    },
+  });
+  authorize(user, "publish", collection);
+
+  let parentDocument;
+  if (parentDocumentId) {
+    parentDocument = await Document.findOne({
+      where: {
+        id: parentDocumentId,
+        collectionId: collection.id,
+      },
+    });
+    authorize(user, "read", parentDocument, { collection });
+  }
+
+  let templateDocument;
+  if (templateId) {
+    templateDocument = await Document.findByPk(templateId, { userId: user.id });
+    authorize(user, "read", templateDocument);
+  }
+
+  let document = await Document.create({
+    parentDocumentId,
+    editorVersion,
+    collectionId: collection.id,
+    teamId: user.teamId,
+    userId: user.id,
+    lastModifiedById: user.id,
+    createdById: user.id,
+    template,
+    templateId: templateDocument ? templateDocument.id : undefined,
+    title: templateDocument ? templateDocument.title : title,
+    text: templateDocument ? templateDocument.text : text,
+  });
+
+  await Event.create({
+    name: "documents.create",
+    documentId: document.id,
+    collectionId: document.collectionId,
+    teamId: document.teamId,
+    actorId: user.id,
+    data: { title: document.title, templateId },
+    ip: ctx.request.ip,
+  });
+
+  if (publish) {
+    await document.publish();
+
+    await Event.create({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
+  }
+
+  // reload to get all of the data needed to present (user, collection etc)
+  // we need to specify publishedAt to bypass default scope that only returns
+  // published documents
+  document = await Document.findOne({
+    where: { id: document.id, publishedAt: document.publishedAt },
+  });
+  document.collection = collection;
+
+  return (ctx.body = {
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
+  });
+}
 
 export default router;

@@ -27,6 +27,7 @@ export default class Spotify extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         width="300px"
         height="380px"
         src={`https://open.spotify.com/embed${normalizedPath}`}

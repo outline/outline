@@ -17,6 +17,8 @@ export default class Prezi extends React.Component<Props> {
   render() {
     const url = this.props.attrs.href.replace(/\/embed$/, "");
 
-    return <Frame src={`${url}/embed`} title="Prezi Embed" border />;
+    return (
+      <Frame {...this.props} src={`${url}/embed`} title="Prezi Embed" border />
+    );
   }
 }

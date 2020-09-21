@@ -18,11 +18,22 @@ import Document from "models/Document";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
 
+type ImportOptions = {
+  publish?: boolean,
+};
+
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
+
+  importFileTypes: string[] = [
+    "text/markdown",
+    "text/plain",
+    "text/html",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -450,6 +461,41 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
+
+    this.addPolicies(res.policies);
+    return this.add(res.data);
+  };
+
+  @action
+  import = async (
+    file: File,
+    parentDocumentId: string,
+    collectionId: string,
+    options: ImportOptions
+  ) => {
+    const title = file.name.replace(/\.[^/.]+$/, "");
+    const formData = new FormData();
+
+    [
+      { key: "parentDocumentId", value: parentDocumentId },
+      { key: "collectionId", value: collectionId },
+      { key: "title", value: title },
+      { key: "publish", value: options.publish },
+      { key: "file", value: file },
+    ].map((info) => {
+      if (typeof info.value === "string" && info.value) {
+        formData.append(info.key, info.value);
+      }
+      if (typeof info.value === "boolean") {
+        formData.append(info.key, info.value.toString());
+      }
+      if (info.value instanceof File) {
+        formData.append(info.key, info.value);
+      }
+    });
+
+    const res = await client.post("/documents.import", formData);
+    invariant(res && res.data, "Data should be available");
 
     this.addPolicies(res.policies);
     return this.add(res.data);

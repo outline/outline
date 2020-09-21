@@ -21,6 +21,7 @@ export default class Abstract extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         src={`https://app.goabstract.com/embed/${shareId}`}
         title={`Abstract (${shareId})`}
       />

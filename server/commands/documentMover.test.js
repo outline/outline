@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import documentMover from "../commands/documentMover";
 import { buildDocument, buildCollection } from "../test/factories";
 import { flushdb, seed } from "../test/support";
+import documentMover from "./documentMover";
 
 beforeEach(() => flushdb());
 
