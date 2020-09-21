@@ -26,6 +26,7 @@ const colors = {
   yellow: "#FBCA04",
   warmGrey: "#EDF2F7",
 
+  searchHighlight: "#FDEA9B",
   danger: "#ff476f",
   warning: "#f08a24",
   success: "#2f3336",
