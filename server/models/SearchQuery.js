@@ -10,7 +10,7 @@ const SearchQuery = sequelize.define(
       primaryKey: true,
     },
     source: {
-      type: DataTypes.ENUM("slack", "app"),
+      type: DataTypes.ENUM("slack", "app", "api"),
       allowNull: false,
     },
     query: {

@@ -605,13 +605,17 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     })
   );
 
-  SearchQuery.create({
-    userId: user.id,
-    teamId: user.teamId,
-    source: "app",
-    query,
-    results: totalCount,
-  });
+  // When requesting subsequent pages of search results we don't want to record
+  // duplicate search query records
+  if (offset === 0) {
+    SearchQuery.create({
+      userId: user.id,
+      teamId: user.teamId,
+      source: ctx.state.authType,
+      query,
+      results: totalCount,
+    });
+  }
 
   const policies = presentPolicies(user, documents);
 

@@ -20,7 +20,7 @@ module.exports = {
         },
       },
       source: {
-        type: Sequelize.ENUM("slack", "app"),
+        type: Sequelize.ENUM("slack", "app", "api"),
         allowNull: false,
       },
       query: {
