@@ -21,7 +21,7 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
-  onSave: ({ publish?: boolean, done?: boolean }) => mixed,
+  onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
   innerRef: { current: any },
 };
 
@@ -68,7 +68,7 @@ class DocumentEditor extends React.Component<Props> {
     }
     if (event.key === "s" && event.metaKey) {
       event.preventDefault();
-      this.props.onSave();
+      this.props.onSave({});
       return;
     }
   };
