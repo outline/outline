@@ -1,15 +1,6 @@
 // @flow
 import invariant from "invariant";
-import {
-  without,
-  map,
-  find,
-  orderBy,
-  filter,
-  compact,
-  omitBy,
-  uniq,
-} from "lodash";
+import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
