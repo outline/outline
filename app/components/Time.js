@@ -50,8 +50,8 @@ class Time extends React.Component<Props> {
     if (shorten) {
       content = content
         .replace("about", "")
-        .replace("minute", "min")
-        .replace("less than a minute ago", "just now");
+        .replace("less than a minute ago", "just now")
+        .replace("minute", "min");
     }
 
     return (
