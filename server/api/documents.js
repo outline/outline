@@ -11,6 +11,7 @@ import {
   Document,
   Event,
   Revision,
+  SearchQuery,
   Share,
   Star,
   User,
@@ -586,7 +587,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     );
   }
 
-  const results = await Document.searchForUser(user, query, {
+  const { results, totalCount } = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === "true",
     includeDrafts: includeDrafts === "true",
     collaboratorIds,
@@ -603,6 +604,14 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
       return { ...result, document };
     })
   );
+
+  SearchQuery.create({
+    userId: user.id,
+    teamId: user.teamId,
+    source: "app",
+    query,
+    results: totalCount,
+  });
 
   const policies = presentPolicies(user, documents);
 
