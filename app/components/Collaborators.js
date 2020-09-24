@@ -1,5 +1,5 @@
 // @flow
-import { sortBy, keyBy } from "lodash";
+import { orderBy, keyBy } from "lodash";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { MAX_AVATAR_DISPLAY } from "shared/constants";
@@ -37,20 +37,24 @@ class Collaborators extends React.Component<Props> {
       .filter((p) => p.isEditing)
       .map((p) => p.userId);
 
-    // ensure currently present via websocket are always ordered first
-    const mostRecentViewers = sortBy(
-      documentViews.slice(0, MAX_AVATAR_DISPLAY),
-      (view) => {
-        return presentIds.includes(view.user.id);
-      }
+    const sortedDocumentViewers = orderBy(
+      documentViews,
+      "lastViewedAt",
+      "desc"
     );
 
-    const viewersKeyedByUserId = keyBy(mostRecentViewers, (v) => v.user.id);
-    const overflow = documentViews.length - mostRecentViewers.length;
+    const mostRecentViewers = sortedDocumentViewers.slice(
+      0,
+      MAX_AVATAR_DISPLAY
+    );
+    const otherViewers = sortedDocumentViewers.slice(MAX_AVATAR_DISPLAY);
+    const viewersKeyedByUserId = keyBy(sortedDocumentViewers, (v) => v.user.id);
+    const overflow = otherViewers.length;
 
     return (
       <Facepile
-        users={mostRecentViewers.map((v) => v.user)}
+        users={mostRecentViewers.map((v) => v.user).reverse()}
+        otherUsers={otherViewers.map((v) => v.user)}
         overflow={overflow}
         renderAvatar={(user) => {
           const isPresent = presentIds.includes(user.id);
