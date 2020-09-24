@@ -37,6 +37,22 @@ const readIndexFile = async (ctx) => {
   });
 };
 
+const renderApp = async (ctx, next) => {
+  if (ctx.request.path === "/realtime/") {
+    return next();
+  }
+
+  const page = await readIndexFile(ctx);
+  const env = `
+    window.env = ${JSON.stringify(environment)};
+  `;
+  ctx.body = page
+    .toString()
+    .replace(/\/\/inject-env\/\//g, env)
+    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
+    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+};
+
 // serve static assets
 koa.use(
   serve(path.resolve(__dirname, "../../public"), {
@@ -65,22 +81,13 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse();
 });
 
-// catch all for application
-router.get("*", async (ctx, next) => {
-  if (ctx.request.path === "/realtime/") {
-    return next();
-  }
-
-  const page = await readIndexFile(ctx);
-  const env = `
-    window.env = ${JSON.stringify(environment)};
-  `;
-  ctx.body = page
-    .toString()
-    .replace(/\/\/inject-env\/\//g, env)
-    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
-    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+router.get("/share/*", (ctx, next) => {
+  ctx.remove("X-Frame-Options");
+  return renderApp(ctx, next);
 });
+
+// catch all for application
+router.get("*", renderApp);
 
 // middleware
 koa.use(apexRedirect());
