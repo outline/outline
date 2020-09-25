@@ -1,4 +1,5 @@
 // @flow
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
@@ -77,9 +78,13 @@ class DataLoader extends React.Component<Props> {
       const slug = parseDocumentSlug(term);
       try {
         const document = await this.props.documents.fetch(slug);
+        const time = distanceInWordsToNow(document.updatedAt, {
+          addSuffix: true,
+        });
         return [
           {
             title: document.title,
+            subtitle: `Updated ${time}`,
             url: document.url,
           },
         ];
@@ -96,10 +101,16 @@ class DataLoader extends React.Component<Props> {
 
     return results
       .filter((result) => result.document.title)
-      .map((result) => ({
-        title: result.document.title,
-        url: result.document.url,
-      }));
+      .map((result) => {
+        const time = distanceInWordsToNow(result.document.updatedAt, {
+          addSuffix: true,
+        });
+        return {
+          title: result.document.title,
+          subtitle: `Updated ${time}`,
+          url: result.document.url,
+        };
+      });
   };
 
   onCreateLink = async (title: string) => {
