@@ -49,13 +49,14 @@ type Props = {
 @observer
 class Search extends React.Component<Props> {
   firstDocument: ?React.Component<typeof DocumentPreview>;
+  lastQuery: string = "";
 
   @observable
   query: string = decodeURIComponent(this.props.match.params.term || "");
   @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
-  @observable isFetching: boolean = false;
+  @observable isLoading: boolean = false;
   @observable pinToTop: boolean = !!this.props.match.params.term;
 
   componentDidMount() {
@@ -81,14 +82,17 @@ class Search extends React.Component<Props> {
   }
 
   handleKeyDown = (ev) => {
-    // Escape
-    if (ev.which === 27) {
-      ev.preventDefault();
-      this.goBack();
+    if (ev.key === "Enter") {
+      this.fetchResults();
+      return;
     }
 
-    // Down
-    if (ev.which === 40) {
+    if (ev.key === "Escape") {
+      ev.preventDefault();
+      return this.goBack();
+    }
+
+    if (ev.key === "ArrowDown") {
       ev.preventDefault();
       if (this.firstDocument) {
         const element = ReactDOM.findDOMNode(this.firstDocument);
@@ -103,7 +107,7 @@ class Search extends React.Component<Props> {
     this.allowLoadMore = true;
 
     // To prevent "no results" showing before debounce kicks in
-    this.isFetching = true;
+    this.isLoading = true;
 
     this.fetchResultsDebounced();
   };
@@ -115,7 +119,7 @@ class Search extends React.Component<Props> {
     this.allowLoadMore = true;
 
     // To prevent "no results" showing before debounce kicks in
-    this.isFetching = !!this.query;
+    this.isLoading = !!this.query;
 
     this.fetchResultsDebounced();
   };
@@ -174,7 +178,7 @@ class Search extends React.Component<Props> {
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isFetching) return;
+    if (!this.allowLoadMore || this.isLoading) return;
 
     // Fetch more results
     await this.fetchResults();
@@ -183,7 +187,14 @@ class Search extends React.Component<Props> {
   @action
   fetchResults = async () => {
     if (this.query) {
-      this.isFetching = true;
+      // we just requested this thing – no need to try again
+      if (this.lastQuery === this.query) {
+        this.isLoading = false;
+        return;
+      }
+
+      this.isLoading = true;
+      this.lastQuery = this.query;
 
       try {
         const results = await this.props.documents.search(this.query, {
@@ -203,15 +214,19 @@ class Search extends React.Component<Props> {
         } else {
           this.offset += DEFAULT_PAGINATION_LIMIT;
         }
+      } catch (err) {
+        this.lastQuery = "";
+        throw err;
       } finally {
-        this.isFetching = false;
+        this.isLoading = false;
       }
     } else {
       this.pinToTop = false;
+      this.lastQuery = this.query;
     }
   };
 
-  fetchResultsDebounced = debounce(this.fetchResults, 350, {
+  fetchResultsDebounced = debounce(this.fetchResults, 500, {
     leading: false,
     trailing: true,
   });
@@ -231,14 +246,14 @@ class Search extends React.Component<Props> {
   render() {
     const { documents, notFound, location } = this.props;
     const results = documents.searchResults(this.query);
-    const showEmpty = !this.isFetching && this.query && results.length === 0;
+    const showEmpty = !this.isLoading && this.query && results.length === 0;
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
 
     return (
       <Container auto>
         <PageTitle title={this.title} />
-        {this.isFetching && <LoadingIndicator />}
+        {this.isLoading && <LoadingIndicator />}
         {notFound && (
           <div>
             <h1>Not Found</h1>
