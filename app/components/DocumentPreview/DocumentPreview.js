@@ -1,8 +1,9 @@
 // @flow
+import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { StarredIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
-import { Link, withRouter, type RouterHistory } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
@@ -15,7 +16,6 @@ import DocumentMenu from "menus/DocumentMenu";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
-  history: RouterHistory,
   document: Document,
   highlight?: ?string,
   context?: ?string,
@@ -30,6 +30,8 @@ const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 @observer
 class DocumentPreview extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
   handleStar = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
@@ -48,17 +50,15 @@ class DocumentPreview extends React.Component<Props> {
     return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
   };
 
-  handleNewFromTemplate = (event) => {
+  handleNewFromTemplate = (event: SyntheticEvent<>) => {
     event.preventDefault();
     event.stopPropagation();
 
     const { document } = this.props;
 
-    this.props.history.push(
-      newDocumentUrl(document.collectionId, {
-        templateId: document.id,
-      })
-    );
+    this.redirectTo = newDocumentUrl(document.collectionId, {
+      templateId: document.id,
+    });
   };
 
   render() {
@@ -72,6 +72,10 @@ class DocumentPreview extends React.Component<Props> {
       highlight,
       context,
     } = this.props;
+
+    if (this.redirectTo) {
+      return <Redirect to={this.redirectTo} push />;
+    }
 
     const queryIsInTitle =
       !!highlight &&
@@ -230,4 +234,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default withRouter(DocumentPreview);
+export default DocumentPreview;
