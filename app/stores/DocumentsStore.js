@@ -313,11 +313,24 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
+  searchTitles = async (query: string, options: PaginationParams = {}) => {
+    const res = await client.get("/documents.search_titles", {
+      query,
+      ...options,
+    });
+    invariant(res && res.data, "Search response should be available");
+
+    // add the documents and associated policies to the store
+    res.data.forEach(this.add);
+    this.addPolicies(res.policies);
+    return res.data;
+  };
+
+  @action
   search = async (
     query: string,
     options: PaginationParams = {}
   ): Promise<SearchResult[]> => {
-    // $FlowFixMe
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
       ...compactedOptions,
@@ -464,7 +477,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       { key: "title", value: title },
       { key: "publish", value: options.publish },
       { key: "file", value: file },
-    ].map((info) => {
+    ].forEach((info) => {
       if (typeof info.value === "string" && info.value) {
         formData.append(info.key, info.value);
       }
