@@ -140,6 +140,7 @@ class CollectionScene extends React.Component<Props> {
           <>
             <Action>
               <InputSearch
+                source="collection"
                 placeholder="Search in collection…"
                 collectionId={match.params.id}
               />

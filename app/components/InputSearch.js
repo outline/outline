@@ -12,6 +12,7 @@ import { searchUrl } from "utils/routeHelpers";
 type Props = {
   history: RouterHistory,
   theme: Object,
+  source: string,
   placeholder?: string,
   collectionId?: string,
 };
@@ -33,7 +34,10 @@ class InputSearch extends React.Component<Props> {
   handleSearchInput = (ev) => {
     ev.preventDefault();
     this.props.history.push(
-      searchUrl(ev.target.value, this.props.collectionId)
+      searchUrl(ev.target.value, {
+        collectionId: this.props.collectionId,
+        ref: this.props.source,
+      })
     );
   };
 
