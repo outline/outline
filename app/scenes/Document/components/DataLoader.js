@@ -74,8 +74,6 @@ class DataLoader extends React.Component<Props> {
   }
 
   onSearchLink = async (term: string) => {
-    term = term.trim();
-
     if (isInternalUrl(term)) {
       // search for exact internal document
       const slug = parseDocumentSlug(term);
