@@ -628,6 +628,56 @@ describe("#documents.drafts", () => {
   });
 });
 
+describe("#documents.search_titles", () => {
+  it("should return case insensitive results for partial query", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+    });
+
+    const res = await server.post("/api/documents.search_titles", {
+      body: { token: user.getJwtToken(), query: "SECRET" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not include archived or deleted documents", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      archivedAt: new Date(),
+    });
+
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      deletedAt: new Date(),
+    });
+
+    const res = await server.post("/api/documents.search_titles", {
+      body: { token: user.getJwtToken(), query: "SECRET" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.search_titles");
+    expect(res.status).toEqual(401);
+  });
+});
+
 describe("#documents.search", () => {
   it("should return results", async () => {
     const { user } = await seed();

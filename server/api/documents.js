@@ -551,6 +551,52 @@ router.post("documents.restore", auth(), async (ctx) => {
   };
 });
 
+router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
+  const { query } = ctx.body;
+  const { offset, limit } = ctx.state.pagination;
+  const user = ctx.state.user;
+  ctx.assertPresent(query, "query is required");
+
+  const collectionIds = await user.collectionIds();
+
+  const documents = await Document.scope(
+    {
+      method: ["withViews", user.id],
+    },
+    {
+      method: ["withCollection", user.id],
+    }
+  ).findAll({
+    where: {
+      title: {
+        [Op.iLike]: `%${query}%`,
+      },
+      collectionId: collectionIds,
+      archivedAt: {
+        [Op.eq]: null,
+      },
+    },
+    order: [["updatedAt", "DESC"]],
+    include: [
+      { model: User, as: "createdBy", paranoid: false },
+      { model: User, as: "updatedBy", paranoid: false },
+    ],
+    offset,
+    limit,
+  });
+
+  const policies = presentPolicies(user, documents);
+  const data = await Promise.all(
+    documents.map((document) => presentDocument(document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+    policies,
+  };
+});
+
 router.post("documents.search", auth(), pagination(), async (ctx) => {
   const {
     query,
