@@ -14,7 +14,6 @@ COPY . .
 
 RUN yarn build && \
   yarn --production --ignore-scripts --prefer-offline && \
-  rm -rf server && \
   rm -rf shared && \
   rm -rf app
 

@@ -44,7 +44,8 @@ For a manual self-hosted production installation these are the suggested steps:
     1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
     1. `URL` (the public facing URL of your installation)
     1. `AWS_` (all of the keys beginning with AWS)
-1. Migrate database schema with `yarn sequelize:migrate`
+1. Migrate database schema with `yarn sequelize:migrate`. Production assumes an SSL connection, if
+Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`.
 1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline `
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
