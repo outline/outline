@@ -14,6 +14,7 @@ import Integration from "./Integration";
 import Notification from "./Notification";
 import NotificationSetting from "./NotificationSetting";
 import Revision from "./Revision";
+import SearchQuery from "./SearchQuery";
 import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
@@ -36,6 +37,7 @@ const models = {
   Notification,
   NotificationSetting,
   Revision,
+  SearchQuery,
   Share,
   Star,
   Team,
@@ -66,6 +68,7 @@ export {
   Notification,
   NotificationSetting,
   Revision,
+  SearchQuery,
   Share,
   Star,
   Team,

@@ -15,6 +15,13 @@ export default class Framer extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
-    return <Frame src={this.props.attrs.href} title="Framer Embed" border />;
+    return (
+      <Frame
+        {...this.props}
+        src={this.props.attrs.href}
+        title="Framer Embed"
+        border
+      />
+    );
   }
 }

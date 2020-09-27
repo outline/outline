@@ -8,6 +8,7 @@ import {
   Revision,
   Backlink,
   CollectionUser,
+  SearchQuery,
 } from "../models";
 import {
   buildShare,
@@ -627,6 +628,56 @@ describe("#documents.drafts", () => {
   });
 });
 
+describe("#documents.search_titles", () => {
+  it("should return case insensitive results for partial query", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+    });
+
+    const res = await server.post("/api/documents.search_titles", {
+      body: { token: user.getJwtToken(), query: "SECRET" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not include archived or deleted documents", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      archivedAt: new Date(),
+    });
+
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      deletedAt: new Date(),
+    });
+
+    const res = await server.post("/api/documents.search_titles", {
+      body: { token: user.getJwtToken(), query: "SECRET" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.search_titles");
+    expect(res.status).toEqual(401);
+  });
+});
+
 describe("#documents.search", () => {
   it("should return results", async () => {
     const { user } = await seed();
@@ -953,6 +1004,25 @@ describe("#documents.search", () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it("should save search term, hits and source", async (done) => {
+    const { user } = await seed();
+    await server.post("/api/documents.search", {
+      body: { token: user.getJwtToken(), query: "my term" },
+    });
+
+    // setTimeout is needed here because SearchQuery is saved asynchronously
+    // in order to not slow down the response time.
+    setTimeout(async () => {
+      const searchQuery = await SearchQuery.findAll({
+        where: { query: "my term" },
+      });
+      expect(searchQuery.length).toBe(1);
+      expect(searchQuery[0].results).toBe(0);
+      expect(searchQuery[0].source).toBe("app");
+      done();
+    }, 100);
   });
 });
 

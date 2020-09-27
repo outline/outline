@@ -12,6 +12,7 @@ type Props = {
   title?: string,
   icon?: React.Node,
   canonicalUrl?: string,
+  isSelected?: boolean,
   width?: string,
   height?: string,
 };
@@ -48,13 +49,19 @@ class Frame extends React.Component<PropsWithRef> {
       icon,
       title,
       canonicalUrl,
-      ...rest
+      isSelected,
+      src,
     } = this.props;
     const Component = border ? StyledIframe : "iframe";
     const withBar = !!(icon || canonicalUrl);
 
     return (
-      <Rounded width={width} height={height} withBar={withBar}>
+      <Rounded
+        width={width}
+        height={height}
+        withBar={withBar}
+        className={isSelected ? "ProseMirror-selectednode" : ""}
+      >
         {this.isLoaded && (
           <Component
             ref={forwardedRef}
@@ -66,8 +73,8 @@ class Frame extends React.Component<PropsWithRef> {
             frameBorder="0"
             title="embed"
             loading="lazy"
+            src={src}
             allowFullScreen
-            {...rest}
           />
         )}
         {withBar && (

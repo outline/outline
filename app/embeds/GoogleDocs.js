@@ -17,6 +17,7 @@ export default class GoogleDocs extends React.Component<Props> {
   render() {
     return (
       <Frame
+        {...this.props}
         src={this.props.attrs.href.replace("/edit", "/preview")}
         icon={
           <img

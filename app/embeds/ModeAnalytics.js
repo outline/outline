@@ -21,7 +21,11 @@ export default class ModeAnalytics extends React.Component<Props> {
     const normalizedUrl = this.props.attrs.href.replace(/\/embed$/, "");
 
     return (
-      <Frame src={`${normalizedUrl}/embed`} title="Mode Analytics Embed" />
+      <Frame
+        {...this.props}
+        src={`${normalizedUrl}/embed`}
+        title="Mode Analytics Embed"
+      />
     );
   }
 }

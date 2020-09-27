@@ -2,7 +2,14 @@
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { AuthenticationError, InvalidRequestError } from "../errors";
-import { Authentication, Document, User, Team, Collection } from "../models";
+import {
+  Authentication,
+  Document,
+  User,
+  Team,
+  Collection,
+  SearchQuery,
+} from "../models";
 import { presentSlackAttachment } from "../presenters";
 import * as Slack from "../slack";
 const router = new Router();
@@ -146,9 +153,17 @@ router.post("hooks.slack", async (ctx) => {
   const options = {
     limit: 5,
   };
-  const results = user
+  const { results, totalCount } = user
     ? await Document.searchForUser(user, text, options)
     : await Document.searchForTeam(team, text, options);
+
+  SearchQuery.create({
+    userId: user ? user.id : null,
+    teamId: team.id,
+    source: "slack",
+    query: text,
+    results: totalCount,
+  });
 
   if (results.length) {
     const attachments = [];

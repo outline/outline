@@ -37,7 +37,7 @@ class Drafts extends React.Component<Props> {
 
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch />
+            <InputSearch source="drafts" />
           </Action>
           <Action>
             <NewDocumentMenu />

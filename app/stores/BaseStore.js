@@ -114,7 +114,7 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async delete(item: T, options?: Object = {}) {
+  async delete(item: T, options: Object = {}) {
     if (!this.actions.includes("delete")) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
@@ -132,7 +132,7 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async fetch(id: string, options?: Object = {}): Promise<*> {
+  async fetch(id: string, options: Object = {}): Promise<*> {
     if (!this.actions.includes("info")) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }

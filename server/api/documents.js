@@ -11,6 +11,7 @@ import {
   Document,
   Event,
   Revision,
+  SearchQuery,
   Share,
   Star,
   User,
@@ -98,10 +99,12 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // add the users starred state to the response by default
   const starredScope = { method: ["withStarred", user.id] };
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
     starredScope,
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where,
     order: [[sort, direction]],
@@ -137,10 +140,12 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
 
   const starredScope = { method: ["withStarred", user.id] };
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
     starredScope,
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where: {
       teamId: user.teamId,
@@ -176,9 +181,11 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const collectionIds = await user.collectionIds();
 
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where: {
       teamId: user.teamId,
@@ -214,7 +221,8 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const collectionIds = await user.collectionIds({ paranoid: false });
 
   const collectionScope = { method: ["withCollection", user.id] };
-  const documents = await Document.scope(collectionScope).findAll({
+  const viewScope = { method: ["withViews", user.id] };
+  const documents = await Document.scope(collectionScope, viewScope).findAll({
     where: {
       teamId: user.teamId,
       collectionId: collectionIds,
@@ -276,7 +284,11 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
-  const documents = views.map((view) => view.document);
+  const documents = views.map((view) => {
+    const document = view.document;
+    document.views = [view];
+    return document;
+  });
   const data = await Promise.all(
     documents.map((document) => presentDocument(document))
   );
@@ -349,9 +361,11 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const collectionIds = await user.collectionIds();
 
   const collectionScope = { method: ["withCollection", user.id] };
+  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
-    collectionScope
+    collectionScope,
+    viewScope
   ).findAll({
     where: {
       userId: user.id,
@@ -537,6 +551,52 @@ router.post("documents.restore", auth(), async (ctx) => {
   };
 });
 
+router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
+  const { query } = ctx.body;
+  const { offset, limit } = ctx.state.pagination;
+  const user = ctx.state.user;
+  ctx.assertPresent(query, "query is required");
+
+  const collectionIds = await user.collectionIds();
+
+  const documents = await Document.scope(
+    {
+      method: ["withViews", user.id],
+    },
+    {
+      method: ["withCollection", user.id],
+    }
+  ).findAll({
+    where: {
+      title: {
+        [Op.iLike]: `%${query}%`,
+      },
+      collectionId: collectionIds,
+      archivedAt: {
+        [Op.eq]: null,
+      },
+    },
+    order: [["updatedAt", "DESC"]],
+    include: [
+      { model: User, as: "createdBy", paranoid: false },
+      { model: User, as: "updatedBy", paranoid: false },
+    ],
+    offset,
+    limit,
+  });
+
+  const policies = presentPolicies(user, documents);
+  const data = await Promise.all(
+    documents.map((document) => presentDocument(document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+    policies,
+  };
+});
+
 router.post("documents.search", auth(), pagination(), async (ctx) => {
   const {
     query,
@@ -573,7 +633,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     );
   }
 
-  const results = await Document.searchForUser(user, query, {
+  const { results, totalCount } = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === "true",
     includeDrafts: includeDrafts === "true",
     collaboratorIds,
@@ -590,6 +650,18 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
       return { ...result, document };
     })
   );
+
+  // When requesting subsequent pages of search results we don't want to record
+  // duplicate search query records
+  if (offset === 0) {
+    SearchQuery.create({
+      userId: user.id,
+      teamId: user.teamId,
+      source: ctx.state.authType,
+      query,
+      results: totalCount,
+    });
+  }
 
   const policies = presentPolicies(user, documents);
 
