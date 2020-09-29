@@ -31,6 +31,8 @@ import SlackIcon from "./icons/Slack";
 import ZapierIcon from "./icons/Zapier";
 import env from "env";
 
+const isHosted = env.DEPLOYMENT === "hosted";
+
 type Props = {
   history: RouterHistory,
   policies: PoliciesStore,
@@ -139,14 +141,16 @@ class SettingsSidebar extends React.Component<Props> {
                   icon={<SlackIcon color="currentColor" />}
                   label="Slack"
                 />
-                <SidebarLink
-                  to="/settings/integrations/zapier"
-                  icon={<ZapierIcon color="currentColor" />}
-                  label="Zapier"
-                />
+                {isHosted && (
+                  <SidebarLink
+                    to="/settings/integrations/zapier"
+                    icon={<ZapierIcon color="currentColor" />}
+                    label="Zapier"
+                  />
+                )}
               </Section>
             )}
-            {can.update && env.DEPLOYMENT !== "hosted" && (
+            {can.update && !isHosted && (
               <Section>
                 <Header>Installation</Header>
                 <Version />
