@@ -39,5 +39,5 @@ jobs:
           name: test
           command: yarn test
       - run:
-          name: build
-          command: yarn build
+          name: build-webpack
+          command: yarn build:webpack
