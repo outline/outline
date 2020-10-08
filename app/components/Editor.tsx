@@ -44,7 +44,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
   const isPrinting = useMediaQuery("print");
   const dictionary = useDictionary();
 
-  const onUploadImage = React.useCallback(
+  const onUpload = React.useCallback(
     async (file: File) => {
       const result = await uploadFile(file, {
         documentId: id,
@@ -99,7 +99,8 @@ function Editor(props: Props, ref: React.Ref<any>) {
     <ErrorBoundary reloadOnChunkMissing>
       <StyledEditor
         ref={ref}
-        uploadImage={onUploadImage}
+        uploadImage={onUpload}
+        uploadFile={onUpload}
         onShowToast={onShowToast}
         embeds={props.disableEmbeds ? EMPTY_ARRAY : embeds}
         dictionary={dictionary}
