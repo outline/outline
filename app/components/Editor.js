@@ -29,7 +29,7 @@ type PropsWithRef = Props & {
 };
 
 class Editor extends React.Component<PropsWithRef> {
-  onUploadImage = async (file: File) => {
+  onUpload = async (file: File) => {
     const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;
   };
@@ -72,7 +72,8 @@ class Editor extends React.Component<PropsWithRef> {
       <ErrorBoundary reloadOnChunkMissing>
         <StyledEditor
           ref={this.props.forwardedRef}
-          uploadImage={this.onUploadImage}
+          uploadImage={this.onUpload}
+          uploadFile={this.onUpload}
           onClickLink={this.onClickLink}
           onShowToast={this.onShowToast}
           embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
