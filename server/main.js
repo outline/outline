@@ -5,6 +5,7 @@ import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
 import app from "./app";
 import { Document, Collection, View } from "./models";
+import { setupConnection } from "./multiplayer/utils";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
@@ -86,37 +87,40 @@ SocketAuth(io, {
         if (can(user, "read", document)) {
           const room = `document-${event.documentId}`;
 
-          await View.touch(event.documentId, user.id, event.isEditing);
-          const editing = await View.findRecentlyEditingByDocument(
-            event.documentId
-          );
+          // find or create ydoc in memory
+
+          await View.touch(event.documentId, user.id);
+          // const editing = await View.findRecentlyEditingByDocument(
+          //   event.documentId
+          // );
 
           socket.join(room, () => {
             // let everyone else in the room know that a new user joined
             io.to(room).emit("user.join", {
               userId: user.id,
               documentId: event.documentId,
-              isEditing: event.isEditing,
             });
+
+            setupConnection(socket, event.documentId);
 
             // let this user know who else is already present in the room
-            io.in(room).clients(async (err, sockets) => {
-              if (err) throw err;
+            // io.in(room).clients(async (err, sockets) => {
+            //   if (err) throw err;
 
-              // because a single user can have multiple socket connections we
-              // need to make sure that only unique userIds are returned. A Map
-              // makes this easy.
-              let userIds = new Map();
-              for (const socketId of sockets) {
-                const userId = await client.hget(socketId, "userId");
-                userIds.set(userId, userId);
-              }
-              socket.emit("document.presence", {
-                documentId: event.documentId,
-                userIds: Array.from(userIds.keys()),
-                editingIds: editing.map((view) => view.userId),
-              });
-            });
+            //   // because a single user can have multiple socket connections we
+            //   // need to make sure that only unique userIds are returned. A Map
+            //   // makes this easy.
+            //   let userIds = new Map();
+            //   for (const socketId of sockets) {
+            //     const userId = await client.hget(socketId, "userId");
+            //     userIds.set(userId, userId);
+            //   }
+            //   socket.emit("document.presence", {
+            //     documentId: event.documentId,
+            //     userIds: Array.from(userIds.keys()),
+            //     editingIds: editing.map((view) => view.userId),
+            //   });
+            // });
           });
         }
       }
@@ -152,24 +156,24 @@ SocketAuth(io, {
       });
     });
 
-    socket.on("presence", async (event) => {
-      const room = `document-${event.documentId}`;
+    // socket.on("presence", async (event) => {
+    //   const room = `document-${event.documentId}`;
 
-      if (event.documentId && socket.rooms[room]) {
-        const view = await View.touch(
-          event.documentId,
-          user.id,
-          event.isEditing
-        );
-        view.user = user;
+    //   if (event.documentId && socket.rooms[room]) {
+    //     // const view = await View.touch(
+    //     //   event.documentId,
+    //     //   user.id,
+    //     //   event.isEditing
+    //     // );
+    //     // view.user = user;
 
-        io.to(room).emit("user.presence", {
-          userId: user.id,
-          documentId: event.documentId,
-          isEditing: event.isEditing,
-        });
-      }
-    });
+    //     io.to(room).binary(true).emit("user.presence", {
+    //       userId: user.id,
+    //       documentId: event.documentId,
+    //       data: event.data,
+    //     });
+    //   }
+    // });
   },
 });
 

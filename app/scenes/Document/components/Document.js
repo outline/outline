@@ -3,13 +3,23 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
+import { keymap } from "prosemirror-keymap";
 import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
+import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
+import {
+  ySyncPlugin,
+  yCursorPlugin,
+  yUndoPlugin,
+  undo,
+  redo,
+} from "y-prosemirror";
+import * as Y from "yjs";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
@@ -65,6 +75,27 @@ type Props = {
   auth: AuthStore,
   ui: UiStore,
 };
+
+class Multiplayer extends Extension {
+  get name() {
+    return "multiplayer";
+  }
+
+  get plugins() {
+    const type = this.options.doc.get("prosemirror", Y.XmlFragment);
+
+    return [
+      ySyncPlugin(type),
+      yCursorPlugin(this.options.provider.awareness),
+      yUndoPlugin(),
+      keymap({
+        "Mod-z": undo,
+        "Mod-y": redo,
+        "Mod-Shift-z": redo,
+      }),
+    ];
+  }
+}
 
 @observer
 class DocumentScene extends React.Component<Props> {
@@ -446,6 +477,7 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
+                    extensions={[new Multiplayer(this.props.multiplayer)]}
                   />
                 </Flex>
                 {readOnly && !isShare && !revision && (

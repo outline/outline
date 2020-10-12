@@ -114,6 +114,7 @@
     "koa-sendfile": "2.0.0",
     "koa-sslify": "2.1.2",
     "koa-static": "^4.0.1",
+    "lib0": "^0.2.34",
     "lodash": "^4.17.19",
     "mammoth": "^1.4.11",
     "mobx": "4.6.0",
@@ -159,7 +160,10 @@
     "tmp": "0.0.33",
     "turndown": "^6.0.0",
     "uuid": "2.0.2",
-    "validator": "5.2.0"
+    "validator": "5.2.0",
+    "y-prosemirror": "^0.3.7",
+    "y-protocols": "^1.0.1",
+    "yjs": "^13.4.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",

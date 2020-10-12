@@ -1,77 +1,51 @@
 // @flow
 import * as React from "react";
-import { USER_PRESENCE_INTERVAL } from "shared/constants";
+import * as Y from "yjs";
 import { SocketContext } from "components/SocketProvider";
+import { WebsocketProvider } from "multiplayer/websocket";
 
 type Props = {
-  children?: React.Node,
+  children: (any) => React.Node,
   documentId: string,
-  isEditing: boolean,
+  userId: string,
 };
 
-export default class SocketPresence extends React.Component<Props> {
-  static contextType = SocketContext;
-  previousContext: any;
-  editingInterval: IntervalID;
+export default function SocketPresence(props: Props) {
+  const context = React.useContext(SocketContext);
+  const [doc] = React.useState(() => new Y.Doc());
+  const [provider] = React.useState(
+    () => new WebsocketProvider(context, props.documentId, props.userId, doc)
+  );
 
-  componentDidMount() {
-    this.editingInterval = setInterval(() => {
-      if (this.props.isEditing) {
-        this.emitPresence();
+  React.useEffect(() => {
+    const emitJoin = () => {
+      if (!context) return;
+      context.emit("join", { documentId: props.documentId });
+    };
+
+    context.on("user.join", (message) => {
+      if (message.userId === props.userId) {
+        console.log("we joined");
       }
-    }, USER_PRESENCE_INTERVAL);
-    this.setupOnce();
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    this.setupOnce();
-
-    if (prevProps.isEditing !== this.props.isEditing) {
-      this.emitPresence();
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.context) {
-      this.context.emit("leave", { documentId: this.props.documentId });
-      this.context.off("authenticated", this.emitJoin);
-    }
-
-    clearInterval(this.editingInterval);
-  }
-
-  setupOnce = () => {
-    if (this.context && this.context !== this.previousContext) {
-      this.previousContext = this.context;
-
-      if (this.context.authenticated) {
-        this.emitJoin();
-      }
-      this.context.on("authenticated", () => {
-        this.emitJoin();
-      });
-    }
-  };
-
-  emitJoin = () => {
-    if (!this.context) return;
-
-    this.context.emit("join", {
-      documentId: this.props.documentId,
-      isEditing: this.props.isEditing,
     });
-  };
 
-  emitPresence = () => {
-    if (!this.context) return;
-
-    this.context.emit("presence", {
-      documentId: this.props.documentId,
-      isEditing: this.props.isEditing,
+    context.on("authenticated", () => {
+      emitJoin();
     });
-  };
 
-  render() {
-    return this.props.children || null;
-  }
+    if (context.authenticated) {
+      emitJoin();
+    }
+
+    return () => {
+      if (!context) return;
+      context.emit("leave", { documentId: props.documentId });
+      context.off("authenticated", emitJoin);
+    };
+  }, [context, props.documentId, props.userId]);
+
+  return props.children({
+    provider,
+    doc,
+  });
 }

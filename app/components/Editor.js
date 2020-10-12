@@ -97,6 +97,47 @@ const StyledEditor = styled(RichMarkdownEditor)`
     font-weight: 500;
   }
 
+  .ProseMirror {
+    .ProseMirror-yjs-cursor {
+      position: absolute;
+      border-left: black;
+      border-left-style: solid;
+      border-left-width: 2px;
+      border-color: orange;
+      height: 1em;
+      word-break: normal;
+      pointer-events: none;
+
+      > div {
+        position: relative;
+        top: -1.05em;
+        font-size: 13px;
+        background-color: rgb(250, 129, 0);
+        font-style: normal;
+        font-weight: normal;
+        line-height: normal;
+        user-select: none;
+        color: white;
+        padding-left: 2px;
+        padding-right: 2px;
+      }
+    }
+
+    > .ProseMirror-yjs-cursor:first-child {
+      margin-top: 16px;
+    }
+
+    p:first-child,
+    h1:first-child,
+    h2:first-child,
+    h3:first-child,
+    h4:first-child,
+    h5:first-child,
+    h6:first-child {
+      margin-top: 16px;
+    }
+  }
+
   p {
     a {
       color: ${(props) => props.theme.text};

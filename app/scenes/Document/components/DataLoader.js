@@ -203,7 +203,7 @@ class DataLoader extends React.Component<Props> {
   };
 
   render() {
-    const { location, policies, ui } = this.props;
+    const { location, policies, auth, ui } = this.props;
 
     if (this.error) {
       return this.error instanceof OfflineError ? (
@@ -229,18 +229,25 @@ class DataLoader extends React.Component<Props> {
     const key = this.isEditing ? "editing" : "read-only";
 
     return (
-      <SocketPresence documentId={document.id} isEditing={this.isEditing}>
-        {this.isEditing && <HideSidebar ui={ui} />}
-        <DocumentComponent
-          key={key}
-          document={document}
-          revision={revision}
-          abilities={abilities}
-          location={location}
-          readOnly={!this.isEditing || !abilities.update || document.isArchived}
-          onSearchLink={this.onSearchLink}
-          onCreateLink={this.onCreateLink}
-        />
+      <SocketPresence documentId={document.id} userId={auth.user.id}>
+        {(multiplayer) => (
+          <>
+            {this.isEditing && <HideSidebar ui={ui} />}
+            <DocumentComponent
+              key={key}
+              document={document}
+              revision={revision}
+              abilities={abilities}
+              location={location}
+              multiplayer={multiplayer}
+              readOnly={
+                !this.isEditing || !abilities.update || document.isArchived
+              }
+              onSearchLink={this.onSearchLink}
+              onCreateLink={this.onCreateLink}
+            />
+          </>
+        )}
       </SocketPresence>
     );
   }
