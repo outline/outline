@@ -18,6 +18,8 @@ export default function SocketPresence(props: Props) {
   );
 
   React.useEffect(() => {
+    if (!context) return;
+
     const emitJoin = () => {
       if (!context) return;
       context.emit("join", { documentId: props.documentId });

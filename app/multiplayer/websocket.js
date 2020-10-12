@@ -5,11 +5,9 @@
 import * as bc from "lib0/broadcastchannel.js";
 import * as decoding from "lib0/decoding.js";
 import * as encoding from "lib0/encoding.js";
-import * as math from "lib0/math.js";
 import * as mutex from "lib0/mutex.js";
 import { Observable } from "lib0/observable.js";
 import * as time from "lib0/time.js";
-import * as url from "lib0/url.js";
 import * as awarenessProtocol from "y-protocols/awareness.js";
 import * as syncProtocol from "y-protocols/sync.js";
 import * as Y from "yjs";
@@ -99,7 +97,7 @@ const setupWS = (provider) => {
         if (!buff) return;
 
         provider.socket.binary(true).emit("presence", {
-          documentId: provider.roomname,
+          documentId: provider.documentId,
           userId: provider.userId,
           data: buff,
         });
@@ -175,7 +173,7 @@ const setupWS = (provider) => {
 export class WebsocketProvider extends Observable {
   /**
    * @param {string} serverUrl
-   * @param {string} roomname
+   * @param {string} documentId
    * @param {Y.Doc} doc
    * @param {object} [opts]
    * @param {boolean} [opts.connect]
@@ -186,24 +184,25 @@ export class WebsocketProvider extends Observable {
    */
   constructor(
     socket,
-    roomname,
-    userId,
-    doc,
+    documentId: string,
+    userId: string,
+    doc: Y.Doc,
     {
       connect = true,
       awareness = new awarenessProtocol.Awareness(doc),
-      resyncInterval = 10 * 1000,
+      resyncInterval = 15 * 1000,
+    }: {
+      connect: boolean,
+      awareness: awarenessProtocol.Awareness,
+      resyncInterval: number,
     } = {}
   ) {
     super();
     this.socket = socket;
-    this.bcChannel = roomname;
-    this.roomname = roomname;
+    this.bcChannel = documentId;
+    this.documentId = documentId;
     this.userId = userId;
     this.doc = doc;
-    /**
-     * @type {Object<string,Object>}
-     */
     this._localAwarenessState = {};
     this.awareness = awareness;
     this.wsconnected = false;
@@ -211,13 +210,7 @@ export class WebsocketProvider extends Observable {
     this.bcconnected = false;
     this.wsUnsuccessfulReconnects = 0;
     this.mux = mutex.createMutex();
-    /**
-     * @type {boolean}
-     */
     this._synced = false;
-    /**
-     * @type {WebSocket?}
-     */
     this.ws = null;
     this.wsLastMessageReceived = 0;
     /**

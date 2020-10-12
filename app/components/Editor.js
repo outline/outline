@@ -122,20 +122,6 @@ const StyledEditor = styled(RichMarkdownEditor)`
         padding-right: 2px;
       }
     }
-
-    > .ProseMirror-yjs-cursor:first-child {
-      margin-top: 16px;
-    }
-
-    p:first-child,
-    h1:first-child,
-    h2:first-child,
-    h3:first-child,
-    h4:first-child,
-    h5:first-child,
-    h6:first-child {
-      margin-top: 16px;
-    }
   }
 
   p {
@@ -168,3 +154,17 @@ const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 export default React.forwardRef<Props, typeof Editor>((props, ref) => (
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));
+
+// > .ProseMirror-yjs-cursor:first-child {
+//   margin-top: 16px;
+// }
+
+// p:first-child,
+// h1:first-child,
+// h2:first-child,
+// h3:first-child,
+// h4:first-child,
+// h5:first-child,
+// h6:first-child {
+//   margin-top: 16px;
+// }

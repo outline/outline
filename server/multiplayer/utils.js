@@ -13,15 +13,13 @@ const messageListener = (conn, doc, message) => {
   const decoder = decoding.createDecoder(message);
   const messageType = decoding.readVarUint(decoder);
 
-  console.log("messageListener", message);
-
   switch (messageType) {
     case MESSAGE_SYNC:
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
       syncProtocol.readSyncMessage(decoder, encoder, doc, null);
       if (encoding.length(encoder) > 1) {
         conn.binary(true).emit({
-          documentId: doc.name,
+          documentId: doc.documentId,
           data: encoding.toUint8Array(encoder),
         });
       }
@@ -39,22 +37,25 @@ const messageListener = (conn, doc, message) => {
 };
 
 const cleanup = (doc, conn) => {
-  if (doc.conns.has(conn)) {
-    const controlledIds = doc.conns.get(conn);
-    doc.conns.delete(conn);
+  if (!doc || !doc.conns.has(conn)) {
+    return;
+  }
+  const controlledIds = doc.conns.get(conn);
+  doc.conns.delete(conn);
 
-    awarenessProtocol.removeAwarenessStates(
-      doc.awareness,
-      Array.from(controlledIds),
-      null
-    );
+  awarenessProtocol.removeAwarenessStates(
+    doc.awareness,
+    Array.from(controlledIds),
+    null
+  );
 
-    // last person has left this editing session
-    if (doc.conns.size === 0) {
-      // TODO: Write document state to database
-      doc.destroy();
-      docs.delete(doc.name);
-    }
+  // last person has left this editing session
+  if (doc.conns.size === 0) {
+    // TODO: Write document state to database
+    console.log("everyone left, write to database here");
+
+    doc.destroy();
+    docs.delete(doc.documentId);
   }
 };
 
@@ -68,6 +69,7 @@ export const setupConnection = (conn, documentId: string) => {
     doc = new WSSharedDoc(documentId);
 
     // TODO: Grab state from database
+    console.log("new session, load from database");
 
     docs.set(documentId, doc);
   }
@@ -79,7 +81,12 @@ export const setupConnection = (conn, documentId: string) => {
     messageListener(conn, doc, new Uint8Array(event.data))
   );
 
-  conn.on("close", cleanup);
+  conn.on("disconnecting", () => cleanup(doc, conn));
+  conn.on("leave", (event) => {
+    if (event.documentId === doc.documentId) {
+      cleanup(doc, conn);
+    }
+  });
 
   // send sync step 1
   const encoder = encoding.createEncoder();
@@ -87,7 +94,7 @@ export const setupConnection = (conn, documentId: string) => {
   syncProtocol.writeSyncStep1(encoder, doc);
 
   conn.binary(true).emit("user.presence", {
-    documentId: doc.name,
+    documentId: doc.documentId,
     data: encoding.toUint8Array(encoder),
   });
 
@@ -105,7 +112,7 @@ export const setupConnection = (conn, documentId: string) => {
     );
 
     conn.binary(true).emit("user.presence", {
-      documentId: doc.name,
+      documentId: doc.documentId,
       data: encoding.toUint8Array(encoder),
     });
   }

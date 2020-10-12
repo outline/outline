@@ -7,9 +7,9 @@ import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
 
 export default class WSSharedDoc extends Y.Doc {
-  constructor(name: string) {
+  constructor(documentId: string) {
     super({ gc: true });
-    this.name = name;
+    this.documentId = documentId;
     this.mux = mutex.createMutex();
     this.conns = new Map();
     this.awareness = new awarenessProtocol.Awareness(this);
@@ -18,9 +18,8 @@ export default class WSSharedDoc extends Y.Doc {
     this.awareness.on("update", ({ added, updated, removed }, conn) => {
       const changedClients = added.concat(updated, removed);
       if (conn !== null) {
-        const connControlledIDs = /** @type {Set<number>} */ (this.conns.get(
-          conn
-        ));
+        const connControlledIDs = this.conns.get(conn);
+
         if (connControlledIDs !== undefined) {
           added.forEach((clientID) => {
             connControlledIDs.add(clientID);
@@ -41,7 +40,7 @@ export default class WSSharedDoc extends Y.Doc {
       const buff = encoding.toUint8Array(encoder);
       this.conns.forEach((_, conn) => {
         conn.binary(true).emit("user.presence", {
-          documentId: this.name,
+          documentId: this.documentId,
           data: buff,
         });
       });
@@ -55,7 +54,7 @@ export default class WSSharedDoc extends Y.Doc {
 
       doc.conns.forEach((_, conn) =>
         conn.binary(true).emit("user.presence", {
-          documentId: this.name,
+          documentId: this.documentId,
           data: buff,
         })
       );
