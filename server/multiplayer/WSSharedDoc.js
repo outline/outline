@@ -39,7 +39,7 @@ export default class WSSharedDoc extends Y.Doc {
       );
       const buff = encoding.toUint8Array(encoder);
       this.conns.forEach((_, conn) => {
-        conn.binary(true).emit("user.presence", {
+        conn.binary(true).emit("document.sync", {
           documentId: this.documentId,
           data: buff,
         });
@@ -53,7 +53,7 @@ export default class WSSharedDoc extends Y.Doc {
       const buff = encoding.toUint8Array(encoder);
 
       doc.conns.forEach((_, conn) =>
-        conn.binary(true).emit("user.presence", {
+        conn.binary(true).emit("document.sync", {
           documentId: this.documentId,
           data: buff,
         })

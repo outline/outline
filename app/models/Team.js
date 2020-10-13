@@ -10,6 +10,7 @@ class Team extends BaseModel {
   googleConnected: boolean;
   sharing: boolean;
   documentEmbeds: boolean;
+  multiplayerEditor: boolean;
   guestSignin: boolean;
   subdomain: ?string;
   url: string;

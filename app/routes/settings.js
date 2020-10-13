@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { Switch, Route } from "react-router-dom";
+import Features from "scenes/Settings/Features";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
 import Events from "scenes/Settings/Events";
@@ -19,6 +20,7 @@ export default function SettingsRoutes() {
     <Switch>
       <Route exact path="/settings" component={Settings} />
       <Route exact path="/settings/details" component={Details} />
+      <Route exact path="/settings/features" component={Features} />
       <Route exact path="/settings/security" component={Security} />
       <Route exact path="/settings/people" component={People} />
       <Route exact path="/settings/people/:filter" component={People} />

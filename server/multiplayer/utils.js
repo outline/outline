@@ -18,7 +18,7 @@ const messageListener = (conn, doc, message) => {
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
       syncProtocol.readSyncMessage(decoder, encoder, doc, null);
       if (encoding.length(encoder) > 1) {
-        conn.binary(true).emit({
+        conn.binary(true).emit("document.sync", {
           documentId: doc.documentId,
           data: encoding.toUint8Array(encoder),
         });
@@ -77,7 +77,7 @@ export const setupConnection = (conn, documentId: string) => {
   doc.conns.set(conn, new Set());
 
   // listen and reply to events
-  conn.on("presence", (event) =>
+  conn.on("document.sync", (event) =>
     messageListener(conn, doc, new Uint8Array(event.data))
   );
 
@@ -93,7 +93,7 @@ export const setupConnection = (conn, documentId: string) => {
   encoding.writeVarUint(encoder, MESSAGE_SYNC);
   syncProtocol.writeSyncStep1(encoder, doc);
 
-  conn.binary(true).emit("user.presence", {
+  conn.binary(true).emit("document.sync", {
     documentId: doc.documentId,
     data: encoding.toUint8Array(encoder),
   });
@@ -111,7 +111,7 @@ export const setupConnection = (conn, documentId: string) => {
       )
     );
 
-    conn.binary(true).emit("user.presence", {
+    conn.binary(true).emit("document.sync", {
       documentId: doc.documentId,
       data: encoding.toUint8Array(encoder),
     });

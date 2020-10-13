@@ -61,6 +61,11 @@ const Team = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
+    multiplayerEditor: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     slackData: DataTypes.JSONB,
   },
   {

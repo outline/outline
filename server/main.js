@@ -4,7 +4,7 @@ import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
 import app from "./app";
-import { Document, Collection, View } from "./models";
+import { Team, Document, Collection, View } from "./models";
 import { setupConnection } from "./multiplayer/utils";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
@@ -80,6 +80,7 @@ SocketAuth(io, {
       // user is joining a document channel, because they have navigated to
       // view a document.
       if (event.documentId) {
+        const team = await Team.findByPk(user.teamId);
         const document = await Document.findByPk(event.documentId, {
           userId: user.id,
         });
@@ -87,41 +88,54 @@ SocketAuth(io, {
         if (can(user, "read", document)) {
           const room = `document-${event.documentId}`;
 
-          // find or create ydoc in memory
+          // new logic for multiplayer editing completely changes "presence"
+          // detection and propagation, so split at a high-level here.
+          if (team.multiplayerEditor) {
+            socket.join(room, () => {
+              socket.emit("user.join", {
+                userId: user.id,
+                documentId: event.documentId,
+              });
 
-          await View.touch(event.documentId, user.id);
-          // const editing = await View.findRecentlyEditingByDocument(
-          //   event.documentId
-          // );
-
-          socket.join(room, () => {
-            // let everyone else in the room know that a new user joined
-            io.to(room).emit("user.join", {
-              userId: user.id,
-              documentId: event.documentId,
+              setupConnection(socket, event.documentId);
             });
+          } else {
+            // old deprecated logic to be removed in the future once multiplayer
+            // has stabilized
 
-            setupConnection(socket, event.documentId);
+            await View.touch(event.documentId, user.id);
+            const editing = await View.findRecentlyEditingByDocument(
+              event.documentId
+            );
 
-            // let this user know who else is already present in the room
-            // io.in(room).clients(async (err, sockets) => {
-            //   if (err) throw err;
+            socket.join(room, () => {
+              // let everyone else in the room know that a new user joined
+              io.to(room).emit("user.join", {
+                userId: user.id,
+                documentId: event.documentId,
+                isEditing: event.isEditing,
+              });
 
-            //   // because a single user can have multiple socket connections we
-            //   // need to make sure that only unique userIds are returned. A Map
-            //   // makes this easy.
-            //   let userIds = new Map();
-            //   for (const socketId of sockets) {
-            //     const userId = await client.hget(socketId, "userId");
-            //     userIds.set(userId, userId);
-            //   }
-            //   socket.emit("document.presence", {
-            //     documentId: event.documentId,
-            //     userIds: Array.from(userIds.keys()),
-            //     editingIds: editing.map((view) => view.userId),
-            //   });
-            // });
-          });
+              // let this user know who else is already present in the room
+              io.in(room).clients(async (err, sockets) => {
+                if (err) throw err;
+
+                // because a single user can have multiple socket connections we
+                // need to make sure that only unique userIds are returned. A Map
+                // makes this easy.
+                let userIds = new Map();
+                for (const socketId of sockets) {
+                  const userId = await client.hget(socketId, "userId");
+                  userIds.set(userId, userId);
+                }
+                socket.emit("document.presence", {
+                  documentId: event.documentId,
+                  userIds: Array.from(userIds.keys()),
+                  editingIds: editing.map((view) => view.userId),
+                });
+              });
+            });
+          }
         }
       }
     });
@@ -156,24 +170,24 @@ SocketAuth(io, {
       });
     });
 
-    // socket.on("presence", async (event) => {
-    //   const room = `document-${event.documentId}`;
+    socket.on("presence", async (event) => {
+      const room = `document-${event.documentId}`;
 
-    //   if (event.documentId && socket.rooms[room]) {
-    //     // const view = await View.touch(
-    //     //   event.documentId,
-    //     //   user.id,
-    //     //   event.isEditing
-    //     // );
-    //     // view.user = user;
+      if (event.documentId && socket.rooms[room]) {
+        const view = await View.touch(
+          event.documentId,
+          user.id,
+          event.isEditing
+        );
+        view.user = user;
 
-    //     io.to(room).binary(true).emit("user.presence", {
-    //       userId: user.id,
-    //       documentId: event.documentId,
-    //       data: event.data,
-    //     });
-    //   }
-    // });
+        io.to(room).emit("user.presence", {
+          userId: user.id,
+          documentId: event.documentId,
+          isEditing: event.isEditing,
+        });
+      }
+    });
   },
 });
 

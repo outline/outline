@@ -11,6 +11,7 @@ export default function present(team: Team) {
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
+    multiplayerEditor: team.multiplayerEditor,
     subdomain: team.subdomain,
     url: team.url,
   };

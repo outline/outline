@@ -17,6 +17,7 @@ router.post("team.update", auth(), async (ctx) => {
     sharing,
     guestSignin,
     documentEmbeds,
+    multiplayerEditor,
   } = ctx.body;
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
@@ -30,6 +31,10 @@ router.post("team.update", auth(), async (ctx) => {
   if (sharing !== undefined) team.sharing = sharing;
   if (documentEmbeds !== undefined) team.documentEmbeds = documentEmbeds;
   if (guestSignin !== undefined) team.guestSignin = guestSignin;
+  if (multiplayerEditor !== undefined) {
+    team.multiplayerEditor = multiplayerEditor;
+  }
+
   if (avatarUrl !== undefined) team.avatarUrl = avatarUrl;
   await team.save();
 
