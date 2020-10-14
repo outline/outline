@@ -46,7 +46,12 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
 
   // always filter by the current team
   const user = ctx.state.user;
-  let where = { teamId: user.teamId };
+  let where = {
+    teamId: user.teamId,
+    archivedAt: {
+      [Op.eq]: null,
+    },
+  };
 
   if (template) {
     where = { ...where, template: true };

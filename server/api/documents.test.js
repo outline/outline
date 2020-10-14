@@ -430,6 +430,20 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should not return archived documents", async () => {
+    const { user, document } = await seed();
+    document.archivedAt = new Date();
+    await document.save();
+
+    const res = await server.post("/api/documents.list", {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user, collection } = await seed();
     collection.private = true;
