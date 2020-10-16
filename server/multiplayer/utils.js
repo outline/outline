@@ -1,6 +1,7 @@
 // @flow
 import * as decoding from "lib0/dist/decoding.cjs";
 import * as encoding from "lib0/dist/encoding.cjs";
+import { Socket } from "socket.io-client";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
@@ -8,7 +9,9 @@ import WSSharedDoc from "./WSSharedDoc";
 
 const docs = new Map();
 
-const messageListener = (conn, doc, message) => {
+const messageListener = (conn: Socket, doc, message) => {
+  if (!doc) return;
+
   const encoder = encoding.createEncoder();
   const decoder = decoding.createDecoder(message);
   const messageType = decoding.readVarUint(decoder);
@@ -59,7 +62,7 @@ const cleanup = (doc, conn) => {
   }
 };
 
-export const setupConnection = (conn, documentId: string) => {
+export const setupConnection = (conn: Socket, documentId: string) => {
   console.log("setupConnection");
 
   let doc: ?WSSharedDoc = docs.get(documentId);
@@ -83,7 +86,7 @@ export const setupConnection = (conn, documentId: string) => {
 
   conn.on("disconnecting", () => cleanup(doc, conn));
   conn.on("leave", (event) => {
-    if (event.documentId === doc.documentId) {
+    if (event.documentId === documentId) {
       cleanup(doc, conn);
     }
   });
