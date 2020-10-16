@@ -28,6 +28,8 @@ const readMessage = (
 
   switch (messageType) {
     case MESSAGE_SYNC: {
+      console.log("received sync message");
+
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
       const syncMessageType = syncProtocol.readSyncMessage(
         decoder,
@@ -55,6 +57,8 @@ const readMessage = (
       );
       break;
     case MESSAGE_AWARENESS:
+      console.log("received awareness message");
+
       awarenessProtocol.applyAwarenessUpdate(
         provider.awareness,
         decoding.readVarUint8Array(decoder),
@@ -85,7 +89,7 @@ const setupWebsocket = (provider) => {
       send: (buff) => {
         if (!buff) return;
 
-        provider.socket.binary(true).emit("document.sync", {
+        provider.socket.binary(true).emit("sync", {
           documentId: provider.documentId,
           userId: provider.userId,
           data: buff,
@@ -118,13 +122,15 @@ const setupWebsocket = (provider) => {
       if (message.userId !== provider.userId) {
         return;
       }
-      console.log("we joined");
+      console.log("user.join");
 
       provider.emit("status", [
         {
           status: "connected",
         },
       ]);
+
+      console.log("writing sync step 1");
 
       // always send sync step 1 when connected
       const encoder = encoding.createEncoder();
@@ -134,6 +140,8 @@ const setupWebsocket = (provider) => {
 
       // broadcast local awareness state
       if (provider.awareness.getLocalState() !== null) {
+        console.log("broadcast awareness state");
+
         const encoderAwarenessState = encoding.createEncoder();
         encoding.writeVarUint(encoderAwarenessState, MESSAGE_AWARENESS);
         encoding.writeVarUint8Array(
@@ -161,7 +169,7 @@ export class WebsocketProvider extends Observable {
     {
       connect = true,
       awareness = new awarenessProtocol.Awareness(doc),
-      resyncInterval = 30 * 1000,
+      resyncInterval = 0,
     }: {
       connect: boolean,
       awareness: awarenessProtocol.Awareness,

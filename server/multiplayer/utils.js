@@ -28,6 +28,7 @@ const messageListener = (conn: Socket, doc, message) => {
       }
       break;
     case MESSAGE_AWARENESS: {
+      console.log("applying awareness update");
       awarenessProtocol.applyAwarenessUpdate(
         doc.awareness,
         decoding.readVarUint8Array(decoder),
@@ -80,7 +81,7 @@ export const setupConnection = (conn: Socket, documentId: string) => {
   doc.conns.set(conn, new Set());
 
   // listen and reply to events
-  conn.on("document.sync", (event) =>
+  conn.on("sync", (event) =>
     messageListener(conn, doc, new Uint8Array(event.data))
   );
 

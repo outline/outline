@@ -16,9 +16,13 @@ export default class WSSharedDoc extends Y.Doc {
     this.awareness.setLocalState(null);
 
     this.awareness.on("update", ({ added, updated, removed }, conn) => {
+      console.log("awareness update");
       const changedClients = added.concat(updated, removed);
+      console.log(added, updated, removed);
+
       if (conn !== null) {
         const connControlledIDs = this.conns.get(conn);
+        console.log(connControlledIDs);
 
         if (connControlledIDs !== undefined) {
           added.forEach((clientID) => {
@@ -47,6 +51,8 @@ export default class WSSharedDoc extends Y.Doc {
     });
 
     this.on("update", (update, origin, doc) => {
+      console.log("doc update");
+
       const encoder = encoding.createEncoder();
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
       syncProtocol.writeUpdate(encoder, update);

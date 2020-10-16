@@ -29,12 +29,6 @@ export default function SocketPresence(props: Props) {
       context.emit("join", { documentId: props.documentId });
     };
 
-    context.on("user.join", (message) => {
-      if (message.userId === props.userId) {
-        console.log("we joined");
-      }
-    });
-
     context.on("authenticated", () => {
       emitJoin();
     });

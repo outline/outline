@@ -68,6 +68,11 @@ type Props = {
   document: Document,
   revision: Revision,
   readOnly: boolean,
+  multiplayer: {
+    provider: any,
+    dbProvider: any,
+    doc: Y.Doc,
+  },
   onCreateLink: (title: string) => string,
   onSearchLink: (term: string) => any,
   theme: Object,
@@ -486,12 +491,16 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
-                    extensions={[
-                      new Multiplayer({
-                        user,
-                        ...this.props.multiplayer,
-                      }),
-                    ]}
+                    extensions={
+                      team && team.multiplayerEditor
+                        ? [
+                            new Multiplayer({
+                              user,
+                              ...this.props.multiplayer,
+                            }),
+                          ]
+                        : undefined
+                    }
                   />
                 </Flex>
                 {readOnly && !isShare && !revision && (
