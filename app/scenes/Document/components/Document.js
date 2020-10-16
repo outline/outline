@@ -86,7 +86,7 @@ class Multiplayer extends Extension {
     const type = doc.get("prosemirror", Y.XmlFragment);
 
     provider.awareness.setLocalStateField("user", {
-      color: "#008833",
+      color: user.color,
       name: user.name,
     });
 

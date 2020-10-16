@@ -6,6 +6,7 @@ import uuid from "uuid";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { palette } from "../utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
 
@@ -52,7 +53,14 @@ const User = sequelize.define(
           .createHash("md5")
           .update(this.email || "")
           .digest("hex");
-        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${
+          this.name[0]
+        }.png?c=${this.color.replace("#", "")}`;
+      },
+      color() {
+        const idAsHex = crypto.createHash("md5").update(this.id).digest("hex");
+        const idAsNumber = parseInt(idAsHex, 16);
+        return palette[idAsNumber % palette.length];
       },
     },
   }
