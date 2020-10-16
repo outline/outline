@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { SocketContext } from "components/SocketProvider";
 import { WebsocketProvider } from "multiplayer/websocket";
@@ -15,6 +16,9 @@ export default function SocketPresence(props: Props) {
   const [doc] = React.useState(() => new Y.Doc());
   const [provider] = React.useState(
     () => new WebsocketProvider(context, props.documentId, props.userId, doc)
+  );
+  const [dbProvider] = React.useState(
+    () => new IndexeddbPersistence(props.documentId, doc)
   );
 
   React.useEffect(() => {
@@ -47,6 +51,7 @@ export default function SocketPresence(props: Props) {
   }, [context, props.documentId, props.userId]);
 
   return props.children({
+    dbProvider,
     provider,
     doc,
   });

@@ -161,6 +161,7 @@
     "turndown": "^6.0.0",
     "uuid": "2.0.2",
     "validator": "5.2.0",
+    "y-indexeddb": "^9.0.5",
     "y-prosemirror": "^0.3.7",
     "y-protocols": "^1.0.1",
     "yjs": "^13.4.1"

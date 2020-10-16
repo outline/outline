@@ -11,7 +11,6 @@ import type { RouterHistory, Match } from "react-router-dom";
 import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
 import {
   ySyncPlugin,
   yCursorPlugin,
