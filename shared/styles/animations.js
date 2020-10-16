@@ -6,6 +6,11 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+export const fadeOut = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
 export const fadeAndScaleIn = keyframes`
   from {
     opacity: 0;

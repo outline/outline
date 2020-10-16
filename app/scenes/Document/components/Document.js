@@ -82,11 +82,20 @@ class Multiplayer extends Extension {
   }
 
   get plugins() {
-    const type = this.options.doc.get("prosemirror", Y.XmlFragment);
+    const { user, provider, doc } = this.options;
+    const type = doc.get("prosemirror", Y.XmlFragment);
+
+    provider.awareness.setLocalStateField("user", {
+      color: "#008833",
+      name: user.name,
+    });
+
+    const permanentUserData = new Y.PermanentUserData(doc);
+    permanentUserData.setUserMapping(doc, doc.clientID, user.id);
 
     return [
       ySyncPlugin(type),
-      yCursorPlugin(this.options.provider.awareness),
+      yCursorPlugin(provider.awareness),
       yUndoPlugin(),
       keymap({
         "Mod-z": undo,
@@ -352,6 +361,7 @@ class DocumentScene extends React.Component<Props> {
       match,
     } = this.props;
     const team = auth.team;
+    const user = auth.user;
     const isShare = !!match.params.shareId;
 
     const value = revision ? revision.text : document.text;
@@ -477,7 +487,12 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
-                    extensions={[new Multiplayer(this.props.multiplayer)]}
+                    extensions={[
+                      new Multiplayer({
+                        user,
+                        ...this.props.multiplayer,
+                      }),
+                    ]}
                   />
                 </Flex>
                 {readOnly && !isShare && !revision && (

@@ -99,27 +99,47 @@ const StyledEditor = styled(RichMarkdownEditor)`
 
   .ProseMirror {
     .ProseMirror-yjs-cursor {
-      position: absolute;
-      border-left: black;
-      border-left-style: solid;
-      border-left-width: 2px;
-      border-color: orange;
+      position: relative;
+      margin-left: -1px;
+      margin-right: -1px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
       height: 1em;
       word-break: normal;
-      pointer-events: none;
+
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        left: -8px;
+        right: -8px;
+        top: 0;
+        bottom: 0;
+      }
 
       > div {
-        position: relative;
-        top: -1.05em;
+        opacity: 0;
+        position: absolute;
+        top: -1.8em;
         font-size: 13px;
         background-color: rgb(250, 129, 0);
         font-style: normal;
-        font-weight: normal;
         line-height: normal;
         user-select: none;
+        white-space: nowrap;
         color: white;
-        padding-left: 2px;
-        padding-right: 2px;
+        padding: 2px 6px;
+        font-weight: 500;
+        border-radius: 4px;
+        pointer-events: none;
+        left: -1px;
+      }
+
+      &:hover {
+        > div {
+          opacity: 1;
+          transition: opacity 100ms ease-in-out;
+        }
       }
     }
   }
