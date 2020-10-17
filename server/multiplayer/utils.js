@@ -81,9 +81,11 @@ export const setupConnection = (conn: Socket, documentId: string) => {
   doc.conns.set(conn, new Set());
 
   // listen and reply to events
-  conn.on("sync", (event) =>
-    messageListener(conn, doc, new Uint8Array(event.data))
-  );
+  conn.on("sync", (event) => {
+    if (event.documentId === documentId) {
+      messageListener(conn, doc, new Uint8Array(event.data));
+    }
+  });
 
   conn.on("disconnecting", () => cleanup(doc, conn));
   conn.on("leave", (event) => {

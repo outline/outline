@@ -98,9 +98,11 @@ const setupWebsocket = (provider) => {
     };
 
     provider.socket.on("document.sync", (event) => {
-      const encoder = readMessage(provider, new Uint8Array(event.data), true);
-      if (encoding.length(encoder) > 1) {
-        provider.ws.send(encoding.toUint8Array(encoder));
+      if (event.documentId === provider.documentId) {
+        const encoder = readMessage(provider, new Uint8Array(event.data), true);
+        if (encoding.length(encoder) > 1) {
+          provider.ws.send(encoding.toUint8Array(encoder));
+        }
       }
     });
 
