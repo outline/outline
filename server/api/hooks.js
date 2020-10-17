@@ -97,6 +97,7 @@ router.post("hooks.unfurl", async (ctx) => {
           `${user["real_name"]} shared this document on Slack at ${messages[0].ts} with the message ${messages[0].text}`
         );
       } catch (e) {
+        // TODO: log 4xx errors and re-throw (debug module) expected for private chanells for right now
         console.log({ e });
       }
 
