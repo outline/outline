@@ -15,6 +15,7 @@ import * as Slack from "../slack";
 const router = new Router();
 
 // triggered by a user posting a getoutline.com link in Slack
+// TODO this is not really semantically correct because it's the endpoitn for every event hook, not just unfurl
 router.post("hooks.unfurl", async (ctx) => {
   const { challenge, token, event } = ctx.body;
   if (challenge) return (ctx.body = ctx.body.challenge);
@@ -33,26 +34,78 @@ router.post("hooks.unfurl", async (ctx) => {
   });
   if (!auth) return;
 
-  // get content for unfurled links
-  let unfurls = {};
-  for (let link of event.links) {
-    const id = link.url.substr(link.url.lastIndexOf("/") + 1);
-    const doc = await Document.findByPk(id);
-    if (!doc || doc.teamId !== user.teamId) continue;
+  switch (event.type) {
+    // handles link unfurl when a link is shared (see https://api.slack.com/reference/messaging/link-unfurling)
+    // and also adds backlinks to the document
+    //TODO errors seem to get swallowed
+    case "link_shared": {
+      let unfurls = {};
+      for (let link of event.links) {
+        // TODO needs to handle share link URLs too
+        const id = link.url.substr(link.url.lastIndexOf("/") + 1);
+        const doc = await Document.findByPk(id);
 
-    unfurls[link.url] = {
-      title: doc.title,
-      text: doc.getSummary(),
-      color: doc.collection.color,
-    };
+        if (!doc || doc.teamId !== user.teamId) continue;
+
+        unfurls[link.url] = {
+          title: doc.title,
+          text: doc.getSummary(),
+          color: doc.collection.color,
+        };
+      }
+
+      // respond to slack with unfurl data
+      await Slack.post("chat.unfurl", {
+        token: auth.token,
+        channel: event.channel,
+        ts: event.message_ts,
+        unfurls,
+      });
+
+      // get the permalink and message contents to construct a backlink
+      // TODO test with private messages, threads and private channels
+
+      await Slack.post("chat.unfurl", {
+        token: auth.token,
+        channel: event.channel,
+        ts: event.message_ts,
+        unfurls,
+      });
+
+      try {
+        const { permalink } = await Slack.request("chat.getPermalink", {
+          token: auth.token,
+          channel: event.channel,
+          message_ts: event.message_ts,
+        });
+
+        const { messages } = await Slack.request("conversations.history", {
+          token: auth.token,
+          channel: event.channel,
+          latest: event.message_ts,
+          limit: 1,
+          inclusive: true,
+        });
+
+        const { user } = await Slack.request("users.info", {
+          token: auth.token,
+          user: messages[0].user,
+        });
+
+        console.warn({ event, permalink, messages, user });
+        console.log(
+          `${user["real_name"]} shared this document on Slack at ${messages[0].ts} with the message ${messages[0].text}`
+        );
+      } catch (e) {
+        console.log({ e });
+      }
+
+      break;
+    }
+    default: {
+      console.warn(`unhandled event type #{event.type}`);
+    }
   }
-
-  await Slack.post("chat.unfurl", {
-    token: auth.token,
-    channel: event.channel,
-    ts: event.message_ts,
-    unfurls,
-  });
 });
 
 // triggered by interactions with actions, dialogs, message buttons in Slack
