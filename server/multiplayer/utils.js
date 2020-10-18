@@ -4,7 +4,9 @@ import * as encoding from "lib0/dist/encoding.cjs";
 import { Socket } from "socket.io-client";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
+import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
+import { Document } from "../models";
 import WSSharedDoc from "./WSSharedDoc";
 
 const docs = new Map();
@@ -40,7 +42,7 @@ const messageListener = (conn: Socket, doc, message) => {
   }
 };
 
-const cleanup = (doc, conn) => {
+const cleanup = async (doc, conn) => {
   if (!doc || !doc.conns.has(conn)) {
     return;
   }
@@ -55,25 +57,44 @@ const cleanup = (doc, conn) => {
 
   // last person has left this editing session
   if (doc.conns.size === 0) {
-    // TODO: Write document state to database
-    console.log("everyone left, write to database here");
+    console.log("everyone left, writing to database…");
+    // TODO: write a revision
+
+    const state = Y.encodeStateAsUpdate(doc);
+    await Document.update(
+      {
+        state,
+        updatedAt: new Date(),
+      },
+      {
+        hooks: false,
+        where: {
+          id: doc.documentId,
+        },
+      }
+    );
 
     doc.destroy();
     docs.delete(doc.documentId);
   }
 };
 
-export const setupConnection = (conn: Socket, documentId: string) => {
-  console.log("setupConnection");
+export const setupConnection = async (conn: Socket, document: Document) => {
+  const documentId = document.id;
+  console.log("setupConnection", documentId);
 
   let doc: ?WSSharedDoc = docs.get(documentId);
 
   if (!doc) {
-    console.log("creating doc");
     doc = new WSSharedDoc(documentId);
+    doc.get("prosemirror", Y.XmlFragment);
 
-    // TODO: Grab state from database
-    console.log("new session, load from database");
+    if (document.state) {
+      console.log("new session, stated loaded from db");
+      Y.applyUpdate(doc, document.state);
+    } else {
+      console.log("new session, no existing state");
+    }
 
     docs.set(documentId, doc);
   }

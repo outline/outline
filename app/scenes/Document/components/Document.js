@@ -163,6 +163,10 @@ class DocumentScene extends React.Component<Props> {
     this.updateBackground();
   }
 
+  componentWillUnmount() {
+    this.props.multiplayer.provider.destroy();
+  }
+
   updateBackground() {
     // ensure the wider page color always matches the theme. This is to
     // account for share links which don't sit in the wider Layout component
@@ -247,7 +251,7 @@ class DocumentScene extends React.Component<Props> {
       autosave?: boolean,
     } = {}
   ) => {
-    const { document } = this.props;
+    const { document, auth } = this.props;
 
     // prevent saves when we are already saving
     if (document.isSaving) return;
@@ -275,10 +279,14 @@ class DocumentScene extends React.Component<Props> {
     this.isPublishing = !!options.publish;
 
     try {
-      const savedDocument = await document.save({
-        ...options,
-        lastRevision: this.lastRevision,
-      });
+      let savedDocument = document;
+      if (!auth.team || !auth.team.multiplayerEditor) {
+        savedDocument = await document.save({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      }
+
       this.isDirty = false;
       this.lastRevision = savedDocument.revision;
 
@@ -397,7 +405,12 @@ class DocumentScene extends React.Component<Props> {
             {!readOnly && (
               <>
                 <Prompt
-                  when={this.isDirty && !this.isUploading}
+                  when={
+                    this.isDirty &&
+                    !this.isUploading &&
+                    !!team &&
+                    !team.multiplayerEditor
+                  }
                   message={DISCARD_CHANGES}
                 />
                 <Prompt

@@ -74,87 +74,11 @@ const readMessage = (
 
 const broadcastMessage = (provider: WebsocketProvider, buff: ArrayBuffer) => {
   if (provider.wsconnected) {
-    provider.ws.send(buff);
+    provider.wsPublish(buff);
   }
   if (provider.bcconnected) {
     provider.mux(() => {
-      bc.publish(provider.url, buff);
-    });
-  }
-};
-
-const setupWebsocket = (provider) => {
-  if (provider.shouldConnect && provider.ws === null) {
-    provider.ws = {
-      send: (buff) => {
-        if (!buff) return;
-
-        provider.socket.binary(true).emit("sync", {
-          documentId: provider.documentId,
-          userId: provider.userId,
-          data: buff,
-        });
-      },
-    };
-
-    provider.socket.on("document.sync", (event) => {
-      if (event.documentId === provider.documentId) {
-        const encoder = readMessage(provider, new Uint8Array(event.data), true);
-        if (encoding.length(encoder) > 1) {
-          provider.ws.send(encoding.toUint8Array(encoder));
-        }
-      }
-    });
-
-    provider.socket.on("close", () => {
-      awarenessProtocol.removeAwarenessStates(
-        provider.awareness,
-        Array.from(provider.awareness.getStates().keys()),
-        provider
-      );
-
-      provider.emit("status", [
-        {
-          status: "disconnected",
-        },
-      ]);
-    });
-
-    provider.socket.on("user.join", (message) => {
-      if (message.userId !== provider.userId) {
-        return;
-      }
-      console.log("user.join");
-
-      provider.emit("status", [
-        {
-          status: "connected",
-        },
-      ]);
-
-      console.log("writing sync step 1");
-
-      // always send sync step 1 when connected
-      const encoder = encoding.createEncoder();
-      encoding.writeVarUint(encoder, MESSAGE_SYNC);
-      syncProtocol.writeSyncStep1(encoder, provider.doc);
-      provider.ws.send(encoding.toUint8Array(encoder));
-
-      // broadcast local awareness state
-      if (provider.awareness.getLocalState() !== null) {
-        console.log("broadcast awareness state");
-
-        const encoderAwarenessState = encoding.createEncoder();
-        encoding.writeVarUint(encoderAwarenessState, MESSAGE_AWARENESS);
-        encoding.writeVarUint8Array(
-          encoderAwarenessState,
-          awarenessProtocol.encodeAwarenessUpdate(provider.awareness, [
-            provider.doc.clientID,
-          ])
-        );
-
-        provider.ws.send(encoding.toUint8Array(encoderAwarenessState));
-      }
+      bc.publish(provider.documentId, buff);
     });
   }
 };
@@ -169,11 +93,9 @@ export class WebsocketProvider extends Observable {
     userId: string,
     doc: Y.Doc,
     {
-      connect = true,
       awareness = new awarenessProtocol.Awareness(doc),
       resyncInterval = 0,
     }: {
-      connect: boolean,
       awareness: awarenessProtocol.Awareness,
       resyncInterval: number,
     } = {}
@@ -184,23 +106,14 @@ export class WebsocketProvider extends Observable {
     this.documentId = documentId;
     this.userId = userId;
     this.doc = doc;
-    this._localAwarenessState = {};
     this.awareness = awareness;
     this.wsconnected = false;
     this.bcconnected = false;
+    this.shouldConnect = true;
     this.mux = mutex.createMutex();
     this._synced = false;
-    this.ws = null;
-    /**
-     * Whether to connect to other peers or not
-     * @type {boolean}
-     */
-    this.shouldConnect = connect;
-
-    /**
-     * @type {NodeJS.Timeout | number}
-     */
     this._resyncInterval = 0;
+
     if (resyncInterval > 0) {
       this._resyncInterval = setInterval(() => {
         if (this.ws) {
@@ -208,50 +121,13 @@ export class WebsocketProvider extends Observable {
           const encoder = encoding.createEncoder();
           encoding.writeVarUint(encoder, MESSAGE_SYNC);
           syncProtocol.writeSyncStep1(encoder, doc);
-          this.ws.send(encoding.toUint8Array(encoder));
+          this.wsPublish(encoding.toUint8Array(encoder));
         }
       }, resyncInterval);
     }
 
-    /**
-     * @param {ArrayBuffer} data
-     */
-    this._bcSubscriber = (data) => {
-      this.mux(() => {
-        const encoder = readMessage(this, new Uint8Array(data), false);
-        if (encoding.length(encoder) > 1) {
-          bc.publish(this.bcChannel, encoding.toUint8Array(encoder));
-        }
-      });
-    };
-    /**
-     * Listens to Yjs updates and sends them to remote peers (ws and broadcastchannel)
-     * @param {Uint8Array} update
-     * @param {any} origin
-     */
-    this._updateHandler = (update, origin) => {
-      if (origin !== this || origin === null) {
-        const encoder = encoding.createEncoder();
-        encoding.writeVarUint(encoder, MESSAGE_SYNC);
-        syncProtocol.writeUpdate(encoder, update);
-        broadcastMessage(this, encoding.toUint8Array(encoder));
-      }
-    };
     this.doc.on("update", this._updateHandler);
-    /**
-     * @param {any} changed
-     * @param {any} origin
-     */
-    this._awarenessUpdateHandler = ({ added, updated, removed }, origin) => {
-      const changedClients = added.concat(updated).concat(removed);
-      const encoder = encoding.createEncoder();
-      encoding.writeVarUint(encoder, MESSAGE_AWARENESS);
-      encoding.writeVarUint8Array(
-        encoder,
-        awarenessProtocol.encodeAwarenessUpdate(awareness, changedClients)
-      );
-      broadcastMessage(this, encoding.toUint8Array(encoder));
-    };
+
     window.addEventListener("beforeunload", () => {
       awarenessProtocol.removeAwarenessStates(
         this.awareness,
@@ -261,10 +137,40 @@ export class WebsocketProvider extends Observable {
     });
     awareness.on("update", this._awarenessUpdateHandler);
 
-    if (connect) {
-      this.connect();
-    }
+    this.connect();
   }
+
+  _bcSubscriber = (data: ArrayBuffer) => {
+    this.mux(() => {
+      const encoder = readMessage(this, new Uint8Array(data), false);
+      if (encoding.length(encoder) > 1) {
+        bc.publish(this.bcChannel, encoding.toUint8Array(encoder));
+      }
+    });
+  };
+
+  /**
+   * Listens to Yjs updates and sends them to remote peers (ws and broadcastchannel)
+   */
+  _updateHandler = (update: Uint8Array, origin: any) => {
+    if (origin !== this || origin === null) {
+      const encoder = encoding.createEncoder();
+      encoding.writeVarUint(encoder, MESSAGE_SYNC);
+      syncProtocol.writeUpdate(encoder, update);
+      broadcastMessage(this, encoding.toUint8Array(encoder));
+    }
+  };
+
+  _awarenessUpdateHandler = ({ added, updated, removed }: any, origin: any) => {
+    const changedClients = added.concat(updated).concat(removed);
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_AWARENESS);
+    encoding.writeVarUint8Array(
+      encoder,
+      awarenessProtocol.encodeAwarenessUpdate(this.awareness, changedClients)
+    );
+    broadcastMessage(this, encoding.toUint8Array(encoder));
+  };
 
   get synced() {
     return this._synced;
@@ -284,6 +190,7 @@ export class WebsocketProvider extends Observable {
     this.disconnect();
     this.awareness.off("update", this._awarenessUpdateHandler);
     this.doc.off("update", this._updateHandler);
+    this.awareness.destroy();
     super.destroy();
   }
 
@@ -344,19 +251,104 @@ export class WebsocketProvider extends Observable {
     }
   }
 
+  wsPublish(data: ArrayBuffer) {
+    if (!data) return;
+
+    this.socket.binary(true).emit("sync", {
+      documentId: this.documentId,
+      userId: this.userId,
+      data,
+    });
+  }
+
+  _wsMessageHandler = (event: {
+    documentId: string,
+    userId: string,
+    data: ArrayBuffer,
+  }) => {
+    if (event.documentId === this.documentId) {
+      const encoder = readMessage(this, new Uint8Array(event.data), true);
+      if (encoding.length(encoder) > 1) {
+        this.wsPublish(encoding.toUint8Array(encoder));
+      }
+    }
+  };
+
+  _wsCloseHandler = () => {
+    awarenessProtocol.removeAwarenessStates(
+      this.awareness,
+      Array.from(this.awareness.getStates().keys()),
+      this
+    );
+
+    this.emit("status", [
+      {
+        status: "disconnected",
+      },
+    ]);
+  };
+
+  _wsJoinHandler = (event: { documentId: string, userId: string }) => {
+    if (event.userId !== this.userId || event.documentId !== this.documentId) {
+      return;
+    }
+    console.log("user.join");
+
+    this.emit("status", [
+      {
+        status: "connected",
+      },
+    ]);
+
+    console.log("writing sync step 1");
+
+    // always send sync step 1 when connected
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_SYNC);
+    syncProtocol.writeSyncStep1(encoder, this.doc);
+    this.wsPublish(encoding.toUint8Array(encoder));
+
+    // broadcast local awareness state
+    if (this.awareness.getLocalState() !== null) {
+      console.log("broadcast awareness state");
+
+      const encoderAwarenessState = encoding.createEncoder();
+      encoding.writeVarUint(encoderAwarenessState, MESSAGE_AWARENESS);
+      encoding.writeVarUint8Array(
+        encoderAwarenessState,
+        awarenessProtocol.encodeAwarenessUpdate(this.awareness, [
+          this.doc.clientID,
+        ])
+      );
+
+      this.wsPublish(encoding.toUint8Array(encoderAwarenessState));
+    }
+  };
+
+  connectWs() {
+    this.socket.on("document.sync", this._wsMessageHandler);
+    this.socket.on("close", this._wsCloseHandler);
+    this.socket.on("user.join", this._wsJoinHandler);
+  }
+
+  disconnectWs() {
+    this.socket.off("document.sync", this._wsMessageHandler);
+    this.socket.off("close", this._wsCloseHandler);
+    this.socket.off("user.join", this._wsJoinHandler);
+  }
+
   disconnect() {
     this.shouldConnect = false;
+    this.disconnectWs();
     this.disconnectBc();
-    if (this.ws !== null) {
-      this.ws.close();
-    }
   }
 
   connect() {
     this.shouldConnect = true;
-    if (!this.wsconnected && this.ws === null) {
+
+    if (!this.wsconnected) {
       this.wsconnected = true;
-      setupWebsocket(this);
+      this.connectWs();
       this.connectBc();
     }
   }

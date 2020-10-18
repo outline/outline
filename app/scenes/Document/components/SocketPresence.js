@@ -14,10 +14,10 @@ type Props = {
 export default function SocketPresence(props: Props) {
   const context = React.useContext(SocketContext);
   const [doc] = React.useState(() => new Y.Doc());
-  const [provider] = React.useState(
+  const [provider, setProvider] = React.useState(
     () => new WebsocketProvider(context, props.documentId, props.userId, doc)
   );
-  const [dbProvider] = React.useState(
+  const [dbProvider, setDbProvider] = React.useState(
     () => new IndexeddbPersistence(props.documentId, doc)
   );
 
@@ -41,6 +41,9 @@ export default function SocketPresence(props: Props) {
       if (!context) return;
       context.emit("leave", { documentId: props.documentId });
       context.off("authenticated", emitJoin);
+
+      setProvider(null);
+      setDbProvider(null);
     };
   }, [context, props.documentId, props.userId]);
 

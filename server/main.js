@@ -97,7 +97,7 @@ SocketAuth(io, {
                 documentId: event.documentId,
               });
 
-              setupConnection(socket, event.documentId);
+              setupConnection(socket, document);
             });
           } else {
             // old deprecated logic to be removed in the future once multiplayer
