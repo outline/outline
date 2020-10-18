@@ -3,7 +3,7 @@ import * as React from "react";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { SocketContext } from "components/SocketProvider";
-import { WebsocketProvider } from "multiplayer/websocket";
+import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 
 type Props = {
   children: (any) => React.Node,
@@ -14,12 +14,12 @@ type Props = {
 export default function SocketPresence(props: Props) {
   const context = React.useContext(SocketContext);
   const [doc] = React.useState(() => new Y.Doc());
-  const [provider, setProvider] = React.useState(
+  const [provider] = React.useState(
     () => new WebsocketProvider(context, props.documentId, props.userId, doc)
   );
-  const [dbProvider, setDbProvider] = React.useState(
-    () => new IndexeddbPersistence(props.documentId, doc)
-  );
+  // const [dbProvider] = React.useState(
+  //   () => new IndexeddbPersistence(props.documentId, doc)
+  // );
 
   React.useEffect(() => {
     if (!context) return;
@@ -41,14 +41,11 @@ export default function SocketPresence(props: Props) {
       if (!context) return;
       context.emit("leave", { documentId: props.documentId });
       context.off("authenticated", emitJoin);
-
-      setProvider(null);
-      setDbProvider(null);
     };
   }, [context, props.documentId, props.userId]);
 
   return props.children({
-    dbProvider,
+    //dbProvider,
     provider,
     doc,
   });

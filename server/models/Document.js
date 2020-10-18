@@ -99,6 +99,7 @@ const Document = sequelize.define(
     template: DataTypes.BOOLEAN,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
+    state: DataTypes.BLOB,
 
     // backup contains a record of text at the moment it was converted to v2
     // this is a safety measure during deployment of new editor and will be

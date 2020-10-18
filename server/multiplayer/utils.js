@@ -1,6 +1,7 @@
 // @flow
 import * as decoding from "lib0/dist/decoding.cjs";
 import * as encoding from "lib0/dist/encoding.cjs";
+import { debounce } from "lodash";
 import { Socket } from "socket.io-client";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
@@ -63,7 +64,7 @@ const cleanup = async (doc, conn) => {
     const state = Y.encodeStateAsUpdate(doc);
     await Document.update(
       {
-        state,
+        state: Buffer.from(state),
         updatedAt: new Date(),
       },
       {
@@ -78,6 +79,8 @@ const cleanup = async (doc, conn) => {
     docs.delete(doc.documentId);
   }
 };
+
+const PERSIST_WAIT = 3000;
 
 export const setupConnection = async (conn: Socket, document: Document) => {
   const documentId = document.id;
@@ -95,6 +98,33 @@ export const setupConnection = async (conn: Socket, document: Document) => {
     } else {
       console.log("new session, no existing state");
     }
+
+    doc.on(
+      "update",
+      debounce(
+        async (update) => {
+          console.log("saving update…");
+          Y.applyUpdate(doc, update);
+          const state = Y.encodeStateAsUpdate(doc);
+          await Document.update(
+            {
+              state: Buffer.from(state),
+              updatedAt: new Date(),
+            },
+            {
+              hooks: false,
+              where: {
+                id: documentId,
+              },
+            }
+          );
+        },
+        PERSIST_WAIT,
+        {
+          maxWait: PERSIST_WAIT * 3,
+        }
+      )
+    );
 
     docs.set(documentId, doc);
   }

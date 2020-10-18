@@ -65,6 +65,7 @@ SocketAuth(io, {
 
     // allow the client to request to join rooms
     socket.on("join", async (event) => {
+      console.log("socket.on join");
       // user is joining a collection channel, because their permissions have
       // changed, granting them access.
       if (event.collectionId) {
@@ -80,16 +81,20 @@ SocketAuth(io, {
       // user is joining a document channel, because they have navigated to
       // view a document.
       if (event.documentId) {
+        console.log("document join");
         const team = await Team.findByPk(user.teamId);
         const document = await Document.findByPk(event.documentId, {
           userId: user.id,
         });
 
         if (can(user, "read", document)) {
+          console.log("user can read");
           const room = `document-${event.documentId}`;
 
           // new logic for multiplayer editing completely changes "presence"
           // detection and propagation, so split at a high-level here.
+          console.log("team.multiplayerEditor", team.multiplayerEditor);
+
           if (team.multiplayerEditor) {
             socket.join(room, () => {
               socket.emit("user.join", {

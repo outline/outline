@@ -213,10 +213,11 @@ class DataLoader extends React.Component<Props> {
       );
     }
 
+    const team = auth.team;
     const document = this.document;
     const revision = this.revision;
 
-    if (!document) {
+    if (!document || !team) {
       return (
         <>
           <Loading location={location} />
@@ -241,7 +242,9 @@ class DataLoader extends React.Component<Props> {
               location={location}
               multiplayer={multiplayer}
               readOnly={
-                !this.isEditing || !abilities.update || document.isArchived
+                (!this.isEditing && !team.multiplayerEditor) ||
+                !abilities.update ||
+                document.isArchived
               }
               onSearchLink={this.onSearchLink}
               onCreateLink={this.onCreateLink}
