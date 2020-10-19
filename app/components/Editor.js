@@ -56,7 +56,7 @@ class Editor extends React.Component<PropsWithRef> {
       }
 
       this.props.history.push(navigateTo);
-    } else {
+    } else if (href) {
       window.open(href, "_blank");
     }
   };
