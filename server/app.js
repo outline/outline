@@ -150,13 +150,16 @@ app.use(
       styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
       imgSrc: ["*", "data:", "blob:"],
       frameSrc: ["*"],
-      connectSrc: compact([
-        "'self'",
-        process.env.AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:"),
-        "www.google-analytics.com",
-        "api.github.com",
-        "sentry.io",
-      ]),
+      connectSrc: ["*"],
+      // Removed because connect-src: self + websockets does not work in Safari
+      // Ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+      // connectSrc: compact([
+      //   "'self'",
+      //   process.env.AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:"),
+      //   "www.google-analytics.com",
+      //   "api.github.com",
+      //   "sentry.io",
+      // ]),
     },
   })
 );
