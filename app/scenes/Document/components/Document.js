@@ -467,7 +467,7 @@ class DocumentScene extends React.Component<Props> {
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
                     extensions={
-                      team && team.multiplayerEditor
+                      team && team.multiplayerEditor && !isShare && !revision
                         ? [
                             new MultiplayerExtension({
                               user,

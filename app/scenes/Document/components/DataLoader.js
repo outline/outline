@@ -8,6 +8,7 @@ import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
+import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
@@ -29,6 +30,7 @@ import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 type Props = {|
   match: Match,
   location: LocationWithState,
+  auth: AuthStore,
   shares: SharesStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
