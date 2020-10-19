@@ -97,6 +97,10 @@ const StyledEditor = styled(RichMarkdownEditor)`
     font-weight: 500;
   }
 
+  .heading-name {
+    cursor: default;
+  }
+
   p {
     a {
       color: ${(props) => props.theme.text};
