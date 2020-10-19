@@ -227,7 +227,11 @@ class DataLoader extends React.Component<Props> {
     }
 
     const abilities = policies.abilities(document.id);
-    const key = this.isEditing ? "editing" : "read-only";
+    const key = team.multiplayerEditor
+      ? ""
+      : this.isEditing
+      ? "editing"
+      : "read-only";
 
     return (
       <SocketPresence documentId={document.id} userId={auth.user.id}>
@@ -242,9 +246,7 @@ class DataLoader extends React.Component<Props> {
               location={location}
               multiplayer={multiplayer}
               readOnly={
-                (!this.isEditing && !team.multiplayerEditor) ||
-                !abilities.update ||
-                document.isArchived
+                !this.isEditing || !abilities.update || document.isArchived
               }
               onSearchLink={this.onSearchLink}
               onCreateLink={this.onCreateLink}

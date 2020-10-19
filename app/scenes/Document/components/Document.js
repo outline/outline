@@ -3,21 +3,12 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
-import { keymap } from "prosemirror-keymap";
 import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
-import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import {
-  ySyncPlugin,
-  yCursorPlugin,
-  yUndoPlugin,
-  undo,
-  redo,
-} from "y-prosemirror";
 import * as Y from "yjs";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
@@ -39,6 +30,7 @@ import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
+import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 import { type LocationWithState } from "types";
 import { emojiToUrl } from "utils/emoji";
 import {
@@ -79,36 +71,6 @@ type Props = {
   auth: AuthStore,
   ui: UiStore,
 };
-
-class Multiplayer extends Extension {
-  get name() {
-    return "multiplayer";
-  }
-
-  get plugins() {
-    const { user, provider, doc } = this.options;
-    const type = doc.get("prosemirror", Y.XmlFragment);
-
-    provider.awareness.setLocalStateField("user", {
-      color: user.color,
-      name: user.name,
-    });
-
-    const permanentUserData = new Y.PermanentUserData(doc);
-    permanentUserData.setUserMapping(doc, doc.clientID, user.id);
-
-    return [
-      ySyncPlugin(type),
-      yCursorPlugin(provider.awareness),
-      yUndoPlugin(),
-      keymap({
-        "Mod-z": undo,
-        "Mod-y": redo,
-        "Mod-Shift-z": redo,
-      }),
-    ];
-  }
-}
 
 @observer
 class DocumentScene extends React.Component<Props> {
@@ -507,7 +469,7 @@ class DocumentScene extends React.Component<Props> {
                     extensions={
                       team && team.multiplayerEditor
                         ? [
-                            new Multiplayer({
+                            new MultiplayerExtension({
                               user,
                               ...this.props.multiplayer,
                             }),

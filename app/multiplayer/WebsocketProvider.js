@@ -28,8 +28,6 @@ const readMessage = (
 
   switch (messageType) {
     case MESSAGE_SYNC: {
-      console.log("received sync message");
-
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
       const syncMessageType = syncProtocol.readSyncMessage(
         decoder,
@@ -57,8 +55,6 @@ const readMessage = (
       );
       break;
     case MESSAGE_AWARENESS:
-      console.log("received awareness message");
-
       awarenessProtocol.applyAwarenessUpdate(
         provider.awareness,
         decoding.readVarUint8Array(decoder),
@@ -128,17 +124,19 @@ export class WebsocketProvider extends Observable {
 
     this.doc.on("update", this._updateHandler);
 
-    window.addEventListener("beforeunload", () => {
-      awarenessProtocol.removeAwarenessStates(
-        this.awareness,
-        [doc.clientID],
-        "window unload"
-      );
-    });
+    window.addEventListener("beforeunload", this._unloadHandler);
     awareness.on("update", this._awarenessUpdateHandler);
 
     this.connect();
   }
+
+  _unloadHandler = () => {
+    awarenessProtocol.removeAwarenessStates(
+      this.awareness,
+      [this.doc.clientID],
+      "window unload"
+    );
+  };
 
   _bcSubscriber = (data: ArrayBuffer) => {
     this.mux(() => {
@@ -191,6 +189,7 @@ export class WebsocketProvider extends Observable {
     this.awareness.off("update", this._awarenessUpdateHandler);
     this.doc.off("update", this._updateHandler);
     this.awareness.destroy();
+    window.removeEventListener("beforeunload", this._unloadHandler);
     super.destroy();
   }
 
@@ -327,13 +326,13 @@ export class WebsocketProvider extends Observable {
 
   connectWs() {
     this.socket.on("document.sync", this._wsMessageHandler);
-    this.socket.on("close", this._wsCloseHandler);
+    this.socket.on("disconnect", this._wsCloseHandler);
     this.socket.on("user.join", this._wsJoinHandler);
   }
 
   disconnectWs() {
     this.socket.off("document.sync", this._wsMessageHandler);
-    this.socket.off("close", this._wsCloseHandler);
+    this.socket.off("disconnect", this._wsCloseHandler);
     this.socket.off("user.join", this._wsJoinHandler);
   }
 

@@ -1,16 +1,19 @@
 // @flow
 import http from "http";
+import debug from "debug";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
 import app from "./app";
 import { Team, Document, Collection, View } from "./models";
-import { setupConnection } from "./multiplayer/utils";
+import * as multiplayer from "./multiplayer";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
 
 const server = http.createServer(app.callback());
+const log = debug("server");
+
 let io;
 
 const { can } = policy;
@@ -27,6 +30,21 @@ io.adapter(
     subClient: subscriber,
   })
 );
+
+// receive multiplayer "sync" messages from other nodes (awareness and doc updates),
+// applies data to doc if in memory otherwise the request is ignored
+io.of("/").adapter.customHook = (event, callback) => {
+  io.of("/").clients((err, socketIds) => {
+    if (!socketIds.includes(event.socketId)) {
+      multiplayer.handleRemoteSync(
+        event.socketId,
+        event.documentId,
+        event.data
+      );
+    }
+  });
+  callback(true);
+};
 
 SocketAuth(io, {
   authenticate: async (socket, data, callback) => {
@@ -46,6 +64,7 @@ SocketAuth(io, {
     }
   },
   postAuthenticate: async (socket, data) => {
+    log(`postAuthenticate ${socket.id}`);
     const { user } = socket.client;
 
     // the rooms associated with the current team
@@ -63,9 +82,37 @@ SocketAuth(io, {
     // join all of the rooms at once
     socket.join(rooms);
 
+    socket.on("sync", (event) => {
+      // handleJoin must be called before handleSync to ensure authentication
+      // to communicate changes for the document/socket combo. Messages received
+      // before handleJoin will be logged and discarded.
+      multiplayer.handleSync(
+        socket,
+        event.documentId,
+        new Uint8Array(event.data)
+      );
+
+      // forward "sync" messages to all nodes (awareness and doc updates) so
+      // that any docs held in memory can be kept up to date.
+      // TODO: optimize by proactively keeping track of which nodes have doc in
+      // memory? Perf gains for large horizontal scaling.
+      io.of("/").adapter.customRequest(
+        {
+          socketId: socket.id,
+          documentId: event.documentId,
+          data: event.data,
+        },
+        (err) => {
+          if (err) {
+            log(err);
+          }
+        }
+      );
+    });
+
     // allow the client to request to join rooms
     socket.on("join", async (event) => {
-      console.log("socket.on join");
+      log("join", JSON.stringify(event));
       // user is joining a collection channel, because their permissions have
       // changed, granting them access.
       if (event.collectionId) {
@@ -81,20 +128,16 @@ SocketAuth(io, {
       // user is joining a document channel, because they have navigated to
       // view a document.
       if (event.documentId) {
-        console.log("document join");
         const team = await Team.findByPk(user.teamId);
         const document = await Document.findByPk(event.documentId, {
           userId: user.id,
         });
 
         if (can(user, "read", document)) {
-          console.log("user can read");
           const room = `document-${event.documentId}`;
 
           // new logic for multiplayer editing completely changes "presence"
           // detection and propagation, so split at a high-level here.
-          console.log("team.multiplayerEditor", team.multiplayerEditor);
-
           if (team.multiplayerEditor) {
             socket.join(room, () => {
               socket.emit("user.join", {
@@ -102,7 +145,12 @@ SocketAuth(io, {
                 documentId: event.documentId,
               });
 
-              setupConnection(socket, document);
+              multiplayer.handleJoin({
+                io,
+                document,
+                socket: socket,
+                documentId: event.documentId,
+              });
             });
           } else {
             // old deprecated logic to be removed in the future once multiplayer
@@ -122,14 +170,14 @@ SocketAuth(io, {
               });
 
               // let this user know who else is already present in the room
-              io.in(room).clients(async (err, sockets) => {
+              io.in(room).clients(async (err, socketIds) => {
                 if (err) throw err;
 
                 // because a single user can have multiple socket connections we
                 // need to make sure that only unique userIds are returned. A Map
                 // makes this easy.
                 let userIds = new Map();
-                for (const socketId of sockets) {
+                for (const socketId of socketIds) {
                   const userId = await client.hget(socketId, "userId");
                   userIds.set(userId, userId);
                 }
@@ -158,6 +206,8 @@ SocketAuth(io, {
             documentId: event.documentId,
           });
         });
+
+        multiplayer.handleLeave(socket.id, event.documentId);
       }
     });
 
@@ -171,6 +221,7 @@ SocketAuth(io, {
             userId: user.id,
             documentId,
           });
+          multiplayer.handleLeave(socket.id, documentId);
         }
       });
     });

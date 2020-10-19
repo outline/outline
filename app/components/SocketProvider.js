@@ -311,7 +311,6 @@ class SocketProvider extends React.Component<Props> {
   };
 
   render() {
-    console.log("RENDER", this.socket);
     return (
       <SocketContext.Provider value={this.socket}>
         {this.props.children}
