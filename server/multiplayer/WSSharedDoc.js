@@ -1,8 +1,8 @@
 // @flow
-import * as encoding from "lib0/encoding.js";
-import * as mutex from "lib0/mutex.js";
-import * as awarenessProtocol from "y-protocols/awareness.js";
-import * as syncProtocol from "y-protocols/sync.js";
+import * as encoding from "lib0/dist/encoding.cjs";
+import * as mutex from "lib0/dist/mutex.cjs";
+import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
+import * as syncProtocol from "y-protocols/dist/sync.cjs";
 import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
 
