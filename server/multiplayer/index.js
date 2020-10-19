@@ -1,11 +1,11 @@
 // @flow
 import debug from "debug";
-import * as decoding from "lib0/dist/decoding.cjs";
-import * as encoding from "lib0/dist/encoding.cjs";
+import * as decoding from "lib0/decoding.js";
+import * as encoding from "lib0/encoding.js";
 import { debounce } from "lodash";
 import { Socket } from "socket.io-client";
-import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
-import * as syncProtocol from "y-protocols/dist/sync.cjs";
+import * as awarenessProtocol from "y-protocols/awareness.js";
+import * as syncProtocol from "y-protocols/sync.js";
 import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
 import { Document } from "../models";

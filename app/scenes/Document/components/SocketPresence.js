@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { IndexeddbPersistence } from "y-indexeddb";
+//import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { SocketContext } from "components/SocketProvider";
 import { WebsocketProvider } from "multiplayer/WebsocketProvider";
