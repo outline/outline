@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -10,6 +11,7 @@ import Modal from "components/Modal";
 
 type Props = {
   auth: AuthStore,
+  ui: UiStore,
   onRequestClose: () => void,
 };
 
@@ -24,6 +26,9 @@ class UserDelete extends React.Component<Props> {
     try {
       await this.props.auth.deleteUser();
       this.props.auth.logout();
+    } catch (error) {
+      this.props.ui.showToast(error.message);
+      throw error;
     } finally {
       this.isDeleting = false;
     }
@@ -56,4 +61,4 @@ class UserDelete extends React.Component<Props> {
   }
 }
 
-export default inject("auth")(UserDelete);
+export default inject("auth", "ui")(UserDelete);

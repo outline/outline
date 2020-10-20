@@ -67,7 +67,7 @@ class Dashboard extends React.Component<Props> {
         </Switch>
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch />
+            <InputSearch source="dashboard" />
           </Action>
           <Action>
             <NewDocumentMenu />

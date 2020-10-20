@@ -74,4 +74,27 @@ describe("documentImporter", () => {
     expect(response.text).toContain("This is a test paragraph");
     expect(response.title).toEqual("Heading 1");
   });
+
+  it("should error with unknown file type", async () => {
+    const user = await buildUser();
+    const name = "markdown.md";
+    const file = new File({
+      name,
+      type: "executable/zip",
+      path: path.resolve(__dirname, "..", "test", "fixtures", name),
+    });
+
+    let error;
+    try {
+      await documentImporter({
+        user,
+        file,
+        ip,
+      });
+    } catch (err) {
+      error = err.message;
+    }
+
+    expect(error).toEqual("File type executable/zip not supported");
+  });
 });

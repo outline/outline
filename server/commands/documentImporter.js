@@ -5,6 +5,7 @@ import mammoth from "mammoth";
 import TurndownService from "turndown";
 import uuid from "uuid";
 import parseTitle from "../../shared/utils/parseTitle";
+import { InvalidRequestError } from "../errors";
 import { Attachment, Event, User } from "../models";
 import dataURItoBuffer from "../utils/dataURItoBuffer";
 import parseImages from "../utils/parseImages";
@@ -66,6 +67,9 @@ export default async function documentImporter({
   ip: string,
 }): Promise<{ text: string, title: string }> {
   const fileInfo = importMapping.filter((item) => item.type === file.type)[0];
+  if (!fileInfo) {
+    throw new InvalidRequestError(`File type ${file.type} not supported`);
+  }
   let title = file.name.replace(/\.[^/.]+$/, "");
   let text = await fileInfo.getMarkdown(file);
 

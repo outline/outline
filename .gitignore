@@ -8,3 +8,4 @@ npm-debug.log
 stats.json
 .DS_Store
 fakes3/*
+.idea

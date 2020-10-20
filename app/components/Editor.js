@@ -56,7 +56,7 @@ class Editor extends React.Component<PropsWithRef> {
       }
 
       this.props.history.push(navigateTo);
-    } else {
+    } else if (href) {
       window.open(href, "_blank");
     }
   };
@@ -95,6 +95,10 @@ const StyledEditor = styled(RichMarkdownEditor)`
   .notice-block.tip,
   .notice-block.warning {
     font-weight: 500;
+  }
+
+  .heading-name {
+    cursor: default;
   }
 
   p {

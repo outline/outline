@@ -45,7 +45,7 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  events.add(event);
+  events.add(event, { removeOnComplete: true });
 });
 
 Event.ACTIVITY_EVENTS = [

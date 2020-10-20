@@ -18,7 +18,7 @@ function getJWTPayload(token) {
   return payload;
 }
 
-export async function getUserForJWT(token: string) {
+export async function getUserForJWT(token: string): Promise<User> {
   const payload = getJWTPayload(token);
   const user = await User.findByPk(payload.id);
 
@@ -31,7 +31,7 @@ export async function getUserForJWT(token: string) {
   return user;
 }
 
-export async function getUserForEmailSigninToken(token: string) {
+export async function getUserForEmailSigninToken(token: string): Promise<User> {
   const payload = getJWTPayload(token);
 
   // check the token is within it's expiration time

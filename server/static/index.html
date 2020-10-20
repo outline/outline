@@ -62,7 +62,7 @@
         });
       }
 
-      if (window.localStorage.getItem("theme") === "dark") {
+      if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
         window.document.querySelector("#root").style.background = "#111319";
       }
     </script>

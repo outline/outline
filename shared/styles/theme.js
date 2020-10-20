@@ -26,6 +26,7 @@ const colors = {
   yellow: "#FBCA04",
   warmGrey: "#EDF2F7",
 
+  searchHighlight: "#FDEA9B",
   danger: "#ff476f",
   warning: "#f08a24",
   success: "#2f3336",
@@ -138,6 +139,7 @@ export const light = {
 
   listItemHoverBackground: colors.warmGrey,
 
+  toolbarHoverBackground: colors.black,
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
@@ -192,6 +194,7 @@ export const dark = {
 
   listItemHoverBackground: colors.black50,
 
+  toolbarHoverBackground: colors.slate,
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,
   toolbarItem: colors.lightBlack,

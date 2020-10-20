@@ -2,14 +2,17 @@
 import addMinutes from "date-fns/add_minutes";
 import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
-import { type Context } from "koa";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import { User, ApiKey } from "../models";
+import { User, Team, ApiKey } from "../models";
+import type { ContextWithState } from "../types";
 import { getCookieDomain } from "../utils/domains";
 import { getUserForJWT } from "../utils/jwt";
 
 export default function auth(options?: { required?: boolean } = {}) {
-  return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
+  return async function authMiddleware(
+    ctx: ContextWithState,
+    next: () => Promise<mixed>
+  ) {
     let token;
 
     const authorizationHeader = ctx.request.get("authorization");
@@ -27,7 +30,6 @@ export default function auth(options?: { required?: boolean } = {}) {
           `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
         );
       }
-      // $FlowFixMe
     } else if (ctx.body && ctx.body.token) {
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
@@ -43,7 +45,8 @@ export default function auth(options?: { required?: boolean } = {}) {
     let user;
     if (token) {
       if (String(token).match(/^[\w]{38}$/)) {
-        // API key
+        ctx.state.authType = "api";
+
         let apiKey;
         try {
           apiKey = await ApiKey.findOne({
@@ -51,18 +54,22 @@ export default function auth(options?: { required?: boolean } = {}) {
               secret: token,
             },
           });
-        } catch (e) {
+        } catch (err) {
           throw new AuthenticationError("Invalid API key");
         }
 
-        if (!apiKey) throw new AuthenticationError("Invalid API key");
+        if (!apiKey) {
+          throw new AuthenticationError("Invalid API key");
+        }
 
         user = await User.findByPk(apiKey.userId);
-        if (!user) throw new AuthenticationError("Invalid API key");
+        if (!user) {
+          throw new AuthenticationError("Invalid API key");
+        }
       } else {
-        /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
-         * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
-        user = await getUserForJWT(token);
+        ctx.state.authType = "app";
+
+        user = await getUserForJWT(String(token));
       }
 
       if (user.isSuspended) {
@@ -76,21 +83,16 @@ export default function auth(options?: { required?: boolean } = {}) {
       // not awaiting the promise here so that the request is not blocked
       user.updateActiveAt(ctx.request.ip);
 
-      /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
-       * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
-      ctx.state.token = token;
-
-      /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
-       * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
+      ctx.state.token = String(token);
       ctx.state.user = user;
-      if (!ctx.cache) ctx.cache = {};
-
-      /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
-       * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
-      ctx.cache[user.id] = user;
     }
 
-    ctx.signIn = async (user, team, service, isFirstSignin = false) => {
+    ctx.signIn = async (
+      user: User,
+      team: Team,
+      service,
+      isFirstSignin = false
+    ) => {
       if (user.isSuspended) {
         return ctx.redirect("/?notice=suspended");
       }
