@@ -101,6 +101,15 @@ const StyledEditor = styled(RichMarkdownEditor)`
     cursor: default;
   }
 
+  /* pseudo element allows us to add spacing for fixed header */
+  /* ref: https://stackoverflow.com/a/28824157 */
+  .heading-name::before {
+    content: "";
+    display: block;
+    height: 72px;
+    margin: -72px 0 0;
+  }
+
   p {
     a {
       color: ${(props) => props.theme.text};
