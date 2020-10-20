@@ -27,6 +27,15 @@ io.adapter(
   })
 );
 
+io.of("/").adapter.on("error", (err) => {
+  if (err.name === "MaxRetriesPerRequestError") {
+    console.error(`Redis error: ${err.message}. Shutting down now.`);
+    throw err;
+  } else {
+    console.error(`Redis error: ${err.message}`);
+  }
+});
+
 SocketAuth(io, {
   authenticate: async (socket, data, callback) => {
     const { token } = data;
