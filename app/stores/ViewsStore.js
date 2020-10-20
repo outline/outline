@@ -24,11 +24,6 @@ export default class ViewsStore extends BaseStore<View> {
     return reduce(views, (memo, view) => memo + view.count, 0);
   }
 
-  uniqueForDocument(documentId: string): number {
-    const views = this.inDocument(documentId);
-    return views.length;
-  }
-
   touch(documentId: string, userId: string) {
     const view = find(
       this.orderedData,
