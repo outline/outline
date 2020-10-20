@@ -1,4 +1,5 @@
 // @flow
+import * as Sentry from "@sentry/node";
 import type { DocumentEvent, CollectionEvent, Event } from "../events";
 import mailer from "../mailer";
 import {
@@ -9,28 +10,20 @@ import {
   NotificationSetting,
 } from "../models";
 import { Op } from "../sequelize";
+import { createQueue } from "../utils/queue";
 
-export default class Notifications {
-  async on(event: Event) {
-    switch (event.name) {
-      case "documents.publish":
-      case "documents.update":
-        return this.documentUpdated(event);
-      case "collections.create":
-        return this.collectionCreated(event);
-      default:
-    }
-  }
+const notificationsQueue = createQueue("notifications");
 
-  async documentUpdated(event: DocumentEvent) {
-    // lets not send a notification on every autosave update
-    if (event.data && event.data.autosave) return;
+notificationsQueue.process(async (job) => {
+  const event = job.data;
 
-    // wait until the user has finished editing
-    if (event.data && !event.data.done) return;
-
+  try {
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
+
+    // If the document has been updated since we initially queued a notification
+    // abort sending a notification – this functions as a debounce.
+    if (document.updatedAt > new Date(event.createdAt)) return;
 
     const { collection } = document;
     if (!collection) return;
@@ -78,6 +71,35 @@ export default class Notifications {
         actor: document.updatedBy,
         unsubscribeUrl: setting.unsubscribeUrl,
       });
+    });
+  } catch (error) {
+    if (process.env.SENTRY_DSN) {
+      Sentry.withScope(function (scope) {
+        scope.setExtra("event", event);
+        Sentry.captureException(error);
+      });
+    } else {
+      throw error;
+    }
+  }
+});
+
+export default class Notifications {
+  async on(event: Event) {
+    switch (event.name) {
+      case "documents.publish":
+      case "documents.update":
+        return this.documentUpdated(event);
+      case "collections.create":
+        return this.collectionCreated(event);
+      default:
+    }
+  }
+
+  async documentUpdated(event: DocumentEvent) {
+    notificationsQueue.add(event, {
+      delay: 5 * 60 * 1000,
+      removeOnComplete: true,
     });
   }
 
