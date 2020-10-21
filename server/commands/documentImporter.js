@@ -127,7 +127,7 @@ async function confluenceToMarkdown(file): Promise<string> {
   // Now we should have something that looks like HTML
   const html = turndownService.turndown(value);
 
-  return html.replace(/<br>/g, "\\n ");
+  return html.replace(/<br>/g, " \\n ");
 }
 
 export default async function documentImporter({
