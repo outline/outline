@@ -97,6 +97,7 @@
     "invariant": "^2.2.2",
     "ioredis": "^4.14.1",
     "isomorphic-fetch": "2.2.1",
+    "joplin-turndown-plugin-gfm": "^1.0.12",
     "js-search": "^1.4.2",
     "json-loader": "0.5.4",
     "jsonwebtoken": "^8.5.0",
@@ -126,6 +127,7 @@
     "pg-hstore": "^2.3.3",
     "polished": "3.6.5",
     "query-string": "^4.3.4",
+    "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
     "react": "^16.8.6",
@@ -158,6 +160,7 @@
     "tiny-cookie": "^2.3.1",
     "tmp": "0.0.33",
     "turndown": "^6.0.0",
+    "utf8": "^2.1.0",
     "uuid": "2.0.2",
     "validator": "5.2.0"
   },

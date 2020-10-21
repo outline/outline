@@ -22,6 +22,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     "text/markdown",
     "text/plain",
     "text/html",
+    "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
 

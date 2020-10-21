@@ -51,3 +51,9 @@ export function EditorUpdateError(
 ) {
   return httpErrors(400, message, { id: "editor_update_required" });
 }
+
+export function FileImportError(
+  message: string = "The file could not be imported"
+) {
+  return httpErrors(400, message, { id: "import_error" });
+}
