@@ -97,6 +97,7 @@
     "invariant": "^2.2.2",
     "ioredis": "^4.14.1",
     "isomorphic-fetch": "2.2.1",
+    "joplin-turndown-plugin-gfm": "^1.0.12",
     "js-search": "^1.4.2",
     "json-loader": "0.5.4",
     "jsonwebtoken": "^8.5.0",

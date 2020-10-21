@@ -1,6 +1,7 @@
 // @flow
 import fs from "fs";
 import File from "formidable/lib/file";
+import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import TurndownService from "turndown";
@@ -19,6 +20,18 @@ const turndownService = new TurndownService({
   bulletListMarker: "-",
   headingStyle: "atx",
 });
+
+// Use the GitHub-flavored markdown plugin to parse
+// strikethoughs and tables
+turndownService
+  .use(strikethrough)
+  .use(tables)
+  .addRule("breaks", {
+    filter: ["br"],
+    replacement: function (content) {
+      return "\n";
+    },
+  });
 
 interface ImportableFile {
   type: string;
@@ -112,7 +125,9 @@ async function confluenceToMarkdown(file): Promise<string> {
   turndownService.remove(["style", "xml", "title"]);
 
   // Now we should have something that looks like HTML
-  return turndownService.turndown(value);
+  const html = turndownService.turndown(value);
+
+  return html.replace(/<br>/g, "\\n ");
 }
 
 export default async function documentImporter({
