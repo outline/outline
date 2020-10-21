@@ -7,6 +7,7 @@ import Dropzone from "react-dropzone";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
 import LoadingIndicator from "components/LoadingIndicator";
 
 const EMPTY_OBJECT = {};
@@ -18,6 +19,7 @@ type Props = {
   documentId?: string,
   activeClassName?: string,
   rejectClassName?: string,
+  ui: UiStore,
   documents: DocumentsStore,
   disabled: boolean,
   location: Object,
@@ -71,6 +73,8 @@ class DropToImport extends React.Component<Props> {
           this.props.history.push(doc.url);
         }
       }
+    } catch (err) {
+      this.props.ui.showToast(`Could not import file. ${err.message}`);
     } finally {
       this.isImporting = false;
       importingLock = false;
@@ -109,4 +113,4 @@ class DropToImport extends React.Component<Props> {
   }
 }
 
-export default inject("documents")(withRouter(DropToImport));
+export default inject("documents", "ui")(withRouter(DropToImport));
