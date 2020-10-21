@@ -105,9 +105,13 @@ const StyledEditor = styled(RichMarkdownEditor)`
   /* ref: https://stackoverflow.com/a/28824157 */
   .heading-name::before {
     content: "";
-    display: block;
+    display: ${(props) => (props.readOnly ? "block" : "none")};
     height: 72px;
     margin: -72px 0 0;
+  }
+
+  .heading-anchor {
+    margin-top: 72px !important;
   }
 
   p {
