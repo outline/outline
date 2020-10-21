@@ -126,6 +126,7 @@
     "pg-hstore": "^2.3.3",
     "polished": "3.6.5",
     "query-string": "^4.3.4",
+    "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
     "react": "^16.8.6",
@@ -158,6 +159,7 @@
     "tiny-cookie": "^2.3.1",
     "tmp": "0.0.33",
     "turndown": "^6.0.0",
+    "utf8": "^3.0.0",
     "uuid": "2.0.2",
     "validator": "5.2.0"
   },
