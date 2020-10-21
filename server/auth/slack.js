@@ -188,7 +188,7 @@ router.get("slack.commands", auth({ required: false }), async (ctx) => {
     teamId: user.teamId,
     authenticationId: authentication.id,
     settings: {
-      teamId: data.team_id,
+      serviceTeamId: data.team_id,
     },
   });
 
