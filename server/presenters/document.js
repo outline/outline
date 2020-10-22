@@ -8,7 +8,7 @@ type Options = {
   isPublic?: boolean,
 };
 
-const attachmentRegex = /!\[.*\]\(\/api\/attachments\.redirect\?id=(?<id>.*)\)/gi;
+const attachmentRegex = /!\[.*?\]\(\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
 
 // replaces attachments.redirect urls with signed/authenticated url equivalents
 async function replaceImageAttachments(text) {
