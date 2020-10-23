@@ -22,15 +22,22 @@ export default function SocketPresence(props: Props) {
   // );
 
   React.useEffect(() => {
+    console.log("useEffect", context);
     if (!context) return;
 
     const emitJoin = () => {
       if (!context) return;
+      console.log("JOIN");
       context.emit("join", { documentId: props.documentId });
     };
 
     context.on("authenticated", () => {
-      emitJoin();
+      console.log("authenticated");
+
+      // wait just a hair to join the presence room, this is mainly for a
+      // development race condition where the join event could be emitted before
+      // the listener is added on the server
+      setTimeout(emitJoin, 100);
     });
 
     if (context.authenticated) {

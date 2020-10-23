@@ -112,7 +112,7 @@ SocketAuth(io, {
 
     // allow the client to request to join rooms
     socket.on("join", async (event) => {
-      log("join", JSON.stringify(event));
+      log("join", event.documentId, socket.id);
       // user is joining a collection channel, because their permissions have
       // changed, granting them access.
       if (event.collectionId) {
@@ -139,6 +139,7 @@ SocketAuth(io, {
           // new logic for multiplayer editing completely changes "presence"
           // detection and propagation, so split at a high-level here.
           if (team.multiplayerEditor) {
+            log("joined multiplayer", socket.id);
             socket.join(room, () => {
               socket.emit("user.join", {
                 userId: user.id,
