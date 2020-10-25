@@ -27,12 +27,10 @@ export default function SocketPresence(props: Props) {
 
     const emitJoin = () => {
       if (!context) return;
-      console.log("JOIN");
       context.emit("join", { documentId: props.documentId });
     };
 
     context.on("authenticated", () => {
-      console.log("authenticated");
       emitJoin();
     });
 

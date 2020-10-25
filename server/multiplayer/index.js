@@ -1,8 +1,10 @@
 // @flow
+import { yDocToProsemirror } from "@tommoor/y-prosemirror";
 import debug from "debug";
 import * as decoding from "lib0/dist/decoding.cjs";
 import * as encoding from "lib0/dist/encoding.cjs";
 import { debounce } from "lodash";
+import { schema, serializer } from "rich-markdown-editor";
 import { Socket } from "socket.io-client";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
@@ -30,7 +32,7 @@ export function handleJoin({
   let doc = docs.get(documentId);
 
   if (!doc) {
-    doc = new WSSharedDoc(documentId, io);
+    doc = new WSSharedDoc(document, io);
     doc.get("prosemirror", Y.XmlFragment);
 
     if (document.state) {
@@ -49,8 +51,12 @@ export function handleJoin({
           // TODO: refactor this persistence out
           Y.applyUpdate(doc, update);
           const state = Y.encodeStateAsUpdate(doc);
+          const node = yDocToProsemirror(schema, doc);
+          const text = serializer.serialize(node);
+
           await Document.update(
             {
+              text,
               state: Buffer.from(state),
               updatedAt: new Date(),
             },

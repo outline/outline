@@ -1,13 +1,13 @@
 // @flow
-import { keymap } from "prosemirror-keymap";
-import { Extension } from "rich-markdown-editor";
 import {
   ySyncPlugin,
   yCursorPlugin,
   yUndoPlugin,
   undo,
   redo,
-} from "y-prosemirror";
+} from "@tommoor/y-prosemirror";
+import { keymap } from "prosemirror-keymap";
+import { Extension } from "rich-markdown-editor";
 import * as Y from "yjs";
 
 export default class MultiplayerExtension extends Extension {

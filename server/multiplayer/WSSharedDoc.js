@@ -1,20 +1,31 @@
 // @flow
+import { prosemirrorToYDoc } from "@tommoor/y-prosemirror";
 import * as encoding from "lib0/dist/encoding.cjs";
 import * as mutex from "lib0/dist/mutex.cjs";
+import { schema, parser } from "rich-markdown-editor";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
 import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
+import { Document } from "../models";
 
 export default class WSSharedDoc extends Y.Doc {
-  constructor(documentId: string, io: any) {
+  constructor(document: Document, io: any) {
     super({ gc: true });
     this.io = io;
-    this.documentId = documentId;
+    this.documentId = document.id;
     this.mux = mutex.createMutex();
     this.conns = new Map();
     this.awareness = new awarenessProtocol.Awareness(this);
     this.awareness.setLocalState(null);
+
+    if (document.state) {
+      Y.applyUpdate(this, document.state);
+    } else {
+      const node = parser.parse(document.text);
+      const ydoc = prosemirrorToYDoc(node);
+      Y.applyUpdate(this, Y.encodeStateAsUpdate(ydoc));
+    }
 
     this.awareness.on("update", this.awarenessHandler);
     this.on("update", this.updateHandler);

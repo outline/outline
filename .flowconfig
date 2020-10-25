@@ -12,7 +12,7 @@
 .*/node_modules/fbjs/.*
 .*/node_modules/config-chain/.*
 .*/node_modules/yjs/.*
-.*/node_modules/y-prosemirror/.*
+.*/node_modules/@tommoor/y-prosemirror/.*
 .*/node_modules/y-protocols/.*
 .*/node_modules/lib0/.*
 .*/server/scripts/.*
