@@ -3,7 +3,7 @@ import { yDocToProsemirror } from "@tommoor/y-prosemirror";
 import debug from "debug";
 import * as decoding from "lib0/dist/decoding.cjs";
 import * as encoding from "lib0/dist/encoding.cjs";
-import { debounce } from "lodash";
+import { uniq, debounce } from "lodash";
 import { schema, serializer } from "rich-markdown-editor";
 import { Socket } from "socket.io-client";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
@@ -54,11 +54,23 @@ export function handleJoin({
           const node = yDocToProsemirror(schema, doc);
           const text = serializer.serialize(node);
 
+          // TODO: Refactor to helper, PR against yjs
+          const pud = new Y.PermanentUserData(doc);
+          let collaboratorIds = document.collaboratorIds;
+          for (const [userId] of pud.dss.entries()) {
+            collaboratorIds.push(userId);
+          }
+          for (const entry of pud.clients.entries()) {
+            collaboratorIds.push(entry[1]);
+          }
+          collaboratorIds = uniq(collaboratorIds);
+
           await Document.update(
             {
               text,
               state: Buffer.from(state),
               updatedAt: new Date(),
+              collaboratorIds,
             },
             {
               hooks: false,
