@@ -293,6 +293,8 @@ export class WebsocketProvider extends Observable {
     }
     console.log("user.join");
 
+    this.awareness.setLocalState({});
+
     this.emit("status", [
       {
         status: "connected",

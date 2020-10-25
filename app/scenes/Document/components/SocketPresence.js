@@ -33,11 +33,7 @@ export default function SocketPresence(props: Props) {
 
     context.on("authenticated", () => {
       console.log("authenticated");
-
-      // wait just a hair to join the presence room, this is mainly for a
-      // development race condition where the join event could be emitted before
-      // the listener is added on the server
-      setTimeout(emitJoin, 100);
+      emitJoin();
     });
 
     if (context.authenticated) {

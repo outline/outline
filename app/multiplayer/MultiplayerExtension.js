@@ -19,9 +19,13 @@ export default class MultiplayerExtension extends Extension {
     const { user, provider, doc } = this.options;
     const type = doc.get("prosemirror", Y.XmlFragment);
 
-    provider.awareness.setLocalStateField("user", {
-      color: user.color,
-      name: user.name,
+    provider.on("status", ({ status }) => {
+      if (status === "connected") {
+        provider.awareness.setLocalStateField("user", {
+          color: user.color,
+          name: user.name,
+        });
+      }
     });
 
     const permanentUserData = new Y.PermanentUserData(doc);
