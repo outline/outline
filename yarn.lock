@@ -1372,7 +1372,7 @@
     execa "^4.0.0"
     java-properties "^1.0.0"
 
-"@rollup/plugin-commonjs@^15.0.0":
+"@rollup/plugin-commonjs@^15.1.0":
   version "15.1.0"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-commonjs/-/plugin-commonjs-15.1.0.tgz#1e7d076c4f1b2abf7e65248570e555defc37c238"
   integrity sha512-xCQqz4z/o0h2syQ7d9LskIMvBSH4PX5PjYdpSSvgS+pQik3WahkQVNWg3D8XJeYjZoVWnIUQYDghuEMRGrmQYQ==
@@ -1505,6 +1505,17 @@
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.1.tgz#25e7b845d52fcfadf149a3a6a468a931fee7619b"
   integrity sha512-aM5TtBfBgcUm+B4WWelm2NBAFBk12oNUr67f5lJapSOTkPnwkuzCNwMlsBoDTsRknoZSsUIkcOJB473AnfyqHA==
+
+"@tommoor/y-prosemirror@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@tommoor/y-prosemirror/-/y-prosemirror-0.4.0.tgz#cd5b1e5c62bb7476ad87fa9c5e7331c8372f7179"
+  integrity sha512-T35mnRHVbCJccpP8b7QjDgNdUzCuoNpWnigLWS3GPvAWFlHoYQJEwHkrN3fmkkXKyX+8Cqr2x74DGIQhKq0Atg==
+  dependencies:
+    "@rollup/plugin-commonjs" "^15.1.0"
+    "@rollup/plugin-node-resolve" "^9.0.0"
+    lib0 "^0.2.34"
+    lodash.flatten "^4.4.0"
+    rollup "^2.32.0"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.9"
@@ -10069,10 +10080,10 @@ rollup@^0.41.4:
   dependencies:
     source-map-support "^0.4.0"
 
-rollup@^2.26.11:
-  version "2.29.0"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.29.0.tgz#0c5c5968530b21ca0e32f8b94b7cd9346cfb0eec"
-  integrity sha512-gtU0sjxMpsVlpuAf4QXienPmUAhd6Kc7owQ4f5lypoxBW18fw2UNYZ4NssLGsri6WhUZkE/Ts3EMRebN+gNLiQ==
+rollup@^2.32.0:
+  version "2.32.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.32.1.tgz#625a92c54f5b4d28ada12d618641491d4dbb548c"
+  integrity sha512-Op2vWTpvK7t6/Qnm1TTh7VjEZZkN8RWgf0DHbkKzQBwNf748YhXbozHVefqpPp/Fuyk/PQPAnYsBxAEtlMvpUw==
   optionalDependencies:
     fsevents "~2.1.2"
 
@@ -12225,16 +12236,6 @@ y-indexeddb@^9.0.5:
   integrity sha512-40VxkqPoK2VxE1vMosS5MfwlHQOvaeLEN89dIkjh7URjZny6bDQOl4yKldaDv9ZosZgYEPyWuWTF3Z92RZ1y+A==
   dependencies:
     lib0 "^0.2.12"
-
-y-prosemirror@^0.3.7:
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/y-prosemirror/-/y-prosemirror-0.3.7.tgz#df929ceacb3e35c568db9f1a5a36b0515b3732fc"
-  integrity sha512-9jj+BU5T608AjER3uwXkbYKhms6hLNivJDU6/CUAafaM4A1qrDE6blAPe4WOL8f1/oMQ7ZdcXMZpIsoemFHXzg==
-  dependencies:
-    "@rollup/plugin-commonjs" "^15.0.0"
-    "@rollup/plugin-node-resolve" "^9.0.0"
-    lib0 "^0.2.33"
-    rollup "^2.26.11"
 
 y-protocols@^1.0.1:
   version "1.0.1"
