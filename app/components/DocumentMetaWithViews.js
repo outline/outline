@@ -14,14 +14,18 @@ type Props = {|
 
 function DocumentMetaWithViews({ to, isDraft, document }: Props) {
   const { views } = useStores();
-  const totalViews = useObserver(() => views.countForDocument(document.id));
+  const documentViews = useObserver(() => views.inDocument(document.id));
+  const totalViewers = documentViews.length;
+  const onlyYou = totalViewers === 1 && documentViews[0].user.id;
 
   return (
     <Meta document={document} to={to}>
-      {totalViews && !isDraft ? (
+      {totalViewers && !isDraft ? (
         <>
-          &nbsp;&middot; Viewed{" "}
-          {totalViews === 1 ? "once" : `${totalViews} times`}
+          &nbsp;&middot; Viewed by{" "}
+          {onlyYou
+            ? "only you"
+            : `${totalViewers} ${totalViewers === 1 ? "person" : "people"}`}
         </>
       ) : null}
     </Meta>

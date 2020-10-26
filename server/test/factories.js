@@ -10,6 +10,8 @@ import {
   Group,
   GroupUser,
   Attachment,
+  Authentication,
+  Integration,
 } from "../models";
 
 let count = 0;
@@ -64,6 +66,33 @@ export async function buildUser(overrides: Object = {}) {
     serviceId: uuid.v4(),
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
     lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+    ...overrides,
+  });
+}
+
+export async function buildIntegration(overrides: Object = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  const user = await buildUser({ teamId: overrides.teamId });
+
+  const authentication = await Authentication.create({
+    service: "slack",
+    userId: user.id,
+    teamId: user.teamId,
+    token: "fake-access-token",
+    scopes: ["example", "scopes", "here"],
+  });
+
+  return Integration.create({
+    type: "post",
+    service: "slack",
+    settings: {
+      serviceTeamId: "slack_team_id",
+    },
+    authenticationId: authentication.id,
     ...overrides,
   });
 }

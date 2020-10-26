@@ -9,6 +9,7 @@ import {
   Team,
   Collection,
   SearchQuery,
+  Integration,
 } from "../models";
 import { presentSlackAttachment } from "../presenters";
 import * as Slack from "../slack";
@@ -130,9 +131,45 @@ router.post("hooks.slack", async (ctx) => {
     return;
   }
 
-  const team = await Team.findOne({
+  let user;
+
+  // attempt to find the corresponding team for this request based on the team_id
+  let team = await Team.findOne({
     where: { slackId: team_id },
   });
+  if (team) {
+    user = await User.findOne({
+      where: {
+        teamId: team.id,
+        service: "slack",
+        serviceId: user_id,
+      },
+    });
+  } else {
+    // If we couldn't find a team it's still possible that the request is from
+    // a team that authenticated with a different service, but connected Slack
+    // via integration
+    const integration = await Integration.findOne({
+      where: {
+        settings: {
+          serviceTeamId: team_id,
+        },
+      },
+      include: [
+        {
+          model: Team,
+          as: "team",
+        },
+      ],
+    });
+
+    if (integration) {
+      team = integration.team;
+    }
+  }
+
+  // This should be super rare, how does someone end up being able to make a valid
+  // request from Slack that connects to no teams in Outline.
   if (!team) {
     ctx.body = {
       response_type: "ephemeral",
@@ -142,17 +179,13 @@ router.post("hooks.slack", async (ctx) => {
     return;
   }
 
-  const user = await User.findOne({
-    where: {
-      teamId: team.id,
-      service: "slack",
-      serviceId: user_id,
-    },
-  });
-
   const options = {
     limit: 5,
   };
+
+  // If we were able to map the request to a user then we can use their permissions
+  // to load more documents based on the collections they have access to. Otherwise
+  // just a generic search against team-visible documents is allowed.
   const { results, totalCount } = user
     ? await Document.searchForUser(user, text, options)
     : await Document.searchForTeam(team, text, options);
@@ -165,6 +198,9 @@ router.post("hooks.slack", async (ctx) => {
     results: totalCount,
   });
 
+  const haventSignedIn = `(It looks like you haven’t signed in to Outline yet, so results may be limited)`;
+
+  // Map search results to the format expected by the Slack API
   if (results.length) {
     const attachments = [];
     for (const result of results) {
@@ -193,12 +229,16 @@ router.post("hooks.slack", async (ctx) => {
     }
 
     ctx.body = {
-      text: `This is what we found for "${text}"…`,
+      text: user
+        ? `This is what we found for "${text}"…`
+        : `This is what we found for "${text}" ${haventSignedIn}…`,
       attachments,
     };
   } else {
     ctx.body = {
-      text: `No results for "${text}"`,
+      text: user
+        ? `No results for "${text}"`
+        : `No results for "${text}" ${haventSignedIn}`,
     };
   }
 });

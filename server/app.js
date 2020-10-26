@@ -11,7 +11,6 @@ import logger from "koa-logger";
 import mount from "koa-mount";
 import onerror from "koa-onerror";
 import enforceHttps from "koa-sslify";
-
 import api from "./api";
 import auth from "./auth";
 import emails from "./emails";

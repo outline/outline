@@ -56,7 +56,7 @@ class Editor extends React.Component<PropsWithRef> {
       }
 
       this.props.history.push(navigateTo);
-    } else {
+    } else if (href) {
       window.open(href, "_blank");
     }
   };
@@ -142,6 +142,23 @@ const StyledEditor = styled(RichMarkdownEditor)`
         }
       }
     }
+  }
+
+  .heading-name {
+    cursor: default;
+  }
+
+  /* pseudo element allows us to add spacing for fixed header */
+  /* ref: https://stackoverflow.com/a/28824157 */
+  .heading-name::before {
+    content: "";
+    display: ${(props) => (props.readOnly ? "block" : "none")};
+    height: 72px;
+    margin: -72px 0 0;
+  }
+
+  .heading-anchor {
+    margin-top: 72px !important;
   }
 
   p {

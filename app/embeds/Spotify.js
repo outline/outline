@@ -25,11 +25,21 @@ export default class Spotify extends React.Component<Props> {
   render() {
     const normalizedPath = this.pathname.replace(/^\/embed/, "/");
 
+    var height;
+
+    if (normalizedPath.includes("episode") || normalizedPath.includes("show")) {
+      height = 232;
+    } else if (normalizedPath.includes("track")) {
+      height = 80;
+    } else {
+      height = 380;
+    }
+
     return (
       <Frame
         {...this.props}
-        width="300px"
-        height="380px"
+        width="100%"
+        height={`${height}px`}
         src={`https://open.spotify.com/embed${normalizedPath}`}
         title="Spotify Embed"
         allow="encrypted-media"

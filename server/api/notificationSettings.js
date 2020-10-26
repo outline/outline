@@ -2,7 +2,7 @@
 import Router from "koa-router";
 
 import auth from "../middlewares/authentication";
-import { NotificationSetting } from "../models";
+import { Team, NotificationSetting } from "../models";
 import policy from "../policies";
 import { presentNotificationSetting } from "../presenters";
 
@@ -62,16 +62,23 @@ router.post("notificationSettings.unsubscribe", async (ctx) => {
   ctx.assertUuid(id, "id is required");
   ctx.assertPresent(token, "token is required");
 
-  const setting = await NotificationSetting.findByPk(id);
-  if (setting) {
-    if (token !== setting.unsubscribeToken) {
-      ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
-    }
+  const setting = await NotificationSetting.findByPk(id, {
+    include: [
+      {
+        model: Team,
+        required: true,
+        as: "team",
+      },
+    ],
+  });
 
+  if (setting && setting.unsubscribeToken === token) {
     await setting.destroy();
+    ctx.redirect(`${setting.team.url}/settings/notifications?success`);
+    return;
   }
 
-  ctx.redirect(`${process.env.URL}/settings/notifications?success`);
+  ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
 });
 
 export default router;
