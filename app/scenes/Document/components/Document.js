@@ -62,7 +62,6 @@ type Props = {
   readOnly: boolean,
   multiplayer: {
     provider: any,
-    dbProvider: any,
     doc: Y.Doc,
   },
   onCreateLink: (title: string) => string,
@@ -333,6 +332,7 @@ class DocumentScene extends React.Component<Props> {
       auth,
       ui,
       match,
+      multiplayer,
     } = this.props;
     const team = auth.team;
     const user = auth.user;
@@ -431,6 +431,12 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
+              {!multiplayer.isConnected && team.multiplayerEditor && (
+                <Notice muted>
+                  Connection lost. Any edits will sync once you’re back online.
+                  Trying to reconnect…
+                </Notice>
+              )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
                   {ui.tocVisible && readOnly && (
@@ -471,7 +477,7 @@ class DocumentScene extends React.Component<Props> {
                         ? [
                             new MultiplayerExtension({
                               user,
-                              ...this.props.multiplayer,
+                              ...multiplayer,
                             }),
                           ]
                         : undefined

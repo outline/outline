@@ -8,6 +8,7 @@ import {
 } from "@tommoor/y-prosemirror";
 import { keymap } from "prosemirror-keymap";
 import { Extension } from "rich-markdown-editor";
+// import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 
 export default class MultiplayerExtension extends Extension {
@@ -27,6 +28,11 @@ export default class MultiplayerExtension extends Extension {
         });
       }
     });
+
+    // const dbProvider = new IndexeddbPersistence(doc.documentId, doc);
+    // dbProvider.whenSynced.then(() => {
+    //   console.log("loaded data from indexed db");
+    // });
 
     const permanentUserData = new Y.PermanentUserData(doc);
     permanentUserData.setUserMapping(doc, doc.clientID, user.id);
