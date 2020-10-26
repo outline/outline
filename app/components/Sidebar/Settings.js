@@ -1,7 +1,6 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import {
-  BeakerIcon,
   DocumentIcon,
   EmailIcon,
   ProfileIcon,
@@ -131,13 +130,6 @@ class SettingsSidebar extends React.Component<Props> {
                   to="/settings/export"
                   icon={<DocumentIcon color="currentColor" />}
                   label="Export Data"
-                />
-              )}
-              {can.update && (
-                <SidebarLink
-                  to="/settings/features"
-                  icon={<BeakerIcon color="currentColor" />}
-                  label="Labs"
                 />
               )}
             </Section>
