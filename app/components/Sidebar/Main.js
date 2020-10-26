@@ -10,6 +10,7 @@ import {
   ShapesIcon,
   TrashIcon,
   PlusIcon,
+  NewDocumentIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -131,10 +132,18 @@ class MainSidebar extends React.Component<Props> {
                 active={
                   documents.active
                     ? !documents.active.publishedAt &&
-                      !documents.active.isDeleted &&
-                      !documents.active.isTemplate
+                    !documents.active.isDeleted &&
+                    !documents.active.isTemplate
                     : undefined
                 }
+              />
+            </Section>
+            <Section>
+              <SidebarLink
+                to="/requested-docs"
+                icon={<NewDocumentIcon color="currentColor" />}
+                exact={false}
+                label="Requested Docs"
               />
             </Section>
             <Section>

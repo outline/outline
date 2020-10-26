@@ -5,6 +5,8 @@ import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
+import RequestedDocsStore from "./RequestedDocsStore"
+import FollowsStore from "./FollowsStore"
 import EventsStore from "./EventsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupsStore from "./GroupsStore";
@@ -24,6 +26,8 @@ export default class RootStore {
   collections: CollectionsStore;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   documents: DocumentsStore;
+  requestedDoc: RequestedDocsStore;
+  follows: FollowsStore;
   events: EventsStore;
   groups: GroupsStore;
   groupMemberships: GroupMembershipsStore;
@@ -44,6 +48,8 @@ export default class RootStore {
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
+    this.requestedDocs = new RequestedDocsStore(this);
+    this.follows = new FollowsStore(this);
     this.events = new EventsStore(this);
     this.groups = new GroupsStore(this);
     this.groupMemberships = new GroupMembershipsStore(this);
@@ -65,6 +71,8 @@ export default class RootStore {
     this.collections.clear();
     this.collectionGroupMemberships.clear();
     this.documents.clear();
+    this.requestedDocs.clear();
+    this.follows.clear();
     this.events.clear();
     this.groups.clear();
     this.groupMemberships.clear();

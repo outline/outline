@@ -12,6 +12,7 @@ import Search from "scenes/Search";
 import Starred from "scenes/Starred";
 import Templates from "scenes/Templates";
 import Trash from "scenes/Trash";
+import RequestedDoc from "scenes/RequestedDoc";
 
 import CenteredContent from "components/CenteredContent";
 import Layout from "components/Layout";
@@ -43,6 +44,7 @@ export default function AuthenticatedRoutes() {
           <Route exact path="/templates" component={Templates} />
           <Route exact path="/templates/:sort" component={Templates} />
           <Route exact path="/drafts" component={Drafts} />
+          <Route exact path="/requested-docs" component={RequestedDoc} />
           <Route exact path="/archive" component={Archive} />
           <Route exact path="/trash" component={Trash} />
           <Route exact path="/collections/:id/new" component={DocumentNew} />
