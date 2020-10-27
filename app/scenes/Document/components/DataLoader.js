@@ -236,7 +236,11 @@ class DataLoader extends React.Component<Props> {
       : "read-only";
 
     return (
-      <SocketPresence documentId={document.id} userId={auth.user.id}>
+      <SocketPresence
+        documentId={document.id}
+        userId={auth.user.id}
+        isMultiplayer={team.multiplayerEditor}
+      >
         {(multiplayer) => (
           <>
             {this.isEditing && <HideSidebar ui={ui} />}

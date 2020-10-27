@@ -125,7 +125,9 @@ class DocumentScene extends React.Component<Props> {
   }
 
   componentWillUnmount() {
-    this.props.multiplayer.provider.destroy();
+    if (this.props.multiplayer.provider) {
+      this.props.multiplayer.provider.destroy();
+    }
   }
 
   updateBackground() {
@@ -433,8 +435,8 @@ class DocumentScene extends React.Component<Props> {
               )}
               {!multiplayer.isConnected && team.multiplayerEditor && (
                 <Notice muted>
-                  Connection lost. Any edits will sync once you’re back online.
-                  Trying to reconnect…
+                  Connection lost. Any edits will sync once you’re back online.{" "}
+                  {multiplayer.isReconnecting && "Trying to reconnect…"}
                 </Notice>
               )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
