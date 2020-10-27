@@ -10,7 +10,6 @@ import {
   GroupIcon,
   LinkIcon,
   TeamIcon,
-  BulletedListIcon,
   ExpandedIcon,
 } from "outline-icons";
 import * as React from "react";
@@ -118,13 +117,6 @@ class SettingsSidebar extends React.Component<Props> {
                 icon={<LinkIcon color="currentColor" />}
                 label="Share Links"
               />
-              {can.auditLog && (
-                <SidebarLink
-                  to="/settings/events"
-                  icon={<BulletedListIcon color="currentColor" />}
-                  label="Audit Log"
-                />
-              )}
               {can.export && (
                 <SidebarLink
                   to="/settings/export"
