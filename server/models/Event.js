@@ -45,8 +45,12 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  events.add(event, { removeOnComplete: true });
+  event.addToQueue();
 });
+
+Event.prototype.addToQueue = function () {
+  events.add(this, { removeOnComplete: true });
+};
 
 Event.ACTIVITY_EVENTS = [
   "users.create",

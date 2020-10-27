@@ -79,6 +79,19 @@ export function handleJoin({
               },
             }
           );
+
+          // TODO: Refactor out
+          const event = await Event.build({
+            name: "documents.update",
+            documentId: document.id,
+            collectionId: document.collectionId,
+            teamId: document.teamId,
+            data: {
+              multiplayer: true,
+              title: document.title,
+            },
+          });
+          event.addToQueue();
         },
         PERSIST_WAIT,
         {
