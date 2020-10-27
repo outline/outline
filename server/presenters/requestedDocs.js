@@ -1,4 +1,4 @@
-import { RequestedDoc } from "../models"
+import { RequestedDoc } from "../models";
 
 export default function present(requestedDocs: RequestedDoc) {
     const data = {

@@ -1,17 +1,16 @@
 // @flow
-import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import styled from "styled-components";
 import * as React from "react";
+import styled from "styled-components";
 import { withRouter } from "react-router-dom";
-import UiStore from "../stores/UiStore";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import RequestedDocsStore from "../stores/RequestedDocsStore";
-import RequestedDoc from "../models/RequestedDocs"
+import UiStore from "../stores/UiStore";
+import RequestedDoc from "../models/RequestedDocs";
 
 type Props = {
     requestedDocs: RequestedDocsStore,
@@ -58,7 +57,7 @@ class RequestedDocNew extends React.Component<Props> {
     };
 
     render() {
-        const { collections, users } = this.props;
+        const { collections } = this.props;
 
         return (
             <form onSubmit={this.handleSubmit}>

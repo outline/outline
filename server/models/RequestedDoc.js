@@ -1,8 +1,4 @@
-import { find, concat, remove, uniq } from "lodash";
-import randomstring from "randomstring";
-import slug from "slug";
 import { DataTypes, sequelize } from "../sequelize";
-// import { Follow } from "../models"
 
 const RequestedDoc = sequelize.define(
     "requested_doc",

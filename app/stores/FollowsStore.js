@@ -1,16 +1,13 @@
 // @flow
 import { reduce, filter, find, orderBy } from "lodash";
-import invariant from "invariant";
-import naturalSort from "shared/utils/naturalSort";
-import { observable, action, runInAction, computed } from "mobx";
-import RequestedDocs from "models/RequestedDocs"
-import Follow from "../models/Follow"
+import { observable } from "mobx";
+import Follow from "../models/Follow";
 import { client } from "utils/ApiClient";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class FollowsStore extends BaseStore<Follow>{
-    actions = ["list"];
+
     @observable isLikeIds: Map<string, boolean> = new Map();
 
     constructor(rootStore: RootStore) {

@@ -1,16 +1,12 @@
 // @flow
 import { observer, inject } from "mobx-react";
-import {
-  CollectionIcon
-} from "outline-icons";
+import { CollectionIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
-import AuthStore from "../stores/AuthStore";
 import Flex from "components/Flex";
-import BreadcrumbMenu from "./BreadcrumbMenu";
+import AuthStore from "../stores/AuthStore";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {

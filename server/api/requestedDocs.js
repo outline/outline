@@ -1,31 +1,24 @@
+// @flow
 import Router from "koa-router";
-import { ValidationError } from "../errors";
-import { exportCollections } from "../logistics";
 import auth from "../middlewares/authentication";
 import {
-    Collection,
-    CollectionUser,
     Event,
-    User,
     Follow,
     RequestedDoc,
 } from "../models";
 import policy from "../policies";
 import {
-    presentUser,
     presentPolicies,
     presentCollection,
     presentRequestedDoc,
-    presentFollow,
 } from "../presenters";
-import { Op } from "../sequelize";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
 
 router.post("requesteddocs.create", auth(), async (ctx) => {
-    const { title, like, collectionId, userId } = ctx.body;
+    const { title, like, collectionId } = ctx.body;
     ctx.assertPresent(title, "title is required");
 
     const user = ctx.state.user;

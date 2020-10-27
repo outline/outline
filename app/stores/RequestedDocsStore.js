@@ -1,14 +1,8 @@
 // @flow
 import invariant from "invariant";
-import naturalSort from "shared/utils/naturalSort";
 import { observable, action, runInAction, computed } from "mobx";
-import RequestedDocs from "models/RequestedDocs"
-import {
-    orderBy,
-    filter,
-    sortBy,
-} from "lodash";
-
+import RequestedDocs from "models/RequestedDocs";
+import { sortBy } from "lodash";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
@@ -80,7 +74,6 @@ export default class RequestedDocsStore extends BaseStore<RequestedDocs>{
     @computed
     get orderedData(): RequestedDocs[] {
         return sortBy(Array.from(this.data.values()), "like", "DESC").reverse();
-        // return naturalSort(Array.from(this.data.values()), "title");
     };
 
 }

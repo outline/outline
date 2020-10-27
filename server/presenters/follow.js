@@ -1,4 +1,4 @@
-import { Follow } from "../models"
+import { Follow } from "../models";
 
 export default function present(follow: Follow) {
     const data = {

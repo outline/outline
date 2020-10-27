@@ -1,25 +1,17 @@
 // @flow
 import { observer, inject } from "mobx-react";
-import {
-    CollectionIcon
-} from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
-import AuthStore from "../stores/AuthStore";
 import Flex from "components/Flex";
-import Button from "components/Button";
-import { collectionUrl } from "utils/routeHelpers";
-import RequestedDocsStore from "stores/RequestedDocsStore";
 import FollowsStore from "stores/FollowsStore";
+import Button from "components/Button";
+
 
 type Props = {
     follows: FollowsStore,
-    requestedDocs: RequestedDocsStore,
     onlyText: boolean,
-    auth: AuthStore,
 };
 
 
@@ -56,7 +48,7 @@ class ButtonFollow extends React.Component<Props>{
     };
 
     renderFollows() {
-        const { requestedDoc, users, follows, auth } = this.props;
+        const { requestedDoc, follows, auth } = this.props;
         const requesteDocFollows = follows.listFollow(requestedDoc.id);
         const isFollow = this.state.isFollow;
         const userCurrent = auth.user && auth.user.id
@@ -116,28 +108,10 @@ class ButtonFollow extends React.Component<Props>{
 };
 
 
-const Wrapper = styled(Flex)`
-  display: none;
-
-  ${breakpoint("tablet")`   
-    display: flex;
-  `};
-`;
-
-const CollectionName = styled(Link)`
-  display: flex;
-  flex-shrink: 0;
-  color: ${(props) => props.theme.text};
-  font-size: 15px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-`;
-
 const Actions = styled(Flex)`
   margin-left: 4px;
   align-items: center;
   margin-top: 5px;
 `;
 
-export default inject("requestedDocs", "collections", "auth", "users", "follows")(ButtonFollow);
+export default inject("requestedDocs", "auth", "follows")(ButtonFollow);

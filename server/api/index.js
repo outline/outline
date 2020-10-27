@@ -1,6 +1,6 @@
 // @flow
 import Koa from "koa";
-import bodyParser from "koa-body";
+import bodyParser from "koa-bodyparser";
 import Router from "koa-router";
 
 import { NotFoundError } from "../errors";
@@ -16,7 +16,6 @@ import events from "./events";
 import groups from "./groups";
 import hooks from "./hooks";
 import integrations from "./integrations";
-import requesteddocs from "./requestedDocs";
 
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
@@ -27,18 +26,14 @@ import team from "./team";
 import users from "./users";
 import utils from "./utils";
 import views from "./views";
+import requesteddocs from "./requestedDocs";
 
 const api = new Koa();
 const router = new Router();
 
 // middlewares
-api.use(
-  bodyParser({
-    multipart: true,
-    formidable: { maxFieldsSize: 10 * 1024 * 1024 },
-  })
-);
 api.use(errorHandling());
+api.use(bodyParser());
 api.use(methodOverride());
 api.use(validation());
 api.use(apiWrapper());
