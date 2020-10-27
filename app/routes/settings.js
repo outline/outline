@@ -4,7 +4,6 @@ import { Switch, Route } from "react-router-dom";
 import Features from "scenes/Settings/Features";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
-import Events from "scenes/Settings/Events";
 import Export from "scenes/Settings/Export";
 import Groups from "scenes/Settings/Groups";
 import Notifications from "scenes/Settings/Notifications";
@@ -27,7 +26,6 @@ export default function SettingsRoutes() {
       <Route exact path="/settings/groups" component={Groups} />
       <Route exact path="/settings/shares" component={Shares} />
       <Route exact path="/settings/tokens" component={Tokens} />
-      <Route exact path="/settings/events" component={Events} />
       <Route exact path="/settings/notifications" component={Notifications} />
       <Route exact path="/settings/integrations/slack" component={Slack} />
       <Route exact path="/settings/integrations/zapier" component={Zapier} />
