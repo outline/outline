@@ -1,11 +1,14 @@
 // @flow
 import * as Sentry from "@sentry/node";
+import debug from "debug";
 import services from "./services";
 import { createQueue } from "./utils/queue";
 
+const log = debug("services");
+
 export type UserEvent =
   | {
-  name: | 'users.create' // eslint-disable-line
+  name: | "users.create" // eslint-disable-line
         | "users.update"
         | "users.suspend"
         | "users.activate"
@@ -26,7 +29,7 @@ export type UserEvent =
 
 export type DocumentEvent =
   | {
-  name: | 'documents.create' // eslint-disable-line
+  name: | "documents.create" // eslint-disable-line
         | "documents.publish"
         | "documents.delete"
         | "documents.pin"
@@ -53,9 +56,12 @@ export type DocumentEvent =
       },
     }
   | {
-      name: "documents.update",
+      name: | "documents.update" // eslint-disable-line
+        | "documents.update.delayed"
+        | "documents.update.debounced",
       documentId: string,
       collectionId: string,
+      createdAt: string,
       teamId: string,
       actorId: string,
       data: {
@@ -73,7 +79,7 @@ export type RevisionEvent = {
 
 export type CollectionEvent =
   | {
-  name: | 'collections.create' // eslint-disable-line
+  name: | "collections.create" // eslint-disable-line
         | "collections.update"
         | "collections.delete",
       collectionId: string,
@@ -140,7 +146,7 @@ globalEventsQueue.process(async (job) => {
     const service = services[name];
     if (service.on) {
       serviceEventsQueue.add(
-        { service: name, ...job.data },
+        { ...job.data, service: name },
         { removeOnComplete: true }
       );
     }
@@ -153,6 +159,8 @@ serviceEventsQueue.process(async (job) => {
   const service = services[event.service];
 
   if (service.on) {
+    log(`${event.service} processing ${event.name}`);
+
     service.on(event).catch((error) => {
       if (process.env.SENTRY_DSN) {
         Sentry.withScope(function (scope) {
