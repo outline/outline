@@ -64,6 +64,13 @@ export type DocumentEvent =
       },
     };
 
+export type RevisionEvent = {
+  name: "revisions.create",
+  documentId: string,
+  collectionId: string,
+  teamId: string,
+};
+
 export type CollectionEvent =
   | {
   name: | 'collections.create' // eslint-disable-line
@@ -120,7 +127,8 @@ export type Event =
   | DocumentEvent
   | CollectionEvent
   | IntegrationEvent
-  | GroupEvent;
+  | GroupEvent
+  | RevisionEvent;
 
 const globalEventsQueue = createQueue("global events");
 const serviceEventsQueue = createQueue("service events");

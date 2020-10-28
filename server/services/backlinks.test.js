@@ -22,7 +22,6 @@ describe("documents.update", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { autosave: false },
     });
 
     const backlinks = await Backlink.findAll({
@@ -48,7 +47,6 @@ describe("documents.update", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { autosave: false },
     });
 
     const backlinks = await Backlink.findAll({
@@ -71,7 +69,6 @@ describe("documents.update", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { autosave: false },
     });
 
     const backlinks = await Backlink.findAll({
@@ -83,8 +80,11 @@ describe("documents.update", () => {
 
   test("should destroy removed backlink records", async () => {
     const otherDocument = await buildDocument();
+    const yetAnotherDocument = await buildDocument();
     const document = await buildDocument({
-      text: `[this is a link](${otherDocument.url})`,
+      text: `[this is a link](${otherDocument.url})
+
+[this is a another link](${yetAnotherDocument.url})`,
     });
 
     await Backlinks.on({
@@ -93,10 +93,11 @@ describe("documents.update", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { autosave: false },
     });
 
-    document.text = "Link is gone";
+    document.text = `First link is gone
+    
+[this is a another link](${yetAnotherDocument.url})`;
     await document.save();
 
     await Backlinks.on({
@@ -105,7 +106,39 @@ describe("documents.update", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { autosave: false },
+    });
+
+    const backlinks = await Backlink.findAll({
+      where: { reverseDocumentId: document.id },
+    });
+
+    expect(backlinks.length).toBe(1);
+    expect(backlinks[0].documentId).toBe(yetAnotherDocument.id);
+  });
+});
+
+describe("documents.delete", () => {
+  test("should destroy related backlinks", async () => {
+    const otherDocument = await buildDocument();
+    const document = await buildDocument();
+
+    document.text = `[this is a link](${otherDocument.url})`;
+    await document.save();
+
+    await Backlinks.on({
+      name: "documents.update",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+    });
+
+    await Backlinks.on({
+      name: "documents.delete",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
     });
 
     const backlinks = await Backlink.findAll({
@@ -114,7 +147,9 @@ describe("documents.update", () => {
 
     expect(backlinks.length).toBe(0);
   });
+});
 
+describe("revisions.create", () => {
   test("should update titles in backlinked documents", async () => {
     const newTitle = "test";
     const document = await buildDocument();
@@ -131,7 +166,6 @@ describe("documents.update", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { autosave: false },
     });
 
     // change the title of the linked doc
@@ -140,12 +174,11 @@ describe("documents.update", () => {
 
     // does the text get updated with the new title
     await Backlinks.on({
-      name: "documents.update",
+      name: "revisions.create",
       documentId: otherDocument.id,
       collectionId: otherDocument.collectionId,
       teamId: otherDocument.teamId,
       actorId: otherDocument.createdById,
-      data: { autosave: false },
     });
     await document.reload();
 

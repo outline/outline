@@ -1,12 +1,12 @@
 // @flow
-import { difference } from "lodash";
-import type { DocumentEvent } from "../events";
-import { Document, Revision, Backlink } from "../models";
+import type { DocumentEvent, RevisionEvent } from "../events";
+import { Revision, Document, Backlink } from "../models";
+import { Op } from "../sequelize";
 import parseDocumentIds from "../utils/parseDocumentIds";
 import slugify from "../utils/slugify";
 
 export default class Backlinks {
-  async on(event: DocumentEvent) {
+  async on(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.publish": {
         const document = await Document.findByPk(event.documentId);
@@ -32,13 +32,46 @@ export default class Backlinks {
         break;
       }
       case "documents.update": {
-        // no-op for now
-        if (event.data.autosave) return;
-
         // no-op for drafts
         const document = await Document.findByPk(event.documentId);
         if (!document.publishedAt) return;
 
+        const linkIds = parseDocumentIds(document.text);
+        const linkedDocumentIds = [];
+
+        await Promise.all(
+          linkIds.map(async (linkId) => {
+            const linkedDocument = await Document.findByPk(linkId);
+            if (!linkedDocument || linkedDocument.id === event.documentId) {
+              return;
+            }
+
+            await Backlink.findOrCreate({
+              where: {
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.documentId,
+              },
+              defaults: {
+                userId: document.lastModifiedById,
+              },
+            });
+            linkedDocumentIds.push(linkedDocument.id);
+          })
+        );
+
+        // delete any backlinks that no longer exist
+        await Backlink.destroy({
+          where: {
+            documentId: {
+              [Op.notIn]: linkedDocumentIds,
+            },
+            reverseDocumentId: event.documentId,
+          },
+        });
+        break;
+      }
+      case "revisions.create": {
+        const document = await Document.findByPk(event.documentId);
         const [currentRevision, previousRevision] = await Revision.findAll({
           where: { documentId: event.documentId },
           order: [["createdAt", "desc"]],
@@ -51,50 +84,6 @@ export default class Backlinks {
         if (previousRevision) {
           await previousRevision.migrateVersion();
         }
-
-        const previousLinkIds = previousRevision
-          ? parseDocumentIds(previousRevision.text)
-          : [];
-        const currentLinkIds = parseDocumentIds(currentRevision.text);
-        const addedLinkIds = difference(currentLinkIds, previousLinkIds);
-        const removedLinkIds = difference(previousLinkIds, currentLinkIds);
-
-        // add any new backlinks that were created
-        await Promise.all(
-          addedLinkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId);
-            if (!linkedDocument || linkedDocument.id === event.documentId) {
-              return;
-            }
-
-            await Backlink.findOrCreate({
-              where: {
-                documentId: linkedDocument.id,
-                reverseDocumentId: event.documentId,
-              },
-              defaults: {
-                userId: currentRevision.userId,
-              },
-            });
-          })
-        );
-
-        // delete any backlinks that were removed
-        await Promise.all(
-          removedLinkIds.map(async (linkId) => {
-            const document = await Document.findByPk(linkId, {
-              paranoid: false,
-            });
-            if (document) {
-              await Backlink.destroy({
-                where: {
-                  documentId: document.id,
-                  reverseDocumentId: event.documentId,
-                },
-              });
-            }
-          })
-        );
 
         if (
           !previousRevision ||
@@ -136,12 +125,10 @@ export default class Backlinks {
       case "documents.delete": {
         await Backlink.destroy({
           where: {
-            reverseDocumentId: event.documentId,
-          },
-        });
-        await Backlink.destroy({
-          where: {
-            documentId: event.documentId,
+            [Op.or]: [
+              { reverseDocumentId: event.documentId },
+              { documentId: event.documentId },
+            ],
           },
         });
         break;
