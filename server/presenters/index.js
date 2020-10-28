@@ -10,13 +10,13 @@ import presentIntegration from "./integration";
 import presentMembership from "./membership";
 import presentNotificationSetting from "./notificationSetting";
 import presentPolicies from "./policy";
+import presentRequestedDoc from "./requestedDocs";
 import presentRevision from "./revision";
 import presentShare from "./share";
 import presentSlackAttachment from "./slackAttachment";
 import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
-import presentRequestedDoc from "./requestedDocs";
 
 export {
   presentUser,

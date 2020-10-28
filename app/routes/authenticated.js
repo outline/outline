@@ -8,11 +8,11 @@ import KeyedDocument from "scenes/Document/KeyedDocument";
 import DocumentNew from "scenes/DocumentNew";
 import Drafts from "scenes/Drafts";
 import Error404 from "scenes/Error404";
+import RequestedDoc from "scenes/RequestedDoc";
 import Search from "scenes/Search";
 import Starred from "scenes/Starred";
 import Templates from "scenes/Templates";
 import Trash from "scenes/Trash";
-import RequestedDoc from "scenes/RequestedDoc";
 
 import CenteredContent from "components/CenteredContent";
 import Layout from "components/Layout";

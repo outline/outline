@@ -1,16 +1,11 @@
 // @flow
 import Router from "koa-router";
 import auth from "../middlewares/authentication";
-import {
-    Event,
-    Follow,
-    RequestedDoc,
-} from "../models";
+import { Event, Follow, RequestedDoc } from "../models";
 import policy from "../policies";
 import {
-    presentPolicies,
-    presentCollection,
-    presentRequestedDoc,
+  presentPolicies,
+  presentRequestedDoc,
 } from "../presenters";
 import pagination from "./middlewares/pagination";
 
@@ -18,101 +13,98 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("requesteddocs.create", auth(), async (ctx) => {
-    const { title, like, collectionId } = ctx.body;
-    ctx.assertPresent(title, "title is required");
+  const { title, like, collectionId } = ctx.body;
+  ctx.assertPresent(title, "title is required");
 
-    const user = ctx.state.user;
-    authorize(ctx.state.user, "read", user);
+  const user = ctx.state.user;
+  authorize(ctx.state.user, "read", user);
 
-    let requesteddocs = await RequestedDoc.create({
-        title,
-        like,
-        collectionId,
-        userId: user.id,
-    });
+  let requesteddocs = await RequestedDoc.create({
+    title,
+    like,
+    collectionId,
+    userId: user.id,
+  });
 
-    await Event.create({
-        name: "requesteddocs.create",
-        requesteddocsId: requesteddocs.id,
-        actorId: user.id,
-        data: { title: requesteddocs.title, collectionId: requesteddocs.collectionId },
-        ip: ctx.request.ip,
-    });
+  await Event.create({
+    name: "requesteddocs.create",
+    requesteddocsId: requesteddocs.id,
+    actorId: user.id,
+    data: {
+      title: requesteddocs.title,
+      collectionId: requesteddocs.collectionId,
+    },
+    ip: ctx.request.ip,
+  });
 
-    ctx.body = {
-        data: presentRequestedDoc(requesteddocs),
-        policies: presentPolicies(user, [requesteddocs]),
-    };
+  ctx.body = {
+    data: presentRequestedDoc(requesteddocs),
+    policies: presentPolicies(user, [requesteddocs]),
+  };
 });
 
-
 router.post("requesteddocs.follow", auth(), async (ctx) => {
-    const { id } = ctx.body;
-    ctx.assertPresent(id, "id is required");
+  const { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
 
-    const user = ctx.state.user;
-    const requesteddocs = await RequestedDoc.findByPk(id, { userId: user.id });
+  const user = ctx.state.user;
+  const requesteddocs = await RequestedDoc.findByPk(id, { userId: user.id });
 
-    requesteddocs.like = requesteddocs.like + 1;
-    await requesteddocs.save();
+  requesteddocs.like = requesteddocs.like + 1;
+  await requesteddocs.save();
 
-    await Follow.findOrCreate({
-        where: { requestedDocId: requesteddocs.id, userId: user.id },
-    });
+  await Follow.findOrCreate({
+    where: { requestedDocId: requesteddocs.id, userId: user.id },
+  });
 
-    ctx.body = {
-        success: true,
-    };
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.post("requesteddocs.unfollow", auth(), async (ctx) => {
-    const { id } = ctx.body;
-    ctx.assertPresent(id, "id is required");
+  const { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
 
-    const user = ctx.state.user;
-    const requesteddocs = await RequestedDoc.findByPk(id, { userId: user.id });
+  const user = ctx.state.user;
+  const requesteddocs = await RequestedDoc.findByPk(id, { userId: user.id });
 
-    requesteddocs.like = requesteddocs.like - 1;
-    await requesteddocs.save();
+  requesteddocs.like = requesteddocs.like - 1;
+  await requesteddocs.save();
 
-    await Follow.destroy({
-        where: { requestedDocId: requesteddocs.id, userId: user.id },
-    });
+  await Follow.destroy({
+    where: { requestedDocId: requesteddocs.id, userId: user.id },
+  });
 
-
-    ctx.body = {
-        success: true,
-    };
+  ctx.body = {
+    success: true,
+  };
 });
-
 
 router.post("requesteddocs.list", auth(), pagination(), async (ctx) => {
-    let { sort = "like", direction } = ctx.body;
-    if (direction !== "ASC") direction = "DESC";
+  let { direction } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
 
-    const user = ctx.state.user;
-    const requesteddocs = await RequestedDoc.findAll();
+  const user = ctx.state.user;
+  const requesteddocs = await RequestedDoc.findAll();
 
-    ctx.body = {
-        pagination: ctx.state.pagination,
-        data: requesteddocs,
-    };
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: requesteddocs,
+  };
 });
-
 
 router.post("follows.list", auth(), pagination(), async (ctx) => {
-    const { id } = ctx.body;
-    let { sort = "updatedAt", direction } = ctx.body;
-    if (direction !== "ASC") direction = "DESC";
+  let { sort = "updatedAt", direction } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
 
-    const user = ctx.state.user;
-    const follows = await Follow.findAll();
+  const user = ctx.state.user;
+  const follows = await Follow.findAll();
 
-    ctx.body = {
-        pagination: ctx.state.pagination,
-        data: follows,
-    };
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: follows,
+  };
 });
-
 
 export default router;

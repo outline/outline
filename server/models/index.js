@@ -8,11 +8,13 @@ import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import Event from "./Event";
+import Follow from "./Follow";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 import Integration from "./Integration";
 import Notification from "./Notification";
 import NotificationSetting from "./NotificationSetting";
+import RequestedDoc from "./RequestedDoc";
 import Revision from "./Revision";
 import SearchQuery from "./SearchQuery";
 import Share from "./Share";
@@ -20,8 +22,6 @@ import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
 import View from "./View";
-import RequestedDoc from "./RequestedDoc";
-import Follow from "./Follow";
 
 const models = {
   ApiKey,

@@ -14,38 +14,41 @@ type Props = {
   auth: AuthStore,
 };
 
-const Breadcrumb = observer(({ requestedDoc, collections, auth, users, onlyText }: Props) => {
+const Breadcrumb = observer(
+  ({ requestedDoc, collections, auth, users, onlyText }: Props) => {
+    let collection = collections.get(requestedDoc.collectionId);
 
-  let collection = collections.get(requestedDoc.collectionId);
+    if (!collection) {
+      return null;
+    }
 
-  if (!collection) {
-    return null;
+    const createdByMe = auth.user && auth.user.id === requestedDoc.userId;
+
+    if (onlyText) {
+      return (
+        <Wrapper justify="flex-start" align="center">
+          <CollectionName to={collectionUrl(collection.id)}>
+            <CollectionIcon color="currentColor" />
+            &nbsp;
+            <span>{collection.name}</span>
+            &nbsp; | &nbsp;
+          </CollectionName>
+
+          {users.orderedData.map((user) => {
+            if (user.id === requestedDoc.userId) {
+              return (
+                <span key={user.id}>
+                  {" "}
+                  Requested by <b> {createdByMe ? "You" : user.name}</b>{" "}
+                </span>
+              );
+            }
+          })}
+        </Wrapper>
+      );
+    }
   }
-
-  const createdByMe = auth.user && auth.user.id === requestedDoc.userId;
-
-  if (onlyText) {
-    return (
-      <Wrapper justify="flex-start" align="center" >
-        <CollectionName to={collectionUrl(collection.id)}>
-          <CollectionIcon color="currentColor" />
-          &nbsp;
-          <span>{collection.name}</span>
-          &nbsp; | &nbsp;
-        </CollectionName>
-
-        {users.orderedData.map((user) => {
-          if (user.id === requestedDoc.userId) {
-            return <span key={user.id}> Requested by <b> {createdByMe ? "You" : user.name}</b> </span>;
-          }
-        })}
-
-
-      </Wrapper>
-    );
-  }
-});
-
+);
 
 const Wrapper = styled(Flex)`
   display: none;
