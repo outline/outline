@@ -7,15 +7,15 @@ import { withRouter } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import Actions, { Action } from "components/Actions";
-import { ListPlaceholder } from "components/LoadingPlaceholder";
 import Breadcrumb from "components/BreadcrumbRequestedDoc";
 import Button from "components/Button";
 import ButtonFollow from "components/ButtonFollow";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
 import Heading from "components/Heading";
-import Modal from "components/Modal";
 import List from "components/List";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import Modal from "components/Modal";
 import PageTitle from "components/PageTitle";
 import User from "../models/User";
 import RequestedDocNew from "./RequestedDocNew";
@@ -76,36 +76,36 @@ class RequestedDoc extends React.Component<Props> {
           {showLoading ? (
             <ListPlaceholder count={5} />
           ) : (
-              <>
-                {this.renderNoEmpty()}
+            <>
+              {this.renderNoEmpty()}
 
-                {requestedDocs.orderedData.map((requestedDoc) => (
-                  <div key={requestedDoc.id}>
-                    <h3 key={requestedDoc.id}> {requestedDoc.title} </h3>
+              {requestedDocs.orderedData.map((requestedDoc) => (
+                <div key={requestedDoc.id}>
+                  <h3 key={requestedDoc.id}> {requestedDoc.title} </h3>
 
-                    <DivStyle>
-                      <Breadcrumb
-                        requestedDoc={requestedDoc}
-                        users={users}
-                        onlyText
-                      />
+                  <DivStyle>
+                    <Breadcrumb
+                      requestedDoc={requestedDoc}
+                      users={users}
+                      onlyText
+                    />
 
-                      <ButtonFollow
-                        requestedDoc={requestedDoc}
-                        users={users}
-                        onlyText
-                      />
-                    </DivStyle>
+                    <ButtonFollow
+                      requestedDoc={requestedDoc}
+                      users={users}
+                      onlyText
+                    />
+                  </DivStyle>
 
-                    <hr></hr>
-                  </div>
-                ))}
+                  <hr></hr>
+                </div>
+              ))}
 
-                {this.allowLoadMore && (
-                  <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-                )}
-              </>
-            )}
+              {this.allowLoadMore && (
+                <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+              )}
+            </>
+          )}
         </List>
 
         <Actions align="center" justify="flex-end">

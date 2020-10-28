@@ -57,11 +57,11 @@ class ButtonFollow extends React.Component<Props> {
               Folow{" "}
             </Button>
           ) : (
-              <Button onClick={(e) => this.handleUnFollow(e, requestedDoc.id)}>
-                {" "}
+            <Button onClick={(e) => this.handleUnFollow(e, requestedDoc.id)}>
+              {" "}
               Following{" "}
-              </Button>
-            )}
+            </Button>
+          )}
         </div>
       );
     } else if (requesteDocFollows) {
@@ -77,10 +77,10 @@ class ButtonFollow extends React.Component<Props> {
                 Following {requesteDocFollows.length}{" "}
               </Button>
             ) : (
-                <Button onClick={(e) => this.handleFollow(e, requestedDoc.id)}>
-                  Folow {requesteDocFollows.length}
-                </Button>
-              )}
+              <Button onClick={(e) => this.handleFollow(e, requestedDoc.id)}>
+                Folow {requesteDocFollows.length}
+              </Button>
+            )}
           </div>
         );
       } else {
@@ -91,10 +91,10 @@ class ButtonFollow extends React.Component<Props> {
                 Folow {requesteDocFollows.length}
               </Button>
             ) : (
-                <Button onClick={(e) => this.handleUnFollow(e, requestedDoc.id)}>
-                  Following {requesteDocFollows.length}
-                </Button>
-              )}
+              <Button onClick={(e) => this.handleUnFollow(e, requestedDoc.id)}>
+                Following {requesteDocFollows.length}
+              </Button>
+            )}
           </div>
         );
       }

@@ -85,7 +85,6 @@ router.post("requesteddocs.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
-  const user = ctx.state.user;
   const requesteddocs = await RequestedDoc.findAll();
 
   ctx.body = {
@@ -95,10 +94,9 @@ router.post("requesteddocs.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("follows.list", auth(), pagination(), async (ctx) => {
-  let { sort = "updatedAt", direction } = ctx.body;
+  let { direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
-  const user = ctx.state.user;
   const follows = await Follow.findAll();
 
   ctx.body = {
