@@ -32,13 +32,14 @@ export default class Backlinks {
         break;
       }
       case "documents.update": {
-        // no-op for drafts
+        // backlinks are only created for published documents
         const document = await Document.findByPk(event.documentId);
         if (!document.publishedAt) return;
 
         const linkIds = parseDocumentIds(document.text);
         const linkedDocumentIds = [];
 
+        // create or find existing backlink records for referenced docs
         await Promise.all(
           linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId);
