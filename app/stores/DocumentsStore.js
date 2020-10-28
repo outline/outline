@@ -2,6 +2,7 @@
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
+import { MAX_TITLE_LENGTH } from "shared/constants";
 import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
@@ -445,12 +446,17 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   duplicate = async (document: Document): * => {
+    const append = " (duplicate)";
+
     const res = await client.post("/documents.create", {
       publish: !!document.publishedAt,
       parentDocumentId: document.parentDocumentId,
       collectionId: document.collectionId,
       template: document.template,
-      title: `${document.title} (duplicate)`,
+      title: `${document.title.slice(
+        0,
+        MAX_TITLE_LENGTH - append.length
+      )}${append}`,
       text: document.text,
     });
     invariant(res && res.data, "Data should be available");

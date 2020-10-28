@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
+import { MAX_TITLE_LENGTH } from "shared/constants";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
@@ -106,7 +107,7 @@ class DocumentEditor extends React.Component<Props> {
           readOnly={readOnly}
           disabled={readOnly}
           autoFocus={!title}
-          maxLength={100}
+          maxLength={MAX_TITLE_LENGTH}
         />
         <DocumentMetaWithViews
           isDraft={isDraft}
