@@ -3,10 +3,7 @@ import Router from "koa-router";
 import auth from "../middlewares/authentication";
 import { Event, Follow, RequestedDoc } from "../models";
 import policy from "../policies";
-import {
-  presentPolicies,
-  presentRequestedDoc,
-} from "../presenters";
+import { presentPolicies, presentRequestedDoc } from "../presenters";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
