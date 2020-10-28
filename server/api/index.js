@@ -20,13 +20,13 @@ import integrations from "./integrations";
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
 import notificationSettings from "./notificationSettings";
+import requesteddocs from "./requestedDocs";
 import revisions from "./revisions";
 import shares from "./shares";
 import team from "./team";
 import users from "./users";
 import utils from "./utils";
 import views from "./views";
-import requesteddocs from "./requestedDocs";
 
 const api = new Koa();
 const router = new Router();
