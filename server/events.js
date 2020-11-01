@@ -65,8 +65,21 @@ export type DocumentEvent =
       teamId: string,
       actorId: string,
       data: {
+        title: string,
         autosave: boolean,
         done: boolean,
+      },
+    }
+  | {
+      name: "documents.title_change",
+      documentId: string,
+      collectionId: string,
+      createdAt: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        title: string,
+        previousTitle: string,
       },
     };
 

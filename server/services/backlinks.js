@@ -1,6 +1,6 @@
 // @flow
 import type { DocumentEvent, RevisionEvent } from "../events";
-import { Revision, Document, Backlink } from "../models";
+import { Document, Backlink } from "../models";
 import { Op } from "../sequelize";
 import parseDocumentIds from "../utils/parseDocumentIds";
 import slugify from "../utils/slugify";
@@ -10,6 +10,8 @@ export default class Backlinks {
     switch (event.name) {
       case "documents.publish": {
         const document = await Document.findByPk(event.documentId);
+        if (!document) return;
+
         const linkIds = parseDocumentIds(document.text);
 
         await Promise.all(
@@ -32,8 +34,10 @@ export default class Backlinks {
         break;
       }
       case "documents.update": {
-        // backlinks are only created for published documents
         const document = await Document.findByPk(event.documentId);
+        if (!document) return;
+
+        // backlinks are only created for published documents
         if (!document.publishedAt) return;
 
         const linkIds = parseDocumentIds(document.text);
@@ -71,27 +75,13 @@ export default class Backlinks {
         });
         break;
       }
-      case "revisions.create": {
+      case "documents.title_change": {
         const document = await Document.findByPk(event.documentId);
-        const [currentRevision, previousRevision] = await Revision.findAll({
-          where: { documentId: event.documentId },
-          order: [["createdAt", "desc"]],
-          limit: 2,
-        });
+        if (!document) return;
 
-        // before parsing document text we must make sure it's been migrated to
-        // the latest version or the parser may fail on version differences
-        await currentRevision.migrateVersion();
-        if (previousRevision) {
-          await previousRevision.migrateVersion();
-        }
-
-        if (
-          !previousRevision ||
-          currentRevision.title === previousRevision.title
-        ) {
-          break;
-        }
+        // might as well check
+        const { title, previousTitle } = event.data;
+        if (!previousTitle || title === previousTitle) break;
 
         // update any link titles in documents that lead to this one
         const backlinks = await Backlink.findAll({
@@ -103,7 +93,7 @@ export default class Backlinks {
 
         await Promise.all(
           backlinks.map(async (backlink) => {
-            const previousUrl = `/doc/${slugify(previousRevision.title)}-${
+            const previousUrl = `/doc/${slugify(previousTitle)}-${
               document.urlId
             }`;
 
@@ -111,8 +101,8 @@ export default class Backlinks {
             // the old title as anchor text. Go ahead and update those to the
             // new title automatically
             backlink.reverseDocument.text = backlink.reverseDocument.text.replace(
-              `[${previousRevision.title}](${previousUrl})`,
-              `[${document.title}](${document.url})`
+              `[${previousTitle}](${previousUrl})`,
+              `[${title}](${document.url})`
             );
             await backlink.reverseDocument.save({
               silent: true,
