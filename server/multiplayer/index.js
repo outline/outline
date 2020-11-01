@@ -49,7 +49,6 @@ export function handleJoin({
           log(`persisting doc (${documentId}) to database`);
 
           // TODO: refactor this persistence out
-          Y.applyUpdate(doc, update);
           const state = Y.encodeStateAsUpdate(doc);
           const node = yDocToProsemirror(schema, doc);
           const text = serializer.serialize(node);
