@@ -1,7 +1,9 @@
 // @flow
+import debug from "debug";
 import type { DocumentEvent, CollectionEvent, Event } from "../events";
 import mailer from "../mailer";
 import {
+  View,
   Document,
   Team,
   Collection,
@@ -9,6 +11,8 @@ import {
   NotificationSetting,
 } from "../models";
 import { Op } from "../sequelize";
+
+const log = debug("services");
 
 export default class Notifications {
   async on(event: Event) {
@@ -55,7 +59,7 @@ export default class Notifications {
     const eventName =
       event.name === "documents.publish" ? "published" : "updated";
 
-    notificationSettings.forEach((setting) => {
+    for (const setting of notificationSettings) {
       // For document updates we only want to send notifications if
       // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
@@ -66,7 +70,24 @@ export default class Notifications {
         return;
       }
 
-      // TODO: Check if user has already viewed document since update was made
+      // If this user has viewed the document since the last update was made
+      // then we can avoid sending them a useless notification, yay.
+      const view = await View.findOne({
+        where: {
+          userId: setting.userId,
+          documentId: event.documentId,
+          updatedAt: {
+            [Op.gt]: document.updatedAt,
+          },
+        },
+      });
+
+      if (view) {
+        log(
+          `suppressing notification to ${setting.userId} because update viewed`
+        );
+        return;
+      }
 
       mailer.documentNotification({
         to: setting.user.email,
@@ -77,7 +98,7 @@ export default class Notifications {
         actor: document.updatedBy,
         unsubscribeUrl: setting.unsubscribeUrl,
       });
-    });
+    }
   }
 
   async collectionCreated(event: CollectionEvent) {
