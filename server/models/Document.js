@@ -19,32 +19,6 @@ const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
 
-const createRevision = async (doc, options = {}) => {
-  // we don't create revisions for autosaves
-  if (options.autosave) return;
-
-  const previous = await Revision.findLatest(doc.id);
-
-  // we don't create revisions if identical to previous
-  if (previous && doc.text === previous.text && doc.title === previous.title) {
-    return;
-  }
-
-  return Revision.create(
-    {
-      title: doc.title,
-      text: doc.text,
-      userId: doc.lastModifiedById,
-      editorVersion: doc.editorVersion,
-      version: doc.version,
-      documentId: doc.id,
-    },
-    {
-      transaction: options.transaction,
-    }
-  );
-};
-
 const createUrlId = (doc) => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
 };
@@ -118,8 +92,6 @@ const Document = sequelize.define(
       beforeValidate: createUrlId,
       beforeCreate: beforeCreate,
       beforeUpdate: beforeSave,
-      afterCreate: createRevision,
-      afterUpdate: createRevision,
     },
     getterMethods: {
       url: function () {

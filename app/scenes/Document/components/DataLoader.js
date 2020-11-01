@@ -64,7 +64,11 @@ class DataLoader extends React.Component<Props> {
 
     // Also need to load the revision if it changes
     const { revisionId } = this.props.match.params;
-    if (prevProps.match.params.revisionId !== revisionId && revisionId) {
+    if (
+      prevProps.match.params.revisionId !== revisionId &&
+      revisionId &&
+      revisionId !== "latest"
+    ) {
       this.loadRevision();
     }
   }
@@ -152,7 +156,7 @@ class DataLoader extends React.Component<Props> {
         shareId,
       });
 
-      if (revisionId) {
+      if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
       } else {
         this.revision = undefined;
