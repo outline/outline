@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import Backlink from "../models/Backlink";
+import { Backlink } from "../models";
 import { buildDocument } from "../test/factories";
 import { flushdb } from "../test/support";
 import BacklinksService from "./backlinks";
@@ -149,11 +149,12 @@ describe("documents.delete", () => {
   });
 });
 
-describe("revisions.create", () => {
+describe("documents.title_change", () => {
   test("should update titles in backlinked documents", async () => {
     const newTitle = "test";
     const document = await buildDocument();
     const otherDocument = await buildDocument();
+    const previousTitle = otherDocument.title;
 
     // create a doc with a link back
     document.text = `[${otherDocument.title}](${otherDocument.url})`;
@@ -174,11 +175,15 @@ describe("revisions.create", () => {
 
     // does the text get updated with the new title
     await Backlinks.on({
-      name: "revisions.create",
+      name: "documents.title_change",
       documentId: otherDocument.id,
       collectionId: otherDocument.collectionId,
       teamId: otherDocument.teamId,
       actorId: otherDocument.createdById,
+      data: {
+        previousTitle,
+        title: newTitle,
+      },
     });
     await document.reload();
 

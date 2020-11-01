@@ -12,12 +12,15 @@ describe("#findLatest", () => {
       title: "Title",
       text: "Content",
     });
+    await Revision.createFromDocument(document);
 
     document.title = "Changed 1";
     await document.save();
+    await Revision.createFromDocument(document);
 
     document.title = "Changed 2";
     await document.save();
+    await Revision.createFromDocument(document);
 
     const revision = await Revision.findLatest(document.id);
 

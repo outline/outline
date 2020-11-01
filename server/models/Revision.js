@@ -49,6 +49,21 @@ Revision.findLatest = function (documentId) {
   });
 };
 
+Revision.createFromDocument = function (document) {
+  return Revision.create({
+    title: document.title,
+    text: document.text,
+    userId: document.lastModifiedById,
+    editorVersion: document.editorVersion,
+    version: document.version,
+    documentId: document.id,
+
+    // revision time is set to the last time document was touched as this
+    // handler can be debounced in the case of an update
+    createdAt: document.updatedAt,
+  });
+};
+
 Revision.prototype.migrateVersion = function () {
   let migrated = false;
 
