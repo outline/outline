@@ -60,4 +60,28 @@ describe("documents.update.debounced", () => {
 
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
+
+  test("should not send a notification to last editor", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      lastModifiedById: user.id,
+    });
+
+    await NotificationSetting.create({
+      userId: user.id,
+      teamId: user.teamId,
+      event: "documents.update",
+    });
+
+    await Notifications.on({
+      name: "documents.update.debounced",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+    });
+
+    expect(mailer.documentNotification).not.toHaveBeenCalled();
+  });
 });
