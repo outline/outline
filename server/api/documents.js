@@ -870,6 +870,8 @@ router.post("documents.update", auth(), async (ctx) => {
     throw new InvalidRequestError("Document has changed since last revision");
   }
 
+  const previousTitle = document.title;
+
   // Update document
   if (title) document.title = title;
   if (editorVersion) document.editorVersion = editorVersion;
@@ -920,6 +922,21 @@ router.post("documents.update", auth(), async (ctx) => {
       data: {
         autosave,
         done,
+        title: document.title,
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  if (document.title !== previousTitle) {
+    Event.add({
+      name: "documents.title_change",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: {
+        previousTitle,
         title: document.title,
       },
       ip: ctx.request.ip,

@@ -10,7 +10,7 @@ import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
 import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
-import { Document } from "../models";
+import { Event, Document } from "../models";
 import WSSharedDoc from "./WSSharedDoc";
 
 const log = debug("multiplayer");
@@ -81,7 +81,7 @@ export function handleJoin({
           );
 
           // TODO: Refactor out
-          const event = await Event.build({
+          await Event.add({
             name: "documents.update",
             documentId: document.id,
             collectionId: document.collectionId,
@@ -91,7 +91,6 @@ export function handleJoin({
               title: document.title,
             },
           });
-          event.addToQueue();
         },
         PERSIST_WAIT,
         {

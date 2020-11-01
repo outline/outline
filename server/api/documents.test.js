@@ -1369,9 +1369,7 @@ describe("#documents.restore", () => {
 
   it("should restore the document to a previous version", async () => {
     const { user, document } = await seed();
-    const revision = await Revision.findOne({
-      where: { documentId: document.id },
-    });
+    const revision = await Revision.createFromDocument(document);
     const previousText = revision.text;
     const revisionId = revision.id;
 
@@ -1391,9 +1389,7 @@ describe("#documents.restore", () => {
   it("should not allow restoring a revision in another document", async () => {
     const { user, document } = await seed();
     const anotherDoc = await buildDocument();
-    const revision = await Revision.findOne({
-      where: { documentId: anotherDoc.id },
-    });
+    const revision = await Revision.createFromDocument(anotherDoc);
     const revisionId = revision.id;
 
     const res = await server.post("/api/documents.restore", {
@@ -1421,9 +1417,7 @@ describe("#documents.restore", () => {
 
   it("should require authorization", async () => {
     const { document } = await seed();
-    const revision = await Revision.findOne({
-      where: { documentId: document.id },
-    });
+    const revision = await Revision.createFromDocument(document);
     const revisionId = revision.id;
 
     const user = await buildUser();
@@ -1682,31 +1676,6 @@ describe("#documents.update", () => {
       },
     });
     expect(res.status).toEqual(403);
-  });
-
-  it("should not create new version when autosave=true", async () => {
-    const { user, document } = await seed();
-
-    const res = await server.post("/api/documents.update", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        title: "Updated title",
-        text: "Updated text",
-        lastRevision: document.revision,
-        autosave: true,
-      },
-    });
-
-    const prevRevisionRecords = await Revision.count();
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toBe("Updated title");
-    expect(body.data.text).toBe("Updated text");
-
-    const revisionRecords = await Revision.count();
-    expect(revisionRecords).toBe(prevRevisionRecords);
   });
 
   it("should fail if document lastRevision does not match", async () => {

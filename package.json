@@ -144,7 +144,7 @@
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "rich-markdown-editor": "^11.0.2",
+    "rich-markdown-editor": "^11.0.3",
     "semver": "^7.3.2",
     "sequelize": "^6.3.4",
     "sequelize-cli": "^6.2.0",
@@ -202,5 +202,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },
-  "version": "0.48.1"
+  "version": "0.49.0"
 }

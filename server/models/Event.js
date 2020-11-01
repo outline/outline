@@ -45,11 +45,13 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  event.addToQueue();
+  events.add(event, { removeOnComplete: true });
 });
 
-Event.prototype.addToQueue = function () {
-  events.add(this, { removeOnComplete: true });
+// add can be used to send events into the event system without recording them
+// in the database / audit trail
+Event.add = (event) => {
+  events.add(Event.build(event), { removeOnComplete: true });
 };
 
 Event.ACTIVITY_EVENTS = [
