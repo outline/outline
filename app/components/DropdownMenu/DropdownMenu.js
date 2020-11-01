@@ -177,6 +177,7 @@ class DropdownMenu extends React.Component<Props> {
                 {label || (
                   <NudeButton
                     id={`${this.id}button`}
+                    aria-label="More options"
                     aria-haspopup="true"
                     aria-expanded={isOpen ? "true" : "false"}
                     aria-controls={this.id}

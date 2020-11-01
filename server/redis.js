@@ -1,8 +1,16 @@
 // @flow
 import Redis from "ioredis";
 
-const client = new Redis(process.env.REDIS_URL);
-const subscriber = new Redis(process.env.REDIS_URL);
+const options = {
+  maxRetriesPerRequest: 20,
+  retryStrategy(times) {
+    console.warn(`Retrying redis connection: attempt ${times}`);
+    return Math.min(times * 100, 3000);
+  },
+};
+
+const client = new Redis(process.env.REDIS_URL, options);
+const subscriber = new Redis(process.env.REDIS_URL, options);
 
 // More than the default of 10 listeners is expected for the amount of queues
 // we're running. Increase the max here to prevent a warning in the console:

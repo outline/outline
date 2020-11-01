@@ -12,7 +12,7 @@ export default function Notices({ notice }: Props) {
       {notice === "google-hd" && (
         <NoticeAlert>
           Sorry, Google sign in cannot be used with a personal email. Please try
-          signing in with your team GSuite account.
+          signing in with your Google Workspace account.
         </NoticeAlert>
       )}
       {notice === "hd-not-allowed" && (

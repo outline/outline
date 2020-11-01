@@ -34,14 +34,14 @@ class Editor extends React.Component<PropsWithRef> {
     return result.url;
   };
 
-  onClickLink = (href: string) => {
+  onClickLink = (href: string, event: MouseEvent) => {
     // on page hash
     if (href[0] === "#") {
       window.location.href = href;
       return;
     }
 
-    if (isInternalUrl(href)) {
+    if (isInternalUrl(href) && !event.metaKey && !event.shiftKey) {
       // relative
       let navigateTo = href;
 
@@ -56,7 +56,7 @@ class Editor extends React.Component<PropsWithRef> {
       }
 
       this.props.history.push(navigateTo);
-    } else {
+    } else if (href) {
       window.open(href, "_blank");
     }
   };
@@ -95,6 +95,23 @@ const StyledEditor = styled(RichMarkdownEditor)`
   .notice-block.tip,
   .notice-block.warning {
     font-weight: 500;
+  }
+
+  .heading-name {
+    cursor: default;
+  }
+
+  /* pseudo element allows us to add spacing for fixed header */
+  /* ref: https://stackoverflow.com/a/28824157 */
+  .heading-name::before {
+    content: "";
+    display: ${(props) => (props.readOnly ? "block" : "none")};
+    height: 72px;
+    margin: -72px 0 0;
+  }
+
+  .heading-anchor {
+    margin-top: 72px !important;
   }
 
   p {

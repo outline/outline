@@ -47,7 +47,7 @@ class References extends React.Component<Props> {
             )}
             {showBacklinks && (
               <Tab to="#backlinks" isActive={() => isBacklinksTab}>
-                References
+                Referenced by
               </Tab>
             )}
           </Tabs>

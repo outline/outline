@@ -1,6 +1,6 @@
 // @flow
 import Koa from "koa";
-import bodyParser from "koa-bodyparser";
+import bodyParser from "koa-body";
 import Router from "koa-router";
 
 import { NotFoundError } from "../errors";
@@ -31,8 +31,13 @@ const api = new Koa();
 const router = new Router();
 
 // middlewares
+api.use(
+  bodyParser({
+    multipart: true,
+    formidable: { maxFieldsSize: 10 * 1024 * 1024 },
+  })
+);
 api.use(errorHandling());
-api.use(bodyParser());
 api.use(methodOverride());
 api.use(validation());
 api.use(apiWrapper());

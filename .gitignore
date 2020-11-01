@@ -1,4 +1,5 @@
 dist
+build
 node_modules/*
 server/scripts
 .env
@@ -7,3 +8,4 @@ npm-debug.log
 stats.json
 .DS_Store
 fakes3/*
+.idea

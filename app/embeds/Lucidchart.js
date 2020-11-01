@@ -20,6 +20,7 @@ export default class Lucidchart extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         src={`https://lucidchart.com/documents/embeddedchart/${chartId}`}
         title="Lucidchart Embed"
       />

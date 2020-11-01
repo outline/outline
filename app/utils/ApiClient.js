@@ -28,12 +28,13 @@ class ApiClient {
   fetch = async (
     path: string,
     method: string,
-    data: ?Object,
+    data: ?Object | FormData | void,
     options: Object = {}
   ) => {
     let body;
     let modifiedPath;
     let urlToFetch;
+    let isJson;
 
     if (method === "GET") {
       if (data) {
@@ -42,7 +43,18 @@ class ApiClient {
         modifiedPath = path;
       }
     } else if (method === "POST" || method === "PUT") {
-      body = data ? JSON.stringify(data) : undefined;
+      body = data || undefined;
+
+      // Only stringify data if its a normal object and
+      // not if it's [object FormData], in addition to
+      // toggling Content-Type to application/json
+      if (
+        typeof data === "object" &&
+        (data || "").toString() === "[object Object]"
+      ) {
+        isJson = true;
+        body = JSON.stringify(data);
+      }
     }
 
     if (path.match(/^http/)) {
@@ -51,14 +63,20 @@ class ApiClient {
       urlToFetch = this.baseUrl + (modifiedPath || path);
     }
 
-    // Construct headers
-    const headers = new Headers({
+    let headerOptions: any = {
       Accept: "application/json",
-      "Content-Type": "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
       pragma: "no-cache",
-    });
+    };
+    // for multipart forms or other non JSON requests fetch
+    // populates the Content-Type without needing to explicitly
+    // set it.
+    if (isJson) {
+      headerOptions["Content-Type"] = "application/json";
+    }
+    const headers = new Headers(headerOptions);
+
     if (stores.auth.authenticated) {
       invariant(stores.auth.token, "JWT token not set properly");
       headers.set("Authorization", `Bearer ${stores.auth.token}`);

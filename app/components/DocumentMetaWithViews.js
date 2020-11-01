@@ -1,27 +1,31 @@
 // @flow
-import { inject } from "mobx-react";
+import { useObserver } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import ViewsStore from "stores/ViewsStore";
 import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
+import useStores from "../hooks/useStores";
 
 type Props = {|
-  views: ViewsStore,
   document: Document,
   isDraft: boolean,
   to?: string,
 |};
 
-function DocumentMetaWithViews({ views, to, isDraft, document }: Props) {
-  const totalViews = views.countForDocument(document.id);
+function DocumentMetaWithViews({ to, isDraft, document }: Props) {
+  const { views } = useStores();
+  const documentViews = useObserver(() => views.inDocument(document.id));
+  const totalViewers = documentViews.length;
+  const onlyYou = totalViewers === 1 && documentViews[0].user.id;
 
   return (
     <Meta document={document} to={to}>
-      {totalViews && !isDraft ? (
+      {totalViewers && !isDraft ? (
         <>
-          &nbsp;&middot; Viewed{" "}
-          {totalViews === 1 ? "once" : `${totalViews} times`}
+          &nbsp;&middot; Viewed by{" "}
+          {onlyYou
+            ? "only you"
+            : `${totalViewers} ${totalViewers === 1 ? "person" : "people"}`}
         </>
       ) : null}
     </Meta>
@@ -45,4 +49,4 @@ const Meta = styled(DocumentMeta)`
   }
 `;
 
-export default inject("views")(DocumentMetaWithViews);
+export default DocumentMetaWithViews;

@@ -52,7 +52,7 @@ class Collections extends React.Component<Props> {
   }
 
   render() {
-    const { collections, ui, documents } = this.props;
+    const { collections, ui, policies, documents } = this.props;
 
     const content = (
       <>
@@ -63,6 +63,7 @@ class Collections extends React.Component<Props> {
             collection={collection}
             activeDocument={documents.active}
             prefetchDocument={documents.prefetchDocument}
+            canUpdate={policies.abilities(collection.id).update}
             ui={ui}
           />
         ))}

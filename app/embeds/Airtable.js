@@ -20,6 +20,7 @@ export default class Airtable extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         src={`https://airtable.com/embed/${shareId}`}
         title={`Airtable (${shareId})`}
         border

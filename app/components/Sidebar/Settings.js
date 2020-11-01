@@ -10,7 +10,6 @@ import {
   GroupIcon,
   LinkIcon,
   TeamIcon,
-  BulletedListIcon,
   ExpandedIcon,
 } from "outline-icons";
 import * as React from "react";
@@ -30,6 +29,8 @@ import Version from "./components/Version";
 import SlackIcon from "./icons/Slack";
 import ZapierIcon from "./icons/Zapier";
 import env from "env";
+
+const isHosted = env.DEPLOYMENT === "hosted";
 
 type Props = {
   history: RouterHistory,
@@ -116,13 +117,6 @@ class SettingsSidebar extends React.Component<Props> {
                 icon={<LinkIcon color="currentColor" />}
                 label="Share Links"
               />
-              {can.auditLog && (
-                <SidebarLink
-                  to="/settings/events"
-                  icon={<BulletedListIcon color="currentColor" />}
-                  label="Audit Log"
-                />
-              )}
               {can.export && (
                 <SidebarLink
                   to="/settings/export"
@@ -139,14 +133,16 @@ class SettingsSidebar extends React.Component<Props> {
                   icon={<SlackIcon color="currentColor" />}
                   label="Slack"
                 />
-                <SidebarLink
-                  to="/settings/integrations/zapier"
-                  icon={<ZapierIcon color="currentColor" />}
-                  label="Zapier"
-                />
+                {isHosted && (
+                  <SidebarLink
+                    to="/settings/integrations/zapier"
+                    icon={<ZapierIcon color="currentColor" />}
+                    label="Zapier"
+                  />
+                )}
               </Section>
             )}
-            {can.update && env.DEPLOYMENT !== "hosted" && (
+            {can.update && !isHosted && (
               <Section>
                 <Header>Installation</Header>
                 <Version />

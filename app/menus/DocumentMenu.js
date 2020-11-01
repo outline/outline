@@ -38,6 +38,7 @@ type Props = {
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
+  label?: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
 };
@@ -163,6 +164,7 @@ class DocumentMenu extends React.Component<Props> {
       showPin,
       auth,
       collections,
+      label,
       onOpen,
       onClose,
     } = this.props;
@@ -179,6 +181,7 @@ class DocumentMenu extends React.Component<Props> {
           position={position}
           onOpen={onOpen}
           onClose={onClose}
+          label={label}
         >
           {can.unarchive && (
             <DropdownMenuItem onClick={this.handleRestore}>

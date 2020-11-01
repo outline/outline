@@ -41,8 +41,10 @@ class Details extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
+  handleSubmit = async (event: ?SyntheticEvent<>) => {
+    if (event) {
+      event.preventDefault();
+    }
 
     try {
       await this.props.auth.updateTeam({
@@ -66,6 +68,7 @@ class Details extends React.Component<Props> {
 
   handleAvatarUpload = (avatarUrl: string) => {
     this.avatarUrl = avatarUrl;
+    this.handleSubmit();
   };
 
   handleAvatarError = (error: ?string) => {

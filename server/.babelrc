@@ -1,0 +1,22 @@
+{
+  "presets": [
+    "@babel/preset-react",
+    "@babel/preset-flow",
+    [
+      "@babel/preset-env",
+      {
+        "corejs": {
+          "version": "2",
+          "proposals": true
+        },
+        "targets": {
+          "node": "12"
+        },
+        "useBuiltIns": "usage"
+      }
+    ]
+  ],
+  "plugins": [
+    "transform-class-properties"
+  ]
+}

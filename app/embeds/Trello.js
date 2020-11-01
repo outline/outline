@@ -31,6 +31,7 @@ export default class Trello extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         width="248px"
         height="185px"
         src={`https://trello.com/embed/board?id=${objectId}`}
