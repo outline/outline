@@ -1,16 +1,15 @@
 // @flow
-import { yDocToProsemirror } from "@tommoor/y-prosemirror";
 import debug from "debug";
 import * as decoding from "lib0/dist/decoding.cjs";
 import * as encoding from "lib0/dist/encoding.cjs";
-import { uniq, debounce } from "lodash";
-import { schema, serializer } from "rich-markdown-editor";
+import { debounce } from "lodash";
 import { Socket } from "socket.io-client";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
 import * as Y from "yjs";
 import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "../../shared/constants";
-import { Event, Document } from "../models";
+import documentUpdater from "../commands/documentUpdater";
+import { Document } from "../models";
 import WSSharedDoc from "./WSSharedDoc";
 
 const log = debug("multiplayer");
@@ -45,51 +44,9 @@ export function handleJoin({
     doc.on(
       "update",
       debounce(
-        async (update) => {
+        async (update, userId) => {
           log(`persisting doc (${documentId}) to database`);
-
-          // TODO: refactor this persistence out
-          const state = Y.encodeStateAsUpdate(doc);
-          const node = yDocToProsemirror(schema, doc);
-          const text = serializer.serialize(node);
-
-          // TODO: Refactor to helper, PR against yjs
-          const pud = new Y.PermanentUserData(doc);
-          let collaboratorIds = document.collaboratorIds;
-          for (const [userId] of pud.dss.entries()) {
-            collaboratorIds.push(userId);
-          }
-          for (const entry of pud.clients.entries()) {
-            collaboratorIds.push(entry[1]);
-          }
-          collaboratorIds = uniq(collaboratorIds);
-
-          await Document.update(
-            {
-              text,
-              state: Buffer.from(state),
-              updatedAt: new Date(),
-              collaboratorIds,
-            },
-            {
-              hooks: false,
-              where: {
-                id: documentId,
-              },
-            }
-          );
-
-          // TODO: Refactor out
-          await Event.add({
-            name: "documents.update",
-            documentId: document.id,
-            collectionId: document.collectionId,
-            teamId: document.teamId,
-            data: {
-              multiplayer: true,
-              title: document.title,
-            },
-          });
+          await documentUpdater({ document, ydoc: doc, userId });
         },
         PERSIST_WAIT,
         {
@@ -133,7 +90,11 @@ export function handleJoin({
   }
 }
 
-export async function handleLeave(socketId: string, documentId: string) {
+export async function handleLeave(
+  socketId: string,
+  userId: string,
+  documentId: string
+) {
   let doc = docs.get(documentId);
 
   // this method is called for all leave events, even old-style, so it needs
@@ -162,29 +123,17 @@ export async function handleLeave(socketId: string, documentId: string) {
     log(`all clients left doc (${documentId}), persisting…`);
     // TODO: write a revision
 
-    // TODO: refactor persistence to document model
-    const state = Y.encodeStateAsUpdate(doc);
-    await Document.update(
-      {
-        state: Buffer.from(state),
-        updatedAt: new Date(),
-      },
-      {
-        hooks: false,
-        where: {
-          id: doc.documentId,
-        },
-      }
-    );
+    const document = await Document.findByPk(documentId);
+    await documentUpdater({ document, ydoc: doc, userId, done: true });
 
     doc.destroy();
-    docs.delete(doc.documentId);
   }
 }
 
 export function handleSync(
   socket: Socket,
   documentId: string,
+  userId: string,
   message: Uint8Array
 ) {
   // check auth with existence of socketId in set
@@ -208,7 +157,7 @@ export function handleSync(
   switch (messageType) {
     case MESSAGE_SYNC: {
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
-      syncProtocol.readSyncMessage(decoder, encoder, doc, null);
+      syncProtocol.readSyncMessage(decoder, encoder, doc, userId);
       if (encoding.length(encoder) > 1) {
         socket.binary(true).emit("document.sync", {
           documentId,
@@ -232,6 +181,7 @@ export function handleSync(
 export function handleRemoteSync(
   socketId: string,
   documentId: string,
+  userId: string,
   data: {
     type: string,
     data: ArrayBuffer,
@@ -264,7 +214,7 @@ export function handleRemoteSync(
   switch (messageType) {
     case MESSAGE_SYNC: {
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
-      syncProtocol.readSyncMessage(decoder, encoder, doc, null);
+      syncProtocol.readSyncMessage(decoder, encoder, doc, userId);
       break;
     }
     case MESSAGE_AWARENESS: {

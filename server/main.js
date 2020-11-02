@@ -86,6 +86,7 @@ io.of("/").adapter.customHook = (event, callback) => {
       multiplayer.handleRemoteSync(
         event.socketId,
         event.documentId,
+        event.userId,
         event.data
       );
     }
@@ -99,12 +100,15 @@ io.on("connection", (socket) => {
       return;
     }
 
+    const userId = socket.client.user.id;
+
     // handleJoin must be called before handleSync to ensure authentication
     // to communicate changes for the document/socket combo. Messages received
     // before handleJoin will be logged and discarded.
     multiplayer.handleSync(
       socket,
       event.documentId,
+      userId,
       new Uint8Array(event.data)
     );
 
@@ -116,6 +120,7 @@ io.on("connection", (socket) => {
       {
         socketId: socket.id,
         documentId: event.documentId,
+        userId,
         data: event.data,
       },
       (err) => {
@@ -228,14 +233,16 @@ io.on("connection", (socket) => {
 
     if (event.documentId) {
       const room = `document-${event.documentId}`;
+      const userId = socket.client.user.id;
+
       socket.leave(room, () => {
         io.to(room).emit("user.leave", {
-          userId: socket.client.user.id,
+          userId,
           documentId: event.documentId,
         });
       });
 
-      multiplayer.handleLeave(socket.id, event.documentId);
+      multiplayer.handleLeave(socket.id, userId, event.documentId);
     }
   });
 
@@ -248,11 +255,12 @@ io.on("connection", (socket) => {
     rooms.forEach((room) => {
       if (room.startsWith("document-")) {
         const documentId = room.replace("document-", "");
+        const userId = socket.client.user.id;
         io.to(room).emit("user.leave", {
-          userId: socket.client.user.id,
+          userId,
           documentId,
         });
-        multiplayer.handleLeave(socket.id, documentId);
+        multiplayer.handleLeave(socket.id, userId, documentId);
       }
     });
   });
