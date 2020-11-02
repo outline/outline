@@ -185,7 +185,7 @@ class Collections extends React.Component<Props, State> {
   };
 
   render() {
-    const { collections, ui, documents } = this.props;
+    const { collections, ui, policies, documents } = this.props;
     const { draggingDocumentId, isDragging } = this.state;
 
     const content = (
@@ -207,6 +207,7 @@ class Collections extends React.Component<Props, State> {
                 collection={collection}
                 activeDocument={documents.active}
                 prefetchDocument={documents.prefetchDocument}
+                canUpdate={policies.abilities(collection.id).update}
                 ui={ui}
               />
             ))}

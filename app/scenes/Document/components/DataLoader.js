@@ -1,10 +1,13 @@
 // @flow
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import invariant from "invariant";
+import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
@@ -20,6 +23,7 @@ import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
 import { type LocationWithState } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
+import isInternalUrl from "utils/isInternalUrl";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
@@ -60,7 +64,11 @@ class DataLoader extends React.Component<Props> {
 
     // Also need to load the revision if it changes
     const { revisionId } = this.props.match.params;
-    if (prevProps.match.params.revisionId !== revisionId && revisionId) {
+    if (
+      prevProps.match.params.revisionId !== revisionId &&
+      revisionId &&
+      revisionId !== "latest"
+    ) {
       this.loadRevision();
     }
   }
@@ -70,14 +78,50 @@ class DataLoader extends React.Component<Props> {
   }
 
   onSearchLink = async (term: string) => {
-    const results = await this.props.documents.search(term);
+    if (isInternalUrl(term)) {
+      // search for exact internal document
+      const slug = parseDocumentSlug(term);
+      try {
+        const document = await this.props.documents.fetch(slug);
+        const time = distanceInWordsToNow(document.updatedAt, {
+          addSuffix: true,
+        });
+        return [
+          {
+            title: document.title,
+            subtitle: `Updated ${time}`,
+            url: document.url,
+          },
+        ];
+      } catch (error) {
+        // NotFoundError could not find document for slug
+        if (!(error instanceof NotFoundError)) {
+          throw error;
+        }
+      }
+    }
 
-    return results
-      .filter((result) => result.document.title)
-      .map((result) => ({
-        title: result.document.title,
-        url: result.document.url,
-      }));
+    // default search for anything that doesn't look like a URL
+    const results = await this.props.documents.searchTitles(term);
+
+    return sortBy(
+      results.map((document) => {
+        const time = distanceInWordsToNow(document.updatedAt, {
+          addSuffix: true,
+        });
+        return {
+          title: document.title,
+          subtitle: `Updated ${time}`,
+          url: document.url,
+        };
+      }),
+      (document) =>
+        deburr(document.title)
+          .toLowerCase()
+          .startsWith(deburr(term).toLowerCase())
+          ? -1
+          : 1
+    );
   };
 
   onCreateLink = async (title: string) => {
@@ -102,12 +146,17 @@ class DataLoader extends React.Component<Props> {
   loadDocument = async () => {
     const { shareId, documentSlug, revisionId } = this.props.match.params;
 
+    // sets the document as active in the sidebar if we already have it loaded
+    if (this.document) {
+      this.props.ui.setActiveDocument(this.document);
+    }
+
     try {
       this.document = await this.props.documents.fetch(documentSlug, {
         shareId,
       });
 
-      if (revisionId) {
+      if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
       } else {
         this.revision = undefined;

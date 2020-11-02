@@ -151,7 +151,7 @@ router.get("slack.commands", auth({ required: false }), async (ctx) => {
   }
 
   // this code block accounts for the root domain being unable to
-  // access authentcation for subdomains. We must forward to the appropriate
+  // access authentication for subdomains. We must forward to the appropriate
   // subdomain to complete the oauth flow
   if (!user) {
     if (state) {
@@ -187,6 +187,9 @@ router.get("slack.commands", auth({ required: false }), async (ctx) => {
     userId: user.id,
     teamId: user.teamId,
     authenticationId: authentication.id,
+    settings: {
+      serviceTeamId: data.team_id,
+    },
   });
 
   ctx.redirect("/settings/integrations/slack");

@@ -49,7 +49,7 @@ class Starred extends React.Component<Props> {
 
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch />
+            <InputSearch source="starred" />
           </Action>
           <Action>
             <NewDocumentMenu />

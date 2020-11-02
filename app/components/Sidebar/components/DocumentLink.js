@@ -12,20 +12,23 @@ import Flex from "components/Flex";
 import { SidebarDnDContext } from "./Collections";
 import Draggable from "./Draggable";
 import Droppable from "./Droppable";
+import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
-type Props = {
+type Props = {|
   node: NavigationNode,
   documents: DocumentsStore,
   collection: Collection,
+  canUpdate: boolean,
+  collection?: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
   isDropDisabled?: boolean,
-};
+|};
 
 @observer
 class DocumentLink extends React.Component<Props> {
@@ -53,6 +56,18 @@ class DocumentLink extends React.Component<Props> {
     prefetchDocument(node.id);
   };
 
+  handleTitleChange = async (title: string) => {
+    const document = this.props.documents.get(this.props.node.id);
+    if (!document) return;
+
+    await this.props.documents.update({
+      id: document.id,
+      lastRevision: document.revision,
+      text: document.text,
+      title,
+    });
+  };
+
   isActiveDocument = () => {
     return (
       this.props.activeDocument &&
@@ -74,6 +89,7 @@ class DocumentLink extends React.Component<Props> {
       prefetchDocument,
       depth,
       isDropDisabled,
+      canUpdate,
     } = this.props;
 
     const showChildren = !!(
@@ -86,6 +102,7 @@ class DocumentLink extends React.Component<Props> {
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
+    const title = node.title || "Untitled";
 
     let hideDisclosure;
     if (!this.hasChildDocuments()) {
@@ -113,7 +130,13 @@ class DocumentLink extends React.Component<Props> {
                   }}
                   expanded={showChildren ? true : undefined}
                   hideDisclosure={hideDisclosure}
-                  label={node.title || "Untitled"}
+                  label={
+                    <EditableTitle
+                      title={title}
+                      onSubmit={this.handleTitleChange}
+                      canUpdate={canUpdate}
+                    />
+                  }
                   depth={depth}
                   exact={false}
                   menuOpen={this.menuOpen}

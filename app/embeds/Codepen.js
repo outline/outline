@@ -17,6 +17,6 @@ export default class Codepen extends React.Component<Props> {
   render() {
     const normalizedUrl = this.props.attrs.href.replace(/\/pen\//, "/embed/");
 
-    return <Frame src={normalizedUrl} title="Codepen Embed" />;
+    return <Frame {...this.props} src={normalizedUrl} title="Codepen Embed" />;
   }
 }

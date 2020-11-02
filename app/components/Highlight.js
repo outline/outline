@@ -38,7 +38,7 @@ function Highlight({
 }
 
 const Mark = styled.mark`
-  background: ${(props) => props.theme.yellow};
+  background: ${(props) => props.theme.searchHighlight};
   border-radius: 2px;
   padding: 0 4px;
 `;

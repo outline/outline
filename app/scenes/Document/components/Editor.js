@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
+import { MAX_TITLE_LENGTH } from "shared/constants";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
@@ -21,7 +22,7 @@ type Props = {
   isDraft: boolean,
   isShare: boolean,
   readOnly?: boolean,
-  onSave: () => mixed,
+  onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
   innerRef: { current: any },
 };
 
@@ -50,8 +51,13 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
-    if (event.key === "Enter" && !event.metaKey) {
+    if (event.key === "Enter") {
       event.preventDefault();
+      if (event.metaKey) {
+        this.props.onSave({ publish: true, done: true });
+        return;
+      }
+
       this.insertParagraph();
       this.focusAtStart();
       return;
@@ -63,7 +69,7 @@ class DocumentEditor extends React.Component<Props> {
     }
     if (event.key === "s" && event.metaKey) {
       event.preventDefault();
-      this.props.onSave();
+      this.props.onSave({});
       return;
     }
   };
@@ -101,7 +107,7 @@ class DocumentEditor extends React.Component<Props> {
           readOnly={readOnly}
           disabled={readOnly}
           autoFocus={!title}
-          maxLength={100}
+          maxLength={MAX_TITLE_LENGTH}
         />
         <DocumentMetaWithViews
           isDraft={isDraft}
@@ -135,10 +141,10 @@ const Title = styled(Textarea)`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
-  text: ${(props) => props.theme.text};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   color: ${(props) => props.theme.text};
+  -webkit-text-fill-color: ${(props) => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
   outline: none;
@@ -148,6 +154,7 @@ const Title = styled(Textarea)`
 
   &::placeholder {
     color: ${(props) => props.theme.placeholder};
+    -webkit-text-fill-color: ${(props) => props.theme.placeholder};
   }
 `;
 

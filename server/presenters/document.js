@@ -1,6 +1,6 @@
 // @flow
 import { takeRight } from "lodash";
-import { User, Document, Attachment } from "../models";
+import { Attachment, Document, User } from "../models";
 import { getSignedImageUrl } from "../utils/s3";
 import presentUser from "./user";
 
@@ -8,7 +8,7 @@ type Options = {
   isPublic?: boolean,
 };
 
-const attachmentRegex = /!\[.*\]\(\/api\/attachments\.redirect\?id=(?<id>.*)\)/gi;
+const attachmentRegex = /!\[.*?\]\(\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
 
 // replaces attachments.redirect urls with signed/authenticated url equivalents
 async function replaceImageAttachments(text) {
@@ -62,7 +62,12 @@ export default async function present(document: Document, options: ?Options) {
     pinned: undefined,
     collectionId: undefined,
     parentDocumentId: undefined,
+    lastViewedAt: undefined,
   };
+
+  if (!!document.views && document.views.length > 0) {
+    data.lastViewedAt = document.views[0].updatedAt;
+  }
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;

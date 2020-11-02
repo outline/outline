@@ -63,14 +63,22 @@ export function newDocumentUrl(
   return `/collections/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
-export function searchUrl(query?: string, collectionId?: string): string {
-  let route = "/search";
-  if (query) route += `/${encodeURIComponent(query)}`;
-
-  if (collectionId) {
-    route += `?collectionId=${collectionId}`;
+export function searchUrl(
+  query?: string,
+  params?: {
+    collectionId?: string,
+    ref?: string,
   }
-  return route;
+): string {
+  let search = queryString.stringify(params);
+  let route = "/search";
+
+  if (query) {
+    route += `/${encodeURIComponent(query)}`;
+  }
+
+  search = search ? `?${search}` : "";
+  return `${route}${search}`;
 }
 
 export function notFoundUrl(): string {

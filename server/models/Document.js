@@ -5,6 +5,7 @@ import randomstring from "randomstring";
 import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
+import { MAX_TITLE_LENGTH } from "../../shared/constants";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
 import { Collection, User } from "../models";
@@ -17,33 +18,6 @@ const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
-
-const createRevision = (doc, options = {}) => {
-  // we don't create revisions for autosaves
-  if (options.autosave) return;
-
-  // we don't create revisions if identical to previous
-  if (
-    doc.text === doc.previous("text") &&
-    doc.title === doc.previous("title")
-  ) {
-    return;
-  }
-
-  return Revision.create(
-    {
-      title: doc.title,
-      text: doc.text,
-      userId: doc.lastModifiedById,
-      editorVersion: doc.editorVersion,
-      version: doc.version,
-      documentId: doc.id,
-    },
-    {
-      transaction: options.transaction,
-    }
-  );
-};
 
 const createUrlId = (doc) => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
@@ -91,8 +65,8 @@ const Document = sequelize.define(
       type: DataTypes.STRING,
       validate: {
         len: {
-          args: [0, 100],
-          msg: "Document title must be less than 100 characters",
+          args: [0, MAX_TITLE_LENGTH],
+          msg: `Document title must be less than ${MAX_TITLE_LENGTH} characters`,
         },
       },
     },
@@ -118,8 +92,6 @@ const Document = sequelize.define(
       beforeValidate: createUrlId,
       beforeCreate: beforeCreate,
       beforeUpdate: beforeSave,
-      afterCreate: createRevision,
-      afterUpdate: createRevision,
     },
     getterMethods: {
       url: function () {
@@ -208,11 +180,15 @@ Document.associate = (models) => {
       { model: models.User, as: "updatedBy", paranoid: false },
     ],
   });
-  Document.addScope("withViews", (userId) => ({
-    include: [
-      { model: models.View, as: "views", where: { userId }, required: false },
-    ],
-  }));
+  Document.addScope("withViews", (userId) => {
+    if (!userId) return {};
+
+    return {
+      include: [
+        { model: models.View, as: "views", where: { userId }, required: false },
+      ],
+    };
+  });
   Document.addScope("withStarred", (userId) => ({
     include: [
       { model: models.Star, as: "starred", where: { userId }, required: false },
@@ -223,9 +199,15 @@ Document.associate = (models) => {
 Document.findByPk = async function (id, options = {}) {
   // allow default preloading of collection membership if `userId` is passed in find options
   // almost every endpoint needs the collection membership to determine policy permissions.
-  const scope = this.scope("withUnpublished", {
-    method: ["withCollection", options.userId],
-  });
+  const scope = this.scope(
+    "withUnpublished",
+    {
+      method: ["withCollection", options.userId],
+    },
+    {
+      method: ["withViews", options.userId],
+    }
+  );
 
   if (isUUID(id)) {
     return scope.findOne({
@@ -242,10 +224,13 @@ Document.findByPk = async function (id, options = {}) {
   }
 };
 
-type SearchResult = {
-  ranking: number,
-  context: string,
-  document: Document,
+type SearchResponse = {
+  results: {
+    ranking: number,
+    context: string,
+    document: Document,
+  }[],
+  totalCount: number,
 };
 
 type SearchOptions = {
@@ -268,7 +253,7 @@ Document.searchForTeam = async (
   team,
   query,
   options: SearchOptions = {}
-): Promise<SearchResult[]> => {
+): Promise<SearchResponse> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -276,21 +261,25 @@ Document.searchForTeam = async (
 
   // If the team has access no public collections then shortcircuit the rest of this
   if (!collectionIds.length) {
-    return [];
+    return { results: [], totalCount: 0 };
   }
 
   // Build the SQL query to get documentIds, ranking, and search term context
-  const sql = `
+  const whereClause = `
+  "searchVector" @@ to_tsquery('english', :query) AND
+    "teamId" = :teamId AND
+    "collectionId" IN(:collectionIds) AND
+    "deletedAt" IS NULL AND
+    "publishedAt" IS NOT NULL
+  `;
+
+  const selectSql = `
     SELECT
       id,
       ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
       ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
     FROM documents
-    WHERE "searchVector" @@ to_tsquery('english', :query) AND
-      "teamId" = :teamId AND
-      "collectionId" IN(:collectionIds) AND
-      "deletedAt" IS NULL AND
-      "publishedAt" IS NOT NULL
+    WHERE ${whereClause}
     ORDER BY
       "searchRanking" DESC,
       "updatedAt" DESC
@@ -298,16 +287,33 @@ Document.searchForTeam = async (
     OFFSET :offset;
   `;
 
-  const results = await sequelize.query(sql, {
+  const countSql = `
+    SELECT COUNT(id)
+    FROM documents
+    WHERE ${whereClause}
+  `;
+
+  const queryReplacements = {
+    teamId: team.id,
+    query: wildcardQuery,
+    collectionIds,
+  };
+
+  const resultsQuery = sequelize.query(selectSql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      teamId: team.id,
-      query: wildcardQuery,
+      ...queryReplacements,
       limit,
       offset,
-      collectionIds,
     },
   });
+
+  const countQuery = sequelize.query(countSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: queryReplacements,
+  });
+
+  const [results, [{ count }]] = await Promise.all([resultsQuery, countQuery]);
 
   // Final query to get associated document data
   const documents = await Document.findAll({
@@ -321,20 +327,23 @@ Document.searchForTeam = async (
     ],
   });
 
-  return map(results, (result) => ({
-    ranking: result.searchRanking,
-    context: removeMarkdown(unescape(result.searchContext), {
-      stripHTML: false,
-    }),
-    document: find(documents, { id: result.id }),
-  }));
+  return {
+    results: map(results, (result) => ({
+      ranking: result.searchRanking,
+      context: removeMarkdown(unescape(result.searchContext), {
+        stripHTML: false,
+      }),
+      document: find(documents, { id: result.id }),
+    })),
+    totalCount: count,
+  };
 };
 
 Document.searchForUser = async (
   user,
   query,
   options: SearchOptions = {}
-): Promise<SearchResult[]> => {
+): Promise<SearchResponse> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -351,7 +360,7 @@ Document.searchForUser = async (
 
   // If the user has access to no collections then shortcircuit the rest of this
   if (!collectionIds.length) {
-    return [];
+    return { results: [], totalCount: 0 };
   }
 
   let dateFilter;
@@ -360,13 +369,8 @@ Document.searchForUser = async (
   }
 
   // Build the SQL query to get documentIds, ranking, and search term context
-  const sql = `
-  SELECT
-    id,
-    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
-  FROM documents
-  WHERE "searchVector" @@ to_tsquery('english', :query) AND
+  const whereClause = `
+  "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
@@ -384,27 +388,52 @@ Document.searchForUser = async (
         ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
         : '"publishedAt" IS NOT NULL'
     }
+  `;
+
+  const selectSql = `
+  SELECT
+    id,
+    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+  FROM documents
+  WHERE ${whereClause}
   ORDER BY
     "searchRanking" DESC,
     "updatedAt" DESC
   LIMIT :limit
   OFFSET :offset;
-`;
+  `;
 
-  const results = await sequelize.query(sql, {
+  const countSql = `
+    SELECT COUNT(id)
+    FROM documents
+    WHERE ${whereClause}
+  `;
+
+  const queryReplacements = {
+    teamId: user.teamId,
+    userId: user.id,
+    collaboratorIds: options.collaboratorIds,
+    query: wildcardQuery,
+    collectionIds,
+    dateFilter,
+  };
+
+  const resultsQuery = sequelize.query(selectSql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      teamId: user.teamId,
-      userId: user.id,
-      collaboratorIds: options.collaboratorIds,
-      query: wildcardQuery,
+      ...queryReplacements,
       limit,
       offset,
-      collectionIds,
-      dateFilter,
     },
   });
 
+  const countQuery = sequelize.query(countSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: queryReplacements,
+  });
+
+  const [results, [{ count }]] = await Promise.all([resultsQuery, countQuery]);
   // Final query to get associated document data
   const documents = await Document.scope(
     {
@@ -423,13 +452,16 @@ Document.searchForUser = async (
     ],
   });
 
-  return map(results, (result) => ({
-    ranking: result.searchRanking,
-    context: removeMarkdown(unescape(result.searchContext), {
-      stripHTML: false,
-    }),
-    document: find(documents, { id: result.id }),
-  }));
+  return {
+    results: map(results, (result) => ({
+      ranking: result.searchRanking,
+      context: removeMarkdown(unescape(result.searchContext), {
+        stripHTML: false,
+      }),
+      document: find(documents, { id: result.id }),
+    })),
+    totalCount: count,
+  };
 };
 
 // Hooks
