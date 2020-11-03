@@ -22,7 +22,7 @@ type Props = {|
   documents: DocumentsStore,
   collection: Collection,
   canUpdate: boolean,
-  collection?: Collection,
+  collection: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
@@ -176,6 +176,7 @@ class DocumentLink extends React.Component<Props> {
                                     documents={documents}
                                     activeDocument={activeDocument}
                                     prefetchDocument={prefetchDocument}
+                                    canUpdate={canUpdate}
                                     depth={depth + 1}
                                     isDropDisabled={disableChildDrops}
                                   />
