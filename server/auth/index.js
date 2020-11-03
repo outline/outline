@@ -27,6 +27,9 @@ router.get("/redirect", auth(), async (ctx) => {
     throw new AuthenticationError("Cannot extend token");
   }
 
+  // ensure that the lastActiveAt on user is updated to prevent replay requests
+  await user.updateActiveAt(ctx.request.ip, true);
+
   ctx.cookies.set("accessToken", jwtToken, {
     httpOnly: false,
     expires: addMonths(new Date(), 3),

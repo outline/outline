@@ -1,5 +1,4 @@
 // @flow
-import addMinutes from "date-fns/add_minutes";
 import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
 import { AuthenticationError, UserSuspendedError } from "../errors";
@@ -143,9 +142,7 @@ export default function auth(options?: { required?: boolean } = {}) {
         });
 
         ctx.redirect(
-          `${team.url}/auth/redirect?token=${user.getJwtToken(
-            addMinutes(new Date(), 1)
-          )}`
+          `${team.url}/auth/redirect?token=${user.getTransferToken()}`
         );
       } else {
         ctx.cookies.set("accessToken", user.getJwtToken(), {
