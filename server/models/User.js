@@ -109,8 +109,11 @@ User.prototype.updateSignedIn = function (ip) {
   return this.save({ hooks: false });
 };
 
-User.prototype.getJwtToken = function () {
-  return JWT.sign({ id: this.id }, this.jwtSecret);
+User.prototype.getJwtToken = function (expiresAt?: Date) {
+  return JWT.sign(
+    { id: this.id, expiresAt: expiresAt ? expiresAt.toISOString() : undefined },
+    this.jwtSecret
+  );
 };
 
 User.prototype.getEmailSigninToken = function () {

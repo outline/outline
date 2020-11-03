@@ -20,6 +20,14 @@ function getJWTPayload(token) {
 
 export async function getUserForJWT(token: string): Promise<User> {
   const payload = getJWTPayload(token);
+
+  // check the token is within it's expiration time
+  if (payload.expiresAt) {
+    if (new Date(payload.expiresAt) < new Date()) {
+      throw new AuthenticationError("Expired token");
+    }
+  }
+
   const user = await User.findByPk(payload.id);
 
   try {
