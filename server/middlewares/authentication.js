@@ -1,6 +1,6 @@
 // @flow
+import addMinutes from "date-fns/add_minutes";
 import addMonths from "date-fns/add_months";
-import addSeconds from "date-fns/add_seconds";
 import JWT from "jsonwebtoken";
 import { AuthenticationError, UserSuspendedError } from "../errors";
 import { User, Team, ApiKey } from "../models";
@@ -144,7 +144,7 @@ export default function auth(options?: { required?: boolean } = {}) {
 
         ctx.redirect(
           `${team.url}/auth/redirect?token=${user.getJwtToken(
-            addSeconds(new Date(), 30)
+            addMinutes(new Date(), 1)
           )}`
         );
       } else {
