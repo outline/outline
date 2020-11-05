@@ -9,6 +9,12 @@ describe("Gist", () => {
         match
       )
     ).toBeTruthy();
+
+    expect(
+      "https://gist.github.com/n3n/eb51ada6308b539d388c8ff97711adfa".match(
+        match
+      )
+    ).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {
