@@ -2,7 +2,7 @@
 import * as React from "react";
 
 const URL_REGEX = new RegExp(
-  "^https://gist.github.com/([a-zd](?:[a-zd]|-(?=[a-zd])){0,38})/(.*)$"
+  "^https://gist.github.com/([a-z\\d](?:[a-z\\d]|-(?=[a-z\\d])){0,38})/(.*)$"
 );
 
 type Props = {|
