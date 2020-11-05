@@ -29,13 +29,23 @@ export default class MultiplayerExtension extends Extension {
       }
     });
 
+    provider.on("sync", () => {
+      doc.once("afterTransaction", (tr) => {
+        if (tr.local) {
+          const clientIds = Array.from(doc.store.clients.keys());
+
+          if (!clientIds.includes(doc.clientID)) {
+            const permanentUserData = new Y.PermanentUserData(doc);
+            permanentUserData.setUserMapping(doc, doc.clientID, user.id);
+          }
+        }
+      });
+    });
+
     // const dbProvider = new IndexeddbPersistence(doc.documentId, doc);
     // dbProvider.whenSynced.then(() => {
     //   console.log("loaded data from indexed db");
     // });
-
-    const permanentUserData = new Y.PermanentUserData(doc);
-    permanentUserData.setUserMapping(doc, doc.clientID, user.id);
 
     return [
       ySyncPlugin(type),
