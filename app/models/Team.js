@@ -12,6 +12,7 @@ class Team extends BaseModel {
   documentEmbeds: boolean;
   guestSignin: boolean;
   subdomain: ?string;
+  domain: ?string;
   url: string;
 
   @computed
