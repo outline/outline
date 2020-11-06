@@ -4,7 +4,6 @@ import path from "path";
 import { URL } from "url";
 import util from "util";
 import uuid from "uuid";
-import { t } from "../../shared/translations/i18n";
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
@@ -28,10 +27,6 @@ const Team = sequelize.define(
       primaryKey: true,
     },
     name: DataTypes.STRING,
-    language: {
-      type: DataTypes.STRING,
-      defaultValue: process.env.DEFAULT_LANGUAGE,
-    },
     subdomain: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -144,10 +139,9 @@ Team.prototype.provisionSubdomain = async function (subdomain) {
 
 Team.prototype.provisionFirstCollection = async function (userId) {
   const collection = await Collection.create({
-    name: t("Welcome"),
-    description: t(
-      "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!"
-    ),
+    name: "Welcome",
+    description:
+      "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
     type: "atlas",
     teamId: this.id,
     creatorId: userId,
@@ -156,10 +150,10 @@ Team.prototype.provisionFirstCollection = async function (userId) {
   // For the first collection we go ahead and create some intitial documents to get
   // the team started. You can edit these in /server/onboarding/x.md
   const onboardingDocs = [
-    t("Support"),
-    t("Integrations & API"),
-    t("Our Editor"),
-    t("What is Outline"),
+    "Support",
+    "Integrations & API",
+    "Our Editor",
+    "What is Outline",
   ];
   for (const title of onboardingDocs) {
     const text = await readFile(
@@ -170,7 +164,6 @@ Team.prototype.provisionFirstCollection = async function (userId) {
         "..",
         "server",
         "onboarding",
-        process.env.DEFAULT_LANGUAGE,
         `${title}.md`
       ),
       "utf8"

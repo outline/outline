@@ -3,10 +3,17 @@
   "Recently updated": "Recently updated",
   "Recently viewed": "Recently viewed",
   "Created by me": "Created by me",
-  "Welcome": "Welcome",
-  "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!": "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
-  "Support": "Support",
-  "Integrations & API": "Integrations & API",
-  "Our Editor": "Our Editor",
-  "What is Outline": "What is Outline"
+  "Profile saved": "Profile saved",
+  "Profile picture updated": "Profile picture updated",
+  "Unable to upload new avatar": "Unable to upload new avatar",
+  "Profile": "Profile",
+  "Photo": "Photo",
+  "Upload": "Upload",
+  "Full name": "Full name",
+  "Language": "Language",
+  "Saving…": "Saving…",
+  "Save": "Save",
+  "Delete Account": "Delete Account",
+  "You may delete your account at any time, note that this is unrecoverable": "You may delete your account at any time, note that this is unrecoverable",
+  "Delete account": "Delete account"
 }

@@ -3,13 +3,17 @@
     "Recently updated": "Zuletzt geändert",
     "Recently viewed": "Zuletzt gesehen",
     "Created by me": "Von mir erstellt",
-    "Welcome": "Willkommen",
-    "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!": "Diese Sammlung ist eine Kurzanleitung für Outline. Fühlen Sie sich frei, diese Sammlung zu löschen, sobald Ihr Team mit den Grundlagen vertraut ist!",
-    "Support": "Support",
-    "Integrations & API": "Integrationen & API",
-    "Our Editor": "Unser Editor",
-    "What is Outline": "Was ist Outline",
-    "Our team’s knowledge base": "Die Wissensbasis unseres Teams",
-    "Team wiki, documentation, meeting notes, playbooks, onboarding, work logs, brainstorming, & more…": "Team-Wiki, Dokumentation, Besprechungsnotizen, Spielbücher, Onboarding, Arbeitsprotokolle, Brainstorming und mehr…"
-}
-  
+    "Profile saved": "Profil gespeichert",
+    "Profile picture updated": "Profilfoto wurde aktualisiert.",
+    "Unable to upload new avatar": "Neuer Avatar kann nicht hochgeladen werden.",
+    "Profile": "Profil",
+    "Photo": "Foto",
+    "Upload": "Hochladen",
+    "Full name": "Vorname",
+    "Language": "Sprache",
+    "Saving…": "Am speichern…",
+    "Save": "Speichern",
+    "Delete Account": "Konto löschen",
+    "You may delete your account at any time, note that this is unrecoverable": "Sie können Ihr Konto jederzeit löschen. Beachten Sie, dass dies nicht wiederherstellbar ist",
+    "Delete account": "Konto löschen"
+  }

@@ -126,7 +126,7 @@ export default class AuthStore {
         this.user = new User(user);
         this.team = new Team(team);
 
-        i18n.changeLanguage(this.team.language);
+        i18n.changeLanguage(this.user.language);
 
         if (window.Sentry) {
           window.Sentry.configureScope(function (scope) {

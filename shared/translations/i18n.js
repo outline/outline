@@ -13,6 +13,7 @@ i18n.use(initReactI18next).init({
     useSuspense: false,
   },
   lng: process.env.DEFAULT_LANGUAGE,
+  debug: process.env.NODE_ENV !== "production",
   resources: {
     en_US: {
       translation: en_US,
