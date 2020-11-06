@@ -3,6 +3,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { Switch, Route } from "react-router-dom";
 
+import { t } from "shared/translations/i18n";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import Actions, { Action } from "components/Actions";
@@ -28,16 +29,16 @@ class Dashboard extends React.Component<Props> {
 
     return (
       <CenteredContent>
-        <PageTitle title="Home" />
-        <h1>Home</h1>
+        <PageTitle title={t("Home")} />
+        <h1>{t("Home")}</h1>
         <Tabs>
           <Tab to="/home" exact>
-            Recently updated
+            {t("Recently updated")}
           </Tab>
           <Tab to="/home/recent" exact>
-            Recently viewed
+            {t("Recently viewed")}
           </Tab>
-          <Tab to="/home/created">Created by me</Tab>
+          <Tab to="/home/created">{t("Created by me")}</Tab>
         </Tabs>
         <Switch>
           <Route path="/home/recent">

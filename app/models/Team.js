@@ -5,6 +5,7 @@ import BaseModel from "./BaseModel";
 class Team extends BaseModel {
   id: string;
   name: string;
+  language: string;
   avatarUrl: string;
   slackConnected: boolean;
   googleConnected: boolean;

@@ -5,6 +5,7 @@ export default function present(team: Team) {
   return {
     id: team.id,
     name: team.name,
+    language: team.language,
     avatarUrl: team.logoUrl,
     slackConnected: !!team.slackId,
     googleConnected: !!team.googleId,
