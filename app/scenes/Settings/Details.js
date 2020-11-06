@@ -11,6 +11,7 @@ import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input, { LabelText } from "components/Input";
+import InputSelect from "components/InputSelect";
 import PageTitle from "components/PageTitle";
 import ImageUpload from "./components/ImageUpload";
 import env from "env";
@@ -26,6 +27,7 @@ class Details extends React.Component<Props> {
   form: ?HTMLFormElement;
 
   @observable name: string;
+  @observable language: string;
   @observable subdomain: ?string;
   @observable avatarUrl: ?string;
 
@@ -33,6 +35,7 @@ class Details extends React.Component<Props> {
     const { team } = this.props.auth;
     if (team) {
       this.name = team.name;
+      this.language = team.language;
       this.subdomain = team.subdomain;
     }
   }
@@ -49,6 +52,7 @@ class Details extends React.Component<Props> {
     try {
       await this.props.auth.updateTeam({
         name: this.name,
+        language: this.language,
         avatarUrl: this.avatarUrl,
         subdomain: this.subdomain,
       });
@@ -60,6 +64,10 @@ class Details extends React.Component<Props> {
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
+  };
+
+  handleLanguageChange = (ev: SyntheticInputEvent<*>) => {
+    this.language = ev.target.value;
   };
 
   handleSubdomainChange = (ev: SyntheticInputEvent<*>) => {
@@ -117,6 +125,16 @@ class Details extends React.Component<Props> {
             value={this.name}
             onChange={this.handleNameChange}
             required
+            short
+          />
+          <InputSelect
+            label="Language"
+            options={[
+              { label: "English (US)", value: "en_US" },
+              { label: "German (Germany)", value: "de_DE" },
+            ]}
+            value={this.language}
+            onChange={this.handleLanguageChange}
             short
           />
           {env.SUBDOMAINS_ENABLED && (

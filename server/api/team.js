@@ -12,6 +12,7 @@ const router = new Router();
 router.post("team.update", auth(), async (ctx) => {
   const {
     name,
+    language,
     avatarUrl,
     subdomain,
     sharing,
@@ -27,6 +28,7 @@ router.post("team.update", auth(), async (ctx) => {
   }
 
   if (name) team.name = name;
+  if (language) team.language = language;
   if (sharing !== undefined) team.sharing = sharing;
   if (documentEmbeds !== undefined) team.documentEmbeds = documentEmbeds;
   if (guestSignin !== undefined) team.guestSignin = guestSignin;
