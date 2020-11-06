@@ -14,7 +14,7 @@ export default async function documentUpdater({
   document: Document,
   ydoc: Y.Doc,
   userId: string,
-  done: boolean,
+  done?: boolean,
 }) {
   const state = Y.encodeStateAsUpdate(ydoc);
   const node = yDocToProsemirror(schema, ydoc);
