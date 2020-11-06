@@ -2,13 +2,13 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('teams', 'language', {
+    await queryInterface.addColumn('users', 'language', {
       type: Sequelize.STRING,
       defaultValue: process.env.DEFAULT_LANGUAGE,
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('teams', 'language');
+    await queryInterface.removeColumn('users', 'language');
   }
 };

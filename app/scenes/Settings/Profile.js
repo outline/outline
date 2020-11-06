@@ -4,6 +4,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 
+import { t } from "shared/translations/i18n";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import UserDelete from "scenes/UserDelete";
@@ -11,6 +12,7 @@ import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
 import Input, { LabelText } from "components/Input";
+import InputSelect from "components/InputSelect";
 import PageTitle from "components/PageTitle";
 import ImageUpload from "./components/ImageUpload";
 
@@ -27,10 +29,12 @@ class Profile extends React.Component<Props> {
   @observable name: string;
   @observable avatarUrl: ?string;
   @observable showDeleteModal: boolean = false;
+  @observable language: string;
 
   componentDidMount() {
     if (this.props.auth.user) {
       this.name = this.props.auth.user.name;
+      this.language = this.props.auth.user.language;
     }
   }
 
@@ -44,8 +48,12 @@ class Profile extends React.Component<Props> {
     await this.props.auth.updateUser({
       name: this.name,
       avatarUrl: this.avatarUrl,
+      language: this.language,
     });
-    this.props.ui.showToast("Profile saved");
+    this.props.ui.showToast(t("Profile saved"));
+    setTimeout(function () {
+      window.location.reload();
+    }, 1000);
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -58,11 +66,15 @@ class Profile extends React.Component<Props> {
     await this.props.auth.updateUser({
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast("Profile picture updated");
+    this.props.ui.showToast(t("Profile picture updated"));
   };
 
   handleAvatarError = (error: ?string) => {
-    this.props.ui.showToast(error || "Unable to upload new avatar");
+    this.props.ui.showToast(error || t("Unable to upload new avatar"));
+  };
+
+  handleLanguageChange = (ev: SyntheticInputEvent<*>) => {
+    this.language = ev.target.value;
   };
 
   toggleDeleteAccount = () => {
@@ -80,10 +92,10 @@ class Profile extends React.Component<Props> {
 
     return (
       <CenteredContent>
-        <PageTitle title="Profile" />
-        <h1>Profile</h1>
+        <PageTitle title={t("Profile")} />
+        <h1>{t("Profile")}</h1>
         <ProfilePicture column>
-          <LabelText>Photo</LabelText>
+          <LabelText>{t("Photo")}</LabelText>
           <AvatarContainer>
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
@@ -91,31 +103,42 @@ class Profile extends React.Component<Props> {
             >
               <Avatar src={avatarUrl} />
               <Flex auto align="center" justify="center">
-                Upload
+                {t("Upload")}
               </Flex>
             </ImageUpload>
           </AvatarContainer>
         </ProfilePicture>
         <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
           <Input
-            label="Full name"
+            label={t("Full name")}
             autoComplete="name"
             value={this.name}
             onChange={this.handleNameChange}
             required
             short
           />
+          <InputSelect
+            label={t("Language")}
+            options={[
+              { label: "English (US)", value: "en_US" },
+              { label: "Deutsch (Deutschland)", value: "de_DE" },
+            ]}
+            value={this.language}
+            onChange={this.handleLanguageChange}
+            short
+          />
           <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? "Saving…" : "Save"}
+            {isSaving ? t("Saving…") : t("Save")}
           </Button>
         </form>
 
         <DangerZone>
-          <LabelText>Delete Account</LabelText>
+          <LabelText>{t("Delete Account")}</LabelText>
           <p>
-            You may delete your account at any time, note that this is
-            unrecoverable.{" "}
-            <a onClick={this.toggleDeleteAccount}>Delete account</a>.
+            {t(
+              "You may delete your account at any time, note that this is unrecoverable"
+            )}
+            . <a onClick={this.toggleDeleteAccount}>{t("Delete account")}</a>.
           </p>
         </DangerZone>
         {this.showDeleteModal && (
