@@ -70,6 +70,13 @@ export default class Notifications {
         return;
       }
 
+      // Check the user has access to the collection this document is in. Just
+      // because they were a collaborator once doesn't mean they still are.
+      const collectionIds = await setting.user.collectionIds();
+      if (!collectionIds.includes(document.collectionId)) {
+        return;
+      }
+
       // If this user has viewed the document since the last update was made
       // then we can avoid sending them a useless notification, yay.
       const view = await View.findOne({
