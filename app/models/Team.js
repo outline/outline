@@ -13,6 +13,7 @@ class Team extends BaseModel {
   multiplayerEditor: boolean;
   guestSignin: boolean;
   subdomain: ?string;
+  domain: ?string;
   url: string;
 
   @computed

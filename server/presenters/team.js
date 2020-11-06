@@ -13,6 +13,7 @@ export default function present(team: Team) {
     guestSignin: team.guestSignin,
     multiplayerEditor: team.multiplayerEditor,
     subdomain: team.subdomain,
+    domain: team.domain,
     url: team.url,
   };
 }
