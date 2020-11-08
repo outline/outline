@@ -30,14 +30,12 @@ export default class MultiplayerExtension extends Extension {
     });
 
     provider.on("sync", () => {
-      doc.once("afterTransaction", (tr) => {
-        if (tr.local) {
-          const clientIds = Array.from(doc.store.clients.keys());
+      doc.once("update", () => {
+        const clientIds = Array.from(doc.store.clients.keys());
 
-          if (!clientIds.includes(doc.clientID)) {
-            const permanentUserData = new Y.PermanentUserData(doc);
-            permanentUserData.setUserMapping(doc, doc.clientID, user.id);
-          }
+        if (!clientIds.includes(doc.clientID)) {
+          const permanentUserData = new Y.PermanentUserData(doc);
+          permanentUserData.setUserMapping(doc, doc.clientID, user.id);
         }
       });
     });
