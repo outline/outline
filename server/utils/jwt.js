@@ -20,7 +20,23 @@ function getJWTPayload(token) {
 
 export async function getUserForJWT(token: string): Promise<User> {
   const payload = getJWTPayload(token);
+
+  // check the token is within it's expiration time
+  if (payload.expiresAt) {
+    if (new Date(payload.expiresAt) < new Date()) {
+      throw new AuthenticationError("Expired token");
+    }
+  }
+
   const user = await User.findByPk(payload.id);
+
+  if (payload.type === "transfer") {
+    // If the user has made a single API request since the transfer token was
+    // created then it's no longer valid, they'll need to sign in again.
+    if (user.lastActiveAt > new Date(payload.createdAt)) {
+      throw new AuthenticationError("Token has already been used");
+    }
+  }
 
   try {
     JWT.verify(token, user.jwtSecret);
@@ -33,6 +49,10 @@ export async function getUserForJWT(token: string): Promise<User> {
 
 export async function getUserForEmailSigninToken(token: string): Promise<User> {
   const payload = getJWTPayload(token);
+
+  if (payload.type !== "email-signin") {
+    throw new AuthenticationError("Invalid token");
+  }
 
   // check the token is within it's expiration time
   if (payload.createdAt) {

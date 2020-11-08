@@ -47,6 +47,11 @@ const Team = sequelize.define(
       },
       unique: true,
     },
+    domain: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
     slackId: { type: DataTypes.STRING, allowNull: true },
     googleId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
@@ -66,6 +71,9 @@ const Team = sequelize.define(
   {
     getterMethods: {
       url() {
+        if (this.domain) {
+          return `https://${this.domain}`;
+        }
         if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== "true") {
           return process.env.URL;
         }
