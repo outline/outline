@@ -2,9 +2,9 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import styled from "styled-components";
 
-import { t } from "shared/translations/i18n";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import UserDelete from "scenes/UserDelete";
@@ -21,6 +21,7 @@ type Props = {
   ui: UiStore,
 };
 
+@withTranslation()
 @observer
 class Profile extends React.Component<Props> {
   timeout: TimeoutID;
@@ -43,6 +44,7 @@ class Profile extends React.Component<Props> {
   }
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
+    const { t } = this.props;
     ev.preventDefault();
 
     await this.props.auth.updateUser({
@@ -50,10 +52,8 @@ class Profile extends React.Component<Props> {
       avatarUrl: this.avatarUrl,
       language: this.language,
     });
+
     this.props.ui.showToast(t("Profile saved"));
-    setTimeout(function () {
-      window.location.reload();
-    }, 1000);
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -61,6 +61,7 @@ class Profile extends React.Component<Props> {
   };
 
   handleAvatarUpload = async (avatarUrl: string) => {
+    const { t } = this.props;
     this.avatarUrl = avatarUrl;
 
     await this.props.auth.updateUser({
@@ -70,6 +71,7 @@ class Profile extends React.Component<Props> {
   };
 
   handleAvatarError = (error: ?string) => {
+    const { t } = this.props;
     this.props.ui.showToast(error || t("Unable to upload new avatar"));
   };
 
@@ -86,6 +88,7 @@ class Profile extends React.Component<Props> {
   }
 
   render() {
+    const { t } = this.props;
     const { user, isSaving } = this.props.auth;
     if (!user) return null;
     const avatarUrl = this.avatarUrl || user.avatarUrl;

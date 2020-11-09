@@ -30,7 +30,7 @@ module.exports = {
       html: ['HTMLLexer'],
   
       mjs: ['JavascriptLexer'],
-      js: ['JavascriptLexer'], // if you're writing jsx inside .js files, change this to JsxLexer
+      js: ['JsxLexer'], // if you're writing jsx inside .js files, change this to JsxLexer
       ts: ['JavascriptLexer'],
       jsx: ['JsxLexer'],
       tsx: ['JsxLexer'],

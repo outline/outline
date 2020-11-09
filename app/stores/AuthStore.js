@@ -2,7 +2,6 @@
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
-import { i18n } from "shared/translations/i18n";
 import RootStore from "stores/RootStore";
 import Team from "models/Team";
 import User from "models/User";
@@ -125,8 +124,6 @@ export default class AuthStore {
         const { user, team } = res.data;
         this.user = new User(user);
         this.team = new Team(team);
-
-        i18n.changeLanguage(this.user.language);
 
         if (window.Sentry) {
           window.Sentry.configureScope(function (scope) {

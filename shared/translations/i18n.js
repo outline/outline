@@ -24,6 +24,4 @@ i18n.use(initReactI18next).init({
   },
 });
 
-const t = i18n.getFixedT();
-
-export { t, i18n };
+export default i18n;

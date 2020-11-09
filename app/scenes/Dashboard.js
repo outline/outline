@@ -1,9 +1,9 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 
-import { t } from "shared/translations/i18n";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import Actions, { Action } from "components/Actions";
@@ -20,10 +20,11 @@ type Props = {
   auth: AuthStore,
 };
 
+@withTranslation()
 @observer
 class Dashboard extends React.Component<Props> {
   render() {
-    const { documents, auth } = this.props;
+    const { documents, auth, t } = this.props;
     if (!auth.user || !auth.team) return null;
     const user = auth.user.id;
 

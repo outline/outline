@@ -14,6 +14,8 @@ import Toasts from "components/Toasts";
 import Routes from "./routes";
 import env from "env";
 
+import "shared/translations/i18n";
+
 const element = document.getElementById("root");
 
 if (element) {
