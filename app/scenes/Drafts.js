@@ -95,7 +95,7 @@ class Drafts extends React.Component<Props> {
           empty={
             <Empty>
               {isFiltered
-                ? "No documents matching filters."
+                ? "No documents found for your filters."
                 : "You’ve not got any drafts at the moment."}
             </Empty>
           }
