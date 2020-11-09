@@ -328,6 +328,12 @@ class DocumentScene extends React.Component<Props> {
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
+    const headings = this.editor.current
+      ? this.editor.current.getHeadings()
+      : [];
+    const showContents =
+      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+
     return (
       <ErrorBoundary>
         <Background
@@ -379,7 +385,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth
               archived={document.isArchived}
-              tocVisible={ui.tocVisible && readOnly}
+              showContents={showContents}
               column
               auto
             >
@@ -413,15 +419,7 @@ class DocumentScene extends React.Component<Props> {
               )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
-                  {ui.tocVisible && readOnly && (
-                    <Contents
-                      headings={
-                        this.editor.current
-                          ? this.editor.current.getHeadings()
-                          : []
-                      }
-                    />
-                  )}
+                  {showContents && <Contents headings={headings} />}
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
@@ -494,7 +492,8 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${(props) => (props.tocVisible ? "64em" : "46em")});
+    max-width: calc(48px + ${(props) =>
+      props.showContents ? "64em" : "46em"});
   `};
 
   ${breakpoint("desktopLarge")`
