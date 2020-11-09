@@ -6,7 +6,6 @@ import * as React from "react";
 import { type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
-import Document from "models/Document";
 import CollectionFilter from "scenes/Search/components/CollectionFilter";
 import DateFilter from "scenes/Search/components/DateFilter";
 
@@ -16,7 +15,6 @@ import Empty from "components/Empty";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
 import InputSearch from "components/InputSearch";
-import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
@@ -34,8 +32,6 @@ class Drafts extends React.Component<Props> {
   @observable params: URLSearchParams = new URLSearchParams(
     this.props.location.search
   );
-  @observable isFetching: boolean = false;
-  @observable drafts: Document[] = [];
 
   componentDidUpdate(prevProps) {
     if (prevProps.location.search !== this.props.location.search) {
@@ -95,23 +91,19 @@ class Drafts extends React.Component<Props> {
           </Filters>
         </Subheading>
 
-        {this.isFetching ? (
-          <LoadingIndicator />
-        ) : (
-          <PaginatedDocumentList
-            empty={
-              <Empty>
-                {isFiltered
-                  ? "No documents matching filters."
-                  : "You’ve not got any drafts at the moment."}
-              </Empty>
-            }
-            fetch={fetchDrafts}
-            documents={drafts(options)}
-            options={options}
-            showCollection
-          />
-        )}
+        <PaginatedDocumentList
+          empty={
+            <Empty>
+              {isFiltered
+                ? "No documents matching filters."
+                : "You’ve not got any drafts at the moment."}
+            </Empty>
+          }
+          fetch={fetchDrafts}
+          documents={drafts(options)}
+          options={options}
+          showCollection
+        />
 
         <Actions align="center" justify="flex-end">
           <Action>
