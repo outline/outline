@@ -403,7 +403,8 @@ const Filters = styled(Flex)`
   margin-bottom: 12px;
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
-  overflow-y: auto;
+  overflow-y: hidden;
+  overflow-x: auto;
   padding: 8px 0;
 
   ${breakpoint("tablet")`	
