@@ -4,7 +4,7 @@ import FilterOptions from "./FilterOptions";
 
 const options = [
   {
-    key: undefined,
+    key: "",
     label: "Active documents",
     note: "Documents in collections you are able to access",
   },
