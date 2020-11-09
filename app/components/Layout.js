@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
+import { withTranslation } from "react-i18next";
 import keydown from "react-keydown";
 import { Switch, Route, Redirect } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -39,6 +40,7 @@ type Props = {
   theme: Theme,
 };
 
+@withTranslation()
 @observer
 class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
@@ -88,12 +90,15 @@ class Layout extends React.Component<Props> {
   }
 
   render() {
-    const { auth, ui } = this.props;
+    const { auth, ui, i18n } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    if (auth.authenticated && i18n.language !== user.language)
+      i18n.changeLanguage(user.language);
 
     return (
       <Container column auto>
