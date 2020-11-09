@@ -53,11 +53,7 @@ class Draggable extends React.Component<Props> {
 
     return (
       <DnDDraggable draggableId={draggableId} index={index}>
-        {(provided, snapshot) => (
-          <Inner provided={provided} snapshot={snapshot}>
-            {children}
-          </Inner>
-        )}
+        {(provided, snapshot) => children}
       </DnDDraggable>
     );
   }

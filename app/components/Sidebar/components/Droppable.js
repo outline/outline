@@ -38,11 +38,7 @@ class Droppable extends React.Component<Props> {
     }
 
     return (
-      <DnDDroppable
-        droppableId={droppableId}
-        isDropDisabled={isDropDisabled}
-        isCombineEnabled={true}
-      >
+      <DnDDroppable droppableId={droppableId} isDropDisabled={isDropDisabled}>
         {(provided, snapshot) => (
           <DropContainer
             isDraggingOver={snapshot.isDraggingOver}

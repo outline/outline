@@ -2,6 +2,7 @@
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
+import { Draggable as DnDDraggable } from "react-beautiful-dnd";
 import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
@@ -17,6 +18,8 @@ type Props = {
   menu?: React.Node,
   menuOpen?: boolean,
   hideDisclosure?: boolean,
+  draggableId?: string,
+  index?: number,
   iconColor?: string,
   active?: boolean,
   theme: Object,
@@ -34,6 +37,8 @@ function SidebarLink({
   menu,
   menuOpen,
   hideDisclosure,
+  draggableId,
+  index,
   theme,
   exact,
   href,
@@ -75,28 +80,45 @@ function SidebarLink({
     ...style,
   };
 
+  const linkElement = (props) => (
+    <StyledNavLink
+      activeStyle={activeStyle}
+      style={active ? activeStyle : style}
+      onClick={onClick}
+      exact={exact !== false}
+      to={to}
+      as={to ? undefined : href ? "a" : "div"}
+      href={href}
+      {...props}
+    >
+      {icon && <IconWrapper>{icon}</IconWrapper>}
+      <Label onClick={handleExpand}>
+        {showDisclosure && (
+          <Disclosure expanded={expanded} onClick={handleClick} />
+        )}
+        {label}
+      </Label>
+      {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
+    </StyledNavLink>
+  );
+
   return (
-    <Wrapper column>
-      <StyledNavLink
-        activeStyle={activeStyle}
-        style={active ? activeStyle : style}
-        onClick={onClick}
-        exact={exact !== false}
-        to={to}
-        as={to ? undefined : href ? "a" : "div"}
-        href={href}
-      >
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label onClick={handleExpand}>
-          {showDisclosure && (
-            <Disclosure expanded={expanded} onClick={handleClick} />
-          )}
-          {label}
-        </Label>
-        {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
-      </StyledNavLink>
-      <ChildrenWrapper expanded={expanded}>{children}</ChildrenWrapper>
-    </Wrapper>
+    <>
+      {draggableId ? (
+        <DnDDraggable draggableId={draggableId} index={index}>
+          {(provided, snapshot) =>
+            linkElement({
+              innerRef: provided.innerRef,
+              ...provided.draggableProps,
+              ...provided.dragHandleProps,
+            })
+          }
+        </DnDDraggable>
+      ) : (
+        linkElement()
+      )}
+      {expanded && children}
+    </>
   );
 }
 

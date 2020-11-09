@@ -91,22 +91,17 @@ class CollectionLink extends React.Component<Props> {
                     <Observer>
                       {() =>
                         collection.documents.map((node, index) => (
-                          <Draggable
+                          <DocumentLink
                             key={node.id}
-                            draggableId={node.id}
+                            node={node}
                             index={index}
-                          >
-                            <DocumentLink
-                              key={node.id}
-                              node={node}
-                              documents={documents}
-                              collection={collection}
-                              activeDocument={activeDocument}
-                              prefetchDocument={prefetchDocument}
-                              canUpdate={canUpdate}
-                              depth={1.5}
-                            />
-                          </Draggable>
+                            documents={documents}
+                            collection={collection}
+                            activeDocument={activeDocument}
+                            prefetchDocument={prefetchDocument}
+                            canUpdate={canUpdate}
+                            depth={1.5}
+                          />
                         ))
                       }
                     </Observer>

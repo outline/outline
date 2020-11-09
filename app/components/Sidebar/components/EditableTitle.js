@@ -9,7 +9,7 @@ type Props = {|
   canUpdate: boolean,
 |};
 
-function EditableTitle({ title, onSubmit, canUpdate }: Props) {
+function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
