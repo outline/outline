@@ -31,6 +31,7 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
 import { type LocationWithState } from "types";
+import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import {
   collectionUrl,
@@ -458,7 +459,8 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Background>
-        {isShare ? <Branding /> : <KeyboardShortcutsButton />}
+        {isShare && !isCustomDomain() && <Branding />}
+        {!isShare && <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );
   }
