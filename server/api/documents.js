@@ -1,6 +1,7 @@
 // @flow
 import Router from "koa-router";
 import Sequelize from "sequelize";
+import { subtractDate } from "../../shared/utils/date";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
 import { NotFoundError, InvalidRequestError } from "../errors";
@@ -359,24 +360,51 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
 });
 
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
-  let { sort = "updatedAt", direction } = ctx.body;
+  let { collectionId, dateFilter, sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
-  const collectionIds = await user.collectionIds();
+
+  if (collectionId) {
+    ctx.assertUuid(collectionId, "collectionId must be a UUID");
+
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
+    authorize(user, "read", collection);
+  }
+
+  const collectionIds = !!collectionId
+    ? [collectionId]
+    : await user.collectionIds();
+
+  const whereConditions = {
+    userId: user.id,
+    collectionId: collectionIds,
+    publishedAt: { [Op.eq]: null },
+    updatedAt: undefined,
+  };
+
+  if (dateFilter) {
+    ctx.assertIn(
+      dateFilter,
+      ["day", "week", "month", "year"],
+      "dateFilter must be one of day,week,month,year"
+    );
+
+    whereConditions.updatedAt = {
+      [Op.gte]: subtractDate(new Date(), dateFilter),
+    };
+  } else {
+    delete whereConditions.updatedAt;
+  }
 
   const collectionScope = { method: ["withCollection", user.id] };
-  const viewScope = { method: ["withViews", user.id] };
   const documents = await Document.scope(
     "defaultScope",
-    collectionScope,
-    viewScope
+    collectionScope
   ).findAll({
-    where: {
-      userId: user.id,
-      collectionId: collectionIds,
-      publishedAt: { [Op.eq]: null },
-    },
+    where: whereConditions,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,

@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
 import { MAX_TITLE_LENGTH } from "shared/constants";
+import { subtractDate } from "shared/utils/date";
 import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
@@ -168,12 +169,31 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get drafts(): Document[] {
-    return filter(
+  get totalDrafts(): number {
+    return this.drafts().length;
+  }
+
+  drafts = (options = {}): Document[] => {
+    let drafts = filter(
       orderBy(this.all, "updatedAt", "desc"),
       (doc) => !doc.publishedAt
     );
-  }
+
+    if (options.dateFilter) {
+      drafts = filter(
+        drafts,
+        (draft) =>
+          new Date(draft.updatedAt) >=
+          subtractDate(new Date(), options.dateFilter)
+      );
+    }
+
+    if (options.collectionId) {
+      drafts = filter(drafts, { collectionId: options.collectionId });
+    }
+
+    return drafts;
+  };
 
   @computed
   get active(): ?Document {
