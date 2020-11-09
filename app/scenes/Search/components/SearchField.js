@@ -3,11 +3,12 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
+import { type Theme } from "types";
 
 type Props = {
   onChange: (string) => void,
   defaultValue?: string,
-  theme: Object,
+  theme: Theme,
 };
 
 class SearchField extends React.Component<Props> {

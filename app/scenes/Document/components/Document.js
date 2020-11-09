@@ -30,7 +30,7 @@ import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
-import { type LocationWithState } from "types";
+import { type LocationWithState, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import {
@@ -62,7 +62,7 @@ type Props = {
   readOnly: boolean,
   onCreateLink: (title: string) => string,
   onSearchLink: (term: string) => any,
-  theme: Object,
+  theme: Theme,
   auth: AuthStore,
   ui: UiStore,
 };

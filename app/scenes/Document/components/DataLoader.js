@@ -22,7 +22,7 @@ import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
-import { type LocationWithState } from "types";
+import { type LocationWithState, type Theme } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import isInternalUrl from "utils/isInternalUrl";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
@@ -35,7 +35,7 @@ type Props = {|
   policies: PoliciesStore,
   revisions: RevisionsStore,
   ui: UiStore,
-  theme: Object,
+  theme: Theme,
   history: RouterHistory,
 |};
 

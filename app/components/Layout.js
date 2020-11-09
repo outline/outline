@@ -21,6 +21,7 @@ import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
+import { type Theme } from "types";
 import {
   homeUrl,
   searchUrl,
@@ -35,7 +36,7 @@ type Props = {
   auth: AuthStore,
   ui: UiStore,
   notifications?: React.Node,
-  theme: Object,
+  theme: Theme,
 };
 
 @observer

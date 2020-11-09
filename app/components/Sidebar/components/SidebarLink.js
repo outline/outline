@@ -5,6 +5,7 @@ import * as React from "react";
 import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
+import { type Theme } from "types";
 
 type Props = {
   to?: string | Object,
@@ -19,7 +20,7 @@ type Props = {
   hideDisclosure?: boolean,
   iconColor?: string,
   active?: boolean,
-  theme: Object,
+  theme: Theme,
   exact?: boolean,
   depth?: number,
 };

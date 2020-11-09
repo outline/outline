@@ -1,6 +1,9 @@
 // @flow
 import { type Location } from "react-router-dom";
+import theme from "shared/styles/theme";
 import Document from "models/Document";
+
+export type Theme = typeof theme;
 
 export type LocationWithState = Location & {
   state: {
