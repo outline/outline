@@ -7,7 +7,7 @@ import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
 import AuthStore from "stores/AuthStore";
@@ -82,7 +82,6 @@ class DocumentScene extends React.Component<Props> {
 
   componentDidMount() {
     this.updateIsDirty();
-    this.updateBackground();
   }
 
   componentDidUpdate(prevProps) {
@@ -116,14 +115,6 @@ class DocumentScene extends React.Component<Props> {
       this.title = document.title;
       this.isDirty = true;
     }
-
-    this.updateBackground();
-  }
-
-  updateBackground() {
-    // ensure the wider page color always matches the theme. This is to
-    // account for share links which don't sit in the wider Layout component
-    window.document.body.style.background = this.props.theme.background;
   }
 
   @keydown("m")
@@ -504,5 +495,5 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject("ui", "auth", "policies", "revisions")(withTheme(DocumentScene))
+  inject("ui", "auth", "policies", "revisions")(DocumentScene)
 );
