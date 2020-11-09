@@ -11,8 +11,6 @@ import logger from "koa-logger";
 import mount from "koa-mount";
 import onerror from "koa-onerror";
 import enforceHttps from "koa-sslify";
-import { compact } from "lodash";
-
 import api from "./api";
 import auth from "./auth";
 import emails from "./emails";
@@ -20,10 +18,26 @@ import routes from "./routes";
 import updates from "./utils/updates";
 
 const app = new Koa();
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
 app.use(compress());
 
-if (process.env.NODE_ENV === "development") {
+if (isProduction) {
+  // Force redirect to HTTPS protocol unless explicitly disabled
+  if (process.env.FORCE_HTTPS !== "false") {
+    app.use(
+      enforceHttps({
+        trustProtoHeader: true,
+      })
+    );
+  } else {
+    console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
+  }
+
+  // trust header fields set by our proxy. eg X-Forwarded-For
+  app.proxy = true;
+} else if (!isTest) {
   /* eslint-disable global-require */
   const convert = require("koa-convert");
   const webpack = require("webpack");
@@ -72,20 +86,6 @@ if (process.env.NODE_ENV === "development") {
   app.use(logger());
 
   app.use(mount("/emails", emails));
-} else if (process.env.NODE_ENV === "production") {
-  // Force redirect to HTTPS protocol unless explicitly disabled
-  if (process.env.FORCE_HTTPS !== "false") {
-    app.use(
-      enforceHttps({
-        trustProtoHeader: true,
-      })
-    );
-  } else {
-    console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
-  }
-
-  // trust header fields set by our proxy. eg X-Forwarded-For
-  app.proxy = true;
 }
 
 // catch errors in one place, automatically set status and response headers
@@ -148,13 +148,16 @@ app.use(
       styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
       imgSrc: ["*", "data:", "blob:"],
       frameSrc: ["*"],
-      connectSrc: compact([
-        "'self'",
-        process.env.AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:"),
-        "www.google-analytics.com",
-        "api.github.com",
-        "sentry.io",
-      ]),
+      connectSrc: ["*"],
+      // Removed because connect-src: self + websockets does not work in Safari
+      // Ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+      // connectSrc: compact([
+      //   "'self'",
+      //   process.env.AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:"),
+      //   "www.google-analytics.com",
+      //   "api.github.com",
+      //   "sentry.io",
+      // ]),
     },
   })
 );
@@ -167,10 +170,7 @@ app.use(mount(routes));
  *
  * Set ENABLE_UPDATES=false to disable them for your installation
  */
-if (
-  process.env.ENABLE_UPDATES !== "false" &&
-  process.env.NODE_ENV === "production"
-) {
+if (process.env.ENABLE_UPDATES !== "false" && isProduction) {
   updates();
   setInterval(updates, 24 * 3600 * 1000);
 }

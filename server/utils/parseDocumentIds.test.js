@@ -1,4 +1,4 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
+// @flow
 import parseDocumentIds from "./parseDocumentIds";
 
 it("should not return non links", () => {

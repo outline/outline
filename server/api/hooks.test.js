@@ -1,9 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Authentication } from "../models";
+import { Authentication, SearchQuery } from "../models";
 import * as Slack from "../slack";
-import { buildDocument } from "../test/factories";
+import { buildDocument, buildIntegration } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -132,6 +132,30 @@ describe("#hooks.slack", () => {
     );
   });
 
+  it("should save search term, hits and source", async (done) => {
+    const { user, team } = await seed();
+    await server.post("/api/hooks.slack", {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.serviceId,
+        team_id: team.slackId,
+        text: "contains",
+      },
+    });
+
+    // setTimeout is needed here because SearchQuery is saved asynchronously
+    // in order to not slow down the response time.
+    setTimeout(async () => {
+      const searchQuery = await SearchQuery.findAll({
+        where: { query: "contains" },
+      });
+      expect(searchQuery.length).toBe(1);
+      expect(searchQuery[0].results).toBe(0);
+      expect(searchQuery[0].source).toBe("slack");
+      done();
+    }, 100);
+  });
+
   it("should respond with help content for help keyword", async () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
@@ -188,6 +212,41 @@ describe("#hooks.slack", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.text).toContain("you haven’t signed in to Outline yet");
+    expect(body.attachments.length).toEqual(1);
+    expect(body.attachments[0].title).toEqual(document.title);
+    expect(body.attachments[0].text).toEqual(
+      "This title *contains* a search term"
+    );
+  });
+
+  it("should return search results with snippet for user through integration mapping", async () => {
+    const { user } = await seed();
+    const serviceTeamId = "slack_team_id";
+
+    await buildIntegration({
+      teamId: user.teamId,
+      settings: {
+        serviceTeamId,
+      },
+    });
+
+    const document = await buildDocument({
+      text: "This title contains a search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/hooks.slack", {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: "unknown-slack-user-id",
+        team_id: serviceTeamId,
+        text: "contains",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.text).toContain("you haven’t signed in to Outline yet");
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
     expect(body.attachments[0].text).toEqual(

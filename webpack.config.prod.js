@@ -8,7 +8,7 @@ commonWebpackConfig = require('./webpack.config');
 
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'build/app'),
     filename: '[name].[contenthash].js',
     publicPath: '/static/',
   },

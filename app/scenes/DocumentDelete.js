@@ -9,7 +9,7 @@ import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import { collectionUrl } from "utils/routeHelpers";
+import { collectionUrl, documentUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -24,15 +24,27 @@ class DocumentDelete extends React.Component<Props> {
   @observable isDeleting: boolean;
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
+    const { documents, document } = this.props;
     ev.preventDefault();
     this.isDeleting = true;
 
     try {
-      await this.props.document.delete();
-      if (this.props.ui.activeDocumentId === this.props.document.id) {
-        this.props.history.push(
-          collectionUrl(this.props.document.collectionId)
-        );
+      await document.delete();
+
+      // only redirect if we're currently viewing the document that's deleted
+      if (this.props.ui.activeDocumentId === document.id) {
+        // If the document has a parent and it's available in the store then
+        // redirect to it
+        if (document.parentDocumentId) {
+          const parent = documents.get(document.parentDocumentId);
+          if (parent) {
+            this.props.history.push(documentUrl(parent));
+            return;
+          }
+        }
+
+        // otherwise, redirect to the collection home
+        this.props.history.push(collectionUrl(document.collectionId));
       }
       this.props.onSubmit();
     } catch (err) {

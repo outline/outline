@@ -6,6 +6,7 @@ import { signin } from "../../shared/utils/routeHelpers";
 import auth from "../middlewares/authentication";
 import { Team } from "../models";
 import { presentUser, presentTeam, presentPolicies } from "../presenters";
+import { isCustomDomain } from "../utils/domains";
 
 const router = new Router();
 
@@ -68,11 +69,29 @@ router.post("auth.config", async (ctx) => {
     }
   }
 
+  if (isCustomDomain(ctx.request.hostname)) {
+    const team = await Team.findOne({
+      where: { domain: ctx.request.hostname },
+    });
+
+    if (team) {
+      ctx.body = {
+        data: {
+          name: team.name,
+          hostname: ctx.request.hostname,
+          services: filterServices(team),
+        },
+      };
+      return;
+    }
+  }
+
   // If subdomain signin page then we return minimal team details to allow
   // for a custom screen showing only relevant signin options for that team.
   if (
     process.env.SUBDOMAINS_ENABLED === "true" &&
-    isCustomSubdomain(ctx.request.hostname)
+    isCustomSubdomain(ctx.request.hostname) &&
+    !isCustomDomain(ctx.request.hostname)
   ) {
     const domain = parseDomain(ctx.request.hostname);
     const subdomain = domain ? domain.subdomain : undefined;

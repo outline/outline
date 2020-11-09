@@ -1,16 +1,14 @@
 // @flow
-import { debounce } from "lodash";
-import { observable, action } from "mobx";
+import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
+import { type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
 import CollectionFilter from "scenes/Search/components/CollectionFilter";
 import DateFilter from "scenes/Search/components/DateFilter";
-import UserFilter from "scenes/Search/components/UserFilter";
 
 import Actions, { Action } from "components/Actions";
 import CenteredContent from "components/CenteredContent";
@@ -23,20 +21,21 @@ import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
 import NewDocumentMenu from "menus/NewDocumentMenu";
+import { type LocationWithState } from "types";
 
-type Props = {
+type Props = {|
   documents: DocumentsStore,
-};
+  history: RouterHistory,
+  location: LocationWithState,
+|};
 
 @observer
 class Drafts extends React.Component<Props> {
-  @observable params: URLSearchParams = new URLSearchParams();
+  @observable params: URLSearchParams = new URLSearchParams(
+    this.props.location.search
+  );
   @observable isFetching: boolean = false;
   @observable drafts: Document[] = [];
-
-  componentDidMount() {
-    this.handleQueryChange();
-  }
 
   componentDidUpdate(prevProps) {
     if (prevProps.location.search !== this.props.location.search) {
@@ -46,7 +45,6 @@ class Drafts extends React.Component<Props> {
 
   handleQueryChange = () => {
     this.params = new URLSearchParams(this.props.location.search);
-    this.fetchResultsDebounced();
   };
 
   handleFilterChange = (search) => {
@@ -57,41 +55,10 @@ class Drafts extends React.Component<Props> {
         ...search,
       }),
     });
-
-    this.fetchResultsDebounced();
   };
-
-  @action
-  fetchResults = async () => {
-    this.isFetching = true;
-
-    try {
-      const result = await this.props.documents.fetchDrafts({
-        dateFilter: this.dateFilter,
-        collectionId: this.collectionId,
-        userId: this.userId,
-      });
-
-      this.drafts = result.map(
-        (item) => new Document(item, this.props.documents)
-      );
-    } finally {
-      this.isFetching = false;
-    }
-  };
-
-  fetchResultsDebounced = debounce(this.fetchResults, 350, {
-    leading: false,
-    trailing: true,
-  });
 
   get collectionId() {
     const id = this.params.get("collectionId");
-    return id ? id : undefined;
-  }
-
-  get userId() {
-    const id = this.params.get("userId");
     return id ? id : undefined;
   }
 
@@ -101,48 +68,54 @@ class Drafts extends React.Component<Props> {
   }
 
   render() {
-    const { fetchDrafts } = this.props.documents;
+    const { drafts, fetchDrafts } = this.props.documents;
+    const isFiltered = this.collectionId || this.dateFilter;
+    const options = {
+      dateFilter: this.dateFilter,
+      collectionId: this.collectionId,
+    };
 
     return (
       <CenteredContent column auto>
         <PageTitle title="Drafts" />
         <Heading>Drafts</Heading>
-        <Filters>
-          <CollectionFilter
-            collectionId={this.collectionId}
-            onSelect={(collectionId) =>
-              this.handleFilterChange({ collectionId })
-            }
-          />
-          <UserFilter
-            userId={this.userId}
-            onSelect={(userId) => this.handleFilterChange({ userId })}
-          />
-          <DateFilter
-            dateFilter={this.dateFilter}
-            onSelect={(dateFilter) => this.handleFilterChange({ dateFilter })}
-          />
-        </Filters>
+        <Subheading>
+          Documents
+          <Filters>
+            <CollectionFilter
+              collectionId={this.collectionId}
+              onSelect={(collectionId) =>
+                this.handleFilterChange({ collectionId })
+              }
+            />
+            <DateFilter
+              dateFilter={this.dateFilter}
+              onSelect={(dateFilter) => this.handleFilterChange({ dateFilter })}
+            />
+          </Filters>
+        </Subheading>
+
         {this.isFetching ? (
           <LoadingIndicator />
         ) : (
           <PaginatedDocumentList
-            heading={<Subheading>Documents</Subheading>}
-            empty={<Empty>You’ve not got any drafts at the moment.</Empty>}
+            empty={
+              <Empty>
+                {isFiltered
+                  ? "No documents matching filters."
+                  : "You’ve not got any drafts at the moment."}
+              </Empty>
+            }
             fetch={fetchDrafts}
-            documents={this.drafts}
-            options={{
-              dateFilter: this.dateFilter,
-              collectionId: this.collectionId,
-              userId: this.userId,
-            }}
+            documents={drafts(options)}
+            options={options}
             showCollection
           />
         )}
 
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch />
+            <InputSearch source="drafts" />
           </Action>
           <Action>
             <NewDocumentMenu />
@@ -156,11 +129,10 @@ class Drafts extends React.Component<Props> {
 const Filters = styled(Flex)`
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
-  padding: 8px 0;
-
-  ${breakpoint("tablet")`	
-    padding: 0;
-  `};
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+  padding: 0 0 6px;
 
   &:hover {
     opacity: 1;

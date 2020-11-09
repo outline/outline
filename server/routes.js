@@ -18,7 +18,7 @@ const readFile = util.promisify(fs.readFile);
 
 const readIndexFile = async (ctx) => {
   if (isProduction) {
-    return readFile(path.join(__dirname, "../dist/index.html"));
+    return readFile(path.join(__dirname, "../app/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
@@ -37,39 +37,7 @@ const readIndexFile = async (ctx) => {
   });
 };
 
-// serve static assets
-koa.use(
-  serve(path.resolve(__dirname, "../public"), {
-    maxage: 60 * 60 * 24 * 30 * 1000,
-  })
-);
-
-router.get("/_health", (ctx) => (ctx.body = "OK"));
-
-if (process.env.NODE_ENV === "production") {
-  router.get("/static/*", async (ctx) => {
-    ctx.set({
-      "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
-    });
-
-    await sendfile(
-      ctx,
-      path.join(__dirname, "../dist/", ctx.path.substring(8))
-    );
-  });
-}
-
-router.get("/robots.txt", (ctx) => {
-  ctx.body = robotsResponse(ctx);
-});
-
-router.get("/opensearch.xml", (ctx) => {
-  ctx.type = "text/xml";
-  ctx.body = opensearchResponse();
-});
-
-// catch all for application
-router.get("*", async (ctx, next) => {
+const renderApp = async (ctx, next) => {
   if (ctx.request.path === "/realtime/") {
     return next();
   }
@@ -83,7 +51,43 @@ router.get("*", async (ctx, next) => {
     .replace(/\/\/inject-env\/\//g, env)
     .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+};
+
+// serve static assets
+koa.use(
+  serve(path.resolve(__dirname, "../../public"), {
+    maxage: 60 * 60 * 24 * 30 * 1000,
+  })
+);
+
+router.get("/_health", (ctx) => (ctx.body = "OK"));
+
+if (process.env.NODE_ENV === "production") {
+  router.get("/static/*", async (ctx) => {
+    ctx.set({
+      "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
+    });
+
+    await sendfile(ctx, path.join(__dirname, "../app/", ctx.path.substring(8)));
+  });
+}
+
+router.get("/robots.txt", (ctx) => {
+  ctx.body = robotsResponse(ctx);
 });
+
+router.get("/opensearch.xml", (ctx) => {
+  ctx.type = "text/xml";
+  ctx.body = opensearchResponse();
+});
+
+router.get("/share/*", (ctx, next) => {
+  ctx.remove("X-Frame-Options");
+  return renderApp(ctx, next);
+});
+
+// catch all for application
+router.get("*", renderApp);
 
 // middleware
 koa.use(apexRedirect());

@@ -9,19 +9,21 @@ import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
-type Props = {
+type Props = {|
   node: NavigationNode,
   documents: DocumentsStore,
+  canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
-};
+|};
 
 @observer
 class DocumentLink extends React.Component<Props> {
@@ -49,6 +51,18 @@ class DocumentLink extends React.Component<Props> {
     prefetchDocument(node.id);
   };
 
+  handleTitleChange = async (title: string) => {
+    const document = this.props.documents.get(this.props.node.id);
+    if (!document) return;
+
+    await this.props.documents.update({
+      id: document.id,
+      lastRevision: document.revision,
+      text: document.text,
+      title,
+    });
+  };
+
   isActiveDocument = () => {
     return (
       this.props.activeDocument &&
@@ -69,6 +83,7 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
+      canUpdate,
     } = this.props;
 
     const showChildren = !!(
@@ -81,6 +96,7 @@ class DocumentLink extends React.Component<Props> {
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
+    const title = node.title || "Untitled";
 
     return (
       <Flex
@@ -96,7 +112,13 @@ class DocumentLink extends React.Component<Props> {
               state: { title: node.title },
             }}
             expanded={showChildren ? true : undefined}
-            label={node.title || "Untitled"}
+            label={
+              <EditableTitle
+                title={title}
+                onSubmit={this.handleTitleChange}
+                canUpdate={canUpdate}
+              />
+            }
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}
@@ -124,6 +146,7 @@ class DocumentLink extends React.Component<Props> {
                     activeDocument={activeDocument}
                     prefetchDocument={prefetchDocument}
                     depth={depth + 1}
+                    canUpdate={canUpdate}
                   />
                 ))}
               </DocumentChildren>

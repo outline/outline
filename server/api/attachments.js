@@ -27,13 +27,15 @@ router.post("attachments.create", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const s3Key = uuid.v4();
-  const key = `uploads/${user.id}/${s3Key}/${name}`;
   const acl =
     ctx.body.public === undefined
       ? AWS_S3_ACL
       : ctx.body.public
       ? "public-read"
       : "private";
+
+  const bucket = acl === "public-read" ? "public" : "uploads";
+  const key = `${bucket}/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
   const longDate = format(new Date(), "YYYYMMDDTHHmmss\\Z");
   const policy = makePolicy(credential, longDate, acl);

@@ -7,6 +7,7 @@ import {
   EditIcon,
   GlobeIcon,
   PlusIcon,
+  MoreIcon,
 } from "outline-icons";
 import { transparentize, darken } from "polished";
 import * as React from "react";
@@ -336,6 +337,15 @@ class Header extends React.Component<Props> {
                 <DocumentMenu
                   document={document}
                   isRevision={isRevision}
+                  label={
+                    <Button
+                      icon={<MoreIcon />}
+                      iconColor="currentColor"
+                      borderOnHover
+                      neutral
+                      small
+                    />
+                  }
                   showToggleEmbeds={canToggleEmbeds}
                   showPrint
                 />

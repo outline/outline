@@ -27,7 +27,6 @@ const DocumentLink = styled(Link)`
   &:active,
   &:focus {
     background: ${(props) => props.theme.listItemHoverBackground};
-    outline: none;
   }
 `;
 

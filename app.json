@@ -92,6 +92,11 @@
       "value": "26214400",
       "required": false
     },
+    "AWS_S3_FORCE_PATH_STYLE": {
+      "description": "Use path-style URL's for connecting to S3 instead of subdomain. This is useful for S3-compatible storage.",
+      "value": "true",
+      "required": false
+    },
     "AWS_REGION": {
       "value": "us-east-1",
       "description": "Region in which the above S3 bucket exists",

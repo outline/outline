@@ -45,8 +45,14 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  events.add(event);
+  events.add(event, { removeOnComplete: true });
 });
+
+// add can be used to send events into the event system without recording them
+// in the database / audit trail
+Event.add = (event) => {
+  events.add(Event.build(event), { removeOnComplete: true });
+};
 
 Event.ACTIVITY_EVENTS = [
   "users.create",

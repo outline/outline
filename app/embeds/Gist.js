@@ -2,10 +2,11 @@
 import * as React from "react";
 
 const URL_REGEX = new RegExp(
-  "^https://gist.github.com/([a-zd](?:[a-zd]|-(?=[a-zd])){0,38})/(.*)$"
+  "^https://gist.github.com/([a-z\\d](?:[a-z\\d]|-(?=[a-z\\d])){0,38})/(.*)$"
 );
 
 type Props = {|
+  isSelected: boolean,
   attrs: {|
     href: string,
     matches: string[],
@@ -48,6 +49,7 @@ class Gist extends React.Component<Props> {
 
     return (
       <iframe
+        className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
         ref={this.updateIframeContent}
         type="text/html"
         frameBorder="0"

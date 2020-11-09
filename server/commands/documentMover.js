@@ -1,6 +1,5 @@
 // @flow
-import { type Context } from "koa";
-import { Document, Collection, Event } from "../models";
+import { Document, Collection, User, Event } from "../models";
 import { sequelize } from "../sequelize";
 
 export default async function documentMover({
@@ -11,10 +10,10 @@ export default async function documentMover({
   index,
   ip,
 }: {
-  user: Context,
+  user: User,
   document: Document,
   collectionId: string,
-  parentDocumentId: string,
+  parentDocumentId?: string,
   index?: number,
   ip: string,
 }) {
@@ -39,6 +38,7 @@ export default async function documentMover({
       // remove from original collection
       const collection = await Collection.findByPk(document.collectionId, {
         transaction,
+        paranoid: false,
       });
       const documentJson = await collection.removeDocumentInStructure(
         document,

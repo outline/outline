@@ -21,7 +21,7 @@ function HeaderBlock({
 }: Props) {
   return (
     <Header justify="flex-start" align="center" {...rest}>
-      <TeamLogo alt={`${teamName} logo`} src={logoUrl} />
+      <TeamLogo alt={`${teamName} logo`} src={logoUrl} size="38px" />
       <Flex align="flex-start" column>
         <TeamName showDisclosure>
           {teamName}{" "}
@@ -57,10 +57,16 @@ const TeamName = styled.div`
   font-size: 16px;
 `;
 
-const Header = styled(Flex)`
+const Header = styled.button`
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
   padding: 16px 24px;
   position: relative;
+  background: none;
+  line-height: inherit;
+  border: 0;
+  margin: 0;
   cursor: pointer;
   width: 100%;
 

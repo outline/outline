@@ -12,6 +12,7 @@ const IMAGE_REGEX = new RegExp(
 );
 
 type Props = {|
+  isSelected: boolean,
   attrs: {|
     href: string,
     matches: string[],
@@ -25,6 +26,7 @@ export default class InVision extends React.Component<Props> {
     if (IMAGE_REGEX.test(this.props.attrs.href)) {
       return (
         <ImageZoom
+          className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
           image={{
             src: this.props.attrs.href,
             alt: "InVision Embed",
@@ -37,6 +39,12 @@ export default class InVision extends React.Component<Props> {
         />
       );
     }
-    return <Frame src={this.props.attrs.href} title="InVision Embed" />;
+    return (
+      <Frame
+        {...this.props}
+        src={this.props.attrs.href}
+        title="InVision Embed"
+      />
+    );
   }
 }

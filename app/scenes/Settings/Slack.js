@@ -136,7 +136,7 @@ const ListItem = styled.li`
 const Code = styled.code`
   padding: 4px 6px;
   margin: 0 2px;
-  background: #eaebea;
+  background: ${(props) => props.theme.codeBackground};
   border-radius: 4px;
 `;
 

@@ -18,6 +18,7 @@ import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import Time from "components/Time";
@@ -67,22 +68,16 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  @observable editor: ?any;
+  @observable editor = React.createRef();
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
   @observable moveModalOpen: boolean = false;
-  @observable lastRevision: number;
-  @observable title: string;
+  @observable lastRevision: number = this.props.document.revision;
+  @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
-
-  constructor(props) {
-    super();
-    this.title = props.document.title;
-    this.lastRevision = props.document.revision;
-  }
 
   componentDidMount() {
     this.updateIsDirty();
@@ -94,6 +89,10 @@ class DocumentScene extends React.Component<Props> {
 
     if (this.props.readOnly) {
       this.lastRevision = document.revision;
+
+      if (document.title !== this.title) {
+        this.title = document.title;
+      }
     } else if (prevProps.document.revision !== this.lastRevision) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
         this.props.ui.showToast(
@@ -112,9 +111,9 @@ class DocumentScene extends React.Component<Props> {
     }
 
     if (document.injectTemplate) {
-      this.isDirty = true;
-      this.title = document.title;
       document.injectTemplate = false;
+      this.title = document.title;
+      this.isDirty = true;
     }
 
     this.updateBackground();
@@ -329,6 +328,12 @@ class DocumentScene extends React.Component<Props> {
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
+    const headings = this.editor.current
+      ? this.editor.current.getHeadings()
+      : [];
+    const showContents =
+      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+
     return (
       <ErrorBoundary>
         <Background
@@ -380,7 +385,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth
               archived={document.isArchived}
-              tocVisible={ui.tocVisible}
+              showContents={showContents}
               column
               auto
             >
@@ -412,50 +417,44 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Flex auto={!readOnly}>
-                {ui.tocVisible && readOnly && (
-                  <Contents
-                    headings={this.editor ? this.editor.getHeadings() : []}
+              <React.Suspense fallback={<LoadingPlaceholder />}>
+                <Flex auto={!readOnly}>
+                  {showContents && <Contents headings={headings} />}
+                  <Editor
+                    id={document.id}
+                    innerRef={this.editor}
+                    isShare={isShare}
+                    isDraft={document.isDraft}
+                    template={document.isTemplate}
+                    key={[injectTemplate, disableEmbeds].join("-")}
+                    title={revision ? revision.title : this.title}
+                    document={document}
+                    value={readOnly ? value : undefined}
+                    defaultValue={value}
+                    disableEmbeds={disableEmbeds}
+                    onImageUploadStart={this.onImageUploadStart}
+                    onImageUploadStop={this.onImageUploadStop}
+                    onSearchLink={this.props.onSearchLink}
+                    onCreateLink={this.props.onCreateLink}
+                    onChangeTitle={this.onChangeTitle}
+                    onChange={this.onChange}
+                    onSave={this.onSave}
+                    onPublish={this.onPublish}
+                    onCancel={this.goBack}
+                    readOnly={readOnly}
+                    readOnlyWriteCheckboxes={readOnly && abilities.update}
+                    ui={this.props.ui}
                   />
+                </Flex>
+                {readOnly && !isShare && !revision && (
+                  <>
+                    <MarkAsViewed document={document} />
+                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                      <References document={document} />
+                    </ReferencesWrapper>
+                  </>
                 )}
-                <Editor
-                  id={document.id}
-                  ref={(ref) => {
-                    if (ref) {
-                      this.editor = ref;
-                    }
-                  }}
-                  isShare={isShare}
-                  isDraft={document.isDraft}
-                  template={document.isTemplate}
-                  key={[injectTemplate, disableEmbeds].join("-")}
-                  title={revision ? revision.title : this.title}
-                  document={document}
-                  value={readOnly ? value : undefined}
-                  defaultValue={value}
-                  disableEmbeds={disableEmbeds}
-                  onImageUploadStart={this.onImageUploadStart}
-                  onImageUploadStop={this.onImageUploadStop}
-                  onSearchLink={this.props.onSearchLink}
-                  onCreateLink={this.props.onCreateLink}
-                  onChangeTitle={this.onChangeTitle}
-                  onChange={this.onChange}
-                  onSave={this.onSave}
-                  onPublish={this.onPublish}
-                  onCancel={this.goBack}
-                  readOnly={readOnly}
-                  readOnlyWriteCheckboxes={readOnly && abilities.update}
-                  ui={this.props.ui}
-                />
-              </Flex>
-              {readOnly && !isShare && !revision && (
-                <>
-                  <MarkAsViewed document={document} />
-                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                    <References document={document} />
-                  </ReferencesWrapper>
-                </>
-              )}
+              </React.Suspense>
             </MaxWidth>
           </Container>
         </Background>
@@ -493,7 +492,8 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${(props) => (props.tocVisible ? "64em" : "46em")});
+    max-width: calc(48px + ${(props) =>
+      props.showContents ? "64em" : "46em"});
   `};
 
   ${breakpoint("desktopLarge")`

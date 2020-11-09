@@ -1,11 +1,13 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import {
-  PadlockIcon,
+  ArchiveIcon,
+  EditIcon,
   GoToIcon,
   MoreIcon,
+  PadlockIcon,
   ShapesIcon,
-  EditIcon,
+  TrashIcon,
 } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -25,11 +27,73 @@ type Props = {
   onlyText: boolean,
 };
 
-const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
-  const collection = collections.get(document.collectionId);
-  if (!collection) return <div />;
+function Icon({ document }) {
+  if (document.isDeleted) {
+    return (
+      <>
+        <CollectionName to="/trash">
+          <TrashIcon color="currentColor" />
+          &nbsp;
+          <span>Trash</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  if (document.isArchived) {
+    return (
+      <>
+        <CollectionName to="/archive">
+          <ArchiveIcon color="currentColor" />
+          &nbsp;
+          <span>Archive</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  if (document.isDraft) {
+    return (
+      <>
+        <CollectionName to="/drafts">
+          <EditIcon color="currentColor" />
+          &nbsp;
+          <span>Drafts</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  if (document.isTemplate) {
+    return (
+      <>
+        <CollectionName to="/templates">
+          <ShapesIcon color="currentColor" />
+          &nbsp;
+          <span>Templates</span>
+        </CollectionName>
+        <Slash />
+      </>
+    );
+  }
+  return null;
+}
 
-  const path = collection.pathToDocument(document).slice(0, -1);
+const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
+  let collection = collections.get(document.collectionId);
+  if (!collection) {
+    if (!document.deletedAt) return <div />;
+
+    collection = {
+      id: document.collectionId,
+      name: "Deleted Collection",
+      color: "currentColor",
+    };
+  }
+
+  const path = collection.pathToDocument
+    ? collection.pathToDocument(document).slice(0, -1)
+    : [];
 
   if (onlyText === true) {
     return (
@@ -50,34 +114,13 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
     );
   }
 
-  const isTemplate = document.isTemplate;
-  const isDraft = !document.publishedAt && !isTemplate;
   const isNestedDocument = path.length > 1;
   const lastPath = path.length ? path[path.length - 1] : undefined;
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
     <Wrapper justify="flex-start" align="center">
-      {isTemplate && (
-        <>
-          <CollectionName to="/templates">
-            <ShapesIcon color="currentColor" />
-            &nbsp;
-            <span>Templates</span>
-          </CollectionName>
-          <Slash />
-        </>
-      )}
-      {isDraft && (
-        <>
-          <CollectionName to="/drafts">
-            <EditIcon color="currentColor" />
-            &nbsp;
-            <span>Drafts</span>
-          </CollectionName>
-          <Slash />
-        </>
-      )}
+      <Icon document={document} />
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />
         &nbsp;
@@ -127,12 +170,12 @@ export const Slash = styled(GoToIcon)`
 
 const Overflow = styled(MoreIcon)`
   flex-shrink: 0;
-  opacity: 0.25;
   transition: opacity 100ms ease-in-out;
+  fill: ${(props) => props.theme.divider};
 
-  &:hover,
-  &:active {
-    opacity: 1;
+  &:active,
+  &:hover {
+    fill: ${(props) => props.theme.text};
   }
 `;
 

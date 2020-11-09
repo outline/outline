@@ -21,9 +21,14 @@ const Authenticated = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
-    // If we're authenticated but viewing a subdomain that doesn't match the
-    // currently authenticated team then kick the user to the teams subdomain.
-    if (
+    // If we're authenticated but viewing a domain that doesn't match the
+    // current team then kick the user to the teams correct domain.
+    if (team.domain) {
+      if (team.domain !== hostname) {
+        window.location.href = `${team.url}${window.location.pathname}`;
+        return <LoadingIndicator />;
+      }
+    } else if (
       env.SUBDOMAINS_ENABLED &&
       team.subdomain &&
       isCustomSubdomain(hostname) &&

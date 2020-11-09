@@ -16,8 +16,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
-  const paranoid = false;
-  const collectionIds = await user.collectionIds(paranoid);
+  const collectionIds = await user.collectionIds({ paranoid: false });
 
   let where = {
     name: Event.ACTIVITY_EVENTS,

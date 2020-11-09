@@ -26,6 +26,7 @@ const colors = {
   yellow: "#FBCA04",
   warmGrey: "#EDF2F7",
 
+  searchHighlight: "#FDEA9B",
   danger: "#ff476f",
   warning: "#f08a24",
   success: "#2f3336",
@@ -138,6 +139,7 @@ export const light = {
 
   listItemHoverBackground: colors.warmGrey,
 
+  toolbarHoverBackground: colors.black,
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
@@ -159,7 +161,7 @@ export const light = {
   quote: colors.slateLight,
   codeBackground: colors.smoke,
   codeBorder: colors.smokeDark,
-  embedBorder: "#DDD #DDD #CCC",
+  embedBorder: colors.slateLight,
   horizontalRule: colors.smokeDark,
 
   noticeInfoBackground: colors.warmGrey,
@@ -192,6 +194,7 @@ export const dark = {
 
   listItemHoverBackground: colors.black50,
 
+  toolbarHoverBackground: colors.slate,
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,
   toolbarItem: colors.lightBlack,

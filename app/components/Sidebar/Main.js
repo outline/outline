@@ -69,7 +69,6 @@ class MainSidebar extends React.Component<Props> {
     const { user, team } = auth;
     if (!user || !team) return null;
 
-    const draftDocumentsCount = documents.drafts.length;
     const can = policies.abilities(team.id);
 
     return (
@@ -123,8 +122,8 @@ class MainSidebar extends React.Component<Props> {
                 label={
                   <Drafts align="center">
                     Drafts
-                    {draftDocumentsCount > 0 && (
-                      <Bubble count={draftDocumentsCount} />
+                    {documents.totalDrafts > 0 && (
+                      <Bubble count={documents.totalDrafts} />
                     )}
                   </Drafts>
                 }

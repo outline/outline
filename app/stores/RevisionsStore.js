@@ -16,7 +16,31 @@ export default class RevisionsStore extends BaseStore<Revision> {
   }
 
   getDocumentRevisions(documentId: string): Revision[] {
-    return filter(this.orderedData, { documentId });
+    let revisions = filter(this.orderedData, { documentId });
+    const latestRevision = revisions[0];
+    const document = this.rootStore.documents.get(documentId);
+
+    // There is no guarantee that we have a revision that represents the latest
+    // state of the document. This pushes a fake revision in at the top if there
+    // isn't one
+    if (
+      latestRevision &&
+      document &&
+      latestRevision.createdAt !== document.updatedAt
+    ) {
+      revisions.unshift(
+        new Revision({
+          id: "latest",
+          documentId: document.id,
+          title: document.title,
+          text: document.text,
+          createdAt: document.updatedAt,
+          createdBy: document.createdBy,
+        })
+      );
+    }
+
+    return revisions;
   }
 
   @action
