@@ -9,6 +9,7 @@ const log = debug("services");
 export type UserEvent =
   | {
   name: | "users.create" // eslint-disable-line
+        | "users.signin"
         | "users.update"
         | "users.suspend"
         | "users.activate"
@@ -141,13 +142,21 @@ export type IntegrationEvent = {
   actorId: string,
 };
 
+export type TeamEvent = {
+  name: "teams.update",
+  teamId: string,
+  actorId: string,
+  data: Object,
+};
+
 export type Event =
   | UserEvent
   | DocumentEvent
   | CollectionEvent
   | IntegrationEvent
   | GroupEvent
-  | RevisionEvent;
+  | RevisionEvent
+  | TeamEvent;
 
 const globalEventsQueue = createQueue("global events");
 const serviceEventsQueue = createQueue("service events");
