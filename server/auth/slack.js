@@ -101,20 +101,6 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       await team.provisionSubdomain(data.team.domain);
     }
 
-    if (isFirstSignin) {
-      await Event.create({
-        name: "users.create",
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: "slack",
-        },
-        ip: ctx.request.ip,
-      });
-    }
-
     // set cookies on response and redirect to team subdomain
     ctx.signIn(user, team, "slack", isFirstSignin);
   } catch (err) {

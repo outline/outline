@@ -122,20 +122,6 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       await team.provisionSubdomain(hostname);
     }
 
-    if (isFirstSignin) {
-      await Event.create({
-        name: "users.create",
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: "google",
-        },
-        ip: ctx.request.ip,
-      });
-    }
-
     // set cookies on response and redirect to team subdomain
     ctx.signIn(user, team, "google", isFirstSignin);
   } catch (err) {
