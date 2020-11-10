@@ -2,7 +2,7 @@
 import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import { User, Team, ApiKey } from "../models";
+import { User, Event, Team, ApiKey } from "../models";
 import type { ContextWithState } from "../types";
 import { getCookieDomain } from "../utils/domains";
 import { getUserForJWT } from "../utils/jwt";
@@ -94,18 +94,22 @@ export default function auth(options?: { required?: boolean } = {}) {
       ctx.state.user = user;
     }
 
-    ctx.signIn = async (
-      user: User,
-      team: Team,
-      service,
-      isFirstSignin = false
-    ) => {
+    ctx.signIn = (user: User, team: Team, service, isFirstSignin = false) => {
       if (user.isSuspended) {
         return ctx.redirect("/?notice=suspended");
       }
 
       // update the database when the user last signed in
       user.updateSignedIn(ctx.request.ip);
+
+      Event.create({
+        name: "users.signin",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        data: { name: user.name },
+        ip: ctx.request.ip,
+      });
 
       const domain = getCookieDomain(ctx.request.hostname);
       const expires = addMonths(new Date(), 3);
