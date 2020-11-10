@@ -4,14 +4,7 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
 import auth from "../middlewares/authentication";
-import {
-  Authentication,
-  Collection,
-  Integration,
-  User,
-  Event,
-  Team,
-} from "../models";
+import { Authentication, Collection, Integration, User, Team } from "../models";
 import * as Slack from "../slack";
 import { getCookieDomain } from "../utils/domains";
 

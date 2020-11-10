@@ -5,7 +5,7 @@ import Router from "koa-router";
 import { capitalize } from "lodash";
 import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
-import { User, Team, Event } from "../models";
+import { User, Team } from "../models";
 
 const Op = Sequelize.Op;
 
