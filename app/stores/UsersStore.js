@@ -32,7 +32,7 @@ export default class UsersStore extends BaseStore<User> {
 
   @computed
   get invited(): User[] {
-    return filter(this.orderedData, (user) => !user.lastActiveAt);
+    return filter(this.orderedData, (user) => user.isInvited);
   }
 
   @computed

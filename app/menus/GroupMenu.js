@@ -78,7 +78,7 @@ class GroupMenu extends React.Component<Props> {
               {
                 title: "Members…",
                 onClick: this.props.onMembers,
-                visible: !!group && can.read,
+                visible: !!(group && can.read),
               },
               {
                 type: "separator",
@@ -86,12 +86,12 @@ class GroupMenu extends React.Component<Props> {
               {
                 title: "Edit…",
                 onClick: this.onEdit,
-                visible: !!group && can.update,
+                visible: !!(group && can.update),
               },
               {
                 title: "Delete…",
                 onClick: this.onDelete,
-                visible: !!group && can.delete,
+                visible: !!(group && can.delete),
               },
             ]}
           />

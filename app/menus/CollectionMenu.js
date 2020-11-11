@@ -144,12 +144,12 @@ class CollectionMenu extends React.Component<Props> {
             items={[
               {
                 title: "New document",
-                visible: collection && can.update,
+                visible: !!(collection && can.update),
                 onClick: this.onNewDocument,
               },
               {
                 title: "Import document",
-                visible: collection && can.update,
+                visible: !!(collection && can.update),
                 onClick: this.onImportDocument,
               },
               {
@@ -157,22 +157,22 @@ class CollectionMenu extends React.Component<Props> {
               },
               {
                 title: "Edit…",
-                visible: collection && can.update,
+                visible: !!(collection && can.update),
                 onClick: this.handleEditCollectionOpen,
               },
               {
                 title: "Permissions…",
-                visible: collection && can.update,
+                visible: !!(collection && can.update),
                 onClick: this.handleMembersModalOpen,
               },
               {
                 title: "Export…",
-                visible: collection && can.export,
+                visible: !!(collection && can.export),
                 onClick: this.handleExportCollectionOpen,
               },
               {
                 title: "Delete…",
-                visible: can.delete,
+                visible: !!(collection && can.delete),
                 onClick: this.handleDeleteCollectionOpen,
               },
             ]}
