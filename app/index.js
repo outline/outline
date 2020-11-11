@@ -14,7 +14,9 @@ import Toasts from "components/Toasts";
 import Routes from "./routes";
 import env from "env";
 
-import "shared/translations/i18n";
+import { outlineTranslation } from "shared/translations/i18n";
+
+outlineTranslation.init();
 
 const element = document.getElementById("root");
 
