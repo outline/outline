@@ -1,4 +1,5 @@
 // @flow
+import i18n from "i18next";
 import { observer, inject } from "mobx-react";
 import {
   ArchiveIcon,
@@ -21,6 +22,8 @@ import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
 import { collectionUrl } from "utils/routeHelpers";
 
+const t = (k) => i18n.t(k);
+
 type Props = {
   document: Document,
   collections: CollectionsStore,
@@ -34,7 +37,7 @@ function Icon({ document }) {
         <CollectionName to="/trash">
           <TrashIcon color="currentColor" />
           &nbsp;
-          <span>Trash</span>
+          <span>{t("Trash")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -46,7 +49,7 @@ function Icon({ document }) {
         <CollectionName to="/archive">
           <ArchiveIcon color="currentColor" />
           &nbsp;
-          <span>Archive</span>
+          <span>{t("Archive")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -58,7 +61,7 @@ function Icon({ document }) {
         <CollectionName to="/drafts">
           <EditIcon color="currentColor" />
           &nbsp;
-          <span>Drafts</span>
+          <span>{t("Drafts")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -70,7 +73,7 @@ function Icon({ document }) {
         <CollectionName to="/templates">
           <ShapesIcon color="currentColor" />
           &nbsp;
-          <span>Templates</span>
+          <span>{t("Templates")}</span>
         </CollectionName>
         <Slash />
       </>

@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { SunIcon, MoonIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
@@ -25,6 +26,7 @@ type Props = {
   auth: AuthStore,
 };
 
+@withTranslation()
 @observer
 class AccountMenu extends React.Component<Props> {
   @observable keyboardShortcutsOpen: boolean = false;
@@ -42,14 +44,14 @@ class AccountMenu extends React.Component<Props> {
   };
 
   render() {
-    const { ui } = this.props;
+    const { ui, t } = this.props;
 
     return (
       <>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
-          title="Keyboard shortcuts"
+          title={t("Keyboard shortcuts")}
         >
           <KeyboardShortcuts />
         </Modal>
@@ -58,23 +60,23 @@ class AccountMenu extends React.Component<Props> {
           label={this.props.label}
         >
           <DropdownMenuItem as={Link} to={settings()}>
-            Settings
+            {t("Settings")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
-            Keyboard shortcuts
+            {t("Keyboard shortcuts")}
           </DropdownMenuItem>
           <DropdownMenuItem href={developers()} target="_blank">
-            API documentation
+            {t("API documentation")}
           </DropdownMenuItem>
           <hr />
           <DropdownMenuItem href={changelog()} target="_blank">
-            Changelog
+            {t("Changelog")}
           </DropdownMenuItem>
           <DropdownMenuItem href={mailToUrl()} target="_blank">
-            Send us feedback
+            {t("Send us feedback")}
           </DropdownMenuItem>
           <DropdownMenuItem href={githubIssuesUrl()} target="_blank">
-            Report a bug
+            {t("Report a bug")}
           </DropdownMenuItem>
           <hr />
           <DropdownMenu
@@ -87,7 +89,7 @@ class AccountMenu extends React.Component<Props> {
             label={
               <DropdownMenuItem>
                 <ChangeTheme justify="space-between">
-                  Appearance
+                  {t("Appearance")}
                   {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
                 </ChangeTheme>
               </DropdownMenuItem>
@@ -98,24 +100,24 @@ class AccountMenu extends React.Component<Props> {
               onClick={() => ui.setTheme("system")}
               selected={ui.theme === "system"}
             >
-              System
+              {t("System")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => ui.setTheme("light")}
               selected={ui.theme === "light"}
             >
-              Light
+              {t("Light")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => ui.setTheme("dark")}
               selected={ui.theme === "dark"}
             >
-              Dark
+              {t("Dark")}
             </DropdownMenuItem>
           </DropdownMenu>
           <hr />
           <DropdownMenuItem onClick={this.handleLogout}>
-            Log out
+            {t("Log out")}
           </DropdownMenuItem>
         </DropdownMenu>
       </>

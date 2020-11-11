@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import Collection from "models/Collection";
@@ -25,6 +26,7 @@ type Props = {|
   depth: number,
 |};
 
+@withTranslation()
 @observer
 class DocumentLink extends React.Component<Props> {
   @observable menuOpen = false;
@@ -84,6 +86,7 @@ class DocumentLink extends React.Component<Props> {
       prefetchDocument,
       depth,
       canUpdate,
+      t,
     } = this.props;
 
     const showChildren = !!(
@@ -96,7 +99,7 @@ class DocumentLink extends React.Component<Props> {
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
-    const title = node.title || "Untitled";
+    const title = node.title || t("Untitled");
 
     return (
       <Flex

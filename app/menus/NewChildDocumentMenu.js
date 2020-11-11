@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -16,6 +17,7 @@ type Props = {
   collections: CollectionsStore,
 };
 
+@withTranslation()
 @observer
 class NewChildDocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -49,14 +51,14 @@ class NewChildDocumentMenu extends React.Component<Props> {
             {
               title: (
                 <span>
-                  New document in{" "}
-                  <strong>{collection ? collection.name : "collection"}</strong>
+                  {t("New document in")}{" "}
+                  <strong>{collection ? collection.name : t("collection")}</strong>
                 </span>
               ),
               onClick: this.handleNewDocument,
             },
             {
-              title: "New nested document",
+              title: t("New nested document"),
               onClick: this.handleNewChild,
             },
           ]}

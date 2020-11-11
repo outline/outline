@@ -125,6 +125,7 @@ class Profile extends React.Component<Props> {
             options={[
               { label: "English (US)", value: "en_US" },
               { label: "Deutsch (Deutschland)", value: "de_DE" },
+              { label: "Português (Portugal)", value: "pt_PT" },
             ]}
             value={this.language}
             onChange={this.handleLanguageChange}

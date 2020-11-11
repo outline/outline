@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -18,6 +19,7 @@ type Props = {
   collectionId?: string,
 };
 
+@withTranslation()
 @observer
 class InputSearch extends React.Component<Props> {
   input: ?Input;
@@ -51,13 +53,13 @@ class InputSearch extends React.Component<Props> {
   };
 
   render() {
-    const { theme, placeholder = "Search…" } = this.props;
+    const { theme, t } = this.props;
 
     return (
       <InputMaxWidth
         ref={(ref) => (this.input = ref)}
         type="search"
-        placeholder={placeholder}
+        placeholder={t("Search...")}
         onInput={this.handleSearchInput}
         icon={
           <SearchIcon

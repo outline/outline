@@ -2,6 +2,7 @@
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 
+import { withTranslation } from "react-i18next";
 import UsersStore from "stores/UsersStore";
 import User from "models/User";
 import { DropdownMenu } from "components/DropdownMenu";
@@ -12,14 +13,18 @@ type Props = {
   users: UsersStore,
 };
 
+@withTranslation()
 @observer
 class UserMenu extends React.Component<Props> {
   handlePromote = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    const { user, users } = this.props;
+    const { user, users, t } = this.props;
     if (
       !window.confirm(
-        `Are you want to make ${user.name} an admin? Admins can modify team and billing information.`
+        t(
+          "Are you want to make {{ userName }} an admin? Admins can modify team and billing information.",
+          { userName: user.name }
+        )
       )
     ) {
       return;
@@ -29,8 +34,14 @@ class UserMenu extends React.Component<Props> {
 
   handleDemote = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    const { user, users } = this.props;
-    if (!window.confirm(`Are you want to make ${user.name} a member?`)) {
+    const { user, users, t } = this.props;
+    if (
+      !window.confirm(
+        t("Are you want to make {{ userName }} a member?", {
+          userName: user.name,
+        })
+      )
+    ) {
       return;
     }
     users.demote(user);
@@ -38,10 +49,12 @@ class UserMenu extends React.Component<Props> {
 
   handleSuspend = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    const { user, users } = this.props;
+    const { user, users, t } = this.props;
     if (
       !window.confirm(
-        "Are you want to suspend this account? Suspended users will be prevented from logging in."
+        t(
+          "Are you want to suspend this account? Suspended users will be prevented from logging in."
+        )
       )
     ) {
       return;
@@ -62,19 +75,19 @@ class UserMenu extends React.Component<Props> {
   };
 
   render() {
-    const { user } = this.props;
+    const { user, t } = this.props;
 
     return (
       <DropdownMenu>
         <DropdownMenuItems
           items={[
             {
-              title: `Make ${user.name} a member…`,
+              title: {t("Make {{ userName }} a member…", { userName: user.name })},
               onClick: this.handleDemote,
               visible: user.isAdmin,
             },
             {
-              title: `Make ${user.name} an admin…`,
+              title: {t("Make {{ userName }} an admin…", { userName: user.name })},
               onClick: this.handlePromote,
               visible: !user.isAdmin && !user.isSuspended,
             },

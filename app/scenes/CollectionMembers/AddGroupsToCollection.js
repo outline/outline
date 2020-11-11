@@ -3,6 +3,7 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
@@ -28,6 +29,7 @@ type Props = {
   onSubmit: () => void,
 };
 
+@withTranslation()
 @observer
 class AddGroupsToCollection extends React.Component<Props> {
   @observable newGroupModalOpen: boolean = false;
@@ -53,49 +55,54 @@ class AddGroupsToCollection extends React.Component<Props> {
   }, 250);
 
   handleAddGroup = (group) => {
+    const { t } = this.props;
     try {
       this.props.collectionGroupMemberships.create({
         collectionId: this.props.collection.id,
         groupId: group.id,
         permission: "read_write",
       });
-      this.props.ui.showToast(`${group.name} was added to the collection`);
+      this.props.ui.showToast(
+        t("{{ groupName }} was added to the collection", {
+          groupName: group.name,
+        })
+      );
     } catch (err) {
-      this.props.ui.showToast("Could not add user");
+      this.props.ui.showToast(t("Could not add user"));
       console.error(err);
     }
   };
 
   render() {
-    const { groups, collection, auth } = this.props;
+    const { groups, collection, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
 
     return (
       <Flex column>
         <HelpText>
-          Can’t find the group you’re looking for?{" "}
+          {t("Can’t find the group you’re looking for?")}{" "}
           <a role="button" onClick={this.handleNewGroupModalOpen}>
-            Create a group
+            {t("Create a group")}
           </a>
           .
         </HelpText>
 
         <Input
           type="search"
-          placeholder="Search by group name…"
+          placeholder={t("Search by group name…")}
           value={this.query}
           onChange={this.handleFilter}
-          label="Search groups"
+          label={t("Search groups")}
           labelHidden
           flex
         />
         <PaginatedList
           empty={
             this.query ? (
-              <Empty>No groups matching your search</Empty>
+              <Empty>{t("No groups matching your search")}</Empty>
             ) : (
-              <Empty>No groups left to add</Empty>
+              <Empty>{t("No groups left to add")}</Empty>
             )
           }
           items={groups.notInCollection(collection.id, this.query)}
@@ -108,7 +115,7 @@ class AddGroupsToCollection extends React.Component<Props> {
               renderActions={() => (
                 <ButtonWrap>
                   <Button onClick={() => this.handleAddGroup(item)} neutral>
-                    Add
+                    {t("Add")}
                   </Button>
                 </ButtonWrap>
               )}
@@ -116,7 +123,7 @@ class AddGroupsToCollection extends React.Component<Props> {
           )}
         />
         <Modal
-          title="Create a group"
+          title={t("Create a group")}
           onRequestClose={this.handleNewGroupModalClose}
           isOpen={this.newGroupModalOpen}
         >
