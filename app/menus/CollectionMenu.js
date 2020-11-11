@@ -153,7 +153,7 @@ class CollectionMenu extends React.Component<Props> {
                 onClick: this.onImportDocument,
               },
               {
-                separator: true,
+                type: "separator",
               },
               {
                 title: "Edit…",

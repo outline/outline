@@ -38,7 +38,7 @@ const options = [
     description: "Receive a notification whenever a new collection is created",
   },
   {
-    separator: true,
+    type: "separator",
   },
   {
     event: "emails.onboarding",

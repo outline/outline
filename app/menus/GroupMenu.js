@@ -81,7 +81,7 @@ class GroupMenu extends React.Component<Props> {
                 visible: !!group && can.read,
               },
               {
-                separator: true,
+                type: "separator",
               },
               {
                 title: "Edit…",

@@ -79,7 +79,7 @@ class UserMenu extends React.Component<Props> {
               visible: !user.isAdmin && !user.isSuspended,
             },
             {
-              separator: true,
+              type: "separator",
             },
             {
               title: "Revoke invite…",

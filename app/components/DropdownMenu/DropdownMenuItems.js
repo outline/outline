@@ -23,8 +23,21 @@ type MenuItem =
       disabled?: boolean,
     |}
   | {|
-      separator: boolean,
+      title: React.Node,
       visible?: boolean,
+      disabled?: boolean,
+      style?: Object,
+      hover?: boolean,
+      items: MenuItem[],
+    |}
+  | {|
+      type: "separator",
+      visible?: boolean,
+    |}
+  | {|
+      type: "heading",
+      visible?: boolean,
+      title: React.Node,
     |};
 
 type Props = {|
@@ -37,15 +50,15 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
   // this block literally just trims unneccessary separators
   filtered = filtered.reduce((acc, item, index) => {
     // trim separators from start / end
-    if (item.separator && index === 0) return acc;
-    if (item.separator && index === filtered.length - 1) return acc;
+    if (item.type === "separator" && index === 0) return acc;
+    if (item.type === "separator" && index === filtered.length - 1) return acc;
 
     // trim double separators looking ahead / behind
     const prev = filtered[index - 1];
-    if (prev && prev.separator && item.separator) return acc;
+    if (prev && prev.separator && item.type === "separator") return acc;
 
     const next = filtered[index + 1];
-    if (next && next.separator && item.separator) return acc;
+    if (next && next.separator && item.type === "separator") return acc;
 
     // otherwise, continue
     return [...acc, item];
@@ -90,7 +103,7 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
       );
     }
 
-    if (item.separator) {
+    if (item.type === "separator") {
       return <hr key={index} />;
     }
 
