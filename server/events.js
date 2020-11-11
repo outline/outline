@@ -17,6 +17,7 @@ export type UserEvent =
       userId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
       name: "users.invite",
@@ -26,6 +27,7 @@ export type UserEvent =
         email: string,
         name: string,
       },
+      ip: string,
     };
 
 export type DocumentEvent =
@@ -44,6 +46,7 @@ export type DocumentEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
       name: "documents.move",
@@ -55,6 +58,7 @@ export type DocumentEvent =
         collectionIds: string[],
         documentIds: string[],
       },
+      ip: string,
     }
   | {
       name: | "documents.update" // eslint-disable-line
@@ -70,6 +74,7 @@ export type DocumentEvent =
         autosave: boolean,
         done: boolean,
       },
+      ip: string,
     }
   | {
       name: "documents.title_change",
@@ -82,6 +87,7 @@ export type DocumentEvent =
         title: string,
         previousTitle: string,
       },
+      ip: string,
     };
 
 export type RevisionEvent = {
@@ -99,6 +105,7 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
       name: "collections.add_user" | "collections.remove_user",
@@ -106,6 +113,7 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
       name: "collections.add_group" | "collections.remove_group",
@@ -140,6 +148,7 @@ export type IntegrationEvent = {
   modelId: string,
   teamId: string,
   actorId: string,
+  ip: string,
 };
 
 export type TeamEvent = {
@@ -147,6 +156,7 @@ export type TeamEvent = {
   teamId: string,
   actorId: string,
   data: Object,
+  ip: string,
 };
 
 export type Event =
