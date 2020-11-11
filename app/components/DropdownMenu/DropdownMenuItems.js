@@ -31,7 +31,7 @@ type Props = {|
   items: MenuItem[],
 |};
 
-export default function MenuItemsTemplate({ items }: Props): React.Node {
+export default function DropdownMenuItems({ items }: Props): React.Node {
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators

@@ -5,7 +5,7 @@ import * as React from "react";
 import UsersStore from "stores/UsersStore";
 import User from "models/User";
 import { DropdownMenu } from "components/DropdownMenu";
-import MenuItemsTemplate from "components/DropdownMenu/MenuItemsTemplate";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 
 type Props = {
   user: User,
@@ -66,7 +66,7 @@ class UserMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu>
-        <MenuItemsTemplate
+        <DropdownMenuItems
           items={[
             {
               title: `Make ${user.name} a member…`,

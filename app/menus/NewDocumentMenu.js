@@ -11,7 +11,7 @@ import PoliciesStore from "stores/PoliciesStore";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
 import { DropdownMenu, Header } from "components/DropdownMenu";
-import MenuItemsTemplate from "components/DropdownMenu/MenuItemsTemplate";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -60,7 +60,7 @@ class NewDocumentMenu extends React.Component<Props> {
         {...rest}
       >
         <Header>Choose a collection</Header>
-        <MenuItemsTemplate
+        <DropdownMenuItems
           items={collections.orderedData.map((collection) => ({
             onClick: () => this.handleNewDocument(collection.id),
             disabled: !policies.abilities(collection.id).update,

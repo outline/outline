@@ -9,7 +9,7 @@ import Group from "models/Group";
 import GroupDelete from "scenes/GroupDelete";
 import GroupEdit from "scenes/GroupEdit";
 import { DropdownMenu } from "components/DropdownMenu";
-import MenuItemsTemplate from "components/DropdownMenu/MenuItemsTemplate";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import Modal from "components/Modal";
 
 type Props = {
@@ -73,7 +73,7 @@ class GroupMenu extends React.Component<Props> {
           />
         </Modal>
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
-          <MenuItemsTemplate
+          <DropdownMenuItems
             items={[
               {
                 title: "Members…",

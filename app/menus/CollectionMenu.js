@@ -12,7 +12,7 @@ import CollectionEdit from "scenes/CollectionEdit";
 import CollectionExport from "scenes/CollectionExport";
 import CollectionMembers from "scenes/CollectionMembers";
 import { DropdownMenu } from "components/DropdownMenu";
-import MenuItemsTemplate from "components/DropdownMenu/MenuItemsTemplate";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import Modal from "components/Modal";
 import VisuallyHidden from "components/VisuallyHidden";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -140,7 +140,7 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <DropdownMenu onOpen={onOpen} onClose={onClose} position={position}>
-          <MenuItemsTemplate
+          <DropdownMenuItems
             items={[
               {
                 title: "New document",

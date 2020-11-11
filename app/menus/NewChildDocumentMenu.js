@@ -7,7 +7,7 @@ import { Redirect } from "react-router-dom";
 import CollectionsStore from "stores/CollectionsStore";
 import Document from "models/Document";
 import { DropdownMenu } from "components/DropdownMenu";
-import MenuItemsTemplate from "components/DropdownMenu/MenuItemsTemplate";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -44,7 +44,7 @@ class NewChildDocumentMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu label={label}>
-        <MenuItemsTemplate
+        <DropdownMenuItems
           items={[
             {
               title: (
