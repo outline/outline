@@ -72,7 +72,7 @@ class Profile extends React.Component<Props> {
 
   handleAvatarError = (error: ?string) => {
     const { t } = this.props;
-    this.props.ui.showToast(error || t("Unable to upload new avatar"));
+    this.props.ui.showToast(error || t("Unable to upload new profile picture"));
   };
 
   handleLanguageChange = (ev: SyntheticInputEvent<*>) => {
