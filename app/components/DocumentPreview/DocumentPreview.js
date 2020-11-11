@@ -9,6 +9,7 @@ import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import DocumentMeta from "components/DocumentMeta";
+import EventBoundary from "components/EventBoundary";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import Tooltip from "components/Tooltip";
@@ -123,7 +124,9 @@ class DocumentPreview extends React.Component<Props> {
                 </Button>
               )}
             &nbsp;
-            <DocumentMenu document={document} showPin={showPin} />
+            <EventBoundary>
+              <DocumentMenu document={document} showPin={showPin} />
+            </EventBoundary>
           </SecondaryActions>
         </Heading>
 
