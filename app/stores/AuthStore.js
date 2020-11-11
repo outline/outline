@@ -64,8 +64,8 @@ export default class AuthStore {
         const data = JSON.parse(event.newValue);
 
         // if there is no user on the new data then we know the other tab
-        // signed out and we should do the same, otherwise hydrate the local
-        // auth store from the data.
+        // signed out and we should do the same. Otherwise, if we're not 
+        // signed in then hydrate from the received data
         if (this.token && data.user === null) {
           this.logout();
         } else if (!this.token) {
