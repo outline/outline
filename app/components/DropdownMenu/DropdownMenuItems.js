@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { Link } from "react-router-dom";
+import DropdownMenu from "./DropdownMenu";
 import DropdownMenuItem from "./DropdownMenuItem";
 
 type MenuItem =
@@ -55,10 +56,8 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
 
     // trim double separators looking ahead / behind
     const prev = filtered[index - 1];
-    if (prev && prev.separator && item.type === "separator") return acc;
-
-    const next = filtered[index + 1];
-    if (next && next.separator && item.type === "separator") return acc;
+    if (prev && prev.type === "separator" && item.type === "separator")
+      return acc;
 
     // otherwise, continue
     return [...acc, item];
@@ -100,6 +99,23 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
         >
           {item.title}
         </DropdownMenuItem>
+      );
+    }
+
+    if (item.items) {
+      return (
+        <DropdownMenu
+          style={item.style}
+          label={
+            <DropdownMenuItem disabled={item.disabled}>
+              {item.title}
+            </DropdownMenuItem>
+          }
+          hover={item.hover}
+          key={index}
+        >
+          <DropdownMenuItems items={item.items} />
+        </DropdownMenu>
       );
     }
 
