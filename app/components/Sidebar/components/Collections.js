@@ -2,6 +2,7 @@
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
 
@@ -26,6 +27,7 @@ type Props = {
   ui: UiStore,
 };
 
+@withTranslation()
 @observer
 class Collections extends React.Component<Props> {
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
@@ -52,7 +54,7 @@ class Collections extends React.Component<Props> {
   }
 
   render() {
-    const { collections, ui, policies, documents } = this.props;
+    const { collections, ui, policies, documents, t } = this.props;
 
     const content = (
       <>
@@ -71,7 +73,7 @@ class Collections extends React.Component<Props> {
           to="/collections"
           onClick={this.props.onCreateCollection}
           icon={<PlusIcon color="currentColor" />}
-          label="New collection…"
+          label={t("New collection…")}
           exact
         />
       </>
@@ -79,7 +81,7 @@ class Collections extends React.Component<Props> {
 
     return (
       <Flex column>
-        <Header>Collections</Header>
+        <Header>{t("Collections")}</Header>
         {collections.isLoaded ? (
           this.isPreloaded ? (
             content

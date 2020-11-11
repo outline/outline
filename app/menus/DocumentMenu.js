@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
@@ -43,6 +44,7 @@ type Props = {
   onClose?: () => void,
 };
 
+@withTranslation()
 @observer
 class DocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -86,7 +88,8 @@ class DocumentMenu extends React.Component<Props> {
 
     // when duplicating, go straight to the duplicated document content
     this.redirectTo = duped.url;
-    this.props.ui.showToast("Document duplicated");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Document duplicated"));
   };
 
   handleOpenTemplateModal = () => {
@@ -103,7 +106,8 @@ class DocumentMenu extends React.Component<Props> {
 
   handleArchive = async (ev: SyntheticEvent<>) => {
     await this.props.document.archive();
-    this.props.ui.showToast("Document archived");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Document archived"));
   };
 
   handleRestore = async (
@@ -111,12 +115,14 @@ class DocumentMenu extends React.Component<Props> {
     options?: { collectionId: string }
   ) => {
     await this.props.document.restore(options);
-    this.props.ui.showToast("Document restored");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Document restored"));
   };
 
   handleUnpublish = async (ev: SyntheticEvent<>) => {
     await this.props.document.unpublish();
-    this.props.ui.showToast("Document unpublished");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Document unpublished"));
   };
 
   handlePin = (ev: SyntheticEvent<>) => {
@@ -167,6 +173,7 @@ class DocumentMenu extends React.Component<Props> {
       label,
       onOpen,
       onClose,
+      t,
     } = this.props;
 
     const can = policies.abilities(document.id);
@@ -185,17 +192,17 @@ class DocumentMenu extends React.Component<Props> {
         >
           {can.unarchive && (
             <DropdownMenuItem onClick={this.handleRestore}>
-              Restore
+              {t("Restore")}
             </DropdownMenuItem>
           )}
           {can.restore &&
             (collection ? (
               <DropdownMenuItem onClick={this.handleRestore}>
-                Restore
+                {t("Restore")}
               </DropdownMenuItem>
             ) : (
               <DropdownMenu
-                label={<DropdownMenuItem>Restore…</DropdownMenuItem>}
+                label={<DropdownMenuItem>{t("Restore…")}</DropdownMenuItem>}
                 style={{
                   left: -170,
                   position: "relative",
@@ -203,7 +210,7 @@ class DocumentMenu extends React.Component<Props> {
                 }}
                 hover
               >
-                <Header>Choose a collection</Header>
+                <Header>{t("Choose a collection")}</Header>
                 {collections.orderedData.map((collection) => {
                   const can = policies.abilities(collection.id);
 
@@ -226,42 +233,42 @@ class DocumentMenu extends React.Component<Props> {
             (document.pinned
               ? can.unpin && (
                   <DropdownMenuItem onClick={this.handleUnpin}>
-                    Unpin
+                    {t("Unpin")}
                   </DropdownMenuItem>
                 )
               : can.pin && (
                   <DropdownMenuItem onClick={this.handlePin}>
-                    Pin to collection
+                    {t("Pin to collection")}
                   </DropdownMenuItem>
                 ))}
           {document.isStarred
             ? can.unstar && (
                 <DropdownMenuItem onClick={this.handleUnstar}>
-                  Unstar
+                  {t("Unstar")}
                 </DropdownMenuItem>
               )
             : can.star && (
                 <DropdownMenuItem onClick={this.handleStar}>
-                  Star
+                  {t("Star")}
                 </DropdownMenuItem>
               )}
           {canShareDocuments && (
             <DropdownMenuItem
               onClick={this.handleShareLink}
-              title="Create a public share link"
+              title={t("Create a public share link")}
             >
-              Share link…
+              {t("Share link…")}
             </DropdownMenuItem>
           )}
           {showToggleEmbeds && (
             <>
               {document.embedsDisabled ? (
                 <DropdownMenuItem onClick={document.enableEmbeds}>
-                  Enable embeds
+                  {t("Enable embeds")}
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem onClick={document.disableEmbeds}>
-                  Disable embeds
+                  {t("Disable embeds")}
                 </DropdownMenuItem>
               )}
             </>
@@ -271,61 +278,69 @@ class DocumentMenu extends React.Component<Props> {
           {can.createChildDocument && (
             <DropdownMenuItem
               onClick={this.handleNewChild}
-              title="Create a nested document inside the current document"
+              title={t("Create a nested document inside the current document")}
             >
-              New nested document
+              {t("New nested document")}
             </DropdownMenuItem>
           )}
           {can.update && !document.isTemplate && (
             <DropdownMenuItem onClick={this.handleOpenTemplateModal}>
-              Create template…
+              {t("Create template…")}
             </DropdownMenuItem>
           )}
           {can.unpublish && (
             <DropdownMenuItem onClick={this.handleUnpublish}>
-              Unpublish
+              {t("Unpublish")}
             </DropdownMenuItem>
           )}
           {can.update && (
-            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleEdit}>
+              {t("Edit")}
+            </DropdownMenuItem>
           )}
           {can.update && (
             <DropdownMenuItem onClick={this.handleDuplicate}>
-              Duplicate
+              {t("Duplicate")}
             </DropdownMenuItem>
           )}
           {can.archive && (
             <DropdownMenuItem onClick={this.handleArchive}>
-              Archive
+              {t("Archive")}
             </DropdownMenuItem>
           )}
           {can.delete && (
             <DropdownMenuItem onClick={this.handleDelete}>
-              Delete…
+              {t("Delete…")}
             </DropdownMenuItem>
           )}
           {can.move && (
-            <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleMove}>
+              {t("Move…")}
+            </DropdownMenuItem>
           )}
           <hr />
           {canViewHistory && (
             <>
               <DropdownMenuItem onClick={this.handleDocumentHistory}>
-                History
+                {t("History")}
               </DropdownMenuItem>
             </>
           )}
           {can.download && (
             <DropdownMenuItem onClick={this.handleExport}>
-              Download
+              {t("Download")}
             </DropdownMenuItem>
           )}
           {showPrint && (
-            <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
+            <DropdownMenuItem onClick={window.print}>
+              {t("Print")}
+            </DropdownMenuItem>
           )}
         </DropdownMenu>
         <Modal
-          title={`Delete ${this.props.document.noun}`}
+          title={t("Delete {{ documentName }}", {
+            documentName: this.props.document.noun,
+          })}
           onRequestClose={this.handleCloseDeleteModal}
           isOpen={this.showDeleteModal}
         >
@@ -335,7 +350,7 @@ class DocumentMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Create template"
+          title={t("Create template")}
           onRequestClose={this.handleCloseTemplateModal}
           isOpen={this.showTemplateModal}
         >
@@ -345,7 +360,7 @@ class DocumentMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Share document"
+          title={t("Share document")}
           onRequestClose={this.handleCloseShareModal}
           isOpen={this.showShareModal}
         >

@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -28,6 +29,7 @@ type Props = {
   onClose?: () => void,
 };
 
+@withTranslation()
 @observer
 class CollectionMenu extends React.Component<Props> {
   file: ?HTMLInputElement;
@@ -111,6 +113,7 @@ class CollectionMenu extends React.Component<Props> {
       position,
       onOpen,
       onClose,
+      t,
     } = this.props;
     const can = policies.abilities(collection.id);
 
@@ -127,7 +130,7 @@ class CollectionMenu extends React.Component<Props> {
         </VisuallyHidden>
 
         <Modal
-          title="Collection permissions"
+          title={t("Collection permissions")}
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.showCollectionMembers}
         >
@@ -143,40 +146,40 @@ class CollectionMenu extends React.Component<Props> {
             <>
               {can.update && (
                 <DropdownMenuItem onClick={this.onNewDocument}>
-                  New document
+                  {t("New document")}
                 </DropdownMenuItem>
               )}
               {can.update && (
                 <DropdownMenuItem onClick={this.onImportDocument}>
-                  Import document
+                  {t("Import document")}
                 </DropdownMenuItem>
               )}
               {can.update && <hr />}
               {can.update && (
                 <DropdownMenuItem onClick={this.handleEditCollectionOpen}>
-                  Edit…
+                  {t("Edit…")}
                 </DropdownMenuItem>
               )}
               {can.update && (
                 <DropdownMenuItem onClick={this.handleMembersModalOpen}>
-                  Permissions…
+                  {t("Permissions…")}
                 </DropdownMenuItem>
               )}
               {can.export && (
                 <DropdownMenuItem onClick={this.handleExportCollectionOpen}>
-                  Export…
+                  {t("Export…")}
                 </DropdownMenuItem>
               )}
             </>
           )}
           {can.delete && (
             <DropdownMenuItem onClick={this.handleDeleteCollectionOpen}>
-              Delete…
+              {t("Delete…")}
             </DropdownMenuItem>
           )}
         </DropdownMenu>
         <Modal
-          title="Edit collection"
+          title={t("Edit collection")}
           isOpen={this.showCollectionEdit}
           onRequestClose={this.handleEditCollectionClose}
         >
@@ -186,7 +189,7 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Delete collection"
+          title={t("Delete collection")}
           isOpen={this.showCollectionDelete}
           onRequestClose={this.handleDeleteCollectionClose}
         >
@@ -196,7 +199,7 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Export collection"
+          title={t("Export collection")}
           isOpen={this.showCollectionExport}
           onRequestClose={this.handleExportCollectionClose}
         >

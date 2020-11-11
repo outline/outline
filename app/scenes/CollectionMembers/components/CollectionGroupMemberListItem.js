@@ -1,4 +1,5 @@
 // @flow
+import i18n from "i18next";
 import * as React from "react";
 import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
@@ -7,9 +8,11 @@ import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import GroupListItem from "components/GroupListItem";
 import InputSelect from "components/InputSelect";
 
+const t = (k) => i18n.t(k);
+
 const PERMISSIONS = [
-  { label: "Read only", value: "read" },
-  { label: "Read & Edit", value: "read_write" },
+  { label: t("Read only"), value: "read" },
+  { label: t("Read & Edit"), value: "read_write" },
 ];
 type Props = {
   group: Group,
@@ -32,7 +35,7 @@ const MemberListItem = ({
       renderActions={({ openMembersModal }) => (
         <>
           <Select
-            label="Permissions"
+            label={t("Permissions")}
             options={PERMISSIONS}
             value={
               collectionGroupMembership
@@ -45,10 +48,12 @@ const MemberListItem = ({
           <ButtonWrap>
             <DropdownMenu>
               <DropdownMenuItem onClick={openMembersModal}>
-                Members…
+                {t("Members…")}
               </DropdownMenuItem>
               <hr />
-              <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
+              <DropdownMenuItem onClick={onRemove}>
+                {t("Remove")}
+              </DropdownMenuItem>
             </DropdownMenu>
           </ButtonWrap>
         </>
