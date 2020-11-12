@@ -92,7 +92,6 @@
   "Activate account": "Ativar conta",
   "Suspend account…": "Suspender conta…",
   "Search in collection…": "Procurar na coleção…",
-  "\n                    <strong>{{ collectionName }}</strong> doesn’t contain any\n                    documents yet.\n                    <br />\n                    Get started by creating a new one!\n                  ": "\n                    <strong>{{ collectionName }}</strong> não contém nenhum documento\n                    ainda.\n                    <br />\n                    Para começar crie um documento novo!\n                  ",
   "Create a document": "Criar documento",
   "Manage members…": "Gerenciar membros…",
   "Pinned": "Marcado",
@@ -138,5 +137,6 @@
   "Save": "Guardar",
   "Delete Account": "Apagar conta",
   "You may delete your account at any time, note that this is unrecoverable": "Pode apagar a sua conta a qualquer momento, atenção que isso é irrecuperável",
-  "Delete account": "Apagar conta"
+  "Delete account": "Apagar conta",
+  "<strong>{{ collectionName }}</strong> doesn’t contain any documents yet. <br /> Get started by creating a new one!": "<strong>{{ collectionName }}</strong> não contém nenhum documento ainda. <br /> Para começar, crie um documento novo!"
 }
