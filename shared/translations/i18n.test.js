@@ -1,25 +1,37 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { isEqual } from "lodash";
-import { outlineTranslation, i18n, en_US, de_DE, pt_PT } from "./i18n";
+import { difference, intersection } from "lodash";
+import { initI18n, i18n, en_US, de_DE, pt_PT } from "./i18n";
 
 describe("i18n configuration", () => {
   beforeEach(() => {
-    outlineTranslation.init();
+    initI18n(false);
   });
-  it("all languages should have same keys", () => {
+  it("en_US and de_DE should have same keys", () => {
     const en_US_Keys = Object.keys(en_US);
     const de_DE_Keys = Object.keys(de_DE);
+
+    var same = intersection(en_US_Keys, de_DE_Keys);
+    var diff = difference(de_DE_Keys, same);
+    console.log(diff);
+
+    expect(diff.length).toBe(0);
+  });
+  it("en_US and pt_PT should have same keys", () => {
+    const en_US_Keys = Object.keys(en_US);
     const pt_PT_Keys = Object.keys(pt_PT);
 
-    expect(isEqual(en_US_Keys, de_DE_Keys)).toBe(true);
-    expect(isEqual(en_US_Keys, pt_PT_Keys)).toBe(true);
+    var same = intersection(en_US_Keys, pt_PT_Keys);
+    var diff = difference(pt_PT_Keys, same);
+    console.log(diff);
+
+    expect(diff.length).toBe(0);
   });
 });
 
 describe("i18n process.env is unset", () => {
   beforeEach(() => {
     delete process.env.DEFAULT_LANGUAGE;
-    outlineTranslation.init();
+    initI18n(false);
   });
 
   it("translation of key should match", () =>
@@ -39,7 +51,7 @@ describe("i18n process.env is unset", () => {
 describe("i18n process.env is en_US", () => {
   beforeEach(() => {
     process.env.DEFAULT_LANGUAGE = "en_US";
-    outlineTranslation.init();
+    initI18n(false);
   });
 
   it("translation of key should match", () =>
@@ -59,7 +71,7 @@ describe("i18n process.env is en_US", () => {
 describe("i18n process.env is de_DE", () => {
   beforeEach(() => {
     process.env.DEFAULT_LANGUAGE = "de_DE";
-    outlineTranslation.init();
+    initI18n(false);
   });
 
   it("translation of key should match", () =>
@@ -79,7 +91,7 @@ describe("i18n process.env is de_DE", () => {
 describe("i18n process.env is pt_PT", () => {
   beforeEach(() => {
     process.env.DEFAULT_LANGUAGE = "pt_PT";
-    outlineTranslation.init();
+    initI18n(false);
   });
 
   it("translation of key should match", () =>
