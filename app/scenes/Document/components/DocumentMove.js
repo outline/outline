@@ -1,13 +1,12 @@
 // @flow
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { Search } from "js-search";
 import { last } from "lodash";
 import { observable, computed } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
-
 import CollectionsStore, { type DocumentPath } from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
@@ -28,7 +27,6 @@ type Props = {|
 
 @observer
 class DocumentMove extends React.Component<Props> {
-  firstDocument: ?PathToDocument;
   @observable searchTerm: ?string;
   @observable isSaving: boolean;
 
@@ -87,17 +85,6 @@ class DocumentMove extends React.Component<Props> {
     return results;
   }
 
-  handleKeyDown = (ev) => {
-    // Down
-    if (ev.which === 40) {
-      ev.preventDefault();
-      if (this.firstDocument) {
-        const element = ReactDOM.findDOMNode(this.firstDocument);
-        if (element instanceof HTMLElement) element.focus();
-      }
-    }
-  };
-
   handleSuccess = () => {
     this.props.ui.showToast("Document moved");
     this.props.onRequestClose();
@@ -105,10 +92,6 @@ class DocumentMove extends React.Component<Props> {
 
   handleFilter = (ev: SyntheticInputEvent<*>) => {
     this.searchTerm = ev.target.value;
-  };
-
-  setFirstDocumentRef = (ref) => {
-    this.firstDocument = ref;
   };
 
   renderPathToCurrentDocument() {
@@ -125,8 +108,24 @@ class DocumentMove extends React.Component<Props> {
     }
   }
 
+  row = ({ index, data, style }) => {
+    const result = data[index];
+    const { document, collections } = this.props;
+
+    return (
+      <PathToDocument
+        result={result}
+        document={document}
+        collection={collections.get(result.collectionId)}
+        onSuccess={this.handleSuccess}
+        style={style}
+      />
+    );
+  };
+
   render() {
     const { document, collections, onRequestClose } = this.props;
+    const data = this.results;
 
     return (
       <Modal isOpen onRequestClose={onRequestClose} title="Move document">
@@ -145,33 +144,29 @@ class DocumentMove extends React.Component<Props> {
                   <Input
                     type="search"
                     placeholder="Search collections & documents…"
-                    onKeyDown={this.handleKeyDown}
                     onChange={this.handleFilter}
                     required
                     autoFocus
                   />
                 </InputWrapper>
-
                 <Results>
-                  <Flex column>
-                    <StyledArrowKeyNavigation
-                      mode={ArrowKeyNavigation.mode.VERTICAL}
-                      defaultActiveChildIndex={0}
-                    >
-                      {this.results.map((result, index) => (
-                        <PathToDocument
-                          key={result.id}
-                          result={result}
-                          document={document}
-                          collection={collections.get(result.collectionId)}
-                          ref={(ref) =>
-                            index === 0 && this.setFirstDocumentRef(ref)
-                          }
-                          onSuccess={this.handleSuccess}
-                        />
-                      ))}
-                    </StyledArrowKeyNavigation>
-                  </Flex>
+                  <AutoSizer>
+                    {({ width, height }) => (
+                      <Flex role="listbox" column>
+                        <List
+                          key={data.length}
+                          width={width}
+                          height={height}
+                          itemData={data}
+                          itemCount={data.length}
+                          itemSize={40}
+                          itemKey={(index, data) => data[index].id}
+                        >
+                          {this.row}
+                        </List>
+                      </Flex>
+                    )}
+                  </AutoSizer>
                 </Results>
               </NewLocation>
             </Section>
@@ -202,25 +197,18 @@ const Input = styled("input")`
 `;
 
 const NewLocation = styled(Outline)`
-  flex-direction: column;
+  display: block;
+  flex: initial;
+  height: 40vh;
 `;
 
-const Results = styled(Flex)`
-  display: block;
-  width: 100%;
-  max-height: 40vh;
-  overflow-y: auto;
-  padding: 8px;
+const Results = styled.div`
+  padding: 8px 0;
+  height: calc(100% - 46px);
 `;
 
 const Section = styled(Flex)`
   margin-bottom: 24px;
-`;
-
-const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
 `;
 
 export default inject("documents", "collections", "ui")(DocumentMove);
