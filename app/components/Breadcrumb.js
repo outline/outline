@@ -1,5 +1,5 @@
 // @flow
-import i18n from "i18next";
+import { useTranslation } from "react-i18next";
 import { observer, inject } from "mobx-react";
 import {
   ArchiveIcon,
@@ -22,8 +22,6 @@ import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
 import { collectionUrl } from "utils/routeHelpers";
 
-const t = (k) => i18n.t(k);
-
 type Props = {
   document: Document,
   collections: CollectionsStore,
@@ -31,6 +29,7 @@ type Props = {
 };
 
 function Icon({ document }) {
+  const { t } = useTranslation();
   if (document.isDeleted) {
     return (
       <>
