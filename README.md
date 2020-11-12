@@ -139,8 +139,16 @@ To add new tests, write your tests with [Jest](https://facebook.github.io/jest/)
 
 ```shell
 # To run all tests
-yarn test
+make test
 
+# To run backend tests in watch mode
+make watch
+```
+
+Once the test database is created with  `make test` you may individually run
+frontend and backend tests directly.
+
+```shell
 # To run backend tests
 yarn test:server
 
