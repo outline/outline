@@ -49,19 +49,17 @@ class AvatarWithPresence extends React.Component<Props> {
             <Centered>
               <Trans
                 defaults="<strong>{{ userName }} {{ you }} <br /> {{ action }}</strong>"
-                components={
-                  {
-                    userName: user.name,
-                    you: isCurrentUser && t("(You)"),
-                    action: isPresent
-                      ? isEditing
-                        ? t("currently editing")
-                        : t("currently viewing")
-                      : t("viewed {{ timeAgo }} ago", {
-                          timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
-                        }),
-                  }
-                }
+                components={{
+                  userName: user.name,
+                  you: isCurrentUser && t("(You)"),
+                  action: isPresent
+                    ? isEditing
+                      ? t("currently editing")
+                      : t("currently viewing")
+                    : t("viewed {{ timeAgo }} ago", {
+                        timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
+                      }),
+                }}
               />
             </Centered>
           }

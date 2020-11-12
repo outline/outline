@@ -1,5 +1,4 @@
 // @flow
-import { useTranslation } from "react-i18next";
 import { observer, inject } from "mobx-react";
 import {
   ArchiveIcon,
@@ -11,6 +10,7 @@ import {
   TrashIcon,
 } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
