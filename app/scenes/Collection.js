@@ -4,7 +4,7 @@ import { observer, inject } from "mobx-react";
 
 import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, Trans } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 
@@ -190,15 +190,7 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  {t(
-                    `
-                    <strong>{{ collectionName }}</strong> doesn’t contain any
-                    documents yet.
-                    <br />
-                    Get started by creating a new one!
-                  `,
-                    { collectionName: collection.name }
-                  )}
+                  <Trans components={{ collectionName: collection.name }} defaults="<strong>{{ collectionName }}</strong> doesn’t contain any documents yet. <br /> Get started by creating a new one!" />
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection.id)}>

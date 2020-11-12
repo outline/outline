@@ -4,7 +4,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import User from "models/User";
 import UserProfile from "scenes/UserProfile";
@@ -47,20 +47,22 @@ class AvatarWithPresence extends React.Component<Props> {
         <Tooltip
           tooltip={
             <Centered>
-              {t(
-                "<strong>{{ userName }} {{ you }} <br /> {{ action }}</strong>",
-                {
-                  userName: user.name,
-                  you: isCurrentUser && t("(You)"),
-                  action: isPresent
-                    ? isEditing
-                      ? t("currently editing")
-                      : t("currently viewing")
-                    : t("viewed {{ timeAgo }} ago", {
-                        timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
-                      }),
+              <Trans
+                defaults="<strong>{{ userName }} {{ you }} <br /> {{ action }}</strong>"
+                components={
+                  {
+                    userName: user.name,
+                    you: isCurrentUser && t("(You)"),
+                    action: isPresent
+                      ? isEditing
+                        ? t("currently editing")
+                        : t("currently viewing")
+                      : t("viewed {{ timeAgo }} ago", {
+                          timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
+                        }),
+                  }
                 }
-              )}
+              />
             </Centered>
           }
           placement="bottom"
