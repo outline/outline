@@ -6,7 +6,7 @@ import * as React from "react";
 import { render } from "react-dom";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import { outlineTranslation } from "shared/translations/i18n";
+import { initI18n } from "shared/translations/i18n";
 import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
 import ScrollToTop from "components/ScrollToTop";
@@ -15,7 +15,7 @@ import Toasts from "components/Toasts";
 import Routes from "./routes";
 import env from "env";
 
-outlineTranslation.init();
+initI18n();
 
 const element = document.getElementById("root");
 

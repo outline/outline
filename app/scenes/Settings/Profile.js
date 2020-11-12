@@ -120,6 +120,7 @@ class Profile extends React.Component<Props> {
             required
             short
           />
+          <label>*Experimental/Beta feature</label>
           <InputSelect
             label={t("Language")}
             options={[

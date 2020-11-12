@@ -53,9 +53,8 @@ class DropdownMenu extends React.Component<Props> {
   ) => {
     return (ev: SyntheticMouseEvent<HTMLElement>) => {
       ev.preventDefault();
-      const { t } = this.props;
       const currentTarget = ev.currentTarget;
-      invariant(document.body, t("why you not here"));
+      invariant(document.body, "why you not here");
 
       if (currentTarget instanceof HTMLDivElement) {
         this.bodyRect = document.body.getBoundingClientRect();
