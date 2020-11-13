@@ -1,5 +1,4 @@
 {
-  "<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}": "<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}",
   "(You)": "(You)",
   "currently editing": "currently editing",
   "currently viewing": "currently viewing",
@@ -96,7 +95,8 @@
   "Activate account": "Activate account",
   "Suspend account…": "Suspend account…",
   "Search in collection…": "Search in collection…",
-  "<strong>{{ collectionName }}</strong> doesn’t contain any documents yet. <br /> Get started by creating a new one!": "<strong>{{ collectionName }}</strong> doesn’t contain any documents yet. <br /> Get started by creating a new one!",
+  "<0>{{collectionName}}</0> doesn’t contain any documents yet.": "<0>{{collectionName}}</0> doesn’t contain any documents yet.",
+  "Get started by creating a new one!": "Get started by creating a new one!",
   "Create a document": "Create a document",
   "Manage members…": "Manage members…",
   "Pinned": "Pinned",

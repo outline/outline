@@ -182,6 +182,11 @@ class CollectionScene extends React.Component<Props> {
     const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
 
+    var collectionName = "";
+    if (collection) {
+      collectionName = collection.name;
+    }
+
     return (
       <CenteredContent>
         {collection ? (
@@ -190,10 +195,12 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  <Trans
-                    components={{ collectionName: collection.name }}
-                    defaults="<strong>{{ collectionName }}</strong> doesn’t contain any documents yet. <br /> Get started by creating a new one!"
-                  />
+                  <Trans>
+                    <strong>{{ collectionName }}</strong> doesn’t contain any
+                    documents yet.
+                  </Trans>
+                  <br />
+                  <Trans>Get started by creating a new one!</Trans>
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection.id)}>
