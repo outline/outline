@@ -4,7 +4,7 @@ import { initI18n, i18n, en_US, de_DE, pt_PT } from "./i18n";
 
 describe("i18n configuration", () => {
   beforeEach(() => {
-    initI18n(false);
+    initI18n();
   });
   it("en_US and de_DE should have same keys", () => {
     const en_US_Keys = Object.keys(en_US);
@@ -37,7 +37,7 @@ describe("i18n configuration", () => {
 describe("i18n process.env is unset", () => {
   beforeEach(() => {
     delete process.env.DEFAULT_LANGUAGE;
-    initI18n(false);
+    initI18n();
   });
 
   it("translation of key should match", () =>
@@ -57,7 +57,7 @@ describe("i18n process.env is unset", () => {
 describe("i18n process.env is en_US", () => {
   beforeEach(() => {
     process.env.DEFAULT_LANGUAGE = "en_US";
-    initI18n(false);
+    initI18n();
   });
 
   it("translation of key should match", () =>
@@ -77,7 +77,7 @@ describe("i18n process.env is en_US", () => {
 describe("i18n process.env is de_DE", () => {
   beforeEach(() => {
     process.env.DEFAULT_LANGUAGE = "de_DE";
-    initI18n(false);
+    initI18n();
   });
 
   it("translation of key should match", () =>
@@ -97,7 +97,7 @@ describe("i18n process.env is de_DE", () => {
 describe("i18n process.env is pt_PT", () => {
   beforeEach(() => {
     process.env.DEFAULT_LANGUAGE = "pt_PT";
-    initI18n(false);
+    initI18n();
   });
 
   it("translation of key should match", () =>
