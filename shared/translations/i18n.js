@@ -18,7 +18,7 @@ const initI18n = () => {
       "DEFAULT_LANGUAGE" in process.env
         ? process.env.DEFAULT_LANGUAGE
         : "en_US",
-    debug: process.env.NODE_ENV !== "production" && debug,
+    debug: process.env.NODE_ENV !== "production",
     keySeparator: false,
     resources: {
       en_US: {
