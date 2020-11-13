@@ -42,25 +42,24 @@ class AvatarWithPresence extends React.Component<Props> {
       t,
     } = this.props;
 
+    const userName = user.name;
+    const you = isCurrentUser && t("(You)");
+    const action = isPresent
+      ? isEditing
+        ? t("currently editing")
+        : t("currently viewing")
+      : t("viewed {{ timeAgo }} ago", {
+          timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
+        });
+
     return (
       <>
         <Tooltip
           tooltip={
             <Centered>
-              <Trans
-                defaults="<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}"
-                components={{
-                  userName: user.name,
-                  you: isCurrentUser && t("(You)"),
-                  action: isPresent
-                    ? isEditing
-                      ? t("currently editing")
-                      : t("currently viewing")
-                    : t("viewed {{ timeAgo }} ago", {
-                        timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
-                      }),
-                }}
-              />
+              <strong>{{ userName }}</strong> {{ you }}
+              <br />
+              {{ action }}
             </Centered>
           }
           placement="bottom"

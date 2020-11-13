@@ -1,5 +1,8 @@
 {
-  "<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}": "<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}",
+  "(You)": "(Tu)",
+  "currently editing": "neste momento a editar",
+  "currently viewing": "neste momento a visualizar",
+  "viewed {{ timeAgo }} ago": "viu há {{ timeAgo }}",
   "Trash": "Reciclagem",
   "Archive": "Arquivo",
   "Drafts": "Rascunhos",
@@ -138,5 +141,6 @@
   "Delete Account": "Apagar conta",
   "You may delete your account at any time, note that this is unrecoverable": "Pode apagar a sua conta a qualquer momento, atenção que isso é irrecuperável",
   "Delete account": "Apagar conta",
-  "<strong>{{ collectionName }}</strong> doesn’t contain any documents yet. <br /> Get started by creating a new one!": "<strong>{{ collectionName }}</strong> não contém nenhum documento ainda. <br /> Para começar, crie um documento novo!"
+  "<0>{{collectionName}}</0> doesn’t contain any documents yet.": "<0>{{ collectionName }}</0> não contém nenhum documento ainda.",
+  "Get started by creating a new one!": "Para começar, crie um documento novo!"
 }
