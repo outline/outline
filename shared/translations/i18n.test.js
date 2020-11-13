@@ -11,20 +11,26 @@ describe("i18n configuration", () => {
     const de_DE_Keys = Object.keys(de_DE);
 
     var same = intersection(en_US_Keys, de_DE_Keys);
-    var diff = difference(de_DE_Keys, same);
-    console.log(diff);
+    var diff1 = difference(en_US_Keys, same);
+    var diff2 = difference(de_DE_Keys, same);
+    if (diff1.length) console.log(diff1);
+    if (diff2.length) console.log(diff2);
 
-    expect(diff.length).toBe(0);
+    expect(diff1.length).toBe(0);
+    expect(diff2.length).toBe(0);
   });
   it("en_US and pt_PT should have same keys", () => {
     const en_US_Keys = Object.keys(en_US);
     const pt_PT_Keys = Object.keys(pt_PT);
 
     var same = intersection(en_US_Keys, pt_PT_Keys);
-    var diff = difference(pt_PT_Keys, same);
-    console.log(diff);
+    var diff1 = difference(en_US_Keys, same);
+    var diff2 = difference(pt_PT_Keys, same);
+    if (diff1.length) console.log(diff1);
+    if (diff2.length) console.log(diff2);
 
-    expect(diff.length).toBe(0);
+    expect(diff1.length).toBe(0);
+    expect(diff2.length).toBe(0);
   });
 });
 
