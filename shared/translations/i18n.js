@@ -6,7 +6,7 @@ import de_DE from "./de_DE.json";
 import en_US from "./default.json";
 import pt_PT from "./pt_PT.json";
 
-const initI18n = (debug = true) => {
+const initI18n = () => {
   i18n.use(initReactI18next).init({
     interpolation: {
       escapeValue: false,
