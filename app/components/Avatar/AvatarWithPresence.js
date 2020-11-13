@@ -48,7 +48,7 @@ class AvatarWithPresence extends React.Component<Props> {
           tooltip={
             <Centered>
               <Trans
-                defaults="<strong>{{ userName }} {{ you }} <br /> {{ action }}</strong>"
+                defaults="<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}"
                 components={{
                   userName: user.name,
                   you: isCurrentUser && t("(You)"),
