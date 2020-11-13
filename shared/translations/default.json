@@ -1,5 +1,5 @@
 {
-  "<strong>{{ userName }} {{ you }} <br /> {{ action }}</strong>": "<strong>{{ userName }} {{ you }} <br /> {{ action }}</strong>",
+  "<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}": "<strong>{{ userName }}</strong> {{ you }} <br /> {{ action }}",
   "(You)": "(You)",
   "currently editing": "currently editing",
   "currently viewing": "currently viewing",
