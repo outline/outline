@@ -45,7 +45,6 @@ class TemplatesMenu extends React.Component<Props> {
               <strong>{template.titleWithDefault}</strong>
               <br />
               <Author>
-                {" "}
                 {t("By {{ author }}", { author: template.createdBy.name })}
               </Author>
             </div>
