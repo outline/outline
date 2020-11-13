@@ -114,6 +114,15 @@ const StyledEditor = styled(RichMarkdownEditor)`
     margin-top: 72px !important;
   }
 
+  .heading-name:first-child {
+    & + h1,
+    & + h2,
+    & + h3,
+    & + h4 {
+      margin-top: 0;
+    }
+  }
+
   p {
     a {
       color: ${(props) => props.theme.text};
