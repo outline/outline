@@ -66,7 +66,13 @@ router.post("users.update", auth(), async (ctx) => {
 
   if (name) user.name = name;
   if (avatarUrl) user.avatarUrl = avatarUrl;
-  if (language) user.language = language;
+  if (language) {
+    if (process.env.AVAILABLE_LANGUAGES.includes(language)) {
+      user.language = language;
+    } else {
+      user.language = process.env.DEFAULT_LANGUAGE;
+    }
+  }
 
   await user.save();
 
