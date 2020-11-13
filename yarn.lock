@@ -8435,10 +8435,10 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.21.0-3, outline-icons@^1.21.0-6:
-  version "1.21.0-6"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.21.0-6.tgz#bbf63fe6cc88ca2fe391e6ba6cc8b62a948607e3"
-  integrity sha512-iEVK2zTEZ3sLFLsko/V6z3AEiM2EAjEUyLIOzAT2cqRglIbaIWdyitotKVMb2hWZo66bSvHxA/Rdvv51sw5RhA==
+outline-icons@^1.21.0:
+  version "1.21.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.21.0.tgz#3e85b7959d0864adbf9a0362ded8fb64bcdcb10f"
+  integrity sha512-EHLv1cpIKzFiGdavSbn5VD3MQRTKpHINFQktm4ZZL42Me2cDj30WMBeMmXjHqOZls0WJNuhCQSYfa7E5ECKR+g==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -9152,10 +9152,10 @@ prosemirror-utils@^0.9.6:
   resolved "https://registry.yarnpkg.com/prosemirror-utils/-/prosemirror-utils-0.9.6.tgz#3d97bd85897e3b535555867dc95a51399116a973"
   integrity sha512-UC+j9hQQ1POYfMc5p7UFxBTptRiGPR7Kkmbl3jVvU8VgQbkI89tR/GK+3QYC8n+VvBZrtAoCrJItNhWSxX3slA==
 
-prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3, prosemirror-view@^1.15.7:
-  version "1.15.7"
-  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.15.7.tgz#b6ce82a08b7ffa8ff06b64ab36ec357229c66aa6"
-  integrity sha512-fSSXphXg+82qb4xNsHT0mX6ro0Wu1/l+WIFO5jYfyjd42r6ZWSg0gFItLgqOVPxoKQOlrPJUhrozTxiqx0EXOg==
+prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3, prosemirror-view@^1.16.1:
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.16.1.tgz#375794a253151205394bb1ece07bcc2a647c85da"
+  integrity sha512-7iDdRf2PAIgOnstcxqUxzf8IbHGfxygQs5covfxOHLWKyx7SSLRnBIlwVda54Hr6N26F4t5Kj2jfK7uIBcAKAw==
   dependencies:
     prosemirror-model "^1.1.0"
     prosemirror-state "^1.0.0"
@@ -9895,15 +9895,15 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.0.2:
-  version "11.0.2"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.0.2.tgz#281bca9670a30f6b528ace71a4ee06a24210a464"
-  integrity sha512-b9WigUymZA8BucrduIngBB+jrDuCHjwBdKa4aP6aehS5JQqKnTY++sjiHOvaFDnD75GJGUw/4wsNt76KdYAyCw==
+rich-markdown-editor@^11.0.6:
+  version "11.0.6"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.0.6.tgz#7d052bb5f65dc11de04488e7b25fb36c6d94dfcb"
+  integrity sha512-GkVM2JoNereX7UZXhJhd4d/YNoi3sSOoihitoElyU57vQ4zDNSesnW4SRRHZy33HBANhzjKaK4qSZdxRbiklgQ==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
     markdown-it-container "^3.0.0"
-    outline-icons "^1.21.0-3"
+    outline-icons "^1.21.0"
     prismjs "^1.19.0"
     prosemirror-commands "^1.1.4"
     prosemirror-dropcursor "^1.3.2"
@@ -9918,7 +9918,7 @@ rich-markdown-editor@^11.0.2:
     prosemirror-tables "^1.1.1"
     prosemirror-transform "1.2.5"
     prosemirror-utils "^0.9.6"
-    prosemirror-view "^1.15.7"
+    prosemirror-view "^1.16.1"
     react-medium-image-zoom "^3.0.16"
     react-portal "^4.2.1"
     refractor "^3.1.0"
