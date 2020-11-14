@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { MoreIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -16,6 +17,7 @@ type Props = {
   collections: CollectionsStore,
 };
 
+@withTranslation()
 @observer
 class NewChildDocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -39,19 +41,19 @@ class NewChildDocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { label, document, collections, ...rest } = this.props;
+    const { label, document, collections, t, ...rest } = this.props;
     const collection = collections.get(document.collectionId);
 
     return (
       <DropdownMenu label={label || <MoreIcon />} {...rest}>
         <DropdownMenuItem onClick={this.handleNewDocument}>
           <span>
-            New document in{" "}
-            <strong>{collection ? collection.name : "collection"}</strong>
+            {t("New document in")}{" "}
+            <strong>{collection ? collection.name : t("collection")}</strong>
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleNewChild}>
-          New nested document
+          {t("New nested document")}
         </DropdownMenuItem>
       </DropdownMenu>
     );

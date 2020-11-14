@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
@@ -22,6 +23,7 @@ type Props = {
   onClose?: () => void,
 };
 
+@withTranslation()
 @observer
 class GroupMenu extends React.Component<Props> {
   @observable editModalOpen: boolean = false;
@@ -46,13 +48,13 @@ class GroupMenu extends React.Component<Props> {
   };
 
   render() {
-    const { policies, group, onOpen, onClose } = this.props;
+    const { policies, group, onOpen, onClose, t } = this.props;
     const can = policies.abilities(group.id);
 
     return (
       <>
         <Modal
-          title="Edit group"
+          title={t("Edit group")}
           onRequestClose={this.handleEditModalClose}
           isOpen={this.editModalOpen}
         >
@@ -63,7 +65,7 @@ class GroupMenu extends React.Component<Props> {
         </Modal>
 
         <Modal
-          title="Delete group"
+          title={t("Delete group")}
           onRequestClose={this.handleDeleteModalClose}
           isOpen={this.deleteModalOpen}
         >
@@ -77,18 +79,20 @@ class GroupMenu extends React.Component<Props> {
           {group && (
             <>
               <DropdownMenuItem onClick={this.props.onMembers}>
-                Members…
+                {t("Members…")}
               </DropdownMenuItem>
 
               {(can.update || can.delete) && <hr />}
 
               {can.update && (
-                <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
+                <DropdownMenuItem onClick={this.onEdit}>
+                  {t("Edit…")}
+                </DropdownMenuItem>
               )}
 
               {can.delete && (
                 <DropdownMenuItem onClick={this.onDelete}>
-                  Delete…
+                  {t("Delete…")}
                 </DropdownMenuItem>
               )}
             </>

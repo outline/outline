@@ -36,6 +36,10 @@ const User = sequelize.define(
     lastSigninEmailSentAt: DataTypes.DATE,
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
+    language: {
+      type: DataTypes.STRING,
+      defaultValue: process.env.DEFAULT_LANGUAGE,
+    },
   },
   {
     paranoid: true,

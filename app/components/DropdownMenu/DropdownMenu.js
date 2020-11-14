@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { MoreIcon } from "outline-icons";
 import { rgba } from "polished";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { PortalWithState } from "react-portal";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
@@ -29,6 +30,7 @@ type Props = {
   position?: "left" | "right" | "center",
 };
 
+@withTranslation()
 @observer
 class DropdownMenu extends React.Component<Props> {
   id: string = `menu${counter++}`;
@@ -150,7 +152,7 @@ class DropdownMenu extends React.Component<Props> {
   };
 
   render() {
-    const { className, hover, label, children } = this.props;
+    const { className, hover, label, children, t } = this.props;
 
     return (
       <div className={className}>
@@ -177,7 +179,7 @@ class DropdownMenu extends React.Component<Props> {
                 {label || (
                   <NudeButton
                     id={`${this.id}button`}
-                    aria-label="More options"
+                    aria-label={t("More options")}
                     aria-haspopup="true"
                     aria-expanded={isOpen ? "true" : "false"}
                     aria-controls={this.id}

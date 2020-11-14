@@ -1,6 +1,7 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { withTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 
 import AuthStore from "stores/AuthStore";
@@ -19,25 +20,26 @@ type Props = {
   auth: AuthStore,
 };
 
+@withTranslation()
 @observer
 class Dashboard extends React.Component<Props> {
   render() {
-    const { documents, auth } = this.props;
+    const { documents, auth, t } = this.props;
     if (!auth.user || !auth.team) return null;
     const user = auth.user.id;
 
     return (
       <CenteredContent>
-        <PageTitle title="Home" />
-        <h1>Home</h1>
+        <PageTitle title={t("Home")} />
+        <h1>{t("Home")}</h1>
         <Tabs>
           <Tab to="/home" exact>
-            Recently updated
+            {t("Recently updated")}
           </Tab>
           <Tab to="/home/recent" exact>
-            Recently viewed
+            {t("Recently viewed")}
           </Tab>
-          <Tab to="/home/created">Created by me</Tab>
+          <Tab to="/home/created">{t("Created by me")}</Tab>
         </Tabs>
         <Switch>
           <Route path="/home/recent">

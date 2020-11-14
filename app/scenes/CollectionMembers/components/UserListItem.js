@@ -1,4 +1,5 @@
 // @flow
+import i18n from "i18next";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import User from "models/User";
@@ -7,6 +8,8 @@ import Badge from "components/Badge";
 import Button from "components/Button";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
+
+const t = (k) => i18n.t(k);
 
 type Props = {
   user: User,
@@ -23,19 +26,21 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
         <>
           {user.lastActiveAt ? (
             <>
-              Active <Time dateTime={user.lastActiveAt} /> ago
+              {t("Active {{ lastActiveAt }} ago", {
+                lastActiveAt: <Time dateTime={user.lastActiveAt} />,
+              })}
             </>
           ) : (
-            "Never signed in"
+            t("Never signed in")
           )}
-          {!user.lastActiveAt && <Badge>Invited</Badge>}
-          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
+          {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
       actions={
         canEdit ? (
           <Button type="button" onClick={onAdd} icon={<PlusIcon />} neutral>
-            Add
+            {t("Add")}
           </Button>
         ) : undefined
       }

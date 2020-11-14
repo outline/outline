@@ -62,10 +62,17 @@ router.post("users.info", auth(), async (ctx) => {
 
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { name, avatarUrl } = ctx.body;
+  const { name, avatarUrl, language } = ctx.body;
 
   if (name) user.name = name;
   if (avatarUrl) user.avatarUrl = avatarUrl;
+  if (language) {
+    if (process.env.AVAILABLE_LANGUAGES.includes(language)) {
+      user.language = language;
+    } else {
+      user.language = process.env.DEFAULT_LANGUAGE;
+    }
+  }
 
   await user.save();
 
