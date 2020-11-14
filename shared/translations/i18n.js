@@ -6,6 +6,18 @@ import de_DE from "./de_DE.json";
 import en_US from "./default.json";
 import pt_PT from "./pt_PT.json";
 
+const resources = {
+  en_US: {
+    translation: en_US,
+  },
+  de_DE: {
+    translation: de_DE,
+  },
+  pt_PT: {
+    translation: pt_PT,
+  },
+};
+
 const initI18n = () => {
   i18n.use(initReactI18next).init({
     interpolation: {
@@ -20,18 +32,10 @@ const initI18n = () => {
         : "en_US",
     debug: process.env.NODE_ENV !== "production",
     keySeparator: false,
-    resources: {
-      en_US: {
-        translation: en_US,
-      },
-      de_DE: {
-        translation: de_DE,
-      },
-      pt_PT: {
-        translation: pt_PT,
-      },
-    },
+    resources,
   });
 };
 
-export { initI18n, i18n, en_US, de_DE, pt_PT };
+const languages: string[] = Object.keys(resources);
+
+export { initI18n, languages, i18n, en_US, de_DE, pt_PT };

@@ -4,6 +4,7 @@ import addMinutes from "date-fns/add_minutes";
 import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
 import uuid from "uuid";
+import { languages } from "../../shared/translations/i18n";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
@@ -39,6 +40,9 @@ const User = sequelize.define(
     language: {
       type: DataTypes.STRING,
       defaultValue: process.env.DEFAULT_LANGUAGE,
+      validate: {
+        isIn: [languages],
+      },
     },
   },
   {

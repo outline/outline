@@ -20,11 +20,16 @@ const Select = styled.select`
   }
 `;
 
+const Wrapper = styled.label`
+  max-width: ${(props) => (props.short ? "350px" : "100%")};
+`;
+
 type Option = { label: string, value: string };
 
 export type Props = {
   value?: string,
   label?: string,
+  short?: boolean,
   className?: string,
   labelHidden?: boolean,
   options: Option[],
@@ -43,12 +48,19 @@ class InputSelect extends React.Component<Props> {
   };
 
   render() {
-    const { label, className, labelHidden, options, ...rest } = this.props;
+    const {
+      label,
+      className,
+      labelHidden,
+      options,
+      short,
+      ...rest
+    } = this.props;
 
     const wrappedLabel = <LabelText>{label}</LabelText>;
 
     return (
-      <label>
+      <Wrapper short={short}>
         {label &&
           (labelHidden ? (
             <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
@@ -64,7 +76,7 @@ class InputSelect extends React.Component<Props> {
             ))}
           </Select>
         </Outline>
-      </label>
+      </Wrapper>
     );
   }
 }
