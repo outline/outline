@@ -11,14 +11,17 @@ import UserDelete from "scenes/UserDelete";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
+import HelpText from "components/HelpText";
 import Input, { LabelText } from "components/Input";
 import InputSelect from "components/InputSelect";
 import PageTitle from "components/PageTitle";
 import ImageUpload from "./components/ImageUpload";
+import { type Translate } from "types";
 
 type Props = {
   auth: AuthStore,
   ui: UiStore,
+  t: Translate,
 };
 
 @withTranslation()
@@ -120,7 +123,6 @@ class Profile extends React.Component<Props> {
             required
             short
           />
-          <label>*Experimental/Beta feature</label>
           <br />
           <InputSelect
             label={t("Language")}
@@ -133,6 +135,9 @@ class Profile extends React.Component<Props> {
             onChange={this.handleLanguageChange}
             short
           />
+          <HelpText small>
+            {t("Please note that translations are currently in early access.")}
+          </HelpText>
           <Button type="submit" disabled={isSaving || !this.isValid}>
             {isSaving ? t("Saving…") : t("Save")}
           </Button>

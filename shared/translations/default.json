@@ -1,8 +1,8 @@
 {
-  "(You)": "(You)",
   "currently editing": "currently editing",
   "currently viewing": "currently viewing",
   "viewed {{ timeAgo }} ago": "viewed {{ timeAgo }} ago",
+  "You": "You",
   "Trash": "Trash",
   "Archive": "Archive",
   "Drafts": "Drafts",
@@ -138,6 +138,7 @@
   "Upload": "Upload",
   "Full name": "Full name",
   "Language": "Language",
+  "Please note that translations are currently in early access.": "Please note that translations are currently in early access.",
   "Saving…": "Saving…",
   "Save": "Save",
   "Delete Account": "Delete Account",
