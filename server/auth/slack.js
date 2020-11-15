@@ -4,14 +4,7 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
 import auth from "../middlewares/authentication";
-import {
-  Authentication,
-  Collection,
-  Integration,
-  User,
-  Event,
-  Team,
-} from "../models";
+import { Authentication, Collection, Integration, User, Team } from "../models";
 import * as Slack from "../slack";
 import { getCookieDomain } from "../utils/domains";
 
@@ -99,20 +92,6 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
       await team.provisionSubdomain(data.team.domain);
-    }
-
-    if (isFirstSignin) {
-      await Event.create({
-        name: "users.create",
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: "slack",
-        },
-        ip: ctx.request.ip,
-      });
     }
 
     // set cookies on response and redirect to team subdomain

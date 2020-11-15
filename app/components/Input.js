@@ -33,10 +33,6 @@ const RealInput = styled.input`
   &::placeholder {
     color: ${(props) => props.theme.placeholder};
   }
-
-  &::-webkit-search-cancel-button {
-    -webkit-appearance: searchfield-cancel-button;
-  }
 `;
 
 const Wrapper = styled.div`

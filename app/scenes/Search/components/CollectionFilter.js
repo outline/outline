@@ -5,7 +5,7 @@ import CollectionsStore from "stores/CollectionsStore";
 import FilterOptions from "./FilterOptions";
 
 const defaultOption = {
-  key: undefined,
+  key: "",
   label: "Any collection",
 };
 

@@ -7,7 +7,7 @@ import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Y from "yjs";
 import AuthStore from "stores/AuthStore";
@@ -31,7 +31,8 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
-import { type LocationWithState } from "types";
+import { type LocationWithState, type Theme } from "types";
+import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import {
   collectionUrl,
@@ -66,7 +67,7 @@ type Props = {
   },
   onCreateLink: (title: string) => string,
   onSearchLink: (term: string) => any,
-  theme: Object,
+  theme: Theme,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -86,7 +87,6 @@ class DocumentScene extends React.Component<Props> {
 
   componentDidMount() {
     this.updateIsDirty();
-    this.updateBackground();
   }
 
   componentDidUpdate(prevProps) {
@@ -120,20 +120,12 @@ class DocumentScene extends React.Component<Props> {
       this.title = document.title;
       this.isDirty = true;
     }
-
-    this.updateBackground();
   }
 
   componentWillUnmount() {
     if (this.props.multiplayer.provider) {
       this.props.multiplayer.provider.destroy();
     }
-  }
-
-  updateBackground() {
-    // ensure the wider page color always matches the theme. This is to
-    // account for share links which don't sit in the wider Layout component
-    window.document.body.style.background = this.props.theme.background;
   }
 
   @keydown("m")
@@ -345,6 +337,12 @@ class DocumentScene extends React.Component<Props> {
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
+    const headings = this.editor.current
+      ? this.editor.current.getHeadings()
+      : [];
+    const showContents =
+      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+
     return (
       <ErrorBoundary>
         <Background
@@ -401,7 +399,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth
               archived={document.isArchived}
-              tocVisible={ui.tocVisible && readOnly}
+              showContents={showContents}
               column
               auto
             >
@@ -441,15 +439,7 @@ class DocumentScene extends React.Component<Props> {
               )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
-                  {ui.tocVisible && readOnly && (
-                    <Contents
-                      headings={
-                        this.editor.current
-                          ? this.editor.current.getHeadings()
-                          : []
-                      }
-                    />
-                  )}
+                  {showContents && <Contents headings={headings} />}
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
@@ -498,7 +488,8 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Background>
-        {isShare ? <Branding /> : <KeyboardShortcutsButton />}
+        {isShare && !isCustomDomain() && <Branding />}
+        {!isShare && <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );
   }
@@ -532,7 +523,8 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${(props) => (props.tocVisible ? "64em" : "46em")});
+    max-width: calc(48px + ${(props) =>
+      props.showContents ? "64em" : "46em"});
   `};
 
   ${breakpoint("desktopLarge")`
@@ -541,5 +533,5 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject("ui", "auth", "policies", "revisions")(withTheme(DocumentScene))
+  inject("ui", "auth", "policies", "revisions")(DocumentScene)
 );

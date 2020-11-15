@@ -9,11 +9,8 @@ import CollectionsStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  Header,
-} from "components/DropdownMenu";
+import { DropdownMenu, Header } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -53,20 +50,18 @@ class NewTemplateMenu extends React.Component<Props> {
         {...rest}
       >
         <Header>Choose a collection</Header>
-        {collections.orderedData.map((collection) => {
-          const can = policies.abilities(collection.id);
-
-          return (
-            <DropdownMenuItem
-              key={collection.id}
-              onClick={() => this.handleNewDocument(collection.id)}
-              disabled={!can.update}
-            >
-              <CollectionIcon collection={collection} />
-              &nbsp;{collection.name}
-            </DropdownMenuItem>
-          );
-        })}
+        <DropdownMenuItems
+          items={collections.orderedData.map((collection) => ({
+            onClick: () => this.handleNewDocument(collection.id),
+            disabled: !policies.abilities(collection.id).update,
+            title: (
+              <>
+                <CollectionIcon collection={collection} />
+                &nbsp;{collection.name}
+              </>
+            ),
+          }))}
+        />
       </DropdownMenu>
     );
   }

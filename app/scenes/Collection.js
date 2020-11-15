@@ -36,6 +36,7 @@ import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import CollectionMenu from "menus/CollectionMenu";
+import { type Theme } from "types";
 import { AuthorizationError } from "utils/errors";
 import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
@@ -45,7 +46,7 @@ type Props = {
   collections: CollectionsStore,
   policies: PoliciesStore,
   match: Match,
-  theme: Object,
+  theme: Theme,
 };
 
 @observer

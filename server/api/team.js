@@ -1,7 +1,7 @@
 // @flow
 import Router from "koa-router";
 import auth from "../middlewares/authentication";
-import { Team } from "../models";
+import { Event, Team } from "../models";
 
 import policy from "../policies";
 import { presentTeam, presentPolicies } from "../presenters";
@@ -36,7 +36,23 @@ router.post("team.update", auth(), async (ctx) => {
   }
 
   if (avatarUrl !== undefined) team.avatarUrl = avatarUrl;
+
+  const changes = team.changed();
+  const data = {};
+
   await team.save();
+
+  for (const change of changes) {
+    data[change] = team[change];
+  }
+
+  await Event.create({
+    name: "teams.update",
+    actorId: user.id,
+    teamId: user.teamId,
+    data,
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     data: presentTeam(team),

@@ -7,11 +7,12 @@ import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Input from "./Input";
+import { type Theme } from "types";
 import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
-  theme: Object,
+  theme: Theme,
   source: string,
   placeholder?: string,
   collectionId?: string,

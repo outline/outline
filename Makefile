@@ -9,10 +9,16 @@ build:
 
 test:
 	docker-compose up -d redis postgres s3
+	yarn sequelize db:drop --env=test
+	yarn sequelize db:create --env=test
+	yarn sequelize db:migrate --env=test
 	yarn test
 
 watch:
 	docker-compose up -d redis postgres s3
+	yarn sequelize db:drop --env=test
+	yarn sequelize db:create --env=test
+	yarn sequelize db:migrate --env=test
 	yarn test:watch
 
 destroy:

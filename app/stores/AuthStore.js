@@ -35,7 +35,9 @@ export default class AuthStore {
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
-    // Rehydrate
+    this.rootStore = rootStore;
+
+    // attempt to load the previous state of this store from localstorage
     let data = {};
     try {
       data = JSON.parse(localStorage.getItem(AUTH_STORE) || "{}");
@@ -43,17 +45,10 @@ export default class AuthStore {
       // no-op Safari private mode
     }
 
-    this.rootStore = rootStore;
-    this.user = new User(data.user);
-    this.team = new Team(data.team);
-    this.token = getCookie("accessToken");
-    this.lastSignedIn = getCookie("lastSignedIn");
     setImmediate(() => this.fetchConfig());
+    this.rehydrate(data);
 
-    if (this.token) {
-      setImmediate(() => this.fetch());
-    }
-
+    // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
       try {
         localStorage.setItem(AUTH_STORE, this.asJson);
@@ -61,6 +56,35 @@ export default class AuthStore {
         // no-op Safari private mode
       }
     });
+
+    // listen to the localstorage value changing in other tabs to react to
+    // signin/signout events in other tabs and follow suite.
+    window.addEventListener("storage", (event) => {
+      if (event.key === AUTH_STORE) {
+        const data = JSON.parse(event.newValue);
+
+        // if there is no user on the new data then we know the other tab
+        // signed out and we should do the same. Otherwise, if we're not
+        // signed in then hydrate from the received data
+        if (this.token && data.user === null) {
+          this.logout();
+        } else if (!this.token) {
+          this.rehydrate(data);
+        }
+      }
+    });
+  }
+
+  @action
+  rehydrate(data: { user: User, team: Team }) {
+    this.user = new User(data.user);
+    this.team = new Team(data.team);
+    this.token = getCookie("accessToken");
+    this.lastSignedIn = getCookie("lastSignedIn");
+
+    if (this.token) {
+      setImmediate(() => this.fetch());
+    }
   }
 
   addPolicies = (policies) => {

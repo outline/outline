@@ -18,7 +18,7 @@ type Children =
   | React.Node
   | ((options: { closePortal: () => void }) => React.Node);
 
-type Props = {
+type Props = {|
   label?: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
@@ -27,7 +27,7 @@ type Props = {
   hover?: boolean,
   style?: Object,
   position?: "left" | "right" | "center",
-};
+|};
 
 @observer
 class DropdownMenu extends React.Component<Props> {

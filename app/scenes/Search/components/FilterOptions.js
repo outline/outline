@@ -8,7 +8,7 @@ import FilterOption from "./FilterOption";
 
 type Props = {
   options: {
-    key: ?string,
+    key: string,
     label: string,
     note?: string,
   }[],
@@ -20,7 +20,7 @@ type Props = {
 
 const FilterOptions = ({
   options,
-  activeKey,
+  activeKey = "",
   defaultLabel,
   selectedPrefix = "",
   onSelect,

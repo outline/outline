@@ -2,9 +2,10 @@
 import * as React from "react";
 import { NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import { type Theme } from "types";
 
 type Props = {
-  theme: Object,
+  theme: Theme,
 };
 
 const StyledNavLink = styled(NavLink)`

@@ -11,12 +11,11 @@ const H3 = styled.h3`
   margin-top: 22px;
   margin-bottom: 12px;
   line-height: 1;
+  position: relative;
 `;
 
 const Underline = styled("span")`
-  position: relative;
-  top: 1px;
-
+  margin-top: -1px;
   display: inline-block;
   font-weight: 500;
   font-size: 14px;

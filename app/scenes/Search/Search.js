@@ -302,31 +302,29 @@ class Search extends React.Component<Props> {
           )}
           {showEmpty && (
             <Fade>
-              <Empty>
-                <Centered column>
-                  <HelpText>
-                    No documents found for your search filters. <br />
-                    Create a new document?
-                  </HelpText>
-                  <Wrapper>
-                    {this.collectionId ? (
-                      <Button
-                        onClick={this.handleNewDoc}
-                        icon={<PlusIcon />}
-                        primary
-                      >
-                        New doc
-                      </Button>
-                    ) : (
-                      <NewDocumentMenu />
-                    )}
-                    &nbsp;&nbsp;
-                    <Button as={Link} to="/search" neutral>
-                      Clear filters
+              <Centered column>
+                <HelpText>
+                  No documents found for your search filters. <br />
+                  Create a new document?
+                </HelpText>
+                <Wrapper>
+                  {this.collectionId ? (
+                    <Button
+                      onClick={this.handleNewDoc}
+                      icon={<PlusIcon />}
+                      primary
+                    >
+                      New doc
                     </Button>
-                  </Wrapper>
-                </Centered>
-              </Empty>
+                  ) : (
+                    <NewDocumentMenu />
+                  )}
+                  &nbsp;&nbsp;
+                  <Button as={Link} to="/search" neutral>
+                    Clear filters
+                  </Button>
+                </Wrapper>
+              </Centered>
             </Fade>
           )}
           <ResultList column visible={this.pinToTop}>
@@ -403,7 +401,8 @@ const Filters = styled(Flex)`
   margin-bottom: 12px;
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
-  overflow-y: auto;
+  overflow-y: hidden;
+  overflow-x: auto;
   padding: 8px 0;
 
   ${breakpoint("tablet")`	

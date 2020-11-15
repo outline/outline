@@ -12,11 +12,8 @@ import DocumentDelete from "scenes/DocumentDelete";
 import DocumentShare from "scenes/DocumentShare";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import CollectionIcon from "components/CollectionIcon";
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  Header,
-} from "components/DropdownMenu";
+import { DropdownMenu } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import Modal from "components/Modal";
 import {
   documentHistoryUrl,
@@ -170,7 +167,7 @@ class DocumentMenu extends React.Component<Props> {
     } = this.props;
 
     const can = policies.abilities(document.id);
-    const canShareDocuments = can.share && auth.team && auth.team.sharing;
+    const canShareDocuments = !!(can.share && auth.team && auth.team.sharing);
     const canViewHistory = can.read && !can.restore;
     const collection = collections.get(document.collectionId);
 
@@ -183,146 +180,147 @@ class DocumentMenu extends React.Component<Props> {
           onClose={onClose}
           label={label}
         >
-          {can.unarchive && (
-            <DropdownMenuItem onClick={this.handleRestore}>
-              Restore
-            </DropdownMenuItem>
-          )}
-          {can.restore &&
-            (collection ? (
-              <DropdownMenuItem onClick={this.handleRestore}>
-                Restore
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenu
-                label={<DropdownMenuItem>Restore…</DropdownMenuItem>}
-                style={{
+          <DropdownMenuItems
+            items={[
+              {
+                title: "Restore",
+                visible: !!can.unarchive,
+                onClick: this.handleRestore,
+              },
+              {
+                title: "Restore",
+                visible: !!(collection && can.restore),
+                onClick: this.handleRestore,
+              },
+              {
+                title: "Restore…",
+                visible: !collection && !!can.restore,
+                style: {
                   left: -170,
                   position: "relative",
                   top: -40,
-                }}
-                hover
-              >
-                <Header>Choose a collection</Header>
-                {collections.orderedData.map((collection) => {
-                  const can = policies.abilities(collection.id);
+                },
+                hover: true,
+                items: [
+                  {
+                    type: "heading",
+                    title: "Choose a collection",
+                  },
+                  ...collections.orderedData.map((collection) => {
+                    const can = policies.abilities(collection.id);
 
-                  return (
-                    <DropdownMenuItem
-                      key={collection.id}
-                      onClick={(ev) =>
-                        this.handleRestore(ev, { collectionId: collection.id })
-                      }
-                      disabled={!can.update}
-                    >
-                      <CollectionIcon collection={collection} />
-                      &nbsp;{collection.name}
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenu>
-            ))}
-          {showPin &&
-            (document.pinned
-              ? can.unpin && (
-                  <DropdownMenuItem onClick={this.handleUnpin}>
-                    Unpin
-                  </DropdownMenuItem>
-                )
-              : can.pin && (
-                  <DropdownMenuItem onClick={this.handlePin}>
-                    Pin to collection
-                  </DropdownMenuItem>
-                ))}
-          {document.isStarred
-            ? can.unstar && (
-                <DropdownMenuItem onClick={this.handleUnstar}>
-                  Unstar
-                </DropdownMenuItem>
-              )
-            : can.star && (
-                <DropdownMenuItem onClick={this.handleStar}>
-                  Star
-                </DropdownMenuItem>
-              )}
-          {canShareDocuments && (
-            <DropdownMenuItem
-              onClick={this.handleShareLink}
-              title="Create a public share link"
-            >
-              Share link…
-            </DropdownMenuItem>
-          )}
-          {showToggleEmbeds && (
-            <>
-              {document.embedsDisabled ? (
-                <DropdownMenuItem onClick={document.enableEmbeds}>
-                  Enable embeds
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={document.disableEmbeds}>
-                  Disable embeds
-                </DropdownMenuItem>
-              )}
-            </>
-          )}
-          {!can.restore && <hr />}
-
-          {can.createChildDocument && (
-            <DropdownMenuItem
-              onClick={this.handleNewChild}
-              title="Create a nested document inside the current document"
-            >
-              New nested document
-            </DropdownMenuItem>
-          )}
-          {can.update && !document.isTemplate && (
-            <DropdownMenuItem onClick={this.handleOpenTemplateModal}>
-              Create template…
-            </DropdownMenuItem>
-          )}
-          {can.unpublish && (
-            <DropdownMenuItem onClick={this.handleUnpublish}>
-              Unpublish
-            </DropdownMenuItem>
-          )}
-          {can.update && (
-            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
-          )}
-          {can.update && (
-            <DropdownMenuItem onClick={this.handleDuplicate}>
-              Duplicate
-            </DropdownMenuItem>
-          )}
-          {can.archive && (
-            <DropdownMenuItem onClick={this.handleArchive}>
-              Archive
-            </DropdownMenuItem>
-          )}
-          {can.delete && (
-            <DropdownMenuItem onClick={this.handleDelete}>
-              Delete…
-            </DropdownMenuItem>
-          )}
-          {can.move && (
-            <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
-          )}
-          <hr />
-          {canViewHistory && (
-            <>
-              <DropdownMenuItem onClick={this.handleDocumentHistory}>
-                History
-              </DropdownMenuItem>
-            </>
-          )}
-          {can.download && (
-            <DropdownMenuItem onClick={this.handleExport}>
-              Download
-            </DropdownMenuItem>
-          )}
-          {showPrint && (
-            <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
-          )}
+                    return {
+                      title: (
+                        <>
+                          <CollectionIcon collection={collection} />
+                          &nbsp;{collection.name}
+                        </>
+                      ),
+                      onClick: (ev) =>
+                        this.handleRestore(ev, { collectionId: collection.id }),
+                      disabled: !can.update,
+                    };
+                  }),
+                ],
+              },
+              {
+                title: "Unpin",
+                onClick: this.handleUnpin,
+                visible: !!(showPin && document.pinned && can.unpin),
+              },
+              {
+                title: "Pin to collection",
+                onClick: this.handlePin,
+                visible: !!(showPin && !document.pinned && can.pin),
+              },
+              {
+                title: "Unstar",
+                onClick: this.handleUnstar,
+                visible: document.isStarred && !!can.unstar,
+              },
+              {
+                title: "Star",
+                onClick: this.handleStar,
+                visible: !document.isStarred && !!can.star,
+              },
+              {
+                title: "Share link…",
+                onClick: this.handleShareLink,
+                visible: canShareDocuments,
+              },
+              {
+                title: "Enable embeds",
+                onClick: document.enableEmbeds,
+                visible: !!showToggleEmbeds && document.embedsDisabled,
+              },
+              {
+                title: "Disable embeds",
+                onClick: document.disableEmbeds,
+                visible: !!showToggleEmbeds && !document.embedsDisabled,
+              },
+              {
+                type: "separator",
+              },
+              {
+                title: "New nested document",
+                onClick: this.handleNewChild,
+                visible: !!can.createChildDocument,
+              },
+              {
+                title: "Create template…",
+                onClick: this.handleOpenTemplateModal,
+                visible: !!can.update && !document.isTemplate,
+              },
+              {
+                title: "Edit",
+                onClick: this.handleEdit,
+                visible: !!can.update,
+              },
+              {
+                title: "Duplicate",
+                onClick: this.handleDuplicate,
+                visible: !!can.update,
+              },
+              {
+                title: "Unpublish",
+                onClick: this.handleUnpublish,
+                visible: !!can.unpublish,
+              },
+              {
+                title: "Archive",
+                onClick: this.handleArchive,
+                visible: !!can.archive,
+              },
+              {
+                title: "Delete…",
+                onClick: this.handleDelete,
+                visible: !!can.delete,
+              },
+              {
+                title: "Move…",
+                onClick: this.handleMove,
+                visible: !!can.move,
+              },
+              {
+                type: "separator",
+              },
+              {
+                title: "History",
+                onClick: this.handleDocumentHistory,
+                visible: canViewHistory,
+              },
+              {
+                title: "Download",
+                onClick: this.handleExport,
+                visible: !!can.download,
+              },
+              {
+                title: "Print",
+                onClick: window.print,
+                visible: !!showPrint,
+              },
+            ]}
+          />
         </DropdownMenu>
         <Modal
           title={`Delete ${this.props.document.noun}`}

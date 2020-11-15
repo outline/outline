@@ -145,9 +145,16 @@ const StyledEditor = styled(RichMarkdownEditor)`
   }
 
   .heading-name {
-    display: block;
-    position: relative;
-    top: -52px;
+    pointer-events: none;
+  }
+
+  .heading-name:first-child {
+    & + h1,
+    & + h2,
+    & + h3,
+    & + h4 {
+      margin-top: 0;
+    }
   }
 
   p {
