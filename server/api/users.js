@@ -70,6 +70,14 @@ router.post("users.update", auth(), async (ctx) => {
 
   await user.save();
 
+  await Event.create({
+    name: "users.update",
+    actorId: user.id,
+    userId: user.id,
+    teamId: user.teamId,
+    ip: ctx.request.ip,
+  });
+
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
   };

@@ -5,7 +5,8 @@ import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
 import UsersStore from "stores/UsersStore";
 import User from "models/User";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import { DropdownMenu } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 
 type Props = {
   user: User,
@@ -78,31 +79,42 @@ class UserMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu>
-        {user.isAdmin && (
-          <DropdownMenuItem onClick={this.handleDemote}>
-            {t("Make {{ userName }} a member…", { userName: user.name })}
-          </DropdownMenuItem>
-        )}
-        {!user.isAdmin && !user.isSuspended && (
-          <DropdownMenuItem onClick={this.handlePromote}>
-            {t("Make {{ userName }} an admin…", { userName: user.name })}
-          </DropdownMenuItem>
-        )}
-        {!user.lastActiveAt && (
-          <DropdownMenuItem onClick={this.handleRevoke}>
-            {t("Revoke invite…")}
-          </DropdownMenuItem>
-        )}
-        {user.lastActiveAt &&
-          (user.isSuspended ? (
-            <DropdownMenuItem onClick={this.handleActivate}>
-              {t("Activate account")}
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={this.handleSuspend}>
-              {t("Suspend account…")}
-            </DropdownMenuItem>
-          ))}
+        <DropdownMenuItems
+          items={[
+            {
+              title: t("Make {{ userName }} a member…", {
+                userName: user.name,
+              }),
+              onClick: this.handleDemote,
+              visible: user.isAdmin,
+            },
+            {
+              title: t("Make {{ userName }} an admin…", {
+                userName: user.name,
+              }),
+              onClick: this.handlePromote,
+              visible: !user.isAdmin && !user.isSuspended,
+            },
+            {
+              type: "separator",
+            },
+            {
+              title: t("Revoke invite…"),
+              onClick: this.handleRevoke,
+              visible: user.isInvited,
+            },
+            {
+              title: t("Activate account"),
+              onClick: this.handleActivate,
+              visible: !user.isInvited && user.isSuspended,
+            },
+            {
+              title: t("Suspend account…"),
+              onClick: this.handleSuspend,
+              visible: !user.isInvited && !user.isSuspended,
+            },
+          ]}
+        />
       </DropdownMenu>
     );
   }

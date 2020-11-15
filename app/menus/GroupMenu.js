@@ -9,8 +9,8 @@ import UiStore from "stores/UiStore";
 import Group from "models/Group";
 import GroupDelete from "scenes/GroupDelete";
 import GroupEdit from "scenes/GroupEdit";
-
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import { DropdownMenu } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import Modal from "components/Modal";
 
 type Props = {
@@ -74,29 +74,29 @@ class GroupMenu extends React.Component<Props> {
             onSubmit={this.handleDeleteModalClose}
           />
         </Modal>
-
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
-          {group && (
-            <>
-              <DropdownMenuItem onClick={this.props.onMembers}>
-                {t("Members…")}
-              </DropdownMenuItem>
-
-              {(can.update || can.delete) && <hr />}
-
-              {can.update && (
-                <DropdownMenuItem onClick={this.onEdit}>
-                  {t("Edit…")}
-                </DropdownMenuItem>
-              )}
-
-              {can.delete && (
-                <DropdownMenuItem onClick={this.onDelete}>
-                  {t("Delete…")}
-                </DropdownMenuItem>
-              )}
-            </>
-          )}
+          <DropdownMenuItems
+            items={[
+              {
+                title: t("Members…"),
+                onClick: this.props.onMembers,
+                visible: !!(group && can.read),
+              },
+              {
+                type: "separator",
+              },
+              {
+                title: t("Edit…"),
+                onClick: this.onEdit,
+                visible: !!(group && can.update),
+              },
+              {
+                title: t("Delete…"),
+                onClick: this.onDelete,
+                visible: !!(group && can.delete),
+              },
+            ]}
+          />
         </DropdownMenu>
       </>
     );

@@ -33,7 +33,7 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
           ) : (
             t("Never signed in")
           )}
-          {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
+          {user.isInvited && <Badge>{t("Invited")}</Badge>}
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
