@@ -2,7 +2,7 @@
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import UsersStore from "stores/UsersStore";
 import User from "models/User";
 import { DropdownMenu } from "components/DropdownMenu";
@@ -11,9 +11,9 @@ import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 type Props = {
   user: User,
   users: UsersStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class UserMenu extends React.Component<Props> {
   handlePromote = (ev: SyntheticEvent<>) => {
@@ -116,4 +116,4 @@ class UserMenu extends React.Component<Props> {
   }
 }
 
-export default inject("users")(UserMenu);
+export default withTranslation()<UserMenu>(inject("users")(UserMenu));

@@ -21,6 +21,7 @@ const Select = styled.select`
 `;
 
 const Wrapper = styled.label`
+  display: block;
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 

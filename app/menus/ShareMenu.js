@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import SharesStore from "stores/SharesStore";
@@ -17,9 +17,9 @@ type Props = {
   shares: SharesStore,
   ui: UiStore,
   share: Share,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class ShareMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -72,4 +72,4 @@ class ShareMenu extends React.Component<Props> {
   }
 }
 
-export default inject("shares", "ui")(ShareMenu);
+export default withTranslation()<ShareMenu>(inject("shares", "ui")(ShareMenu));

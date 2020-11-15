@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -17,16 +17,16 @@ type Props = {
   source: string,
   placeholder?: string,
   collectionId?: string,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class InputSearch extends React.Component<Props> {
   input: ?Input;
   @observable focused: boolean = false;
 
   @keydown("meta+f")
-  focus(ev) {
+  focus(ev: SyntheticEvent<>) {
     ev.preventDefault();
 
     if (this.input) {
@@ -34,7 +34,7 @@ class InputSearch extends React.Component<Props> {
     }
   }
 
-  handleSearchInput = (ev) => {
+  handleSearchInput = (ev: SyntheticInputEvent<>) => {
     ev.preventDefault();
     this.props.history.push(
       searchUrl(ev.target.value, {
@@ -79,4 +79,6 @@ const InputMaxWidth = styled(Input)`
   max-width: 30vw;
 `;
 
-export default withTheme(withRouter(InputSearch));
+export default withTranslation()<InputSearch>(
+  withTheme(withRouter(InputSearch))
+);

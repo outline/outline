@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import Collection from "models/Collection";
@@ -24,9 +24,9 @@ type Props = {|
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
+  t: TFunction,
 |};
 
-@withTranslation()
 @observer
 class DocumentLink extends React.Component<Props> {
   @observable menuOpen = false;
@@ -163,4 +163,4 @@ class DocumentLink extends React.Component<Props> {
 
 const DocumentChildren = styled(Flex)``;
 
-export default DocumentLink;
+export default withTranslation()<DocumentLink>(DocumentLink);

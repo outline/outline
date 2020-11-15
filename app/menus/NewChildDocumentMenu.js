@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -15,9 +15,9 @@ type Props = {
   label?: React.Node,
   document: Document,
   collections: CollectionsStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class NewChildDocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -68,4 +68,6 @@ class NewChildDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections")(NewChildDocumentMenu);
+export default withTranslation()<NewChildDocumentMenu>(
+  inject("collections")(NewChildDocumentMenu)
+);

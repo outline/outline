@@ -1,7 +1,7 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 
 import AuthStore from "stores/AuthStore";
@@ -18,9 +18,9 @@ import NewDocumentMenu from "menus/NewDocumentMenu";
 type Props = {
   documents: DocumentsStore,
   auth: AuthStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class Dashboard extends React.Component<Props> {
   render() {
@@ -80,4 +80,6 @@ class Dashboard extends React.Component<Props> {
   }
 }
 
-export default inject("documents", "auth")(Dashboard);
+export default withTranslation()<Dashboard>(
+  inject("documents", "auth")(Dashboard)
+);

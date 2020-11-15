@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { Switch, Route, Redirect } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -38,16 +38,17 @@ type Props = {
   ui: UiStore,
   notifications?: React.Node,
   theme: Theme,
+  i18n: Object,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  constructor(props) {
+  constructor(props: Props) {
     super();
     this.updateBackground(props);
   }
@@ -60,7 +61,7 @@ class Layout extends React.Component<Props> {
     }
   }
 
-  updateBackground(props) {
+  updateBackground(props: Props) {
     // ensure the wider page color always matches the theme
     window.document.body.style.background = props.theme.background;
   }
@@ -76,7 +77,7 @@ class Layout extends React.Component<Props> {
   };
 
   @keydown(["t", "/", "meta+k"])
-  goToSearch(ev) {
+  goToSearch(ev: SyntheticEvent<>) {
     if (this.props.ui.editMode) return;
     ev.preventDefault();
     ev.stopPropagation();
@@ -97,8 +98,9 @@ class Layout extends React.Component<Props> {
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    if (auth.authenticated && i18n.language !== user.language)
+    if (auth.authenticated && user && i18n.language !== user.language) {
       i18n.changeLanguage(user.language);
+    }
 
     return (
       <Container column auto>
@@ -167,4 +169,6 @@ const Content = styled(Flex)`
   `};
 `;
 
-export default inject("auth", "ui", "documents")(withTheme(Layout));
+export default withTranslation()<Layout>(
+  inject("auth", "ui", "documents")(withTheme(Layout))
+);

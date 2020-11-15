@@ -12,7 +12,7 @@ import {
   PlusIcon,
 } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
@@ -35,9 +35,9 @@ type Props = {
   auth: AuthStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class MainSidebar extends React.Component<Props> {
   @observable inviteModalOpen = false;
@@ -198,4 +198,6 @@ const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default inject("documents", "policies", "auth")(MainSidebar);
+export default withTranslation()<MainSidebar>(
+  inject("documents", "policies", "auth")(MainSidebar)
+);

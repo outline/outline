@@ -2,7 +2,7 @@
 import { observer, inject } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
@@ -12,9 +12,9 @@ import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 type Props = {
   document: Document,
   documents: DocumentsStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class TemplatesMenu extends React.Component<Props> {
   render() {
@@ -59,4 +59,6 @@ const Author = styled.div`
   font-size: 13px;
 `;
 
-export default inject("documents")(TemplatesMenu);
+export default withTranslation()<TemplatesMenu>(
+  inject("documents")(TemplatesMenu)
+);
