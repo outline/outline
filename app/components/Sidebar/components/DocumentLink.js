@@ -141,7 +141,7 @@ class DocumentLink extends React.Component<Props> {
             {this.hasChildDocuments() && (
               <DocumentChildren column>
                 {node.children.map((childNode) => (
-                  <DocumentLinkWithTranslation
+                  <DocumentLink
                     key={childNode.id}
                     collection={collection}
                     node={childNode}
@@ -150,6 +150,7 @@ class DocumentLink extends React.Component<Props> {
                     prefetchDocument={prefetchDocument}
                     depth={depth + 1}
                     canUpdate={canUpdate}
+                    t={t}
                   />
                 ))}
               </DocumentChildren>
@@ -163,8 +164,4 @@ class DocumentLink extends React.Component<Props> {
 
 const DocumentChildren = styled(Flex)``;
 
-const DocumentLinkWithTranslation = withTranslation()<DocumentLink>(
-  DocumentLink
-);
-
-export default DocumentLinkWithTranslation;
+export default withTranslation()<DocumentLink>(DocumentLink);
