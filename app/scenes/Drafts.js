@@ -82,7 +82,7 @@ class Drafts extends React.Component<Props> {
         <PageTitle title={t("Drafts")} />
         <Heading>{t("Drafts")}</Heading>
         <Subheading>
-          Documents
+          {t("Documents")}
           <Filters>
             <CollectionFilter
               collectionId={this.collectionId}
