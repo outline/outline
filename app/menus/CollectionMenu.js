@@ -11,7 +11,8 @@ import CollectionDelete from "scenes/CollectionDelete";
 import CollectionEdit from "scenes/CollectionEdit";
 import CollectionExport from "scenes/CollectionExport";
 import CollectionMembers from "scenes/CollectionMembers";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import { DropdownMenu } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 import Modal from "components/Modal";
 import VisuallyHidden from "components/VisuallyHidden";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -139,41 +140,43 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <DropdownMenu onOpen={onOpen} onClose={onClose} position={position}>
-          {collection && (
-            <>
-              {can.update && (
-                <DropdownMenuItem onClick={this.onNewDocument}>
-                  New document
-                </DropdownMenuItem>
-              )}
-              {can.update && (
-                <DropdownMenuItem onClick={this.onImportDocument}>
-                  Import document
-                </DropdownMenuItem>
-              )}
-              {can.update && <hr />}
-              {can.update && (
-                <DropdownMenuItem onClick={this.handleEditCollectionOpen}>
-                  Edit…
-                </DropdownMenuItem>
-              )}
-              {can.update && (
-                <DropdownMenuItem onClick={this.handleMembersModalOpen}>
-                  Permissions…
-                </DropdownMenuItem>
-              )}
-              {can.export && (
-                <DropdownMenuItem onClick={this.handleExportCollectionOpen}>
-                  Export…
-                </DropdownMenuItem>
-              )}
-            </>
-          )}
-          {can.delete && (
-            <DropdownMenuItem onClick={this.handleDeleteCollectionOpen}>
-              Delete…
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItems
+            items={[
+              {
+                title: "New document",
+                visible: !!(collection && can.update),
+                onClick: this.onNewDocument,
+              },
+              {
+                title: "Import document",
+                visible: !!(collection && can.update),
+                onClick: this.onImportDocument,
+              },
+              {
+                type: "separator",
+              },
+              {
+                title: "Edit…",
+                visible: !!(collection && can.update),
+                onClick: this.handleEditCollectionOpen,
+              },
+              {
+                title: "Permissions…",
+                visible: !!(collection && can.update),
+                onClick: this.handleMembersModalOpen,
+              },
+              {
+                title: "Export…",
+                visible: !!(collection && can.export),
+                onClick: this.handleExportCollectionOpen,
+              },
+              {
+                title: "Delete…",
+                visible: !!(collection && can.delete),
+                onClick: this.handleDeleteCollectionOpen,
+              },
+            ]}
+          />
         </DropdownMenu>
         <Modal
           title="Edit collection"
