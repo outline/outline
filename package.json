@@ -69,7 +69,7 @@
     "@sentry/node": "^5.23.0",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
-    "@tommoor/y-prosemirror": "^0.4.0",
+    "@tommoor/y-prosemirror": "^0.4.1",
     "autotrack": "^2.4.1",
     "aws-sdk": "^2.135.0",
     "babel-plugin-lodash": "^3.3.4",
@@ -169,7 +169,7 @@
     "validator": "5.2.0",
     "y-indexeddb": "^9.0.5",
     "y-protocols": "^1.0.1",
-    "yjs": "^13.4.1"
+    "yjs": "^13.4.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",

@@ -1506,10 +1506,10 @@
   resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.1.tgz#25e7b845d52fcfadf149a3a6a468a931fee7619b"
   integrity sha512-aM5TtBfBgcUm+B4WWelm2NBAFBk12oNUr67f5lJapSOTkPnwkuzCNwMlsBoDTsRknoZSsUIkcOJB473AnfyqHA==
 
-"@tommoor/y-prosemirror@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@tommoor/y-prosemirror/-/y-prosemirror-0.4.0.tgz#cd5b1e5c62bb7476ad87fa9c5e7331c8372f7179"
-  integrity sha512-T35mnRHVbCJccpP8b7QjDgNdUzCuoNpWnigLWS3GPvAWFlHoYQJEwHkrN3fmkkXKyX+8Cqr2x74DGIQhKq0Atg==
+"@tommoor/y-prosemirror@^0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@tommoor/y-prosemirror/-/y-prosemirror-0.4.1.tgz#ce3209b09cf090c1125f84c2b8a9456b26aa59e0"
+  integrity sha512-J6KoVtBJKRKrQCzLVAXfbOGh6eD00GiPhPiLK+42RyFSPy4DliFJ9SPgHxaDHOPki70NdSbJ+vy9L8TTV6y5yw==
   dependencies:
     "@rollup/plugin-commonjs" "^15.1.0"
     "@rollup/plugin-node-resolve" "^9.0.0"
@@ -12367,10 +12367,10 @@ yeast@0.1.2:
   resolved "https://registry.yarnpkg.com/yeast/-/yeast-0.1.2.tgz#008e06d8094320c372dbc2f8ed76a0ca6c8ac419"
   integrity sha1-AI4G2AlDIMNy28L47XagymyKxBk=
 
-yjs@^13.4.1:
-  version "13.4.1"
-  resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.4.1.tgz#5ef869eb2e64f028eb013952a5f28412a084dc90"
-  integrity sha512-kIh0sprCTzIm2qyr1VsovkvjKzD2GR4WcU/McJpLAEvImCJHA78Q3S6uSLnhZX0i7FQdrLPCRT8DtTPEH73jnw==
+yjs@^13.4.4:
+  version "13.4.4"
+  resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.4.4.tgz#3a8b90abf38b14c1d352d9d98098541cf7187d39"
+  integrity sha512-5YUsjK28pzNu2MOvvc+KTSvlnjhNNPiZF828ac0HuPg2rfaex/IBOdZE3bgZ/UEfIUdDPrKNFpXKaP6Z9MzJ1w==
   dependencies:
     lib0 "^0.2.33"
 
