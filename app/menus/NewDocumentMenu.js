@@ -34,7 +34,14 @@ class NewDocumentMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
-  handleNewDocument = (collectionId: string, options) => {
+  handleNewDocument = (
+    collectionId: string,
+    options?: {
+      parentDocumentId?: string,
+      template?: boolean,
+      templateId?: string,
+    }
+  ) => {
     this.redirectTo = newDocumentUrl(collectionId, options);
   };
 

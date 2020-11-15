@@ -1,15 +1,13 @@
 // @flow
-import i18n from "i18next";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
-
-const t = (k) => i18n.t(k);
 
 type Props = {
   user: User,
@@ -18,6 +16,8 @@ type Props = {
 };
 
 const UserListItem = ({ user, onAdd, canEdit }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <ListItem
       title={user.name}

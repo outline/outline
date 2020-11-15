@@ -4,7 +4,7 @@ import { observer, inject } from "mobx-react";
 
 import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, Trans } from "react-i18next";
+import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 
@@ -66,7 +66,7 @@ class CollectionScene extends React.Component<Props> {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     const { id } = this.props.match.params;
 
     if (this.collection) {
@@ -181,11 +181,7 @@ class CollectionScene extends React.Component<Props> {
       : [];
     const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
-
-    var collectionName = "";
-    if (collection) {
-      collectionName = collection.name;
-    }
+    const collectionName = collection ? collection.name : "";
 
     return (
       <CenteredContent>
@@ -196,7 +192,7 @@ class CollectionScene extends React.Component<Props> {
               <Centered column>
                 <HelpText>
                   <Trans>
-                    <strong>{{ collectionName }}</strong> doesn’t contain any
+                    <strong>{collectionName}</strong> doesn’t contain any
                     documents yet.
                   </Trans>
                   <br />
