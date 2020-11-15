@@ -1,7 +1,7 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 
 import AuthStore from "stores/AuthStore";
@@ -18,68 +18,63 @@ import NewDocumentMenu from "menus/NewDocumentMenu";
 type Props = {
   documents: DocumentsStore,
   auth: AuthStore,
-  t: TFunction,
 };
 
-@observer
-class Dashboard extends React.Component<Props> {
-  render() {
-    const { documents, auth, t } = this.props;
-    if (!auth.user || !auth.team) return null;
-    const user = auth.user.id;
+function Dashboard(props: Props) {
+  const { t } = useTranslation();
+  const { documents, auth } = props;
+  if (!auth.user || !auth.team) return null;
+  const user = auth.user.id;
 
-    return (
-      <CenteredContent>
-        <PageTitle title={t("Home")} />
-        <h1>{t("Home")}</h1>
-        <Tabs>
-          <Tab to="/home" exact>
-            {t("Recently updated")}
-          </Tab>
-          <Tab to="/home/recent" exact>
-            {t("Recently viewed")}
-          </Tab>
-          <Tab to="/home/created">{t("Created by me")}</Tab>
-        </Tabs>
-        <Switch>
-          <Route path="/home/recent">
-            <PaginatedDocumentList
-              key="recent"
-              documents={documents.recentlyViewed}
-              fetch={documents.fetchRecentlyViewed}
-              showCollection
-            />
-          </Route>
-          <Route path="/home/created">
-            <PaginatedDocumentList
-              key="created"
-              documents={documents.createdByUser(user)}
-              fetch={documents.fetchOwned}
-              options={{ user }}
-              showCollection
-            />
-          </Route>
-          <Route path="/home">
-            <PaginatedDocumentList
-              documents={documents.recentlyUpdated}
-              fetch={documents.fetchRecentlyUpdated}
-              showCollection
-            />
-          </Route>
-        </Switch>
-        <Actions align="center" justify="flex-end">
-          <Action>
-            <InputSearch source="dashboard" />
-          </Action>
-          <Action>
-            <NewDocumentMenu />
-          </Action>
-        </Actions>
-      </CenteredContent>
-    );
-  }
+  return (
+    <CenteredContent>
+      <PageTitle title={t("Home")} />
+      <h1>{t("Home")}</h1>
+      <Tabs>
+        <Tab to="/home" exact>
+          {t("Recently updated")}
+        </Tab>
+        <Tab to="/home/recent" exact>
+          {t("Recently viewed")}
+        </Tab>
+        <Tab to="/home/created">{t("Created by me")}</Tab>
+      </Tabs>
+      <Switch>
+        <Route path="/home/recent">
+          <PaginatedDocumentList
+            key="recent"
+            documents={documents.recentlyViewed}
+            fetch={documents.fetchRecentlyViewed}
+            showCollection
+          />
+        </Route>
+        <Route path="/home/created">
+          <PaginatedDocumentList
+            key="created"
+            documents={documents.createdByUser(user)}
+            fetch={documents.fetchOwned}
+            options={{ user }}
+            showCollection
+          />
+        </Route>
+        <Route path="/home">
+          <PaginatedDocumentList
+            documents={documents.recentlyUpdated}
+            fetch={documents.fetchRecentlyUpdated}
+            showCollection
+          />
+        </Route>
+      </Switch>
+      <Actions align="center" justify="flex-end">
+        <Action>
+          <InputSearch source="dashboard" />
+        </Action>
+        <Action>
+          <NewDocumentMenu />
+        </Action>
+      </Actions>
+    </CenteredContent>
+  );
 }
 
-export default withTranslation()<Dashboard>(
-  inject("documents", "auth")(Dashboard)
-);
+export default inject("documents", "auth")(observer(Dashboard));
