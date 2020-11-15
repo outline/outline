@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { StarredIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Link, Redirect } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Document from "models/Document";
@@ -26,11 +26,11 @@ type Props = {
   showPin?: boolean,
   showDraft?: boolean,
   showTemplate?: boolean,
+  t: TFunction,
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
-@withTranslation()
 @observer
 class DocumentPreview extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -244,4 +244,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default DocumentPreview;
+export default withTranslation()<DocumentPreview>(DocumentPreview);

@@ -1,7 +1,7 @@
 // @flow
 import { inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 
 import UiStore from "stores/UiStore";
@@ -20,9 +20,9 @@ type Props = {
   className?: string,
   label: React.Node,
   ui: UiStore,
+  t: TFunction,
 };
 
-@withTranslation()
 class RevisionMenu extends React.Component<Props> {
   handleRestore = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
@@ -63,4 +63,6 @@ class RevisionMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject("ui")(RevisionMenu));
+export default withTranslation()<RevisionMenu>(
+  withRouter(inject("ui")(RevisionMenu))
+);

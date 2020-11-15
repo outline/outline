@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -23,9 +23,9 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class NewDocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -85,4 +85,6 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "documents", "policies")(NewDocumentMenu);
+export default withTranslation()<NewDocumentMenu>(
+  inject("collections", "documents", "policies")(NewDocumentMenu)
+);

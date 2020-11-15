@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { SunIcon, MoonIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
@@ -24,9 +24,9 @@ type Props = {
   label: React.Node,
   ui: UiStore,
   auth: AuthStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class AccountMenu extends React.Component<Props> {
   @observable keyboardShortcutsOpen: boolean = false;
@@ -129,4 +129,6 @@ const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
-export default inject("ui", "auth")(AccountMenu);
+export default withTranslation()<AccountMenu>(
+  inject("ui", "auth")(AccountMenu)
+);

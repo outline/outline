@@ -30,6 +30,7 @@ type Props = {
 
 function Icon({ document }) {
   const { t } = useTranslation();
+
   if (document.isDeleted) {
     return (
       <>

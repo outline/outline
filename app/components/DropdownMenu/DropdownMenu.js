@@ -5,7 +5,7 @@ import { observer } from "mobx-react";
 import { MoreIcon } from "outline-icons";
 import { rgba } from "polished";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { PortalWithState } from "react-portal";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
@@ -28,9 +28,9 @@ type Props = {
   hover?: boolean,
   style?: Object,
   position?: "left" | "right" | "center",
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class DropdownMenu extends React.Component<Props> {
   id: string = `menu${counter++}`;
@@ -286,4 +286,4 @@ export const Header = styled.h3`
   margin: 1em 12px 0.5em;
 `;
 
-export default DropdownMenu;
+export default withTranslation()<DropdownMenu>(DropdownMenu);

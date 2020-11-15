@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import MembershipsStore from "stores/MembershipsStore";
 import UiStore from "stores/UiStore";
@@ -25,9 +25,9 @@ type Props = {
   memberships: MembershipsStore,
   users: UsersStore,
   onSubmit: () => void,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class AddPeopleToCollection extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
@@ -124,9 +124,6 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "auth",
-  "users",
-  "memberships",
-  "ui"
-)(AddPeopleToCollection);
+export default withTranslation()<AddPeopleToCollection>(
+  inject("auth", "users", "memberships", "ui")(AddPeopleToCollection)
+);

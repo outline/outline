@@ -48,9 +48,9 @@ type Props = {
   policies: PoliciesStore,
   match: Match,
   theme: Theme,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
@@ -360,9 +360,11 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject(
-  "collections",
-  "policies",
-  "documents",
-  "ui"
-)(withTheme(CollectionScene));
+export default withTranslation()<CollectionScene>(
+  inject(
+    "collections",
+    "policies",
+    "documents",
+    "ui"
+  )(withTheme(CollectionScene))
+);

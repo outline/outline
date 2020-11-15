@@ -16,7 +16,7 @@ declare module "react-i18next" {
 
   declare type Translator<P: {}, Component: React$ComponentType<P>> = (
     WrappedComponent: Component
-  ) => React$ComponentType<
+  ) => React$Element<
     $Diff<React$ElementConfig<Component>, TranslatorPropsVoid>
   >;
 
@@ -31,12 +31,28 @@ declare module "react-i18next" {
     usePureComponent: boolean,
   }>;
 
-  declare function withTranslation<P: {}, Component: React$ComponentType<P>>(
-    namespaces?: | string
-      | Array<string>
-      | (($Diff<P, TranslatorPropsVoid>) => string | Array<string>),
+  declare type UseTranslationResponse = {
+    t: TFunction,
+    i18n: Object,
+    ready: boolean,
+  };
+
+  declare type Namespace =
+    | string
+    | Array<string>
+    | (($Diff<P, TranslatorPropsVoid>) => string | Array<string>);
+
+  declare function useTranslation(
+    ns?: Namespace,
     options?: TranslateOptions
-  ): Translator<P, Component>;
+  ): UseTranslationResponse;
+
+  declare function withTranslation(
+    ns?: Namespace,
+    options?: {
+      withRef?: boolean,
+    }
+  ): <P>(component: React.ComponentType<P>) => Translator<P, Component>;
 
   declare type I18nProps = {
     i18n?: Object,

@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
@@ -16,15 +16,13 @@ import Input, { LabelText } from "components/Input";
 import InputSelect from "components/InputSelect";
 import PageTitle from "components/PageTitle";
 import ImageUpload from "./components/ImageUpload";
-import { type Translate } from "types";
 
 type Props = {
   auth: AuthStore,
   ui: UiStore,
-  t: Translate,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class Profile extends React.Component<Props> {
   timeout: TimeoutID;
@@ -204,4 +202,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default inject("auth", "ui")(Profile);
+export default withTranslation()<Profile>(inject("auth", "ui")(Profile));

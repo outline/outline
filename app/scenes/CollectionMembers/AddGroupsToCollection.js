@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
@@ -27,9 +27,9 @@ type Props = {
   collectionGroupMemberships: CollectionGroupMembershipsStore,
   groups: GroupsStore,
   onSubmit: () => void,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class AddGroupsToCollection extends React.Component<Props> {
   @observable newGroupModalOpen: boolean = false;
@@ -138,9 +138,11 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default inject(
-  "auth",
-  "groups",
-  "collectionGroupMemberships",
-  "ui"
-)(AddGroupsToCollection);
+export default withTranslation()<AddGroupsToCollection>(
+  inject(
+    "auth",
+    "groups",
+    "collectionGroupMemberships",
+    "ui"
+  )(AddGroupsToCollection)
+);

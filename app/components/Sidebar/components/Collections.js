@@ -2,7 +2,7 @@
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
 
@@ -25,9 +25,9 @@ type Props = {
   documents: DocumentsStore,
   onCreateCollection: () => void,
   ui: UiStore,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class Collections extends React.Component<Props> {
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
@@ -96,9 +96,6 @@ class Collections extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "collections",
-  "ui",
-  "documents",
-  "policies"
-)(withRouter(Collections));
+export default withTranslation()<Collections>(
+  inject("collections", "ui", "documents", "policies")(withRouter(Collections))
+);

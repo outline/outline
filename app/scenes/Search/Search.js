@@ -48,7 +48,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?React.Component<typeof DocumentPreview>;
+  firstDocument: ?React.Component<any>;
   lastQuery: string = "";
 
   @observable

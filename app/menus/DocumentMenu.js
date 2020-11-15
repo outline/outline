@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
@@ -42,9 +42,9 @@ type Props = {
   label?: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class DocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
@@ -374,4 +374,6 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("ui", "auth", "collections", "policies")(DocumentMenu);
+export default withTranslation()<DocumentMenu>(
+  inject("ui", "auth", "collections", "policies")(DocumentMenu)
+);

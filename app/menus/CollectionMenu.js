@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
+import { withTranslation, type TFunction } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -27,9 +27,9 @@ type Props = {
   history: RouterHistory,
   onOpen?: () => void,
   onClose?: () => void,
+  t: TFunction,
 };
 
-@withTranslation()
 @observer
 class CollectionMenu extends React.Component<Props> {
   file: ?HTMLInputElement;
@@ -213,8 +213,6 @@ class CollectionMenu extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "ui",
-  "documents",
-  "policies"
-)(withRouter(CollectionMenu));
+export default withTranslation()<CollectionMenu>(
+  inject("ui", "documents", "policies")(withRouter(CollectionMenu))
+);
