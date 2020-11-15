@@ -1,6 +1,6 @@
 // @flow
-import i18n from "i18next";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Membership from "models/Membership";
 import User from "models/User";
@@ -13,12 +13,6 @@ import InputSelect from "components/InputSelect";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
 
-const t = (k) => i18n.t(k);
-
-const PERMISSIONS = [
-  { label: t("Read only"), value: "read" },
-  { label: t("Read & Edit"), value: "read_write" },
-];
 type Props = {
   user: User,
   membership?: ?Membership,
@@ -36,6 +30,16 @@ const MemberListItem = ({
   onAdd,
   canEdit,
 }: Props) => {
+  const { t } = useTranslation();
+
+  const PERMISSIONS = React.useMemo(
+    () => [
+      { label: t("Read only"), value: "read" },
+      { label: t("Read & Edit"), value: "read_write" },
+    ],
+    [t]
+  );
+
   return (
     <ListItem
       title={user.name}

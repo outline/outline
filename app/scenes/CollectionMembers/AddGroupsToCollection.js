@@ -10,6 +10,7 @@ import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsSt
 import GroupsStore from "stores/GroupsStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
+import Group from "models/Group";
 import GroupNew from "scenes/GroupNew";
 import Button from "components/Button";
 import Empty from "components/Empty";
@@ -54,8 +55,9 @@ class AddGroupsToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddGroup = (group) => {
+  handleAddGroup = (group: Group) => {
     const { t } = this.props;
+
     try {
       this.props.collectionGroupMemberships.create({
         collectionId: this.props.collection.id,

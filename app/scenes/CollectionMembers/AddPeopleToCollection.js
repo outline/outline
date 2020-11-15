@@ -9,6 +9,7 @@ import MembershipsStore from "stores/MembershipsStore";
 import UiStore from "stores/UiStore";
 import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
+import User from "models/User";
 import Invite from "scenes/Invite";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
@@ -52,7 +53,7 @@ class AddPeopleToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = (user) => {
+  handleAddUser = (user: User) => {
     const { t } = this.props;
     try {
       this.props.memberships.create({
