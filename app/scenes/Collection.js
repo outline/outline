@@ -192,7 +192,7 @@ class CollectionScene extends React.Component<Props> {
               <Centered column>
                 <HelpText>
                   <Trans>
-                    <strong>{collectionName}</strong> doesn’t contain any
+                    <strong>{{ collectionName }}</strong> doesn’t contain any
                     documents yet.
                   </Trans>
                   <br />
