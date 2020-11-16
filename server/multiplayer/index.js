@@ -121,12 +121,12 @@ export async function handleLeave(
   // TODO: store connections in redis?
   if (doc.conns.size === 0) {
     log(`all clients left doc (${documentId}), persisting…`);
-    // TODO: write a revision
 
     const document = await Document.findByPk(documentId);
     await documentUpdater({ document, ydoc: doc, userId, done: true });
 
     doc.destroy();
+    docs.delete(documentId);
   }
 }
 

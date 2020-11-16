@@ -11,7 +11,7 @@ import {
 } from "outline-icons";
 import { transparentize, darken } from "polished";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
+import { withRouter, type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -50,6 +50,7 @@ type Props = {
   publishingIsDisabled: boolean,
   savingIsDisabled: boolean,
   onDiscard: () => void,
+  history: RouterHistory,
   onSave: ({
     done?: boolean,
     publish?: boolean,
@@ -61,7 +62,6 @@ type Props = {
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
   @observable showShareModal = false;
-  @observable redirectTo: ?string;
 
   componentDidMount() {
     window.addEventListener("scroll", this.handleScroll);
@@ -78,15 +78,17 @@ class Header extends React.Component<Props> {
   handleScroll = throttle(this.updateIsScrolled, 50);
 
   handleEdit = () => {
-    this.redirectTo = editDocumentUrl(this.props.document);
+    this.props.history.push(editDocumentUrl(this.props.document));
   };
 
   handleNewFromTemplate = () => {
-    const { document } = this.props;
+    const { document, history } = this.props;
 
-    this.redirectTo = newDocumentUrl(document.collectionId, {
-      templateId: document.id,
-    });
+    history.push(
+      newDocumentUrl(document.collectionId, {
+        templateId: document.id,
+      })
+    );
   };
 
   handleSave = () => {
@@ -116,8 +118,6 @@ class Header extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     const {
       shares,
       document,
@@ -425,4 +425,4 @@ const Title = styled.div`
   `};
 `;
 
-export default inject("auth", "ui", "policies", "shares")(Header);
+export default inject("auth", "ui", "policies", "shares")(withRouter(Header));

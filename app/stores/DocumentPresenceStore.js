@@ -34,6 +34,32 @@ export default class PresenceStore {
     this.data.set(documentId, existing);
   }
 
+  @action updateFromAwareness(documentId: string, awareness) {
+    const existing = this.data.get(documentId) || new Map();
+    const clients = Array.from(awareness.states.values());
+    const userIds = clients.map((client) => client.user && client.user.id);
+
+    existing.forEach((value, key) => {
+      if (!userIds.includes(key)) {
+        existing.delete(key);
+      }
+    });
+
+    clients.forEach((client) => {
+      if (!client.user) {
+        return;
+      }
+      const userId = client.user.id;
+
+      existing.set(userId, {
+        isEditing: !!client.cursor,
+        userId,
+      });
+    });
+
+    this.data.set(documentId, existing);
+  }
+
   // called when a user presence message is received – user.presence websocket
   // message.
   // While in edit mode a message is sent every USER_PRESENCE_INTERVAL, if

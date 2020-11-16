@@ -25,19 +25,27 @@ export default class MultiplayerExtension extends Extension {
         provider.awareness.setLocalStateField("user", {
           color: user.color,
           name: user.name,
+          id: user.id,
         });
       }
     });
 
-    provider.on("sync", () => {
-      doc.once("update", () => {
+    provider.once("sync", () => {
+      const assignUser = (tr) => {
         const clientIds = Array.from(doc.store.clients.keys());
 
-        if (!clientIds.includes(doc.clientID)) {
+        if (
+          tr.local &&
+          tr.changed.size > 0 &&
+          !clientIds.includes(doc.clientID)
+        ) {
           const permanentUserData = new Y.PermanentUserData(doc);
           permanentUserData.setUserMapping(doc, doc.clientID, user.id);
+          doc.off("afterTransaction", assignUser);
         }
-      });
+      };
+
+      doc.on("afterTransaction", assignUser);
     });
 
     // const dbProvider = new IndexeddbPersistence(doc.documentId, doc);

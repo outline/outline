@@ -2,20 +2,23 @@
 import * as React from "react";
 import * as Y from "yjs";
 import { SocketContext } from "components/SocketProvider";
+import useStores from "hooks/useStores";
 import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 
 type Props = {
   children: ({
-    provider: WebsocketProvider,
+    provider: ?WebsocketProvider,
+    isReconnecting: boolean,
     isConnected: boolean,
     doc: Y.Doc,
   }) => React.Node,
   isMultiplayer: boolean,
   documentId: string,
-  userId: string,
+  userId?: string,
 };
 
 export default function SocketPresence(props: Props) {
+  const { presence } = useStores();
   const context = React.useContext(SocketContext);
   const [isConnected, setConnected] = React.useState(
     context ? context.connected : false
@@ -25,10 +28,16 @@ export default function SocketPresence(props: Props) {
     props.isMultiplayer ? new Y.Doc() : undefined
   );
   const [provider] = React.useState(() =>
-    props.isMultiplayer
+    props.isMultiplayer && props.userId
       ? new WebsocketProvider(context, props.documentId, props.userId, doc)
       : undefined
   );
+
+  React.useEffect(() => {
+    provider.awareness.on("update", () => {
+      presence.updateFromAwareness(props.documentId, provider.awareness);
+    });
+  }, [provider.awareness]);
 
   React.useEffect(() => {
     console.log("useEffect", context);

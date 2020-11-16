@@ -31,6 +31,7 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
+import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 import { type LocationWithState, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
@@ -62,7 +63,9 @@ type Props = {
   revision: Revision,
   readOnly: boolean,
   multiplayer: {
-    provider: any,
+    isConnected: boolean,
+    isReconnecting: boolean,
+    provider: ?WebsocketProvider,
     doc: Y.Doc,
   },
   onCreateLink: (title: string) => string,
@@ -431,12 +434,16 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              {!multiplayer.isConnected && team.multiplayerEditor && (
-                <Notice muted>
-                  Connection lost. Any edits will sync once you’re back online.{" "}
-                  {multiplayer.isReconnecting && "Trying to reconnect…"}
-                </Notice>
-              )}
+              {team &&
+                multiplayer &&
+                !multiplayer.isConnected &&
+                team.multiplayerEditor && (
+                  <Notice muted>
+                    Connection lost. Any edits will sync once you’re back
+                    online.{" "}
+                    {multiplayer.isReconnecting && "Trying to reconnect…"}
+                  </Notice>
+                )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
@@ -450,7 +457,7 @@ class DocumentScene extends React.Component<Props> {
                     title={revision ? revision.title : this.title}
                     document={document}
                     value={readOnly ? value : undefined}
-                    defaultValue={value}
+                    defaultValue={team && team.multiplayerEditor ? "" : value}
                     disableEmbeds={disableEmbeds}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}

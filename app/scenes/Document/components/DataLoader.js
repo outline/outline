@@ -252,7 +252,7 @@ class DataLoader extends React.Component<Props> {
     return (
       <SocketPresence
         documentId={document.id}
-        userId={auth.user.id}
+        userId={auth.user ? auth.user.id : undefined}
         isMultiplayer={team.multiplayerEditor}
       >
         {(multiplayer) => (
