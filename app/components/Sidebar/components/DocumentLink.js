@@ -2,13 +2,11 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
-import Flex from "components/Flex";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
@@ -97,67 +95,61 @@ class DocumentLink extends React.Component<Props> {
     );
     const document = documents.get(node.id);
     const title = node.title || "Untitled";
-
     return (
-      <Flex
-        column
-        key={node.id}
-        ref={this.isActiveDocument() ? activeDocumentRef : undefined}
-        onMouseEnter={this.handleMouseEnter}
-      >
-        <DropToImport documentId={node.id} activeClassName="activeDropZone">
-          <SidebarLink
-            to={{
-              pathname: node.url,
-              state: { title: node.title },
-            }}
-            expanded={showChildren ? true : undefined}
-            label={
+      <React.Fragment key={node.id}>
+        <SidebarLink
+          innerRef={this.isActiveDocument() ? activeDocumentRef : undefined}
+          onMouseEnter={this.handleMouseEnter}
+          to={{
+            pathname: node.url,
+            state: { title: node.title },
+          }}
+          expanded={showChildren ? true : undefined}
+          label={
+            <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <EditableTitle
                 title={title}
                 onSubmit={this.handleTitleChange}
                 canUpdate={canUpdate}
               />
-            }
-            depth={depth}
-            exact={false}
-            menuOpen={this.menuOpen}
-            menu={
-              document ? (
-                <Fade>
-                  <DocumentMenu
-                    position="right"
-                    document={document}
-                    onOpen={() => (this.menuOpen = true)}
-                    onClose={() => (this.menuOpen = false)}
-                  />
-                </Fade>
-              ) : undefined
-            }
-          >
-            {this.hasChildDocuments() && (
-              <DocumentChildren column>
-                {node.children.map((childNode) => (
-                  <DocumentLink
-                    key={childNode.id}
-                    collection={collection}
-                    node={childNode}
-                    documents={documents}
-                    activeDocument={activeDocument}
-                    prefetchDocument={prefetchDocument}
-                    depth={depth + 1}
-                    canUpdate={canUpdate}
-                  />
-                ))}
-              </DocumentChildren>
-            )}
-          </SidebarLink>
-        </DropToImport>
-      </Flex>
+            </DropToImport>
+          }
+          depth={depth}
+          exact={false}
+          menuOpen={this.menuOpen}
+          menu={
+            document ? (
+              <Fade>
+                <DocumentMenu
+                  position="right"
+                  document={document}
+                  onOpen={() => (this.menuOpen = true)}
+                  onClose={() => (this.menuOpen = false)}
+                />
+              </Fade>
+            ) : undefined
+          }
+        >
+          {this.hasChildDocuments() && (
+            <>
+              {node.children.map((childNode) => (
+                <DocumentLink
+                  key={childNode.id}
+                  collection={collection}
+                  node={childNode}
+                  documents={documents}
+                  activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
+                  depth={depth + 1}
+                  canUpdate={canUpdate}
+                />
+              ))}
+            </>
+          )}
+        </SidebarLink>
+      </React.Fragment>
     );
   }
 }
-
-const DocumentChildren = styled(Flex)``;
 
 export default DocumentLink;

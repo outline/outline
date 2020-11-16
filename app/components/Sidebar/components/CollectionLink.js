@@ -8,7 +8,6 @@ import Collection from "models/Collection";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import DropToImport from "components/DropToImport";
-import Flex from "components/Flex";
 import DocumentLink from "./DocumentLink";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
@@ -43,52 +42,50 @@ class CollectionLink extends React.Component<Props> {
     const expanded = collection.id === ui.activeCollectionId;
 
     return (
-      <DropToImport
+      <SidebarLink
         key={collection.id}
-        collectionId={collection.id}
-        activeClassName="activeDropZone"
-      >
-        <SidebarLink
-          key={collection.id}
-          to={collection.url}
-          icon={<CollectionIcon collection={collection} expanded={expanded} />}
-          iconColor={collection.color}
-          expanded={expanded}
-          hideDisclosure
-          menuOpen={this.menuOpen}
-          label={
+        to={collection.url}
+        icon={<CollectionIcon collection={collection} expanded={expanded} />}
+        iconColor={collection.color}
+        expanded={expanded}
+        hideDisclosure
+        menuOpen={this.menuOpen}
+        label={
+          <DropToImport
+            key={collection.id}
+            collectionId={collection.id}
+            activeClassName="activeDropZone"
+          >
             <EditableTitle
               title={collection.name}
               onSubmit={this.handleTitleChange}
               canUpdate={canUpdate}
-            />
-          }
-          exact={false}
-          menu={
-            <CollectionMenu
-              position="right"
-              collection={collection}
-              onOpen={() => (this.menuOpen = true)}
-              onClose={() => (this.menuOpen = false)}
-            />
-          }
-        >
-          <Flex column>
-            {collection.documents.map((node) => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                documents={documents}
-                collection={collection}
-                activeDocument={activeDocument}
-                prefetchDocument={prefetchDocument}
-                canUpdate={canUpdate}
-                depth={1.5}
-              />
-            ))}
-          </Flex>
-        </SidebarLink>
-      </DropToImport>
+            />{" "}
+          </DropToImport>
+        }
+        exact={false}
+        menu={
+          <CollectionMenu
+            position="right"
+            collection={collection}
+            onOpen={() => (this.menuOpen = true)}
+            onClose={() => (this.menuOpen = false)}
+          />
+        }
+      >
+        {collection.documents.map((node) => (
+          <DocumentLink
+            key={node.id}
+            node={node}
+            documents={documents}
+            collection={collection}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            canUpdate={canUpdate}
+            depth={1.5}
+          />
+        ))}
+      </SidebarLink>
     );
   }
 }

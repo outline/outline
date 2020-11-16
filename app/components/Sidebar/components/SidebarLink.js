@@ -4,13 +4,14 @@ import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
-import Flex from "components/Flex";
 import { type Theme } from "types";
 
 type Props = {
   to?: string | Object,
   href?: string | Object,
+  innerRef?: (?HTMLElement) => void,
   onClick?: (SyntheticEvent<>) => void,
+  onMouseEnter?: (SyntheticEvent<>) => void,
   children?: React.Node,
   icon?: React.Node,
   expanded?: boolean,
@@ -29,6 +30,7 @@ function SidebarLink({
   icon,
   children,
   onClick,
+  onMouseEnter,
   to,
   label,
   active,
@@ -38,6 +40,7 @@ function SidebarLink({
   theme,
   exact,
   href,
+  innerRef,
   depth,
   ...rest
 }: Props) {
@@ -77,15 +80,17 @@ function SidebarLink({
   };
 
   return (
-    <Wrapper column>
+    <>
       <StyledNavLink
         activeStyle={activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}
+        onMouseEnter={onMouseEnter}
         exact={exact !== false}
         to={to}
         as={to ? undefined : href ? "a" : "div"}
         href={href}
+        ref={innerRef}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
         <Label onClick={handleExpand}>
@@ -97,7 +102,7 @@ function SidebarLink({
         {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
       </StyledNavLink>
       {expanded && children}
-    </Wrapper>
+    </>
   );
 }
 
@@ -151,10 +156,6 @@ const StyledNavLink = styled(NavLink)`
       display: inline;
     }
   }
-`;
-
-const Wrapper = styled(Flex)`
-  position: relative;
 `;
 
 const Label = styled.div`
