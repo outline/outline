@@ -34,10 +34,28 @@ export default function SocketPresence(props: Props) {
   );
 
   React.useEffect(() => {
-    provider.awareness.on("update", () => {
-      presence.updateFromAwareness(props.documentId, provider.awareness);
-    });
-  }, [provider.awareness]);
+    return () => {
+      console.log("destroy");
+      provider.destroy();
+    };
+  }, []);
+
+  const awareness = provider && provider.awareness;
+  React.useEffect(() => {
+    const onUpdate = () => {
+      presence.updateFromAwareness(props.documentId, awareness);
+    };
+
+    if (awareness) {
+      awareness.on("update", onUpdate);
+    }
+
+    return () => {
+      if (awareness) {
+        awareness.off("update", onUpdate);
+      }
+    };
+  }, [presence, props.documentId, awareness]);
 
   React.useEffect(() => {
     console.log("useEffect", context);
@@ -61,10 +79,7 @@ export default function SocketPresence(props: Props) {
     context.on("reconnect", reconnectingStopped);
     context.on("reconnect_attempt", setReconnecting);
     context.on("reconnect_failed", reconnectingStopped);
-
-    context.on("authenticated", () => {
-      emitJoin();
-    });
+    context.on("authenticated", emitJoin);
 
     if (context.authenticated) {
       emitJoin();

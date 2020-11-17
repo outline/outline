@@ -125,12 +125,6 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  componentWillUnmount() {
-    if (this.props.multiplayer.provider) {
-      this.props.multiplayer.provider.destroy();
-    }
-  }
-
   @keydown("m")
   goToMove(ev) {
     if (!this.props.readOnly) return;

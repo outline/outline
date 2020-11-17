@@ -34,7 +34,7 @@ export default class PresenceStore {
     this.data.set(documentId, existing);
   }
 
-  @action updateFromAwareness(documentId: string, awareness) {
+  @action updateFromAwareness(documentId: string, awareness: any) {
     const existing = this.data.get(documentId) || new Map();
     const clients = Array.from(awareness.states.values());
     const userIds = clients.map((client) => client.user && client.user.id);
