@@ -1,6 +1,6 @@
 // @flow
 import type { DocumentEvent, RevisionEvent } from "../events";
-import { Document, Backlink } from "../models";
+import { Document, Team, Backlink } from "../models";
 import { Op } from "../sequelize";
 import parseDocumentIds from "../utils/parseDocumentIds";
 import slugify from "../utils/slugify";
@@ -76,12 +76,20 @@ export default class Backlinks {
         break;
       }
       case "documents.title_change": {
+        // might as well check
+        const { title, previousTitle } = event.data;
+        if (!previousTitle || title === previousTitle) {
+          break;
+        }
+
         const document = await Document.findByPk(event.documentId);
         if (!document) return;
 
-        // might as well check
-        const { title, previousTitle } = event.data;
-        if (!previousTitle || title === previousTitle) break;
+        // TODO: Handle re-writing of titles into CRDT
+        const team = await Team.findByPk(document.teamId);
+        if (team.multiplayerEditor) {
+          break;
+        }
 
         // update any link titles in documents that lead to this one
         const backlinks = await Backlink.findAll({
