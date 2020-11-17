@@ -6,16 +6,17 @@ import * as Y from "yjs";
 import { Document, Event } from "../models";
 
 export default async function documentUpdater({
-  document,
+  documentId,
   ydoc,
   userId,
   done,
 }: {
-  document: Document,
+  documentId: string,
   ydoc: Y.Doc,
   userId: string,
   done?: boolean,
 }) {
+  const document = await Document.findByPk(documentId);
   const state = Y.encodeStateAsUpdate(ydoc);
   const node = yDocToProsemirror(schema, ydoc);
   const text = serializer.serialize(node);
@@ -25,6 +26,10 @@ export default async function documentUpdater({
   const pudIds = Array.from(pud.clients.values());
   const existingIds = document.collaboratorIds;
   const collaboratorIds = uniq([...pudIds, ...existingIds]);
+
+  if (document.text === text) {
+    return;
+  }
 
   await Document.update(
     {

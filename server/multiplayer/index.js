@@ -46,7 +46,7 @@ export function handleJoin({
       debounce(
         async (update, userId) => {
           log(`persisting doc (${documentId}) to database`);
-          await documentUpdater({ document, ydoc: doc, userId });
+          await documentUpdater({ documentId, ydoc: doc, userId });
         },
         PERSIST_WAIT,
         {
@@ -121,9 +121,7 @@ export async function handleLeave(
   // TODO: store connections in redis?
   if (doc.conns.size === 0) {
     log(`all clients left doc (${documentId}), persisting…`);
-
-    const document = await Document.findByPk(documentId);
-    await documentUpdater({ document, ydoc: doc, userId, done: true });
+    await documentUpdater({ documentId, ydoc: doc, userId, done: true });
 
     doc.destroy();
     docs.delete(documentId);
