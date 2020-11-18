@@ -20,7 +20,7 @@ type Props = {
 @observer
 class Collaborators extends React.Component<Props> {
   componentDidMount() {
-    if (!this.props.document.deletedAt) {
+    if (!this.props.document.isDeleted) {
       this.props.views.fetchPage({ documentId: this.props.document.id });
     }
   }
