@@ -35,8 +35,9 @@ export default function SocketPresence(props: Props) {
 
   React.useEffect(() => {
     return () => {
-      console.log("destroy");
-      provider.destroy();
+      if (provider) {
+        provider.destroy();
+      }
     };
   }, []);
 

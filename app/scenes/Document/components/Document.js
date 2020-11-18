@@ -17,6 +17,7 @@ import Revision from "models/Revision";
 import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
+import LoadingEllipsis from "components/LoadingEllipsis";
 import LoadingIndicator from "components/LoadingIndicator";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Notice from "components/Notice";
@@ -435,7 +436,12 @@ class DocumentScene extends React.Component<Props> {
                   <Notice muted>
                     Connection lost. Any edits will sync once you’re back
                     online.{" "}
-                    {multiplayer.isReconnecting && "Trying to reconnect…"}
+                    {multiplayer.isReconnecting && (
+                      <>
+                        Trying to reconnect
+                        <LoadingEllipsis />
+                      </>
+                    )}
                   </Notice>
                 )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
