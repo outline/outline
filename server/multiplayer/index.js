@@ -44,9 +44,20 @@ export function handleJoin({
     doc.on(
       "update",
       debounce(
-        async (update, userId) => {
+        async (update, origin: { userId: string, remote?: boolean }) => {
+          // If the origin is "remote" this means that the transaction came from
+          // a remote server process, as we're just accepting transactions to
+          // keep us in sync with another doc there is no need to persist.
+          if (origin.remote) {
+            return;
+          }
+
           log(`persisting doc (${documentId}) to database`);
-          await documentUpdater({ documentId, ydoc: doc, userId });
+          await documentUpdater({
+            documentId,
+            ydoc: doc,
+            userId: origin.userId,
+          });
         },
         PERSIST_WAIT,
         {
@@ -155,7 +166,7 @@ export function handleSync(
   switch (messageType) {
     case MESSAGE_SYNC: {
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
-      syncProtocol.readSyncMessage(decoder, encoder, doc, userId);
+      syncProtocol.readSyncMessage(decoder, encoder, doc, { userId });
       if (encoding.length(encoder) > 1) {
         socket.binary(true).emit("document.sync", {
           documentId,
@@ -212,7 +223,10 @@ export function handleRemoteSync(
   switch (messageType) {
     case MESSAGE_SYNC: {
       encoding.writeVarUint(encoder, MESSAGE_SYNC);
-      syncProtocol.readSyncMessage(decoder, encoder, doc, userId);
+      syncProtocol.readSyncMessage(decoder, encoder, doc, {
+        userId,
+        remote: true,
+      });
       break;
     }
     case MESSAGE_AWARENESS: {
