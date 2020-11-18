@@ -1,13 +1,13 @@
 // @flow
+import { keymap } from "prosemirror-keymap";
+import { Extension } from "rich-markdown-editor";
 import {
   ySyncPlugin,
   yCursorPlugin,
   yUndoPlugin,
   undo,
   redo,
-} from "@tommoor/y-prosemirror";
-import { keymap } from "prosemirror-keymap";
-import { Extension } from "rich-markdown-editor";
+} from "y-prosemirror";
 // import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 

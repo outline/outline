@@ -1,8 +1,8 @@
 // @flow
-import { prosemirrorToYDoc } from "@tommoor/y-prosemirror";
 import * as encoding from "lib0/dist/encoding.cjs";
 import * as mutex from "lib0/dist/mutex.cjs";
 import { parser } from "rich-markdown-editor";
+import { prosemirrorToYDoc } from "y-prosemirror";
 import * as awarenessProtocol from "y-protocols/dist/awareness.cjs";
 import * as syncProtocol from "y-protocols/dist/sync.cjs";
 import * as Y from "yjs";

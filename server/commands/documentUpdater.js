@@ -1,7 +1,7 @@
 // @flow
-import { yDocToProsemirror } from "@tommoor/y-prosemirror";
 import { uniq } from "lodash";
 import { schema, serializer } from "rich-markdown-editor";
+import { yDocToProsemirror } from "y-prosemirror";
 import * as Y from "yjs";
 import { Document, Event } from "../models";
 
