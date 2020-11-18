@@ -233,7 +233,15 @@ class DocumentScene extends React.Component<Props> {
 
     try {
       let savedDocument = document;
-      if (!auth.team || !auth.team.multiplayerEditor) {
+      if (auth.team && auth.team.multiplayerEditor) {
+        // update does not send "text" field to the API, this is a workaround
+        // while the multiplayer editor is toggleable. Once it's finalized
+        // this can be cleaned up to single code path
+        savedDocument = await document.update({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      } else {
         savedDocument = await document.save({
           ...options,
           lastRevision: this.lastRevision,
