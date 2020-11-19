@@ -4,7 +4,7 @@ import { Switch, Route, Redirect, type Match } from "react-router-dom";
 import Archive from "scenes/Archive";
 import Collection from "scenes/Collection";
 import Dashboard from "scenes/Dashboard";
-import KeyedDocument from "scenes/Document/KeyedDocument";
+import Document from "scenes/Document";
 import DocumentNew from "scenes/DocumentNew";
 import Drafts from "scenes/Drafts";
 import Error404 from "scenes/Error404";
@@ -52,10 +52,10 @@ export default function AuthenticatedRoutes() {
           <Route
             exact
             path={`/doc/${slug}/history/:revisionId?`}
-            component={KeyedDocument}
+            component={Document}
           />
-          <Route exact path={`/doc/${slug}/edit`} component={KeyedDocument} />
-          <Route path={`/doc/${slug}`} component={KeyedDocument} />
+          <Route exact path={`/doc/${slug}/edit`} component={Document} />
+          <Route path={`/doc/${slug}`} component={Document} />
           <Route exact path="/search" component={Search} />
           <Route exact path="/search/:term" component={Search} />
           <Route path="/404" component={Error404} />

@@ -6,7 +6,7 @@ import FullscreenLoading from "components/FullscreenLoading";
 
 const Authenticated = React.lazy(() => import("components/Authenticated"));
 const AuthenticatedRoutes = React.lazy(() => import("./authenticated"));
-const KeyedDocument = React.lazy(() => import("scenes/Document/KeyedDocument"));
+const SharedDocument = React.lazy(() => import("scenes/Document/Shared"));
 const Login = React.lazy(() => import("scenes/Login"));
 
 export default function Routes() {
@@ -21,7 +21,7 @@ export default function Routes() {
       <Switch>
         <Route exact path="/" component={Login} />
         <Route exact path="/create" component={Login} />
-        <Route exact path="/share/:shareId" component={KeyedDocument} />
+        <Route exact path="/share/:shareId" component={SharedDocument} />
         <Authenticated>
           <AuthenticatedRoutes />
         </Authenticated>

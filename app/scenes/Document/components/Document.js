@@ -328,7 +328,7 @@ class DocumentScene extends React.Component<Props> {
       document,
       revision,
       readOnly,
-      abilities,
+      abilities = {},
       auth,
       ui,
       match,
