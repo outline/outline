@@ -77,6 +77,7 @@ export default class Document extends BaseModel {
   @computed
   get isNew(): boolean {
     return (
+      !!this.publishedAt &&
       !this.lastViewedAt &&
       differenceInDays(new Date(), new Date(this.createdAt)) < 14
     );

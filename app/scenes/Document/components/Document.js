@@ -464,7 +464,11 @@ class DocumentScene extends React.Component<Props> {
                     key={[injectTemplate, disableEmbeds].join("-")}
                     title={revision ? revision.title : this.title}
                     document={document}
-                    value={readOnly ? value : undefined}
+                    value={
+                      team && !team.multiplayerEditor && readOnly
+                        ? value
+                        : undefined
+                    }
                     defaultValue={team && team.multiplayerEditor ? "" : value}
                     disableEmbeds={disableEmbeds}
                     onImageUploadStart={this.onImageUploadStart}

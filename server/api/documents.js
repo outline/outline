@@ -887,7 +887,6 @@ router.post("documents.update", auth(), async (ctx) => {
   const editorVersion = ctx.headers["x-editor-version"];
 
   ctx.assertPresent(id, "id is required");
-  ctx.assertPresent(title || text, "title or text is required");
   if (append) ctx.assertPresent(text, "Text is required while appending");
 
   const user = ctx.state.user;
@@ -899,6 +898,7 @@ router.post("documents.update", auth(), async (ctx) => {
   }
 
   const previousTitle = document.title;
+  const willPublish = publish && !document.published;
 
   // Update document
   if (title) document.title = title;
@@ -913,66 +913,68 @@ router.post("documents.update", auth(), async (ctx) => {
   document.lastModifiedById = user.id;
   const { collection } = document;
 
-  let transaction;
-  try {
-    transaction = await sequelize.transaction();
+  if (document.changed() || willPublish) {
+    let transaction;
+    try {
+      transaction = await sequelize.transaction();
+
+      if (publish) {
+        await document.publish({ transaction });
+      } else {
+        await document.save({ autosave, transaction });
+      }
+      await transaction.commit();
+    } catch (err) {
+      if (transaction) {
+        await transaction.rollback();
+      }
+      throw err;
+    }
 
     if (publish) {
-      await document.publish({ transaction });
+      await Event.create({
+        name: "documents.publish",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: { title: document.title },
+        ip: ctx.request.ip,
+      });
     } else {
-      await document.save({ autosave, transaction });
+      await Event.create({
+        name: "documents.update",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          autosave,
+          done,
+          title: document.title,
+        },
+        ip: ctx.request.ip,
+      });
     }
-    await transaction.commit();
-  } catch (err) {
-    if (transaction) {
-      await transaction.rollback();
+
+    if (document.title !== previousTitle) {
+      Event.add({
+        name: "documents.title_change",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          previousTitle,
+          title: document.title,
+        },
+        ip: ctx.request.ip,
+      });
     }
-    throw err;
-  }
 
-  if (publish) {
-    await Event.create({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: { title: document.title },
-      ip: ctx.request.ip,
-    });
-  } else {
-    await Event.create({
-      name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        autosave,
-        done,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
+    document.updatedBy = user;
+    document.collection = collection;
   }
-
-  if (document.title !== previousTitle) {
-    Event.add({
-      name: "documents.title_change",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        previousTitle,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
-  }
-
-  document.updatedBy = user;
-  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(document),
