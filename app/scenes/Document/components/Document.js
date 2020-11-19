@@ -30,8 +30,8 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import MultiplayerEditor from "./MultiplayerEditor";
 import References from "./References";
-import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 import { type LocationWithState, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
@@ -335,7 +335,6 @@ class DocumentScene extends React.Component<Props> {
       multiplayer,
     } = this.props;
     const team = auth.team;
-    const user = auth.user;
     const isShare = !!match.params.shareId;
 
     const value = revision ? revision.text : document.text;
@@ -348,6 +347,8 @@ class DocumentScene extends React.Component<Props> {
       : [];
     const showContents =
       (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+
+    const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
     return (
       <ErrorBoundary>
@@ -455,7 +456,7 @@ class DocumentScene extends React.Component<Props> {
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
-                  <Editor
+                  <EditorComponent
                     id={document.id}
                     innerRef={this.editor}
                     isShare={isShare}
@@ -464,12 +465,8 @@ class DocumentScene extends React.Component<Props> {
                     key={[injectTemplate, disableEmbeds].join("-")}
                     title={revision ? revision.title : this.title}
                     document={document}
-                    value={
-                      team && !team.multiplayerEditor && readOnly
-                        ? value
-                        : undefined
-                    }
-                    defaultValue={team && team.multiplayerEditor ? "" : value}
+                    value={readOnly ? value : undefined}
+                    defaultValue={value}
                     disableEmbeds={disableEmbeds}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}
@@ -483,16 +480,7 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
-                    extensions={
-                      team && team.multiplayerEditor && !isShare && !revision
-                        ? [
-                            new MultiplayerExtension({
-                              user,
-                              ...multiplayer,
-                            }),
-                          ]
-                        : undefined
-                    }
+                    multiplayer={this.props.multiplayer}
                   />
                 </Flex>
                 {readOnly && !isShare && !revision && (

@@ -19,10 +19,8 @@ import Document from "models/Document";
 import Revision from "models/Revision";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
-import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
-import SocketPresence from "./SocketPresence";
 import { type LocationWithState, type Theme } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import isInternalUrl from "utils/isInternalUrl";
@@ -39,6 +37,7 @@ type Props = {|
   ui: UiStore,
   theme: Theme,
   history: RouterHistory,
+  children: (any) => React.Node,
 |};
 
 @observer
@@ -250,30 +249,17 @@ class DataLoader extends React.Component<Props> {
       : "read-only";
 
     return (
-      <SocketPresence
-        documentId={document.id}
-        userId={auth.user ? auth.user.id : undefined}
-        isMultiplayer={team.multiplayerEditor}
-      >
-        {(multiplayer) => (
-          <>
-            {this.isEditing && <HideSidebar ui={ui} />}
-            <DocumentComponent
-              key={key}
-              document={document}
-              revision={revision}
-              abilities={abilities}
-              location={location}
-              multiplayer={multiplayer}
-              readOnly={
-                !this.isEditing || !abilities.update || document.isArchived
-              }
-              onSearchLink={this.onSearchLink}
-              onCreateLink={this.onCreateLink}
-            />
-          </>
-        )}
-      </SocketPresence>
+      <React.Fragment key={key}>
+        {this.isEditing && <HideSidebar ui={ui} />}
+        {this.props.children({
+          document,
+          revision,
+          abilities,
+          readOnly: !this.isEditing || !abilities.update || document.isArchived,
+          onSearchLink: this.onSearchLink,
+          onCreateLink: this.onCreateLink,
+        })}
+      </React.Fragment>
     );
   }
 }

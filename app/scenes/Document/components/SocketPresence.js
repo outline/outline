@@ -20,6 +20,7 @@ type Props = {
 export default function SocketPresence(props: Props) {
   const { presence } = useStores();
   const context = React.useContext(SocketContext);
+  const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [isConnected, setConnected] = React.useState(
     context ? context.connected : false
   );
@@ -32,6 +33,8 @@ export default function SocketPresence(props: Props) {
       ? new WebsocketProvider(context, props.documentId, props.userId, doc)
       : undefined
   );
+
+  provider.once("sync", () => setRemoteSynced(true));
 
   React.useEffect(() => {
     return () => {
@@ -100,6 +103,7 @@ export default function SocketPresence(props: Props) {
 
   return props.children({
     isConnected,
+    isRemoteSynced,
     isReconnecting,
     provider,
     doc,
