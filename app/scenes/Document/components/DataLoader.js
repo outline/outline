@@ -7,7 +7,6 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
-import { withTheme } from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -21,7 +20,7 @@ import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
-import { type LocationWithState, type Theme } from "types";
+import { type LocationWithState } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import isInternalUrl from "utils/isInternalUrl";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
@@ -35,7 +34,6 @@ type Props = {|
   policies: PoliciesStore,
   revisions: RevisionsStore,
   ui: UiStore,
-  theme: Theme,
   history: RouterHistory,
   children: (any) => React.Node,
 |};
@@ -50,7 +48,6 @@ class DataLoader extends React.Component<Props> {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
     this.loadDocument();
-    this.updateBackground();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -75,13 +72,6 @@ class DataLoader extends React.Component<Props> {
     ) {
       this.loadRevision();
     }
-    this.updateBackground();
-  }
-
-  updateBackground() {
-    // ensure the wider page color always matches the theme. This is to
-    // account for share links which don't sit in the wider Layout component
-    window.document.body.style.background = this.props.theme.background;
   }
 
   get isEditing() {
@@ -272,5 +262,5 @@ export default withRouter(
     "revisions",
     "policies",
     "shares"
-  )(withTheme(DataLoader))
+  )(DataLoader)
 );

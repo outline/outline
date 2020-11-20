@@ -6,7 +6,7 @@ import { InputIcon } from "outline-icons";
 import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
-import type { RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Y from "yjs";
@@ -30,14 +30,12 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
-import MultiplayerEditor from "./MultiplayerEditor";
 import References from "./References";
 import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 import { type LocationWithState, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import {
-  collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
@@ -56,16 +54,17 @@ Are you sure you want to discard them?
 `;
 
 type Props = {
-  match: Match,
   history: RouterHistory,
   location: LocationWithState,
   abilities: Object,
   document: Document,
   revision: Revision,
   readOnly: boolean,
+  isShare?: boolean,
   multiplayer: {
     isConnected: boolean,
     isReconnecting: boolean,
+    isRemoteSynced: boolean,
     provider: ?WebsocketProvider,
     doc: Y.Doc,
   },
@@ -312,15 +311,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goBack = () => {
-    let url;
-    if (this.props.document.url) {
-      url = this.props.document.url;
-    } else if (this.props.match.params.id) {
-      url = collectionUrl(this.props.match.params.id);
-    }
-    if (url) {
-      this.props.history.push(url);
-    }
+    this.props.history.push(this.props.document.url);
   };
 
   render() {
@@ -328,14 +319,13 @@ class DocumentScene extends React.Component<Props> {
       document,
       revision,
       readOnly,
+      isShare,
       abilities = {},
       auth,
       ui,
-      match,
       multiplayer,
     } = this.props;
     const team = auth.team;
-    const isShare = !!match.params.shareId;
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
@@ -348,8 +338,6 @@ class DocumentScene extends React.Component<Props> {
     const showContents =
       (ui.tocVisible && readOnly) || (isShare && !!headings.length);
 
-    const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
-
     return (
       <ErrorBoundary>
         <Background
@@ -359,7 +347,7 @@ class DocumentScene extends React.Component<Props> {
           auto
         >
           <Route
-            path={`${match.url}/move`}
+            path={`${document.url}/move`}
             component={() => (
               <DocumentMove document={document} onRequestClose={this.goBack} />
             )}
@@ -456,10 +444,10 @@ class DocumentScene extends React.Component<Props> {
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
-                  <EditorComponent
+                  <Editor
                     id={document.id}
                     innerRef={this.editor}
-                    isShare={isShare}
+                    canShowHoverPreviews={!isShare}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
                     key={[injectTemplate, disableEmbeds].join("-")}

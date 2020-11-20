@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
+import * as Y from "yjs";
 import { MAX_TITLE_LENGTH } from "shared/constants";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
@@ -12,18 +13,26 @@ import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
+import MultiplayerEditor from "./MultiplayerEditor";
+import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 import { documentHistoryUrl } from "utils/routeHelpers";
-
 type Props = {
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
   title: string,
   defaultValue: string,
   document: Document,
   isDraft: boolean,
-  isShare: boolean,
+  canShowHoverPreviews?: boolean,
   readOnly?: boolean,
   onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
   innerRef: { current: any },
+  multiplayer: {
+    isConnected: boolean,
+    isReconnecting: boolean,
+    isRemoteSynced: boolean,
+    provider: ?WebsocketProvider,
+    doc: Y.Doc,
+  },
 };
 
 @observer
@@ -88,12 +97,16 @@ class DocumentEditor extends React.Component<Props> {
       title,
       onChangeTitle,
       isDraft,
-      isShare,
+      canShowHoverPreviews,
       readOnly,
       innerRef,
+      multiplayer,
+      ...rest
     } = this.props;
+
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
+    const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
     return (
       <Flex auto column>
@@ -114,17 +127,19 @@ class DocumentEditor extends React.Component<Props> {
           document={document}
           to={documentHistoryUrl(document)}
         />
-        <Editor
+        <EditorComponent
           ref={innerRef}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
+          readOnly={readOnly}
+          multiplayer={multiplayer}
           grow
-          {...this.props}
+          {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !isShare && readOnly && (
+        {this.activeLinkEvent && canShowHoverPreviews && readOnly && (
           <HoverPreview
             node={this.activeLinkEvent.target}
             event={this.activeLinkEvent}

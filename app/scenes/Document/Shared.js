@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { type Match } from "react-router-dom";
+import { useTheme } from "styled-components";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import useStores from "../../hooks/useStores";
@@ -15,10 +16,16 @@ type Props = {|
 |};
 
 export default function SharedEditor(props: Props) {
+  const theme = useTheme();
   const [document, setDocument] = React.useState();
   const [error, setError] = React.useState<?Error>();
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
+
+  // ensure the wider page color always matches the theme
+  React.useEffect(() => {
+    window.document.body.style.background = theme.background;
+  }, [theme]);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -42,5 +49,7 @@ export default function SharedEditor(props: Props) {
     return <Loading location={props.location} />;
   }
 
-  return <Document document={document} location={props.location} readOnly />;
+  return (
+    <Document document={document} location={props.location} isShare readOnly />
+  );
 }

@@ -20,33 +20,27 @@ export default class MultiplayerExtension extends Extension {
     const { user, provider, doc } = this.options;
     const type = doc.get("prosemirror", Y.XmlFragment);
 
-    provider.on("status", ({ status }) => {
-      if (status === "connected") {
-        provider.awareness.setLocalStateField("user", {
-          color: user.color,
-          name: user.name,
-          id: user.id,
-        });
+    const assignUser = (tr) => {
+      const clientIds = Array.from(doc.store.clients.keys());
+
+      if (
+        tr.local &&
+        tr.changed.size > 0 &&
+        !clientIds.includes(doc.clientID)
+      ) {
+        const permanentUserData = new Y.PermanentUserData(doc);
+        permanentUserData.setUserMapping(doc, doc.clientID, user.id);
+        doc.off("afterTransaction", assignUser);
       }
+    };
+
+    provider.awareness.setLocalStateField("user", {
+      color: user.color,
+      name: user.name,
+      id: user.id,
     });
 
-    provider.once("sync", () => {
-      const assignUser = (tr) => {
-        const clientIds = Array.from(doc.store.clients.keys());
-
-        if (
-          tr.local &&
-          tr.changed.size > 0 &&
-          !clientIds.includes(doc.clientID)
-        ) {
-          const permanentUserData = new Y.PermanentUserData(doc);
-          permanentUserData.setUserMapping(doc, doc.clientID, user.id);
-          doc.off("afterTransaction", assignUser);
-        }
-      };
-
-      doc.on("afterTransaction", assignUser);
-    });
+    doc.on("afterTransaction", assignUser);
 
     // const dbProvider = new IndexeddbPersistence(doc.documentId, doc);
     // dbProvider.whenSynced.then(() => {

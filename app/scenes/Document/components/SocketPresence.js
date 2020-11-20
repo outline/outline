@@ -34,7 +34,9 @@ export default function SocketPresence(props: Props) {
       : undefined
   );
 
-  provider.once("sync", () => setRemoteSynced(true));
+  if (provider) {
+    provider.once("sync", () => setRemoteSynced(true));
+  }
 
   React.useEffect(() => {
     return () => {
@@ -62,7 +64,6 @@ export default function SocketPresence(props: Props) {
   }, [presence, props.documentId, awareness]);
 
   React.useEffect(() => {
-    console.log("useEffect", context);
     if (!context) return;
 
     const emitJoin = () => {
@@ -91,6 +92,7 @@ export default function SocketPresence(props: Props) {
 
     return () => {
       if (!context) return;
+
       context.emit("leave", { documentId: props.documentId });
       context.off("authenticated", emitJoin);
       context.off("connect", updateStatus);
