@@ -205,15 +205,6 @@ Team.prototype.removeAdmin = async function (user: User) {
   }
 };
 
-Team.prototype.suspendUser = async function (user: User, admin: User) {
-  if (user.id === admin.id)
-    throw new ValidationError("Unable to suspend the current user");
-  return user.update({
-    suspendedById: admin.id,
-    suspendedAt: new Date(),
-  });
-};
-
 Team.prototype.activateUser = async function (user: User, admin: User) {
   return user.update({
     suspendedById: null,
