@@ -92,6 +92,10 @@ const StyledEditor = styled(RichMarkdownEditor)`
     transition: ${(props) => props.theme.backgroundTransition};
   }
 
+  & * {
+    box-sizing: content-box;
+  }
+
   .notice-block.tip,
   .notice-block.warning {
     font-weight: 500;
