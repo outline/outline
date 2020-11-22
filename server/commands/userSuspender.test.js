@@ -1,5 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { buildUser } from "../test/factories";
+import { GroupUser } from "../models";
+import { buildGroup, buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import userSuspender from "./userSuspender";
 
@@ -35,5 +36,22 @@ describe("userSuspender", () => {
     });
     expect(user.suspendedAt).toBeTruthy();
     expect(user.suspendedById).toEqual(admin.id);
+  });
+
+  it("should remove group memberships", async () => {
+    const admin = await buildUser({ isAdmin: true });
+    const user = await buildUser({ teamId: admin.teamId });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    await group.addUser(user, { through: { createdById: user.id } });
+
+    await userSuspender({
+      actorId: admin.id,
+      user,
+      ip,
+    });
+    expect(user.suspendedAt).toBeTruthy();
+    expect(user.suspendedById).toEqual(admin.id);
+    expect(await GroupUser.count()).toEqual(0);
   });
 });
