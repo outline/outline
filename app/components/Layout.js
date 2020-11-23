@@ -91,16 +91,12 @@ class Layout extends React.Component<Props> {
   }
 
   render() {
-    const { auth, ui, i18n } = this.props;
+    const { auth, t, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
-    if (auth.authenticated && user && i18n.language !== user.language) {
-      i18n.changeLanguage(user.language);
-    }
 
     return (
       <Container column auto>
@@ -138,7 +134,7 @@ class Layout extends React.Component<Props> {
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
-          title="Keyboard shortcuts"
+          title={t("Keyboard shortcuts")}
         >
           <KeyboardShortcuts />
         </Modal>

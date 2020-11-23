@@ -6,7 +6,9 @@ import Koa from "koa";
 import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
+import { languages } from "../shared/translations/i18n";
 import environment from "./env";
+import { NotFoundError } from "./errors";
 import apexRedirect from "./middlewares/apexRedirect";
 import { opensearchResponse } from "./utils/opensearch";
 import { robotsResponse } from "./utils/robots";
@@ -71,6 +73,23 @@ if (process.env.NODE_ENV === "production") {
     await sendfile(ctx, path.join(__dirname, "../app/", ctx.path.substring(8)));
   });
 }
+
+router.get("/locales/:lng.json", async (ctx) => {
+  let { lng } = ctx.params;
+
+  if (!languages.includes(lng)) {
+    throw new NotFoundError();
+  }
+
+  if (lng === "en_US") {
+    lng = "default";
+  }
+
+  await sendfile(
+    ctx,
+    path.join(__dirname, "../shared/translations/", `${lng}.json`)
+  );
+});
 
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse(ctx);
