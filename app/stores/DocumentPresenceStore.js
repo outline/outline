@@ -1,6 +1,6 @@
 // @flow
-import { observable, action } from 'mobx';
-import { USER_PRESENCE_INTERVAL } from 'shared/constants';
+import { observable, action } from "mobx";
+import { USER_PRESENCE_INTERVAL } from "shared/constants";
 
 type DocumentPresence = Map<string, { isEditing: boolean, userId: string }>;
 
@@ -13,7 +13,7 @@ export default class PresenceStore {
   @action
   init(documentId: string, userIds: string[], editingIds: string[]) {
     this.data.set(documentId, new Map());
-    userIds.forEach(userId =>
+    userIds.forEach((userId) =>
       this.touch(documentId, userId, editingIds.includes(userId))
     );
   }

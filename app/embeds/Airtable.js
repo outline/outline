@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
-const URL_REGEX = new RegExp('https://airtable.com/(?:embed/)?(shr.*)$');
+const URL_REGEX = new RegExp("https://airtable.com/(?:embed/)?(shr.*)$");
 
 type Props = {|
   attrs: {|
@@ -20,6 +20,7 @@ export default class Airtable extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         src={`https://airtable.com/embed/${shareId}`}
         title={`Airtable (${shareId})`}
         border

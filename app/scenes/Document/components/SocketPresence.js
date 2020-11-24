@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import { SocketContext } from 'components/SocketProvider';
-import { USER_PRESENCE_INTERVAL } from 'shared/constants';
+import * as React from "react";
+import { USER_PRESENCE_INTERVAL } from "shared/constants";
+import { SocketContext } from "components/SocketProvider";
 
 type Props = {
   children?: React.Node,
@@ -33,21 +33,21 @@ export default class SocketPresence extends React.Component<Props> {
 
   componentWillUnmount() {
     if (this.context) {
-      this.context.emit('leave', { documentId: this.props.documentId });
-      this.context.off('authenticated', this.emitJoin);
+      this.context.emit("leave", { documentId: this.props.documentId });
+      this.context.off("authenticated", this.emitJoin);
     }
 
     clearInterval(this.editingInterval);
   }
 
   setupOnce = () => {
-    if (this.context && !this.previousContext) {
+    if (this.context && this.context !== this.previousContext) {
       this.previousContext = this.context;
 
       if (this.context.authenticated) {
         this.emitJoin();
       }
-      this.context.on('authenticated', () => {
+      this.context.on("authenticated", () => {
         this.emitJoin();
       });
     }
@@ -56,7 +56,7 @@ export default class SocketPresence extends React.Component<Props> {
   emitJoin = () => {
     if (!this.context) return;
 
-    this.context.emit('join', {
+    this.context.emit("join", {
       documentId: this.props.documentId,
       isEditing: this.props.isEditing,
     });
@@ -65,7 +65,7 @@ export default class SocketPresence extends React.Component<Props> {
   emitPresence = () => {
     if (!this.context) return;
 
-    this.context.emit('presence', {
+    this.context.emit("presence", {
       documentId: this.props.documentId,
       isEditing: this.props.isEditing,
     });

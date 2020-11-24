@@ -1,4 +1,5 @@
 // @flow
+import uuid from "uuid";
 import {
   Share,
   Team,
@@ -9,8 +10,9 @@ import {
   Group,
   GroupUser,
   Attachment,
-} from '../models';
-import uuid from 'uuid';
+  Authentication,
+  Integration,
+} from "../models";
 
 let count = 0;
 
@@ -24,7 +26,10 @@ export async function buildShare(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
-  return Share.create(overrides);
+  return Share.create({
+    published: true,
+    ...overrides,
+  });
 }
 
 export function buildTeam(overrides: Object = {}) {
@@ -39,8 +44,8 @@ export function buildTeam(overrides: Object = {}) {
 
 export function buildEvent(overrides: Object = {}) {
   return Event.create({
-    name: 'documents.publish',
-    ip: '127.0.0.1',
+    name: "documents.publish",
+    ip: "127.0.0.1",
     ...overrides,
   });
 }
@@ -57,10 +62,37 @@ export async function buildUser(overrides: Object = {}) {
     email: `user${count}@example.com`,
     username: `user${count}`,
     name: `User ${count}`,
-    service: 'slack',
+    service: "slack",
     serviceId: uuid.v4(),
-    createdAt: new Date('2018-01-01T00:00:00.000Z'),
-    lastActiveAt: new Date('2018-01-01T00:00:00.000Z'),
+    createdAt: new Date("2018-01-01T00:00:00.000Z"),
+    lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+    ...overrides,
+  });
+}
+
+export async function buildIntegration(overrides: Object = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  const user = await buildUser({ teamId: overrides.teamId });
+
+  const authentication = await Authentication.create({
+    service: "slack",
+    userId: user.id,
+    teamId: user.teamId,
+    token: "fake-access-token",
+    scopes: ["example", "scopes", "here"],
+  });
+
+  return Integration.create({
+    type: "post",
+    service: "slack",
+    settings: {
+      serviceTeamId: "slack_team_id",
+    },
+    authenticationId: authentication.id,
     ...overrides,
   });
 }
@@ -80,9 +112,8 @@ export async function buildCollection(overrides: Object = {}) {
 
   return Collection.create({
     name: `Test Collection ${count}`,
-    description: 'Test collection description',
+    description: "Test collection description",
     creatorId: overrides.userId,
-    type: 'atlas',
     ...overrides,
   });
 }
@@ -146,7 +177,7 @@ export async function buildDocument(overrides: Object = {}) {
 
   return Document.create({
     title: `Document ${count}`,
-    text: 'This is the text in an example document',
+    text: "This is the text in an example document",
     publishedAt: new Date(),
     lastModifiedById: overrides.userId,
     createdById: overrides.userId,
@@ -180,11 +211,11 @@ export async function buildAttachment(overrides: Object = {}) {
   return Attachment.create({
     key: `uploads/key/to/file ${count}.png`,
     url: `https://redirect.url.com/uploads/key/to/file ${count}.png`,
-    contentType: 'image/png',
+    contentType: "image/png",
     size: 100,
-    acl: 'public-read',
-    createdAt: new Date('2018-01-02T00:00:00.000Z'),
-    updatedAt: new Date('2018-01-02T00:00:00.000Z'),
+    acl: "public-read",
+    createdAt: new Date("2018-01-02T00:00:00.000Z"),
+    updatedAt: new Date("2018-01-02T00:00:00.000Z"),
     ...overrides,
   });
 }

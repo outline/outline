@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { homeUrl } from 'utils/routeHelpers';
-import Button from 'components/Button';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Collection from 'models/Collection';
-import CollectionsStore from 'stores/CollectionsStore';
-import UiStore from 'stores/UiStore';
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import CollectionsStore from "stores/CollectionsStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
+import Button from "components/Button";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import { homeUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -45,12 +45,13 @@ class CollectionDelete extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure about that? Deleting the{' '}
-            <strong>{collection.name}</strong> collection is permanent and will
-            also delete all of the documents within it, so be extra careful.
+            Are you sure about that? Deleting the{" "}
+            <strong>{collection.name}</strong> collection is permanent and
+            cannot be restored, however documents within will be moved to the
+            trash.
           </HelpText>
-          <Button type="submit" danger>
-            {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
+          <Button type="submit" disabled={this.isDeleting} autoFocus danger>
+            {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>
         </form>
       </Flex>
@@ -58,4 +59,4 @@ class CollectionDelete extends React.Component<Props> {
   }
 }
 
-export default inject('collections', 'ui')(withRouter(CollectionDelete));
+export default inject("collections", "ui")(withRouter(CollectionDelete));

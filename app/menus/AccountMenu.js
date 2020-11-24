@@ -1,24 +1,23 @@
 // @flow
-import * as React from 'react';
-import { Link } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { SunIcon, MoonIcon } from 'outline-icons';
-import styled from 'styled-components';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import Flex from 'shared/components/Flex';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import Modal from 'components/Modal';
-import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { SunIcon, MoonIcon } from "outline-icons";
+import * as React from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Flex from "components/Flex";
+import Modal from "components/Modal";
 import {
   developers,
   changelog,
   githubIssuesUrl,
   mailToUrl,
-  spectrumUrl,
   settings,
-} from '../../shared/utils/routeHelpers';
+} from "../../shared/utils/routeHelpers";
 
 type Props = {
   label: React.Node,
@@ -46,7 +45,7 @@ class AccountMenu extends React.Component<Props> {
     const { ui } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
@@ -71,9 +70,6 @@ class AccountMenu extends React.Component<Props> {
           <DropdownMenuItem href={changelog()} target="_blank">
             Changelog
           </DropdownMenuItem>
-          <DropdownMenuItem href={spectrumUrl()} target="_blank">
-            Community
-          </DropdownMenuItem>
           <DropdownMenuItem href={mailToUrl()} target="_blank">
             Send us feedback
           </DropdownMenuItem>
@@ -85,34 +81,34 @@ class AccountMenu extends React.Component<Props> {
             position="right"
             style={{
               left: 170,
-              position: 'relative',
-              top: -34,
+              position: "relative",
+              top: -40,
             }}
             label={
               <DropdownMenuItem>
                 <ChangeTheme justify="space-between">
                   Appearance
-                  {ui.resolvedTheme === 'light' ? <SunIcon /> : <MoonIcon />}
+                  {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
                 </ChangeTheme>
               </DropdownMenuItem>
             }
             hover
           >
             <DropdownMenuItem
-              onClick={() => ui.setTheme('system')}
-              selected={ui.theme === 'system'}
+              onClick={() => ui.setTheme("system")}
+              selected={ui.theme === "system"}
             >
               System
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => ui.setTheme('light')}
-              selected={ui.theme === 'light'}
+              onClick={() => ui.setTheme("light")}
+              selected={ui.theme === "light"}
             >
               Light
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => ui.setTheme('dark')}
-              selected={ui.theme === 'dark'}
+              onClick={() => ui.setTheme("dark")}
+              selected={ui.theme === "dark"}
             >
               Dark
             </DropdownMenuItem>
@@ -122,7 +118,7 @@ class AccountMenu extends React.Component<Props> {
             Log out
           </DropdownMenuItem>
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }
@@ -131,4 +127,4 @@ const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
-export default inject('ui', 'auth')(AccountMenu);
+export default inject("ui", "auth")(AccountMenu);

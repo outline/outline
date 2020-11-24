@@ -5,28 +5,29 @@ import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { PlusIcon } from 'outline-icons';
+import { type Match } from "react-router-dom";
 
-import Empty from 'components/Empty';
-import Modal from 'components/Modal';
-import Button from 'components/Button';
-import Invite from 'scenes/Invite';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import PaginatedList from 'components/PaginatedList';
-import Tabs, { Separator } from 'components/Tabs';
-import Tab from 'components/Tab';
-import UserListItem from './components/UserListItem';
+import AuthStore from "stores/AuthStore";
+import PoliciesStore from "stores/PoliciesStore";
+import UsersStore from "stores/UsersStore";
+import Invite from "scenes/Invite";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import HelpText from "components/HelpText";
+import Modal from "components/Modal";
+import PageTitle from "components/PageTitle";
+import PaginatedList from "components/PaginatedList";
+import Tab from "components/Tab";
+import Tabs, { Separator } from "components/Tabs";
 
-import AuthStore from 'stores/AuthStore';
-import UsersStore from 'stores/UsersStore';
-import PoliciesStore from 'stores/PoliciesStore';
+import UserListItem from "./components/UserListItem";
 
 type Props = {
   auth: AuthStore,
   users: UsersStore,
   policies: PoliciesStore,
-  match: Object,
+  match: Match,
 };
 
 @observer
@@ -41,22 +42,26 @@ class People extends React.Component<Props> {
     this.inviteModalOpen = false;
   };
 
+  fetchPage = (params) => {
+    return this.props.users.fetchPage({ ...params, includeSuspended: true });
+  };
+
   render() {
     const { auth, policies, match } = this.props;
     const { filter } = match.params;
     const currentUser = auth.user;
     const team = auth.team;
-    invariant(currentUser, 'User should exist');
-    invariant(team, 'Team should exist');
+    invariant(currentUser, "User should exist");
+    invariant(team, "Team should exist");
 
     let users = this.props.users.active;
-    if (filter === 'all') {
+    if (filter === "all") {
       users = this.props.users.all;
-    } else if (filter === 'admins') {
+    } else if (filter === "admins") {
       users = this.props.users.admins;
-    } else if (filter === 'suspended') {
+    } else if (filter === "suspended") {
       users = this.props.users.suspended;
-    } else if (filter === 'invited') {
+    } else if (filter === "invited") {
       users = this.props.users.invited;
     }
 
@@ -105,19 +110,19 @@ class People extends React.Component<Props> {
           </Tab>
 
           {can.invite && (
-            <React.Fragment>
+            <>
               <Separator />
               <Tab to="/settings/people/invited" exact>
                 Invited
               </Tab>
-            </React.Fragment>
+            </>
           )}
         </Tabs>
         <PaginatedList
           items={users}
           empty={<Empty>No people to see here.</Empty>}
-          fetch={this.props.users.fetchPage}
-          renderItem={item => (
+          fetch={this.fetchPage}
+          renderItem={(item) => (
             <UserListItem
               key={item.id}
               user={item}

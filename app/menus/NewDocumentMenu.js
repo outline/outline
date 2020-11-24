@@ -1,18 +1,22 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { Redirect } from 'react-router-dom';
-import { PlusIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
 
-import { newDocumentUrl } from 'utils/routeHelpers';
-import CollectionsStore from 'stores/CollectionsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import Button from 'components/Button';
+import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import Button from "components/Button";
+import CollectionIcon from "components/CollectionIcon";
+import { DropdownMenu, Header } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   label?: React.Node,
+  documents: DocumentsStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
 };
@@ -25,8 +29,8 @@ class NewDocumentMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
-  handleNewDocument = (collectionId: string) => {
-    this.redirectTo = newDocumentUrl(collectionId);
+  handleNewDocument = (collectionId: string, options) => {
+    this.redirectTo = newDocumentUrl(collectionId, options);
   };
 
   onOpen = () => {
@@ -40,42 +44,37 @@ class NewDocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { collections, policies, label, ...rest } = this.props;
+    const { collections, documents, policies, label, ...rest } = this.props;
+    const singleCollection = collections.orderedData.length === 1;
 
     return (
       <DropdownMenu
         label={
           label || (
             <Button icon={<PlusIcon />} small>
-              New doc
+              New doc{singleCollection ? "" : "…"}
             </Button>
           )
         }
         onOpen={this.onOpen}
         {...rest}
       >
-        <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
-        {collections.orderedData.map(collection => {
-          const can = policies.abilities(collection.id);
-
-          return (
-            <DropdownMenuItem
-              key={collection.id}
-              onClick={() => this.handleNewDocument(collection.id)}
-              disabled={!can.update}
-            >
-              {collection.private ? (
-                <PrivateCollectionIcon color={collection.color} />
-              ) : (
-                <CollectionIcon color={collection.color} />
-              )}{' '}
-              {collection.name}
-            </DropdownMenuItem>
-          );
-        })}
+        <Header>Choose a collection</Header>
+        <DropdownMenuItems
+          items={collections.orderedData.map((collection) => ({
+            onClick: () => this.handleNewDocument(collection.id),
+            disabled: !policies.abilities(collection.id).update,
+            title: (
+              <>
+                <CollectionIcon collection={collection} />
+                &nbsp;{collection.name}
+              </>
+            ),
+          }))}
+        />
       </DropdownMenu>
     );
   }
 }
 
-export default inject('collections', 'policies')(NewDocumentMenu);
+export default inject("collections", "documents", "policies")(NewDocumentMenu);

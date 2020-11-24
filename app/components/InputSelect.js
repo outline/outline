@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import VisuallyHidden from 'components/VisuallyHidden';
-import { Outline, LabelText } from './Input';
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import * as React from "react";
+import styled from "styled-components";
+import VisuallyHidden from "components/VisuallyHidden";
+import { Outline, LabelText } from "./Input";
 
 const Select = styled.select`
   border: 0;
@@ -12,11 +12,11 @@ const Select = styled.select`
   padding: 8px 12px;
   outline: none;
   background: none;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
 
   &:disabled,
   &::placeholder {
-    color: ${props => props.theme.placeholder};
+    color: ${(props) => props.theme.placeholder};
   }
 `;
 
@@ -57,7 +57,7 @@ class InputSelect extends React.Component<Props> {
           ))}
         <Outline focused={this.focused} className={className}>
           <Select onBlur={this.handleBlur} onFocus={this.handleFocus} {...rest}>
-            {options.map(option => (
+            {options.map((option) => (
               <option value={option.value} key={option.value}>
                 {option.label}
               </option>

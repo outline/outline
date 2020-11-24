@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import { ThemeProvider } from 'styled-components';
-import { dark, light } from 'shared/styles/theme';
-import GlobalStyles from 'shared/styles/globals';
-import UiStore from 'stores/UiStore';
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { ThemeProvider } from "styled-components";
+import GlobalStyles from "shared/styles/globals";
+import { dark, light } from "shared/styles/theme";
+import UiStore from "stores/UiStore";
 
 type Props = {
   ui: UiStore,
@@ -13,13 +13,13 @@ type Props = {
 
 function Theme({ children, ui }: Props) {
   return (
-    <ThemeProvider theme={ui.resolvedTheme === 'dark' ? dark : light}>
-      <React.Fragment>
+    <ThemeProvider theme={ui.resolvedTheme === "dark" ? dark : light}>
+      <>
         <GlobalStyles />
         {children}
-      </React.Fragment>
+      </>
     </ThemeProvider>
   );
 }
 
-export default inject('ui')(observer(Theme));
+export default inject("ui")(observer(Theme));

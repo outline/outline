@@ -1,20 +1,21 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import styled from 'styled-components';
-import { GoToIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
-
-import Document from 'models/Document';
-import Collection from 'models/Collection';
-import type { DocumentPath } from 'stores/CollectionsStore';
+import { observer } from "mobx-react";
+import { GoToIcon } from "outline-icons";
+import * as React from "react";
+import styled from "styled-components";
+import type { DocumentPath } from "stores/CollectionsStore";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import CollectionIcon from "components/CollectionIcon";
+import Flex from "components/Flex";
 
 type Props = {
   result: DocumentPath,
   document?: ?Document,
   collection: ?Collection,
   onSuccess?: () => void,
-  ref?: (?React.ElementRef<'div'>) => void,
+  style?: Object,
+  ref?: (?React.ElementRef<"div">) => void,
 };
 
 @observer
@@ -24,7 +25,7 @@ class PathToDocument extends React.Component<Props> {
     const { document, result, onSuccess } = this.props;
     if (!document) return;
 
-    if (result.type === 'document') {
+    if (result.type === "document") {
       await document.move(result.collectionId, result.id);
     } else {
       await document.move(result.collectionId, null);
@@ -34,32 +35,37 @@ class PathToDocument extends React.Component<Props> {
   };
 
   render() {
-    const { result, collection, document, ref } = this.props;
+    const { result, collection, document, ref, style } = this.props;
     const Component = document ? ResultWrapperLink : ResultWrapper;
 
     if (!result) return <div />;
 
     return (
-      <Component ref={ref} onClick={this.handleClick} href="" selectable>
-        {collection &&
-          (collection.private ? (
-            <PrivateCollectionIcon color={collection.color} />
-          ) : (
-            <CollectionIcon color={collection.color} />
-          ))}
+      <Component
+        ref={ref}
+        onClick={this.handleClick}
+        href=""
+        style={style}
+        role="option"
+        selectable
+      >
+        {collection && <CollectionIcon collection={collection} />}
+        &nbsp;
         {result.path
-          .map(doc => <Title key={doc.id}>{doc.title}</Title>)
+          .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
-          <Flex>
-            {' '}
+          <DocumentTitle>
+            {" "}
             <StyledGoToIcon /> <Title>{document.title}</Title>
-          </Flex>
+          </DocumentTitle>
         )}
       </Component>
     );
   }
 }
+
+const DocumentTitle = styled(Flex)``;
 
 const Title = styled.span`
   white-space: nowrap;
@@ -68,29 +74,42 @@ const Title = styled.span`
 `;
 
 const StyledGoToIcon = styled(GoToIcon)`
-  opacity: 0.25;
+  fill: ${(props) => props.theme.divider};
 `;
 
 const ResultWrapper = styled.div`
   display: flex;
   margin-bottom: 10px;
-  margin-left: -4px;
   user-select: none;
 
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   cursor: default;
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
-const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
-  margin: 0 -8px;
+const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
   padding: 8px 4px;
-  border-radius: 8px;
+
+  ${DocumentTitle} {
+    display: none;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
+    background: ${(props) => props.theme.listItemHoverBackground};
     outline: none;
+
+    ${DocumentTitle} {
+      display: flex;
+    }
   }
 `;
 

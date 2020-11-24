@@ -1,16 +1,17 @@
 // @flow
-import Document from 'models/Document';
+import queryString from "query-string";
+import Document from "models/Document";
 
 export function homeUrl(): string {
-  return '/home';
+  return "/home";
 }
 
 export function starredUrl(): string {
-  return '/starred';
+  return "/starred";
 }
 
 export function newCollectionUrl(): string {
-  return '/collections/new';
+  return "/collections/new";
 }
 
 export function collectionUrl(collectionId: string, section: ?string): string {
@@ -23,7 +24,7 @@ export function documentUrl(doc: Document): string {
   return doc.url;
 }
 
-export function documentEditUrl(doc: Document): string {
+export function editDocumentUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
 
@@ -43,42 +44,48 @@ export function documentHistoryUrl(doc: Document, revisionId?: string): string {
  */
 export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
   // Update url to match the current one
-  const urlParts = oldUrl.trim().split('/');
+  const urlParts = oldUrl.trim().split("/");
   const actions = urlParts.slice(3);
   if (actions[0]) {
-    return [newUrl, actions].join('/');
+    return [newUrl, actions].join("/");
   }
   return newUrl;
 }
 
 export function newDocumentUrl(
   collectionId: string,
-  parentDocumentId?: string
-): string {
-  let route = `/collections/${collectionId}/new`;
-
-  if (parentDocumentId) {
-    route += `?parentDocumentId=${parentDocumentId}`;
+  params?: {
+    parentDocumentId?: string,
+    templateId?: string,
+    template?: boolean,
   }
-
-  return route;
+): string {
+  return `/collections/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
-export function searchUrl(query?: string, collectionId?: string): string {
-  let route = '/search';
-  if (query) route += `/${encodeURIComponent(query)}`;
-
-  if (collectionId) {
-    route += `?collectionId=${collectionId}`;
+export function searchUrl(
+  query?: string,
+  params?: {
+    collectionId?: string,
+    ref?: string,
   }
-  return route;
+): string {
+  let search = queryString.stringify(params);
+  let route = "/search";
+
+  if (query) {
+    route += `/${encodeURIComponent(query)}`;
+  }
+
+  search = search ? `?${search}` : "";
+  return `${route}${search}`;
 }
 
 export function notFoundUrl(): string {
-  return '/404';
+  return "/404";
 }
 
 export const matchDocumentSlug =
-  ':documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})';
+  ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;

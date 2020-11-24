@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
-const URL_REGEX = /^https?:\/\/(www\.)?lucidchart.com\/documents\/(embeddedchart|view)\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\/.*)?$/;
+const URL_REGEX = /^https?:\/\/(www\.|app\.)?lucidchart.com\/documents\/(embeddedchart|view)\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\/.*)?$/;
 
 type Props = {|
   attrs: {|
@@ -20,6 +20,7 @@ export default class Lucidchart extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         src={`https://lucidchart.com/documents/embeddedchart/${chartId}`}
         title="Lucidchart Embed"
       />

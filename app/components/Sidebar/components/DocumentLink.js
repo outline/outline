@@ -1,27 +1,29 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import Document from 'models/Document';
-import DocumentMenu from 'menus/DocumentMenu';
-import SidebarLink from './SidebarLink';
-import DropToImport from 'components/DropToImport';
-import Fade from 'components/Fade';
-import Collection from 'models/Collection';
-import DocumentsStore from 'stores/DocumentsStore';
-import Flex from 'shared/components/Flex';
-import { type NavigationNode } from 'types';
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import * as React from "react";
+import styled from "styled-components";
+import DocumentsStore from "stores/DocumentsStore";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import DropToImport from "components/DropToImport";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import EditableTitle from "./EditableTitle";
+import SidebarLink from "./SidebarLink";
+import DocumentMenu from "menus/DocumentMenu";
+import { type NavigationNode } from "types";
 
-type Props = {
+type Props = {|
   node: NavigationNode,
   documents: DocumentsStore,
+  canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
-};
+|};
 
 @observer
 class DocumentLink extends React.Component<Props> {
@@ -49,6 +51,18 @@ class DocumentLink extends React.Component<Props> {
     prefetchDocument(node.id);
   };
 
+  handleTitleChange = async (title: string) => {
+    const document = this.props.documents.get(this.props.node.id);
+    if (!document) return;
+
+    await this.props.documents.update({
+      id: document.id,
+      lastRevision: document.revision,
+      text: document.text,
+      title,
+    });
+  };
+
   isActiveDocument = () => {
     return (
       this.props.activeDocument &&
@@ -69,6 +83,7 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
+      canUpdate,
     } = this.props;
 
     const showChildren = !!(
@@ -76,11 +91,12 @@ class DocumentLink extends React.Component<Props> {
       collection &&
       (collection
         .pathToDocument(activeDocument)
-        .map(entry => entry.id)
+        .map((entry) => entry.id)
         .includes(node.id) ||
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
+    const title = node.title || "Untitled";
 
     return (
       <Flex
@@ -96,7 +112,13 @@ class DocumentLink extends React.Component<Props> {
               state: { title: node.title },
             }}
             expanded={showChildren ? true : undefined}
-            label={node.title || 'Untitled'}
+            label={
+              <EditableTitle
+                title={title}
+                onSubmit={this.handleTitleChange}
+                canUpdate={canUpdate}
+              />
+            }
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}
@@ -110,14 +132,12 @@ class DocumentLink extends React.Component<Props> {
                     onClose={() => (this.menuOpen = false)}
                   />
                 </Fade>
-              ) : (
-                undefined
-              )
+              ) : undefined
             }
           >
             {this.hasChildDocuments() && (
               <DocumentChildren column>
-                {node.children.map(childNode => (
+                {node.children.map((childNode) => (
                   <DocumentLink
                     key={childNode.id}
                     collection={collection}
@@ -126,6 +146,7 @@ class DocumentLink extends React.Component<Props> {
                     activeDocument={activeDocument}
                     prefetchDocument={prefetchDocument}
                     depth={depth + 1}
+                    canUpdate={canUpdate}
                   />
                 ))}
               </DocumentChildren>

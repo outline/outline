@@ -1,11 +1,21 @@
 // @flow
-import Document from 'models/Document';
+import { type Location } from "react-router-dom";
+import theme from "shared/styles/theme";
+import Document from "models/Document";
+
+export type Theme = typeof theme;
+
+export type LocationWithState = Location & {
+  state: {
+    [key: string]: string,
+  },
+};
 
 export type Toast = {
   id: string,
   createdAt: string,
   message: string,
-  type: 'warning' | 'error' | 'info' | 'success',
+  type: "warning" | "error" | "info" | "success",
   timeout?: number,
   action?: {
     text: string,
@@ -39,7 +49,7 @@ export type PaginationParams = {
   limit?: number,
   offset?: number,
   sort?: string,
-  direction?: 'ASC' | 'DESC',
+  direction?: "ASC" | "DESC",
 };
 
 export type SearchResult = {

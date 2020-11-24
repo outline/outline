@@ -1,5 +1,5 @@
 // @flow
-import { keyframes } from 'styled-components';
+import { keyframes } from "styled-components";
 
 export const fadeIn = keyframes`
   from { opacity: 0; }
@@ -15,6 +15,18 @@ export const fadeAndScaleIn = keyframes`
   to {
     opacity: 1;
     transform: scale(1);
+  }
+`;
+
+export const fadeAndSlideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(.98) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0px);
   }
 `;
 

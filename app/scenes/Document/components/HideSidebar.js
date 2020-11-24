@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import UiStore from "stores/UiStore";
 
 type Props = {
   ui: UiStore,

@@ -1,16 +1,15 @@
 // @flow
-import * as React from 'react';
-import styled, { withTheme } from 'styled-components';
-import { ExpandedIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
-import TeamLogo from 'shared/components/TeamLogo';
+import { ExpandedIcon } from "outline-icons";
+import * as React from "react";
+import styled from "styled-components";
+import Flex from "components/Flex";
+import TeamLogo from "components/TeamLogo";
 
 type Props = {
   teamName: string,
-  subheading: string,
+  subheading: React.Node,
   showDisclosure?: boolean,
   logoUrl: string,
-  theme: Object,
 };
 
 function HeaderBlock({
@@ -18,16 +17,15 @@ function HeaderBlock({
   teamName,
   subheading,
   logoUrl,
-  theme,
   ...rest
 }: Props) {
   return (
     <Header justify="flex-start" align="center" {...rest}>
-      <TeamLogo alt={`${teamName} logo`} src={logoUrl} />
+      <TeamLogo alt={`${teamName} logo`} src={logoUrl} size="38px" />
       <Flex align="flex-start" column>
         <TeamName showDisclosure>
-          {teamName}{' '}
-          {showDisclosure && <StyledExpandedIcon color={theme.text} />}
+          {teamName}{" "}
+          {showDisclosure && <StyledExpandedIcon color="currentColor" />}
         </TeamName>
         <Subheading>{subheading}</Subheading>
       </Flex>
@@ -46,7 +44,7 @@ const Subheading = styled.div`
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
-  color: ${props => props.theme.sidebarText};
+  color: ${(props) => props.theme.sidebarText};
 `;
 
 const TeamName = styled.div`
@@ -54,15 +52,21 @@ const TeamName = styled.div`
   padding-left: 10px;
   padding-right: 24px;
   font-weight: 600;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   text-decoration: none;
   font-size: 16px;
 `;
 
-const Header = styled(Flex)`
+const Header = styled.button`
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
   padding: 16px 24px;
   position: relative;
+  background: none;
+  line-height: inherit;
+  border: 0;
+  margin: 0;
   cursor: pointer;
   width: 100%;
 
@@ -73,4 +77,4 @@ const Header = styled(Flex)`
   }
 `;
 
-export default withTheme(HeaderBlock);
+export default HeaderBlock;

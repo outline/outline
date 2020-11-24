@@ -22,11 +22,36 @@ If you'd like to run your own copy of Outline or contribute to development then 
 
 Outline requires the following dependencies:
 
-- Node.js >= 12
-- Postgres >=9.5
-- Redis >= 4
-- AWS S3 storage bucket for media and other attachments
+- [Node.js](https://nodejs.org/) >= 12
+- [Yarn](https://yarnpkg.com)
+- [Postgres](https://www.postgresql.org/download/) >=9.5
+- [Redis](https://redis.io/) >= 4
+- AWS S3 bucket or compatible API for file storage
 - Slack or Google developer application for authentication
+
+
+### Production
+
+For a manual self-hosted production installation these are the suggested steps:
+
+1. Clone this repo and install dependencies with `yarn install`
+1. Build the source code with `yarn build`
+1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
+    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
+    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
+    1. `URL` (the public facing URL of your installation)
+    1. `AWS_` (all of the keys beginning with AWS)
+1. Migrate database schema with `yarn sequelize:migrate`. Production assumes an SSL connection, if
+Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`.
+1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline `
+1. Visit http://you_server_ip:3000 and you should be able to see Outline page
+
+   > Port number can be changed using the `PORT` environment variable
+
+1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
 
 ### Development
@@ -48,32 +73,6 @@ In development you can quickly get an environment running using Docker by follow
     1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
     1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
-
-
-### Production
-
-For a self-hosted production installation there is more flexibility, but these are the suggested steps:
-
-1. Clone this repo and install dependencies with `yarn` or `npm install`
-
-   > Requires [Node.js](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
-
-1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
-1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
-    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
-    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
-    1. `URL` (the public facing URL of your installation)
-    1. `AWS_` (all of the keys beginning with AWS)
-1. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate `
-1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start index.js --name outline `
-1. Visit http://you_server_ip:3000 and you should be able to see Outline page
-
-   > Port number can be changed in the `.env` file
-
-1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
 
 ## Development
@@ -126,7 +125,6 @@ Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](htt
 - `server/commands` - Domain logic, currently being refactored from /models
 - `server/emails`  - React rendered email templates
 - `server/models` - Database models
-- `server/pages` - Server-side rendered public pages
 - `server/policies` - Authorization logic
 - `server/presenters` - API responses for database models
 - `server/test` - Test helps and support
@@ -141,8 +139,16 @@ To add new tests, write your tests with [Jest](https://facebook.github.io/jest/)
 
 ```shell
 # To run all tests
-yarn test
+make test
 
+# To run backend tests in watch mode
+make watch
+```
+
+Once the test database is created with  `make test` you may individually run
+frontend and backend tests directly.
+
+```shell
 # To run backend tests
 yarn test:server
 
@@ -154,7 +160,7 @@ yarn test:app
 
 Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in our [Spectrum community](https://spectrum.chat/outline). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
+However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
@@ -162,7 +168,6 @@ If you’re looking for ways to get started, here's a list of ways to help us im
 * Performance improvements, both on server and frontend
 * Developer happiness and documentation
 * Bugs and other issues listed on GitHub
-* Helping others on Spectrum
 
 ## License
 

@@ -1,5 +1,5 @@
 // @flow
-import { Team } from '../models';
+import { Team } from "../models";
 
 export default function present(team: Team) {
   return {
@@ -12,6 +12,7 @@ export default function present(team: Team) {
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
     subdomain: team.subdomain,
+    domain: team.domain,
     url: team.url,
   };
 }

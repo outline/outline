@@ -1,22 +1,23 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import { type Match } from "react-router-dom";
 
-import CenteredContent from 'components/CenteredContent';
-import Empty from 'components/Empty';
-import PageTitle from 'components/PageTitle';
-import Heading from 'components/Heading';
-import PaginatedDocumentList from 'components/PaginatedDocumentList';
-import InputSearch from 'components/InputSearch';
-import Tabs from 'components/Tabs';
-import Tab from 'components/Tab';
-import NewDocumentMenu from 'menus/NewDocumentMenu';
-import Actions, { Action } from 'components/Actions';
-import DocumentsStore from 'stores/DocumentsStore';
+import DocumentsStore from "stores/DocumentsStore";
+import Actions, { Action } from "components/Actions";
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import Heading from "components/Heading";
+import InputSearch from "components/InputSearch";
+import PageTitle from "components/PageTitle";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
+import NewDocumentMenu from "menus/NewDocumentMenu";
 
 type Props = {
   documents: DocumentsStore,
-  match: Object,
+  match: Match,
 };
 
 @observer
@@ -42,13 +43,13 @@ class Starred extends React.Component<Props> {
           }
           empty={<Empty>You’ve not starred any documents yet.</Empty>}
           fetch={fetchStarred}
-          documents={sort === 'alphabetical' ? starredAlphabetical : starred}
+          documents={sort === "alphabetical" ? starredAlphabetical : starred}
           showCollection
         />
 
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch />
+            <InputSearch source="starred" />
           </Action>
           <Action>
             <NewDocumentMenu />
@@ -59,4 +60,4 @@ class Starred extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Starred);
+export default inject("documents")(Starred);

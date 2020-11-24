@@ -1,21 +1,21 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import { observable } from 'mobx';
-import { debounce } from 'lodash';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Input from 'components/Input';
-import Modal from 'components/Modal';
-import Empty from 'components/Empty';
-import PaginatedList from 'components/PaginatedList';
-import Invite from 'scenes/Invite';
-import Group from 'models/Group';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import UsersStore from 'stores/UsersStore';
-import GroupMembershipsStore from 'stores/GroupMembershipsStore';
-import GroupMemberListItem from './components/GroupMemberListItem';
+import { debounce } from "lodash";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import AuthStore from "stores/AuthStore";
+import GroupMembershipsStore from "stores/GroupMembershipsStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Group from "models/Group";
+import Invite from "scenes/Invite";
+import Empty from "components/Empty";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Modal from "components/Modal";
+import PaginatedList from "components/PaginatedList";
+import GroupMemberListItem from "./components/GroupMemberListItem";
 
 type Props = {
   ui: UiStore,
@@ -29,7 +29,7 @@ type Props = {
 @observer
 class AddPeopleToGroup extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
-  @observable query: string = '';
+  @observable query: string = "";
 
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
@@ -50,7 +50,7 @@ class AddPeopleToGroup extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = async user => {
+  handleAddUser = async (user) => {
     try {
       await this.props.groupMemberships.create({
         groupId: this.props.group.id,
@@ -58,7 +58,7 @@ class AddPeopleToGroup extends React.Component<Props> {
       });
       this.props.ui.showToast(`${user.name} was added to the group`);
     } catch (err) {
-      this.props.ui.showToast('Could not add user');
+      this.props.ui.showToast("Could not add user");
     }
   };
 
@@ -71,10 +71,11 @@ class AddPeopleToGroup extends React.Component<Props> {
       <Flex column>
         <HelpText>
           Add team members below to give them access to the group. Need to add
-          someone who’s not yet on the team yet?{' '}
+          someone who’s not yet on the team yet?{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
             Invite them to {team.name}
-          </a>.
+          </a>
+          .
         </HelpText>
 
         <Input
@@ -97,7 +98,7 @@ class AddPeopleToGroup extends React.Component<Props> {
           }
           items={users.notInGroup(group.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <GroupMemberListItem
               key={item.id}
               user={item}
@@ -118,6 +119,9 @@ class AddPeopleToGroup extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users', 'groupMemberships', 'ui')(
-  AddPeopleToGroup
-);
+export default inject(
+  "auth",
+  "users",
+  "groupMemberships",
+  "ui"
+)(AddPeopleToGroup);

@@ -1,18 +1,19 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import styled from "styled-components";
 
-import AuthStore from 'stores/AuthStore';
-import UiStore from 'stores/UiStore';
-import ImageUpload from './components/ImageUpload';
-import Input, { LabelText } from 'components/Input';
-import Button from 'components/Button';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import Flex from 'shared/components/Flex';
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input, { LabelText } from "components/Input";
+import PageTitle from "components/PageTitle";
+import ImageUpload from "./components/ImageUpload";
+import env from "env";
 
 type Props = {
   auth: AuthStore,
@@ -40,8 +41,10 @@ class Details extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
+  handleSubmit = async (event: ?SyntheticEvent<>) => {
+    if (event) {
+      event.preventDefault();
+    }
 
     try {
       await this.props.auth.updateTeam({
@@ -49,7 +52,7 @@ class Details extends React.Component<Props> {
         avatarUrl: this.avatarUrl,
         subdomain: this.subdomain,
       });
-      this.props.ui.showToast('Settings saved');
+      this.props.ui.showToast("Settings saved");
     } catch (err) {
       this.props.ui.showToast(err.message);
     }
@@ -65,10 +68,11 @@ class Details extends React.Component<Props> {
 
   handleAvatarUpload = (avatarUrl: string) => {
     this.avatarUrl = avatarUrl;
+    this.handleSubmit();
   };
 
   handleAvatarError = (error: ?string) => {
-    this.props.ui.showToast(error || 'Unable to upload new logo');
+    this.props.ui.showToast(error || "Unable to upload new logo");
   };
 
   get isValid() {
@@ -105,7 +109,7 @@ class Details extends React.Component<Props> {
             </ImageUpload>
           </AvatarContainer>
         </ProfilePicture>
-        <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
+        <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
           <Input
             label="Name"
             name="name"
@@ -115,12 +119,12 @@ class Details extends React.Component<Props> {
             required
             short
           />
-          {process.env.SUBDOMAINS_ENABLED && (
-            <React.Fragment>
+          {env.SUBDOMAINS_ENABLED && (
+            <>
               <Input
                 label="Subdomain"
                 name="subdomain"
-                value={this.subdomain || ''}
+                value={this.subdomain || ""}
                 onChange={this.handleSubdomainChange}
                 autoComplete="off"
                 minLength={4}
@@ -129,14 +133,14 @@ class Details extends React.Component<Props> {
               />
               {this.subdomain && (
                 <HelpText small>
-                  Your knowledgebase will be accessible at{' '}
+                  Your knowledge base will be accessible at{" "}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}
-            </React.Fragment>
+            </>
           )}
           <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? 'Saving…' : 'Save'}
+            {isSaving ? "Saving…" : "Save"}
           </Button>
         </form>
       </CenteredContent>
@@ -158,7 +162,7 @@ const AvatarContainer = styled(Flex)`
   ${avatarStyles};
   position: relative;
   box-shadow: 0 0 0 1px #dae1e9;
-  background: ${props => props.theme.white};
+  background: ${(props) => props.theme.white};
 
   div div {
     ${avatarStyles};
@@ -175,7 +179,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: ${props => props.theme.white};
+    color: ${(props) => props.theme.white};
   }
 `;
 
@@ -183,4 +187,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default inject('auth', 'ui')(Details);
+export default inject("auth", "ui")(Details);

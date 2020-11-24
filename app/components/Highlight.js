@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import replace from 'string-replace-to-array';
-import styled from 'styled-components';
+import * as React from "react";
+import replace from "string-replace-to-array";
+import styled from "styled-components";
 
 type Props = {
   highlight: ?string | RegExp,
@@ -18,19 +18,22 @@ function Highlight({
   ...rest
 }: Props) {
   let regex;
+  let index = 0;
   if (highlight instanceof RegExp) {
     regex = highlight;
   } else {
     regex = new RegExp(
-      (highlight || '').replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'),
-      caseSensitive ? 'g' : 'gi'
+      (highlight || "").replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&"),
+      caseSensitive ? "g" : "gi"
     );
   }
   return (
     <span {...rest}>
       {highlight
-        ? replace(text, regex, (tag, index) => (
-            <Mark key={index}>{processResult ? processResult(tag) : tag}</Mark>
+        ? replace(text, regex, (tag) => (
+            <Mark key={index++}>
+              {processResult ? processResult(tag) : tag}
+            </Mark>
           ))
         : text}
     </span>
@@ -38,7 +41,7 @@ function Highlight({
 }
 
 const Mark = styled.mark`
-  background: ${props => props.theme.yellow};
+  background: ${(props) => props.theme.searchHighlight};
   border-radius: 2px;
   padding: 0 4px;
 `;

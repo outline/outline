@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import Modal from 'components/Modal';
-import GroupEdit from 'scenes/GroupEdit';
-import GroupDelete from 'scenes/GroupDelete';
-
-import Group from 'models/Group';
-import UiStore from 'stores/UiStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Group from "models/Group";
+import GroupDelete from "scenes/GroupDelete";
+import GroupEdit from "scenes/GroupEdit";
+import { DropdownMenu } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
+import Modal from "components/Modal";
 
 type Props = {
   ui: UiStore,
@@ -50,7 +50,7 @@ class GroupMenu extends React.Component<Props> {
     const can = policies.abilities(group.id);
 
     return (
-      <React.Fragment>
+      <>
         <Modal
           title="Edit group"
           onRequestClose={this.handleEditModalClose}
@@ -72,31 +72,33 @@ class GroupMenu extends React.Component<Props> {
             onSubmit={this.handleDeleteModalClose}
           />
         </Modal>
-
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
-          {group && (
-            <React.Fragment>
-              <DropdownMenuItem onClick={this.props.onMembers}>
-                Members…
-              </DropdownMenuItem>
-
-              {(can.update || can.delete) && <hr />}
-
-              {can.update && (
-                <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
-              )}
-
-              {can.delete && (
-                <DropdownMenuItem onClick={this.onDelete}>
-                  Delete…
-                </DropdownMenuItem>
-              )}
-            </React.Fragment>
-          )}
+          <DropdownMenuItems
+            items={[
+              {
+                title: "Members…",
+                onClick: this.props.onMembers,
+                visible: !!(group && can.read),
+              },
+              {
+                type: "separator",
+              },
+              {
+                title: "Edit…",
+                onClick: this.onEdit,
+                visible: !!(group && can.update),
+              },
+              {
+                title: "Delete…",
+                onClick: this.onDelete,
+                visible: !!(group && can.delete),
+              },
+            ]}
+          />
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }
 
-export default inject('policies')(withRouter(GroupMenu));
+export default inject("policies")(withRouter(GroupMenu));

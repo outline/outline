@@ -1,10 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <title>Outline</title>
-    <meta name="slack-app-id" content="<%= SLACK_APP_ID %>" />
+    <meta name="slack-app-id" content="//inject-slack-app-id//" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" type="image/png" href="favicon-32.png" sizes="32x32" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="favicon-32.png"
+      sizes="32x32"
+    />
     <link rel="manifest" href="/manifest.json" />
     <link
       rel="search"
@@ -31,19 +36,35 @@
       }
     </style>
   </head>
+
   <body>
     <div id="root"></div>
-    <script
-      src="https://browser.sentry-cdn.com/5.12.1/bundle.min.js"
-      integrity="sha384-y+an4eARFKvjzOivf/Z7JtMJhaN6b+lLQ5oFbBbUwZNNVir39cYtkjW1r6Xjbxg3"
-      crossorigin="anonymous"
-    >
-    </script>
     <script>
-      Sentry.init({ dsn: '<%= SENTRY_DSN %>' });
+      //inject-env//
+    </script>
+    <script
+      src="https://browser.sentry-cdn.com/5.22.3/bundle.min.js"
+      integrity="sha384-A1qzcXXJWl+bzYr+r8AdFzSaLbdcbYRFmG37MEDKr4EYjtraUyoZ6UiMw31jHcV9"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      if ("//inject-sentry-dsn//" && window.Sentry) {
+        window.Sentry.init({
+          dsn: "//inject-sentry-dsn//",
+          ignoreErrors: [
+            "ResizeObserver loop limit exceeded",
+            "AuthorizationError",
+            "NetworkError",
+            "NotFoundError",
+            "OfflineError",
+            "UpdateRequiredError",
+            "ChunkLoadError",
+          ],
+        });
+      }
 
-      if (window.localStorage.getItem("theme") === "dark") {
-        window.document.querySelector('#root').style.background = "#111319";
+      if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
+        window.document.querySelector("#root").style.background = "#111319";
       }
     </script>
   </body>

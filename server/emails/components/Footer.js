@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import { Table, TBody, TR, TD } from 'oy-vey';
-import { twitterUrl, spectrumUrl } from '../../../shared/utils/routeHelpers';
-import theme from '../../../shared/styles/theme';
+import { Table, TBody, TR, TD } from "oy-vey";
+import * as React from "react";
+import theme from "../../../shared/styles/theme";
+import { twitterUrl } from "../../../shared/utils/routeHelpers";
 
 type Props = {
   unsubscribeUrl?: string,
@@ -10,29 +10,29 @@ type Props = {
 
 export default ({ unsubscribeUrl }: Props) => {
   const footerStyle = {
-    padding: '20px 0',
+    padding: "20px 0",
     borderTop: `1px solid ${theme.smokeDark}`,
     color: theme.slate,
-    fontSize: '14px',
+    fontSize: "14px",
   };
 
   const unsubStyle = {
-    padding: '0',
+    padding: "0",
     color: theme.slate,
-    fontSize: '14px',
+    fontSize: "14px",
   };
 
   const linkStyle = {
     color: theme.slate,
     fontWeight: 500,
-    textDecoration: 'none',
-    marginRight: '10px',
+    textDecoration: "none",
+    marginRight: "10px",
   };
 
   const externalLinkStyle = {
     color: theme.slate,
-    textDecoration: 'none',
-    margin: '0 10px',
+    textDecoration: "none",
+    margin: "0 10px",
   };
 
   return (
@@ -45,9 +45,6 @@ export default ({ unsubscribeUrl }: Props) => {
             </a>
             <a href={twitterUrl()} style={externalLinkStyle}>
               Twitter
-            </a>
-            <a href={spectrumUrl()} style={externalLinkStyle}>
-              Spectrum
             </a>
           </TD>
         </TR>

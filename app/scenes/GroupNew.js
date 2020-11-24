@@ -1,18 +1,17 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import Button from 'components/Button';
-import Input from 'components/Input';
-import HelpText from 'components/HelpText';
-import Modal from 'components/Modal';
-import GroupMembers from 'scenes/GroupMembers';
-import Flex from 'shared/components/Flex';
-
-import Group from 'models/Group';
-import GroupsStore from 'stores/GroupsStore';
-import UiStore from 'stores/UiStore';
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import GroupsStore from "stores/GroupsStore";
+import UiStore from "stores/UiStore";
+import Group from "models/Group";
+import GroupMembers from "scenes/GroupMembers";
+import Button from "components/Button";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Modal from "components/Modal";
 
 type Props = {
   history: RouterHistory,
@@ -23,7 +22,7 @@ type Props = {
 
 @observer
 class GroupNew extends React.Component<Props> {
-  @observable name: string = '';
+  @observable name: string = "";
   @observable isSaving: boolean;
   @observable group: Group;
 
@@ -52,7 +51,7 @@ class GroupNew extends React.Component<Props> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Groups are for organizing your team. They work best when centered
@@ -73,7 +72,7 @@ class GroupNew extends React.Component<Props> {
           <HelpText>You’ll be able to add people to the group next.</HelpText>
 
           <Button type="submit" disabled={this.isSaving || !this.name}>
-            {this.isSaving ? 'Creating…' : 'Continue'}
+            {this.isSaving ? "Creating…" : "Continue"}
           </Button>
         </form>
         <Modal
@@ -83,9 +82,9 @@ class GroupNew extends React.Component<Props> {
         >
           <GroupMembers group={this.group} />
         </Modal>
-      </React.Fragment>
+      </>
     );
   }
 }
 
-export default inject('groups', 'ui')(withRouter(GroupNew));
+export default inject("groups", "ui")(withRouter(GroupNew));

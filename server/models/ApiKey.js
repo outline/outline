@@ -1,9 +1,9 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
-import randomstring from 'randomstring';
+import randomstring from "randomstring";
+import { DataTypes, sequelize } from "../sequelize";
 
 const ApiKey = sequelize.define(
-  'apiKeys',
+  "apiKeys",
   {
     id: {
       type: DataTypes.UUID,
@@ -17,25 +17,25 @@ const ApiKey = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'users',
+        model: "users",
       },
     },
   },
   {
-    tableName: 'apiKeys',
+    tableName: "apiKeys",
     paranoid: true,
     hooks: {
-      beforeValidate: key => {
+      beforeValidate: (key) => {
         key.secret = randomstring.generate(38);
       },
     },
   }
 );
 
-ApiKey.associate = models => {
+ApiKey.associate = (models) => {
   ApiKey.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
 };
 

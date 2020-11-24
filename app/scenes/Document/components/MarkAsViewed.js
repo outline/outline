@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import Document from 'models/Document';
+import * as React from "react";
+import Document from "models/Document";
 
 const MARK_AS_VIEWED_AFTER = 3 * 1000;
 
@@ -15,9 +15,10 @@ class MarkAsViewed extends React.Component<Props> {
   componentDidMount() {
     const { document } = this.props;
 
-    this.viewTimeout = setTimeout(() => {
+    this.viewTimeout = setTimeout(async () => {
       if (document.publishedAt) {
-        document.view();
+        const view = await document.view();
+        document.updateLastViewed(view);
       }
     }, MARK_AS_VIEWED_AFTER);
   }

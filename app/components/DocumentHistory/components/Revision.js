@@ -1,21 +1,22 @@
 // @flow
-import * as React from 'react';
-import { NavLink } from 'react-router-dom';
-import styled, { withTheme } from 'styled-components';
-import format from 'date-fns/format';
-import { MoreIcon } from 'outline-icons';
+import format from "date-fns/format";
+import { MoreIcon } from "outline-icons";
+import * as React from "react";
+import { NavLink } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
 
-import Flex from 'shared/components/Flex';
-import Time from 'shared/components/Time';
-import Avatar from 'components/Avatar';
-import RevisionMenu from 'menus/RevisionMenu';
-import Document from 'models/Document';
-import Revision from 'models/Revision';
+import Document from "models/Document";
+import Revision from "models/Revision";
+import Avatar from "components/Avatar";
+import Flex from "components/Flex";
+import Time from "components/Time";
+import RevisionMenu from "menus/RevisionMenu";
+import { type Theme } from "types";
 
-import { documentHistoryUrl } from 'utils/routeHelpers';
+import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
-  theme: Object,
+  theme: Theme,
   showMenu: boolean,
   selected: boolean,
   document: Document,
@@ -32,12 +33,12 @@ class RevisionListItem extends React.Component<Props> {
         activeStyle={{ background: theme.primary, color: theme.white }}
       >
         <Author>
-          <StyledAvatar src={revision.createdBy.avatarUrl} />{' '}
+          <StyledAvatar src={revision.createdBy.avatarUrl} />{" "}
           {revision.createdBy.name}
         </Author>
         <Meta>
-          <Time dateTime={revision.createdAt}>
-            {format(revision.createdAt, 'MMMM Do, YYYY h:mm a')}
+          <Time dateTime={revision.createdAt} tooltipDelay={250}>
+            {format(revision.createdAt, "MMMM Do, YYYY h:mm a")}
           </Time>
         </Meta>
         {showMenu && (
@@ -66,7 +67,7 @@ const StyledRevisionMenu = styled(RevisionMenu)`
 `;
 
 const StyledNavLink = styled(NavLink)`
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   display: block;
   padding: 8px 16px;
   font-size: 15px;

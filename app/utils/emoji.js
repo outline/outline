@@ -15,7 +15,7 @@ export function toCodePoint(unicodeSurrogates: string, sep: ?string) {
       r.push(c.toString(16));
     }
   }
-  return r.join(sep || '-');
+  return r.join(sep || "-");
 }
 
 export function emojiToUrl(text: string) {

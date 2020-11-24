@@ -1,19 +1,19 @@
 // @flow
-import { deburr } from 'lodash';
-import naturalSort from 'natural-sort';
+import { deburr } from "lodash";
+import naturalSort from "natural-sort";
 
 type NaturalSortOptions = {
   caseSensitive?: boolean,
-  direction?: 'asc' | 'desc',
+  direction?: "asc" | "desc",
 };
 
 const sorter = naturalSort();
 
 function getSortByField<T: Object>(
   item: T,
-  keyOrCallback: string | (T => string)
+  keyOrCallback: string | ((T) => string)
 ) {
-  if (typeof keyOrCallback === 'string') {
+  if (typeof keyOrCallback === "string") {
     return deburr(item[keyOrCallback]);
   }
 
@@ -22,7 +22,7 @@ function getSortByField<T: Object>(
 
 function naturalSortBy<T>(
   items: T[],
-  key: string | (T => string),
+  key: string | ((T) => string),
   sortOptions?: NaturalSortOptions
 ): T[] {
   if (!items) return [];

@@ -1,5 +1,4 @@
 // @flow
-/* global navigator */
 
 // download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
@@ -14,22 +13,22 @@ export default function download(
   strMimeType?: string
 ) {
   var self = window, // this script is only for browsers anyway...
-    u = 'application/octet-stream', // this default mime also triggers iframe downloads
+    u = "application/octet-stream", // this default mime also triggers iframe downloads
     m = strMimeType || u,
     x = data,
     D = document,
-    a = D.createElement('a'),
-    z = function(a, o) {
+    a = D.createElement("a"),
+    z = function (a, o) {
       return String(a);
     },
     B = self.Blob || self.MozBlob || self.WebKitBlob || z,
     BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
-    fn = strFileName || 'download',
+    fn = strFileName || "download",
     blob,
     b,
     fr;
 
-  if (String(this) === 'true') {
+  if (String(this) === "true") {
     //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
     x = [x, m];
     m = x[0];
@@ -56,12 +55,12 @@ export default function download(
   }
 
   function d2b(u) {
-    if (typeof u !== 'string') {
-      throw Error('Attempted to pass non-string to d2b');
+    if (typeof u !== "string") {
+      throw Error("Attempted to pass non-string to d2b");
     }
     var p = u.split(/[:;,]/),
       t = p[1],
-      dec = p[2] === 'base64' ? atob : decodeURIComponent,
+      dec = p[2] === "base64" ? atob : decodeURIComponent,
       bin = dec(p.pop()),
       mx = bin.length,
       i = 0,
@@ -73,20 +72,20 @@ export default function download(
   }
 
   function saver(url, winMode) {
-    if (typeof url !== 'string') {
-      throw Error('Attempted to pass non-string url to saver');
+    if (typeof url !== "string") {
+      throw Error("Attempted to pass non-string url to saver");
     }
 
-    if ('download' in a) {
+    if ("download" in a) {
       a.href = url;
-      a.setAttribute('download', fn);
-      a.innerHTML = 'downloading…';
+      a.setAttribute("download", fn);
+      a.innerHTML = "downloading…";
       D.body && D.body.appendChild(a);
-      setTimeout(function() {
+      setTimeout(function () {
         a.click();
         D.body && D.body.removeChild(a);
         if (winMode === true) {
-          setTimeout(function() {
+          setTimeout(function () {
             self.URL.revokeObjectURL(a.href);
           }, 250);
         }
@@ -95,15 +94,15 @@ export default function download(
     }
 
     //do iframe dataURL download (old ch+FF):
-    var f = D.createElement('iframe');
+    var f = D.createElement("iframe");
     D.body && D.body.appendChild(f);
     if (!winMode) {
       // force a mime that will download:
-      url = 'data:' + url.replace(/^data:([\w\/\-\+]+)/, u);
+      url = "data:" + url.replace(/^data:([\w\/\-\+]+)/, u);
     }
 
     f.src = url;
-    setTimeout(function() {
+    setTimeout(function () {
       D.body && D.body.removeChild(f);
     }, 333);
   }
@@ -121,20 +120,20 @@ export default function download(
     // handle non-Blob()+non-URL browsers:
     if (
       blob &&
-      (typeof blob === 'string' || blob.constructor === z) &&
-      typeof m === 'string'
+      (typeof blob === "string" || blob.constructor === z) &&
+      typeof m === "string"
     ) {
       try {
-        return saver('data:' + m + ';base64,' + self.btoa(blob));
+        return saver("data:" + m + ";base64," + self.btoa(blob));
       } catch (y) {
         // $FlowIssue
-        return saver('data:' + m + ',' + encodeURIComponent(blob));
+        return saver("data:" + m + "," + encodeURIComponent(blob));
       }
     }
 
     // Blob but not URL:
     fr = new FileReader();
-    fr.onload = function(e) {
+    fr.onload = function (e) {
       saver(this.result);
     };
 

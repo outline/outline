@@ -1,14 +1,15 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { DataTypes, sequelize } from "../sequelize";
 
 const Share = sequelize.define(
-  'share',
+  "share",
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    published: DataTypes.BOOLEAN,
     revokedAt: DataTypes.DATE,
     revokedById: DataTypes.UUID,
   },
@@ -21,22 +22,29 @@ const Share = sequelize.define(
   }
 );
 
-Share.associate = models => {
+Share.associate = (models) => {
   Share.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
   Share.belongsTo(models.Team, {
-    as: 'team',
-    foreignKey: 'teamId',
+    as: "team",
+    foreignKey: "teamId",
   });
-  Share.belongsTo(models.Document, {
-    as: 'document',
-    foreignKey: 'documentId',
+  Share.belongsTo(models.Document.scope("withUnpublished"), {
+    as: "document",
+    foreignKey: "documentId",
+  });
+  Share.addScope("defaultScope", {
+    include: [
+      { association: "user" },
+      { association: "document" },
+      { association: "team" },
+    ],
   });
 };
 
-Share.prototype.revoke = function(userId) {
+Share.prototype.revoke = function (userId) {
   this.revokedAt = new Date();
   this.revokedById = userId;
   return this.save();

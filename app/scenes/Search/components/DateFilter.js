@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import FilterOptions from './FilterOptions';
+import * as React from "react";
+import FilterOptions from "./FilterOptions";
 
 const options = [
-  { key: undefined, label: 'Any time' },
-  { key: 'day', label: 'Past day' },
-  { key: 'week', label: 'Past week' },
-  { key: 'month', label: 'Past month' },
-  { key: 'year', label: 'Past year' },
+  { key: "", label: "Any time" },
+  { key: "day", label: "Past day" },
+  { key: "week", label: "Past week" },
+  { key: "month", label: "Past month" },
+  { key: "year", label: "Past year" },
 ];
 
 type Props = {

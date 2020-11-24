@@ -1,22 +1,21 @@
 // @flow
-import ApiKeysStore from './ApiKeysStore';
-import AuthStore from './AuthStore';
-import CollectionsStore from './CollectionsStore';
-import DocumentsStore from './DocumentsStore';
-import EventsStore from './EventsStore';
-import GroupsStore from './GroupsStore';
-import GroupMembershipsStore from './GroupMembershipsStore';
-import IntegrationsStore from './IntegrationsStore';
-import MembershipsStore from './MembershipsStore';
-import NotificationSettingsStore from './NotificationSettingsStore';
-import DocumentPresenceStore from './DocumentPresenceStore';
-import PoliciesStore from './PoliciesStore';
-import RevisionsStore from './RevisionsStore';
-import SharesStore from './SharesStore';
-import UiStore from './UiStore';
-import UsersStore from './UsersStore';
-import ViewsStore from './ViewsStore';
-import CollectionGroupMembershipsStore from './CollectionGroupMembershipsStore';
+import ApiKeysStore from "./ApiKeysStore";
+import AuthStore from "./AuthStore";
+import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
+import CollectionsStore from "./CollectionsStore";
+import DocumentPresenceStore from "./DocumentPresenceStore";
+import DocumentsStore from "./DocumentsStore";
+import GroupMembershipsStore from "./GroupMembershipsStore";
+import GroupsStore from "./GroupsStore";
+import IntegrationsStore from "./IntegrationsStore";
+import MembershipsStore from "./MembershipsStore";
+import NotificationSettingsStore from "./NotificationSettingsStore";
+import PoliciesStore from "./PoliciesStore";
+import RevisionsStore from "./RevisionsStore";
+import SharesStore from "./SharesStore";
+import UiStore from "./UiStore";
+import UsersStore from "./UsersStore";
+import ViewsStore from "./ViewsStore";
 
 export default class RootStore {
   apiKeys: ApiKeysStore;
@@ -24,7 +23,6 @@ export default class RootStore {
   collections: CollectionsStore;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   documents: DocumentsStore;
-  events: EventsStore;
   groups: GroupsStore;
   groupMemberships: GroupMembershipsStore;
   integrations: IntegrationsStore;
@@ -44,7 +42,6 @@ export default class RootStore {
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
-    this.events = new EventsStore(this);
     this.groups = new GroupsStore(this);
     this.groupMemberships = new GroupMembershipsStore(this);
     this.integrations = new IntegrationsStore(this);
@@ -65,7 +62,6 @@ export default class RootStore {
     this.collections.clear();
     this.collectionGroupMemberships.clear();
     this.documents.clear();
-    this.events.clear();
     this.groups.clear();
     this.groupMemberships.clear();
     this.integrations.clear();

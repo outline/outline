@@ -1,5 +1,5 @@
 // @flow
-import { set, observable } from 'mobx';
+import { set, observable } from "mobx";
 
 export default class BaseModel {
   @observable id: string;
@@ -11,7 +11,7 @@ export default class BaseModel {
     this.store = store;
   }
 
-  save = async params => {
+  save = async (params: ?Object) => {
     this.isSaving = true;
 
     try {
@@ -27,7 +27,7 @@ export default class BaseModel {
     }
   };
 
-  fetch = (options: *) => {
+  fetch = (options?: any) => {
     return this.store.fetch(this.id, options);
   };
 
@@ -44,7 +44,7 @@ export default class BaseModel {
     }
   };
 
-  toJS = () => {
+  toJS = (): Object => {
     return { ...this };
   };
 }

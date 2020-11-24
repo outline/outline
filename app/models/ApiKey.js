@@ -1,5 +1,5 @@
 // @flow
-import BaseModel from './BaseModel';
+import BaseModel from "./BaseModel";
 
 class ApiKey extends BaseModel {
   id: string;

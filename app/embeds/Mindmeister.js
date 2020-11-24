@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  '^https://([w.-]+.)?(mindmeister.com|mm.tt)(/maps/public_map_shell)?/(\\d+)(\\?t=.*)?(/.*)?$'
+  "^https://([w.-]+.)?(mindmeister.com|mm.tt)(/maps/public_map_shell)?/(\\d+)(\\?t=.*)?(/.*)?$"
 );
 
 type Props = {|
@@ -21,6 +21,7 @@ export default class Mindmeister extends React.Component<Props> {
 
     return (
       <Frame
+        {...this.props}
         src={`https://www.mindmeister.com/maps/public_map_shell/${chartId}`}
         title="Mindmeister Embed"
         border

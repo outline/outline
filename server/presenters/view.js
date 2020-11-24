@@ -1,6 +1,6 @@
 // @flow
-import { View } from '../models';
-import { presentUser } from '../presenters';
+import { View } from "../models";
+import { presentUser } from "../presenters";
 
 export default function present(view: View) {
   return {

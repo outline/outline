@@ -1,53 +1,58 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
 import {
   ArchiveIcon,
   HomeIcon,
   EditIcon,
   SearchIcon,
   StarredIcon,
+  ShapesIcon,
   TrashIcon,
   PlusIcon,
-} from 'outline-icons';
+} from "outline-icons";
+import * as React from "react";
+import styled from "styled-components";
 
-import Flex from 'shared/components/Flex';
-import Modal from 'components/Modal';
-import Invite from 'scenes/Invite';
-import AccountMenu from 'menus/AccountMenu';
-import Sidebar from './Sidebar';
-import Scrollable from 'components/Scrollable';
-import Section from './components/Section';
-import Collections from './components/Collections';
-import SidebarLink from './components/SidebarLink';
-import HeaderBlock from './components/HeaderBlock';
-import Bubble from './components/Bubble';
-
-import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
-import { observable } from 'mobx';
+import AuthStore from "stores/AuthStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import CollectionNew from "scenes/CollectionNew";
+import Invite from "scenes/Invite";
+import Flex from "components/Flex";
+import Modal from "components/Modal";
+import Scrollable from "components/Scrollable";
+import Sidebar from "./Sidebar";
+import Bubble from "./components/Bubble";
+import Collections from "./components/Collections";
+import HeaderBlock from "./components/HeaderBlock";
+import Section from "./components/Section";
+import SidebarLink from "./components/SidebarLink";
+import AccountMenu from "menus/AccountMenu";
 
 type Props = {
   auth: AuthStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
-  ui: UiStore,
 };
 
 @observer
 class MainSidebar extends React.Component<Props> {
-  @observable inviteModalOpen: boolean = false;
+  @observable inviteModalOpen = false;
+  @observable createCollectionModalOpen = false;
 
   componentDidMount() {
     this.props.documents.fetchDrafts();
+    this.props.documents.fetchTemplates();
   }
 
-  handleCreateCollection = (ev: SyntheticEvent<>) => {
+  handleCreateCollectionModalOpen = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.props.ui.setActiveModal('collection-new');
+    this.createCollectionModalOpen = true;
+  };
+
+  handleCreateCollectionModalClose = (ev: SyntheticEvent<>) => {
+    this.createCollectionModalOpen = false;
   };
 
   handleInviteModalOpen = (ev: SyntheticEvent<>) => {
@@ -64,7 +69,6 @@ class MainSidebar extends React.Component<Props> {
     const { user, team } = auth;
     if (!user || !team) return null;
 
-    const draftDocumentsCount = documents.drafts.length;
     const can = policies.abilities(team.id);
 
     return (
@@ -84,50 +88,63 @@ class MainSidebar extends React.Component<Props> {
             <Section>
               <SidebarLink
                 to="/home"
-                icon={<HomeIcon />}
+                icon={<HomeIcon color="currentColor" />}
                 exact={false}
                 label="Home"
               />
               <SidebarLink
                 to={{
-                  pathname: '/search',
+                  pathname: "/search",
                   state: { fromMenu: true },
                 }}
-                icon={<SearchIcon />}
+                icon={<SearchIcon color="currentColor" />}
                 label="Search"
                 exact={false}
               />
               <SidebarLink
                 to="/starred"
-                icon={<StarredIcon />}
+                icon={<StarredIcon color="currentColor" />}
                 exact={false}
                 label="Starred"
               />
               <SidebarLink
+                to="/templates"
+                icon={<ShapesIcon color="currentColor" />}
+                exact={false}
+                label="Templates"
+                active={
+                  documents.active ? documents.active.template : undefined
+                }
+              />
+              <SidebarLink
                 to="/drafts"
-                icon={<EditIcon />}
+                icon={<EditIcon color="currentColor" />}
                 label={
                   <Drafts align="center">
-                    Drafts{draftDocumentsCount > 0 && (
-                      <Bubble count={draftDocumentsCount} />
+                    Drafts
+                    {documents.totalDrafts > 0 && (
+                      <Bubble count={documents.totalDrafts} />
                     )}
                   </Drafts>
                 }
                 active={
                   documents.active
                     ? !documents.active.publishedAt &&
-                      !documents.active.isDeleted
+                      !documents.active.isDeleted &&
+                      !documents.active.isTemplate
                     : undefined
                 }
               />
             </Section>
             <Section>
-              <Collections onCreateCollection={this.handleCreateCollection} />
+              <Collections
+                onCreateCollection={this.handleCreateCollectionModalOpen}
+              />
             </Section>
             <Section>
               <SidebarLink
                 to="/archive"
-                icon={<ArchiveIcon />}
+                icon={<ArchiveIcon color="currentColor" />}
                 exact={false}
                 label="Archive"
                 active={
@@ -138,7 +155,7 @@ class MainSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to="/trash"
-                icon={<TrashIcon />}
+                icon={<TrashIcon color="currentColor" />}
                 exact={false}
                 label="Trash"
                 active={
@@ -149,7 +166,7 @@ class MainSidebar extends React.Component<Props> {
                 <SidebarLink
                   to="/settings/people"
                   onClick={this.handleInviteModalOpen}
-                  icon={<PlusIcon />}
+                  icon={<PlusIcon color="currentColor" />}
                   label="Invite people…"
                 />
               )}
@@ -163,6 +180,13 @@ class MainSidebar extends React.Component<Props> {
         >
           <Invite onSubmit={this.handleInviteModalClose} />
         </Modal>
+        <Modal
+          title="Create a collection"
+          onRequestClose={this.handleCreateCollectionModalClose}
+          isOpen={this.createCollectionModalOpen}
+        >
+          <CollectionNew onSubmit={this.handleCreateCollectionModalClose} />
+        </Modal>
       </Sidebar>
     );
   }
@@ -172,4 +196,4 @@ const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default inject('documents', 'policies', 'auth', 'ui')(MainSidebar);
+export default inject("documents", "policies", "auth")(MainSidebar);

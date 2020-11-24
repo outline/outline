@@ -1,18 +1,18 @@
 // @flow
-import * as React from 'react';
-import { Switch, Route } from 'react-router-dom';
-import { observer, inject } from 'mobx-react';
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import { Switch, Route } from "react-router-dom";
 
-import DocumentsStore from 'stores/DocumentsStore';
-import AuthStore from 'stores/AuthStore';
-import NewDocumentMenu from 'menus/NewDocumentMenu';
-import Actions, { Action } from 'components/Actions';
-import InputSearch from 'components/InputSearch';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import Tabs from 'components/Tabs';
-import Tab from 'components/Tab';
-import PaginatedDocumentList from '../components/PaginatedDocumentList';
+import AuthStore from "stores/AuthStore";
+import DocumentsStore from "stores/DocumentsStore";
+import Actions, { Action } from "components/Actions";
+import CenteredContent from "components/CenteredContent";
+import InputSearch from "components/InputSearch";
+import PageTitle from "components/PageTitle";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
+import PaginatedDocumentList from "../components/PaginatedDocumentList";
+import NewDocumentMenu from "menus/NewDocumentMenu";
 
 type Props = {
   documents: DocumentsStore,
@@ -67,7 +67,7 @@ class Dashboard extends React.Component<Props> {
         </Switch>
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch />
+            <InputSearch source="dashboard" />
           </Action>
           <Action>
             <NewDocumentMenu />
@@ -78,4 +78,4 @@ class Dashboard extends React.Component<Props> {
   }
 }
 
-export default inject('documents', 'auth')(Dashboard);
+export default inject("documents", "auth")(Dashboard);

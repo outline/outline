@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import FilterOptions from './FilterOptions';
-import CollectionsStore from 'stores/CollectionsStore';
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import CollectionsStore from "stores/CollectionsStore";
+import FilterOptions from "./FilterOptions";
 
 const defaultOption = {
-  key: undefined,
-  label: 'Any collection',
+  key: "",
+  label: "Any collection",
 };
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
 class CollectionFilter extends React.Component<Props> {
   render() {
     const { onSelect, collectionId, collections } = this.props;
-    const collectionOptions = collections.orderedData.map(user => ({
+    const collectionOptions = collections.orderedData.map((user) => ({
       key: user.id,
       label: user.name,
     }));
@@ -36,4 +36,4 @@ class CollectionFilter extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(CollectionFilter);
+export default inject("collections")(CollectionFilter);

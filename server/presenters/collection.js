@@ -1,6 +1,6 @@
 // @flow
-import { Collection } from '../models';
-import naturalSort from '../../shared/utils/naturalSort';
+import naturalSort from "../../shared/utils/naturalSort";
+import { Collection } from "../models";
 
 type Document = {
   children: Document[],
@@ -10,9 +10,9 @@ type Document = {
 };
 
 const sortDocuments = (documents: Document[]): Document[] => {
-  const orderedDocs = naturalSort(documents, 'title');
+  const orderedDocs = naturalSort(documents, "title");
 
-  return orderedDocs.map(document => ({
+  return orderedDocs.map((document) => ({
     ...document,
     children: sortDocuments(document.children),
   }));
@@ -24,8 +24,8 @@ export default function present(collection: Collection) {
     url: collection.url,
     name: collection.name,
     description: collection.description,
-    color: collection.color || '#4E5C6E',
-    type: collection.type,
+    icon: collection.icon,
+    color: collection.color || "#4E5C6E",
     private: collection.private,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
@@ -33,10 +33,8 @@ export default function present(collection: Collection) {
     documents: undefined,
   };
 
-  if (collection.type === 'atlas') {
-    // Force alphabetical sorting
-    data.documents = sortDocuments(collection.documentStructure);
-  }
+  // Force alphabetical sorting
+  data.documents = sortDocuments(collection.documentStructure);
 
   return data;
 }

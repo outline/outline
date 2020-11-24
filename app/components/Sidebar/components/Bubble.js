@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { bounceIn } from 'shared/styles/animations';
+import * as React from "react";
+import styled from "styled-components";
+import { bounceIn } from "shared/styles/animations";
 
 type Props = {
   count: number,
@@ -14,10 +14,10 @@ const Bubble = ({ count }: Props) => {
 const Count = styled.div`
   animation: ${bounceIn} 600ms;
   transform-origin: center center;
-  color: ${props => props.theme.white};
-  background: ${props => props.theme.slateDark};
+  color: ${(props) => props.theme.white};
+  background: ${(props) => props.theme.slateDark};
   display: inline-block;
-  font-feature-settings: 'tnum';
+  font-feature-settings: "tnum";
   font-weight: 600;
   font-size: 9px;
   white-space: nowrap;

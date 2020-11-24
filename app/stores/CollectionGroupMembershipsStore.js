@@ -1,16 +1,14 @@
 // @flow
-import invariant from 'invariant';
-import { action, runInAction } from 'mobx';
-import { client } from 'utils/ApiClient';
-import BaseStore from './BaseStore';
-import RootStore from './RootStore';
-import CollectionGroupMembership from 'models/CollectionGroupMembership';
-import type { PaginationParams } from 'types';
+import invariant from "invariant";
+import { action, runInAction } from "mobx";
+import CollectionGroupMembership from "models/CollectionGroupMembership";
+import BaseStore from "./BaseStore";
+import RootStore from "./RootStore";
+import type { PaginationParams } from "types";
+import { client } from "utils/ApiClient";
 
-export default class CollectionGroupMembershipsStore extends BaseStore<
-  CollectionGroupMembership
-> {
-  actions = ['create', 'delete'];
+export default class CollectionGroupMembershipsStore extends BaseStore<CollectionGroupMembership> {
+  actions = ["create", "delete"];
 
   constructor(rootStore: RootStore) {
     super(rootStore, CollectionGroupMembership);
@@ -23,7 +21,7 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
     try {
       const res = await client.post(`/collections.group_memberships`, params);
 
-      invariant(res && res.data, 'Data not available');
+      invariant(res && res.data, "Data not available");
 
       runInAction(`CollectionGroupMembershipsStore#fetchPage`, () => {
         res.data.groups.forEach(this.rootStore.groups.add);
@@ -46,12 +44,12 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
     groupId: string,
     permission: string,
   }) {
-    const res = await client.post('/collections.add_group', {
+    const res = await client.post("/collections.add_group", {
       id: collectionId,
       groupId,
       permission,
     });
-    invariant(res && res.data, 'Membership data should be available');
+    invariant(res && res.data, "Membership data should be available");
 
     res.data.collectionGroupMemberships.forEach(this.add);
   }
@@ -64,7 +62,7 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
     collectionId: string,
     groupId: string,
   }) {
-    await client.post('/collections.remove_group', {
+    await client.post("/collections.remove_group", {
       id: collectionId,
       groupId,
     });

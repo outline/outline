@@ -1,9 +1,11 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import AuthStore from 'stores/AuthStore';
-import LoadingIndicator from 'components/LoadingIndicator';
-import { isCustomSubdomain } from 'shared/utils/domains';
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import { isCustomSubdomain } from "shared/utils/domains";
+import AuthStore from "stores/AuthStore";
+import LoadingIndicator from "components/LoadingIndicator";
+import env from "env";
 
 type Props = {
   auth: AuthStore,
@@ -19,10 +21,15 @@ const Authenticated = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
-    // If we're authenticated but viewing a subdomain that doesn't match the
-    // currently authenticated team then kick the user to the teams subdomain.
-    if (
-      process.env.SUBDOMAINS_ENABLED &&
+    // If we're authenticated but viewing a domain that doesn't match the
+    // current team then kick the user to the teams correct domain.
+    if (team.domain) {
+      if (team.domain !== hostname) {
+        window.location.href = `${team.url}${window.location.pathname}`;
+        return <LoadingIndicator />;
+      }
+    } else if (
+      env.SUBDOMAINS_ENABLED &&
       team.subdomain &&
       isCustomSubdomain(hostname) &&
       !hostname.startsWith(`${team.subdomain}.`)
@@ -35,7 +42,7 @@ const Authenticated = observer(({ auth, children }: Props) => {
   }
 
   auth.logout(true);
-  return null;
+  return <Redirect to="/" />;
 });
 
-export default inject('auth')(Authenticated);
+export default inject("auth")(Authenticated);

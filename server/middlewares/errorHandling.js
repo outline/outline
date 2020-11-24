@@ -1,7 +1,7 @@
 // @flow
-import Sequelize from 'sequelize';
-import { snakeCase } from 'lodash';
-import { type Context } from 'koa';
+import { type Context } from "koa";
+import { snakeCase } from "lodash";
+import Sequelize from "sequelize";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(
@@ -25,18 +25,18 @@ export default function errorHandling() {
 
       if (message.match(/Not found/i)) {
         ctx.status = 404;
-        error = 'not_found';
+        error = "not_found";
       }
 
       if (message.match(/Authorization error/i)) {
         ctx.status = 403;
-        error = 'authorization_error';
+        error = "authorization_error";
       }
 
       if (ctx.status === 500) {
-        message = 'Internal Server Error';
-        error = 'internal_server_error';
-        ctx.app.emit('error', err, ctx);
+        message = "Internal Server Error";
+        error = "internal_server_error";
+        ctx.app.emit("error", err, ctx);
       }
 
       ctx.body = {
@@ -44,8 +44,12 @@ export default function errorHandling() {
         error: snakeCase(err.id || error),
         status: err.status,
         message,
-        data: err.errorData ? err.errorData : undefined,
+        data: err.errorData,
       };
+
+      if (!ctx.body.data) {
+        delete ctx.body.data;
+      }
     }
   };
 }

@@ -1,7 +1,7 @@
 // @flow
-import styled from 'styled-components';
+import styled from "styled-components";
 
-const VisuallyHidden = styled('span')`
+const VisuallyHidden = styled("span")`
   position: absolute !important;
   height: 1px;
   width: 1px;

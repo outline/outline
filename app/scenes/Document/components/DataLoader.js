@@ -1,30 +1,41 @@
 // @flow
-import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import type { Location, RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { matchDocumentEdit, updateDocumentUrl } from 'utils/routeHelpers';
-import DocumentComponent from './Document';
-import Revision from 'models/Revision';
-import Document from 'models/Document';
-import SocketPresence from './SocketPresence';
-import Loading from './Loading';
-import HideSidebar from './HideSidebar';
-import Error404 from 'scenes/Error404';
-import ErrorOffline from 'scenes/ErrorOffline';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import RevisionsStore from 'stores/RevisionsStore';
-import UiStore from 'stores/UiStore';
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import invariant from "invariant";
+import { deburr, sortBy } from "lodash";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import type { RouterHistory, Match } from "react-router-dom";
+import { withRouter } from "react-router-dom";
+import { withTheme } from "styled-components";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import RevisionsStore from "stores/RevisionsStore";
+import SharesStore from "stores/SharesStore";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
+import Revision from "models/Revision";
+import Error404 from "scenes/Error404";
+import ErrorOffline from "scenes/ErrorOffline";
+import DocumentComponent from "./Document";
+import HideSidebar from "./HideSidebar";
+import Loading from "./Loading";
+import SocketPresence from "./SocketPresence";
+import { type LocationWithState, type Theme } from "types";
+import { NotFoundError, OfflineError } from "utils/errors";
+import isInternalUrl from "utils/isInternalUrl";
+import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
-  match: Object,
-  location: Location,
+  match: Match,
+  location: LocationWithState,
+  shares: SharesStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
   revisions: RevisionsStore,
   ui: UiStore,
+  theme: Theme,
   history: RouterHistory,
 |};
 
@@ -38,6 +49,7 @@ class DataLoader extends React.Component<Props> {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
     this.loadDocument();
+    this.updateBackground();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -45,56 +57,116 @@ class DataLoader extends React.Component<Props> {
     // reload from the server otherwise the UI will not know which authorizations
     // the user has
     if (this.document) {
-      const policy = this.props.policies.get(this.document.id);
+      const document = this.document;
+      const policy = this.props.policies.get(document.id);
 
-      if (!policy) {
+      if (!policy && !this.error) {
         this.loadDocument();
       }
     }
 
     // Also need to load the revision if it changes
     const { revisionId } = this.props.match.params;
-    if (prevProps.match.params.revisionId !== revisionId && revisionId) {
+    if (
+      prevProps.match.params.revisionId !== revisionId &&
+      revisionId &&
+      revisionId !== "latest"
+    ) {
       this.loadRevision();
     }
+    this.updateBackground();
   }
 
-  goToDocumentCanonical = () => {
-    if (this.document) {
-      this.props.history.push(this.document.url);
-    }
-  };
+  updateBackground() {
+    // ensure the wider page color always matches the theme. This is to
+    // account for share links which don't sit in the wider Layout component
+    window.document.body.style.background = this.props.theme.background;
+  }
 
   get isEditing() {
     return this.props.match.path === matchDocumentEdit;
   }
 
   onSearchLink = async (term: string) => {
-    const results = await this.props.documents.search(term);
+    if (isInternalUrl(term)) {
+      // search for exact internal document
+      const slug = parseDocumentSlug(term);
+      try {
+        const document = await this.props.documents.fetch(slug);
+        const time = distanceInWordsToNow(document.updatedAt, {
+          addSuffix: true,
+        });
+        return [
+          {
+            title: document.title,
+            subtitle: `Updated ${time}`,
+            url: document.url,
+          },
+        ];
+      } catch (error) {
+        // NotFoundError could not find document for slug
+        if (!(error instanceof NotFoundError)) {
+          throw error;
+        }
+      }
+    }
 
-    return results.map((result, index) => ({
-      title: result.document.title,
-      url: result.document.url,
-    }));
+    // default search for anything that doesn't look like a URL
+    const results = await this.props.documents.searchTitles(term);
+
+    return sortBy(
+      results.map((document) => {
+        const time = distanceInWordsToNow(document.updatedAt, {
+          addSuffix: true,
+        });
+        return {
+          title: document.title,
+          subtitle: `Updated ${time}`,
+          url: document.url,
+        };
+      }),
+      (document) =>
+        deburr(document.title)
+          .toLowerCase()
+          .startsWith(deburr(term).toLowerCase())
+          ? -1
+          : 1
+    );
+  };
+
+  onCreateLink = async (title: string) => {
+    const document = this.document;
+    invariant(document, "document must be loaded to create link");
+
+    const newDocument = await this.props.documents.create({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      title,
+      text: "",
+    });
+
+    return newDocument.url;
   };
 
   loadRevision = async () => {
-    const { documentSlug, revisionId } = this.props.match.params;
-
-    this.revision = await this.props.revisions.fetch(documentSlug, {
-      revisionId,
-    });
+    const { revisionId } = this.props.match.params;
+    this.revision = await this.props.revisions.fetch(revisionId);
   };
 
   loadDocument = async () => {
     const { shareId, documentSlug, revisionId } = this.props.match.params;
+
+    // sets the document as active in the sidebar if we already have it loaded
+    if (this.document) {
+      this.props.ui.setActiveDocument(this.document);
+    }
 
     try {
       this.document = await this.props.documents.fetch(documentSlug, {
         shareId,
       });
 
-      if (revisionId) {
+      if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
       } else {
         this.revision = undefined;
@@ -107,10 +179,27 @@ class DataLoader extends React.Component<Props> {
     const document = this.document;
 
     if (document) {
+      const can = this.props.policies.abilities(document.id);
+
+      // sets the document as active in the sidebar, ideally in the future this
+      // will be route driven.
       this.props.ui.setActiveDocument(document);
 
-      if (document.isArchived && this.isEditing) {
-        return this.goToDocumentCanonical();
+      // If we're attempting to update an archived, deleted, or otherwise
+      // uneditable document then forward to the canonical read url.
+      if (!can.update && this.isEditing) {
+        this.props.history.push(document.url);
+        return;
+      }
+
+      // Prevents unauthorized request to load share information for the document
+      // when viewing a public share link
+      if (can.read) {
+        this.props.shares.fetch(document.id).catch((err) => {
+          if (!(err instanceof NotFoundError)) {
+            throw err;
+          }
+        });
       }
 
       const isMove = this.props.location.pathname.match(/move$/);
@@ -131,7 +220,11 @@ class DataLoader extends React.Component<Props> {
     const { location, policies, ui } = this.props;
 
     if (this.error) {
-      return navigator.onLine ? <Error404 /> : <ErrorOffline />;
+      return this.error instanceof OfflineError ? (
+        <ErrorOffline />
+      ) : (
+        <Error404 />
+      );
     }
 
     const document = this.document;
@@ -139,15 +232,15 @@ class DataLoader extends React.Component<Props> {
 
     if (!document) {
       return (
-        <React.Fragment>
+        <>
           <Loading location={location} />
           {this.isEditing && <HideSidebar ui={ui} />}
-        </React.Fragment>
+        </>
       );
     }
 
     const abilities = policies.abilities(document.id);
-    const key = this.isEditing ? 'editing' : 'read-only';
+    const key = this.isEditing ? "editing" : "read-only";
 
     return (
       <SocketPresence documentId={document.id} isEditing={this.isEditing}>
@@ -158,8 +251,9 @@ class DataLoader extends React.Component<Props> {
           revision={revision}
           abilities={abilities}
           location={location}
-          readOnly={!this.isEditing}
+          readOnly={!this.isEditing || !abilities.update || document.isArchived}
           onSearchLink={this.onSearchLink}
+          onCreateLink={this.onCreateLink}
         />
       </SocketPresence>
     );
@@ -167,5 +261,12 @@ class DataLoader extends React.Component<Props> {
 }
 
 export default withRouter(
-  inject('ui', 'auth', 'documents', 'revisions', 'policies')(DataLoader)
+  inject(
+    "ui",
+    "auth",
+    "documents",
+    "revisions",
+    "policies",
+    "shares"
+  )(withTheme(DataLoader))
 );

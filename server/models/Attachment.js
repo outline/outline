@@ -1,10 +1,10 @@
 // @flow
-import path from 'path';
-import { DataTypes, sequelize } from '../sequelize';
-import { deleteFromS3 } from '../utils/s3';
+import path from "path";
+import { DataTypes, sequelize } from "../sequelize";
+import { deleteFromS3 } from "../utils/s3";
 
 const Attachment = sequelize.define(
-  'attachment',
+  "attachment",
   {
     id: {
       type: DataTypes.UUID,
@@ -30,32 +30,32 @@ const Attachment = sequelize.define(
     acl: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'public-read',
+      defaultValue: "public-read",
       validate: {
-        isIn: [['private', 'public-read']],
+        isIn: [["private", "public-read"]],
       },
     },
   },
   {
     getterMethods: {
-      name: function() {
+      name: function () {
         return path.parse(this.key).base;
       },
-      redirectUrl: function() {
+      redirectUrl: function () {
         return `/api/attachments.redirect?id=${this.id}`;
       },
-      isPrivate: function() {
-        return this.acl === 'private';
+      isPrivate: function () {
+        return this.acl === "private";
       },
     },
   }
 );
 
-Attachment.beforeDestroy(async model => {
+Attachment.beforeDestroy(async (model) => {
   await deleteFromS3(model.key);
 });
 
-Attachment.associate = models => {
+Attachment.associate = (models) => {
   Attachment.belongsTo(models.Team);
   Attachment.belongsTo(models.Document);
   Attachment.belongsTo(models.User);

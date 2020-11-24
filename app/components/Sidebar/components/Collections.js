@@ -1,21 +1,21 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import keydown from 'react-keydown';
-import Flex from 'shared/components/Flex';
-import { PlusIcon } from 'outline-icons';
-import { newDocumentUrl } from 'utils/routeHelpers';
+import { observer, inject } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import * as React from "react";
+import keydown from "react-keydown";
+import { withRouter, type RouterHistory } from "react-router-dom";
 
-import Header from './Header';
-import SidebarLink from './SidebarLink';
-import CollectionLink from './CollectionLink';
-import Fade from 'components/Fade';
-
-import CollectionsStore from 'stores/CollectionsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
-import DocumentsStore from 'stores/DocumentsStore';
+import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import CollectionLink from "./CollectionLink";
+import CollectionsLoading from "./CollectionsLoading";
+import Header from "./Header";
+import SidebarLink from "./SidebarLink";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -38,7 +38,7 @@ class Collections extends React.Component<Props> {
     }
   }
 
-  @keydown('n')
+  @keydown("n")
   goToNewDocument() {
     if (this.props.ui.editMode) return;
 
@@ -52,38 +52,51 @@ class Collections extends React.Component<Props> {
   }
 
   render() {
-    const { collections, ui, documents } = this.props;
+    const { collections, ui, policies, documents } = this.props;
 
     const content = (
-      <Flex column>
-        <Header>Collections</Header>
-        {collections.orderedData.map(collection => (
+      <>
+        {collections.orderedData.map((collection) => (
           <CollectionLink
             key={collection.id}
             documents={documents}
             collection={collection}
             activeDocument={documents.active}
             prefetchDocument={documents.prefetchDocument}
+            canUpdate={policies.abilities(collection.id).update}
             ui={ui}
           />
         ))}
         <SidebarLink
           to="/collections"
           onClick={this.props.onCreateCollection}
-          icon={<PlusIcon />}
+          icon={<PlusIcon color="currentColor" />}
           label="New collection…"
           exact
         />
-      </Flex>
+      </>
     );
 
     return (
-      collections.isLoaded &&
-      (this.isPreloaded ? content : <Fade>{content}</Fade>)
+      <Flex column>
+        <Header>Collections</Header>
+        {collections.isLoaded ? (
+          this.isPreloaded ? (
+            content
+          ) : (
+            <Fade>{content}</Fade>
+          )
+        ) : (
+          <CollectionsLoading />
+        )}
+      </Flex>
     );
   }
 }
 
-export default inject('collections', 'ui', 'documents', 'policies')(
-  withRouter(Collections)
-);
+export default inject(
+  "collections",
+  "ui",
+  "documents",
+  "policies"
+)(withRouter(Collections));

@@ -1,10 +1,11 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
+import { inject, observer } from "mobx-react";
+import * as React from "react";
 
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import UsersStore from 'stores/UsersStore';
-import User from 'models/User';
+import UsersStore from "stores/UsersStore";
+import User from "models/User";
+import { DropdownMenu } from "components/DropdownMenu";
+import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
 
 type Props = {
   user: User,
@@ -18,9 +19,7 @@ class UserMenu extends React.Component<Props> {
     const { user, users } = this.props;
     if (
       !window.confirm(
-        `Are you want to make ${
-          user.name
-        } an admin? Admins can modify team and billing information.`
+        `Are you want to make ${user.name} an admin? Admins can modify team and billing information.`
       )
     ) {
       return;
@@ -42,7 +41,7 @@ class UserMenu extends React.Component<Props> {
     const { user, users } = this.props;
     if (
       !window.confirm(
-        'Are you want to suspend this account? Suspended users will be prevented from logging in.'
+        "Are you want to suspend this account? Suspended users will be prevented from logging in."
       )
     ) {
       return;
@@ -67,34 +66,41 @@ class UserMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu>
-        {!user.isSuspended &&
-          (user.isAdmin ? (
-            <DropdownMenuItem onClick={this.handleDemote}>
-              Make {user.name} a member…
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={this.handlePromote}>
-              Make {user.name} an admin…
-            </DropdownMenuItem>
-          ))}
-        {!user.lastActiveAt && (
-          <DropdownMenuItem onClick={this.handleRevoke}>
-            Revoke invite…
-          </DropdownMenuItem>
-        )}
-        {user.lastActiveAt &&
-          (user.isSuspended ? (
-            <DropdownMenuItem onClick={this.handleActivate}>
-              Activate account
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={this.handleSuspend}>
-              Suspend account…
-            </DropdownMenuItem>
-          ))}
+        <DropdownMenuItems
+          items={[
+            {
+              title: `Make ${user.name} a member…`,
+              onClick: this.handleDemote,
+              visible: user.isAdmin,
+            },
+            {
+              title: `Make ${user.name} an admin…`,
+              onClick: this.handlePromote,
+              visible: !user.isAdmin && !user.isSuspended,
+            },
+            {
+              type: "separator",
+            },
+            {
+              title: "Revoke invite…",
+              onClick: this.handleRevoke,
+              visible: user.isInvited,
+            },
+            {
+              title: "Reactivate account",
+              onClick: this.handleActivate,
+              visible: !user.isInvited && user.isSuspended,
+            },
+            {
+              title: "Suspend account",
+              onClick: this.handleSuspend,
+              visible: !user.isInvited && !user.isSuspended,
+            },
+          ]}
+        />
       </DropdownMenu>
     );
   }
 }
 
-export default inject('users')(UserMenu);
+export default inject("users")(UserMenu);

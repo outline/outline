@@ -1,48 +1,55 @@
 // @flow
-import * as Sentry from '@sentry/node';
-import { createQueue } from './utils/queue';
-import services from './services';
+import * as Sentry from "@sentry/node";
+import debug from "debug";
+import services from "./services";
+import { createQueue } from "./utils/queue";
+
+const log = debug("services");
 
 export type UserEvent =
   | {
-  name: | 'users.create' // eslint-disable-line
-        | 'users.update'
-        | 'users.suspend'
-        | 'users.activate'
-        | 'users.delete',
+  name: | "users.create" // eslint-disable-line
+        | "users.signin"
+        | "users.update"
+        | "users.suspend"
+        | "users.activate"
+        | "users.delete",
       userId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
-      name: 'users.invite',
+      name: "users.invite",
       teamId: string,
       actorId: string,
       data: {
         email: string,
         name: string,
       },
+      ip: string,
     };
 
 export type DocumentEvent =
   | {
-  name: | 'documents.create' // eslint-disable-line
-        | 'documents.publish'
-        | 'documents.delete'
-        | 'documents.pin'
-        | 'documents.unpin'
-        | 'documents.archive'
-        | 'documents.unarchive'
-        | 'documents.restore'
-        | 'documents.star'
-        | 'documents.unstar',
+  name: | "documents.create" // eslint-disable-line
+        | "documents.publish"
+        | "documents.delete"
+        | "documents.pin"
+        | "documents.unpin"
+        | "documents.archive"
+        | "documents.unarchive"
+        | "documents.restore"
+        | "documents.star"
+        | "documents.unstar",
       documentId: string,
       collectionId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
-      name: 'documents.move',
+      name: "documents.move",
       documentId: string,
       collectionId: string,
       teamId: string,
@@ -51,37 +58,65 @@ export type DocumentEvent =
         collectionIds: string[],
         documentIds: string[],
       },
+      ip: string,
     }
   | {
-      name: 'documents.update',
+      name: | "documents.update" // eslint-disable-line
+        | "documents.update.delayed"
+        | "documents.update.debounced",
       documentId: string,
       collectionId: string,
+      createdAt: string,
       teamId: string,
       actorId: string,
       data: {
+        title: string,
         autosave: boolean,
         done: boolean,
       },
+      ip: string,
+    }
+  | {
+      name: "documents.title_change",
+      documentId: string,
+      collectionId: string,
+      createdAt: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        title: string,
+        previousTitle: string,
+      },
+      ip: string,
     };
+
+export type RevisionEvent = {
+  name: "revisions.create",
+  documentId: string,
+  collectionId: string,
+  teamId: string,
+};
 
 export type CollectionEvent =
   | {
-  name: | 'collections.create' // eslint-disable-line
-        | 'collections.update'
-        | 'collections.delete',
+  name: | "collections.create" // eslint-disable-line
+        | "collections.update"
+        | "collections.delete",
       collectionId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
-      name: 'collections.add_user' | 'collections.remove_user',
+      name: "collections.add_user" | "collections.remove_user",
       userId: string,
       collectionId: string,
       teamId: string,
       actorId: string,
+      ip: string,
     }
   | {
-      name: 'collections.add_group' | 'collections.remove_group',
+      name: "collections.add_group" | "collections.remove_group",
       collectionId: string,
       teamId: string,
       actorId: string,
@@ -91,7 +126,7 @@ export type CollectionEvent =
 
 export type GroupEvent =
   | {
-      name: 'groups.create' | 'groups.delete' | 'groups.update',
+      name: "groups.create" | "groups.delete" | "groups.update",
       actorId: string,
       modelId: string,
       teamId: string,
@@ -99,7 +134,7 @@ export type GroupEvent =
       ip: string,
     }
   | {
-      name: 'groups.add_user' | 'groups.remove_user',
+      name: "groups.add_user" | "groups.remove_user",
       actorId: string,
       userId: string,
       modelId: string,
@@ -109,10 +144,19 @@ export type GroupEvent =
     };
 
 export type IntegrationEvent = {
-  name: 'integrations.create' | 'integrations.update',
+  name: "integrations.create" | "integrations.update",
   modelId: string,
   teamId: string,
   actorId: string,
+  ip: string,
+};
+
+export type TeamEvent = {
+  name: "teams.update",
+  teamId: string,
+  actorId: string,
+  data: Object,
+  ip: string,
 };
 
 export type Event =
@@ -120,19 +164,21 @@ export type Event =
   | DocumentEvent
   | CollectionEvent
   | IntegrationEvent
-  | GroupEvent;
+  | GroupEvent
+  | RevisionEvent
+  | TeamEvent;
 
-const globalEventsQueue = createQueue('global events');
-const serviceEventsQueue = createQueue('service events');
+const globalEventsQueue = createQueue("global events");
+const serviceEventsQueue = createQueue("service events");
 
 // this queue processes global events and hands them off to service hooks
-globalEventsQueue.process(async job => {
+globalEventsQueue.process(async (job) => {
   const names = Object.keys(services);
-  names.forEach(name => {
+  names.forEach((name) => {
     const service = services[name];
     if (service.on) {
       serviceEventsQueue.add(
-        { service: name, ...job.data },
+        { ...job.data, service: name },
         { removeOnComplete: true }
       );
     }
@@ -140,15 +186,17 @@ globalEventsQueue.process(async job => {
 });
 
 // this queue processes an individual event for a specific service
-serviceEventsQueue.process(async job => {
+serviceEventsQueue.process(async (job) => {
   const event = job.data;
   const service = services[event.service];
 
   if (service.on) {
-    service.on(event).catch(error => {
+    log(`${event.service} processing ${event.name}`);
+
+    service.on(event).catch((error) => {
       if (process.env.SENTRY_DSN) {
-        Sentry.withScope(function(scope) {
-          scope.setExtra('event', event);
+        Sentry.withScope(function (scope) {
+          scope.setExtra("event", event);
           Sentry.captureException(error);
         });
       } else {

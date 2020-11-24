@@ -1,21 +1,19 @@
 // @flow
-import { v4 } from 'uuid';
-import { orderBy } from 'lodash';
-import { observable, action, autorun, computed } from 'mobx';
-import Document from 'models/Document';
-import Collection from 'models/Collection';
-import type { Toast } from '../types';
+import { orderBy } from "lodash";
+import { observable, action, autorun, computed } from "mobx";
+import { v4 } from "uuid";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import type { Toast } from "types";
 
-const UI_STORE = 'UI_STORE';
+const UI_STORE = "UI_STORE";
 
 class UiStore {
   // theme represents the users UI preference (defaults to system)
-  @observable theme: 'light' | 'dark' | 'system';
+  @observable theme: "light" | "dark" | "system";
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
-  @observable systemTheme: 'light' | 'dark';
-  @observable activeModalName: ?string;
-  @observable activeModalProps: ?Object;
+  @observable systemTheme: "light" | "dark";
   @observable activeDocumentId: ?string;
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
@@ -28,27 +26,29 @@ class UiStore {
     // Rehydrate
     let data = {};
     try {
-      data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
+      data = JSON.parse(localStorage.getItem(UI_STORE) || "{}");
     } catch (_) {
       // no-op Safari private mode
     }
 
     // system theme listeners
-    const colorSchemeQueryList = window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    );
+    if (window.matchMedia) {
+      const colorSchemeQueryList = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
 
-    const setSystemTheme = event => {
-      this.systemTheme = event.matches ? 'dark' : 'light';
-    };
-    setSystemTheme(colorSchemeQueryList);
-    if (colorSchemeQueryList.addListener) {
-      colorSchemeQueryList.addListener(setSystemTheme);
+      const setSystemTheme = (event) => {
+        this.systemTheme = event.matches ? "dark" : "light";
+      };
+      setSystemTheme(colorSchemeQueryList);
+      if (colorSchemeQueryList.addListener) {
+        colorSchemeQueryList.addListener(setSystemTheme);
+      }
     }
 
     // persisted keys
     this.tocVisible = data.tocVisible;
-    this.theme = data.theme || 'system';
+    this.theme = data.theme || "system";
 
     autorun(() => {
       try {
@@ -60,31 +60,24 @@ class UiStore {
   }
 
   @action
-  setTheme = (theme: 'light' | 'dark' | 'system') => {
+  setTheme = (theme: "light" | "dark" | "system") => {
     this.theme = theme;
 
     if (window.localStorage) {
-      window.localStorage.setItem('theme', this.theme);
+      window.localStorage.setItem("theme", this.theme);
     }
-  };
-
-  @action
-  setActiveModal = (name: string, props: ?Object): void => {
-    this.activeModalName = name;
-    this.activeModalProps = props;
-  };
-
-  @action
-  clearActiveModal = (): void => {
-    this.activeModalName = undefined;
-    this.activeModalProps = undefined;
   };
 
   @action
   setActiveDocument = (document: Document): void => {
     this.activeDocumentId = document.id;
 
-    if (document.publishedAt && !document.isArchived && !document.isDeleted) {
+    if (
+      document.publishedAt &&
+      !document.isArchived &&
+      !document.isDeleted &&
+      !document.isTemplate
+    ) {
       this.activeCollectionId = document.collectionId;
     }
   };
@@ -116,40 +109,40 @@ class UiStore {
   };
 
   @action
-  enableEditMode() {
+  enableEditMode = () => {
     this.editMode = true;
-  }
+  };
 
   @action
-  disableEditMode() {
+  disableEditMode = () => {
     this.editMode = false;
-  }
+  };
 
   @action
-  enableProgressBar() {
+  enableProgressBar = () => {
     this.progressBarVisible = true;
-  }
+  };
 
   @action
-  disableProgressBar() {
+  disableProgressBar = () => {
     this.progressBarVisible = false;
-  }
+  };
 
   @action
-  toggleMobileSidebar() {
+  toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
-  }
+  };
 
   @action
-  hideMobileSidebar() {
+  hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
-  }
+  };
 
   @action
   showToast = (
     message: string,
     options?: {
-      type?: 'warning' | 'error' | 'info' | 'success',
+      type?: "warning" | "error" | "info" | "success",
       timeout?: number,
       action?: {
         text: string,
@@ -171,8 +164,8 @@ class UiStore {
   };
 
   @computed
-  get resolvedTheme(): 'dark' | 'light' {
-    if (this.theme === 'system') {
+  get resolvedTheme(): "dark" | "light" {
+    if (this.theme === "system") {
       return this.systemTheme;
     }
 
@@ -181,7 +174,7 @@ class UiStore {
 
   @computed
   get orderedToasts(): Toast[] {
-    return orderBy(Array.from(this.toasts.values()), 'createdAt', 'desc');
+    return orderBy(Array.from(this.toasts.values()), "createdAt", "desc");
   }
 
   @computed

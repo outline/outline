@@ -1,19 +1,20 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import { find } from 'lodash';
-import styled from 'styled-components';
+import { find } from "lodash";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import styled from "styled-components";
 
-import Button from 'components/Button';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import SlackButton from './components/SlackButton';
-import CollectionsStore from 'stores/CollectionsStore';
-import IntegrationsStore from 'stores/IntegrationsStore';
-import AuthStore from 'stores/AuthStore';
-import Notice from 'shared/components/Notice';
-import getQueryVariable from 'shared/utils/getQueryVariable';
+import getQueryVariable from "shared/utils/getQueryVariable";
+import AuthStore from "stores/AuthStore";
+import CollectionsStore from "stores/CollectionsStore";
+import IntegrationsStore from "stores/IntegrationsStore";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
+import Notice from "components/Notice";
+import PageTitle from "components/PageTitle";
+import SlackButton from "./components/SlackButton";
+import env from "env";
 
 type Props = {
   collections: CollectionsStore,
@@ -26,39 +27,39 @@ class Slack extends React.Component<Props> {
   error: ?string;
 
   componentDidMount() {
-    this.error = getQueryVariable('error');
+    this.error = getQueryVariable("error");
     this.props.collections.fetchPage({ limit: 100 });
     this.props.integrations.fetchPage();
   }
 
   get commandIntegration() {
     return find(this.props.integrations.slackIntegrations, {
-      type: 'command',
+      type: "command",
     });
   }
 
   render() {
     const { collections, integrations, auth } = this.props;
-    const teamId = auth.team ? auth.team.id : '';
+    const teamId = auth.team ? auth.team.id : "";
 
     return (
       <CenteredContent>
         <PageTitle title="Slack" />
         <h1>Slack</h1>
-        {this.error === 'access_denied' && (
+        {this.error === "access_denied" && (
           <Notice>
             Whoops, you need to accept the permissions in Slack to connect
             Outline to your team. Try again?
           </Notice>
         )}
-        {this.error === 'unauthenticated' && (
+        {this.error === "unauthenticated" && (
           <Notice>
             Something went wrong while authenticating your request. Please try
             logging in again?
           </Notice>
         )}
         <HelpText>
-          Preview Outline links your team mates share and use the{' '}
+          Preview Outline links your team mates share and use the{" "}
           <Code>/outline</Code> slash command in Slack to search for documents
           in your team’s wiki.
         </HelpText>
@@ -67,8 +68,8 @@ class Slack extends React.Component<Props> {
             <Button onClick={this.commandIntegration.delete}>Disconnect</Button>
           ) : (
             <SlackButton
-              scopes={['commands', 'links:read', 'links:write']}
-              redirectUri={`${BASE_URL}/auth/slack.commands`}
+              scopes={["commands", "links:read", "links:write"]}
+              redirectUri={`${env.URL}/auth/slack.commands`}
               state={teamId}
             />
           )}
@@ -82,7 +83,7 @@ class Slack extends React.Component<Props> {
         </HelpText>
 
         <List>
-          {collections.orderedData.map(collection => {
+          {collections.orderedData.map((collection) => {
             const integration = find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });
@@ -91,7 +92,7 @@ class Slack extends React.Component<Props> {
               return (
                 <ListItem key={integration.id}>
                   <span>
-                    <strong>{collection.name}</strong> posting activity to the{' '}
+                    <strong>{collection.name}</strong> posting activity to the{" "}
                     <strong>{integration.settings.channel}</strong> Slack
                     channel
                   </span>
@@ -104,8 +105,8 @@ class Slack extends React.Component<Props> {
               <ListItem key={collection.id}>
                 <strong>{collection.name}</strong>
                 <SlackButton
-                  scopes={['incoming-webhook']}
-                  redirectUri={`${BASE_URL}/auth/slack.post`}
+                  scopes={["incoming-webhook"]}
+                  redirectUri={`${env.URL}/auth/slack.post`}
                   state={collection.id}
                   label="Connect"
                 />
@@ -135,8 +136,8 @@ const ListItem = styled.li`
 const Code = styled.code`
   padding: 4px 6px;
   margin: 0 2px;
-  background: #eaebea;
+  background: ${(props) => props.theme.codeBackground};
   border-radius: 4px;
 `;
 
-export default inject('collections', 'integrations', 'auth')(Slack);
+export default inject("collections", "integrations", "auth")(Slack);

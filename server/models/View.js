@@ -1,11 +1,11 @@
 // @flow
-import subMilliseconds from 'date-fns/sub_milliseconds';
-import { Op, DataTypes, sequelize } from '../sequelize';
-import { User } from '../models';
-import { USER_PRESENCE_INTERVAL } from '../../shared/constants';
+import subMilliseconds from "date-fns/sub_milliseconds";
+import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
+import { User } from "../models";
+import { DataTypes, Op, sequelize } from "../sequelize";
 
 const View = sequelize.define(
-  'view',
+  "view",
   {
     id: {
       type: DataTypes.UUID,
@@ -25,12 +25,12 @@ const View = sequelize.define(
   }
 );
 
-View.associate = models => {
+View.associate = (models) => {
   View.belongsTo(models.Document);
   View.belongsTo(models.User);
 };
 
-View.increment = async where => {
+View.increment = async (where) => {
   const [model, created] = await View.findOrCreate({ where });
   if (!created) {
     model.count += 1;
@@ -39,10 +39,10 @@ View.increment = async where => {
   return model;
 };
 
-View.findByDocument = async documentId => {
+View.findByDocument = async (documentId) => {
   return View.findAll({
     where: { documentId },
-    order: [['updatedAt', 'DESC']],
+    order: [["updatedAt", "DESC"]],
     include: [
       {
         model: User,
@@ -52,7 +52,7 @@ View.findByDocument = async documentId => {
   });
 };
 
-View.findRecentlyEditingByDocument = async documentId => {
+View.findRecentlyEditingByDocument = async (documentId) => {
   return View.findAll({
     where: {
       documentId,
@@ -60,7 +60,7 @@ View.findRecentlyEditingByDocument = async documentId => {
         [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
       },
     },
-    order: [['lastEditingAt', 'DESC']],
+    order: [["lastEditingAt", "DESC"]],
   });
 };
 

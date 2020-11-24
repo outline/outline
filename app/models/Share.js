@@ -1,10 +1,12 @@
 // @flow
-import BaseModel from './BaseModel';
-import User from './User';
+import BaseModel from "./BaseModel";
+import User from "./User";
 
 class Share extends BaseModel {
   id: string;
   url: string;
+  published: boolean;
+  documentId: string;
   documentTitle: string;
   documentUrl: string;
   createdBy: User;

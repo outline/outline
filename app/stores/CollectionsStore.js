@@ -1,19 +1,19 @@
 // @flow
-import { computed } from 'mobx';
-import { concat, filter, last } from 'lodash';
-import { client } from 'utils/ApiClient';
+import { concat, filter, last } from "lodash";
+import { computed } from "mobx";
 
-import BaseStore from './BaseStore';
-import RootStore from './RootStore';
-import Collection from 'models/Collection';
-import naturalSort from 'shared/utils/naturalSort';
+import naturalSort from "shared/utils/naturalSort";
+import Collection from "models/Collection";
+import BaseStore from "./BaseStore";
+import RootStore from "./RootStore";
+import { client } from "utils/ApiClient";
 
 export type DocumentPathItem = {
   id: string,
   collectionId: string,
   title: string,
   url: string,
-  type: 'collection' | 'document',
+  type: "collection" | "document",
 };
 
 export type DocumentPath = DocumentPathItem & {
@@ -35,19 +35,19 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get orderedData(): Collection[] {
     return filter(
-      naturalSort(Array.from(this.data.values()), 'name'),
-      d => !d.deletedAt
+      naturalSort(Array.from(this.data.values()), "name"),
+      (d) => !d.deletedAt
     );
   }
 
   @computed
   get public(): Collection[] {
-    return this.orderedData.filter(collection => !collection.private);
+    return this.orderedData.filter((collection) => !collection.private);
   }
 
   @computed
   get private(): Collection[] {
-    return this.orderedData.filter(collection => collection.private);
+    return this.orderedData.filter((collection) => collection.private);
   }
 
   /**
@@ -57,29 +57,29 @@ export default class CollectionsStore extends BaseStore<Collection> {
   get pathsToDocuments(): DocumentPath[] {
     let results = [];
     const travelDocuments = (documentList, collectionId, path) =>
-      documentList.forEach(document => {
+      documentList.forEach((document) => {
         const { id, title, url } = document;
-        const node = { id, collectionId, title, url, type: 'document' };
+        const node = { id, collectionId, title, url, type: "document" };
         results.push(concat(path, node));
         travelDocuments(document.children, collectionId, concat(path, [node]));
       });
 
     if (this.isLoaded) {
-      this.data.forEach(collection => {
+      this.data.forEach((collection) => {
         const { id, name, url } = collection;
         const node = {
           id,
           collectionId: id,
           title: name,
           url,
-          type: 'collection',
+          type: "collection",
         };
         results.push([node]);
         travelDocuments(collection.documents, id, [node]);
       });
     }
 
-    return results.map(result => {
+    return results.map((result) => {
       const tail = last(result);
       return {
         ...tail,
@@ -89,11 +89,11 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   getPathForDocument(documentId: string): ?DocumentPath {
-    return this.pathsToDocuments.find(path => path.id === documentId);
+    return this.pathsToDocuments.find((path) => path.id === documentId);
   }
 
   titleForDocument(documentUrl: string): ?string {
-    const path = this.pathsToDocuments.find(path => path.url === documentUrl);
+    const path = this.pathsToDocuments.find((path) => path.url === documentUrl);
     if (path) return path.title;
   }
 
@@ -105,6 +105,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   export = () => {
-    return client.post('/collections.exportAll');
+    return client.post("/collections.export_all");
   };
 }

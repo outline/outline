@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import PublishingInfo from 'components/PublishingInfo';
-import Document from 'models/Document';
-import type { NavigationNode } from 'types';
+import { observer } from "mobx-react";
+import * as React from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import Document from "models/Document";
+import DocumentMeta from "components/DocumentMeta";
+import type { NavigationNode } from "types";
 
 type Props = {
   document: Document | NavigationNode,
@@ -26,8 +26,7 @@ const DocumentLink = styled(Link)`
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
-    outline: none;
+    background: ${(props) => props.theme.listItemHoverBackground};
   }
 `;
 
@@ -39,8 +38,9 @@ const Title = styled.h3`
   margin-top: 0;
   margin-bottom: 0.25em;
   white-space: nowrap;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: ${(props) => props.theme.text};
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
 @observer
@@ -59,7 +59,7 @@ class ReferenceListItem extends React.Component<Props> {
       >
         <Title>{document.title}</Title>
         {document.updatedBy && (
-          <PublishingInfo document={document} showCollection={showCollection} />
+          <DocumentMeta document={document} showCollection={showCollection} />
         )}
       </DocumentLink>
     );
