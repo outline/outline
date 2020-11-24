@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import invariant from 'invariant';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { PlusIcon } from 'outline-icons';
+import invariant from "invariant";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import * as React from "react";
 import { type Match } from "react-router-dom";
+import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -90,7 +90,7 @@ class People extends React.Component<Props> {
         </Button>
 
         <TotalCount $loading={totalUsers === 0}>
-          {totalUsers} total {totalUsers > 1 ? 'users' : 'user'}
+          {totalUsers} total {totalUsers > 1 ? "users" : "user"}
         </TotalCount>
 
         <Tabs>
@@ -147,9 +147,9 @@ const TotalCount = styled.p`
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
-  color: ${props => props.theme.textSecondary};
-  opacity: ${props => (props.$loading ? 0 : 1)};
+  color: ${(props) => props.theme.textSecondary};
+  opacity: ${(props) => (props.$loading ? 0 : 1)};
   transition: opacity 100ms ease-out;
 `;
 
-export default inject('auth', 'users', 'policies')(People);
+export default inject("auth", "users", "policies")(People);
