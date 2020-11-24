@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import styled from 'styled-components';
 import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
@@ -60,6 +61,7 @@ class People extends React.Component<Props> {
     }
 
     const can = policies.abilities(team.id);
+    const totalUsers = this.props.users.total;
 
     return (
       <CenteredContent>
@@ -81,6 +83,10 @@ class People extends React.Component<Props> {
         >
           Invite people…
         </Button>
+
+        <TotalCount $loading={totalUsers === 0}>
+          {totalUsers} total {totalUsers > 1 ? 'users' : 'user'}
+        </TotalCount>
 
         <Tabs>
           <Tab to="/settings/people" exact>
@@ -131,5 +137,14 @@ class People extends React.Component<Props> {
     );
   }
 }
+
+const TotalCount = styled.p`
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: ${props => props.theme.textSecondary};
+  opacity: ${props => (props.$loading ? 0 : 1)};
+  transition: opacity 100ms ease-out;
+`;
 
 export default inject('auth', 'users', 'policies')(People);

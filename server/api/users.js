@@ -44,8 +44,13 @@ router.post('users.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
+  const total = await User.count({ where });
+
   ctx.body = {
-    pagination: ctx.state.pagination,
+    pagination: {
+      ...ctx.state.pagination,
+      total,
+    },
     data: users.map(listUser =>
       presentUser(listUser, { includeDetails: user.isAdmin })
     ),

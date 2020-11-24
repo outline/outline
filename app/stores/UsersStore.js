@@ -72,6 +72,7 @@ export default class UsersStore extends BaseStore<User> {
     runInAction(`invite`, () => {
       res.data.users.forEach(this.add);
     });
+    this.total += res.data.sent.length;
     return res.data;
   };
 

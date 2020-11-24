@@ -20,6 +20,7 @@ export default class BaseStore<T: BaseModel> {
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
   @observable isLoaded: boolean = false;
+  @observable total: number = 0;
 
   model: Class<T>;
   modelName: string;
@@ -64,6 +65,7 @@ export default class BaseStore<T: BaseModel> {
   @action
   remove(id: string): void {
     this.data.delete(id);
+    this.total -= 1;
   }
 
   save(params: Object) {
@@ -174,6 +176,10 @@ export default class BaseStore<T: BaseModel> {
         this.addPolicies(res.policies);
         res.data.forEach(this.add);
         this.isLoaded = true;
+
+        if (res.pagination.total) {
+          this.total = res.pagination.total;
+        }
       });
       return res.data;
     } finally {
