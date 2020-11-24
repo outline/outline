@@ -85,6 +85,12 @@ router.get("/locales/:lng.json", async (ctx) => {
     lng = "default";
   }
 
+  if (process.env.NODE_ENV === "production") {
+    ctx.set({
+      "Cache-Control": `max-age=${7 * 24 * 60 * 60}`,
+    });
+  }
+
   await sendfile(
     ctx,
     path.join(__dirname, "../shared/translations/", `${lng}.json`)
