@@ -54,7 +54,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
       ...ctx.state.pagination,
       total,
     },
-    data: users.map(listUser =>
+    data: users.map((listUser) =>
       presentUser(listUser, { includeDetails: user.isAdmin })
     ),
   };
