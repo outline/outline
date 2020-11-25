@@ -291,6 +291,11 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChange = (getEditorText) => {
+    const { auth } = this.props;
+    if (auth.team && auth.team.multiplayerEditor) {
+      return;
+    }
+
     this.getEditorText = getEditorText;
 
     // document change while read only is presumed to be a checkbox edit,
