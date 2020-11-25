@@ -81,10 +81,6 @@ router.get("/locales/:lng.json", async (ctx) => {
     throw new NotFoundError();
   }
 
-  if (lng === "en_US") {
-    lng = "default";
-  }
-
   if (process.env.NODE_ENV === "production") {
     ctx.set({
       "Cache-Control": `max-age=${7 * 24 * 60 * 60}`,
@@ -93,7 +89,7 @@ router.get("/locales/:lng.json", async (ctx) => {
 
   await sendfile(
     ctx,
-    path.join(__dirname, "../shared/translations/", `${lng}.json`)
+    path.join(__dirname, "../shared/translations/locales/", `${lng}.json`)
   );
 });
 

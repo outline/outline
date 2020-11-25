@@ -22,7 +22,7 @@ class UserMenu extends React.Component<Props> {
     if (
       !window.confirm(
         t(
-          "Are you want to make {{ userName }} an admin? Admins can modify team and billing information.",
+          "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
           { userName: user.name }
         )
       )
@@ -37,7 +37,7 @@ class UserMenu extends React.Component<Props> {
     const { user, users, t } = this.props;
     if (
       !window.confirm(
-        t("Are you want to make {{ userName }} a member?", {
+        t("Are you sure you want to make {{ userName }} a member?", {
           userName: user.name,
         })
       )
@@ -53,7 +53,7 @@ class UserMenu extends React.Component<Props> {
     if (
       !window.confirm(
         t(
-          "Are you want to suspend this account? Suspended users will be prevented from logging in."
+          "Are you sure you want to suspend this account? Suspended users will be prevented from logging in."
         )
       )
     ) {
