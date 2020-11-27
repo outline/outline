@@ -1,6 +1,6 @@
-// @flow
+/* eslint-disable flowtype/require-valid-file-annotation */
 export default class Queue {
-  name: string;
+  name;
 
   constructor(name) {
     this.name = name;
