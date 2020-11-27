@@ -1,8 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { initI18n, i18n } from "./i18n";
-import de_DE from "./locales/de_DE.json";
-import en_US from "./locales/en_US.json";
-import pt_PT from "./locales/pt_PT.json";
+import de_DE from "./locales/de_DE/translation.json";
+import en_US from "./locales/en_US/translation.json";
+import pt_PT from "./locales/pt_PT/translation.json";
+import { initI18n, i18n } from ".";
 
 describe("i18n process.env is unset", () => {
   beforeEach(() => {

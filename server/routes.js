@@ -6,7 +6,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
-import { languages } from "../shared/translations/i18n";
+import { languages } from "../shared/i18n";
 import environment from "./env";
 import { NotFoundError } from "./errors";
 import apexRedirect from "./middlewares/apexRedirect";
@@ -89,7 +89,7 @@ router.get("/locales/:lng.json", async (ctx) => {
 
   await sendfile(
     ctx,
-    path.join(__dirname, "../shared/translations/locales/", `${lng}.json`)
+    path.join(__dirname, "../shared/i18n/locales", lng, "translation.json")
   );
 });
 

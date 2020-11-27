@@ -6,7 +6,7 @@ import * as React from "react";
 import { render } from "react-dom";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import { initI18n } from "shared/translations/i18n";
+import { initI18n } from "shared/i18n";
 import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
 import ScrollToTop from "components/ScrollToTop";

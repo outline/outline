@@ -12,7 +12,7 @@ const initI18n = () => {
     .use(initReactI18next)
     .init({
       backend: {
-        loadPath: "/locales/{{lng}}.json",
+        loadPath: "/locales/{{lng}}/translation.json",
       },
       interpolation: {
         escapeValue: false,
