@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { Trans, withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
@@ -134,7 +134,19 @@ class Profile extends React.Component<Props> {
             short
           />
           <HelpText small>
-            {t("Please note that translations are currently in early access.")}
+            <Trans>
+              Please note that translations are currently in early access.
+              <br />
+              Community contributions are accepted though our{" "}
+              <a
+                href="https://translate.getoutline.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                translation portal
+              </a>
+            </Trans>
+            .
           </HelpText>
           <Button type="submit" disabled={isSaving || !this.isValid}>
             {isSaving ? t("Saving…") : t("Save")}
