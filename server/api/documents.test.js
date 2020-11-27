@@ -1524,6 +1524,18 @@ describe("#documents.unstar", () => {
   });
 });
 
+describe("#documents.import", () => {
+  it("should error if no file is passed", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.import", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("#documents.create", () => {
   it("should create as a new document", async () => {
     const { user, collection } = await seed();
