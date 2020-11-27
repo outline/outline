@@ -815,7 +815,12 @@ router.post("documents.unstar", auth(), async (ctx) => {
 
 router.post("documents.create", auth(), createDocumentFromContext);
 router.post("documents.import", auth(), async (ctx) => {
+  if (!ctx.is("multipart/form-data")) {
+    throw new InvalidRequestError("Request type must be multipart/form-data");
+  }
+
   const file: any = Object.values(ctx.request.files)[0];
+  ctx.assertPresent(file, "file is required");
 
   const user = ctx.state.user;
   authorize(user, "create", Document);
