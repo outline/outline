@@ -12,7 +12,9 @@ const initI18n = () => {
     .use(initReactI18next)
     .init({
       backend: {
-        loadPath: "/locales/{{lng}}/translation.json",
+        // this must match the path defined in routes. It's the path that the
+        // frontend UI code will hit to load missing translations.
+        loadPath: "/locales/{{lng}}.json",
       },
       interpolation: {
         escapeValue: false,
