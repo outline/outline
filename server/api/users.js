@@ -1,5 +1,6 @@
 // @flow
 import Router from "koa-router";
+import { filter } from "lodash";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
@@ -57,6 +58,28 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     data: users.map((listUser) =>
       presentUser(listUser, { includeDetails: user.isAdmin })
     ),
+  };
+});
+
+router.post("users.count", auth(), async (ctx) => {
+  const user = ctx.state.user;
+  const users = await User.findAll({
+    where: {
+      teamId: user.teamId,
+    },
+  });
+
+  const count = {
+    active: filter(users, (user) => !user.isSuspended && user.lastActiveAt)
+      .length,
+    admins: filter(users, (user) => user.isAdmin).length,
+    all: users.length,
+    invited: filter(users, (user) => user.isInvited).length,
+    suspended: filter(users, (user) => user.isSuspended).length,
+  };
+
+  ctx.body = {
+    data: { count },
   };
 });
 

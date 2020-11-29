@@ -1,13 +1,21 @@
 // @flow
 import invariant from "invariant";
 import { filter, orderBy } from "lodash";
-import { computed, action, runInAction } from "mobx";
+import { observable, computed, action, runInAction } from "mobx";
 import User from "models/User";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
 
 export default class UsersStore extends BaseStore<User> {
+  @observable count: {
+    active: number,
+    admins: number,
+    all: number,
+    invited: number,
+    suspended: number,
+  } = {};
+
   constructor(rootStore: RootStore) {
     super(rootStore, User);
   }
@@ -52,16 +60,19 @@ export default class UsersStore extends BaseStore<User> {
 
   @action
   promote = (user: User) => {
+    this.count.admins += 1;
     return this.actionOnUser("promote", user);
   };
 
   @action
   demote = (user: User) => {
+    this.count.admins -= 1;
     return this.actionOnUser("demote", user);
   };
 
   @action
   suspend = (user: User) => {
+    this.count.suspended += 1;
     return this.actionOnUser("suspend", user);
   };
 
@@ -77,9 +88,43 @@ export default class UsersStore extends BaseStore<User> {
     runInAction(`invite`, () => {
       res.data.users.forEach(this.add);
       this.total += res.data.sent.length;
+      this.count.invited += res.data.sent.length;
+      this.count.all += res.data.sent.length;
     });
     return res.data;
   };
+
+  @action
+  fetchCount = async (): Promise<*> => {
+    if (!this.actions.includes("count")) {
+      throw new Error(`Cannot count ${this.modelName}`);
+    }
+
+    const res = await client.post(`/${this.modelName}s.count`);
+    invariant(res && res.data, "Data should be available");
+
+    this.addPolicies(res.policies);
+    this.count = res.data.count;
+    return res.data;
+  };
+
+  @action
+  async delete(user: User) {
+    super.delete(user, { confirmation: true });
+    if (!user.isSuspended && user.lastActiveAt) {
+      this.count.active -= 1;
+    }
+    if (user.isInvited) {
+      this.count.invited -= 1;
+    }
+    if (user.isAdmin) {
+      this.count.admins -= 1;
+    }
+    if (user.isSuspended) {
+      this.count.suspended -= 1;
+    }
+    this.count.all -= 1;
+  }
 
   notInCollection = (collectionId: string, query: string = "") => {
     const memberships = filter(

@@ -43,6 +43,9 @@ const User = sequelize.define(
       isSuspended() {
         return !!this.suspendedAt;
       },
+      isInvited() {
+        return !this.lastActiveAt;
+      },
       avatarUrl() {
         const original = this.getDataValue("avatarUrl");
         if (original) {
