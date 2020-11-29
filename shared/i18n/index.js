@@ -3,7 +3,7 @@ import i18n from "i18next";
 import backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-const initI18n = () => {
+export const initI18n = () => {
   const lng =
     "DEFAULT_LANGUAGE" in process.env ? process.env.DEFAULT_LANGUAGE : "en_US";
 
@@ -31,6 +31,12 @@ const initI18n = () => {
   return i18n;
 };
 
-const languages = ["en_US", "de_DE", "pt_PT"];
+export const languageOptions = [
+  { label: "English (US)", value: "en_US" },
+  { label: "Deutsch (Deutschland)", value: "de_DE" },
+  { label: "Español (España)", value: "es_ES" },
+  { label: "Français (France)", value: "fr_FR" },
+  { label: "Português (Portugal)", value: "pt_PT" },
+];
 
-export { initI18n, languages, i18n };
+export const languages: string[] = languageOptions.map((i) => i.value);

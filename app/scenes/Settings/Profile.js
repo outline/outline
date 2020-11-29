@@ -4,6 +4,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { Trans, withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
+import { languageOptions } from "shared/i18n";
 
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
@@ -124,11 +125,7 @@ class Profile extends React.Component<Props> {
           <br />
           <InputSelect
             label={t("Language")}
-            options={[
-              { label: "English (US)", value: "en_US" },
-              { label: "Deutsch (Deutschland)", value: "de_DE" },
-              { label: "Português (Portugal)", value: "pt_PT" },
-            ]}
+            options={languageOptions}
             value={this.language}
             onChange={this.handleLanguageChange}
             short
