@@ -1,34 +1,31 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 
-import AuthStore from "stores/AuthStore";
-import DocumentsStore from "stores/DocumentsStore";
 import Actions, { Action } from "components/Actions";
 import CenteredContent from "components/CenteredContent";
 import InputSearch from "components/InputSearch";
+import LanguagePrompt from "components/LanguagePrompt";
 import PageTitle from "components/PageTitle";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
+import useStores from "../hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
-type Props = {
-  documents: DocumentsStore,
-  auth: AuthStore,
-};
-
-function Dashboard(props: Props) {
+function Dashboard() {
+  const { documents, ui, auth } = useStores();
   const { t } = useTranslation();
-  const { documents, auth } = props;
+
   if (!auth.user || !auth.team) return null;
   const user = auth.user.id;
 
   return (
     <CenteredContent>
       <PageTitle title={t("Home")} />
+      {!ui.languagePromptDismissed && <LanguagePrompt />}
       <h1>{t("Home")}</h1>
       <Tabs>
         <Tab to="/home" exact>
@@ -77,4 +74,4 @@ function Dashboard(props: Props) {
   );
 }
 
-export default inject("documents", "auth")(observer(Dashboard));
+export default observer(Dashboard);
