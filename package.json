@@ -130,6 +130,7 @@
     "oy-vey": "^0.10.0",
     "pg": "^8.3.0",
     "pg-hstore": "^2.3.3",
+    "pm2": "^4.5.0",
     "polished": "3.6.5",
     "query-string": "^4.3.4",
     "quoted-printable": "^1.0.1",
