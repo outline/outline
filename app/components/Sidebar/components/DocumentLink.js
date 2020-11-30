@@ -33,16 +33,11 @@ function DocumentLink({
   canUpdate,
 }: Props) {
   const { documents } = useStores();
+
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments = !!node.children.length;
-  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  console.log("render");
   const document = documents.get(node.id);
-  if (document) console.log(document.id);
-
-  const title = node.title || "Untitled";
-
   const { fetchChildDocuments } = documents;
 
   React.useEffect(() => {
@@ -50,28 +45,6 @@ function DocumentLink({
       fetchChildDocuments(node.id);
     }
   }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
-
-  const handleMouseEnter = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      prefetchDocument(node.id);
-    },
-    [prefetchDocument, node]
-  );
-
-  const handleTitleChange = React.useCallback(
-    async (title: string) => {
-      const document = documents.get(node.id);
-      if (!document) return;
-
-      await documents.update({
-        id: document.id,
-        lastRevision: document.revision,
-        text: document.text,
-        title,
-      });
-    },
-    [documents, node]
-  );
 
   const showChildren = React.useMemo(() => {
     return !!(
@@ -103,48 +76,76 @@ function DocumentLink({
     [expanded]
   );
 
+  const handleMouseEnter = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      prefetchDocument(node.id);
+    },
+    [prefetchDocument, node]
+  );
+
+  const handleTitleChange = React.useCallback(
+    async (title: string) => {
+      if (!document) return;
+
+      await documents.update({
+        id: document.id,
+        lastRevision: document.revision,
+        text: document.text,
+        title,
+      });
+    },
+    [documents, document]
+  );
+
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
   return (
     <React.Fragment key={node.id}>
-      <SidebarLink
-        innerRef={isActiveDocument ? activeDocumentRef : undefined}
-        onMouseEnter={handleMouseEnter}
-        to={{
-          pathname: node.url,
-          state: { title: node.title },
-        }}
-        label={
-          <DropToImport documentId={node.id} activeClassName="activeDropZone">
-            {hasChildDocuments && (
-              <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
-            )}
-            <EditableTitle
-              title={title}
-              onSubmit={handleTitleChange}
-              canUpdate={canUpdate}
-            />
-          </DropToImport>
-        }
-        depth={depth}
-        exact={false}
-        menuOpen={menuOpen}
-        menu={
-          document ? (
-            <Fade>
-              <DocumentMenu
-                position="right"
-                document={document}
-                onOpen={() => setMenuOpen(true)}
-                onClose={() => setMenuOpen(false)}
+      <DropToImport documentId={node.id} activeClassName="activeDropZone">
+        <SidebarLink
+          innerRef={isActiveDocument ? activeDocumentRef : undefined}
+          onMouseEnter={handleMouseEnter}
+          to={{
+            pathname: node.url,
+            state: { title: node.title },
+          }}
+          label={
+            <>
+              {hasChildDocuments && (
+                <Disclosure
+                  expanded={expanded}
+                  onClick={handleDisclosureClick}
+                />
+              )}
+              <EditableTitle
+                title={node.title || "Untitled"}
+                onSubmit={handleTitleChange}
+                canUpdate={canUpdate}
               />
-            </Fade>
-          ) : undefined
-        }
-      ></SidebarLink>
+            </>
+          }
+          depth={depth}
+          exact={false}
+          menuOpen={menuOpen}
+          menu={
+            document ? (
+              <Fade>
+                <DocumentMenu
+                  position="right"
+                  document={document}
+                  onOpen={() => setMenuOpen(true)}
+                  onClose={() => setMenuOpen(false)}
+                />
+              </Fade>
+            ) : undefined
+          }
+        ></SidebarLink>
+      </DropToImport>
 
       {expanded && (
         <>
           {node.children.map((childNode) => (
-            <DocumentLink
+            <ObservedDocumentLink
               key={childNode.id}
               collection={collection}
               node={childNode}
@@ -167,4 +168,5 @@ const Disclosure = styled(CollapsedIcon)`
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
-export default observer(DocumentLink);
+const ObservedDocumentLink = observer(DocumentLink);
+export default ObservedDocumentLink;
