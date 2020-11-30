@@ -54,7 +54,6 @@ class CollectionLink extends React.Component<Props> {
             }
             iconColor={collection.color}
             expanded={expanded}
-            hideDisclosure
             menuOpen={this.menuOpen}
             label={
               <EditableTitle
