@@ -86,5 +86,5 @@ export default function LanguagePrompt() {
 }
 
 const LanguageIcon = styled(Icon)`
-  margin-right: 8px;
+  margin-right: 12px;
 `;
