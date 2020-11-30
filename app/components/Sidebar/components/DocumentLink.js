@@ -70,21 +70,10 @@ function DocumentLink({
     [documents, node]
   );
 
-  // const handleClick = React.useCallback(
-  //   (ev: SyntheticEvent<>) => {
-  //     ev.preventDefault();
-  //     ev.stopPropagation();
-  //     // setExpanded(!expanded);
-  //   },
-  //   [expanded]
-  // );
-
   // const handleExpand = React.useCallback(() => {
   //   console.log("EXPAND");
   //   // setExpanded(true);
   // }, []);
-
-  // const showDisclosure = !!children && !hideDisclosure;
 
   const showChildren = React.useMemo(() => {
     return !!(
@@ -107,6 +96,15 @@ function DocumentLink({
     }
   }, [showChildren]);
 
+  const handleDisclosureClick = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setExpanded(!expanded);
+    },
+    [expanded]
+  );
+
   return (
     <React.Fragment key={node.id}>
       <SidebarLink
@@ -119,7 +117,7 @@ function DocumentLink({
         label={
           <DropToImport documentId={node.id} activeClassName="activeDropZone">
             {hasChildDocuments && (
-              <Disclosure expanded={expanded} onClick={() => {}} />
+              <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
             )}
             <EditableTitle
               title={title}
