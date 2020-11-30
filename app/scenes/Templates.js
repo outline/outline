@@ -33,7 +33,7 @@ function Templates(props: Props) {
         heading={
           <Tabs>
             <Tab to="/templates" exact>
-              {t("Recently Updated")}
+              {t("Recently updated")}
             </Tab>
             <Tab to="/templates/alphabetical" exact>
               {t("Alphabetical")}

@@ -33,7 +33,7 @@ function Starred(props: Props) {
         heading={
           <Tabs>
             <Tab to="/starred" exact>
-              {t("Recently Updated")}
+              {t("Recently updated")}
             </Tab>
             <Tab to="/starred/alphabetical" exact>
               {t("Alphabetical")}

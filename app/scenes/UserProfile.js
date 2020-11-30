@@ -73,7 +73,7 @@ function UserProfile(props: Props) {
           documents={documents.createdByUser(user.id)}
           fetch={documents.fetchOwned}
           options={{ user: user.id }}
-          heading={<Subheading>{t("Recently Updated")}</Subheading>}
+          heading={<Subheading>{t("Recently updated")}</Subheading>}
           empty={
             <HelpText>
               {t("{{ userName }} hasn’t updated any documents yet.", {
