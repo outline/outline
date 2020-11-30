@@ -36,6 +36,9 @@ function DocumentLink({
   const hasChildDocuments = !!node.children.length;
   const [menuOpen, setMenuOpen] = React.useState(false);
 
+  const document = documents.get(node.id);
+  const title = node.title || "Untitled";
+
   const { fetchChildDocuments } = documents;
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
@@ -66,12 +69,6 @@ function DocumentLink({
     },
     [documents, node]
   );
-
-  // React.useEffect(() => {
-  //   if (rest.expanded !== undefined) {
-  //     setExpanded(rest.expanded);
-  //   }
-  // }, [rest.expanded]);
 
   // const handleClick = React.useCallback(
   //   (ev: SyntheticEvent<>) => {
@@ -104,8 +101,11 @@ function DocumentLink({
 
   const [expanded, setExpanded] = React.useState(showChildren);
 
-  const document = documents.get(node.id);
-  const title = node.title || "Untitled";
+  React.useEffect(() => {
+    if (showChildren) {
+      setExpanded(showChildren);
+    }
+  }, [showChildren]);
 
   return (
     <React.Fragment key={node.id}>
