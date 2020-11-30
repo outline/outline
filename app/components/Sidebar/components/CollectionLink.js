@@ -41,37 +41,40 @@ class CollectionLink extends React.Component<Props> {
 
     return (
       <>
-        <SidebarLink
+        <DropToImport
           key={collection.id}
-          to={collection.url}
-          icon={<CollectionIcon collection={collection} expanded={expanded} />}
-          iconColor={collection.color}
-          expanded={expanded}
-          hideDisclosure
-          menuOpen={this.menuOpen}
-          label={
-            <DropToImport
-              key={collection.id}
-              collectionId={collection.id}
-              activeClassName="activeDropZone"
-            >
+          collectionId={collection.id}
+          activeClassName="activeDropZone"
+        >
+          <SidebarLink
+            key={collection.id}
+            to={collection.url}
+            icon={
+              <CollectionIcon collection={collection} expanded={expanded} />
+            }
+            iconColor={collection.color}
+            expanded={expanded}
+            hideDisclosure
+            menuOpen={this.menuOpen}
+            label={
               <EditableTitle
                 title={collection.name}
                 onSubmit={this.handleTitleChange}
                 canUpdate={canUpdate}
-              />{" "}
-            </DropToImport>
-          }
-          exact={false}
-          menu={
-            <CollectionMenu
-              position="right"
-              collection={collection}
-              onOpen={() => (this.menuOpen = true)}
-              onClose={() => (this.menuOpen = false)}
-            />
-          }
-        ></SidebarLink>
+              />
+            }
+            exact={false}
+            menu={
+              <CollectionMenu
+                position="right"
+                collection={collection}
+                onOpen={() => (this.menuOpen = true)}
+                onClose={() => (this.menuOpen = false)}
+              />
+            }
+          ></SidebarLink>
+        </DropToImport>
+
         {expanded &&
           collection.documents.map((node) => (
             <DocumentLink
