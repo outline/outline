@@ -1,6 +1,5 @@
 // @flow
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -14,11 +13,9 @@ type Props = {
   onMouseEnter?: (SyntheticEvent<>) => void,
   children?: React.Node,
   icon?: React.Node,
-  expanded?: boolean,
   label?: React.Node,
   menu?: React.Node,
   menuOpen?: boolean,
-  hideDisclosure?: boolean,
   iconColor?: string,
   active?: boolean,
   theme: Theme,
@@ -36,7 +33,6 @@ function SidebarLink({
   active,
   menu,
   menuOpen,
-  hideDisclosure,
   theme,
   exact,
   href,
@@ -44,34 +40,12 @@ function SidebarLink({
   depth,
   ...rest
 }: Props) {
-  const [expanded, setExpanded] = React.useState(rest.expanded);
-
   const style = React.useMemo(() => {
     return {
       paddingLeft: `${(depth || 0) * 16 + 16}px`,
     };
   }, [depth]);
 
-  React.useEffect(() => {
-    if (rest.expanded !== undefined) {
-      setExpanded(rest.expanded);
-    }
-  }, [rest.expanded]);
-
-  const handleClick = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      setExpanded(!expanded);
-    },
-    [expanded]
-  );
-
-  const handleExpand = React.useCallback(() => {
-    setExpanded(true);
-  }, []);
-
-  const showDisclosure = !!children && !hideDisclosure;
   const activeStyle = {
     color: theme.text,
     background: theme.sidebarItemBackground,
@@ -93,15 +67,9 @@ function SidebarLink({
         ref={innerRef}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label onClick={handleExpand}>
-          {showDisclosure && (
-            <Disclosure expanded={expanded} onClick={handleClick} />
-          )}
-          {label}
-        </Label>
+        <Label>{label}</Label>
         {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
       </StyledNavLink>
-      {expanded && children}
     </>
   );
 }
@@ -163,13 +131,6 @@ const Label = styled.div`
   width: 100%;
   max-height: 4.8em;
   line-height: 1.6;
-`;
-
-const Disclosure = styled(CollapsedIcon)`
-  position: absolute;
-  left: -24px;
-
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
 export default withRouter(withTheme(observer(SidebarLink)));

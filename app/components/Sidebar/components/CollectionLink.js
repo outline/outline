@@ -2,7 +2,6 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -17,7 +16,6 @@ type Props = {|
   collection: Collection,
   ui: UiStore,
   canUpdate: boolean,
-  documents: DocumentsStore,
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
 |};
@@ -33,59 +31,60 @@ class CollectionLink extends React.Component<Props> {
   render() {
     const {
       collection,
-      documents,
       activeDocument,
       prefetchDocument,
       canUpdate,
       ui,
     } = this.props;
+
     const expanded = collection.id === ui.activeCollectionId;
 
     return (
-      <SidebarLink
-        key={collection.id}
-        to={collection.url}
-        icon={<CollectionIcon collection={collection} expanded={expanded} />}
-        iconColor={collection.color}
-        expanded={expanded}
-        hideDisclosure
-        menuOpen={this.menuOpen}
-        label={
-          <DropToImport
-            key={collection.id}
-            collectionId={collection.id}
-            activeClassName="activeDropZone"
-          >
-            <EditableTitle
-              title={collection.name}
-              onSubmit={this.handleTitleChange}
+      <>
+        <SidebarLink
+          key={collection.id}
+          to={collection.url}
+          icon={<CollectionIcon collection={collection} expanded={expanded} />}
+          iconColor={collection.color}
+          expanded={expanded}
+          hideDisclosure
+          menuOpen={this.menuOpen}
+          label={
+            <DropToImport
+              key={collection.id}
+              collectionId={collection.id}
+              activeClassName="activeDropZone"
+            >
+              <EditableTitle
+                title={collection.name}
+                onSubmit={this.handleTitleChange}
+                canUpdate={canUpdate}
+              />{" "}
+            </DropToImport>
+          }
+          exact={false}
+          menu={
+            <CollectionMenu
+              position="right"
+              collection={collection}
+              onOpen={() => (this.menuOpen = true)}
+              onClose={() => (this.menuOpen = false)}
+            />
+          }
+        ></SidebarLink>
+        {expanded &&
+          collection.documents.map((node) => (
+            <DocumentLink
+              key={node.id}
+              node={node}
+              collection={collection}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
               canUpdate={canUpdate}
-            />{" "}
-          </DropToImport>
-        }
-        exact={false}
-        menu={
-          <CollectionMenu
-            position="right"
-            collection={collection}
-            onOpen={() => (this.menuOpen = true)}
-            onClose={() => (this.menuOpen = false)}
-          />
-        }
-      >
-        {collection.documents.map((node) => (
-          <DocumentLink
-            key={node.id}
-            node={node}
-            documents={documents}
-            collection={collection}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            canUpdate={canUpdate}
-            depth={1.5}
-          />
-        ))}
-      </SidebarLink>
+              depth={1.5}
+            />
+          ))}
+      </>
     );
   }
 }

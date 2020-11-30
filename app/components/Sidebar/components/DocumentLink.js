@@ -1,20 +1,19 @@
 // @flow
-import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
-import DocumentsStore from "stores/DocumentsStore";
+import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
 type Props = {|
   node: NavigationNode,
-  documents: DocumentsStore,
   canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
@@ -23,133 +22,152 @@ type Props = {|
   depth: number,
 |};
 
-@observer
-class DocumentLink extends React.Component<Props> {
-  @observable menuOpen = false;
+function DocumentLink({
+  node,
+  collection,
+  activeDocument,
+  activeDocumentRef,
+  prefetchDocument,
+  depth,
+  canUpdate,
+}: Props) {
+  const { documents } = useStores();
+  const isActiveDocument = activeDocument && activeDocument.id === node.id;
+  const hasChildDocuments = !!node.children.length;
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  componentDidMount() {
-    if (this.isActiveDocument() && this.hasChildDocuments()) {
-      this.props.documents.fetchChildDocuments(this.props.node.id);
+  const { fetchChildDocuments } = documents;
+  React.useEffect(() => {
+    if (isActiveDocument && hasChildDocuments) {
+      fetchChildDocuments(node.id);
     }
-  }
+  }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.activeDocument !== this.props.activeDocument) {
-      if (this.isActiveDocument() && this.hasChildDocuments()) {
-        this.props.documents.fetchChildDocuments(this.props.node.id);
-      }
-    }
-  }
+  const handleMouseEnter = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      prefetchDocument(node.id);
+    },
+    [prefetchDocument, node]
+  );
 
-  handleMouseEnter = (ev: SyntheticEvent<>) => {
-    const { node, prefetchDocument } = this.props;
+  const handleTitleChange = React.useCallback(
+    async (title: string) => {
+      const document = documents.get(node.id);
+      if (!document) return;
 
-    ev.stopPropagation();
-    ev.preventDefault();
-    prefetchDocument(node.id);
-  };
+      await documents.update({
+        id: document.id,
+        lastRevision: document.revision,
+        text: document.text,
+        title,
+      });
+    },
+    [documents, node]
+  );
 
-  handleTitleChange = async (title: string) => {
-    const document = this.props.documents.get(this.props.node.id);
-    if (!document) return;
+  // React.useEffect(() => {
+  //   if (rest.expanded !== undefined) {
+  //     setExpanded(rest.expanded);
+  //   }
+  // }, [rest.expanded]);
 
-    await this.props.documents.update({
-      id: document.id,
-      lastRevision: document.revision,
-      text: document.text,
-      title,
-    });
-  };
+  // const handleClick = React.useCallback(
+  //   (ev: SyntheticEvent<>) => {
+  //     ev.preventDefault();
+  //     ev.stopPropagation();
+  //     // setExpanded(!expanded);
+  //   },
+  //   [expanded]
+  // );
 
-  isActiveDocument = () => {
-    return (
-      this.props.activeDocument &&
-      this.props.activeDocument.id === this.props.node.id
-    );
-  };
+  // const handleExpand = React.useCallback(() => {
+  //   console.log("EXPAND");
+  //   // setExpanded(true);
+  // }, []);
 
-  hasChildDocuments = () => {
-    return !!this.props.node.children.length;
-  };
+  // const showDisclosure = !!children && !hideDisclosure;
 
-  render() {
-    const {
-      node,
-      documents,
-      collection,
-      activeDocument,
-      activeDocumentRef,
-      prefetchDocument,
-      depth,
-      canUpdate,
-    } = this.props;
-
-    const showChildren = !!(
+  const showChildren = React.useMemo(() => {
+    return !!(
+      hasChildDocuments &&
       activeDocument &&
       collection &&
       (collection
         .pathToDocument(activeDocument)
         .map((entry) => entry.id)
         .includes(node.id) ||
-        this.isActiveDocument())
+        isActiveDocument)
     );
-    const document = documents.get(node.id);
-    const title = node.title || "Untitled";
-    return (
-      <React.Fragment key={node.id}>
-        <SidebarLink
-          innerRef={this.isActiveDocument() ? activeDocumentRef : undefined}
-          onMouseEnter={this.handleMouseEnter}
-          to={{
-            pathname: node.url,
-            state: { title: node.title },
-          }}
-          expanded={showChildren ? true : undefined}
-          label={
-            <DropToImport documentId={node.id} activeClassName="activeDropZone">
-              <EditableTitle
-                title={title}
-                onSubmit={this.handleTitleChange}
-                canUpdate={canUpdate}
+  }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
+
+  const [expanded, setExpanded] = React.useState(showChildren);
+
+  const document = documents.get(node.id);
+  const title = node.title || "Untitled";
+
+  return (
+    <React.Fragment key={node.id}>
+      <SidebarLink
+        innerRef={isActiveDocument ? activeDocumentRef : undefined}
+        onMouseEnter={handleMouseEnter}
+        to={{
+          pathname: node.url,
+          state: { title: node.title },
+        }}
+        label={
+          <DropToImport documentId={node.id} activeClassName="activeDropZone">
+            {hasChildDocuments && (
+              <Disclosure expanded={expanded} onClick={() => {}} />
+            )}
+            <EditableTitle
+              title={title}
+              onSubmit={handleTitleChange}
+              canUpdate={canUpdate}
+            />
+          </DropToImport>
+        }
+        depth={depth}
+        exact={false}
+        menuOpen={menuOpen}
+        menu={
+          document ? (
+            <Fade>
+              <DocumentMenu
+                position="right"
+                document={document}
+                onOpen={() => setMenuOpen(true)}
+                onClose={() => setMenuOpen(false)}
               />
-            </DropToImport>
-          }
-          depth={depth}
-          exact={false}
-          menuOpen={this.menuOpen}
-          menu={
-            document ? (
-              <Fade>
-                <DocumentMenu
-                  position="right"
-                  document={document}
-                  onOpen={() => (this.menuOpen = true)}
-                  onClose={() => (this.menuOpen = false)}
-                />
-              </Fade>
-            ) : undefined
-          }
-        >
-          {this.hasChildDocuments() && (
-            <>
-              {node.children.map((childNode) => (
-                <DocumentLink
-                  key={childNode.id}
-                  collection={collection}
-                  node={childNode}
-                  documents={documents}
-                  activeDocument={activeDocument}
-                  prefetchDocument={prefetchDocument}
-                  depth={depth + 1}
-                  canUpdate={canUpdate}
-                />
-              ))}
-            </>
-          )}
-        </SidebarLink>
-      </React.Fragment>
-    );
-  }
+            </Fade>
+          ) : undefined
+        }
+      ></SidebarLink>
+      {expanded && (
+        <>
+          {node.children.map((childNode) => (
+            <DocumentLink
+              key={childNode.id}
+              collection={collection}
+              node={childNode}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              depth={depth + 1}
+              canUpdate={canUpdate}
+            />
+          ))}
+        </>
+      )}
+    </React.Fragment>
+  );
 }
+
+const Disclosure = styled(CollapsedIcon)`
+  position: absolute;
+  left: -24px;
+
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+`;
 
 export default DocumentLink;
