@@ -1,5 +1,4 @@
 // @flow
-import { observer } from "mobx-react";
 import * as React from "react";
 import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -133,4 +132,4 @@ const Label = styled.div`
   line-height: 1.6;
 `;
 
-export default withRouter(withTheme(observer(SidebarLink)));
+export default withRouter(withTheme(SidebarLink));

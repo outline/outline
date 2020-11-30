@@ -1,4 +1,5 @@
 // @flow
+import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -36,10 +37,14 @@ function DocumentLink({
   const hasChildDocuments = !!node.children.length;
   const [menuOpen, setMenuOpen] = React.useState(false);
 
+  console.log("render");
   const document = documents.get(node.id);
+  if (document) console.log(document.id);
+
   const title = node.title || "Untitled";
 
   const { fetchChildDocuments } = documents;
+
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
       fetchChildDocuments(node.id);
@@ -48,8 +53,6 @@ function DocumentLink({
 
   const handleMouseEnter = React.useCallback(
     (ev: SyntheticEvent<>) => {
-      ev.stopPropagation();
-      ev.preventDefault();
       prefetchDocument(node.id);
     },
     [prefetchDocument, node]
@@ -69,11 +72,6 @@ function DocumentLink({
     },
     [documents, node]
   );
-
-  // const handleExpand = React.useCallback(() => {
-  //   console.log("EXPAND");
-  //   // setExpanded(true);
-  // }, []);
 
   const showChildren = React.useMemo(() => {
     return !!(
@@ -142,6 +140,7 @@ function DocumentLink({
           ) : undefined
         }
       ></SidebarLink>
+
       {expanded && (
         <>
           {node.children.map((childNode) => (
@@ -168,4 +167,4 @@ const Disclosure = styled(CollapsedIcon)`
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
-export default DocumentLink;
+export default observer(DocumentLink);
