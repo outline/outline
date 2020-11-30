@@ -46,7 +46,8 @@ For a manual self-hosted production installation these are the suggested steps:
     1. `AWS_` (all of the keys beginning with AWS)
 1. Migrate database schema with `yarn sequelize:migrate`. Production assumes an SSL connection, if
 Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`.
-1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline `
+1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline`. If you prefer PM2, install it using `yarn global add pm2`. You can use `yarn start` to launch PM2 in cluster mode with number of instances set to the number of available CPUs.
+   > You can use `yarn logs` to check server logs and `yarn status` to check the status. Other possible commands: `yarn [stop|restart|delete]`
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
    > Port number can be changed using the `PORT` environment variable
