@@ -1,10 +1,9 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { type Match } from "react-router-dom";
 
-import DocumentsStore from "stores/DocumentsStore";
 import Actions, { Action } from "components/Actions";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
@@ -13,16 +12,17 @@ import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
+import useStores from "hooks/useStores";
 import NewTemplateMenu from "menus/NewTemplateMenu";
 
 type Props = {
-  documents: DocumentsStore,
   match: Match,
 };
 
 function Templates(props: Props) {
+  const { documents } = useStores();
   const { t } = useTranslation();
-  const { fetchTemplates, templates, templatesAlphabetical } = props.documents;
+  const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const { sort } = props.match.params;
 
   return (
@@ -62,4 +62,4 @@ function Templates(props: Props) {
   );
 }
 
-export default inject("documents")(observer(Templates));
+export default observer(Templates);

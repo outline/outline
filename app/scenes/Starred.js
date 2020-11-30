@@ -1,9 +1,8 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { type Match } from "react-router-dom";
-import DocumentsStore from "stores/DocumentsStore";
 import Actions, { Action } from "components/Actions";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
@@ -13,16 +12,17 @@ import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
+import useStores from "hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
 type Props = {
-  documents: DocumentsStore,
   match: Match,
 };
 
 function Starred(props: Props) {
+  const { documents } = useStores();
   const { t } = useTranslation();
-  const { fetchStarred, starred, starredAlphabetical } = props.documents;
+  const { fetchStarred, starred, starredAlphabetical } = documents;
   const { sort } = props.match.params;
 
   return (
@@ -58,4 +58,4 @@ function Starred(props: Props) {
   );
 }
 
-export default inject("documents")(observer(Starred));
+export default observer(Starred);

@@ -22,6 +22,7 @@ import {
   VehicleIcon,
 } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import { DropdownMenu } from "components/DropdownMenu";
 import Flex from "components/Flex";
@@ -126,6 +127,7 @@ type Props = {
   onChange: (color: string, icon: string) => void,
   icon: string,
   color: string,
+  t: TFunction,
 };
 
 function preventEventBubble(event) {
@@ -167,12 +169,13 @@ class IconPicker extends React.Component<Props> {
   };
 
   render() {
+    const { t } = this.props;
     const Component = icons[this.props.icon || "collection"].component;
 
     return (
       <Wrapper ref={(ref) => (this.node = ref)}>
         <label>
-          <LabelText>Icon</LabelText>
+          <LabelText>{t("Icon")}</LabelText>
         </label>
         <DropdownMenu
           onOpen={this.handleOpen}
@@ -197,7 +200,7 @@ class IconPicker extends React.Component<Props> {
             })}
           </Icons>
           <Flex onClick={preventEventBubble}>
-            <React.Suspense fallback={<Loading>Loading…</Loading>}>
+            <React.Suspense fallback={<Loading>{t("Loading…")}</Loading>}>
               <ColorPicker
                 color={this.props.color}
                 onChange={(color) =>
@@ -246,4 +249,4 @@ const Wrapper = styled("div")`
   position: relative;
 `;
 
-export default IconPicker;
+export default withTranslation()<IconPicker>(IconPicker);

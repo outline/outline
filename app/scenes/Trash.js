@@ -1,23 +1,19 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import DocumentsStore from "stores/DocumentsStore";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
 import Heading from "components/Heading";
 import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
+import useStores from "hooks/useStores";
 
-type Props = {
-  documents: DocumentsStore,
-};
-
-function Trash(props: Props) {
+function Trash() {
   const { t } = useTranslation();
-  const { documents } = props;
+  const { documents } = useStores();
 
   return (
     <CenteredContent column auto>
@@ -35,4 +31,4 @@ function Trash(props: Props) {
   );
 }
 
-export default inject("documents")(observer(Trash));
+export default observer(Trash);

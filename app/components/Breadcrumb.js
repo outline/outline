@@ -1,5 +1,5 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import {
   ArchiveIcon,
   EditIcon,
@@ -20,6 +20,7 @@ import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
+import useStores from "hooks/useStores";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -82,14 +83,17 @@ function Icon({ document }) {
   return null;
 }
 
-const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
+const Breadcrumb = ({ document, onlyText }: Props) => {
+  const { collections } = useStores();
+  const { t } = useTranslation();
+
   let collection = collections.get(document.collectionId);
   if (!collection) {
     if (!document.deletedAt) return <div />;
 
     collection = {
       id: document.collectionId,
-      name: "Deleted Collection",
+      name: t("Deleted Collection"),
       color: "currentColor",
     };
   }
@@ -144,7 +148,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
       )}
     </Wrapper>
   );
-});
+};
 
 const Wrapper = styled(Flex)`
   display: none;
@@ -205,4 +209,4 @@ const CollectionName = styled(Link)`
   overflow: hidden;
 `;
 
-export default inject("collections")(Breadcrumb);
+export default observer(Breadcrumb);
