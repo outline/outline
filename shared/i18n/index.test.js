@@ -19,7 +19,7 @@ describe("i18n process.env is unset", () => {
 
   it("translation if changed to de_DE", () => {
     i18n.changeLanguage("de_DE");
-    expect(i18n.t("Saving…")).toBe("Am speichern…");
+    expect(i18n.t("Saving…")).toBe("Speichert…");
   });
 
   it("translation if changed to pt_PT", () => {
@@ -42,7 +42,7 @@ describe("i18n process.env is en_US", () => {
 
   it("translation if changed to de_DE", () => {
     i18n.changeLanguage("de_DE");
-    expect(i18n.t("Saving…")).toBe("Am speichern…");
+    expect(i18n.t("Saving…")).toBe("Speichert…");
   });
 
   it("translation if changed to pt_PT", () => {
@@ -61,7 +61,7 @@ describe("i18n process.env is de_DE", () => {
   });
 
   it("translation of key should match", () =>
-    expect(i18n.t("Saving…")).toBe("Am speichern…"));
+    expect(i18n.t("Saving…")).toBe("Speichert…"));
 
   it("translation if changed to en_US", () => {
     i18n.changeLanguage("en_US");
@@ -93,6 +93,6 @@ describe("i18n process.env is pt_PT", () => {
 
   it("translation if changed to de_DE", () => {
     i18n.changeLanguage("de_DE");
-    expect(i18n.t("Saving…")).toBe("Am speichern…");
+    expect(i18n.t("Saving…")).toBe("Speichert…");
   });
 });
