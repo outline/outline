@@ -3,11 +3,13 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import MembershipsStore from "stores/MembershipsStore";
 import UiStore from "stores/UiStore";
 import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
+import User from "models/User";
 import Invite from "scenes/Invite";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
@@ -24,6 +26,7 @@ type Props = {
   memberships: MembershipsStore,
   users: UsersStore,
   onSubmit: () => void,
+  t: TFunction,
 };
 
 @observer
@@ -50,40 +53,43 @@ class AddPeopleToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = (user) => {
+  handleAddUser = (user: User) => {
+    const { t } = this.props;
     try {
       this.props.memberships.create({
         collectionId: this.props.collection.id,
         userId: user.id,
         permission: "read_write",
       });
-      this.props.ui.showToast(`${user.name} was added to the collection`);
+      this.props.ui.showToast(
+        t("{{ userName }} was added to the collection", { userName: user.name })
+      );
     } catch (err) {
-      this.props.ui.showToast("Could not add user");
+      this.props.ui.showToast(t("Could not add user"));
     }
   };
 
   render() {
-    const { users, collection, auth } = this.props;
+    const { users, collection, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
 
     return (
       <Flex column>
         <HelpText>
-          Need to add someone who’s not yet on the team yet?{" "}
+          {t("Need to add someone who’s not yet on the team yet?")}{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
-            Invite people to {team.name}
+            {t("Invite people to {{ teamName }}", { teamName: team.name })}
           </a>
           .
         </HelpText>
 
         <Input
           type="search"
-          placeholder="Search by name…"
+          placeholder={t("Search by name…")}
           value={this.query}
           onChange={this.handleFilter}
-          label="Search people"
+          label={t("Search people")}
           autoFocus
           labelHidden
           flex
@@ -91,9 +97,9 @@ class AddPeopleToCollection extends React.Component<Props> {
         <PaginatedList
           empty={
             this.query ? (
-              <Empty>No people matching your search</Empty>
+              <Empty>{t("No people matching your search")}</Empty>
             ) : (
-              <Empty>No people left to add</Empty>
+              <Empty>{t("No people left to add")}</Empty>
             )
           }
           items={users.notInCollection(collection.id, this.query)}
@@ -108,7 +114,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           )}
         />
         <Modal
-          title="Invite people"
+          title={t("Invite people")}
           onRequestClose={this.handleInviteModalClose}
           isOpen={this.inviteModalOpen}
         >
@@ -119,9 +125,6 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "auth",
-  "users",
-  "memberships",
-  "ui"
-)(AddPeopleToCollection);
+export default withTranslation()<AddPeopleToCollection>(
+  inject("auth", "users", "memberships", "ui")(AddPeopleToCollection)
+);

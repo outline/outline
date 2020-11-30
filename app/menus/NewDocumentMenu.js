@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -19,6 +20,7 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
+  t: TFunction,
 };
 
 @observer
@@ -29,7 +31,14 @@ class NewDocumentMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
-  handleNewDocument = (collectionId: string, options) => {
+  handleNewDocument = (
+    collectionId: string,
+    options?: {
+      parentDocumentId?: string,
+      template?: boolean,
+      templateId?: string,
+    }
+  ) => {
     this.redirectTo = newDocumentUrl(collectionId, options);
   };
 
@@ -44,7 +53,7 @@ class NewDocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { collections, documents, policies, label, ...rest } = this.props;
+    const { collections, documents, policies, label, t, ...rest } = this.props;
     const singleCollection = collections.orderedData.length === 1;
 
     return (
@@ -52,14 +61,15 @@ class NewDocumentMenu extends React.Component<Props> {
         label={
           label || (
             <Button icon={<PlusIcon />} small>
-              New doc{singleCollection ? "" : "…"}
+              {t("New doc")}
+              {singleCollection ? "" : "…"}
             </Button>
           )
         }
         onOpen={this.onOpen}
         {...rest}
       >
-        <Header>Choose a collection</Header>
+        <Header>{t("Choose a collection")}</Header>
         <DropdownMenuItems
           items={collections.orderedData.map((collection) => ({
             onClick: () => this.handleNewDocument(collection.id),
@@ -77,4 +87,6 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "documents", "policies")(NewDocumentMenu);
+export default withTranslation()<NewDocumentMenu>(
+  inject("collections", "documents", "policies")(NewDocumentMenu)
+);

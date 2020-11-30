@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -27,6 +28,7 @@ type Props = {
   history: RouterHistory,
   onOpen?: () => void,
   onClose?: () => void,
+  t: TFunction,
 };
 
 @observer
@@ -112,6 +114,7 @@ class CollectionMenu extends React.Component<Props> {
       position,
       onOpen,
       onClose,
+      t,
     } = this.props;
     const can = policies.abilities(collection.id);
 
@@ -128,7 +131,7 @@ class CollectionMenu extends React.Component<Props> {
         </VisuallyHidden>
 
         <Modal
-          title="Collection permissions"
+          title={t("Collection permissions")}
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.showCollectionMembers}
         >
@@ -143,12 +146,12 @@ class CollectionMenu extends React.Component<Props> {
           <DropdownMenuItems
             items={[
               {
-                title: "New document",
+                title: t("New document"),
                 visible: !!(collection && can.update),
                 onClick: this.onNewDocument,
               },
               {
-                title: "Import document",
+                title: t("Import document"),
                 visible: !!(collection && can.update),
                 onClick: this.onImportDocument,
               },
@@ -156,22 +159,22 @@ class CollectionMenu extends React.Component<Props> {
                 type: "separator",
               },
               {
-                title: "Edit…",
+                title: t("Edit…"),
                 visible: !!(collection && can.update),
                 onClick: this.handleEditCollectionOpen,
               },
               {
-                title: "Permissions…",
+                title: t("Permissions…"),
                 visible: !!(collection && can.update),
                 onClick: this.handleMembersModalOpen,
               },
               {
-                title: "Export…",
+                title: t("Export…"),
                 visible: !!(collection && can.export),
                 onClick: this.handleExportCollectionOpen,
               },
               {
-                title: "Delete…",
+                title: t("Delete…"),
                 visible: !!(collection && can.delete),
                 onClick: this.handleDeleteCollectionOpen,
               },
@@ -179,7 +182,7 @@ class CollectionMenu extends React.Component<Props> {
           />
         </DropdownMenu>
         <Modal
-          title="Edit collection"
+          title={t("Edit collection")}
           isOpen={this.showCollectionEdit}
           onRequestClose={this.handleEditCollectionClose}
         >
@@ -189,7 +192,7 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Delete collection"
+          title={t("Delete collection")}
           isOpen={this.showCollectionDelete}
           onRequestClose={this.handleDeleteCollectionClose}
         >
@@ -199,7 +202,7 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Export collection"
+          title={t("Export collection")}
           isOpen={this.showCollectionExport}
           onRequestClose={this.handleExportCollectionClose}
         >
@@ -213,8 +216,6 @@ class CollectionMenu extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "ui",
-  "documents",
-  "policies"
-)(withRouter(CollectionMenu));
+export default withTranslation()<CollectionMenu>(
+  inject("ui", "documents", "policies")(withRouter(CollectionMenu))
+);

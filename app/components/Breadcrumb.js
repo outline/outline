@@ -1,5 +1,5 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import {
   ArchiveIcon,
   EditIcon,
@@ -10,6 +10,7 @@ import {
   TrashIcon,
 } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -19,6 +20,7 @@ import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
+import useStores from "hooks/useStores";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -28,13 +30,15 @@ type Props = {
 };
 
 function Icon({ document }) {
+  const { t } = useTranslation();
+
   if (document.isDeleted) {
     return (
       <>
         <CollectionName to="/trash">
           <TrashIcon color="currentColor" />
           &nbsp;
-          <span>Trash</span>
+          <span>{t("Trash")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -46,7 +50,7 @@ function Icon({ document }) {
         <CollectionName to="/archive">
           <ArchiveIcon color="currentColor" />
           &nbsp;
-          <span>Archive</span>
+          <span>{t("Archive")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -58,7 +62,7 @@ function Icon({ document }) {
         <CollectionName to="/drafts">
           <EditIcon color="currentColor" />
           &nbsp;
-          <span>Drafts</span>
+          <span>{t("Drafts")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -70,7 +74,7 @@ function Icon({ document }) {
         <CollectionName to="/templates">
           <ShapesIcon color="currentColor" />
           &nbsp;
-          <span>Templates</span>
+          <span>{t("Templates")}</span>
         </CollectionName>
         <Slash />
       </>
@@ -79,14 +83,17 @@ function Icon({ document }) {
   return null;
 }
 
-const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
+const Breadcrumb = ({ document, onlyText }: Props) => {
+  const { collections } = useStores();
+  const { t } = useTranslation();
+
   let collection = collections.get(document.collectionId);
   if (!collection) {
     if (!document.deletedAt) return <div />;
 
     collection = {
       id: document.collectionId,
-      name: "Deleted Collection",
+      name: t("Deleted Collection"),
       color: "currentColor",
     };
   }
@@ -141,7 +148,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
       )}
     </Wrapper>
   );
-});
+};
 
 const Wrapper = styled(Flex)`
   display: none;
@@ -202,4 +209,4 @@ const CollectionName = styled(Link)`
   overflow: hidden;
 `;
 
-export default inject("collections")(Breadcrumb);
+export default observer(Breadcrumb);

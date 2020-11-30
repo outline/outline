@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import Collection from "models/Collection";
@@ -23,6 +24,7 @@ type Props = {|
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
+  t: TFunction,
 |};
 
 @observer
@@ -84,6 +86,7 @@ class DocumentLink extends React.Component<Props> {
       prefetchDocument,
       depth,
       canUpdate,
+      t,
     } = this.props;
 
     const showChildren = !!(
@@ -96,7 +99,7 @@ class DocumentLink extends React.Component<Props> {
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
-    const title = node.title || "Untitled";
+    const title = node.title || t("Untitled");
 
     return (
       <Flex
@@ -147,6 +150,7 @@ class DocumentLink extends React.Component<Props> {
                     prefetchDocument={prefetchDocument}
                     depth={depth + 1}
                     canUpdate={canUpdate}
+                    t={t}
                   />
                 ))}
               </DocumentChildren>
@@ -160,4 +164,4 @@ class DocumentLink extends React.Component<Props> {
 
 const DocumentChildren = styled(Flex)``;
 
-export default DocumentLink;
+export default withTranslation()<DocumentLink>(DocumentLink);
