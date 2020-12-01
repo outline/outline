@@ -6,48 +6,19 @@ import addHours from "date-fns/add_hours";
 import format from "date-fns/format";
 import fetch from "isomorphic-fetch";
 
-const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
-var AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-var AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 
-AWS.CredentialProviderChain.defaultProviders = [
-  function () {
-    return new AWS.EnvironmentCredentials("AWS");
-  },
-  function () {
-    return new AWS.ECSCredentials({
-      httpOptions: { timeout: 5000 },
-      maxRetries: 3,
-      retryDelayOptions: { base: 200 },
-    });
-  },
-  function () {
-    return new AWS.EC2MetadataCredentials();
-  },
-];
-
-var chain = new AWS.CredentialProviderChain();
-
-chain.resolve(
-  (err, cred) => {
-    AWS.config.credentials = cred;
-
-    AWS_ACCESS_KEY_ID = cred.accessKeyId;
-    AWS_SECRET_ACCESS_KEY = cred.secretAccessKey;
-  },
-  (err) => {
-    console.log("Error while obtaining AWS credentials: " + err);
-  }
-);
-
-AWS.config.update({ region: AWS_REGION });
+AWS.config.getCredentials(function (err) {
+  if (err) console.log(err.stack);
+  // credentials not loaded
+  else console.log("Access Key:", AWS.config.credentials.accessKeyId);
+});
 
 const s3 = new AWS.S3({
   s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
-  accessKeyId: AWS_ACCESS_KEY_ID,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  //accessKeyId: AWS.config.credentials.accessKeyId,
+  //secretAccessKey: AWS.config.credentials.secretAccessKey,
   endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
@@ -61,11 +32,11 @@ const hmac = (key: string, message: string, encoding: any) => {
 
 export const makeCredential = () => {
   const credential =
-    AWS_ACCESS_KEY_ID +
+    AWS.config.credentials.accessKeyId +
     "/" +
     format(new Date(), "YYYYMMDD") +
     "/" +
-    AWS_REGION +
+    AWS.config.region +
     "/s3/aws4_request";
   return credential;
 };
@@ -96,10 +67,10 @@ export const makePolicy = (
 
 export const getSignature = (policy: any) => {
   const kDate = hmac(
-    "AWS4" + AWS_SECRET_ACCESS_KEY,
+    "AWS4" + AWS.config.credentials.secretAccessKey,
     format(new Date(), "YYYYMMDD")
   );
-  const kRegion = hmac(kDate, AWS_REGION);
+  const kRegion = hmac(kDate, AWS.config.region);
   const kService = hmac(kRegion, "s3");
   const kCredentials = hmac(kService, "aws4_request");
 
