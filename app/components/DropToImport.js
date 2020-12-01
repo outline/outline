@@ -91,6 +91,7 @@ class DropToImport extends React.Component<Props> {
       match,
       history,
       staticContext,
+      ui,
       ...rest
     } = this.props;
 
