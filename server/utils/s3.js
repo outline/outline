@@ -17,8 +17,6 @@ AWS.config.getCredentials(function (err) {
 
 const s3 = new AWS.S3({
   s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
-  //accessKeyId: AWS.config.credentials.accessKeyId,
-  //secretAccessKey: AWS.config.credentials.secretAccessKey,
   endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
