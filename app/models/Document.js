@@ -206,6 +206,11 @@ export default class Document extends BaseModel {
 
   @action
   view = () => {
+    // we don't record views for documents in the trash
+    if (this.isDeleted) {
+      return;
+    }
+
     return this.store.rootStore.views.create({ documentId: this.id });
   };
 
