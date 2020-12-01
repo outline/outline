@@ -9,28 +9,45 @@ import fetch from "isomorphic-fetch";
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+var AWS_ACCESS_KEY_ID = undefined;
+var AWS_SECRET_ACCESS_KEY = undefined;
 
-if (
-  process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI ||
-  process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI
-) {
-  AWS.config.credentials = new AWS.ECSCredentials({
-    httpOptions: { timeout: 5000 },
-    maxRetries: 3,
-    retryDelayOptions: { base: 200 },
-  });
-}
+AWS.CredentialProviderChain.defaultProviders = [
+  function () {
+    return new AWS.EnvironmentCredentials("AWS");
+  },
+  function () {
+    return new AWS.ECSCredentials({
+      httpOptions: { timeout: 5000 },
+      maxRetries: 3,
+      retryDelayOptions: { base: 200 },
+    });
+  },
+  function () {
+    return new AWS.EC2MetadataCredentials();
+  },
+];
 
-AWS.config.credentials.get(function () {
-  var accessKeyId = AWS.config.credentials.accessKeyId || AWS_ACCESS_KEY_ID;
-  var secretAccessKey =
-    AWS.config.credentials.secretAccessKey || AWS_SECRET_ACCESS_KEY;
-});
+var chain = new AWS.CredentialProviderChain();
+
+chain.resolve(
+  (err, cred) => {
+    AWS.config.credentials = cred;
+
+    AWS_ACCESS_KEY_ID = cred.accessKeyId;
+    AWS_SECRET_ACCESS_KEY = cred.secretAccessKey;
+  },
+  (err) => {
+    console.log("Error while obtaining AWS credentials: " + err);
+  }
+);
+
+AWS.config.update({ region: AWS_REGION });
 
 const s3 = new AWS.S3({
   s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
+  accessKeyId: AWS_ACCESS_KEY_ID,
+  secretAccessKey: AWS_SECRET_ACCESS_KEY,
   endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
@@ -44,7 +61,7 @@ const hmac = (key: string, message: string, encoding: any) => {
 
 export const makeCredential = () => {
   const credential =
-    AWS.config.credentials.accessKeyId +
+    AWS_ACCESS_KEY_ID +
     "/" +
     format(new Date(), "YYYYMMDD") +
     "/" +
