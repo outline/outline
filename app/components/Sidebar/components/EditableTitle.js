@@ -82,6 +82,7 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
 
 const Input = styled.input`
   margin-left: -4px;
+  color: ${(props) => props.theme.sidebarText};
   background: ${(props) => props.theme.background};
   width: calc(100% - 10px);
   border-radius: 3px;
