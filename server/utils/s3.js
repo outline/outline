@@ -9,8 +9,8 @@ import fetch from "isomorphic-fetch";
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
-var AWS_ACCESS_KEY_ID = undefined;
-var AWS_SECRET_ACCESS_KEY = undefined;
+var AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+var AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 
 AWS.CredentialProviderChain.defaultProviders = [
   function () {
