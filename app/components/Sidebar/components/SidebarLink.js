@@ -47,6 +47,7 @@ function SidebarLink({
 
   const activeStyle = {
     color: theme.text,
+    background: theme.sidebarItemBackground,
     fontWeight: 600,
     ...style,
   };
