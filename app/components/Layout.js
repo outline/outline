@@ -15,7 +15,6 @@ import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
 import DocumentHistory from "components/DocumentHistory";
-import { GlobalStyles } from "components/DropToImport";
 import Flex from "components/Flex";
 
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
@@ -138,7 +137,6 @@ class Layout extends React.Component<Props> {
         >
           <KeyboardShortcuts />
         </Modal>
-        <GlobalStyles />
       </Container>
     );
   }
