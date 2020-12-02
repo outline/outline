@@ -53,23 +53,21 @@ function SidebarLink({
   };
 
   return (
-    <>
-      <StyledNavLink
-        activeStyle={activeStyle}
-        style={active ? activeStyle : style}
-        onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        exact={exact !== false}
-        to={to}
-        as={to ? undefined : href ? "a" : "div"}
-        href={href}
-        ref={innerRef}
-      >
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label>{label}</Label>
-        {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
-      </StyledNavLink>
-    </>
+    <StyledNavLink
+      activeStyle={activeStyle}
+      style={active ? activeStyle : style}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      exact={exact !== false}
+      to={to}
+      as={to ? undefined : href ? "a" : "div"}
+      href={href}
+      ref={innerRef}
+    >
+      {icon && <IconWrapper>{icon}</IconWrapper>}
+      <Label>{label}</Label>
+      {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
+    </StyledNavLink>
   );
 }
 
