@@ -100,7 +100,8 @@ class DropToImport extends React.Component<Props> {
 
 const DropzoneContainer = styled("div")`
   border-radius: 4px;
-  background: ${({ isDragActive, theme }) => isDragActive && theme.slateDark};
+  background: ${({ isDragActive, theme }) =>
+    isDragActive && theme.slateDark} !important;
   a {
     color: ${({ isDragActive, theme }) =>
       isDragActive && theme.white} !important;
