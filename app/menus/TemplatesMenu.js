@@ -2,6 +2,7 @@
 import { observer, inject } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
@@ -11,12 +12,13 @@ import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 type Props = {
   document: Document,
   documents: DocumentsStore,
+  t: TFunction,
 };
 
 @observer
 class TemplatesMenu extends React.Component<Props> {
   render() {
-    const { documents, document, ...rest } = this.props;
+    const { documents, document, t, ...rest } = this.props;
     const templates = documents.templatesInCollection(document.collectionId);
 
     if (!templates.length) {
@@ -28,7 +30,7 @@ class TemplatesMenu extends React.Component<Props> {
         position="left"
         label={
           <Button disclosure neutral>
-            Templates
+            {t("Templates")}
           </Button>
         }
         {...rest}
@@ -42,7 +44,9 @@ class TemplatesMenu extends React.Component<Props> {
             <div>
               <strong>{template.titleWithDefault}</strong>
               <br />
-              <Author>By {template.createdBy.name}</Author>
+              <Author>
+                {t("By {{ author }}", { author: template.createdBy.name })}
+              </Author>
             </div>
           </DropdownMenuItem>
         ))}
@@ -55,4 +59,6 @@ const Author = styled.div`
   font-size: 13px;
 `;
 
-export default inject("documents")(TemplatesMenu);
+export default withTranslation()<TemplatesMenu>(
+  inject("documents")(TemplatesMenu)
+);

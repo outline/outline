@@ -2,6 +2,7 @@
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -33,6 +34,7 @@ function DocumentLink({
   canUpdate,
 }: Props) {
   const { documents } = useStores();
+  const { t } = useTranslation();
 
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments = !!node.children.length;
@@ -118,7 +120,7 @@ function DocumentLink({
                 />
               )}
               <EditableTitle
-                title={node.title || "Untitled"}
+                title={node.title || t("Untitled")}
                 onSubmit={handleTitleChange}
                 canUpdate={canUpdate}
               />

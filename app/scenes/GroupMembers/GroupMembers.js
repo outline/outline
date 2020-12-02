@@ -3,12 +3,14 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import UsersStore from "stores/UsersStore";
 import Group from "models/Group";
+import User from "models/User";
 import Button from "components/Button";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
@@ -26,6 +28,7 @@ type Props = {
   users: UsersStore,
   policies: PoliciesStore,
   groupMemberships: GroupMembershipsStore,
+  t: TFunction,
 };
 
 @observer
@@ -40,20 +43,24 @@ class GroupMembers extends React.Component<Props> {
     this.addModalOpen = false;
   };
 
-  handleRemoveUser = async (user) => {
+  handleRemoveUser = async (user: User) => {
+    const { t } = this.props;
+
     try {
       await this.props.groupMemberships.delete({
         groupId: this.props.group.id,
         userId: user.id,
       });
-      this.props.ui.showToast(`${user.name} was removed from the group`);
+      this.props.ui.showToast(
+        t(`{{userName}} was removed from the group`, { userName: user.name })
+      );
     } catch (err) {
-      this.props.ui.showToast("Could not remove user");
+      this.props.ui.showToast(t("Could not remove user"));
     }
   };
 
   render() {
-    const { group, users, groupMemberships, policies, auth } = this.props;
+    const { group, users, groupMemberships, policies, t, auth } = this.props;
     const { user } = auth;
     if (!user) return null;
 
@@ -75,7 +82,7 @@ class GroupMembers extends React.Component<Props> {
                 icon={<PlusIcon />}
                 neutral
               >
-                Add people…
+                {t("Add people…")}
               </Button>
             </span>
           </>
@@ -90,7 +97,7 @@ class GroupMembers extends React.Component<Props> {
           items={users.inGroup(group.id)}
           fetch={groupMemberships.fetchPage}
           options={{ id: group.id }}
-          empty={<Empty>This group has no members.</Empty>}
+          empty={<Empty>{t("This group has no members.")}</Empty>}
           renderItem={(item) => (
             <GroupMemberListItem
               key={item.id}
@@ -119,10 +126,6 @@ class GroupMembers extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "auth",
-  "users",
-  "policies",
-  "groupMemberships",
-  "ui"
-)(GroupMembers);
+export default withTranslation()<GroupMembers>(
+  inject("auth", "users", "policies", "groupMemberships", "ui")(GroupMembers)
+);

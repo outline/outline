@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
@@ -20,6 +21,7 @@ type Props = {
   onMembers: () => void,
   onOpen?: () => void,
   onClose?: () => void,
+  t: TFunction,
 };
 
 @observer
@@ -46,13 +48,13 @@ class GroupMenu extends React.Component<Props> {
   };
 
   render() {
-    const { policies, group, onOpen, onClose } = this.props;
+    const { policies, group, onOpen, onClose, t } = this.props;
     const can = policies.abilities(group.id);
 
     return (
       <>
         <Modal
-          title="Edit group"
+          title={t("Edit group")}
           onRequestClose={this.handleEditModalClose}
           isOpen={this.editModalOpen}
         >
@@ -63,7 +65,7 @@ class GroupMenu extends React.Component<Props> {
         </Modal>
 
         <Modal
-          title="Delete group"
+          title={t("Delete group")}
           onRequestClose={this.handleDeleteModalClose}
           isOpen={this.deleteModalOpen}
         >
@@ -76,7 +78,7 @@ class GroupMenu extends React.Component<Props> {
           <DropdownMenuItems
             items={[
               {
-                title: "Members…",
+                title: t("Members…"),
                 onClick: this.props.onMembers,
                 visible: !!(group && can.read),
               },
@@ -84,12 +86,12 @@ class GroupMenu extends React.Component<Props> {
                 type: "separator",
               },
               {
-                title: "Edit…",
+                title: t("Edit…"),
                 onClick: this.onEdit,
                 visible: !!(group && can.update),
               },
               {
-                title: "Delete…",
+                title: t("Delete…"),
                 onClick: this.onDelete,
                 visible: !!(group && can.delete),
               },
@@ -101,4 +103,6 @@ class GroupMenu extends React.Component<Props> {
   }
 }
 
-export default inject("policies")(withRouter(GroupMenu));
+export default withTranslation()<GroupMenu>(
+  inject("policies")(withRouter(GroupMenu))
+);

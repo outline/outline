@@ -6,6 +6,7 @@ import * as React from "react";
 import { render } from "react-dom";
 import { BrowserRouter as Router } from "react-router-dom";
 
+import { initI18n } from "shared/i18n";
 import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
 import ScrollToTop from "components/ScrollToTop";
@@ -13,6 +14,8 @@ import Theme from "components/Theme";
 import Toasts from "components/Toasts";
 import Routes from "./routes";
 import env from "env";
+
+initI18n();
 
 const element = document.getElementById("root");
 

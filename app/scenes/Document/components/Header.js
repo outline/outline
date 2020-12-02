@@ -11,6 +11,7 @@ import {
 } from "outline-icons";
 import { transparentize, darken } from "polished";
 import * as React from "react";
+import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -55,6 +56,7 @@ type Props = {
     publish?: boolean,
     autosave?: boolean,
   }) => void,
+  t: TFunction,
 };
 
 @observer
@@ -131,6 +133,7 @@ class Header extends React.Component<Props> {
       publishingIsDisabled,
       ui,
       auth,
+      t,
     } = this.props;
 
     const share = shares.getByDocumentId(document.id);
@@ -153,7 +156,7 @@ class Header extends React.Component<Props> {
         <Modal
           isOpen={this.showShareModal}
           onRequestClose={this.handleCloseShareModal}
-          title="Share document"
+          title={t("Share document")}
         >
           <DocumentShare
             document={document}
@@ -166,7 +169,9 @@ class Header extends React.Component<Props> {
             <>
               <Slash />
               <Tooltip
-                tooltip={ui.tocVisible ? "Hide contents" : "Show contents"}
+                tooltip={
+                  ui.tocVisible ? t("Hide contents") : t("Show contents")
+                }
                 shortcut={`ctrl+${meta}+h`}
                 delay={250}
                 placement="bottom"
@@ -190,14 +195,15 @@ class Header extends React.Component<Props> {
         {this.isScrolled && (
           <Title onClick={this.handleClickTitle}>
             <Fade>
-              {document.title} {document.isArchived && <Badge>Archived</Badge>}
+              {document.title}{" "}
+              {document.isArchived && <Badge>{t("Archived")}</Badge>}
             </Fade>
           </Title>
         )}
         <Wrapper align="center" justify="flex-end">
           {isSaving && !isPublishing && (
             <Action>
-              <Status>Saving…</Status>
+              <Status>{t("Saving…")}</Status>
             </Action>
           )}
           &nbsp;
@@ -217,10 +223,10 @@ class Header extends React.Component<Props> {
               <Tooltip
                 tooltip={
                   isPubliclyShared ? (
-                    <>
+                    <Trans>
                       Anyone with the link <br />
                       can view this document
-                    </>
+                    </Trans>
                   ) : (
                     ""
                   )
@@ -234,7 +240,7 @@ class Header extends React.Component<Props> {
                   neutral
                   small
                 >
-                  Share
+                  {t("Share")}
                 </Button>
               </Tooltip>
             </Action>
@@ -243,7 +249,7 @@ class Header extends React.Component<Props> {
             <>
               <Action>
                 <Tooltip
-                  tooltip="Save"
+                  tooltip={t("Save")}
                   shortcut={`${meta}+enter`}
                   delay={500}
                   placement="bottom"
@@ -255,7 +261,7 @@ class Header extends React.Component<Props> {
                     neutral={isDraft}
                     small
                   >
-                    {isDraft ? "Save Draft" : "Done Editing"}
+                    {isDraft ? t("Save Draft") : t("Done Editing")}
                   </Button>
                 </Tooltip>
               </Action>
@@ -264,7 +270,7 @@ class Header extends React.Component<Props> {
           {canEdit && (
             <Action>
               <Tooltip
-                tooltip={`Edit ${document.noun}`}
+                tooltip={t("Edit {{noun}}", { noun: document.noun })}
                 shortcut="e"
                 delay={500}
                 placement="bottom"
@@ -275,7 +281,7 @@ class Header extends React.Component<Props> {
                   neutral
                   small
                 >
-                  Edit
+                  {t("Edit")}
                 </Button>
               </Tooltip>
             </Action>
@@ -286,13 +292,13 @@ class Header extends React.Component<Props> {
                 document={document}
                 label={
                   <Tooltip
-                    tooltip="New document"
+                    tooltip={t("New document")}
                     shortcut="n"
                     delay={500}
                     placement="bottom"
                   >
                     <Button icon={<PlusIcon />} neutral>
-                      New doc
+                      {t("New doc")}
                     </Button>
                   </Tooltip>
                 }
@@ -307,25 +313,25 @@ class Header extends React.Component<Props> {
                 primary
                 small
               >
-                New from template
+                {t("New from template")}
               </Button>
             </Action>
           )}
           {can.update && isDraft && !isRevision && (
             <Action>
               <Tooltip
-                tooltip="Publish"
+                tooltip={t("Publish")}
                 shortcut={`${meta}+shift+p`}
                 delay={500}
                 placement="bottom"
               >
                 <Button
                   onClick={this.handlePublish}
-                  title="Publish document"
+                  title={t("Publish document")}
                   disabled={publishingIsDisabled}
                   small
                 >
-                  {isPublishing ? "Publishing…" : "Publish"}
+                  {isPublishing ? t("Publishing…") : t("Publish")}
                 </Button>
               </Tooltip>
             </Action>
@@ -425,4 +431,6 @@ const Title = styled.div`
   `};
 `;
 
-export default inject("auth", "ui", "policies", "shares")(Header);
+export default withTranslation()<Header>(
+  inject("auth", "ui", "policies", "shares")(Header)
+);

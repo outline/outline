@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { MoreIcon } from "outline-icons";
 import { rgba } from "polished";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { PortalWithState } from "react-portal";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
@@ -27,6 +28,7 @@ type Props = {|
   hover?: boolean,
   style?: Object,
   position?: "left" | "right" | "center",
+  t: TFunction,
 |};
 
 @observer
@@ -150,7 +152,7 @@ class DropdownMenu extends React.Component<Props> {
   };
 
   render() {
-    const { className, hover, label, children } = this.props;
+    const { className, hover, label, children, t } = this.props;
 
     return (
       <div className={className}>
@@ -177,7 +179,7 @@ class DropdownMenu extends React.Component<Props> {
                 {label || (
                   <NudeButton
                     id={`${this.id}button`}
-                    aria-label="More options"
+                    aria-label={t("More options")}
                     aria-haspopup="true"
                     aria-expanded={isOpen ? "true" : "false"}
                     aria-controls={this.id}
@@ -284,4 +286,4 @@ export const Header = styled.h3`
   margin: 1em 12px 0.5em;
 `;
 
-export default DropdownMenu;
+export default withTranslation()<DropdownMenu>(DropdownMenu);

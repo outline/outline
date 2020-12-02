@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -7,153 +8,150 @@ import Key from "components/Key";
 import { meta } from "utils/keyboard";
 
 function KeyboardShortcuts() {
+  const { t } = useTranslation();
+
   return (
     <Flex column>
       <HelpText>
-        Outline is designed to be fast and easy to use. All of your usual
-        keyboard shortcuts work here, and there’s Markdown too.
+        {t(
+          "Outline is designed to be fast and easy to use. All of your usual keyboard shortcuts work here, and there’s Markdown too."
+        )}
       </HelpText>
 
-      <h2>Navigation</h2>
+      <h2>{t("Navigation")}</h2>
       <List>
         <Keys>
           <Key>n</Key>
         </Keys>
-        <Label>New document in current collection</Label>
-
+        <Label>{t("New document in current collection")}</Label>
         <Keys>
           <Key>e</Key>
         </Keys>
-        <Label>Edit current document</Label>
-
+        <Label>{t("Edit current document")}</Label>
         <Keys>
           <Key>m</Key>
         </Keys>
-        <Label>Move current document</Label>
-
+        <Label>{t("Move current document")}</Label>
         <Keys>
           <Key>/</Key> or <Key>t</Key>
         </Keys>
-        <Label>Jump to search</Label>
-
+        <Label>{t("Jump to search")}</Label>
         <Keys>
           <Key>d</Key>
         </Keys>
-        <Label>Jump to dashboard</Label>
-
+        <Label>{t("Jump to dashboard")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
         </Keys>
-        <Label>Table of contents</Label>
-
+        <Label>{t("Table of contents")}</Label>
         <Keys>
           <Key>?</Key>
         </Keys>
-        <Label>Open this guide</Label>
+        <Label>{t("Open this guide")}</Label>
       </List>
 
-      <h2>Editor</h2>
+      <h2>{t("Editor")}</h2>
       <List>
         <Keys>
           <Key>{meta}</Key> + <Key>Enter</Key>
         </Keys>
-        <Label>Save and exit document edit mode</Label>
+        <Label>{t("Save and exit document edit mode")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>Shift</Key> + <Key>p</Key>
         </Keys>
-        <Label>Publish and exit document edit mode</Label>
+        <Label>{t("Publish and exit document edit mode")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>s</Key>
         </Keys>
-        <Label>Save document and continue editing</Label>
+        <Label>{t("Save document and continue editing")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>Esc</Key>
         </Keys>
-        <Label>Cancel editing</Label>
+        <Label>{t("Cancel editing")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>b</Key>
         </Keys>
-        <Label>Bold</Label>
+        <Label>{t("Bold")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>i</Key>
         </Keys>
-        <Label>Italic</Label>
+        <Label>{t("Italic")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>u</Key>
         </Keys>
-        <Label>Underline</Label>
+        <Label>{t("Underline")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>d</Key>
         </Keys>
-        <Label>Strikethrough</Label>
+        <Label>{t("Strikethrough")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>k</Key>
         </Keys>
-        <Label>Link</Label>
+        <Label>{t("Link")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>z</Key>
         </Keys>
-        <Label>Undo</Label>
+        <Label>{t("Undo")}</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>Shift</Key> + <Key>z</Key>
         </Keys>
-        <Label>Redo</Label>
+        <Label>{t("Redo")}</Label>
       </List>
 
-      <h2>Markdown</h2>
+      <h2>{t("Markdown")}</h2>
       <List>
         <Keys>
           <Key>#</Key> <Key>Space</Key>
         </Keys>
-        <Label>Large header</Label>
+        <Label>{t("Large header")}</Label>
         <Keys>
           <Key>##</Key> <Key>Space</Key>
         </Keys>
-        <Label>Medium header</Label>
+        <Label>{t("Medium header")}</Label>
         <Keys>
           <Key>###</Key> <Key>Space</Key>
         </Keys>
-        <Label>Small header</Label>
+        <Label>{t("Small header")}</Label>
 
         <Keys>
           <Key>1.</Key> <Key>Space</Key>
         </Keys>
-        <Label>Numbered list</Label>
+        <Label>{t("Numbered list")}</Label>
         <Keys>
           <Key>-</Key> <Key>Space</Key>
         </Keys>
-        <Label>Bulleted list</Label>
+        <Label>{t("Bulleted list")}</Label>
         <Keys>
           <Key>[ ]</Key> <Key>Space</Key>
         </Keys>
-        <Label>Todo list</Label>
+        <Label>{t("Todo list")}</Label>
         <Keys>
           <Key>&gt;</Key> <Key>Space</Key>
         </Keys>
-        <Label>Blockquote</Label>
+        <Label>{t("Blockquote")}</Label>
         <Keys>
           <Key>---</Key>
         </Keys>
-        <Label>Horizontal divider</Label>
+        <Label>{t("Horizontal divider")}</Label>
         <Keys>
           <Key>{"```"}</Key>
         </Keys>
-        <Label>Code block</Label>
+        <Label>{t("Code block")}</Label>
         <Keys>
           <Key>{":::"}</Key>
         </Keys>
-        <Label>Info notice</Label>
+        <Label>{t("Info notice")}</Label>
 
         <Keys>_italic_</Keys>
-        <Label>Italic</Label>
+        <Label>{t("Italic")}</Label>
         <Keys>**bold**</Keys>
-        <Label>Bold</Label>
+        <Label>{t("Bold")}</Label>
         <Keys>~~strikethrough~~</Keys>
-        <Label>Strikethrough</Label>
+        <Label>{t("Strikethrough")}</Label>
         <Keys>{"`code`"}</Keys>
-        <Label>Inline code</Label>
+        <Label>{t("Inline code")}</Label>
         <Keys>==highlight==</Keys>
-        <Label>highlight</Label>
+        <Label>{t("Highlight")}</Label>
       </List>
     </Flex>
   );

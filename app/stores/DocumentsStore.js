@@ -211,6 +211,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const { data } = res;
     runInAction("DocumentsStore#fetchBacklinks", () => {
       data.forEach(this.add);
+      this.addPolicies(res.policies);
       this.backlinks.set(
         documentId,
         data.map((doc) => doc.id)
@@ -236,6 +237,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const { data } = res;
     runInAction("DocumentsStore#fetchChildDocuments", () => {
       data.forEach(this.add);
+      this.addPolicies(res.policies);
     });
   };
 

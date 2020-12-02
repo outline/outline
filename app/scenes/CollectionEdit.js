@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
@@ -16,6 +17,7 @@ type Props = {
   collection: Collection,
   ui: UiStore,
   onSubmit: () => void,
+  t: TFunction,
 };
 
 @observer
@@ -30,6 +32,7 @@ class CollectionEdit extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isSaving = true;
+    const { t } = this.props;
 
     try {
       await this.props.collection.save({
@@ -40,7 +43,7 @@ class CollectionEdit extends React.Component<Props> {
         private: this.private,
       });
       this.props.onSubmit();
-      this.props.ui.showToast("The collection was updated");
+      this.props.ui.showToast(t("The collection was updated"));
     } catch (err) {
       this.props.ui.showToast(err.message);
     } finally {
@@ -48,7 +51,7 @@ class CollectionEdit extends React.Component<Props> {
     }
   };
 
-  handleDescriptionChange = (getValue) => {
+  handleDescriptionChange = (getValue: () => string) => {
     this.description = getValue();
   };
 
@@ -66,17 +69,20 @@ class CollectionEdit extends React.Component<Props> {
   };
 
   render() {
+    const { t } = this.props;
+
     return (
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            You can edit the name and other details at any time, however doing
-            so often might confuse your team mates.
+            {t(
+              "You can edit the name and other details at any time, however doing so often might confuse your team mates."
+            )}
           </HelpText>
           <Flex>
             <Input
               type="text"
-              label="Name"
+              label={t("Name")}
               onChange={this.handleNameChange}
               value={this.name}
               required
@@ -92,27 +98,29 @@ class CollectionEdit extends React.Component<Props> {
           </Flex>
           <InputRich
             id={this.props.collection.id}
-            label="Description"
+            label={t("Description")}
             onChange={this.handleDescriptionChange}
             defaultValue={this.description || ""}
-            placeholder="More details about this collection…"
+            placeholder={t("More details about this collection…")}
             minHeight={68}
             maxHeight={200}
           />
           <Switch
             id="private"
-            label="Private collection"
+            label={t("Private collection")}
             onChange={this.handlePrivateChange}
             checked={this.private}
           />
           <HelpText>
-            A private collection will only be visible to invited team members.
+            {t(
+              "A private collection will only be visible to invited team members."
+            )}
           </HelpText>
           <Button
             type="submit"
             disabled={this.isSaving || !this.props.collection.name}
           >
-            {this.isSaving ? "Saving…" : "Save"}
+            {this.isSaving ? t("Saving…") : t("Save")}
           </Button>
         </form>
       </Flex>
@@ -120,4 +128,4 @@ class CollectionEdit extends React.Component<Props> {
   }
 }
 
-export default inject("ui")(CollectionEdit);
+export default withTranslation()<CollectionEdit>(inject("ui")(CollectionEdit));

@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import SharesStore from "stores/SharesStore";
@@ -16,6 +17,7 @@ type Props = {
   shares: SharesStore,
   ui: UiStore,
   share: Share,
+  t: TFunction,
 };
 
 @observer
@@ -36,36 +38,38 @@ class ShareMenu extends React.Component<Props> {
 
     try {
       await this.props.shares.revoke(this.props.share);
-      this.props.ui.showToast("Share link revoked");
+      const { t } = this.props;
+      this.props.ui.showToast(t("Share link revoked"));
     } catch (err) {
       this.props.ui.showToast(err.message);
     }
   };
 
   handleCopy = () => {
-    this.props.ui.showToast("Share link copied");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Share link copied"));
   };
 
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { share, onOpen, onClose } = this.props;
+    const { share, onOpen, onClose, t } = this.props;
 
     return (
       <DropdownMenu onOpen={onOpen} onClose={onClose}>
         <CopyToClipboard text={share.url} onCopy={this.handleCopy}>
-          <DropdownMenuItem>Copy link</DropdownMenuItem>
+          <DropdownMenuItem>{t("Copy link")}</DropdownMenuItem>
         </CopyToClipboard>
         <DropdownMenuItem onClick={this.handleGoToDocument}>
-          Go to document
+          {t("Go to document")}
         </DropdownMenuItem>
         <hr />
         <DropdownMenuItem onClick={this.handleRevoke}>
-          Revoke link
+          {t("Revoke link")}
         </DropdownMenuItem>
       </DropdownMenu>
     );
   }
 }
 
-export default inject("shares", "ui")(ShareMenu);
+export default withTranslation()<ShareMenu>(inject("shares", "ui")(ShareMenu));

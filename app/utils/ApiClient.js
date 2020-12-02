@@ -110,6 +110,8 @@ class ApiClient {
 
       download(blob, trim(fileName, '"'));
       return;
+    } else if (success && response.status === 204) {
+      return;
     } else if (success) {
       return response.json();
     }

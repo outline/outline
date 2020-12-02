@@ -2,6 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Redirect } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -14,6 +15,7 @@ type Props = {
   label?: React.Node,
   document: Document,
   collections: CollectionsStore,
+  t: TFunction,
 };
 
 @observer
@@ -39,7 +41,7 @@ class NewChildDocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { label, document, collections } = this.props;
+    const { label, document, collections, t } = this.props;
     const collection = collections.get(document.collectionId);
 
     return (
@@ -49,14 +51,16 @@ class NewChildDocumentMenu extends React.Component<Props> {
             {
               title: (
                 <span>
-                  New document in{" "}
-                  <strong>{collection ? collection.name : "collection"}</strong>
+                  {t("New document in")}{" "}
+                  <strong>
+                    {collection ? collection.name : t("collection")}
+                  </strong>
                 </span>
               ),
               onClick: this.handleNewDocument,
             },
             {
-              title: "New nested document",
+              title: t("New nested document"),
               onClick: this.handleNewChild,
             },
           ]}
@@ -66,4 +70,6 @@ class NewChildDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections")(NewChildDocumentMenu);
+export default withTranslation()<NewChildDocumentMenu>(
+  inject("collections")(NewChildDocumentMenu)
+);

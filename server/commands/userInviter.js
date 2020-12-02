@@ -2,7 +2,6 @@
 import { uniqBy } from "lodash";
 import mailer from "../mailer";
 import { User, Event, Team } from "../models";
-import { sequelize } from "../sequelize";
 
 type Invite = { name: string, email: string };
 
@@ -47,48 +46,33 @@ export default async function userInviter({
   let users = [];
 
   // send and record remaining invites
-  await Promise.all(
-    filteredInvites.map(async (invite) => {
-      const transaction = await sequelize.transaction();
-      try {
-        const newUser = await User.create(
-          {
-            teamId: user.teamId,
-            name: invite.name,
-            email: invite.email,
-            service: null,
-          },
-          { transaction }
-        );
-        users.push(newUser);
-        await Event.create(
-          {
-            name: "users.invite",
-            actorId: user.id,
-            teamId: user.teamId,
-            data: {
-              email: invite.email,
-              name: invite.name,
-            },
-            ip,
-          },
-          { transaction }
-        );
-        await mailer.invite({
-          to: invite.email,
-          name: invite.name,
-          actorName: user.name,
-          actorEmail: user.email,
-          teamName: team.name,
-          teamUrl: team.url,
-        });
-        await transaction.commit();
-      } catch (err) {
-        await transaction.rollback();
-        throw err;
-      }
-    })
-  );
+  for (const invite of filteredInvites) {
+    const newUser = await User.create({
+      teamId: user.teamId,
+      name: invite.name,
+      email: invite.email,
+      service: null,
+    });
+    users.push(newUser);
+    await Event.create({
+      name: "users.invite",
+      actorId: user.id,
+      teamId: user.teamId,
+      data: {
+        email: invite.email,
+        name: invite.name,
+      },
+      ip,
+    });
+    await mailer.invite({
+      to: invite.email,
+      name: invite.name,
+      actorName: user.name,
+      actorEmail: user.email,
+      teamName: team.name,
+      teamUrl: team.url,
+    });
+  }
 
   return { sent: filteredInvites, users };
 }

@@ -3,11 +3,13 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
 import UiStore from "stores/UiStore";
 import UsersStore from "stores/UsersStore";
 import Group from "models/Group";
+import User from "models/User";
 import Invite from "scenes/Invite";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
@@ -24,6 +26,7 @@ type Props = {
   groupMemberships: GroupMembershipsStore,
   users: UsersStore,
   onSubmit: () => void,
+  t: TFunction,
 };
 
 @observer
@@ -50,40 +53,45 @@ class AddPeopleToGroup extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = async (user) => {
+  handleAddUser = async (user: User) => {
+    const { t } = this.props;
+
     try {
       await this.props.groupMemberships.create({
         groupId: this.props.group.id,
         userId: user.id,
       });
-      this.props.ui.showToast(`${user.name} was added to the group`);
+      this.props.ui.showToast(
+        t(`{{userName}} was added to the group`, { userName: user.name })
+      );
     } catch (err) {
-      this.props.ui.showToast("Could not add user");
+      this.props.ui.showToast(t("Could not add user"));
     }
   };
 
   render() {
-    const { users, group, auth } = this.props;
+    const { users, group, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
 
     return (
       <Flex column>
         <HelpText>
-          Add team members below to give them access to the group. Need to add
-          someone who’s not yet on the team yet?{" "}
+          {t(
+            "Add team members below to give them access to the group. Need to add someone who’s not yet on the team yet?"
+          )}{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
-            Invite them to {team.name}
+            {t("Invite them to {{teamName}}", { teamName: team.name })}
           </a>
           .
         </HelpText>
 
         <Input
           type="search"
-          placeholder="Search by name…"
+          placeholder={t("Search by name…")}
           value={this.query}
           onChange={this.handleFilter}
-          label="Search people"
+          label={t("Search people")}
           labelHidden
           autoFocus
           flex
@@ -91,9 +99,9 @@ class AddPeopleToGroup extends React.Component<Props> {
         <PaginatedList
           empty={
             this.query ? (
-              <Empty>No people matching your search</Empty>
+              <Empty>{t("No people matching your search")}</Empty>
             ) : (
-              <Empty>No people left to add</Empty>
+              <Empty>{t("No people left to add")}</Empty>
             )
           }
           items={users.notInGroup(group.id, this.query)}
@@ -108,7 +116,7 @@ class AddPeopleToGroup extends React.Component<Props> {
           )}
         />
         <Modal
-          title="Invite people"
+          title={t("Invite people")}
           onRequestClose={this.handleInviteModalClose}
           isOpen={this.inviteModalOpen}
         >
@@ -119,9 +127,6 @@ class AddPeopleToGroup extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "auth",
-  "users",
-  "groupMemberships",
-  "ui"
-)(AddPeopleToGroup);
+export default withTranslation()<AddPeopleToGroup>(
+  inject("auth", "users", "groupMemberships", "ui")(AddPeopleToGroup)
+);

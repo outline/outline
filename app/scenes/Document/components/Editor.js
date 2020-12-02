@@ -54,7 +54,7 @@ class DocumentEditor extends React.Component<Props> {
     if (event.key === "Enter") {
       event.preventDefault();
       if (event.metaKey) {
-        this.props.onSave({ publish: true, done: true });
+        this.props.onSave({ done: true });
         return;
       }
 
@@ -65,6 +65,11 @@ class DocumentEditor extends React.Component<Props> {
     if (event.key === "Tab" || event.key === "ArrowDown") {
       event.preventDefault();
       this.focusAtStart();
+      return;
+    }
+    if (event.key === "p" && event.metaKey && event.shiftKey) {
+      event.preventDefault();
+      this.props.onSave({ publish: true, done: true });
       return;
     }
     if (event.key === "s" && event.metaKey) {
