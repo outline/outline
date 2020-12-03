@@ -1,14 +1,12 @@
 // @flow
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import { settings } from "shared/utils/routeHelpers";
-import AuthStore from "stores/AuthStore";
-import DocumentsStore from "stores/DocumentsStore";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
@@ -18,20 +16,23 @@ import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
+import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 
 type Props = {
   user: User,
-  auth: AuthStore,
-  documents: DocumentsStore,
   history: RouterHistory,
   onRequestClose: () => void,
 };
 
 function UserProfile(props: Props) {
   const { t } = useTranslation();
-  const { user, auth, documents, ...rest } = props;
+  const { documents } = useStores();
+  const currentUser = useCurrentUser();
+  const { user, ...rest } = props;
+
   if (!user) return null;
-  const isCurrentUser = auth.user && auth.user.id === user.id;
+  const isCurrentUser = currentUser.id === user.id;
 
   return (
     <Modal
@@ -60,7 +61,7 @@ function UserProfile(props: Props) {
           {isCurrentUser && (
             <Edit>
               <Button
-                onClick={() => this.props.history.push(settings())}
+                onClick={() => props.history.push(settings())}
                 icon={<EditIcon />}
                 neutral
               >
@@ -103,4 +104,4 @@ const Meta = styled(HelpText)`
   margin-top: -12px;
 `;
 
-export default inject("documents", "auth")(withRouter(observer(UserProfile)));
+export default withRouter(observer(UserProfile));
