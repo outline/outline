@@ -8,6 +8,7 @@ import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
 import GoogleDocs from "./GoogleDocs";
+import GoogleDriveVideo from "./GoogleDriveVideo";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import InVision from "./InVision";
@@ -90,6 +91,12 @@ export default [
     icon: () => <Img src="/images/google-docs.png" />,
     component: GoogleDocs,
     matcher: matcher(GoogleDocs),
+  },
+  {
+    title: "Google Drive Videos",
+    icon: () => <Img src="/images/google-drive.png" />,
+    component: GoogleDriveVideo,
+    matcher: matcher(GoogleDriveVideo),
   },
   {
     title: "Google Sheets",
