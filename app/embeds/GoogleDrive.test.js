@@ -1,8 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import GoogleDriveVideo from "./GoogleDriveVideo";
+import GoogleDriveo from "./GoogleDrive";
 
 describe("GoogleDriveVideo", () => {
-  const match = GoogleDriveVideo.ENABLED[0];
+  const match = GoogleDrive.ENABLED[0];
   test("to be enabled on share link", () => {
     expect(
       "https://drive.google.com/file/d/2PACX-1vTdddHPoZ5M_47wmSHCoigRIt2cj_Pd-kgtaNQY6H0Jzn0_CVGbxC1GcK5IoNzU615lzguexFwxasAW/view".match(

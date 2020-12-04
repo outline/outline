@@ -13,12 +13,12 @@ type Props = {|
   |},
 |};
 
-export default class GoogleDriveVideo extends React.Component<Props> {
+export default class GoogleDrive extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
     return (
-      <Frame src={this.props.attrs.href} title="Google Drive Video Embed" />
+      <Frame src={this.props.attrs.href} title="Google Drive Embed" />
     );
   }
 }
