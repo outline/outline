@@ -2,6 +2,7 @@
 import { darken, lighten } from "polished";
 
 const colors = {
+  transparent: "transparent",
   almostBlack: "#111319",
   lightBlack: "#2F3336",
   almostWhite: "#E6E6E6",
@@ -183,7 +184,7 @@ export const dark = {
   placeholder: colors.slateDark,
 
   sidebarBackground: colors.veryDarkBlue,
-  sidebarItemBackground: colors.veryDarkBlue,
+  sidebarItemBackground: colors.transparent,
   sidebarText: colors.slate,
   shadow: "rgba(0, 0, 0, 0.6)",
 
