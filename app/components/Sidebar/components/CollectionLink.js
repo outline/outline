@@ -41,11 +41,7 @@ class CollectionLink extends React.Component<Props> {
 
     return (
       <>
-        <DropToImport
-          key={collection.id}
-          collectionId={collection.id}
-          activeClassName="activeDropZone"
-        >
+        <DropToImport key={collection.id} collectionId={collection.id}>
           <SidebarLink
             key={collection.id}
             to={collection.url}
