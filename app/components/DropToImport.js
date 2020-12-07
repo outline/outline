@@ -5,7 +5,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
 import LoadingIndicator from "components/LoadingIndicator";
@@ -100,15 +100,18 @@ class DropToImport extends React.Component<Props> {
 
 const DropzoneContainer = styled("div")`
   border-radius: 4px;
-  background: ${({ isDragActive, theme }) =>
-    isDragActive && theme.slateDark} !important;
-  a {
-    color: ${({ isDragActive, theme }) =>
-      isDragActive && theme.white} !important;
-  }
-  svg {
-    fill: ${({ isDragActive, theme }) => isDragActive && theme.white};
-  }
+
+  ${({ isDragActive, theme }) =>
+    isDragActive &&
+    css`
+      background: ${theme.slateDark};
+      a {
+        color: ${theme.white} !important;
+      }
+      svg {
+        fill: ${theme.white};
+      }
+    `}
 `;
 
 export default inject("documents", "ui")(withRouter(DropToImport));
