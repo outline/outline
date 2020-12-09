@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
+import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { Switch, Route, Redirect } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -14,7 +15,6 @@ import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
 import DocumentHistory from "components/DocumentHistory";
-import { GlobalStyles } from "components/DropToImport";
 import Flex from "components/Flex";
 
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
@@ -37,6 +37,8 @@ type Props = {
   ui: UiStore,
   notifications?: React.Node,
   theme: Theme,
+  i18n: Object,
+  t: TFunction,
 };
 
 @observer
@@ -45,7 +47,7 @@ class Layout extends React.Component<Props> {
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  constructor(props) {
+  constructor(props: Props) {
     super();
     this.updateBackground(props);
   }
@@ -58,7 +60,7 @@ class Layout extends React.Component<Props> {
     }
   }
 
-  updateBackground(props) {
+  updateBackground(props: Props) {
     // ensure the wider page color always matches the theme
     window.document.body.style.background = props.theme.background;
   }
@@ -74,7 +76,7 @@ class Layout extends React.Component<Props> {
   };
 
   @keydown(["t", "/", "meta+k"])
-  goToSearch(ev) {
+  goToSearch(ev: SyntheticEvent<>) {
     if (this.props.ui.editMode) return;
     ev.preventDefault();
     ev.stopPropagation();
@@ -88,7 +90,7 @@ class Layout extends React.Component<Props> {
   }
 
   render() {
-    const { auth, ui } = this.props;
+    const { auth, t, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
 
@@ -131,11 +133,10 @@ class Layout extends React.Component<Props> {
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
-          title="Keyboard shortcuts"
+          title={t("Keyboard shortcuts")}
         >
           <KeyboardShortcuts />
         </Modal>
-        <GlobalStyles />
       </Container>
     );
   }
@@ -162,4 +163,6 @@ const Content = styled(Flex)`
   `};
 `;
 
-export default inject("auth", "ui", "documents")(withTheme(Layout));
+export default withTranslation()<Layout>(
+  inject("auth", "ui", "documents")(withTheme(Layout))
+);

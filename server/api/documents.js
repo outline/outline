@@ -4,7 +4,11 @@ import Sequelize from "sequelize";
 import { subtractDate } from "../../shared/utils/date";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
-import { NotFoundError, InvalidRequestError } from "../errors";
+import {
+  NotFoundError,
+  InvalidRequestError,
+  AuthorizationError,
+} from "../errors";
 import auth from "../middlewares/authentication";
 import {
   Backlink,
@@ -17,6 +21,7 @@ import {
   Star,
   User,
   View,
+  Team,
 } from "../models";
 import policy from "../policies";
 import {
@@ -454,6 +459,11 @@ async function loadDocument({ id, shareId, user }) {
     if (!share.published) {
       authorize(user, "read", document);
     }
+
+    const team = await Team.findByPk(document.teamId);
+    if (!team.sharing) {
+      throw new AuthorizationError();
+    }
   } else {
     document = await Document.findByPk(id, {
       userId: user ? user.id : undefined,
@@ -815,7 +825,12 @@ router.post("documents.unstar", auth(), async (ctx) => {
 
 router.post("documents.create", auth(), createDocumentFromContext);
 router.post("documents.import", auth(), async (ctx) => {
+  if (!ctx.is("multipart/form-data")) {
+    throw new InvalidRequestError("Request type must be multipart/form-data");
+  }
+
   const file: any = Object.values(ctx.request.files)[0];
+  ctx.assertPresent(file, "file is required");
 
   const user = ctx.state.user;
   authorize(user, "create", Document);

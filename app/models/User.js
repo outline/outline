@@ -12,6 +12,7 @@ class User extends BaseModel {
   lastActiveAt: string;
   isSuspended: boolean;
   createdAt: string;
+  language: string;
 
   @computed
   get isInvited(): boolean {

@@ -95,6 +95,23 @@ describe("#documents.info", () => {
     expect(body.data.updatedBy).toEqual(undefined);
   });
 
+  it("should not return document from shareId if sharing is disabled for team", async () => {
+    const { document, team, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    team.sharing = false;
+    await team.save();
+
+    const res = await server.post("/api/documents.info", {
+      body: { shareId: share.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should not return document from revoked shareId", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -1521,6 +1538,18 @@ describe("#documents.unstar", () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.import", () => {
+  it("should error if no file is passed", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.import", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 

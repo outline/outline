@@ -4,6 +4,6 @@ import useStores from "./useStores";
 
 export default function useCurrentUser() {
   const { auth } = useStores();
-  invariant(auth.user, "Expected to be authenticated");
+  invariant(auth.user, "user required");
   return auth.user;
 }

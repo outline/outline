@@ -1,6 +1,7 @@
 // @flow
 import { inject } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 
 import UiStore from "stores/UiStore";
@@ -19,22 +20,25 @@ type Props = {
   className?: string,
   label: React.Node,
   ui: UiStore,
+  t: TFunction,
 };
 
 class RevisionMenu extends React.Component<Props> {
   handleRestore = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     await this.props.document.restore({ revisionId: this.props.revision.id });
-    this.props.ui.showToast("Document restored");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Document restored"));
     this.props.history.push(this.props.document.url);
   };
 
   handleCopy = () => {
-    this.props.ui.showToast("Link copied");
+    const { t } = this.props;
+    this.props.ui.showToast(t("Link copied"));
   };
 
   render() {
-    const { className, label, onOpen, onClose } = this.props;
+    const { className, label, onOpen, onClose, t } = this.props;
     const url = `${window.location.origin}${documentHistoryUrl(
       this.props.document,
       this.props.revision.id
@@ -48,15 +52,17 @@ class RevisionMenu extends React.Component<Props> {
         label={label}
       >
         <DropdownMenuItem onClick={this.handleRestore}>
-          Restore version
+          {t("Restore version")}
         </DropdownMenuItem>
         <hr />
         <CopyToClipboard text={url} onCopy={this.handleCopy}>
-          <DropdownMenuItem>Copy link</DropdownMenuItem>
+          <DropdownMenuItem>{t("Copy link")}</DropdownMenuItem>
         </CopyToClipboard>
       </DropdownMenu>
     );
   }
 }
 
-export default withRouter(inject("ui")(RevisionMenu));
+export default withTranslation()<RevisionMenu>(
+  withRouter(inject("ui")(RevisionMenu))
+);

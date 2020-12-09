@@ -12,6 +12,7 @@ import {
   PlusIcon,
 } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
@@ -34,6 +35,7 @@ type Props = {
   auth: AuthStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
+  t: TFunction,
 };
 
 @observer
@@ -65,7 +67,7 @@ class MainSidebar extends React.Component<Props> {
   };
 
   render() {
-    const { auth, documents, policies } = this.props;
+    const { auth, documents, policies, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
 
@@ -90,7 +92,7 @@ class MainSidebar extends React.Component<Props> {
                 to="/home"
                 icon={<HomeIcon color="currentColor" />}
                 exact={false}
-                label="Home"
+                label={t("Home")}
               />
               <SidebarLink
                 to={{
@@ -98,20 +100,20 @@ class MainSidebar extends React.Component<Props> {
                   state: { fromMenu: true },
                 }}
                 icon={<SearchIcon color="currentColor" />}
-                label="Search"
+                label={t("Search")}
                 exact={false}
               />
               <SidebarLink
                 to="/starred"
                 icon={<StarredIcon color="currentColor" />}
                 exact={false}
-                label="Starred"
+                label={t("Starred")}
               />
               <SidebarLink
                 to="/templates"
                 icon={<ShapesIcon color="currentColor" />}
                 exact={false}
-                label="Templates"
+                label={t("Templates")}
                 active={
                   documents.active ? documents.active.template : undefined
                 }
@@ -121,7 +123,7 @@ class MainSidebar extends React.Component<Props> {
                 icon={<EditIcon color="currentColor" />}
                 label={
                   <Drafts align="center">
-                    Drafts
+                    {t("Drafts")}
                     {documents.totalDrafts > 0 && (
                       <Bubble count={documents.totalDrafts} />
                     )}
@@ -146,7 +148,7 @@ class MainSidebar extends React.Component<Props> {
                 to="/archive"
                 icon={<ArchiveIcon color="currentColor" />}
                 exact={false}
-                label="Archive"
+                label={t("Archive")}
                 active={
                   documents.active
                     ? documents.active.isArchived && !documents.active.isDeleted
@@ -157,7 +159,7 @@ class MainSidebar extends React.Component<Props> {
                 to="/trash"
                 icon={<TrashIcon color="currentColor" />}
                 exact={false}
-                label="Trash"
+                label={t("Trash")}
                 active={
                   documents.active ? documents.active.isDeleted : undefined
                 }
@@ -167,21 +169,21 @@ class MainSidebar extends React.Component<Props> {
                   to="/settings/people"
                   onClick={this.handleInviteModalOpen}
                   icon={<PlusIcon color="currentColor" />}
-                  label="Invite people…"
+                  label={t("Invite people…")}
                 />
               )}
             </Section>
           </Scrollable>
         </Flex>
         <Modal
-          title="Invite people"
+          title={t("Invite people")}
           onRequestClose={this.handleInviteModalClose}
           isOpen={this.inviteModalOpen}
         >
           <Invite onSubmit={this.handleInviteModalClose} />
         </Modal>
         <Modal
-          title="Create a collection"
+          title={t("Create a collection")}
           onRequestClose={this.handleCreateCollectionModalClose}
           isOpen={this.createCollectionModalOpen}
         >
@@ -196,4 +198,6 @@ const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default inject("documents", "policies", "auth")(MainSidebar);
+export default withTranslation()<MainSidebar>(
+  inject("documents", "policies", "auth")(MainSidebar)
+);

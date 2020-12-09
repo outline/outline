@@ -13,6 +13,7 @@ type UserPresentation = {
   color: string,
   isAdmin: boolean,
   isSuspended: boolean,
+  language: string,
 };
 
 export default (user: User, options: Options = {}): ?UserPresentation => {
@@ -25,6 +26,7 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   userData.isSuspended = user.isSuspended;
   userData.avatarUrl = user.avatarUrl;
   userData.color = user.color;
+  userData.language = user.language;
 
   if (options.includeDetails) {
     userData.email = user.email;

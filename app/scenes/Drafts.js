@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
@@ -25,6 +26,7 @@ type Props = {|
   documents: DocumentsStore,
   history: RouterHistory,
   location: LocationWithState,
+  t: TFunction,
 |};
 
 @observer
@@ -33,7 +35,7 @@ class Drafts extends React.Component<Props> {
     this.props.location.search
   );
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.location.search !== this.props.location.search) {
       this.handleQueryChange();
     }
@@ -43,7 +45,10 @@ class Drafts extends React.Component<Props> {
     this.params = new URLSearchParams(this.props.location.search);
   };
 
-  handleFilterChange = (search) => {
+  handleFilterChange = (search: {
+    dateFilter?: ?string,
+    collectionId?: ?string,
+  }) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
@@ -64,6 +69,7 @@ class Drafts extends React.Component<Props> {
   }
 
   render() {
+    const { t } = this.props;
     const { drafts, fetchDrafts } = this.props.documents;
     const isFiltered = this.collectionId || this.dateFilter;
     const options = {
@@ -73,10 +79,10 @@ class Drafts extends React.Component<Props> {
 
     return (
       <CenteredContent column auto>
-        <PageTitle title="Drafts" />
-        <Heading>Drafts</Heading>
+        <PageTitle title={t("Drafts")} />
+        <Heading>{t("Drafts")}</Heading>
         <Subheading>
-          Documents
+          {t("Documents")}
           <Filters>
             <CollectionFilter
               collectionId={this.collectionId}
@@ -95,8 +101,8 @@ class Drafts extends React.Component<Props> {
           empty={
             <Empty>
               {isFiltered
-                ? "No documents found for your filters."
-                : "You’ve not got any drafts at the moment."}
+                ? t("No documents found for your filters.")
+                : t("You’ve not got any drafts at the moment.")}
             </Empty>
           }
           fetch={fetchDrafts}
@@ -131,4 +137,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default inject("documents")(Drafts);
+export default withTranslation()<Drafts>(inject("documents")(Drafts));

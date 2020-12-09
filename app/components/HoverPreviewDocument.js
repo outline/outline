@@ -1,20 +1,20 @@
 // @flow
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import DocumentsStore from "stores/DocumentsStore";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
+import useStores from "hooks/useStores";
 
 type Props = {
   url: string,
-  documents: DocumentsStore,
   children: (React.Node) => React.Node,
 };
 
-function HoverPreviewDocument({ url, documents, children }: Props) {
+function HoverPreviewDocument({ url, children }: Props) {
+  const { documents } = useStores();
   const slug = parseDocumentSlug(url);
 
   documents.prefetchDocument(slug, {
@@ -50,4 +50,4 @@ const Heading = styled.h2`
   color: ${(props) => props.theme.text};
 `;
 
-export default inject("documents")(observer(HoverPreviewDocument));
+export default observer(HoverPreviewDocument);
