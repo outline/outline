@@ -1,4 +1,5 @@
 // @flow
+import { Divider } from "@material-ui/core";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import {
@@ -10,6 +11,7 @@ import {
   ShapesIcon,
   TrashIcon,
   PlusIcon,
+  NewDocumentIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -73,7 +75,7 @@ class MainSidebar extends React.Component<Props> {
     const can = policies.abilities(team.id);
 
     return (
-      <Sidebar>
+      <div>
         <AccountMenu
           label={
             <HeaderBlock
@@ -84,8 +86,19 @@ class MainSidebar extends React.Component<Props> {
             />
           }
         />
-        <Flex auto column>
-          <Scrollable shadow>
+
+        <Divider />
+
+        <Menu>
+          <Scrollable
+            shadow
+            style={{
+              maxHeight: 550,
+              overflow: "auto",
+              width: "100%",
+              paddingBottom: 100,
+            }}
+          >
             <Section>
               <SidebarLink
                 to="/home"
@@ -138,6 +151,14 @@ class MainSidebar extends React.Component<Props> {
               />
             </Section>
             <Section>
+              <SidebarLink
+                to="/requested-docs"
+                icon={<NewDocumentIcon color="currentColor" />}
+                exact={false}
+                label="Requested Docs"
+              />
+            </Section>
+            <Section>
               <Collections
                 onCreateCollection={this.handleCreateCollectionModalOpen}
               />
@@ -173,7 +194,8 @@ class MainSidebar extends React.Component<Props> {
               )}
             </Section>
           </Scrollable>
-        </Flex>
+        </Menu>
+
         <Modal
           title="Invite people"
           onRequestClose={this.handleInviteModalClose}
@@ -188,10 +210,14 @@ class MainSidebar extends React.Component<Props> {
         >
           <CollectionNew onSubmit={this.handleCreateCollectionModalClose} />
         </Modal>
-      </Sidebar>
+      </div>
     );
   }
 }
+
+const Menu = styled(Scrollable)`
+  margin-left: -10px;
+`;
 
 const Drafts = styled(Flex)`
   height: 24px;

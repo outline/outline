@@ -21,7 +21,7 @@ function HeaderBlock({
 }: Props) {
   return (
     <Header justify="flex-start" align="center" {...rest}>
-      <TeamLogo alt={`${teamName} logo`} src={logoUrl} size="38px" />
+      <TeamLogo alt={`${teamName} logo`} src={logoUrl} />
       <Flex align="flex-start" column>
         <TeamName showDisclosure>
           {teamName}{" "}
@@ -40,7 +40,7 @@ const StyledExpandedIcon = styled(ExpandedIcon)`
 `;
 
 const Subheading = styled.div`
-  padding-left: 10px;
+  padding-left: 15px;
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
@@ -49,7 +49,7 @@ const Subheading = styled.div`
 
 const TeamName = styled.div`
   position: relative;
-  padding-left: 10px;
+  padding-left: 15px;
   padding-right: 24px;
   font-weight: 600;
   color: ${(props) => props.theme.text};
@@ -57,19 +57,13 @@ const TeamName = styled.div`
   font-size: 16px;
 `;
 
-const Header = styled.button`
-  display: flex;
-  align-items: center;
+const Header = styled(Flex)`
   flex-shrink: 0;
-  padding: 16px 24px;
+  padding: 16px 12px;
   position: relative;
-  background: none;
-  line-height: inherit;
-  border: 0;
-  margin: 0;
   cursor: pointer;
   width: 100%;
-
+  margin-top: -25px;
   &:active,
   &:hover {
     transition: background 100ms ease-in-out;
