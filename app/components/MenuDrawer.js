@@ -77,7 +77,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function MiniDrawer() {
-
   const resizerStyle = {
     background: "#000",
     cursor: "col-resize",

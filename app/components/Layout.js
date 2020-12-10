@@ -20,13 +20,7 @@ import Flex from "components/Flex";
 
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
-<<<<<<< HEAD
-
-=======
-import Sidebar from "components/Sidebar";
-import SettingsSidebar from "components/Sidebar/Settings";
 import { type Theme } from "types";
->>>>>>> fc70682795064b59babd7f5fffa6299c15c71bd4
 import {
   homeUrl,
   searchUrl,
