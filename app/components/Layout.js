@@ -6,7 +6,6 @@ import { Helmet } from "react-helmet";
 import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { Switch, Route, Redirect } from "react-router-dom";
-
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -20,14 +19,15 @@ import Flex from "components/Flex";
 
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
+
+import MenuDrawer from 'components/MenuDrawer';
+
 import { type Theme } from "types";
 import {
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
 } from "utils/routeHelpers";
-
-import MenuDrawer from 'components/MenuDrawer';
 
 type Props = {
   documents: DocumentsStore,
@@ -90,10 +90,10 @@ class Layout extends React.Component<Props> {
     this.redirectTo = homeUrl();
   }
 
-
   render() {
     const { auth, t, ui } = this.props;
     const { user, team } = auth;
+    const showSidebar = auth.authenticated && user && team;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
@@ -113,14 +113,13 @@ class Layout extends React.Component<Props> {
         {this.props.notifications}
 
         <Container auto>
-
           <div>
             <MenuDrawer />
           </div>
 
-
-          {this.props.children}
-
+          <Content auto justify="center" editMode={ui.editMode}>
+            {this.props.children}
+          </Content>
 
           <Switch>
             <Route
@@ -128,7 +127,6 @@ class Layout extends React.Component<Props> {
               component={DocumentHistory}
             />
           </Switch>
-
         </Container>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
@@ -142,7 +140,6 @@ class Layout extends React.Component<Props> {
   }
 }
 
-
 const Container = styled(Flex)`
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
@@ -151,4 +148,19 @@ const Container = styled(Flex)`
   min-height: 100%;
 `;
 
-export default inject("auth", "ui", "documents")(withTheme(Layout));
+const Content = styled(Flex)`
+  margin: 0;
+  transition: margin-left 100ms ease-out;
+
+  @media print {
+    margin: 0;
+  }
+
+  ${breakpoint("tablet")`
+    margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
+  `};
+`;
+
+export default withTranslation()<Layout>(
+  inject("auth", "ui", "documents")(withTheme(Layout))
+);
