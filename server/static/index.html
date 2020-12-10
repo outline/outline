@@ -52,6 +52,7 @@
         window.Sentry.init({
           dsn: "//inject-sentry-dsn//",
           ignoreErrors: [
+            "ResizeObserver loop limit exceeded",
             "AuthorizationError",
             "NetworkError",
             "NotFoundError",

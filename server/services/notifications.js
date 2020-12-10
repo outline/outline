@@ -1,8 +1,9 @@
 // @flow
-import * as Sentry from "@sentry/node";
+import debug from "debug";
 import type { DocumentEvent, CollectionEvent, Event } from "../events";
 import mailer from "../mailer";
 import {
+  View,
   Document,
   Team,
   Collection,
@@ -10,20 +11,24 @@ import {
   NotificationSetting,
 } from "../models";
 import { Op } from "../sequelize";
-import { createQueue } from "../utils/queue";
 
-const notificationsQueue = createQueue("notifications");
+const log = debug("services");
 
-notificationsQueue.process(async (job) => {
-  const event = job.data;
+export default class Notifications {
+  async on(event: Event) {
+    switch (event.name) {
+      case "documents.publish":
+      case "documents.update.debounced":
+        return this.documentUpdated(event);
+      case "collections.create":
+        return this.collectionCreated(event);
+      default:
+    }
+  }
 
-  try {
+  async documentUpdated(event: DocumentEvent) {
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
-
-    // If the document has been updated since we initially queued a notification
-    // abort sending a notification – this functions as a debounce.
-    if (document.updatedAt > new Date(event.createdAt)) return;
 
     const { collection } = document;
     if (!collection) return;
@@ -37,7 +42,10 @@ notificationsQueue.process(async (job) => {
           [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
-        event: event.name,
+        event:
+          event.name === "documents.publish"
+            ? "documents.publish"
+            : "documents.update",
       },
       include: [
         {
@@ -51,14 +59,40 @@ notificationsQueue.process(async (job) => {
     const eventName =
       event.name === "documents.publish" ? "published" : "updated";
 
-    notificationSettings.forEach((setting) => {
+    for (const setting of notificationSettings) {
       // For document updates we only want to send notifications if
       // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
       if (
-        event.name === "documents.update" &&
+        eventName === "updated" &&
         !document.collaboratorIds.includes(setting.userId)
       ) {
+        return;
+      }
+
+      // Check the user has access to the collection this document is in. Just
+      // because they were a collaborator once doesn't mean they still are.
+      const collectionIds = await setting.user.collectionIds();
+      if (!collectionIds.includes(document.collectionId)) {
+        return;
+      }
+
+      // If this user has viewed the document since the last update was made
+      // then we can avoid sending them a useless notification, yay.
+      const view = await View.findOne({
+        where: {
+          userId: setting.userId,
+          documentId: event.documentId,
+          updatedAt: {
+            [Op.gt]: document.updatedAt,
+          },
+        },
+      });
+
+      if (view) {
+        log(
+          `suppressing notification to ${setting.userId} because update viewed`
+        );
         return;
       }
 
@@ -71,36 +105,7 @@ notificationsQueue.process(async (job) => {
         actor: document.updatedBy,
         unsubscribeUrl: setting.unsubscribeUrl,
       });
-    });
-  } catch (error) {
-    if (process.env.SENTRY_DSN) {
-      Sentry.withScope(function (scope) {
-        scope.setExtra("event", event);
-        Sentry.captureException(error);
-      });
-    } else {
-      throw error;
     }
-  }
-});
-
-export default class Notifications {
-  async on(event: Event) {
-    switch (event.name) {
-      case "documents.publish":
-      case "documents.update":
-        return this.documentUpdated(event);
-      case "collections.create":
-        return this.collectionCreated(event);
-      default:
-    }
-  }
-
-  async documentUpdated(event: DocumentEvent) {
-    notificationsQueue.add(event, {
-      delay: 5 * 60 * 1000,
-      removeOnComplete: true,
-    });
   }
 
   async collectionCreated(event: CollectionEvent) {

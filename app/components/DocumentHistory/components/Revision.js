@@ -11,11 +11,12 @@ import Avatar from "components/Avatar";
 import Flex from "components/Flex";
 import Time from "components/Time";
 import RevisionMenu from "menus/RevisionMenu";
+import { type Theme } from "types";
 
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
-  theme: Object,
+  theme: Theme,
   showMenu: boolean,
   selected: boolean,
   document: Document,

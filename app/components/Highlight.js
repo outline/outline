@@ -18,6 +18,7 @@ function Highlight({
   ...rest
 }: Props) {
   let regex;
+  let index = 0;
   if (highlight instanceof RegExp) {
     regex = highlight;
   } else {
@@ -29,8 +30,10 @@ function Highlight({
   return (
     <span {...rest}>
       {highlight
-        ? replace(text, regex, (tag, index) => (
-            <Mark key={index}>{processResult ? processResult(tag) : tag}</Mark>
+        ? replace(text, regex, (tag) => (
+            <Mark key={index++}>
+              {processResult ? processResult(tag) : tag}
+            </Mark>
           ))
         : text}
     </span>

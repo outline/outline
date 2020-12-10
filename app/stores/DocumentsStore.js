@@ -2,6 +2,8 @@
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
+import { MAX_TITLE_LENGTH } from "shared/constants";
+import { subtractDate } from "shared/utils/date";
 import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
@@ -167,12 +169,31 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get drafts(): Document[] {
-    return filter(
+  get totalDrafts(): number {
+    return this.drafts().length;
+  }
+
+  drafts = (options = {}): Document[] => {
+    let drafts = filter(
       orderBy(this.all, "updatedAt", "desc"),
       (doc) => !doc.publishedAt
     );
-  }
+
+    if (options.dateFilter) {
+      drafts = filter(
+        drafts,
+        (draft) =>
+          new Date(draft.updatedAt) >=
+          subtractDate(new Date(), options.dateFilter)
+      );
+    }
+
+    if (options.collectionId) {
+      drafts = filter(drafts, { collectionId: options.collectionId });
+    }
+
+    return drafts;
+  };
 
   @computed
   get active(): ?Document {
@@ -190,6 +211,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const { data } = res;
     runInAction("DocumentsStore#fetchBacklinks", () => {
       data.forEach(this.add);
+      this.addPolicies(res.policies);
       this.backlinks.set(
         documentId,
         data.map((doc) => doc.id)
@@ -215,6 +237,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const { data } = res;
     runInAction("DocumentsStore#fetchChildDocuments", () => {
       data.forEach(this.add);
+      this.addPolicies(res.policies);
     });
   };
 
@@ -445,12 +468,17 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   duplicate = async (document: Document): * => {
+    const append = " (duplicate)";
+
     const res = await client.post("/documents.create", {
       publish: !!document.publishedAt,
       parentDocumentId: document.parentDocumentId,
       collectionId: document.collectionId,
       template: document.template,
-      title: `${document.title} (duplicate)`,
+      title: `${document.title.slice(
+        0,
+        MAX_TITLE_LENGTH - append.length
+      )}${append}`,
       text: document.text,
     });
     invariant(res && res.data, "Data should be available");

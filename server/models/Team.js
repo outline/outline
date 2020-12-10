@@ -47,6 +47,11 @@ const Team = sequelize.define(
       },
       unique: true,
     },
+    domain: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
     slackId: { type: DataTypes.STRING, allowNull: true },
     googleId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
@@ -66,6 +71,9 @@ const Team = sequelize.define(
   {
     getterMethods: {
       url() {
+        if (this.domain) {
+          return `https://${this.domain}`;
+        }
         if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== "true") {
           return process.env.URL;
         }
@@ -195,15 +203,6 @@ Team.prototype.removeAdmin = async function (user: User) {
   } else {
     throw new ValidationError("At least one admin is required");
   }
-};
-
-Team.prototype.suspendUser = async function (user: User, admin: User) {
-  if (user.id === admin.id)
-    throw new ValidationError("Unable to suspend the current user");
-  return user.update({
-    suspendedById: admin.id,
-    suspendedAt: new Date(),
-  });
 };
 
 Team.prototype.activateUser = async function (user: User, admin: User) {

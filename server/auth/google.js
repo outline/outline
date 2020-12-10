@@ -5,7 +5,7 @@ import Router from "koa-router";
 import { capitalize } from "lodash";
 import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
-import { User, Team, Event } from "../models";
+import { User, Team } from "../models";
 
 const Op = Sequelize.Op;
 
@@ -120,20 +120,6 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
       await team.provisionSubdomain(hostname);
-    }
-
-    if (isFirstSignin) {
-      await Event.create({
-        name: "users.create",
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: "google",
-        },
-        ip: ctx.request.ip,
-      });
     }
 
     // set cookies on response and redirect to team subdomain

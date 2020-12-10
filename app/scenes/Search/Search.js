@@ -7,6 +7,7 @@ import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { withTranslation, Trans, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, Link } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
@@ -44,11 +45,12 @@ type Props = {
   documents: DocumentsStore,
   users: UsersStore,
   notFound: ?boolean,
+  t: TFunction,
 };
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?React.Component<typeof DocumentPreview>;
+  firstDocument: ?React.Component<any>;
   lastQuery: string = "";
 
   @observable
@@ -67,7 +69,7 @@ class Search extends React.Component<Props> {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.location.search !== this.props.location.search) {
       this.handleQueryChange();
     }
@@ -81,7 +83,7 @@ class Search extends React.Component<Props> {
     this.props.history.goBack();
   }
 
-  handleKeyDown = (ev) => {
+  handleKeyDown = (ev: SyntheticKeyboardEvent<>) => {
     if (ev.key === "Enter") {
       this.fetchResults();
       return;
@@ -124,7 +126,12 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  handleFilterChange = (search) => {
+  handleFilterChange = (search: {
+    collectionId?: ?string,
+    userId?: ?string,
+    dateFilter?: ?string,
+    includeArchived?: ?string,
+  }) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
@@ -170,7 +177,7 @@ class Search extends React.Component<Props> {
 
   get title() {
     const query = this.query;
-    const title = "Search";
+    const title = this.props.t("Search");
     if (query) return `${query} – ${title}`;
     return title;
   }
@@ -231,20 +238,19 @@ class Search extends React.Component<Props> {
     trailing: true,
   });
 
-  updateLocation = (query) => {
+  updateLocation = (query: string) => {
     this.props.history.replace({
       pathname: searchUrl(query),
       search: this.props.location.search,
     });
   };
 
-  setFirstDocumentRef = (ref) => {
-    // $FlowFixMe
+  setFirstDocumentRef = (ref: any) => {
     this.firstDocument = ref;
   };
 
   render() {
-    const { documents, notFound, location } = this.props;
+    const { documents, notFound, location, t } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
     const showShortcutTip =
@@ -256,12 +262,15 @@ class Search extends React.Component<Props> {
         {this.isLoading && <LoadingIndicator />}
         {notFound && (
           <div>
-            <h1>Not Found</h1>
-            <Empty>We were unable to find the page you’re looking for.</Empty>
+            <h1>{t("Not Found")}</h1>
+            <Empty>
+              {t("We were unable to find the page you’re looking for.")}
+            </Empty>
           </div>
         )}
         <ResultsWrapper pinToTop={this.pinToTop} column auto>
           <SearchField
+            placeholder={t("Search…")}
             onKeyDown={this.handleKeyDown}
             onChange={this.updateLocation}
             defaultValue={this.query}
@@ -269,8 +278,10 @@ class Search extends React.Component<Props> {
           {showShortcutTip && (
             <Fade>
               <HelpText small>
-                Use the <strong>{meta}+K</strong> shortcut to search from
-                anywhere in Outline
+                <Trans>
+                  Use the <strong>{{ meta }}+K</strong> shortcut to search from
+                  anywhere in your knowledge base
+                </Trans>
               </HelpText>
             </Fade>
           )}
@@ -302,31 +313,31 @@ class Search extends React.Component<Props> {
           )}
           {showEmpty && (
             <Fade>
-              <Empty>
-                <Centered column>
-                  <HelpText>
+              <Centered column>
+                <HelpText>
+                  <Trans>
                     No documents found for your search filters. <br />
                     Create a new document?
-                  </HelpText>
-                  <Wrapper>
-                    {this.collectionId ? (
-                      <Button
-                        onClick={this.handleNewDoc}
-                        icon={<PlusIcon />}
-                        primary
-                      >
-                        New doc
-                      </Button>
-                    ) : (
-                      <NewDocumentMenu />
-                    )}
-                    &nbsp;&nbsp;
-                    <Button as={Link} to="/search" neutral>
-                      Clear filters
+                  </Trans>
+                </HelpText>
+                <Wrapper>
+                  {this.collectionId ? (
+                    <Button
+                      onClick={this.handleNewDoc}
+                      icon={<PlusIcon />}
+                      primary
+                    >
+                      {t("New doc")}
                     </Button>
-                  </Wrapper>
-                </Centered>
-              </Empty>
+                  ) : (
+                    <NewDocumentMenu />
+                  )}
+                  &nbsp;&nbsp;
+                  <Button as={Link} to="/search" neutral>
+                    {t("Clear filters")}
+                  </Button>
+                </Wrapper>
+              </Centered>
             </Fade>
           )}
           <ResultList column visible={this.pinToTop}>
@@ -403,7 +414,8 @@ const Filters = styled(Flex)`
   margin-bottom: 12px;
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
-  overflow-y: auto;
+  overflow-y: hidden;
+  overflow-x: auto;
   padding: 8px 0;
 
   ${breakpoint("tablet")`	
@@ -415,4 +427,6 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withRouter(inject("documents")(Search));
+export default withTranslation()<Search>(
+  withRouter(inject("documents")(Search))
+);

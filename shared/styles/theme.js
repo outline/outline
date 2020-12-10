@@ -2,6 +2,7 @@
 import { darken, lighten } from "polished";
 
 const colors = {
+  transparent: "transparent",
   almostBlack: "#111319",
   lightBlack: "#2F3336",
   almostWhite: "#E6E6E6",
@@ -166,6 +167,9 @@ export const light = {
 
   noticeInfoBackground: colors.warmGrey,
   noticeInfoText: colors.almostBlack,
+
+  scrollbarBackground: colors.smoke,
+  scrollbarThumb: darken(0.15, colors.smokeDark),
 };
 
 export const dark = {
@@ -180,7 +184,7 @@ export const dark = {
   placeholder: colors.slateDark,
 
   sidebarBackground: colors.veryDarkBlue,
-  sidebarItemBackground: colors.veryDarkBlue,
+  sidebarItemBackground: colors.transparent,
   sidebarText: colors.slate,
   shadow: "rgba(0, 0, 0, 0.6)",
 
@@ -222,6 +226,9 @@ export const dark = {
 
   noticeInfoBackground: colors.white10,
   noticeInfoText: colors.almostWhite,
+
+  scrollbarBackground: colors.black,
+  scrollbarThumb: colors.lightBlack,
 };
 
 export default light;

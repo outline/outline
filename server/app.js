@@ -119,6 +119,18 @@ app.on("error", (error, ctx) => {
       if (requestId) {
         scope.setTag("request_id", requestId);
       }
+
+      const authType = ctx.state ? ctx.state.authType : undefined;
+      if (authType) {
+        scope.setTag("auth_type", authType);
+      }
+
+      const userId =
+        ctx.state && ctx.state.user ? ctx.state.user.id : undefined;
+      if (userId) {
+        scope.setUser({ id: userId });
+      }
+
       scope.addEventProcessor(function (event) {
         return Sentry.Handlers.parseRequest(event, ctx.request);
       });

@@ -1,5 +1,6 @@
 // @flow
 import fs from "fs";
+import path from "path";
 import File from "formidable/lib/file";
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import mammoth from "mammoth";
@@ -139,7 +140,16 @@ export default async function documentImporter({
   file: File,
   ip: string,
 }): Promise<{ text: string, title: string }> {
-  const fileInfo = importMapping.filter((item) => item.type === file.type)[0];
+  const fileInfo = importMapping.filter((item) => {
+    if (item.type === file.type) {
+      return true;
+    }
+    if (item.type === "text/markdown" && path.extname(file.name) === ".md") {
+      return true;
+    }
+    return false;
+  })[0];
+
   if (!fileInfo) {
     throw new InvalidRequestError(`File type ${file.type} not supported`);
   }

@@ -1,4 +1,5 @@
 // @flow
+import { computed } from "mobx";
 import BaseModel from "./BaseModel";
 
 class User extends BaseModel {
@@ -10,6 +11,12 @@ class User extends BaseModel {
   lastActiveAt: string;
   isSuspended: boolean;
   createdAt: string;
+  language: string;
+
+  @computed
+  get isInvited(): boolean {
+    return !this.lastActiveAt;
+  }
 }
 
 export default User;

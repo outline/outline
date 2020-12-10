@@ -1,6 +1,7 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import DocumentsStore from "stores/DocumentsStore";
 import CenteredContent from "components/CenteredContent";
@@ -14,26 +15,26 @@ type Props = {
   documents: DocumentsStore,
 };
 
-@observer
-class Archive extends React.Component<Props> {
-  render() {
-    const { documents } = this.props;
+function Archive(props: Props) {
+  const { t } = useTranslation();
+  const { documents } = props;
 
-    return (
-      <CenteredContent column auto>
-        <PageTitle title="Archive" />
-        <Heading>Archive</Heading>
-        <PaginatedDocumentList
-          documents={documents.archived}
-          fetch={documents.fetchArchived}
-          heading={<Subheading>Documents</Subheading>}
-          empty={<Empty>The document archive is empty at the moment.</Empty>}
-          showCollection
-          showTemplate
-        />
-      </CenteredContent>
-    );
-  }
+  return (
+    <CenteredContent column auto>
+      <PageTitle title={t("Archive")} />
+      <Heading>{t("Archive")}</Heading>
+      <PaginatedDocumentList
+        documents={documents.archived}
+        fetch={documents.fetchArchived}
+        heading={<Subheading>{t("Documents")}</Subheading>}
+        empty={
+          <Empty>{t("The document archive is empty at the moment.")}</Empty>
+        }
+        showCollection
+        showTemplate
+      />
+    </CenteredContent>
+  );
 }
 
-export default inject("documents")(Archive);
+export default inject("documents")(observer(Archive));

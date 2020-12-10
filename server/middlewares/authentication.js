@@ -1,9 +1,8 @@
 // @flow
-import addMinutes from "date-fns/add_minutes";
 import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import { User, Team, ApiKey } from "../models";
+import { User, Event, Team, ApiKey } from "../models";
 import type { ContextWithState } from "../types";
 import { getCookieDomain } from "../utils/domains";
 import { getUserForJWT } from "../utils/jwt";
@@ -62,7 +61,15 @@ export default function auth(options?: { required?: boolean } = {}) {
           throw new AuthenticationError("Invalid API key");
         }
 
-        user = await User.findByPk(apiKey.userId);
+        user = await User.findByPk(apiKey.userId, {
+          include: [
+            {
+              model: Team,
+              as: "team",
+              required: true,
+            },
+          ],
+        });
         if (!user) {
           throw new AuthenticationError("Invalid API key");
         }
@@ -87,18 +94,39 @@ export default function auth(options?: { required?: boolean } = {}) {
       ctx.state.user = user;
     }
 
-    ctx.signIn = async (
-      user: User,
-      team: Team,
-      service,
-      isFirstSignin = false
-    ) => {
+    ctx.signIn = (user: User, team: Team, service, isFirstSignin = false) => {
       if (user.isSuspended) {
         return ctx.redirect("/?notice=suspended");
       }
 
       // update the database when the user last signed in
       user.updateSignedIn(ctx.request.ip);
+
+      if (isFirstSignin) {
+        Event.create({
+          name: "users.create",
+          actorId: user.id,
+          userId: user.id,
+          teamId: team.id,
+          data: {
+            name: user.name,
+            service,
+          },
+          ip: ctx.request.ip,
+        });
+      } else {
+        Event.create({
+          name: "users.signin",
+          actorId: user.id,
+          userId: user.id,
+          teamId: team.id,
+          data: {
+            name: user.name,
+            service,
+          },
+          ip: ctx.request.ip,
+        });
+      }
 
       const domain = getCookieDomain(ctx.request.hostname);
       const expires = addMonths(new Date(), 3);
@@ -134,12 +162,9 @@ export default function auth(options?: { required?: boolean } = {}) {
           domain,
         });
 
-        ctx.cookies.set("accessToken", user.getJwtToken(), {
-          httpOnly: true,
-          expires: addMinutes(new Date(), 1),
-          domain,
-        });
-        ctx.redirect(`${team.url}/auth/redirect`);
+        ctx.redirect(
+          `${team.url}/auth/redirect?token=${user.getTransferToken()}`
+        );
       } else {
         ctx.cookies.set("accessToken", user.getJwtToken(), {
           httpOnly: false,

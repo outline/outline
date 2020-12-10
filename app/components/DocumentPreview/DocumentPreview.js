@@ -3,12 +3,14 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { StarredIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Link, Redirect } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import DocumentMeta from "components/DocumentMeta";
+import EventBoundary from "components/EventBoundary";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import Tooltip from "components/Tooltip";
@@ -24,6 +26,7 @@ type Props = {
   showPin?: boolean,
   showDraft?: boolean,
   showTemplate?: boolean,
+  t: TFunction,
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -71,6 +74,7 @@ class DocumentPreview extends React.Component<Props> {
       showTemplate,
       highlight,
       context,
+      t,
     } = this.props;
 
     if (this.redirectTo) {
@@ -90,7 +94,7 @@ class DocumentPreview extends React.Component<Props> {
       >
         <Heading>
           <Title text={document.titleWithDefault} highlight={highlight} />
-          {document.isNew && <Badge yellow>New</Badge>}
+          {document.isNew && <Badge yellow>{t("New")}</Badge>}
           {!document.isDraft &&
             !document.isArchived &&
             !document.isTemplate && (
@@ -103,12 +107,16 @@ class DocumentPreview extends React.Component<Props> {
               </Actions>
             )}
           {document.isDraft && showDraft && (
-            <Tooltip tooltip="Only visible to you" delay={500} placement="top">
-              <Badge>Draft</Badge>
+            <Tooltip
+              tooltip={t("Only visible to you")}
+              delay={500}
+              placement="top"
+            >
+              <Badge>{t("Draft")}</Badge>
             </Tooltip>
           )}
           {document.isTemplate && showTemplate && (
-            <Badge primary>Template</Badge>
+            <Badge primary>{t("Template")}</Badge>
           )}
           <SecondaryActions>
             {document.isTemplate &&
@@ -119,11 +127,13 @@ class DocumentPreview extends React.Component<Props> {
                   icon={<PlusIcon />}
                   neutral
                 >
-                  New doc
+                  {t("New doc")}
                 </Button>
               )}
             &nbsp;
-            <DocumentMenu document={document} showPin={showPin} />
+            <EventBoundary>
+              <DocumentMenu document={document} showPin={showPin} />
+            </EventBoundary>
           </SecondaryActions>
         </Heading>
 
@@ -234,4 +244,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default DocumentPreview;
+export default withTranslation()<DocumentPreview>(DocumentPreview);
