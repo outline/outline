@@ -1,5 +1,4 @@
 // @flow
-import AppBar from "@material-ui/core/AppBar";
 import Divider from "@material-ui/core/Divider";
 import Drawer from "@material-ui/core/Drawer";
 import IconButton from "@material-ui/core/IconButton";
@@ -9,37 +8,17 @@ import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import MenuIcon from "@material-ui/icons/Menu";
 import clsx from "clsx";
 import React from "react";
-import SplitPane, { Pane } from "react-split-pane";
+import SplitPane from "react-split-pane";
 import Main from "components/Sidebar/Main";
 import Section from "./Sidebar/components/Section";
 
 const drawerWidth = 275;
 
-type Props = {
-  auth: AuthStore,
-  documents: DocumentsStore,
-  policies: PoliciesStore,
-};
-
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
   },
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-  },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
+
   menuButtonOpen: {
     position: "absolute",
     margin: "auto",
@@ -98,28 +77,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function MiniDrawer() {
-  const MenuLateral = {
-    maxWidth: "265px",
-    height: "100%",
-    backgroundColor: "red",
-    zIndex: "9999",
-  };
-
-  const PaneContent = {
-    width: "100%",
-    backgroundColor: "#fff",
-    zIndex: "99999",
-  };
 
   const resizerStyle = {
     background: "#000",
     cursor: "col-resize",
     height: "100%",
     border: "1px solid #DAE1E9",
-  };
-
-  const ScrollSidebar = {
-    overflow: "auto",
   };
 
   const pane1Style = {
@@ -129,7 +92,6 @@ export default function MiniDrawer() {
   const sizeInitialPane = 265;
   const defaultSize = 100;
   const miniSize = 70;
-  const valueResize = localStorage.getItem("app_outline");
 
   const classes = useStyles();
   const theme = useTheme();
@@ -212,8 +174,8 @@ export default function MiniDrawer() {
                 {theme.direction === "rtl" ? (
                   <ChevronRightIcon />
                 ) : (
-                  <ChevronLeftIcon />
-                )}
+                    <ChevronLeftIcon />
+                  )}
               </IconButton>
             </div>
             <Divider />

@@ -6,7 +6,6 @@ import { Helmet } from "react-helmet";
 import keydown from "react-keydown";
 import { Switch, Route, Redirect } from "react-router-dom";
 
-import Split from "react-split";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -18,16 +17,17 @@ import Analytics from "components/Analytics";
 import DocumentHistory from "components/DocumentHistory";
 import { GlobalStyles } from "components/DropToImport";
 import Flex from "components/Flex";
+
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
-import MenuDrawer from "components/MenuDrawer";
 import Modal from "components/Modal";
-import Sidebar from "components/Sidebar";
-import SettingsSidebar from "components/Sidebar/Settings";
+
 import {
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
 } from "utils/routeHelpers";
+
+import MenuDrawer from 'components/MenuDrawer';
 
 type Props = {
   documents: DocumentsStore,
@@ -88,10 +88,10 @@ class Layout extends React.Component<Props> {
     this.redirectTo = homeUrl();
   }
 
+
   render() {
-    const { auth, ui } = this.props;
+    const { auth } = this.props;
     const { user, team } = auth;
-    const showSidebar = auth.authenticated && user && team;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
@@ -111,11 +111,14 @@ class Layout extends React.Component<Props> {
         {this.props.notifications}
 
         <Container auto>
+
           <div>
             <MenuDrawer />
           </div>
 
+
           {this.props.children}
+
 
           <Switch>
             <Route
@@ -123,6 +126,7 @@ class Layout extends React.Component<Props> {
               component={DocumentHistory}
             />
           </Switch>
+
         </Container>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
@@ -132,33 +136,11 @@ class Layout extends React.Component<Props> {
           <KeyboardShortcuts />
         </Modal>
         <GlobalStyles />
-      </Container>
+      </Container >
     );
   }
 }
 
-const MenuLateral = {
-  maxWidth: "300px",
-  height: "100%",
-  backgroundColor: "red",
-  zIndex: "9999",
-};
-
-const PaneContent = {
-  width: "100%",
-};
-
-const resizerStyle = {
-  background: "#000",
-  cursor: "col-resize",
-  margin: "0 5px",
-  height: "100%",
-  border: "1px solid #DAE1E9",
-};
-
-const pane2Style = {
-  backgroundColor: "red",
-};
 
 const Container = styled(Flex)`
   background: ${(props) => props.theme.background};
@@ -166,19 +148,6 @@ const Container = styled(Flex)`
   position: relative;
   width: 100%;
   min-height: 100%;
-`;
-
-const Content = styled(Flex)`
-  margin: 0;
-  transition: margin-left 100ms ease-out;
-
-  @media print {
-    margin: 0;
-  }
-
-  ${breakpoint("tablet")`
-    margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
-  `};
 `;
 
 export default inject("auth", "ui", "documents")(withTheme(Layout));

@@ -24,7 +24,6 @@ import Invite from "scenes/Invite";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Scrollable from "components/Scrollable";
-import Sidebar from "./Sidebar";
 import Bubble from "./components/Bubble";
 import Collections from "./components/Collections";
 import HeaderBlock from "./components/HeaderBlock";
@@ -144,8 +143,8 @@ class MainSidebar extends React.Component<Props> {
                 active={
                   documents.active
                     ? !documents.active.publishedAt &&
-                      !documents.active.isDeleted &&
-                      !documents.active.isTemplate
+                    !documents.active.isDeleted &&
+                    !documents.active.isTemplate
                     : undefined
                 }
               />
