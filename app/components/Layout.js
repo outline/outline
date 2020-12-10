@@ -16,11 +16,10 @@ import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
 import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
-
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
-import Modal from "components/Modal";
+import MenuDrawer from "components/MenuDrawer";
 
-import MenuDrawer from 'components/MenuDrawer';
+import Modal from "components/Modal";
 
 import { type Theme } from "types";
 import {
@@ -113,10 +112,11 @@ class Layout extends React.Component<Props> {
         {this.props.notifications}
 
         <Container auto>
-          <div>
-            <MenuDrawer />
-          </div>
-
+          {showSidebar && (
+            <div>
+              <MenuDrawer />
+            </div>
+          )}
           <Content auto justify="center" editMode={ui.editMode}>
             {this.props.children}
           </Content>
@@ -160,7 +160,6 @@ const Content = styled(Flex)`
     margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
   `};
 `;
-
 export default withTranslation()<Layout>(
   inject("auth", "ui", "documents")(withTheme(Layout))
 );

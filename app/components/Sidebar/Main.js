@@ -144,8 +144,8 @@ class MainSidebar extends React.Component<Props> {
                 active={
                   documents.active
                     ? !documents.active.publishedAt &&
-                    !documents.active.isDeleted &&
-                    !documents.active.isTemplate
+                      !documents.active.isDeleted &&
+                      !documents.active.isTemplate
                     : undefined
                 }
               />

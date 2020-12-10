@@ -173,8 +173,8 @@ export default function MiniDrawer() {
                 {theme.direction === "rtl" ? (
                   <ChevronRightIcon />
                 ) : (
-                    <ChevronLeftIcon />
-                  )}
+                  <ChevronLeftIcon />
+                )}
               </IconButton>
             </div>
             <Divider />
