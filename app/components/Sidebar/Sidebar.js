@@ -26,7 +26,7 @@ function Sidebar({ location, children }: Props) {
     if (location !== previousLocation) {
       ui.hideMobileSidebar();
     }
-  }, [ui, location]);
+  }, [ui, location, previousLocation]);
 
   const content = (
     <Container

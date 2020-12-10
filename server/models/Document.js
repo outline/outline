@@ -5,6 +5,7 @@ import randomstring from "randomstring";
 import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
+import { MAX_TITLE_LENGTH } from "../../shared/constants";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
 import { Collection, User } from "../models";
@@ -17,32 +18,6 @@ const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
-
-const createRevision = async (doc, options = {}) => {
-  // we don't create revisions for autosaves
-  if (options.autosave) return;
-
-  const previous = await Revision.findLatest(doc.id);
-
-  // we don't create revisions if identical to previous
-  if (previous && doc.text === previous.text && doc.title === previous.title) {
-    return;
-  }
-
-  return Revision.create(
-    {
-      title: doc.title,
-      text: doc.text,
-      userId: doc.lastModifiedById,
-      editorVersion: doc.editorVersion,
-      version: doc.version,
-      documentId: doc.id,
-    },
-    {
-      transaction: options.transaction,
-    }
-  );
-};
 
 const createUrlId = (doc) => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
@@ -90,8 +65,8 @@ const Document = sequelize.define(
       type: DataTypes.STRING,
       validate: {
         len: {
-          args: [0, 100],
-          msg: "Document title must be less than 100 characters",
+          args: [0, MAX_TITLE_LENGTH],
+          msg: `Document title must be less than ${MAX_TITLE_LENGTH} characters`,
         },
       },
     },
@@ -117,8 +92,6 @@ const Document = sequelize.define(
       beforeValidate: createUrlId,
       beforeCreate: beforeCreate,
       beforeUpdate: beforeSave,
-      afterCreate: createRevision,
-      afterUpdate: createRevision,
     },
     getterMethods: {
       url: function () {

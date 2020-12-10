@@ -48,8 +48,15 @@ Event.afterCreate((event) => {
   events.add(event, { removeOnComplete: true });
 });
 
+// add can be used to send events into the event system without recording them
+// in the database / audit trail
+Event.add = (event) => {
+  events.add(Event.build(event), { removeOnComplete: true });
+};
+
 Event.ACTIVITY_EVENTS = [
-  "users.create",
+  "collections.create",
+  "collections.delete",
   "documents.publish",
   "documents.archive",
   "documents.unarchive",
@@ -57,20 +64,19 @@ Event.ACTIVITY_EVENTS = [
   "documents.unpin",
   "documents.delete",
   "documents.restore",
-  "collections.create",
-  "collections.delete",
+  "users.create",
 ];
 
 Event.AUDIT_EVENTS = [
   "api_keys.create",
   "api_keys.delete",
-  "users.create",
-  "users.promote",
-  "users.demote",
-  "users.invite",
-  "users.suspend",
-  "users.activate",
-  "users.delete",
+  "collections.create",
+  "collections.update",
+  "collections.add_user",
+  "collections.remove_user",
+  "collections.add_group",
+  "collections.remove_group",
+  "collections.delete",
   "documents.create",
   "documents.publish",
   "documents.update",
@@ -80,19 +86,22 @@ Event.AUDIT_EVENTS = [
   "documents.unpin",
   "documents.move",
   "documents.delete",
-  "shares.create",
-  "shares.update",
-  "shares.revoke",
   "groups.create",
   "groups.update",
   "groups.delete",
-  "collections.create",
-  "collections.update",
-  "collections.add_user",
-  "collections.remove_user",
-  "collections.add_group",
-  "collections.remove_group",
-  "collections.delete",
+  "shares.create",
+  "shares.update",
+  "shares.revoke",
+  "teams.update",
+  "users.create",
+  "users.update",
+  "users.signin",
+  "users.promote",
+  "users.demote",
+  "users.invite",
+  "users.suspend",
+  "users.activate",
+  "users.delete",
 ];
 
 export default Event;

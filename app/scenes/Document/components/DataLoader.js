@@ -7,6 +7,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
+import { withTheme } from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -21,7 +22,7 @@ import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
-import { type LocationWithState } from "types";
+import { type LocationWithState, type Theme } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import isInternalUrl from "utils/isInternalUrl";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
@@ -34,6 +35,7 @@ type Props = {|
   policies: PoliciesStore,
   revisions: RevisionsStore,
   ui: UiStore,
+  theme: Theme,
   history: RouterHistory,
 |};
 
@@ -47,6 +49,7 @@ class DataLoader extends React.Component<Props> {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
     this.loadDocument();
+    this.updateBackground();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -64,9 +67,20 @@ class DataLoader extends React.Component<Props> {
 
     // Also need to load the revision if it changes
     const { revisionId } = this.props.match.params;
-    if (prevProps.match.params.revisionId !== revisionId && revisionId) {
+    if (
+      prevProps.match.params.revisionId !== revisionId &&
+      revisionId &&
+      revisionId !== "latest"
+    ) {
       this.loadRevision();
     }
+    this.updateBackground();
+  }
+
+  updateBackground() {
+    // ensure the wider page color always matches the theme. This is to
+    // account for share links which don't sit in the wider Layout component
+    window.document.body.style.background = this.props.theme.background;
   }
 
   get isEditing() {
@@ -152,7 +166,7 @@ class DataLoader extends React.Component<Props> {
         shareId,
       });
 
-      if (revisionId) {
+      if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
       } else {
         this.revision = undefined;
@@ -254,5 +268,5 @@ export default withRouter(
     "revisions",
     "policies",
     "shares"
-  )(DataLoader)
+  )(withTheme(DataLoader))
 );

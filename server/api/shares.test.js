@@ -149,9 +149,10 @@ describe("#shares.create", () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
-  it("should allow creating a share record for document in read-only collection", async () => {
+  it("should not allow creating a share record with read-only permissions", async () => {
     const { user, document, collection } = await seed();
     collection.private = true;
+
     await collection.save();
 
     await CollectionUser.create({
@@ -164,11 +165,7 @@ describe("#shares.create", () => {
     const res = await server.post("/api/shares.create", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.published).toBe(false);
-    expect(body.data.documentTitle).toBe(document.title);
+    expect(res.status).toEqual(403);
   });
 
   it("should allow creating a share record if link previously revoked", async () => {
@@ -284,7 +281,7 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should not find revoked share", async () => {
@@ -298,7 +295,7 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should not find share for deleted document", async () => {
@@ -312,7 +309,7 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should require authentication", async () => {

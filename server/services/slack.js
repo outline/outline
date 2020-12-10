@@ -7,7 +7,7 @@ export default class Slack {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":
-      case "documents.update":
+      case "documents.update.debounced":
         return this.documentUpdated(event);
       case "integrations.create":
         return this.integrationCreated(event);
@@ -55,20 +55,6 @@ export default class Slack {
   }
 
   async documentUpdated(event: DocumentEvent) {
-    // lets not send a notification on every autosave update
-    if (
-      event.name === "documents.update" &&
-      event.data &&
-      event.data.autosave
-    ) {
-      return;
-    }
-
-    // lets not send a notification on every CMD+S update
-    if (event.name === "documents.update" && event.data && !event.data.done) {
-      return;
-    }
-
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
 
@@ -87,10 +73,10 @@ export default class Slack {
 
     const team = await Team.findByPk(document.teamId);
 
-    let text = `${document.createdBy.name} published a new document`;
+    let text = `${document.updatedBy.name} updated a document`;
 
-    if (event.name === "documents.update") {
-      text = `${document.updatedBy.name} updated a document`;
+    if (event.name === "documents.publish") {
+      text = `${document.createdBy.name} published a new document`;
     }
 
     await fetch(integration.settings.url, {

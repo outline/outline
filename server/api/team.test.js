@@ -21,6 +21,17 @@ describe("#team.update", () => {
     expect(body.data.name).toEqual("New name");
   });
 
+  it("should allow identical team details", async () => {
+    const { admin, team } = await seed();
+    const res = await server.post("/api/team.update", {
+      body: { token: admin.getJwtToken(), name: team.name },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual(team.name);
+  });
+
   it("should require admin", async () => {
     const { user } = await seed();
     const res = await server.post("/api/team.update", {

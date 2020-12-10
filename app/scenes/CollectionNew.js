@@ -3,6 +3,7 @@ import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
@@ -20,6 +21,7 @@ type Props = {
   ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
+  t: TFunction,
 };
 
 @observer
@@ -84,7 +86,7 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handleDescriptionChange = (getValue) => {
+  handleDescriptionChange = (getValue: () => string) => {
     this.description = getValue();
   };
 
@@ -98,17 +100,19 @@ class CollectionNew extends React.Component<Props> {
   };
 
   render() {
+    const { t } = this.props;
+
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          Collections are for grouping your knowledge base. They work best when
-          organized around a topic or internal team — Product or Engineering for
-          example.
+          {t(
+            "Collections are for grouping your knowledge base. They work best when organized around a topic or internal team — Product or Engineering for example."
+          )}
         </HelpText>
         <Flex>
           <Input
             type="text"
-            label="Name"
+            label={t("Name")}
             onChange={this.handleNameChange}
             value={this.name}
             required
@@ -124,29 +128,33 @@ class CollectionNew extends React.Component<Props> {
           />
         </Flex>
         <InputRich
-          label="Description"
+          label={t("Description")}
           onChange={this.handleDescriptionChange}
           defaultValue={this.description || ""}
-          placeholder="More details about this collection…"
+          placeholder={t("More details about this collection…")}
           minHeight={68}
           maxHeight={200}
         />
         <Switch
           id="private"
-          label="Private collection"
+          label={t("Private collection")}
           onChange={this.handlePrivateChange}
           checked={this.private}
         />
         <HelpText>
-          A private collection will only be visible to invited team members.
+          {t(
+            "A private collection will only be visible to invited team members."
+          )}
         </HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? "Creating…" : "Create"}
+          {this.isSaving ? t("Creating…") : t("Create")}
         </Button>
       </form>
     );
   }
 }
 
-export default inject("collections", "ui")(withRouter(CollectionNew));
+export default withTranslation()<CollectionNew>(
+  inject("collections", "ui")(withRouter(CollectionNew))
+);

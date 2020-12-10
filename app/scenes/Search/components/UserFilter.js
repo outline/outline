@@ -5,7 +5,7 @@ import UsersStore from "stores/UsersStore";
 import FilterOptions from "./FilterOptions";
 
 const defaultOption = {
-  key: undefined,
+  key: "",
   label: "Any author",
 };
 

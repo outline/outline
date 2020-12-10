@@ -28,7 +28,7 @@ class ImageUpload extends React.Component<Props> {
   @observable isUploading: boolean = false;
   @observable isCropping: boolean = false;
   @observable zoom: number = 1;
-  file: File;
+  @observable file: File;
   avatarEditorRef: AvatarEditor;
 
   static defaultProps = {
@@ -128,7 +128,12 @@ class ImageUpload extends React.Component<Props> {
         style={EMPTY_OBJECT}
         disablePreview
       >
-        {this.props.children}
+        {({ getRootProps, getInputProps, isDragActive }) => (
+          <div {...getRootProps()} {...{ isDragActive }}>
+            <input {...getInputProps()} />
+            {this.props.children}
+          </div>
+        )}
       </Dropzone>
     );
   }
