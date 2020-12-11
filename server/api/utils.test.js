@@ -35,11 +35,42 @@ describe("#utils.gc", () => {
     });
 
     const attachment = await buildAttachment({
+      teamId: document.teamId,
       documentId: document.id,
     });
 
     document.text = `![text](${attachment.redirectUrl})`;
     await document.save();
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Attachment.count()).toEqual(0);
+    expect(await Document.scope().count()).toEqual(0);
+  });
+
+  it("should handle unknown attachment ids", async () => {
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
+
+    document.text = `![text](${attachment.redirectUrl})`;
+    await document.save();
+
+    // remove attachment so it no longer exists in the database, this is also
+    // representative of a corrupt attachment id in the doc or the regex returning
+    // an incorrect string
+    await attachment.destroy({ force: true });
 
     const res = await server.post("/api/utils.gc", {
       body: {

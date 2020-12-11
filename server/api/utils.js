@@ -6,6 +6,7 @@ import { AuthenticationError } from "../errors";
 import { Document, Attachment } from "../models";
 import { Op, sequelize } from "../sequelize";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
+import { deleteFromS3 } from "../utils/s3";
 
 const router = new Router();
 const log = debug("utils");
@@ -17,17 +18,15 @@ router.post("utils.gc", async (ctx) => {
     throw new AuthenticationError("Invalid secret token");
   }
 
-  log("Permanently deleting documents older than 30 days…");
-
-  const where = {
-    deletedAt: {
-      [Op.lt]: subDays(new Date(), 30),
-    },
-  };
+  log(`Permanently destroying upto ${limit} documents older than 30 days…`);
 
   const documents = await Document.scope("withUnpublished").findAll({
     attributes: ["id", "teamId", "text"],
-    where,
+    where: {
+      deletedAt: {
+        [Op.lt]: subDays(new Date(), 30),
+      },
+    },
     paranoid: false,
     limit,
   });
@@ -54,23 +53,33 @@ router.post("utils.gc", async (ctx) => {
       });
 
       if (parseInt(count) === 0) {
-        await Attachment.destroy({
+        const attachment = await Attachment.findOne({
           where: {
+            teamId: document.teamId,
             id: attachmentId,
           },
         });
 
-        log(`Deleted attachment ${attachmentId}`);
+        if (attachment) {
+          await attachment.destroy();
+          await deleteFromS3(attachment.key);
+
+          log(`Attachment ${attachmentId} deleted`);
+        } else {
+          log(`Unknown attachment ${attachmentId} ignored`);
+        }
       }
     }
   }
 
   await Document.scope("withUnpublished").destroy({
-    where,
+    where: {
+      id: documents.map((document) => document.id),
+    },
     force: true,
   });
 
-  log(`Deleted ${documents.length} documents`);
+  log(`Destroyed ${documents.length} documents`);
 
   ctx.body = {
     success: true,

@@ -12,6 +12,7 @@ import {
   publicS3Endpoint,
   makeCredential,
   getSignedImageUrl,
+  deleteFromS3,
 } from "../utils/s3";
 
 const { authorize } = policy;
@@ -104,6 +105,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
   authorize(user, "update", document);
 
   await attachment.destroy();
+  await deleteFromS3(attachment.key);
 
   await Event.create({
     name: "attachments.delete",

@@ -1,7 +1,6 @@
 // @flow
 import path from "path";
 import { DataTypes, sequelize } from "../sequelize";
-import { deleteFromS3 } from "../utils/s3";
 
 const Attachment = sequelize.define(
   "attachment",
@@ -50,10 +49,6 @@ const Attachment = sequelize.define(
     },
   }
 );
-
-Attachment.beforeDestroy(async (model) => {
-  await deleteFromS3(model.key);
-});
 
 Attachment.associate = (models) => {
   Attachment.belongsTo(models.Team);
