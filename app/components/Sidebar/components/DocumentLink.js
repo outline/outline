@@ -2,6 +2,7 @@
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
+import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
@@ -47,6 +48,12 @@ function DocumentLink({
       fetchChildDocuments(node.id);
     }
   }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
+
+  const pathToNode = React.useMemo(
+    () =>
+      collection && collection.pathToDocument(node).map((entry) => entry.id),
+    [collection, node]
+  );
 
   const showChildren = React.useMemo(() => {
     return !!(
@@ -101,48 +108,87 @@ function DocumentLink({
 
   const [menuOpen, setMenuOpen] = React.useState(false);
 
+  // DnD
+
+  // Draggable
+  const [{ isDragging }, drag] = useDrag({
+    item: { type: "document", id: node.id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+
+  // Droppable
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: "document",
+    drop: () => console.log("dropped on: ", node.title, { node }),
+    canDrop: (item, monitor) =>
+      pathToNode && !pathToNode.includes(monitor.getItem().id),
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+      item: monitor.getItem(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+
+  // /DnD
+  // cant drag onto itself or inside its own shit
+
   return (
-    <React.Fragment key={node.id}>
-      <DropToImport documentId={node.id} activeClassName="activeDropZone">
-        <SidebarLink
-          innerRef={isActiveDocument ? activeDocumentRef : undefined}
-          onMouseEnter={handleMouseEnter}
-          to={{
-            pathname: node.url,
-            state: { title: node.title },
-          }}
-          label={
-            <>
-              {hasChildDocuments && (
-                <Disclosure
-                  expanded={expanded}
-                  onClick={handleDisclosureClick}
+    <div
+      key={node.id}
+      ref={drag}
+      style={{
+        opacity: isDragging ? 0.8 : 1, // TODO put this into a styled component
+      }}
+    >
+      <div
+        ref={drop}
+        style={{
+          outline: isOver && canDrop ? "1px solid red" : "",
+        }}
+      >
+        <DropToImport documentId={node.id} activeClassName="activeDropZone">
+          <SidebarLink
+            innerRef={isActiveDocument ? activeDocumentRef : undefined}
+            onMouseEnter={handleMouseEnter}
+            to={{
+              pathname: node.url,
+              state: { title: node.title },
+            }}
+            label={
+              <>
+                {hasChildDocuments && (
+                  <Disclosure
+                    expanded={expanded}
+                    onClick={handleDisclosureClick}
+                  />
+                )}
+                <EditableTitle
+                  title={node.title || t("Untitled")}
+                  onSubmit={handleTitleChange}
+                  canUpdate={canUpdate}
                 />
-              )}
-              <EditableTitle
-                title={node.title || t("Untitled")}
-                onSubmit={handleTitleChange}
-                canUpdate={canUpdate}
-              />
-            </>
-          }
-          depth={depth}
-          exact={false}
-          menuOpen={menuOpen}
-          menu={
-            document ? (
-              <Fade>
-                <DocumentMenu
-                  position="right"
-                  document={document}
-                  onOpen={() => setMenuOpen(true)}
-                  onClose={() => setMenuOpen(false)}
-                />
-              </Fade>
-            ) : undefined
-          }
-        ></SidebarLink>
-      </DropToImport>
+              </>
+            }
+            depth={depth}
+            exact={false}
+            menuOpen={menuOpen}
+            menu={
+              document ? (
+                <Fade>
+                  <DocumentMenu
+                    position="right"
+                    document={document}
+                    onOpen={() => setMenuOpen(true)}
+                    onClose={() => setMenuOpen(false)}
+                  />
+                </Fade>
+              ) : undefined
+            }
+          ></SidebarLink>
+        </DropToImport>
+      </div>
 
       {expanded && (
         <>
@@ -159,7 +205,7 @@ function DocumentLink({
           ))}
         </>
       )}
-    </React.Fragment>
+    </div>
   );
 }
 
