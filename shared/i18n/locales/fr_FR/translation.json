@@ -212,7 +212,7 @@
   "Read & Edit": "Lire et éditer",
   "Permissions": "Permissions",
   "Remove": "Supprimer",
-  "Active {{ lastActiveAt }} ago": "Actif il y a {{ lastActiveAt }}",
+  "Active <1></1> ago": "Active <1></1> ago",
   "Never signed in": "Jamais connecté",
   "Invited": "Invité",
   "Admin": "Administrateur",
