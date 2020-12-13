@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Membership from "models/Membership";
 import User from "models/User";
@@ -46,11 +46,9 @@ const MemberListItem = ({
       subtitle={
         <>
           {user.lastActiveAt ? (
-            <>
-              {t("Active {{ lastActiveAt }} ago", {
-                lastActiveAt: <Time dateTime={user.lastActiveAt} />,
-              })}
-            </>
+            <Trans>
+              Active <Time dateTime={user.lastActiveAt} /> ago
+            </Trans>
           ) : (
             t("Never signed in")
           )}
