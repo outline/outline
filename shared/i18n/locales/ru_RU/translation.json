@@ -212,7 +212,7 @@
   "Read & Edit": "Читать и редактировать",
   "Permissions": "Права доступа",
   "Remove": "Удалить",
-  "Active {{ lastActiveAt }} ago": "Активен {{ lastActiveAt }} назад",
+  "Active <1></1> ago": "Active <1></1> ago",
   "Never signed in": "Никогда не входил",
   "Invited": "Приглашенные",
   "Admin": "Администратор",
