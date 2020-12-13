@@ -3,8 +3,6 @@ import "mobx-react-lite/batchingForReactDom";
 import "focus-visible";
 import { Provider } from "mobx-react";
 import * as React from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { render } from "react-dom";
 import { BrowserRouter as Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
@@ -26,14 +24,12 @@ if (element) {
       <Provider {...stores}>
         <Theme>
           <Router>
-            <DndProvider backend={HTML5Backend}>
-              <>
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </>{" "}
-            </DndProvider>
+            <>
+              <ScrollToTop>
+                <Routes />
+              </ScrollToTop>
+              <Toasts />
+            </>
           </Router>
         </Theme>
       </Provider>

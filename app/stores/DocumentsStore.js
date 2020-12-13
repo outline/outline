@@ -450,12 +450,12 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   move = async (
-    document: Document,
+    documentId: string,
     collectionId: string,
     parentDocumentId: ?string
   ) => {
     const res = await client.post("/documents.move", {
-      id: document.id,
+      id: documentId,
       collectionId,
       parentDocumentId,
     });

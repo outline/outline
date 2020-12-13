@@ -1,6 +1,7 @@
 // @flow
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useDrop } from "react-dnd";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -9,6 +10,7 @@ import DropToImport from "components/DropToImport";
 import DocumentLink from "./DocumentLink";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useStores from "hooks/useStores";
 import CollectionMenu from "menus/CollectionMenu";
 
 type Props = {|
@@ -35,36 +37,62 @@ function CollectionLink({
     [collection]
   );
 
+  const { documents, policies } = useStores();
   const expanded = collection.id === ui.activeCollectionId;
+
+  // Droppable
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: "document",
+    drop: (item, monitor) => {
+      if (!collection) return;
+      documents.move(item.id, collection.id);
+    },
+    canDrop: (item, monitor) => {
+      return policies.abilities(collection.id).update;
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
 
   return (
     <>
-      <DropToImport key={collection.id} collectionId={collection.id}>
-        <SidebarLink
-          key={collection.id}
-          to={collection.url}
-          icon={<CollectionIcon collection={collection} expanded={expanded} />}
-          iconColor={collection.color}
-          expanded={expanded}
-          menuOpen={menuOpen}
-          label={
-            <EditableTitle
-              title={collection.name}
-              onSubmit={handleTitleChange}
-              canUpdate={canUpdate}
-            />
-          }
-          exact={false}
-          menu={
-            <CollectionMenu
-              position="right"
-              collection={collection}
-              onOpen={() => setMenuOpen(true)}
-              onClose={() => setMenuOpen(false)}
-            />
-          }
-        ></SidebarLink>
-      </DropToImport>
+      <div
+        ref={drop}
+        style={{
+          outline: isOver && canDrop ? "1px solid red" : "",
+        }}
+      >
+        <DropToImport key={collection.id} collectionId={collection.id}>
+          <SidebarLink
+            key={collection.id}
+            to={collection.url}
+            icon={
+              <CollectionIcon collection={collection} expanded={expanded} />
+            }
+            iconColor={collection.color}
+            expanded={expanded}
+            menuOpen={menuOpen}
+            label={
+              <EditableTitle
+                title={collection.name}
+                onSubmit={handleTitleChange}
+                canUpdate={canUpdate}
+              />
+            }
+            exact={false}
+            menu={
+              <CollectionMenu
+                position="right"
+                collection={collection}
+                onOpen={() => setMenuOpen(true)}
+                onClose={() => setMenuOpen(false)}
+              />
+            }
+          ></SidebarLink>
+        </DropToImport>
+      </div>
 
       {expanded &&
         collection.documents.map((node) => (

@@ -79,7 +79,7 @@ export default class Collection extends BaseModel {
     return result;
   }
 
-  pathToDocument(document: Document) {
+  pathToDocument(document: Document | NavigationNode) {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach((childNode) => {

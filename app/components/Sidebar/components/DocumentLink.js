@@ -112,7 +112,7 @@ function DocumentLink({
 
   // Draggable
   const [{ isDragging }, drag] = useDrag({
-    item: { type: "document", id: node.id },
+    item: { type: "document", ...node, depth, active: isActiveDocument },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -121,76 +121,80 @@ function DocumentLink({
   // Droppable
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: () => console.log("dropped on: ", node.title, { node }),
+    drop: (item, monitor) => {
+      if (!collection) return;
+      documents.move(item.id, collection.id, node.id);
+    },
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
-      item: monitor.getItem(),
       canDrop: monitor.canDrop(),
     }),
   });
 
   // /DnD
-  // cant drag onto itself or inside its own shit
 
   return (
-    <div
-      key={node.id}
-      ref={drag}
-      style={{
-        opacity: isDragging ? 0.8 : 1, // TODO put this into a styled component
-      }}
-    >
+    <>
       <div
-        ref={drop}
+        key={node.id}
+        ref={drag}
         style={{
-          outline: isOver && canDrop ? "1px solid red" : "",
+          opacity: isDragging ? 0.6 : 1,
+          outline: isDragging ? "1px solid green" : "",
         }}
       >
-        <DropToImport documentId={node.id} activeClassName="activeDropZone">
-          <SidebarLink
-            innerRef={isActiveDocument ? activeDocumentRef : undefined}
-            onMouseEnter={handleMouseEnter}
-            to={{
-              pathname: node.url,
-              state: { title: node.title },
-            }}
-            label={
-              <>
-                {hasChildDocuments && (
-                  <Disclosure
-                    expanded={expanded}
-                    onClick={handleDisclosureClick}
+        <div
+          ref={drop}
+          style={{
+            outline: isOver && canDrop ? "1px solid red" : "",
+          }}
+        >
+          <DropToImport documentId={node.id} activeClassName="activeDropZone">
+            <SidebarLink
+              innerRef={isActiveDocument ? activeDocumentRef : undefined}
+              onMouseEnter={handleMouseEnter}
+              to={{
+                pathname: node.url,
+                state: { title: node.title },
+              }}
+              label={
+                <>
+                  {hasChildDocuments && (
+                    <Disclosure
+                      expanded={expanded && !isDragging}
+                      onClick={handleDisclosureClick}
+                    />
+                  )}
+                  <EditableTitle
+                    title={node.title || t("Untitled")}
+                    onSubmit={handleTitleChange}
+                    canUpdate={canUpdate}
                   />
-                )}
-                <EditableTitle
-                  title={node.title || t("Untitled")}
-                  onSubmit={handleTitleChange}
-                  canUpdate={canUpdate}
-                />
-              </>
-            }
-            depth={depth}
-            exact={false}
-            menuOpen={menuOpen}
-            menu={
-              document ? (
-                <Fade>
-                  <DocumentMenu
-                    position="right"
-                    document={document}
-                    onOpen={() => setMenuOpen(true)}
-                    onClose={() => setMenuOpen(false)}
-                  />
-                </Fade>
-              ) : undefined
-            }
-          ></SidebarLink>
-        </DropToImport>
+                </>
+              }
+              depth={depth}
+              exact={false}
+              menuOpen={menuOpen}
+              menu={
+                document ? (
+                  <Fade>
+                    <DocumentMenu
+                      position="right"
+                      document={document}
+                      onOpen={() => setMenuOpen(true)}
+                      onClose={() => setMenuOpen(false)}
+                    />
+                  </Fade>
+                ) : undefined
+              }
+            />
+          </DropToImport>
+        </div>{" "}
       </div>
 
-      {expanded && (
+      {expanded && !isDragging && (
         <>
           {node.children.map((childNode) => (
             <ObservedDocumentLink
@@ -205,7 +209,7 @@ function DocumentLink({
           ))}
         </>
       )}
-    </div>
+    </>
   );
 }
 
