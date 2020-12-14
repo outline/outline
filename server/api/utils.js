@@ -6,7 +6,6 @@ import { AuthenticationError } from "../errors";
 import { Document, Attachment } from "../models";
 import { Op, sequelize } from "../sequelize";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
-import { deleteFromS3 } from "../utils/s3";
 
 const router = new Router();
 const log = debug("utils");
@@ -62,7 +61,6 @@ router.post("utils.gc", async (ctx) => {
 
         if (attachment) {
           await attachment.destroy();
-          await deleteFromS3(attachment.key);
 
           log(`Attachment ${attachmentId} deleted`);
         } else {
