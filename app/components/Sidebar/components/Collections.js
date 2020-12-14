@@ -16,7 +16,6 @@ import Fade from "components/Fade";
 import Flex from "components/Flex";
 import CollectionLink from "./CollectionLink";
 import CollectionsLoading from "./CollectionsLoading";
-import DocumentLinkDragLayer from "./DocumentLinkDragLayer";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
 import { newDocumentUrl } from "utils/routeHelpers";
@@ -83,7 +82,6 @@ class Collections extends React.Component<Props> {
 
     return (
       <DndProvider backend={HTML5Backend}>
-        {/* <DocumentLinkDragLayer /> */}
         <Flex column>
           <Header>{t("Collections")}</Header>
           {collections.isLoaded ? (
