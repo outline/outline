@@ -150,7 +150,7 @@
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-waypoint": "^9.0.2",
     "react-window": "^1.8.6",
-    "rich-markdown-editor": "^11.0.8",
+    "rich-markdown-editor": "^11.0.10",
     "semver": "^7.3.2",
     "sequelize": "^6.3.4",
     "sequelize-cli": "^6.2.0",
@@ -206,5 +206,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },
-  "version": "0.50.0"
+  "version": "0.51.0"
 }

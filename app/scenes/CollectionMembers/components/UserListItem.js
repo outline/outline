@@ -1,7 +1,7 @@
 // @flow
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
@@ -25,11 +25,9 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
       subtitle={
         <>
           {user.lastActiveAt ? (
-            <>
-              {t("Active {{ lastActiveAt }} ago", {
-                lastActiveAt: <Time dateTime={user.lastActiveAt} />,
-              })}
-            </>
+            <Trans>
+              Active <Time dateTime={user.lastActiveAt} /> ago
+            </Trans>
           ) : (
             t("Never signed in")
           )}
