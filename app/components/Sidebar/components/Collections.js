@@ -2,8 +2,6 @@
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
@@ -81,20 +79,18 @@ class Collections extends React.Component<Props> {
     );
 
     return (
-      <DndProvider backend={HTML5Backend}>
-        <Flex column>
-          <Header>{t("Collections")}</Header>
-          {collections.isLoaded ? (
-            this.isPreloaded ? (
-              content
-            ) : (
-              <Fade>{content}</Fade>
-            )
+      <Flex column>
+        <Header>{t("Collections")}</Header>
+        {collections.isLoaded ? (
+          this.isPreloaded ? (
+            content
           ) : (
-            <CollectionsLoading />
-          )}
-        </Flex>
-      </DndProvider>
+            <Fade>{content}</Fade>
+          )
+        ) : (
+          <CollectionsLoading />
+        )}
+      </Flex>
     );
   }
 }

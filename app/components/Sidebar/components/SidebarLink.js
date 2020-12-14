@@ -57,7 +57,7 @@ function SidebarLink({
   return (
     <StyledNavLink
       $isActiveDrop={isActiveDrop}
-      activeStyle={activeStyle}
+      activeStyle={isActiveDrop ? undefined : activeStyle}
       style={active ? activeStyle : style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}

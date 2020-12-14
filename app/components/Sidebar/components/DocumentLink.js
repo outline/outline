@@ -69,6 +69,7 @@ function DocumentLink({
   }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
 
   const [expanded, setExpanded] = React.useState(showChildren);
+  const [isSaving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (showChildren) {
@@ -121,9 +122,15 @@ function DocumentLink({
   // Droppable
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: (item, monitor) => {
+    drop: async (item, monitor) => {
       if (!collection) return;
-      documents.move(item.id, collection.id, node.id);
+
+      try {
+        setSaving(true);
+        await documents.move(item.id, collection.id, node.id);
+      } finally {
+        setSaving(false);
+      }
     },
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
@@ -137,16 +144,11 @@ function DocumentLink({
 
   return (
     <>
-      <div
+      <Draggable
         key={node.id}
         ref={drag}
-        style={
-          isDragging
-            ? {
-                opacity: 0.5,
-              }
-            : undefined
-        }
+        $isDragging={isDragging}
+        $isSaving={isSaving}
       >
         <div ref={drop}>
           <DropToImport documentId={node.id} activeClassName="activeDropZone">
@@ -161,7 +163,7 @@ function DocumentLink({
                 <>
                   {hasChildDocuments && (
                     <Disclosure
-                      expanded={expanded && !isDragging}
+                      expanded={expanded && !isDragging && !isSaving}
                       onClick={handleDisclosureClick}
                     />
                   )}
@@ -190,10 +192,10 @@ function DocumentLink({
               }
             />
           </DropToImport>
-        </div>{" "}
-      </div>
+        </div>
+      </Draggable>
 
-      {expanded && !isDragging && (
+      {expanded && !isDragging && !isSaving && (
         <>
           {node.children.map((childNode) => (
             <ObservedDocumentLink
@@ -211,6 +213,10 @@ function DocumentLink({
     </>
   );
 }
+
+const Draggable = styled("div")`
+  opacity: ${(props) => (props.$isDragging || props.$isSaving ? 0.5 : 1)};
+`;
 
 const Disclosure = styled(CollapsedIcon)`
   position: absolute;
