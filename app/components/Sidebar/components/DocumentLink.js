@@ -51,7 +51,7 @@ function DocumentLink({
 
   const pathToNode = React.useMemo(
     () =>
-      collection && collection.pathToDocument(node).map((entry) => entry.id),
+      collection && collection.pathToDocument(node.id).map((entry) => entry.id),
     [collection, node]
   );
 
@@ -61,7 +61,7 @@ function DocumentLink({
       activeDocument &&
       collection &&
       (collection
-        .pathToDocument(activeDocument)
+        .pathToDocument(activeDocument.id)
         .map((entry) => entry.id)
         .includes(node.id) ||
         isActiveDocument)

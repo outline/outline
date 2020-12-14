@@ -99,7 +99,7 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
   }
 
   const path = collection.pathToDocument
-    ? collection.pathToDocument(document).slice(0, -1)
+    ? collection.pathToDocument(document.id).slice(0, -1)
     : [];
 
   if (onlyText === true) {
