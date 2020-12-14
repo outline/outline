@@ -140,17 +140,15 @@ function DocumentLink({
       <div
         key={node.id}
         ref={drag}
-        style={{
-          opacity: isDragging ? 0.6 : 1,
-          outline: isDragging ? "1px solid green" : "",
-        }}
+        style={
+          isDragging
+            ? {
+                opacity: 0.5,
+              }
+            : undefined
+        }
       >
-        <div
-          ref={drop}
-          style={{
-            outline: isOver && canDrop ? "1px solid red" : "",
-          }}
-        >
+        <div ref={drop}>
           <DropToImport documentId={node.id} activeClassName="activeDropZone">
             <SidebarLink
               innerRef={isActiveDocument ? activeDocumentRef : undefined}
@@ -174,6 +172,7 @@ function DocumentLink({
                   />
                 </>
               }
+              isActiveDrop={isOver && canDrop}
               depth={depth}
               exact={false}
               menuOpen={menuOpen}

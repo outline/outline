@@ -58,12 +58,7 @@ function CollectionLink({
 
   return (
     <>
-      <div
-        ref={drop}
-        style={{
-          outline: isOver && canDrop ? "1px solid red" : "",
-        }}
-      >
+      <div ref={drop}>
         <DropToImport key={collection.id} collectionId={collection.id}>
           <SidebarLink
             key={collection.id}
@@ -74,6 +69,7 @@ function CollectionLink({
             iconColor={collection.color}
             expanded={expanded}
             menuOpen={menuOpen}
+            isActiveDrop={isOver && canDrop}
             label={
               <EditableTitle
                 title={collection.name}
