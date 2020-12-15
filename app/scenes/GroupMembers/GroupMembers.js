@@ -82,7 +82,7 @@ class GroupMembers extends React.Component<Props> {
                 icon={<PlusIcon />}
                 neutral
               >
-                {t("Add people…")}
+                {t("Add people")}…
               </Button>
             </span>
           </>

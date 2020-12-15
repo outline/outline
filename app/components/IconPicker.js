@@ -200,7 +200,7 @@ class IconPicker extends React.Component<Props> {
             })}
           </Icons>
           <Flex onClick={preventEventBubble}>
-            <React.Suspense fallback={<Loading>{t("Loading…")}</Loading>}>
+            <React.Suspense fallback={<Loading>{t("Loading")}…</Loading>}>
               <ColorPicker
                 color={this.props.color}
                 onChange={(color) =>

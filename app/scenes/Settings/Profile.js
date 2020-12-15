@@ -146,7 +146,7 @@ class Profile extends React.Component<Props> {
             .
           </HelpText>
           <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? t("Saving…") : t("Save")}
+            {isSaving ? `${t("Saving")}…` : t("Save")}
           </Button>
         </form>
 

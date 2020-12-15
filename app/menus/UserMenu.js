@@ -99,7 +99,7 @@ class UserMenu extends React.Component<Props> {
               type: "separator",
             },
             {
-              title: t("Revoke invite…"),
+              title: `${t("Revoke invite")}…`,
               onClick: this.handleRevoke,
               visible: user.isInvited,
             },
@@ -109,7 +109,7 @@ class UserMenu extends React.Component<Props> {
               visible: !user.isInvited && user.isSuspended,
             },
             {
-              title: t("Suspend account…"),
+              title: `${t("Suspend account")}…`,
               onClick: this.handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },

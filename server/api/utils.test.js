@@ -2,69 +2,141 @@
 import subDays from "date-fns/sub_days";
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Document } from "../models";
-import { sequelize } from "../sequelize";
-import { buildDocument } from "../test/factories";
+import { Attachment, Document } from "../models";
+import { buildAttachment, buildDocument } from "../test/factories";
 import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
+
+jest.mock("aws-sdk", () => {
+  const mS3 = { deleteObject: jest.fn().mockReturnThis(), promise: jest.fn() };
+  return {
+    S3: jest.fn(() => mS3),
+    Endpoint: jest.fn(),
+  };
+});
 
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
 describe("#utils.gc", () => {
   it("should destroy documents deleted more than 30 days ago", async () => {
-    const document = await buildDocument({
+    await buildDocument({
       publishedAt: new Date(),
+      deletedAt: subDays(new Date(), 60),
     });
-
-    await sequelize.query(
-      `UPDATE documents SET "deletedAt" = '${subDays(
-        new Date(),
-        60
-      ).toISOString()}' WHERE id = '${document.id}'`
-    );
 
     const res = await server.post("/api/utils.gc", {
       body: {
         token: process.env.UTILS_SECRET,
       },
     });
-    const reloaded = await Document.scope().findOne({
-      where: {
-        id: document.id,
-      },
-      paranoid: false,
-    });
+
     expect(res.status).toEqual(200);
-    expect(reloaded).toBe(null);
+    expect(await Document.scope().count()).toEqual(0);
+  });
+
+  it("should destroy attachments no longer referenced", async () => {
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
+
+    document.text = `![text](${attachment.redirectUrl})`;
+    await document.save();
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Attachment.count()).toEqual(0);
+    expect(await Document.scope().count()).toEqual(0);
+  });
+
+  it("should handle unknown attachment ids", async () => {
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
+
+    document.text = `![text](${attachment.redirectUrl})`;
+    await document.save();
+
+    // remove attachment so it no longer exists in the database, this is also
+    // representative of a corrupt attachment id in the doc or the regex returning
+    // an incorrect string
+    await attachment.destroy({ force: true });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Attachment.count()).toEqual(0);
+    expect(await Document.scope().count()).toEqual(0);
+  });
+
+  it("should not destroy attachments referenced in other documents", async () => {
+    const document1 = await buildDocument();
+
+    const document = await buildDocument({
+      teamId: document1.teamId,
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+
+    const attachment = await buildAttachment({
+      teamId: document1.teamId,
+      documentId: document.id,
+    });
+
+    document1.text = `![text](${attachment.redirectUrl})`;
+    await document1.save();
+
+    document.text = `![text](${attachment.redirectUrl})`;
+    await document.save();
+
+    expect(await Attachment.count()).toEqual(1);
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Attachment.count()).toEqual(1);
+    expect(await Document.scope().count()).toEqual(1);
   });
 
   it("should destroy draft documents deleted more than 30 days ago", async () => {
-    const document = await buildDocument({
+    await buildDocument({
       publishedAt: undefined,
+      deletedAt: subDays(new Date(), 60),
     });
-
-    await sequelize.query(
-      `UPDATE documents SET "deletedAt" = '${subDays(
-        new Date(),
-        60
-      ).toISOString()}' WHERE id = '${document.id}'`
-    );
 
     const res = await server.post("/api/utils.gc", {
       body: {
         token: process.env.UTILS_SECRET,
       },
     });
-    const reloaded = await Document.scope().findOne({
-      where: {
-        id: document.id,
-      },
-      paranoid: false,
-    });
     expect(res.status).toEqual(200);
-    expect(reloaded).toBe(null);
+    expect(await Document.scope().count()).toEqual(0);
   });
 
   it("should require authentication", async () => {

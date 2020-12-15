@@ -72,7 +72,7 @@ class Collections extends React.Component<Props> {
           to="/collections"
           onClick={this.props.onCreateCollection}
           icon={<PlusIcon color="currentColor" />}
-          label={t("New collection…")}
+          label={`${t("New collection")}…`}
           exact
         />
       </>

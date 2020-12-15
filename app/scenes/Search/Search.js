@@ -270,7 +270,7 @@ class Search extends React.Component<Props> {
         )}
         <ResultsWrapper pinToTop={this.pinToTop} column auto>
           <SearchField
-            placeholder={t("Search…")}
+            placeholder={`${t("Search")}…`}
             onKeyDown={this.handleKeyDown}
             onChange={this.updateLocation}
             defaultValue={this.query}

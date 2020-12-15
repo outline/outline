@@ -45,7 +45,7 @@ class NewTemplateMenu extends React.Component<Props> {
         label={
           label || (
             <Button icon={<PlusIcon />} small>
-              {t("New template…")}
+              {t("New template")}…
             </Button>
           )
         }
