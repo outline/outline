@@ -34,7 +34,7 @@ function DocumentLink({
   depth,
   canUpdate,
 }: Props) {
-  const { documents } = useStores();
+  const { documents, policies } = useStores();
   const { t } = useTranslation();
 
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
@@ -115,6 +115,9 @@ function DocumentLink({
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
+    canDrag: (monitor) => {
+      return policies.abilities(node.id).move;
+    },
   });
 
   // Droppable
