@@ -15,16 +15,16 @@ describe("i18n process.env is unset", () => {
   });
 
   it("translation of key should match", () =>
-    expect(i18n.t("Saving…")).toBe("Saving…"));
+    expect(i18n.t("Saving")).toBe("Saving"));
 
   it("translation if changed to de_DE", () => {
     i18n.changeLanguage("de_DE");
-    expect(i18n.t("Saving…")).toBe("Speichert…");
+    expect(i18n.t("Saving")).toBe("Speichert");
   });
 
   it("translation if changed to pt_PT", () => {
     i18n.changeLanguage("pt_PT");
-    expect(i18n.t("Saving…")).toBe("A guardar…");
+    expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
@@ -38,16 +38,16 @@ describe("i18n process.env is en_US", () => {
   });
 
   it("translation of key should match", () =>
-    expect(i18n.t("Saving…")).toBe("Saving…"));
+    expect(i18n.t("Saving")).toBe("Saving"));
 
   it("translation if changed to de_DE", () => {
     i18n.changeLanguage("de_DE");
-    expect(i18n.t("Saving…")).toBe("Speichert…");
+    expect(i18n.t("Saving")).toBe("Speichert");
   });
 
   it("translation if changed to pt_PT", () => {
     i18n.changeLanguage("pt_PT");
-    expect(i18n.t("Saving…")).toBe("A guardar…");
+    expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
@@ -61,16 +61,16 @@ describe("i18n process.env is de_DE", () => {
   });
 
   it("translation of key should match", () =>
-    expect(i18n.t("Saving…")).toBe("Speichert…"));
+    expect(i18n.t("Saving")).toBe("Speichert"));
 
   it("translation if changed to en_US", () => {
     i18n.changeLanguage("en_US");
-    expect(i18n.t("Saving…")).toBe("Saving…");
+    expect(i18n.t("Saving")).toBe("Saving");
   });
 
   it("translation if changed to pt_PT", () => {
     i18n.changeLanguage("pt_PT");
-    expect(i18n.t("Saving…")).toBe("A guardar…");
+    expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
@@ -84,15 +84,15 @@ describe("i18n process.env is pt_PT", () => {
   });
 
   it("translation of key should match", () =>
-    expect(i18n.t("Saving…")).toBe("A guardar…"));
+    expect(i18n.t("Saving")).toBe("A guardar"));
 
   it("translation if changed to en_US", () => {
     i18n.changeLanguage("en_US");
-    expect(i18n.t("Saving…")).toBe("Saving…");
+    expect(i18n.t("Saving")).toBe("Saving");
   });
 
   it("translation if changed to de_DE", () => {
     i18n.changeLanguage("de_DE");
-    expect(i18n.t("Saving…")).toBe("Speichert…");
+    expect(i18n.t("Saving")).toBe("Speichert");
   });
 });
