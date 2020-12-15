@@ -30,10 +30,13 @@ function Sidebar({ location, children }: Props) {
 
   const content = (
     <Container
-      editMode={ui.editMode}
       mobileSidebarVisible={ui.mobileSidebarVisible}
+      collapsed={ui.editMode || ui.sidebarCollapsed}
       column
     >
+      <CollapseToggle onClick={ui.toggleCollapsedSidebar}>
+        {ui.sidebarCollapsed ? "+" : "-"}
+      </CollapseToggle>
       <Toggle
         onClick={ui.toggleMobileSidebar}
         mobileSidebarVisible={ui.mobileSidebarVisible}
@@ -90,11 +93,31 @@ const Container = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    left: ${(props) => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
+    left: ${(props) =>
+      props.collapsed ? `calc(-${props.theme.sidebarWidth} + 16px)` : 0};
     width: ${(props) => props.theme.sidebarWidth};
     margin: 0;
     z-index: 3;
+
+    &:hover {
+      left: 0;
+    }
   `};
+`;
+
+const CollapseToggle = styled.a`
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  z-index: 1;
+  color: ${(props) => props.theme.sidebarText};
+
+  &:hover {
+    background: ${(props) => props.theme.sidebarItemBackground};
+  }
 `;
 
 const Toggle = styled.a`

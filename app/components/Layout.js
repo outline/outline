@@ -119,7 +119,11 @@ class Layout extends React.Component<Props> {
             </Switch>
           )}
 
-          <Content auto justify="center" editMode={ui.editMode}>
+          <Content
+            auto
+            justify="center"
+            sidebarCollapsed={ui.editMode || ui.sidebarCollapsed}
+          >
             {this.props.children}
           </Content>
 
@@ -159,7 +163,8 @@ const Content = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
+    margin-left: ${(props) =>
+      props.sidebarCollapsed ? 0 : props.theme.sidebarWidth};
   `};
 `;
 

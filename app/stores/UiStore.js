@@ -23,6 +23,7 @@ class UiStore {
   @observable editMode: boolean = false;
   @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
+  @observable sidebarCollapsed: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
 
   constructor() {
@@ -105,6 +106,21 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.activeCollectionId = undefined;
+  };
+
+  @action
+  collapseSidebar = () => {
+    this.sidebarCollapsed = true;
+  };
+
+  @action
+  expandSidebar = () => {
+    this.sidebarCollapsed = false;
+  };
+
+  @action
+  toggleCollapsedSidebar = () => {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
   };
 
   @action
