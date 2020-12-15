@@ -144,7 +144,7 @@ class CollectionScene extends React.Component<Props> {
             <Action>
               <InputSearch
                 source="collection"
-                placeholder={t("Search in collection…")}
+                placeholder={`${t("Search in collection")}…`}
                 collectionId={match.params.id}
               />
             </Action>
@@ -207,7 +207,7 @@ class CollectionScene extends React.Component<Props> {
                   &nbsp;&nbsp;
                   {collection.private && (
                     <Button onClick={this.onPermissions} neutral>
-                      {t("Manage members…")}
+                      {t("Manage members")}…
                     </Button>
                   )}
                 </Wrapper>

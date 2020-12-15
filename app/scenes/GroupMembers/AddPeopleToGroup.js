@@ -88,7 +88,7 @@ class AddPeopleToGroup extends React.Component<Props> {
 
         <Input
           type="search"
-          placeholder={t("Search by name…")}
+          placeholder={`${t("Search by name")}…`}
           value={this.query}
           onChange={this.handleFilter}
           label={t("Search people")}

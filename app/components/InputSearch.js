@@ -54,7 +54,7 @@ class InputSearch extends React.Component<Props> {
 
   render() {
     const { t } = this.props;
-    const { theme, placeholder = t("Search…") } = this.props;
+    const { theme, placeholder = `${t("Search")}…` } = this.props;
 
     return (
       <InputMaxWidth

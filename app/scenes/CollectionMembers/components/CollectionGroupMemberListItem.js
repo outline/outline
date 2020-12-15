@@ -52,7 +52,7 @@ const MemberListItem = ({
           <ButtonWrap>
             <DropdownMenu>
               <DropdownMenuItem onClick={openMembersModal}>
-                {t("Members…")}
+                {t("Members")}…
               </DropdownMenuItem>
               <hr />
               <DropdownMenuItem onClick={onRemove}>

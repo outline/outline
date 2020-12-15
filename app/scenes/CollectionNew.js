@@ -148,7 +148,7 @@ class CollectionNew extends React.Component<Props> {
         </HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? t("Creating…") : t("Create")}
+          {this.isSaving ? `${t("Creating")}…` : t("Create")}
         </Button>
       </form>
     );

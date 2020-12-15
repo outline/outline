@@ -203,7 +203,7 @@ class Header extends React.Component<Props> {
         <Wrapper align="center" justify="flex-end">
           {isSaving && !isPublishing && (
             <Action>
-              <Status>{t("Saving…")}</Status>
+              <Status>{t("Saving")}…</Status>
             </Action>
           )}
           &nbsp;
@@ -331,7 +331,7 @@ class Header extends React.Component<Props> {
                   disabled={publishingIsDisabled}
                   small
                 >
-                  {isPublishing ? t("Publishing…") : t("Publish")}
+                  {isPublishing ? `${t("Publishing")}…` : t("Publish")}
                 </Button>
               </Tooltip>
             </Action>

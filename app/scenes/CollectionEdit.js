@@ -120,7 +120,7 @@ class CollectionEdit extends React.Component<Props> {
             type="submit"
             disabled={this.isSaving || !this.props.collection.name}
           >
-            {this.isSaving ? t("Saving…") : t("Save")}
+            {this.isSaving ? `${t("Saving")}…` : t("Save")}
           </Button>
         </form>
       </Flex>

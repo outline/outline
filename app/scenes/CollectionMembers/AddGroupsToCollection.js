@@ -92,7 +92,7 @@ class AddGroupsToCollection extends React.Component<Props> {
 
         <Input
           type="search"
-          placeholder={t("Search by group name…")}
+          placeholder={`${t("Search by group name")}…`}
           value={this.query}
           onChange={this.handleFilter}
           label={t("Search groups")}

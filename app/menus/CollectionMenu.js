@@ -159,22 +159,22 @@ class CollectionMenu extends React.Component<Props> {
                 type: "separator",
               },
               {
-                title: t("Edit…"),
+                title: `${t("Edit")}…`,
                 visible: !!(collection && can.update),
                 onClick: this.handleEditCollectionOpen,
               },
               {
-                title: t("Permissions…"),
+                title: `${t("Permissions")}…`,
                 visible: !!(collection && can.update),
                 onClick: this.handleMembersModalOpen,
               },
               {
-                title: t("Export…"),
+                title: `${t("Export")}…`,
                 visible: !!(collection && can.export),
                 onClick: this.handleExportCollectionOpen,
               },
               {
-                title: t("Delete…"),
+                title: `${t("Delete")}…`,
                 visible: !!(collection && can.delete),
                 onClick: this.handleDeleteCollectionOpen,
               },

@@ -200,7 +200,7 @@ class DocumentMenu extends React.Component<Props> {
                 onClick: this.handleRestore,
               },
               {
-                title: t("Restore…"),
+                title: `${t("Restore")}…`,
                 visible: !collection && !!can.restore,
                 style: {
                   left: -170,
@@ -251,7 +251,7 @@ class DocumentMenu extends React.Component<Props> {
                 visible: !document.isStarred && !!can.star,
               },
               {
-                title: t("Share link…"),
+                title: `${t("Share link")}…`,
                 onClick: this.handleShareLink,
                 visible: canShareDocuments,
               },
@@ -274,7 +274,7 @@ class DocumentMenu extends React.Component<Props> {
                 visible: !!can.createChildDocument,
               },
               {
-                title: t("Create template…"),
+                title: `${t("Create template")}…`,
                 onClick: this.handleOpenTemplateModal,
                 visible: !!can.update && !document.isTemplate,
               },
@@ -299,12 +299,12 @@ class DocumentMenu extends React.Component<Props> {
                 visible: !!can.archive,
               },
               {
-                title: t("Delete…"),
+                title: `${t("Delete")}…`,
                 onClick: this.handleDelete,
                 visible: !!can.delete,
               },
               {
-                title: t("Move…"),
+                title: `${t("Move")}…`,
                 onClick: this.handleMove,
                 visible: !!can.move,
               },

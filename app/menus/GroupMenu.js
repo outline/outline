@@ -78,7 +78,7 @@ class GroupMenu extends React.Component<Props> {
           <DropdownMenuItems
             items={[
               {
-                title: t("Members…"),
+                title: `${t("Members")}…`,
                 onClick: this.props.onMembers,
                 visible: !!(group && can.read),
               },
@@ -86,12 +86,12 @@ class GroupMenu extends React.Component<Props> {
                 type: "separator",
               },
               {
-                title: t("Edit…"),
+                title: `${t("Edit")}…`,
                 onClick: this.onEdit,
                 visible: !!(group && can.update),
               },
               {
-                title: t("Delete…"),
+                title: `${t("Delete")}…`,
                 onClick: this.onDelete,
                 visible: !!(group && can.delete),
               },
