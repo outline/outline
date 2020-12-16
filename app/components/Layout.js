@@ -65,6 +65,11 @@ class Layout extends React.Component<Props> {
     window.document.body.style.background = props.theme.background;
   }
 
+  @keydown("meta+.")
+  handleToggleSidebar() {
+    this.props.ui.toggleCollapsedSidebar();
+  }
+
   @keydown("shift+/")
   handleOpenKeyboardShortcuts() {
     if (this.props.ui.editMode) return;
@@ -164,7 +169,9 @@ const Content = styled(Flex)`
 
   ${breakpoint("tablet")`
     margin-left: ${(props) =>
-      props.sidebarCollapsed ? 0 : props.theme.sidebarWidth};
+      props.sidebarCollapsed
+        ? props.theme.sidebarCollapsedWidth
+        : props.theme.sidebarWidth};
   `};
 `;
 

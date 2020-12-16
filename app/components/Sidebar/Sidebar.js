@@ -8,6 +8,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import CollapseToggle, { Button } from "./components/CollapseToggle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
@@ -34,9 +35,10 @@ function Sidebar({ location, children }: Props) {
       collapsed={ui.editMode || ui.sidebarCollapsed}
       column
     >
-      <CollapseToggle onClick={ui.toggleCollapsedSidebar}>
-        {ui.sidebarCollapsed ? "+" : "-"}
-      </CollapseToggle>
+      <CollapseToggle
+        collapsed={ui.sidebarCollapsed}
+        onClick={ui.toggleCollapsedSidebar}
+      />
       <Toggle
         onClick={ui.toggleMobileSidebar}
         mobileSidebarVisible={ui.mobileSidebarVisible}
@@ -66,7 +68,7 @@ const Container = styled(Flex)`
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
-  transition: left 100ms ease-out,
+  transition: box-shadow, 100ms, ease-in-out, left 100ms ease-out,
     ${(props) => props.theme.backgroundTransition};
   margin-left: ${(props) => (props.mobileSidebarVisible ? 0 : "-100%")};
   z-index: ${(props) => props.theme.depths.sidebar};
@@ -94,30 +96,33 @@ const Container = styled(Flex)`
 
   ${breakpoint("tablet")`
     left: ${(props) =>
-      props.collapsed ? `calc(-${props.theme.sidebarWidth} + 16px)` : 0};
+      props.collapsed
+        ? `calc(-${props.theme.sidebarWidth} + ${props.theme.sidebarCollapsedWidth})`
+        : 0};
     width: ${(props) => props.theme.sidebarWidth};
     margin: 0;
     z-index: 3;
 
-    &:hover {
+    &:hover,
+    &:focus-within {
       left: 0;
+      box-shadow: ${(props) =>
+        props.collapsed ? "rgba(0, 0, 0, 0.2) 1px 0 4px" : "none"};
+
+      & ${Button} {
+        opacity: .75;
+      }
+
+      & ${Button}:hover {
+        opacity: 1;
+      }
+    }
+
+    &:not(:hover):not(:focus-within) > div {
+      opacity: ${(props) => (props.collapsed ? "0" : "1")};
+      transition: opacity 100ms ease-in-out;
     }
   `};
-`;
-
-const CollapseToggle = styled.a`
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  z-index: 1;
-  color: ${(props) => props.theme.sidebarText};
-
-  &:hover {
-    background: ${(props) => props.theme.sidebarItemBackground};
-  }
 `;
 
 const Toggle = styled.a`

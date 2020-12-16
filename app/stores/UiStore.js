@@ -52,6 +52,7 @@ class UiStore {
 
     // persisted keys
     this.languagePromptDismissed = data.languagePromptDismissed;
+    this.sidebarCollapsed = data.sidebarCollapsed;
     this.tocVisible = data.tocVisible;
     this.theme = data.theme || "system";
 
@@ -206,6 +207,7 @@ class UiStore {
   get asJson(): string {
     return JSON.stringify({
       tocVisible: this.tocVisible,
+      sidebarCollapsed: this.sidebarCollapsed,
       languagePromptDismissed: this.languagePromptDismissed,
       theme: this.theme,
     });
