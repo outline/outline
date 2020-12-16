@@ -1,7 +1,7 @@
 // @flow
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useDrop } from "react-dnd";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -10,6 +10,7 @@ import DropToImport from "components/DropToImport";
 import DocumentLink from "./DocumentLink";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useStores from "hooks/useStores";
 import CollectionMenu from "menus/CollectionMenu";
 
 type Props = {|
@@ -20,27 +21,44 @@ type Props = {|
   prefetchDocument: (id: string) => Promise<void>,
 |};
 
-@observer
-class CollectionLink extends React.Component<Props> {
-  @observable menuOpen = false;
+function CollectionLink({
+  collection,
+  activeDocument,
+  prefetchDocument,
+  canUpdate,
+  ui,
+}: Props) {
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  handleTitleChange = async (name: string) => {
-    await this.props.collection.save({ name });
-  };
+  const handleTitleChange = React.useCallback(
+    async (name: string) => {
+      await collection.save({ name });
+    },
+    [collection]
+  );
 
-  render() {
-    const {
-      collection,
-      activeDocument,
-      prefetchDocument,
-      canUpdate,
-      ui,
-    } = this.props;
+  const { documents, policies } = useStores();
+  const expanded = collection.id === ui.activeCollectionId;
 
-    const expanded = collection.id === ui.activeCollectionId;
+  // Droppable
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: "document",
+    drop: (item, monitor) => {
+      if (!collection) return;
+      documents.move(item.id, collection.id);
+    },
+    canDrop: (item, monitor) => {
+      return policies.abilities(collection.id).update;
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
 
-    return (
-      <>
+  return (
+    <>
+      <div ref={drop}>
         <DropToImport key={collection.id} collectionId={collection.id}>
           <SidebarLink
             key={collection.id}
@@ -50,11 +68,12 @@ class CollectionLink extends React.Component<Props> {
             }
             iconColor={collection.color}
             expanded={expanded}
-            menuOpen={this.menuOpen}
+            menuOpen={menuOpen}
+            isActiveDrop={isOver && canDrop}
             label={
               <EditableTitle
                 title={collection.name}
-                onSubmit={this.handleTitleChange}
+                onSubmit={handleTitleChange}
                 canUpdate={canUpdate}
               />
             }
@@ -63,28 +82,28 @@ class CollectionLink extends React.Component<Props> {
               <CollectionMenu
                 position="right"
                 collection={collection}
-                onOpen={() => (this.menuOpen = true)}
-                onClose={() => (this.menuOpen = false)}
+                onOpen={() => setMenuOpen(true)}
+                onClose={() => setMenuOpen(false)}
               />
             }
           ></SidebarLink>
         </DropToImport>
+      </div>
 
-        {expanded &&
-          collection.documents.map((node) => (
-            <DocumentLink
-              key={node.id}
-              node={node}
-              collection={collection}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              canUpdate={canUpdate}
-              depth={1.5}
-            />
-          ))}
-      </>
-    );
-  }
+      {expanded &&
+        collection.documents.map((node) => (
+          <DocumentLink
+            key={node.id}
+            node={node}
+            collection={collection}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            canUpdate={canUpdate}
+            depth={1.5}
+          />
+        ))}
+    </>
+  );
 }
 
-export default CollectionLink;
+export default observer(CollectionLink);

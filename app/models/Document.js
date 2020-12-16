@@ -268,7 +268,7 @@ export default class Document extends BaseModel {
   };
 
   move = (collectionId: string, parentDocumentId: ?string) => {
-    return this.store.move(this, collectionId, parentDocumentId);
+    return this.store.move(this.id, collectionId, parentDocumentId);
   };
 
   duplicate = () => {

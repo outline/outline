@@ -79,12 +79,12 @@ export default class Collection extends BaseModel {
     return result;
   }
 
-  pathToDocument(document: Document) {
+  pathToDocument(documentId: string) {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach((childNode) => {
         const newPath = [...previousPath, childNode];
-        if (childNode.id === document.id) {
+        if (childNode.id === documentId) {
           path = newPath;
           return;
         }
