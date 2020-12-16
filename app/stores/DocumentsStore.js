@@ -19,6 +19,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
+  @observable movingDocumentId: ?string;
 
   importFileTypes: string[] = [
     "text/markdown",
@@ -450,20 +451,26 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   move = async (
-    document: Document,
+    documentId: string,
     collectionId: string,
     parentDocumentId: ?string
   ) => {
-    const res = await client.post("/documents.move", {
-      id: document.id,
-      collectionId,
-      parentDocumentId,
-    });
-    invariant(res && res.data, "Data not available");
+    this.movingDocumentId = documentId;
 
-    res.data.documents.forEach(this.add);
-    res.data.collections.forEach(this.rootStore.collections.add);
-    this.addPolicies(res.policies);
+    try {
+      const res = await client.post("/documents.move", {
+        id: documentId,
+        collectionId,
+        parentDocumentId,
+      });
+      invariant(res && res.data, "Data not available");
+
+      res.data.documents.forEach(this.add);
+      res.data.collections.forEach(this.rootStore.collections.add);
+      this.addPolicies(res.policies);
+    } finally {
+      this.movingDocumentId = undefined;
+    }
   };
 
   @action

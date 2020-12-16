@@ -17,6 +17,7 @@ type Props = {
   menuOpen?: boolean,
   iconColor?: string,
   active?: boolean,
+  isActiveDrop?: boolean,
   theme: Theme,
   exact?: boolean,
   depth?: number,
@@ -30,6 +31,7 @@ function SidebarLink({
   to,
   label,
   active,
+  isActiveDrop,
   menu,
   menuOpen,
   theme,
@@ -54,7 +56,8 @@ function SidebarLink({
 
   return (
     <StyledNavLink
-      activeStyle={activeStyle}
+      $isActiveDrop={isActiveDrop}
+      activeStyle={isActiveDrop ? undefined : activeStyle}
       style={active ? activeStyle : style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -103,12 +106,20 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
-  color: ${(props) => props.theme.sidebarText};
+  background: ${(props) =>
+    props.$isActiveDrop ? props.theme.slateDark : "inherit"};
+  color: ${(props) =>
+    props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
 
+  svg {
+    ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
+  }
+
   &:hover {
-    color: ${(props) => props.theme.text};
+    color: ${(props) =>
+      props.$isActiveDrop ? props.theme.white : props.theme.text};
   }
 
   &:focus {

@@ -36,6 +36,7 @@ export const languageOptions = [
   { label: "Deutsch (Deutschland)", value: "de_DE" },
   { label: "Español (España)", value: "es_ES" },
   { label: "Français (France)", value: "fr_FR" },
+  { label: "한국어 (Korean)", value: "ko_KR" },
   { label: "Português (Portugal)", value: "pt_PT" },
 ];
 

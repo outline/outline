@@ -28,6 +28,8 @@ export default async function documentMover({
 
     document.collectionId = collectionId;
     document.parentDocumentId = null;
+    document.lastModifiedById = user.id;
+    document.updatedBy = user;
 
     await document.save();
     result.documents.push(document);
@@ -54,6 +56,8 @@ export default async function documentMover({
       // add to new collection (may be the same)
       document.collectionId = collectionId;
       document.parentDocumentId = parentDocumentId;
+      document.lastModifiedById = user.id;
+      document.updatedBy = user;
 
       const newCollection: Collection = collectionChanged
         ? await Collection.findByPk(collectionId, { transaction })
