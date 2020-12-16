@@ -1,5 +1,5 @@
 // @flow
-import naturalSort from "../../shared/utils/naturalSort";
+// import naturalSort from "../../shared/utils/naturalSort";
 import { Collection } from "../models";
 
 type Document = {
@@ -9,14 +9,14 @@ type Document = {
   url: string,
 };
 
-const sortDocuments = (documents: Document[]): Document[] => {
-  const orderedDocs = naturalSort(documents, "title");
+// const sortDocuments = (documents: Document[]): Document[] => {
+//   const orderedDocs = naturalSort(documents, "title");
 
-  return orderedDocs.map((document) => ({
-    ...document,
-    children: sortDocuments(document.children),
-  }));
-};
+//   return orderedDocs.map((document) => ({
+//     ...document,
+//     children: sortDocuments(document.children),
+//   }));
+// };
 
 export default function present(collection: Collection) {
   const data = {
@@ -30,11 +30,11 @@ export default function present(collection: Collection) {
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: undefined,
+    documents: collection.documentStructure ? collection.documentStructure : [],
   };
 
   // Force alphabetical sorting
-  data.documents = sortDocuments(collection.documentStructure);
+  // data.documents = sortDocuments(collection.documentStructure);
 
   return data;
 }

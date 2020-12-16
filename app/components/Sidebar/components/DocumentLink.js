@@ -124,70 +124,86 @@ function DocumentLink({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
+      if (monitor.didDrop()) return;
       if (!collection) return;
       documents.move(item.id, collection.id, node.id);
     },
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
     collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
+      isOver: !!monitor.isOver({ shallow: true }),
       canDrop: monitor.canDrop(),
+    }),
+  });
+
+  // Drop Reorder
+  const [{ isOverReorder }, dropReorder] = useDrop({
+    accept: "document",
+    drop: async (item, monitor) => {
+      // if (!collection) return;
+      // documents.move(item.id, collection.id, node.id);
+      console.log("after=> ", node.title);
+    },
+    collect: (monitor) => ({
+      isOverReorder: !!monitor.isOver(),
     }),
   });
 
   return (
     <>
-      <Draggable
-        key={node.id}
-        ref={drag}
-        $isDragging={isDragging}
-        $isMoving={isMoving}
-      >
-        <div ref={drop}>
-          <DropToImport documentId={node.id} activeClassName="activeDropZone">
-            <SidebarLink
-              innerRef={isActiveDocument ? activeDocumentRef : undefined}
-              onMouseEnter={handleMouseEnter}
-              to={{
-                pathname: node.url,
-                state: { title: node.title },
-              }}
-              label={
-                <>
-                  {hasChildDocuments && (
-                    <Disclosure
-                      expanded={expanded && !isDragging}
-                      onClick={handleDisclosureClick}
+      <div style={{ position: "relative" }}>
+        <Draggable
+          key={node.id}
+          ref={drag}
+          $isDragging={isDragging}
+          $isMoving={isMoving}
+        >
+          <div ref={drop}>
+            <DropToImport documentId={node.id} activeClassName="activeDropZone">
+              <SidebarLink
+                innerRef={isActiveDocument ? activeDocumentRef : undefined}
+                onMouseEnter={handleMouseEnter}
+                to={{
+                  pathname: node.url,
+                  state: { title: node.title },
+                }}
+                label={
+                  <>
+                    {hasChildDocuments && (
+                      <Disclosure
+                        expanded={expanded && !isDragging}
+                        onClick={handleDisclosureClick}
+                      />
+                    )}
+                    <EditableTitle
+                      title={node.title || t("Untitled")}
+                      onSubmit={handleTitleChange}
+                      canUpdate={canUpdate}
                     />
-                  )}
-                  <EditableTitle
-                    title={node.title || t("Untitled")}
-                    onSubmit={handleTitleChange}
-                    canUpdate={canUpdate}
-                  />
-                </>
-              }
-              isActiveDrop={isOver && canDrop}
-              depth={depth}
-              exact={false}
-              menuOpen={menuOpen}
-              menu={
-                document && !isMoving ? (
-                  <Fade>
-                    <DocumentMenu
-                      position="right"
-                      document={document}
-                      onOpen={() => setMenuOpen(true)}
-                      onClose={() => setMenuOpen(false)}
-                    />
-                  </Fade>
-                ) : undefined
-              }
-            />
-          </DropToImport>
-        </div>
-      </Draggable>
-
+                  </>
+                }
+                isActiveDrop={isOver && canDrop}
+                depth={depth}
+                exact={false}
+                menuOpen={menuOpen}
+                menu={
+                  document && !isMoving ? (
+                    <Fade>
+                      <DocumentMenu
+                        position="right"
+                        document={document}
+                        onOpen={() => setMenuOpen(true)}
+                        onClose={() => setMenuOpen(false)}
+                      />
+                    </Fade>
+                  ) : undefined
+                }
+              />
+            </DropToImport>
+          </div>
+        </Draggable>
+        <DropToReorder isOver={isOverReorder} ref={dropReorder} />
+      </div>
       {expanded && !isDragging && (
         <>
           {node.children.map((childNode) => (
@@ -206,6 +222,26 @@ function DocumentLink({
     </>
   );
 }
+
+const DropToReorder = styled("div")`
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 16px;
+  bottom: -8px;
+
+  opacity: ${(props) => (props.isOver ? 1 : 0)};
+  transition: opacity 150ms;
+  background: transparent;
+  ::after {
+    content: "";
+    height: 4px;
+    background: #999;
+    width: 100%;
+    position: absolute;
+    top: 6px;
+  }
+`;
 
 const Draggable = styled("div")`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
