@@ -42,7 +42,7 @@
   "Delete row": "Delete row",
   "Delete table": "Delete table",
   "Italic": "Italic",
-  "Sorry, that link won’t work for this embed type": "Sorry, that link won’t work for this embed type",
+  "Sorry, that link won’t work for this embed type": "申し訳ありませんが、この埋め込みタイプではリンクが機能しません",
   "Find or create a doc": "Find or create a doc",
   "Big heading": "Big heading",
   "Medium heading": "Medium heading",
@@ -250,7 +250,7 @@
   "Move current document": "Move current document",
   "Jump to search": "Jump to search",
   "Jump to dashboard": "Jump to dashboard",
-  "Table of contents": "Table of contents",
+  "Table of contents": "目次",
   "Open this guide": "Open this guide",
   "Editor": "Editor",
   "Save and exit document edit mode": "Save and exit document edit mode",
@@ -279,7 +279,7 @@
   "Photo": "Photo",
   "Upload": "Upload",
   "Full name": "Full name",
-  "Language": "Language",
+  "Language": "言語",
   "Please note that translations are currently in early access.<1></1>Community contributions are accepted though our <4>translation portal</4>": "Please note that translations are currently in early access.<1></1>Community contributions are accepted though our <4>translation portal</4>",
   "Delete Account": "Delete Account",
   "You may delete your account at any time, note that this is unrecoverable": "You may delete your account at any time, note that this is unrecoverable",
@@ -293,5 +293,5 @@
   "{{ time }} ago.": "{{ time }} ago.",
   "Suspended": "Suspended",
   "Edit Profile": "Edit Profile",
-  "{{ userName }} hasn’t updated any documents yet.": "{{ userName }} hasn’t updated any documents yet."
+  "{{ userName }} hasn’t updated any documents yet.": "{{ userName }}はまだ文書を更新していません"
 }
