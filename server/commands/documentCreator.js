@@ -12,7 +12,7 @@ export default async function documentCreator({
   index,
   user,
   editorVersion,
-  ip
+  ip,
 }: {
   title: string,
   text: string,
@@ -24,7 +24,7 @@ export default async function documentCreator({
   index?: number,
   user: User,
   editorVersion?: string,
-  ip: string
+  ip: string,
 }): Document {
   const templateId = templateDocument ? templateDocument.id : undefined;
   let document = await Document.create({
