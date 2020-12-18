@@ -1,4 +1,5 @@
 // @flow
+import { NextIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -22,31 +23,9 @@ function CollapseToggle({ collapsed, ...rest }: Props) {
     >
       <Button {...rest} aria-hidden>
         {collapsed ? (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              fill="currentColor"
-              d="M7 0C6.44772 0 6 0.447716 6 1V6H1C0.447716 6 0 6.44772 0 7C0 7.55228 0.447716 8 1 8H6V13C6 13.5523 6.44772 14 7 14C7.55228 14 8 13.5523 8 13V8H13C13.5523 8 14 7.55228 14 7C14 6.44772 13.5523 6 13 6H8V1C8 0.447715 7.55228 0 7 0Z"
-            />
-          </svg>
+          <NextIcon color="currentColor" />
         ) : (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="currentColor"
-              d="M13 6C13.5523 6 14 6.44772 14 7C14 7.55228 13.5523 8 13 8H1C0.447716 8 0 7.55228 0 7C0 6.44772 0.447716 6 1 6H13Z"
-            />
-          </svg>
+          <BackIcon color="currentColor" />
         )}
       </Button>
     </Tooltip>
@@ -56,7 +35,7 @@ function CollapseToggle({ collapsed, ...rest }: Props) {
 export const Button = styled.button`
   display: block;
   position: absolute;
-  top: 8px;
+  top: 28px;
   right: 8px;
   border: 0;
   width: 24px;
@@ -69,7 +48,7 @@ export const Button = styled.button`
   border-radius: 4px;
   opacity: 0;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
 
   &:hover {
     color: ${(props) => props.theme.white};
