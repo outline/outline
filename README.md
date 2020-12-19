@@ -80,7 +80,7 @@ In development you can quickly get an environment running using Docker by follow
 
 > The preferred way to run Outline now is through the published docker images which then means the only thing you have to run at upgrade is the migrations
 
-If you've installed outline through cloning this repository, run the following command to upgrade:
+If you've installed Outline through cloning this repository, run the following command to upgrade:
 ```
 yarn upgrade
 ```
