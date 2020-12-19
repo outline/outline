@@ -84,6 +84,7 @@ If you've installed outline through cloning this repository, run the following c
 ```
 yarn upgrade
 ```
+
 ## Development
 
 ### Server
