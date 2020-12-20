@@ -20,6 +20,7 @@ describe("documentBatchImporter", () => {
       type: "application/zip",
       path: path.resolve(__dirname, "..", "test", "fixtures", name),
     });
+    console.log(file);
 
     await documentBatchImporter({
       type: "outline",
