@@ -8,7 +8,6 @@ import sendfile from "koa-sendfile";
 import serve from "koa-static";
 import { languages } from "../shared/i18n";
 import environment from "./env";
-import { NotFoundError } from "./errors";
 import apexRedirect from "./middlewares/apexRedirect";
 import { opensearchResponse } from "./utils/opensearch";
 import { robotsResponse } from "./utils/robots";
@@ -78,7 +77,8 @@ router.get("/locales/:lng.json", async (ctx) => {
   let { lng } = ctx.params;
 
   if (!languages.includes(lng)) {
-    throw new NotFoundError();
+    ctx.status = 404;
+    return;
   }
 
   if (process.env.NODE_ENV === "production") {
