@@ -43,6 +43,71 @@ describe("#attachments.delete", () => {
     expect(await Attachment.count()).toEqual(0);
   });
 
+  it("should allow deleting an attachment without a document created by user", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    attachment.documentId = null;
+    await attachment.save();
+
+    const res = await server.post("/api/attachments.delete", {
+      body: { token: user.getJwtToken(), id: attachment.id },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Attachment.count()).toEqual(0);
+  });
+
+  it("should allow deleting an attachment without a document if admin", async () => {
+    const user = await buildUser({ isAdmin: true });
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+    });
+
+    attachment.documentId = null;
+    await attachment.save();
+
+    const res = await server.post("/api/attachments.delete", {
+      body: { token: user.getJwtToken(), id: attachment.id },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Attachment.count()).toEqual(0);
+  });
+
+  it("should not allow deleting an attachment in another team", async () => {
+    const user = await buildUser({ isAdmin: true });
+    const attachment = await buildAttachment();
+
+    attachment.documentId = null;
+    await attachment.save();
+
+    const res = await server.post("/api/attachments.delete", {
+      body: { token: user.getJwtToken(), id: attachment.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow deleting an attachment without a document", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+    });
+
+    attachment.documentId = null;
+    await attachment.save();
+
+    const res = await server.post("/api/attachments.delete", {
+      body: { token: user.getJwtToken(), id: attachment.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should not allow deleting an attachment belonging to a document user does not have access to", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
