@@ -65,6 +65,11 @@ class Layout extends React.Component<Props> {
     window.document.body.style.background = props.theme.background;
   }
 
+  @keydown("meta+.")
+  handleToggleSidebar() {
+    this.props.ui.toggleCollapsedSidebar();
+  }
+
   @keydown("shift+/")
   handleOpenKeyboardShortcuts() {
     if (this.props.ui.editMode) return;
@@ -119,7 +124,11 @@ class Layout extends React.Component<Props> {
             </Switch>
           )}
 
-          <Content auto justify="center" editMode={ui.editMode}>
+          <Content
+            auto
+            justify="center"
+            sidebarCollapsed={ui.editMode || ui.sidebarCollapsed}
+          >
             {this.props.children}
           </Content>
 
@@ -159,7 +168,10 @@ const Content = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
+    margin-left: ${(props) =>
+      props.sidebarCollapsed
+        ? props.theme.sidebarCollapsedWidth
+        : props.theme.sidebarWidth};
   `};
 `;
 

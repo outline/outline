@@ -61,7 +61,7 @@ const Header = styled.button`
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  padding: 16px 24px;
+  padding: 20px 24px;
   position: relative;
   background: none;
   line-height: inherit;
