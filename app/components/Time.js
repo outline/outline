@@ -3,6 +3,7 @@ import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import format from "date-fns/format";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
+import useStores from "hooks/useStores";
 
 let callbacks = [];
 
@@ -28,44 +29,45 @@ type Props = {
   shorten?: boolean,
 };
 
-class Time extends React.Component<Props> {
-  removeEachMinuteCallback: () => void;
+function Time(props: Props) {
+  const { auth } = useStores();
+  const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
+  const callback = React.useRef();
 
-  componentDidMount() {
-    this.removeEachMinuteCallback = eachMinute(() => {
-      this.forceUpdate();
-    });
-  }
-
-  componentWillUnmount() {
-    this.removeEachMinuteCallback();
-  }
-
-  render() {
-    const { shorten, addSuffix } = this.props;
-    let content = distanceInWordsToNow(this.props.dateTime, {
-      addSuffix,
+  React.useEffect(() => {
+    callback.current = eachMinute(() => {
+      setMinutesMounted((state) => ++state);
     });
 
-    if (shorten) {
-      content = content
-        .replace("about", "")
-        .replace("less than a minute ago", "just now")
-        .replace("minute", "min");
-    }
+    return () => {
+      if (callback.current) {
+        callback.current();
+      }
+    };
+  }, []);
 
-    return (
-      <Tooltip
-        tooltip={format(this.props.dateTime, "MMMM Do, YYYY h:mm a")}
-        delay={this.props.tooltipDelay}
-        placement="bottom"
-      >
-        <time dateTime={this.props.dateTime}>
-          {this.props.children || content}
-        </time>
-      </Tooltip>
-    );
+  const { shorten, addSuffix } = props;
+  let content = distanceInWordsToNow(props.dateTime, {
+    addSuffix,
+    locale: auth.user ? auth.user.language : undefined,
+  });
+
+  if (shorten) {
+    content = content
+      .replace("about", "")
+      .replace("less than a minute ago", "just now")
+      .replace("minute", "min");
   }
+
+  return (
+    <Tooltip
+      tooltip={format(props.dateTime, "MMMM Do, YYYY h:mm a")}
+      delay={props.tooltipDelay}
+      placement="bottom"
+    >
+      <time dateTime={props.dateTime}>{props.children || content}</time>
+    </Tooltip>
+  );
 }
 
 export default Time;
