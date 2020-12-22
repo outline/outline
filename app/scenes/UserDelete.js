@@ -28,7 +28,6 @@ class UserDelete extends React.Component<Props> {
       this.props.auth.logout();
     } catch (error) {
       this.props.ui.showToast(error.message);
-      throw error;
     } finally {
       this.isDeleting = false;
     }
