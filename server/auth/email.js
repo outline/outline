@@ -45,7 +45,11 @@ router.post("email", async (ctx) => {
       user.lastSigninEmailSentAt &&
       user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
     ) {
-      ctx.redirect(`${team.url}?notice=email-auth-ratelimit`);
+      ctx.body = {
+        redirect: `${team.url}?notice=email-auth-ratelimit`,
+        message: "Rate limit exceeded",
+        success: false,
+      };
       return;
     }
 
