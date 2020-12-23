@@ -227,19 +227,22 @@ const DropToReorder = styled("div")`
   position: absolute;
   z-index: 1;
   width: 100%;
-  height: 16px;
-  bottom: -8px;
+  height: 14px;
+  bottom: -7px;
 
   opacity: ${(props) => (props.isOver ? 1 : 0)};
   transition: opacity 150ms;
   background: transparent;
+  padding: 0 2px;
+
   ::after {
-    content: "";
-    height: 4px;
-    background: #999;
-    width: 100%;
+    background: #555;
     position: absolute;
     top: 6px;
+    content: "";
+    height: 2px;
+    border-radius: 2px;
+    width: 100%;
   }
 `;
 
