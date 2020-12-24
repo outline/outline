@@ -650,8 +650,10 @@ Document.prototype.delete = function (userId: string) {
     async (transaction: Transaction): Promise<Document> => {
       if (!this.archivedAt && !this.template) {
         // delete any children and remove from the document structure
-        const collection = await this.getCollection();
+        const collection = await this.getCollection({ transaction });
         if (collection) await collection.deleteDocument(this, { transaction });
+      } else {
+        await this.destroy({ transaction });
       }
 
       await Revision.destroy({
@@ -659,10 +661,13 @@ Document.prototype.delete = function (userId: string) {
         transaction,
       });
 
-      this.lastModifiedById = userId;
-      this.deletedAt = new Date();
+      await this.update(
+        { lastModifiedById: userId },
+        {
+          transaction,
+        }
+      );
 
-      await this.save({ transaction });
       return this;
     }
   );
