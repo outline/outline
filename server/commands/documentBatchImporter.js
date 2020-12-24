@@ -2,8 +2,10 @@
 import fs from "fs";
 import path from "path";
 import File from "formidable/lib/file";
+import invariant from "invariant";
 import JSZip from "jszip";
 import { Collection, User } from "../models";
+import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
 
@@ -18,27 +20,69 @@ export default async function documentBatchImporter({
   type: "outline",
   ip: string,
 }) {
+  // load the zip structure into memory
   const zipData = await fs.promises.readFile(file.path);
   const zip = await JSZip.loadAsync(zipData);
 
-  async function ingestDocuments(
-    zip: JSZip,
-    collectionId: string,
-    parentDocumentId?: string
-  ) {
-    const documents = [];
+  // store progress and pointers
+  let attachments = {};
+  let collections = {};
+  let documents = {};
 
-    let items = [];
-    zip.forEach(async function (path, item) {
-      items.push([path, item]);
-    });
+  // this is so we can use async / await a little easier
+  let folders = [];
+  zip.forEach(async function (path, item) {
+    folders.push([path, item]);
+  });
 
-    // TODO: attachments
+  for (const [rawPath, item] of folders) {
+    const itemPath = rawPath.replace(/\/$/, "");
+    const itemDir = path.dirname(itemPath);
+    const name = path.basename(item.name);
+    const depth = itemPath.split("/").length - 1;
 
-    // 2 passes, one for documents and then second for their nested documents
-    for (const [_, item] of items) {
-      if (item.dir) return;
+    // known skippable items
+    if (itemPath.startsWith("__MACOSX") || itemPath.endsWith(".DS_Store")) {
+      continue;
+    }
 
+    // all top level items must be directories representing collections
+    console.log("iterating over", itemPath, depth);
+
+    if (depth === 0 && item.dir && name) {
+      // check if collection with name exists
+      let [collection, isCreated] = await Collection.findOrCreate({
+        where: {
+          teamId: user.teamId,
+          name,
+        },
+        defaults: {
+          creatorId: user.id,
+          private: false,
+        },
+      });
+
+      // create new collection if name already exists, yes it's possible that
+      // there is also a "Name (Imported)" but this is a case not worth dealing
+      // with right now
+      if (!isCreated) {
+        collection = await Collection.create({
+          teamId: user.teamId,
+          creatorId: user.id,
+          name: `${name} (Imported)`,
+          private: false,
+        });
+      }
+
+      collections[itemPath] = collection;
+      continue;
+    }
+
+    if (depth > 0 && !item.dir && item.name.endsWith(".md")) {
+      const collection = collections[itemDir];
+      invariant(collection, "Collection must exist for document", itemDir);
+
+      // we have a document
       const content = await item.async("string");
       const name = path.basename(item.name);
       await fs.promises.writeFile(`/tmp/${name}`, content);
@@ -54,70 +98,50 @@ export default async function documentBatchImporter({
         ip,
       });
 
+      // must be a nested document, find the parent
+      if (depth > 1) {
+        console.log("nested doc", itemDir);
+      }
+
       const document = await documentCreator({
         title,
         text,
         publish: true,
-        collectionId,
-        parentDocumentId,
+        collectionId: collection.id,
+        parentDocumentId: undefined,
         user,
         ip,
       });
 
-      // Keep track of which documents have been created
-      documents.push(document);
-    }
-
-    for (const [filePath, item] of folders) {
-      const name = path.basename(item.name);
-
-      // treat items in here as nested documents
-      if (!item.dir) return;
-      if (name === "uploads") return;
-
-      const document = documents.find((doc) => doc.title === name);
-      if (!document) {
-        console.log(
-          `Couldn't find a matching parent document for folder ${name}`
-        );
-        return;
-      }
-
-      // ensure document is created first, get parentDocumentId
-      await ingestDocuments(zip.folder(filePath), collectionId, document.id);
-    }
-  }
-
-  let folders = [];
-  zip.forEach(async function (path, item) {
-    folders.push([path, item]);
-  });
-
-  for (const [folderPath, item] of folders) {
-    const name = path.basename(item.name);
-
-    if (folderPath.startsWith("__MACOSX") || folderPath.endsWith(".DS_Store")) {
+      documents[itemPath] = document;
       continue;
     }
 
-    // all top level  items must be directories representing collections
-    console.log("iterating over", folderPath);
-
-    // treat this as a collection
-    if (item.dir) {
-      // create collection if a collection with this name doesn't exist
-      const [collection, isCreated] = await Collection.findOrCreate({
-        where: {
-          teamId: user.teamId,
-          name,
-        },
-        defaults: {
-          private: false,
-        },
-      });
-
-      console.log(`Collection ${name} ${isCreated ? "created" : "found"}`);
-      await ingestDocuments(zip.folder(folderPath), collection.id);
+    if (depth > 0 && item.dir && name !== "uploads") {
+      // we have a nested document, create if it doesn't exist based on title
+      continue;
     }
+
+    if (depth > 0 && !item.dir && itemPath.includes("uploads")) {
+      // we have an attachment
+      const buffer = await item.async("nodebuffer");
+      const attachment = await attachmentCreator({
+        name,
+        type,
+        buffer,
+        user,
+        ip,
+      });
+      attachments[itemPath] = attachment;
+      continue;
+    }
+
+    console.log(`Skipped ${itemPath}`);
   }
+
+  return {
+    documents,
+    collections,
+    attachments,
+  };
 }

@@ -7,13 +7,12 @@ import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import TurndownService from "turndown";
 import utf8 from "utf8";
-import uuid from "uuid";
 import parseTitle from "../../shared/utils/parseTitle";
 import { FileImportError, InvalidRequestError } from "../errors";
-import { Attachment, Event, User } from "../models";
+import { User } from "../models";
 import dataURItoBuffer from "../utils/dataURItoBuffer";
 import parseImages from "../utils/parseImages";
-import { uploadToS3FromBuffer } from "../utils/s3";
+import attachmentCreator from "./attachmentCreator";
 
 // https://github.com/domchristie/turndown#options
 const turndownService = new TurndownService({
@@ -170,26 +169,13 @@ export default async function documentImporter({
 
   for (const uri of dataURIs) {
     const name = "imported";
-    const key = `uploads/${user.id}/${uuid.v4()}/${name}`;
-    const acl = process.env.AWS_S3_ACL || "private";
     const { buffer, type } = dataURItoBuffer(uri);
-    const url = await uploadToS3FromBuffer(buffer, type, key, acl);
 
-    const attachment = await Attachment.create({
-      key,
-      acl,
-      url,
-      size: buffer.length,
-      contentType: type,
-      teamId: user.teamId,
-      userId: user.id,
-    });
-
-    await Event.create({
-      name: "attachments.create",
-      data: { name },
-      teamId: user.teamId,
-      userId: user.id,
+    const attachment = await attachmentCreator({
+      name,
+      type,
+      buffer,
+      user,
       ip,
     });
 

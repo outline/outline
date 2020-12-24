@@ -20,13 +20,16 @@ describe("documentBatchImporter", () => {
       type: "application/zip",
       path: path.resolve(__dirname, "..", "test", "fixtures", name),
     });
-    console.log(file);
 
-    await documentBatchImporter({
+    const response = await documentBatchImporter({
       type: "outline",
       user,
       file,
       ip,
     });
+
+    expect(Object.keys(response.collections).length).toEqual(1);
+    expect(Object.keys(response.documents).length).toEqual(15);
+    expect(Object.keys(response.attachments).length).toEqual(6);
   });
 });
