@@ -79,13 +79,13 @@ In development you can quickly get an environment running using Docker by follow
 
 #### Docker
 
-> If you're running Outline with Docker you'll need to run migrations within the docker container, after updating the image. The command will be something like:
+If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
 ```
 docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
 ```
 #### Yarn
 
-> If you're running Outline by cloning this repository, run the following command to upgrade:
+If you're running Outline by cloning this repository, run the following command to upgrade:
 ```
 yarn upgrade
 ```
