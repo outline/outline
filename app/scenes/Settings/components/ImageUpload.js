@@ -10,7 +10,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
-import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
+import { uploadFile, dataUrlToBlob, compressImage } from "utils/uploadFile";
 
 const EMPTY_OBJECT = {};
 
@@ -53,7 +53,11 @@ class ImageUpload extends React.Component<Props> {
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
-      const attachment = await uploadFile(imageBlob, {
+      const compressed = await compressImage(imageBlob, {
+        maxHeight: 256,
+        maxWidth: 256,
+      });
+      const attachment = await uploadFile(compressed, {
         name: this.file.name,
         public: true,
       });
