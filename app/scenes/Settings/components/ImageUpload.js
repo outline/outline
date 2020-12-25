@@ -10,7 +10,8 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
-import { uploadFile, dataUrlToBlob, compressImage } from "utils/uploadFile";
+import { compressImage } from "utils/compressImage";
+import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 const EMPTY_OBJECT = {};
 

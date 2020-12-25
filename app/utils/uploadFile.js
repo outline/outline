@@ -1,5 +1,4 @@
 // @flow
-import Compressor from "compressorjs";
 import invariant from "invariant";
 import { client } from "./ApiClient";
 
@@ -7,18 +6,6 @@ type Options = {
   name?: string,
   documentId?: string,
   public?: boolean,
-};
-
-export const compressImage = async (
-  ...params: ConstructorParameters<typeof Compressor>
-): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    new Compressor(params[0], {
-      ...params[1],
-      success: resolve,
-      error: reject,
-    });
-  });
 };
 
 export const uploadFile = async (
