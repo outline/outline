@@ -29,7 +29,7 @@ describe("documentBatchImporter", () => {
     });
 
     expect(Object.keys(response.collections).length).toEqual(1);
-    expect(Object.keys(response.documents).length).toEqual(15);
+    expect(Object.keys(response.documents).length).toEqual(8);
     expect(Object.keys(response.attachments).length).toEqual(6);
   });
 });

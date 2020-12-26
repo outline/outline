@@ -8,7 +8,7 @@ const { allow, cannot } = policy;
 
 allow(User, "create", Document);
 
-allow(User, "batchImport", Document, actor => {
+allow(User, "batchImport", Document, (actor) => {
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });

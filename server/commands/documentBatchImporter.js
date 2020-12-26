@@ -4,7 +4,8 @@ import path from "path";
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import JSZip from "jszip";
-import { Collection, User } from "../models";
+import { values, keys } from "lodash";
+import { Attachment, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
@@ -25,9 +26,9 @@ export default async function documentBatchImporter({
   const zip = await JSZip.loadAsync(zipData);
 
   // store progress and pointers
-  let attachments = {};
-  let collections = {};
-  let documents = {};
+  let collections: { string: Collection } = {};
+  let documents: { string: Document } = {};
+  let attachments: { string: Attachment } = {};
 
   // this is so we can use async / await a little easier
   let folders = [];
@@ -45,9 +46,6 @@ export default async function documentBatchImporter({
     if (itemPath.startsWith("__MACOSX") || itemPath.endsWith(".DS_Store")) {
       continue;
     }
-
-    // all top level items must be directories representing collections
-    console.log("iterating over", itemPath, depth);
 
     if (depth === 0 && item.dir && name) {
       // check if collection with name exists
@@ -79,8 +77,9 @@ export default async function documentBatchImporter({
     }
 
     if (depth > 0 && !item.dir && item.name.endsWith(".md")) {
-      const collection = collections[itemDir];
-      invariant(collection, "Collection must exist for document", itemDir);
+      const collectionDir = itemDir.split("/")[0];
+      const collection = collections[collectionDir];
+      invariant(collection, `Collection must exist for document ${itemDir}`);
 
       // we have a document
       const content = await item.async("string");
@@ -98,9 +97,12 @@ export default async function documentBatchImporter({
         ip,
       });
 
-      // must be a nested document, find the parent
+      // must be a nested document, find and reference the parent document
+      let parentDocumentId;
       if (depth > 1) {
-        console.log("nested doc", itemDir);
+        const parentDocument = documents[`${itemDir}.md`] || documents[itemDir];
+        invariant(parentDocument, `Document must exist for parent ${itemDir}`);
+        parentDocumentId = parentDocument.id;
       }
 
       const document = await documentCreator({
@@ -108,17 +110,12 @@ export default async function documentBatchImporter({
         text,
         publish: true,
         collectionId: collection.id,
-        parentDocumentId: undefined,
+        parentDocumentId,
         user,
         ip,
       });
 
       documents[itemPath] = document;
-      continue;
-    }
-
-    if (depth > 0 && item.dir && name !== "uploads") {
-      // we have a nested document, create if it doesn't exist based on title
       continue;
     }
 
@@ -137,6 +134,21 @@ export default async function documentBatchImporter({
     }
 
     console.log(`Skipped ${itemPath}`);
+  }
+
+  // All collections, documents, and attachments have been created – time to
+  // update the documents to point to newly uploaded attachments where possible
+  for (const attachmentPath of keys(attachments)) {
+    const attachment = attachments[attachmentPath];
+
+    for (const document of values(documents)) {
+      document.text = document.text
+        .replace(attachmentPath, attachment.redirectUrl)
+        .replace(`/${attachmentPath}`, attachment.redirectUrl);
+
+      // does nothing if the document text is unchanged
+      await document.save();
+    }
   }
 
   return {
