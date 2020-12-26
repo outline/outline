@@ -121,9 +121,9 @@ class SettingsSidebar extends React.Component<Props> {
               />
               {can.export && (
                 <SidebarLink
-                  to="/settings/export"
+                  to="/settings/import-export"
                   icon={<DocumentIcon color="currentColor" />}
-                  label={t("Export Data")}
+                  label={t("Import / Export")}
                 />
               )}
             </Section>
