@@ -55,8 +55,8 @@ class ImageUpload extends React.Component<Props> {
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
       const compressed = await compressImage(imageBlob, {
-        maxHeight: 256,
-        maxWidth: 256,
+        maxHeight: 512,
+        maxWidth: 512,
       });
       const attachment = await uploadFile(compressed, {
         name: this.file.name,
