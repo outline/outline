@@ -28,8 +28,8 @@ describe("documentBatchImporter", () => {
       ip,
     });
 
-    expect(Object.keys(response.collections).length).toEqual(1);
-    expect(Object.keys(response.documents).length).toEqual(8);
-    expect(Object.keys(response.attachments).length).toEqual(6);
+    expect(response.collections.length).toEqual(1);
+    expect(response.documents.length).toEqual(8);
+    expect(response.attachments.length).toEqual(6);
   });
 });

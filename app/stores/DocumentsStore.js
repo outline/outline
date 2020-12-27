@@ -503,7 +503,11 @@ export default class DocumentsStore extends BaseStore<Document> {
     formData.append("type", "outline");
     formData.append("file", file);
 
-    await client.post("/documents.batchImport", formData);
+    const res = await client.post("/documents.batchImport", formData);
+    invariant(res && res.data, "Data should be available");
+
+    this.addPolicies(res.policies);
+    res.data.collections.forEach(this.rootStore.collections.add);
   };
 
   @action

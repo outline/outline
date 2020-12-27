@@ -1,10 +1,10 @@
 // @flow
 import * as React from "react";
 import { Switch, Route } from "react-router-dom";
-import ImportExport from "scenes/Settings/ImportExport";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
 import Groups from "scenes/Settings/Groups";
+import ImportExport from "scenes/Settings/ImportExport";
 import Notifications from "scenes/Settings/Notifications";
 import People from "scenes/Settings/People";
 import Security from "scenes/Settings/Security";

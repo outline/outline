@@ -1124,7 +1124,7 @@ router.post("documents.batchImport", auth(), async (ctx) => {
   const user = ctx.state.user;
   authorize(user, "batchImport", Document);
 
-  await documentBatchImporter({
+  const { collections } = await documentBatchImporter({
     file,
     user,
     type,
@@ -1132,7 +1132,12 @@ router.post("documents.batchImport", auth(), async (ctx) => {
   });
 
   ctx.body = {
-    success: true,
+    data: {
+      collections: collections.map((collection) =>
+        presentCollection(collection)
+      ),
+    },
+    policies: presentPolicies(user, collections),
   };
 });
 

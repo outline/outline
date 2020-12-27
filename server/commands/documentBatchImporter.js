@@ -1,6 +1,7 @@
 // @flow
 import fs from "fs";
 import path from "path";
+import debug from "debug";
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import JSZip from "jszip";
@@ -10,6 +11,8 @@ import { Attachment, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
+
+const log = debug("commands");
 
 export default async function documentBatchImporter({
   file,
@@ -145,7 +148,7 @@ export default async function documentBatchImporter({
       continue;
     }
 
-    console.log(`Skipped ${itemPath}`);
+    log(`Skipped importing ${itemPath}`);
   }
 
   // All collections, documents, and attachments have been created – time to
@@ -154,9 +157,12 @@ export default async function documentBatchImporter({
     const attachment = attachments[attachmentPath];
 
     for (const document of values(documents)) {
-      // pull the collection out of the path name
-      const pathParts = attachmentPath.split("/");
-      const normalizedAttachmentPath = pathParts.splice(1).join("/");
+      // pull the collection and subdirectory out of the path name, upload folders
+      // in an Outline export are relative to the document itself
+      const normalizedAttachmentPath = attachmentPath.replace(
+        /(.*)uploads\//,
+        "uploads/"
+      );
 
       document.text = document.text
         .replace(attachmentPath, attachment.redirectUrl)
@@ -168,9 +174,14 @@ export default async function documentBatchImporter({
     }
   }
 
+  // reload collections to get document mapping
+  for (const collection of values(collections)) {
+    await collection.reload();
+  }
+
   return {
-    documents,
-    collections,
-    attachments,
+    documents: values(documents),
+    collections: values(collections),
+    attachments: values(attachments),
   };
 }
