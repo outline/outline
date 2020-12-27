@@ -1,6 +1,7 @@
 // @flow
 import fs from "fs";
 import path from "path";
+import { metadata } from "core-js/fn/reflect";
 import debug from "debug";
 import File from "formidable/lib/file";
 import invariant from "invariant";
@@ -61,6 +62,16 @@ export default async function documentBatchImporter({
     const itemDir = path.dirname(itemPath);
     const name = path.basename(item.name);
     const depth = itemPath.split("/").length - 1;
+
+    // metadata
+    let metadata = {};
+    try {
+      metadata = item.comment ? JSON.parse(item.comment) : {};
+    } catch (err) {
+      log(
+        `ZIP comment found for ${item.name}, but could not be parsed as metadata: ${item.comment}`
+      );
+    }
 
     if (depth === 0 && item.dir && name) {
       // check if collection with name exists
@@ -125,6 +136,10 @@ export default async function documentBatchImporter({
         text,
         publish: true,
         collectionId: collection.id,
+        createdAt: metadata.createdAt
+          ? new Date(metadata.createdAt)
+          : item.date,
+        updatedAt: item.date,
         parentDocumentId,
         user,
         ip,

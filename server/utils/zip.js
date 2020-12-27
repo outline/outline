@@ -20,7 +20,14 @@ async function addToArchive(zip, documents) {
       text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
     }
 
-    zip.file(`${document.title || "Untitled"}.md`, text);
+    zip.file(`${document.title || "Untitled"}.md`, text, {
+      date: document.updatedAt,
+      comment: JSON.stringify({
+        pinned: document.pinned,
+        createdAt: document.createdAt,
+        updatedAt: document.updatedAt,
+      }),
+    });
 
     if (doc.children && doc.children.length) {
       const folder = zip.folder(document.title);
