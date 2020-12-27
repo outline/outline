@@ -1,7 +1,6 @@
 // @flow
 import fs from "fs";
 import path from "path";
-import { metadata } from "core-js/fn/reflect";
 import debug from "debug";
 import File from "formidable/lib/file";
 import invariant from "invariant";
