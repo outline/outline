@@ -5,6 +5,7 @@ import File from "formidable/lib/file";
 import invariant from "invariant";
 import JSZip from "jszip";
 import { values, keys } from "lodash";
+import { InvalidRequestError } from "../errors";
 import { Attachment, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
@@ -33,19 +34,30 @@ export default async function documentBatchImporter({
   // this is so we can use async / await a little easier
   let folders = [];
   zip.forEach(async function (path, item) {
+    // known skippable items
+    if (path.startsWith("__MACOSX") || path.endsWith(".DS_Store")) {
+      return;
+    }
+
     folders.push([path, item]);
   });
+
+  for (const [rawPath, item] of folders) {
+    const itemPath = rawPath.replace(/\/$/, "");
+    const depth = itemPath.split("/").length - 1;
+
+    if (depth === 0 && !item.dir) {
+      throw new InvalidRequestError(
+        "Root of zip file must only contain folders representing collections"
+      );
+    }
+  }
 
   for (const [rawPath, item] of folders) {
     const itemPath = rawPath.replace(/\/$/, "");
     const itemDir = path.dirname(itemPath);
     const name = path.basename(item.name);
     const depth = itemPath.split("/").length - 1;
-
-    // known skippable items
-    if (itemPath.startsWith("__MACOSX") || itemPath.endsWith(".DS_Store")) {
-      continue;
-    }
 
     if (depth === 0 && item.dir && name) {
       // check if collection with name exists
@@ -142,12 +154,17 @@ export default async function documentBatchImporter({
     const attachment = attachments[attachmentPath];
 
     for (const document of values(documents)) {
+      // pull the collection out of the path name
+      const pathParts = attachmentPath.split("/");
+      const normalizedAttachmentPath = pathParts.splice(1).join("/");
+
       document.text = document.text
         .replace(attachmentPath, attachment.redirectUrl)
-        .replace(`/${attachmentPath}`, attachment.redirectUrl);
+        .replace(normalizedAttachmentPath, attachment.redirectUrl)
+        .replace(`/${normalizedAttachmentPath}`, attachment.redirectUrl);
 
       // does nothing if the document text is unchanged
-      await document.save();
+      await document.save({ fields: ["text"] });
     }
   }
 

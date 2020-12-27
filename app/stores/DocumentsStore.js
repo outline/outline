@@ -498,6 +498,15 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
+  batchImport = async (file: File) => {
+    const formData = new FormData();
+    formData.append("type", "outline");
+    formData.append("file", file);
+
+    await client.post("/documents.batchImport", formData);
+  };
+
+  @action
   import = async (
     file: File,
     parentDocumentId: string,

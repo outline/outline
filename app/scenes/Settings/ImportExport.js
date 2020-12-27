@@ -6,20 +6,47 @@ import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import HelpText from "components/HelpText";
 import PageTitle from "components/PageTitle";
+import VisuallyHidden from "components/VisuallyHidden";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import getDataTransferFiles from "utils/getDataTransferFiles";
 
 function ImportExport() {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const { ui, collections } = useStores();
+  const fileRef = React.useRef();
+  const { ui, collections, documents } = useStores();
   const { showToast } = ui;
   const [isLoading, setLoading] = React.useState(false);
+  const [isImporting, setImporting] = React.useState(false);
   const [isExporting, setExporting] = React.useState(false);
 
-  const handleImport = React.useCallback(async () => {
-    // TODO
-  }, []);
+  const handleFilePicked = React.useCallback(
+    async (ev) => {
+      const files = getDataTransferFiles(ev);
+      setImporting(true);
+
+      try {
+        const file = files[0];
+        await documents.batchImport(file);
+        showToast(t("Import completed"));
+      } catch (err) {
+        showToast(err.message);
+      } finally {
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        setImporting(false);
+      }
+    },
+    [t, documents, showToast]
+  );
+
+  const handleImport = React.useCallback(() => {
+    if (fileRef.current) {
+      fileRef.current.click();
+    }
+  }, [fileRef]);
 
   const handleExport = React.useCallback(
     async (ev: SyntheticEvent<>) => {
@@ -43,11 +70,26 @@ function ImportExport() {
       <h1>{t("Import")}</h1>
       <HelpText>
         <Trans>
-          It is possible to import a zip file of folders and Markdown files.
+          It is possible to import a zip file of folders and Markdown files
+          previously exported from an Outline instance. Support will soon be
+          added for importing from other services.
         </Trans>
       </HelpText>
-      <Button type="submit" onClick={handleImport} primary>
-        {t("Import")}
+      <VisuallyHidden>
+        <input
+          type="file"
+          ref={fileRef}
+          onChange={handleFilePicked}
+          accept="application/zip"
+        />
+      </VisuallyHidden>
+      <Button
+        type="submit"
+        onClick={handleImport}
+        disabled={isImporting}
+        primary
+      >
+        {isImporting ? `${t("Importing")}…` : t("Import Data")}
       </Button>
 
       <h1>{t("Export")}</h1>
