@@ -1,11 +1,13 @@
 // @flow
 import fs from "fs";
+import os from "os";
 import path from "path";
 import debug from "debug";
 import File from "formidable/lib/file";
 import invariant from "invariant";
-import JSZip from "jszip";
 import { values, keys } from "lodash";
+import uuid from "uuid";
+import { parseOutlineExport } from "../../shared/utils/zip";
 import { InvalidRequestError } from "../errors";
 import { Attachment, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
@@ -27,57 +29,26 @@ export default async function documentBatchImporter({
 }) {
   // load the zip structure into memory
   const zipData = await fs.promises.readFile(file.path);
-  const zip = await JSZip.loadAsync(zipData);
+
+  let items;
+  try {
+    items = await await parseOutlineExport(zipData);
+  } catch (err) {
+    throw new InvalidRequestError(err.message);
+  }
 
   // store progress and pointers
   let collections: { string: Collection } = {};
   let documents: { string: Document } = {};
   let attachments: { string: Attachment } = {};
 
-  // this is so we can use async / await a little easier
-  let folders = [];
-  zip.forEach(async function (path, item) {
-    // known skippable items
-    if (path.startsWith("__MACOSX") || path.endsWith(".DS_Store")) {
-      return;
-    }
-
-    folders.push([path, item]);
-  });
-
-  for (const [rawPath, item] of folders) {
-    const itemPath = rawPath.replace(/\/$/, "");
-    const depth = itemPath.split("/").length - 1;
-
-    if (depth === 0 && !item.dir) {
-      throw new InvalidRequestError(
-        "Root of zip file must only contain folders representing collections"
-      );
-    }
-  }
-
-  for (const [rawPath, item] of folders) {
-    const itemPath = rawPath.replace(/\/$/, "");
-    const itemDir = path.dirname(itemPath);
-    const name = path.basename(item.name);
-    const depth = itemPath.split("/").length - 1;
-
-    // metadata
-    let metadata = {};
-    try {
-      metadata = item.comment ? JSON.parse(item.comment) : {};
-    } catch (err) {
-      log(
-        `ZIP comment found for ${item.name}, but could not be parsed as metadata: ${item.comment}`
-      );
-    }
-
-    if (depth === 0 && item.dir && name) {
+  for (const item of items) {
+    if (item.type === "collection") {
       // check if collection with name exists
       let [collection, isCreated] = await Collection.findOrCreate({
         where: {
           teamId: user.teamId,
-          name,
+          name: item.name,
         },
         defaults: {
           creatorId: user.id,
@@ -92,28 +63,31 @@ export default async function documentBatchImporter({
         collection = await Collection.create({
           teamId: user.teamId,
           creatorId: user.id,
-          name: `${name} (Imported)`,
+          name: `${item.name} (Imported)`,
           private: false,
         });
       }
 
-      collections[itemPath] = collection;
+      collections[item.path] = collection;
       continue;
     }
 
-    if (depth > 0 && !item.dir && item.name.endsWith(".md")) {
-      const collectionDir = itemDir.split("/")[0];
+    if (item.type === "document") {
+      const collectionDir = item.dir.split("/")[0];
       const collection = collections[collectionDir];
-      invariant(collection, `Collection must exist for document ${itemDir}`);
+      invariant(collection, `Collection must exist for document ${item.dir}`);
 
       // we have a document
-      const content = await item.async("string");
+      const content = await item.item.async("string");
       const name = path.basename(item.name);
-      await fs.promises.writeFile(`/tmp/${name}`, content);
+      const tmpDir = os.tmpdir();
+      const tmpFilePath = `${tmpDir}/upload-${uuid.v4()}`;
+
+      await fs.promises.writeFile(tmpFilePath, content);
       const file = new File({
         name,
         type: "text/markdown",
-        path: `/tmp/${name}`,
+        path: tmpFilePath,
       });
 
       const { text, title } = await documentImporter({
@@ -124,9 +98,10 @@ export default async function documentBatchImporter({
 
       // must be a nested document, find and reference the parent document
       let parentDocumentId;
-      if (depth > 1) {
-        const parentDocument = documents[`${itemDir}.md`] || documents[itemDir];
-        invariant(parentDocument, `Document must exist for parent ${itemDir}`);
+      if (item.depth > 1) {
+        const parentDocument =
+          documents[`${item.dir}.md`] || documents[item.dir];
+        invariant(parentDocument, `Document must exist for parent ${item.dir}`);
         parentDocumentId = parentDocument.id;
       }
 
@@ -135,8 +110,8 @@ export default async function documentBatchImporter({
         text,
         publish: true,
         collectionId: collection.id,
-        createdAt: metadata.createdAt
-          ? new Date(metadata.createdAt)
+        createdAt: item.metadata.createdAt
+          ? new Date(item.metadata.createdAt)
           : item.date,
         updatedAt: item.date,
         parentDocumentId,
@@ -144,25 +119,24 @@ export default async function documentBatchImporter({
         ip,
       });
 
-      documents[itemPath] = document;
+      documents[item.path] = document;
       continue;
     }
 
-    if (depth > 0 && !item.dir && itemPath.includes("uploads")) {
-      // we have an attachment
-      const buffer = await item.async("nodebuffer");
+    if (item.type === "attachment") {
+      const buffer = await item.item.async("nodebuffer");
       const attachment = await attachmentCreator({
-        name,
+        name: item.name,
         type,
         buffer,
         user,
         ip,
       });
-      attachments[itemPath] = attachment;
+      attachments[item.path] = attachment;
       continue;
     }
 
-    log(`Skipped importing ${itemPath}`);
+    log(`Skipped importing ${item.path}`);
   }
 
   // All collections, documents, and attachments have been created – time to

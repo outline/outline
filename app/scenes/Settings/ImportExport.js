@@ -1,10 +1,14 @@
 // @flow
 import { observer } from "mobx-react";
+import { CollectionIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
+import { parseOutlineExport } from "shared/utils/zip";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import HelpText from "components/HelpText";
+import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import VisuallyHidden from "components/VisuallyHidden";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -20,14 +24,14 @@ function ImportExport() {
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
   const [isExporting, setExporting] = React.useState(false);
+  const [file, setFile] = React.useState();
+  const [importDetails, setImportDetails] = React.useState();
 
-  const handleFilePicked = React.useCallback(
+  const handleImport = React.useCallback(
     async (ev) => {
-      const files = getDataTransferFiles(ev);
       setImporting(true);
 
       try {
-        const file = files[0];
         await documents.batchImport(file);
         showToast(t("Import completed"));
       } catch (err) {
@@ -37,16 +41,37 @@ function ImportExport() {
           fileRef.current.value = "";
         }
         setImporting(false);
+        setFile(undefined);
+        setImportDetails(undefined);
       }
     },
-    [t, documents, showToast]
+    [t, file, documents, showToast]
   );
 
-  const handleImport = React.useCallback(() => {
-    if (fileRef.current) {
-      fileRef.current.click();
+  const handleFilePicked = React.useCallback(async (ev) => {
+    ev.preventDefault();
+
+    const files = getDataTransferFiles(ev);
+    const file = files[0];
+    setFile(file);
+
+    try {
+      setImportDetails(await parseOutlineExport(file));
+    } catch (err) {
+      setImportDetails([]);
     }
-  }, [fileRef]);
+  }, []);
+
+  const handlePickFile = React.useCallback(
+    (ev) => {
+      ev.preventDefault();
+
+      if (fileRef.current) {
+        fileRef.current.click();
+      }
+    },
+    [fileRef]
+  );
 
   const handleExport = React.useCallback(
     async (ev: SyntheticEvent<>) => {
@@ -63,6 +88,14 @@ function ImportExport() {
     },
     [t, collections, showToast]
   );
+
+  const hasCollections = importDetails
+    ? !!importDetails.filter((detail) => detail.type === "collection").length
+    : false;
+  const hasDocuments = importDetails
+    ? !!importDetails.filter((detail) => detail.type === "document").length
+    : false;
+  const isImportable = hasCollections && hasDocuments;
 
   return (
     <CenteredContent>
@@ -83,14 +116,46 @@ function ImportExport() {
           accept="application/zip"
         />
       </VisuallyHidden>
-      <Button
-        type="submit"
-        onClick={handleImport}
-        disabled={isImporting}
-        primary
-      >
-        {isImporting ? `${t("Importing")}…` : t("Import Data")}
-      </Button>
+      {file && !isImportable && (
+        <ImportPreview>
+          <Trans>
+            Sorry, the file <strong>{{ fileName: file.name }}</strong> is
+            missing valid collections or documents.
+          </Trans>
+        </ImportPreview>
+      )}
+      {file && importDetails && isImportable ? (
+        <>
+          <ImportPreview>
+            <Trans>
+              <strong>{{ fileName: file.name }}</strong> looks good, the
+              following collections and their documents will be imported:
+            </Trans>
+            <List>
+              {importDetails
+                .filter((detail) => detail.type === "collection")
+                .map((detail) => (
+                  <ImportPreviewItem key={detail.path}>
+                    <CollectionIcon />
+                    <CollectionName>{detail.name}</CollectionName>
+                  </ImportPreviewItem>
+                ))}
+            </List>
+          </ImportPreview>
+          <Button
+            type="submit"
+            onClick={handleImport}
+            disabled={isImporting}
+            primary
+          >
+            {isImporting ? `${t("Importing")}…` : t("Confirm & Import")}
+          </Button>
+        </>
+      ) : (
+        <Button type="submit" onClick={handlePickFile} primary>
+          {t("Choose File…")}
+        </Button>
+      )}
 
       <h1>{t("Export")}</h1>
       <HelpText>
@@ -116,5 +181,25 @@ function ImportExport() {
     </CenteredContent>
   );
 }
+
+const List = styled.ul`
+  padding: 0;
+  margin: 8px 0 0;
+`;
+
+const ImportPreview = styled(Notice)`
+  margin-bottom: 16px;
+`;
+
+const ImportPreviewItem = styled.li`
+  display: flex;
+  align-items: center;
+  list-style: none;
+`;
+
+const CollectionName = styled.span`
+  font-weight: 500;
+  margin-left: 4px;
+`;
 
 export default observer(ImportExport);
