@@ -67,7 +67,8 @@ export async function archiveCollection(collection: Collection) {
   const zip = new JSZip();
 
   if (collection.documentStructure) {
-    await addToArchive(zip, collection.documentStructure);
+    const folder = zip.folder(collection.name);
+    await addToArchive(folder, collection.documentStructure);
   }
 
   return archiveToPath(zip);
