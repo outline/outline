@@ -54,14 +54,14 @@ function SidebarLink({
     ...style,
   };
 
-  const activeDropStyle = {
+  const activeFontWeightOnly = {
     fontWeight: 600,
   };
 
   return (
     <StyledNavLink
       $isActiveDrop={isActiveDrop}
-      activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
+      activeStyle={isActiveDrop ? activeFontWeightOnly : activeStyle}
       style={active ? activeStyle : style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}

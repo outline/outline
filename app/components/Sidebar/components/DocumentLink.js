@@ -120,8 +120,8 @@ function DocumentLink({
     },
   });
 
-  // Droppable
-  const [{ isOver, canDrop }, drop] = useDrop({
+  // Drop to re-parent
+  const [{ isOver, canDrop }, dropToReparent] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop()) return;
@@ -136,13 +136,21 @@ function DocumentLink({
     }),
   });
 
-  // Drop Reorder
-  const [{ isOverReorder }, dropReorder] = useDrop({
+  // Drop to reorder
+  const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
-      // if (!collection) return;
-      // documents.move(item.id, collection.id, node.id);
-      console.log("after=> ", node.title);
+      console.log("after => ", node.title);
+
+      if (!collection) return;
+
+      if (expanded) {
+        documents.move(item.id, collection.id, node.id, 0);
+      }
+
+      // if node is last and node is not the same as item, then put at the end of list
+      // if node is last and it's the same as item, then move it one level up one past the parent
+      // if node is null, then it becomes the first in the collection
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
@@ -158,7 +166,7 @@ function DocumentLink({
           $isDragging={isDragging}
           $isMoving={isMoving}
         >
-          <div ref={drop}>
+          <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
                 innerRef={isActiveDocument ? activeDocumentRef : undefined}
@@ -202,7 +210,7 @@ function DocumentLink({
             </DropToImport>
           </div>
         </Draggable>
-        <DropToReorder isOver={isOverReorder} ref={dropReorder} />
+        <DropToReorderCursor isOver={isOverReorder} ref={dropToReorder} />
       </div>
       {expanded && !isDragging && (
         <>
@@ -223,17 +231,18 @@ function DocumentLink({
   );
 }
 
-const DropToReorder = styled("div")`
+// transparent hover zone with a thin visible band vertically centered
+const DropToReorderCursor = styled("div")`
+  opacity: ${(props) => (props.isOver ? 1 : 0)};
+  transition: opacity 150ms;
+
   position: absolute;
   z-index: 1;
+
   width: 100%;
   height: 14px;
   bottom: -7px;
-
-  opacity: ${(props) => (props.isOver ? 1 : 0)};
-  transition: opacity 150ms;
   background: transparent;
-  padding: 0 2px;
 
   ::after {
     background: #555;
