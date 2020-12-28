@@ -8,7 +8,7 @@ import invariant from "invariant";
 import { values, keys } from "lodash";
 import uuid from "uuid";
 import { parseOutlineExport } from "../../shared/utils/zip";
-import { InvalidRequestError } from "../errors";
+import { FileImportError } from "../errors";
 import { Attachment, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
@@ -34,7 +34,13 @@ export default async function documentBatchImporter({
   try {
     items = await await parseOutlineExport(zipData);
   } catch (err) {
-    throw new InvalidRequestError(err.message);
+    throw new FileImportError(err.message);
+  }
+
+  if (!items.filter((item) => item.type === "document").length) {
+    throw new FileImportError(
+      "Uploaded file does not contain importable documents"
+    );
   }
 
   // store progress and pointers
@@ -95,6 +101,8 @@ export default async function documentBatchImporter({
         user,
         ip,
       });
+
+      await fs.promises.unlink(tmpFilePath);
 
       // must be a nested document, find and reference the parent document
       let parentDocumentId;
