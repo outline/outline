@@ -9,6 +9,7 @@ import Collection from "models/Collection";
 import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
+import DropCursor from "./DropCursor";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import useStores from "hooks/useStores";
@@ -23,16 +24,20 @@ type Props = {|
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
+  index: number,
+  parentId?: string,
 |};
 
 function DocumentLink({
   node,
+  canUpdate,
   collection,
   activeDocument,
   activeDocumentRef,
   prefetchDocument,
   depth,
-  canUpdate,
+  index,
+  parentId,
 }: Props) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
@@ -75,6 +80,14 @@ function DocumentLink({
       setExpanded(showChildren);
     }
   }, [showChildren]);
+
+  // when the last child document is removed,
+  // also close the local folder state to closed
+  React.useEffect(() => {
+    if (expanded && !hasChildDocuments) {
+      setExpanded(false);
+    }
+  }, [expanded, hasChildDocuments]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: SyntheticEvent<>) => {
@@ -121,7 +134,7 @@ function DocumentLink({
   });
 
   // Drop to re-parent
-  const [{ isOver, canDrop }, dropToReparent] = useDrop({
+  const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop()) return;
@@ -131,8 +144,8 @@ function DocumentLink({
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
     collect: (monitor) => ({
-      isOver: !!monitor.isOver({ shallow: true }),
-      canDrop: monitor.canDrop(),
+      isOverReparent: !!monitor.isOver({ shallow: true }),
+      canDropToReparent: monitor.canDrop(),
     }),
   });
 
@@ -146,6 +159,14 @@ function DocumentLink({
 
       if (expanded) {
         documents.move(item.id, collection.id, node.id, 0);
+        return;
+      }
+
+      if (item.id === node.id) {
+        // this is the same item mov
+      } else {
+        documents.move(item.id, collection.id, parentId, index + 1);
+        return;
       }
 
       // if node is last and node is not the same as item, then put at the end of list
@@ -190,7 +211,7 @@ function DocumentLink({
                     />
                   </>
                 }
-                isActiveDrop={isOver && canDrop}
+                isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
                 menuOpen={menuOpen}
@@ -210,11 +231,11 @@ function DocumentLink({
             </DropToImport>
           </div>
         </Draggable>
-        <DropToReorderCursor isOver={isOverReorder} ref={dropToReorder} />
+        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
       </div>
       {expanded && !isDragging && (
         <>
-          {node.children.map((childNode) => (
+          {node.children.map((childNode, index) => (
             <ObservedDocumentLink
               key={childNode.id}
               collection={collection}
@@ -223,6 +244,8 @@ function DocumentLink({
               prefetchDocument={prefetchDocument}
               depth={depth + 1}
               canUpdate={canUpdate}
+              index={index}
+              parentId={node.id}
             />
           ))}
         </>
@@ -230,30 +253,6 @@ function DocumentLink({
     </>
   );
 }
-
-// transparent hover zone with a thin visible band vertically centered
-const DropToReorderCursor = styled("div")`
-  opacity: ${(props) => (props.isOver ? 1 : 0)};
-  transition: opacity 150ms;
-
-  position: absolute;
-  z-index: 1;
-
-  width: 100%;
-  height: 14px;
-  bottom: -7px;
-  background: transparent;
-
-  ::after {
-    background: #555;
-    position: absolute;
-    top: 6px;
-    content: "";
-    height: 2px;
-    border-radius: 2px;
-    width: 100%;
-  }
-`;
 
 const Draggable = styled("div")`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};

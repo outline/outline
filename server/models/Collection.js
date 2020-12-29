@@ -1,5 +1,5 @@
 // @flow
-import { find, concat, remove, uniq } from "lodash";
+import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import slug from "slug";
 import { DataTypes, sequelize } from "../sequelize";
@@ -350,7 +350,7 @@ Collection.prototype.removeDocumentInStructure = async function (
 
       const match = find(children, { id });
       if (match) {
-        if (!returnValue) returnValue = match;
+        if (!returnValue) returnValue = [match, findIndex(children, { id })];
         remove(children, { id });
       }
 

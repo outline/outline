@@ -6,7 +6,7 @@ export default async function documentMover({
   user,
   document,
   collectionId,
-  parentDocumentId,
+  parentDocumentId = null, // convert undefined to null for comparison logic
   index,
   ip,
 }: {
@@ -42,12 +42,22 @@ export default async function documentMover({
         transaction,
         paranoid: false,
       });
-      const documentJson = await collection.removeDocumentInStructure(
-        document,
-        {
-          save: false,
-        }
-      );
+      const [
+        documentJson,
+        fromIndex,
+      ] = await collection.removeDocumentInStructure(document, {
+        save: false,
+      });
+
+      // if we're reordering within the same parent
+      // the document list will shrink when the initial item is removed above
+      // so we need to offset by 1 when re-inserting
+      const toIndex =
+        document.parentDocumentId === parentDocumentId &&
+        document.collectionId === collectionId &&
+        fromIndex < index
+          ? index - 1
+          : index;
 
       // if the collection is the same then it will get saved below, this
       // line prevents a pointless intermediate save from occurring.
@@ -62,7 +72,7 @@ export default async function documentMover({
       const newCollection: Collection = collectionChanged
         ? await Collection.findByPk(collectionId, { transaction })
         : collection;
-      await newCollection.addDocumentToStructure(document, index, {
+      await newCollection.addDocumentToStructure(document, toIndex, {
         documentJson,
       });
       result.collections.push(collection);

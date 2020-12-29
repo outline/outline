@@ -87,7 +87,11 @@ class DropToImport extends React.Component<Props> {
           isDragAccept,
           isDragReject,
         }) => (
-          <DropzoneContainer {...getRootProps()} {...{ isDragActive }}>
+          <DropzoneContainer
+            {...getRootProps()}
+            {...{ isDragActive }}
+            tabIndex="-1"
+          >
             <input {...getInputProps()} />
             {this.isImporting && <LoadingIndicator />}
             {this.props.children}
