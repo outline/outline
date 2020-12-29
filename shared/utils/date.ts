@@ -1,4 +1,3 @@
-// @flow
 import subDays from "date-fns/sub_days";
 import subMonth from "date-fns/sub_months";
 import subWeek from "date-fns/sub_weeks";

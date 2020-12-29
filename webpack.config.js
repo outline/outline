@@ -16,24 +16,24 @@ module.exports = {
   module: {
     rules: [
       {
-       test: /\.js$/,
-       loader: 'babel-loader',
-       exclude: [
-         path.join(__dirname, 'node_modules')
-       ],
-       include: [
-         path.join(__dirname, 'app'),
-         path.join(__dirname, 'shared'),
-       ],
-       options: {
-         cacheDirectory: true
-       }
+        test: /\.(tsx?|js)$/,
+        loader: 'babel-loader',
+        exclude: [
+          path.join(__dirname, 'node_modules')
+        ],
+        include: [
+          path.join(__dirname, 'app'),
+          path.join(__dirname, 'shared'),
+        ],
+        options: {
+          cacheDirectory: true
+        }
       },
       // inline base64 URLs for <=8k images, direct URLs for the rest
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' },
       {
-       test: /\.woff$/,
-       loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
+        test: /\.woff$/,
+        loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
       },
       { test: /\.md/, loader: 'raw-loader' },
     ]
@@ -43,7 +43,7 @@ module.exports = {
       path.resolve(__dirname, 'app'),
       'node_modules'
     ],
-    mainFields: ["browser",  "main"],
+    mainFields: ["browser", "main"],
     alias: {
       shared: path.resolve(__dirname, 'shared'),
     }

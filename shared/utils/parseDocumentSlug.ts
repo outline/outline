@@ -1,4 +1,3 @@
-// @flow
 
 export default function parseDocumentSlug(url: string) {
   let parsed;

@@ -1,4 +1,3 @@
-// @flow
 export default function getQueryVariable(variable: string) {
   const query = window.location.search.substring(1);
   const vars = query.split("&");

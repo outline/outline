@@ -1,4 +1,3 @@
-// @flow
 
 export function slackAuth(
   state: string,

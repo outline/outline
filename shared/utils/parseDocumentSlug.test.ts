@@ -1,4 +1,3 @@
-// @flow
 import parseDocumentSlug from "./parseDocumentSlug";
 
 describe("#parseDocumentSlug", () => {

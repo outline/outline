@@ -1,4 +1,3 @@
-// @flow
 import slugify from "slugify";
 
 // Slugify, escape, and remove periods from headings so that they are

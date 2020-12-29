@@ -1,16 +1,15 @@
-// @flow
 import { trim } from "lodash";
 
 type Domain = {
   tld: string,
   subdomain: string,
-  domain: string,
+  domain: string
 };
 
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
-export function parseDomain(url: string): ?Domain {
+export function parseDomain(url: string): Domain | null {
   if (typeof url !== "string") return null;
   if (url === "") return null;
 

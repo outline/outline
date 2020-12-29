@@ -1,4 +1,3 @@
-// @flow
 import emojiRegex from "emoji-regex";
 import unescape from "./unescape";
 

@@ -1,4 +1,3 @@
-// @flow
 import { darken, lighten } from "polished";
 
 const colors = {

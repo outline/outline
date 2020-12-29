@@ -1,4 +1,3 @@
-// @flow
 
 const unescape = (text: string) => {
   return text
