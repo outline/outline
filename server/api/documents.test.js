@@ -1551,6 +1551,14 @@ describe("#documents.import", () => {
     });
     expect(res.status).toEqual(400);
   });
+
+  it("should require authentication", async () => {
+    const { document } = await seed();
+    const res = await server.post("/api/documents.import", {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(401);
+  });
 });
 
 describe("#documents.create", () => {
