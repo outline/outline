@@ -1,6 +1,7 @@
 // @flow
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
+import invariant from "invariant";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import Sequelize from "sequelize";
@@ -85,6 +86,7 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       return;
     }
   }
+  invariant(team, "Team must exist");
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({

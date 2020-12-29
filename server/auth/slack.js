@@ -1,5 +1,6 @@
 // @flow
 import addHours from "date-fns/add_hours";
+import invariant from "invariant";
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
@@ -57,6 +58,7 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       return;
     }
   }
+  invariant(team, "Team must exist");
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({
