@@ -1,4 +1,3 @@
-// @flow
 import * as React from "react";
 import { User, Collection } from "../models";
 import Body from "./components/Body";
@@ -13,13 +12,13 @@ export type Props = {
   actor: User,
   collection: Collection,
   eventName: string,
-  unsubscribeUrl: string,
+  unsubscribeUrl: string
 };
 
 export const collectionNotificationEmailText = ({
   actor,
   collection,
-  eventName = "created",
+  eventName = "created"
 }: Props) => `
 ${collection.name}
 
@@ -32,7 +31,7 @@ export const CollectionNotificationEmail = ({
   actor,
   collection,
   eventName = "created",
-  unsubscribeUrl,
+  unsubscribeUrl
 }: Props) => {
   return (
     <EmailTemplate>

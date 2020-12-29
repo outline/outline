@@ -1,4 +1,3 @@
-// @flow
 import Koa from "koa";
 import Router from "koa-router";
 import { NotFoundError } from "../errors";

@@ -1,4 +1,3 @@
-// @flow
 import fs from "fs";
 import path from "path";
 import File from "formidable/lib/file";
@@ -36,7 +35,7 @@ turndownService
 
 interface ImportableFile {
   type: string;
-  getMarkdown: (file: any) => Promise<string>;
+  getMarkdown: ((file: any) => Promise<string>);
 }
 
 const importMapping: ImportableFile[] = [
@@ -131,15 +130,20 @@ async function confluenceToMarkdown(file): Promise<string> {
   return html.replace(/<br>/g, " \\n ");
 }
 
-export default async function documentImporter({
-  file,
-  user,
-  ip,
-}: {
-  user: User,
-  file: File,
-  ip: string,
-}): Promise<{ text: string, title: string }> {
+export default async function documentImporter(
+  {
+    file,
+    user,
+    ip
+  }: {
+    user: User,
+    file: File,
+    ip: string
+  }
+): Promise<{
+  text: string,
+  title: string
+}> {
   const fileInfo = importMapping.filter((item) => {
     if (item.type === file.type) {
       return true;

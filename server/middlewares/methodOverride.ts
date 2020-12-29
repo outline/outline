@@ -1,11 +1,10 @@
-// @flow
-import { type Context } from "koa";
+import { Context } from "koa";
 import queryString from "query-string";
 
 export default function methodOverride() {
   return async function methodOverrideMiddleware(
     ctx: Context,
-    next: () => Promise<*>
+    next: (() => Promise<unknown>)
   ) {
     if (ctx.method === "POST") {
       // $FlowFixMe

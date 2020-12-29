@@ -1,7 +1,9 @@
-// @flow
 import * as React from "react";
 
-type Props = { href: string, children: React.Node };
+type Props = {
+  href: string,
+  children: React.ReactNode
+};
 
 export default (props: Props) => {
   const style = {

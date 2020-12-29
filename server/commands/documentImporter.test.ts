@@ -1,4 +1,3 @@
-// @flow
 import path from "path";
 import File from "formidable/lib/file";
 import { Attachment } from "../models";

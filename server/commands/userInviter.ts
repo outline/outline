@@ -1,19 +1,26 @@
-// @flow
 import { uniqBy } from "lodash";
 import mailer from "../mailer";
 import { User, Event, Team } from "../models";
 
-type Invite = { name: string, email: string };
+type Invite = {
+  name: string,
+  email: string
+};
 
-export default async function userInviter({
-  user,
-  invites,
-  ip,
-}: {
-  user: User,
-  invites: Invite[],
-  ip: string,
-}): Promise<{ sent: Invite[], users: User[] }> {
+export default async function userInviter(
+  {
+    user,
+    invites,
+    ip
+  }: {
+    user: User,
+    invites: Invite[],
+    ip: string
+  }
+): Promise<{
+  sent: Invite[],
+  users: User[]
+}> {
   const team = await Team.findByPk(user.teamId);
 
   // filter out empties and obvious non-emails

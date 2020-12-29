@@ -1,14 +1,15 @@
-// @flow
 import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "../../../shared/styles/theme";
 import { twitterUrl } from "../../../shared/utils/routeHelpers";
 
 type Props = {
-  unsubscribeUrl?: string,
+  unsubscribeUrl?: string
 };
 
-export default ({ unsubscribeUrl }: Props) => {
+export default ({
+  unsubscribeUrl
+}: Props) => {
   const footerStyle = {
     padding: "20px 0",
     borderTop: `1px solid ${theme.smokeDark}`,

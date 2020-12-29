@@ -1,4 +1,3 @@
-// @flow
 import * as React from "react";
 
 const style = {
@@ -7,10 +6,12 @@ const style = {
 };
 
 type Props = {
-  children: React.Node,
+  children: React.ReactNode
 };
 
-export default ({ children }: Props) => (
+export default ({
+  children
+}: Props) => (
   <p>
     <span style={style}>{children}</span>
   </p>

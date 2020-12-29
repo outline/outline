@@ -1,16 +1,17 @@
-// @flow
 import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
 import { AuthenticationError, UserSuspendedError } from "../errors";
 import { User, Event, Team, ApiKey } from "../models";
-import type { ContextWithState } from "../types";
+import { ContextWithState } from "../types";
 import { getCookieDomain } from "../utils/domains";
 import { getUserForJWT } from "../utils/jwt";
 
-export default function auth(options?: { required?: boolean } = {}) {
+export default function auth(options?: {
+  required?: boolean
+} = {}) {
   return async function authMiddleware(
     ctx: ContextWithState,
-    next: () => Promise<mixed>
+    next: (() => Promise<unknown>)
   ) {
     let token;
 

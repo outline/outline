@@ -1,12 +1,11 @@
-// @flow
-import { type Context } from "koa";
+import { Context } from "koa";
 import { snakeCase } from "lodash";
 import Sequelize from "sequelize";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(
     ctx: Context,
-    next: () => Promise<*>
+    next: (() => Promise<unknown>)
   ) {
     try {
       await next();

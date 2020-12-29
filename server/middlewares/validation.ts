@@ -1,11 +1,10 @@
-// @flow
-import { type Context } from "koa";
+import { Context } from "koa";
 import validator from "validator";
 import { validateColorHex } from "../../shared/utils/color";
 import { ParamRequiredError, ValidationError } from "../errors";
 
 export default function validation() {
-  return function validationMiddleware(ctx: Context, next: () => Promise<*>) {
+  return function validationMiddleware(ctx: Context, next: (() => Promise<unknown>)) {
     ctx.assertPresent = (value, message) => {
       if (value === undefined || value === null || value === "") {
         throw new ParamRequiredError(message);

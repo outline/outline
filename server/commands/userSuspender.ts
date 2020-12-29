@@ -1,18 +1,19 @@
-// @flow
 import { Transaction } from "sequelize";
 import { ValidationError } from "../errors";
 import { User, Event, GroupUser } from "../models";
 import { sequelize } from "../sequelize";
 
-export default async function userSuspender({
-  user,
-  actorId,
-  ip,
-}: {
-  user: User,
-  actorId: string,
-  ip: string,
-}): Promise<void> {
+export default async function userSuspender(
+  {
+    user,
+    actorId,
+    ip
+  }: {
+    user: User,
+    actorId: string,
+    ip: string
+  }
+): Promise<void> {
   if (user.id === actorId) {
     throw new ValidationError("Unable to suspend the current user");
   }

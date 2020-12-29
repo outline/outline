@@ -1,4 +1,3 @@
-// @flow
 import { Document, Collection, User, Event } from "../models";
 import { sequelize } from "../sequelize";
 
@@ -8,14 +7,14 @@ export default async function documentMover({
   collectionId,
   parentDocumentId,
   index,
-  ip,
+  ip
 }: {
   user: User,
   document: Document,
   collectionId: string,
   parentDocumentId?: string,
   index?: number,
-  ip: string,
+  ip: string
 }) {
   let transaction;
   const result = { collections: [], documents: [] };

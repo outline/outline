@@ -1,4 +1,3 @@
-// @flow
 import * as React from "react";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -9,10 +8,12 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 export type Props = {
-  teamUrl: string,
+  teamUrl: string
 };
 
-export const welcomeEmailText = ({ teamUrl }: Props) => `
+export const welcomeEmailText = ({
+  teamUrl
+}: Props) => `
 Welcome to Outline!
 
 Outline is a place for your team to build and share knowledge.
@@ -24,7 +25,9 @@ You can also import existing Markdown documents by dragging and dropping them to
 ${teamUrl}/home
 `;
 
-export const WelcomeEmail = ({ teamUrl }: Props) => {
+export const WelcomeEmail = ({
+  teamUrl
+}: Props) => {
   return (
     <EmailTemplate>
       <Header />

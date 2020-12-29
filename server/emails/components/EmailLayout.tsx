@@ -1,10 +1,9 @@
-// @flow
 import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "../../../shared/styles/theme";
 
 type Props = {
-  children: React.Node,
+  children: React.ReactNode
 };
 
 export default (props: Props) => (

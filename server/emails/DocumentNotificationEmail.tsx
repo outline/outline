@@ -1,4 +1,3 @@
-// @flow
 import * as React from "react";
 import { User, Document, Team, Collection } from "../models";
 import Body from "./components/Body";
@@ -15,7 +14,7 @@ export type Props = {
   document: Document,
   collection: Collection,
   eventName: string,
-  unsubscribeUrl: string,
+  unsubscribeUrl: string
 };
 
 export const documentNotificationEmailText = ({
@@ -23,7 +22,7 @@ export const documentNotificationEmailText = ({
   team,
   document,
   collection,
-  eventName = "published",
+  eventName = "published"
 }: Props) => `
 "${document.title}" ${eventName}
 
@@ -38,7 +37,7 @@ export const DocumentNotificationEmail = ({
   document,
   collection,
   eventName = "published",
-  unsubscribeUrl,
+  unsubscribeUrl
 }: Props) => {
   return (
     <EmailTemplate>

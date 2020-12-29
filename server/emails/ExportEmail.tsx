@@ -1,4 +1,3 @@
-// @flow
 import * as React from "react";
 import Body from "./components/Body";
 import Button from "./components/Button";

@@ -1,4 +1,3 @@
-// @flow
 import * as React from "react";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -13,14 +12,14 @@ export type Props = {
   actorName: string,
   actorEmail: string,
   teamName: string,
-  teamUrl: string,
+  teamUrl: string
 };
 
 export const inviteEmailText = ({
   teamName,
   actorName,
   actorEmail,
-  teamUrl,
+  teamUrl
 }: Props) => `
 Join ${teamName} on Outline
 
@@ -33,7 +32,7 @@ export const InviteEmail = ({
   teamName,
   actorName,
   actorEmail,
-  teamUrl,
+  teamUrl
 }: Props) => {
   return (
     <EmailTemplate>
