@@ -6,7 +6,7 @@ export default async function documentMover({
   user,
   document,
   collectionId,
-  parentDocumentId = null, // convert undefined to null so parent comparison treats them the same
+  parentDocumentId = null, // convert undefined to null so parentId comparison treats them as equal
   index,
   ip,
 }: {
@@ -51,8 +51,8 @@ export default async function documentMover({
 
       // if we're reordering from within the same parent
       // the original and destination collection are the same,
-      // so when the initial item is removed above, the list will reduce by 1
-      // which we need to offset shifting the index accordingly
+      // so when the initial item is removed above, the list will reduce by 1.
+      // We need to compensate for this when reordering
       const toIndex =
         document.parentDocumentId === parentDocumentId &&
         document.collectionId === collectionId &&
