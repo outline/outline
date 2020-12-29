@@ -1,6 +1,5 @@
-// @flow
 import debug from "debug";
-import type { DocumentEvent, CollectionEvent, Event } from "../events";
+import { DocumentEvent, CollectionEvent, Event } from "../events";
 import mailer from "../mailer";
 import {
   View,

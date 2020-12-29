@@ -1,5 +1,4 @@
-// @flow
-import events, { type Event } from "../events";
+import events, { Event } from "../events";
 import { Document } from "../models";
 
 export default class Debouncer {

@@ -1,4 +1,3 @@
-// @flow
 import invariant from "invariant";
 import { concat, some } from "lodash";
 import { AdminRequiredError } from "../errors";

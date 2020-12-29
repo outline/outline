@@ -1,4 +1,3 @@
-// @flow
 import { Attachment, User } from "../models";
 import policy from "./policy";
 

@@ -1,6 +1,5 @@
-// @flow
 import subHours from "date-fns/sub_hours";
-import type { Event } from "../events";
+import { Event } from "../events";
 import { socketio } from "../main";
 import {
   Document,

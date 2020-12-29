@@ -1,4 +1,3 @@
-// @flow
 import { NotificationSetting, User } from "../models";
 import policy from "./policy";
 

@@ -1,5 +1,4 @@
-// @flow
-import type { DocumentEvent, IntegrationEvent, Event } from "../events";
+import { DocumentEvent, IntegrationEvent, Event } from "../events";
 import { Document, Integration, Collection, Team } from "../models";
 import { presentSlackAttachment } from "../presenters";
 

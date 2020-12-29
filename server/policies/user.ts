@@ -1,4 +1,3 @@
-// @flow
 import { AdminRequiredError } from "../errors";
 import { User } from "../models";
 import policy from "./policy";

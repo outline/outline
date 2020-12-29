@@ -1,5 +1,4 @@
-// @flow
-import type { DocumentEvent, RevisionEvent } from "../events";
+import { DocumentEvent, RevisionEvent } from "../events";
 import { Document, Backlink } from "../models";
 import { Op } from "../sequelize";
 import parseDocumentIds from "../utils/parseDocumentIds";

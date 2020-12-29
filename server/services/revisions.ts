@@ -1,5 +1,4 @@
-// @flow
-import type { DocumentEvent, RevisionEvent } from "../events";
+import { DocumentEvent, RevisionEvent } from "../events";
 import { Revision, Document } from "../models";
 
 export default class Revisions {

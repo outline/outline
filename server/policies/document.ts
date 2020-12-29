@@ -1,4 +1,3 @@
-// @flow
 import invariant from "invariant";
 import { Document, Revision, User } from "../models";
 import policy from "./policy";
