@@ -168,10 +168,6 @@ function DocumentLink({
         documents.move(item.id, collection.id, parentId, index + 1);
         return;
       }
-
-      // if node is last and node is not the same as item, then put at the end of list
-      // if node is last and it's the same as item, then move it one level up one past the parent
-      // if node is null, then it becomes the first in the collection
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
