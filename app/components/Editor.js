@@ -9,6 +9,7 @@ import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
 import isInternalUrl from "utils/isInternalUrl";
+import { isMetaKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 
 const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
@@ -49,7 +50,7 @@ function Editor(props: PropsWithRef) {
         return;
       }
 
-      if (isInternalUrl(href) && !event.metaKey && !event.shiftKey) {
+      if (isInternalUrl(href) && !isMetaKey(event) && !event.shiftKey) {
         // relative
         let navigateTo = href;
 

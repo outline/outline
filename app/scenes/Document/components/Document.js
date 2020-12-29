@@ -33,6 +33,7 @@ import References from "./References";
 import { type LocationWithState, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
+import { meta } from "utils/keyboard";
 import {
   collectionUrl,
   documentMoveUrl,
@@ -163,7 +164,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  @keydown("meta+shift+p")
+  @keydown(`${meta}+shift+p`)
   onPublish(ev) {
     ev.preventDefault();
     const { document } = this.props;
@@ -171,7 +172,7 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
-  @keydown("meta+ctrl+h")
+  @keydown(`${meta}+ctrl+h`)
   onToggleTableOfContents(ev) {
     if (!this.props.readOnly) return;
 
