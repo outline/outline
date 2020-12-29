@@ -49,9 +49,10 @@ export default async function documentMover({
         save: false,
       });
 
-      // if we're reordering within the same parent
-      // the document list will shrink when the initial item is removed above
-      // so we need to offset by 1 when re-inserting
+      // if we're reordering from within the same parent
+      // the original and destination collection are the same,
+      // so when the initial item is removed above, the list will reduce by 1
+      // which we need to offset shifting the index accordingly
       const toIndex =
         document.parentDocumentId === parentDocumentId &&
         document.collectionId === collectionId &&
