@@ -1,13 +1,16 @@
 // @flow
 import * as React from "react";
-import styled from "styled-components";
+import styled, { withTheme } from "styled-components";
+import { type Theme } from "types";
 
-export default function DropCursor({
+function DropCursor({
   isActiveDrop,
   innerRef,
+  theme,
 }: {
   isActiveDrop: boolean,
   innerRef: React.Ref<any>,
+  theme: Theme,
 }) {
   return <Cursor isOver={isActiveDrop} ref={innerRef} />;
 }
@@ -26,7 +29,7 @@ const Cursor = styled("div")`
   background: transparent;
 
   ::after {
-    background: #555;
+    background: ${(props) => props.theme.slateDark};
     position: absolute;
     top: 6px;
     content: "";
@@ -35,3 +38,5 @@ const Cursor = styled("div")`
     width: 100%;
   }
 `;
+
+export default withTheme(DropCursor);
