@@ -279,6 +279,8 @@
   "Export in progress…": "Export in progress…",
   "Import": "Import",
   "It is possible to import a zip file of folders and Markdown files previously exported from an Outline instance. Support will soon be added for importing from other services.": "It is possible to import a zip file of folders and Markdown files previously exported from an Outline instance. Support will soon be added for importing from other services.",
+  "importSuccessful": "Import successful, {{ count }} document was imported into your knowledge base.",
+  "importSuccessful_plural": "Import successful, {{ count }} documents were imported into your knowledge base.",
   "Sorry, the file <1>{{fileName}}</1> is missing valid collections or documents.": "Sorry, the file <1>{{fileName}}</1> is missing valid collections or documents.",
   "<0>{{fileName}}</0> looks good, the following collections and their documents will be imported:": "<0>{{fileName}}</0> looks good, the following collections and their documents will be imported:",
   "Importing": "Importing",

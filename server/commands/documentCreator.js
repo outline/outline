@@ -14,6 +14,7 @@ export default async function documentCreator({
   index,
   user,
   editorVersion,
+  source,
   ip,
 }: {
   title: string,
@@ -28,6 +29,7 @@ export default async function documentCreator({
   index?: number,
   user: User,
   editorVersion?: string,
+  source?: "import",
   ip: string,
 }): Document {
   const templateId = templateDocument ? templateDocument.id : undefined;
@@ -53,7 +55,7 @@ export default async function documentCreator({
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
-    data: { title: document.title, templateId },
+    data: { source, title: document.title, templateId },
     ip,
   });
 
@@ -66,7 +68,7 @@ export default async function documentCreator({
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
-      data: { title: document.title },
+      data: { source, title: document.title },
       ip,
     });
   }

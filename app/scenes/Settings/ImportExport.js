@@ -23,17 +23,22 @@ function ImportExport() {
   const { showToast } = ui;
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
+  const [importedDetails, setImported] = React.useState(false);
   const [isExporting, setExporting] = React.useState(false);
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
 
   const handleImport = React.useCallback(
     async (ev) => {
+      setImported(undefined);
       setImporting(true);
 
       try {
-        await documents.batchImport(file);
+        const { documentCount, collectionCount } = await documents.batchImport(
+          file
+        );
         showToast(t("Import completed"));
+        setImported({ documentCount, collectionCount });
       } catch (err) {
         showToast(err.message);
       } finally {
@@ -116,6 +121,17 @@ function ImportExport() {
           accept="application/zip"
         />
       </VisuallyHidden>
+      {importedDetails && (
+        <Notice>
+          <Trans
+            count={importedDetails.documentCount}
+            i18nKey="importSuccessful"
+          >
+            Import successful, {{ count: importedDetails.documentCount }}{" "}
+            documents were imported to your knowledge base.
+          </Trans>
+        </Notice>
+      )}
       {file && !isImportable && (
         <ImportPreview>
           <Trans>
@@ -126,7 +142,7 @@ function ImportExport() {
       )}
       {file && importDetails && isImportable ? (
         <>
-          <ImportPreview>
+          <ImportPreview as="div">
             <Trans>
               <strong>{{ fileName: file.name }}</strong> looks good, the
               following collections and their documents will be imported:

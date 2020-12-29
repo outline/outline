@@ -1124,7 +1124,7 @@ router.post("documents.batchImport", auth(), async (ctx) => {
   const user = ctx.state.user;
   authorize(user, "batchImport", Document);
 
-  const { collections } = await documentBatchImporter({
+  const { documents, attachments, collections } = await documentBatchImporter({
     file,
     user,
     type,
@@ -1133,6 +1133,9 @@ router.post("documents.batchImport", auth(), async (ctx) => {
 
   ctx.body = {
     data: {
+      attachmentCount: attachments.length,
+      documentCount: documents.length,
+      collectionCount: collections.length,
       collections: collections.map((collection) =>
         presentCollection(collection)
       ),
@@ -1189,6 +1192,7 @@ router.post("documents.import", auth(), async (ctx) => {
   });
 
   const document = await documentCreator({
+    source: "import",
     title,
     text,
     publish,

@@ -47,6 +47,10 @@ export type DocumentEvent =
       teamId: string,
       actorId: string,
       ip: string,
+      data: {
+        title: string,
+        source?: "import",
+      },
     }
   | {
       name: "documents.move",

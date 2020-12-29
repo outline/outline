@@ -508,6 +508,8 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     this.addPolicies(res.policies);
     res.data.collections.forEach(this.rootStore.collections.add);
+
+    return res.data;
   };
 
   @action

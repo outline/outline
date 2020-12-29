@@ -114,6 +114,7 @@ export default async function documentBatchImporter({
       }
 
       const document = await documentCreator({
+        source: "import",
         title,
         text,
         publish: true,
@@ -134,6 +135,7 @@ export default async function documentBatchImporter({
     if (item.type === "attachment") {
       const buffer = await item.item.async("nodebuffer");
       const attachment = await attachmentCreator({
+        source: "import",
         name: item.name,
         type,
         buffer,

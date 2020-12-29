@@ -8,12 +8,14 @@ export default async function attachmentCreator({
   type,
   buffer,
   user,
+  source,
   ip,
 }: {
   name: string,
   type: string,
   buffer: Buffer,
   user: User,
+  source?: "import",
   ip: string,
 }) {
   const key = `uploads/${user.id}/${uuid.v4()}/${name}`;
@@ -32,7 +34,7 @@ export default async function attachmentCreator({
 
   await Event.create({
     name: "attachments.create",
-    data: { name },
+    data: { name, source },
     modelId: attachment.id,
     teamId: user.teamId,
     actorId: user.id,
