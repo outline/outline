@@ -1,0 +1,26 @@
+import stream from "stream";
+import { Context } from "koa";
+
+export default function apiWrapper() {
+  return async function apiWrapperMiddleware(
+    ctx: Context,
+    next: (() => Promise<unknown>)
+  ) {
+    await next();
+
+    const ok = ctx.status < 400;
+
+    if (
+      typeof ctx.body !== "string" &&
+      !(ctx.body instanceof stream.Readable)
+    ) {
+      // $FlowFixMe
+      ctx.body = {
+        // $FlowFixMe
+        ...ctx.body,
+        status: ctx.status,
+        ok,
+      };
+    }
+  };
+}
