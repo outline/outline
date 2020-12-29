@@ -6,7 +6,7 @@ export default async function documentMover({
   user,
   document,
   collectionId,
-  parentDocumentId = null, // convert undefined to null so === treats them the same
+  parentDocumentId = null, // convert undefined to null so parent comparison treats them the same
   index,
   ip,
 }: {
