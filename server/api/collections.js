@@ -1,7 +1,8 @@
 // @flow
 import fs from "fs";
 import Router from "koa-router";
-import { ValidationError } from "../errors";
+import collectionImporter from "../commands/collectionImporter";
+import { ValidationError, InvalidRequestError } from "../errors";
 import { exportCollections } from "../logistics";
 import auth from "../middlewares/authentication";
 import {
@@ -86,6 +87,44 @@ router.post("collections.info", auth(), async (ctx) => {
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
+  };
+});
+
+router.post("collections.import", auth(), async (ctx) => {
+  const { type } = ctx.body;
+  ctx.assertIn(type, ["outline"], "type must be one of 'outline'");
+
+  if (!ctx.is("multipart/form-data")) {
+    throw new InvalidRequestError("Request type must be multipart/form-data");
+  }
+
+  const file: any = Object.values(ctx.request.files)[0];
+  ctx.assertPresent(file, "file is required");
+
+  if (file.type !== "application/zip") {
+    throw new InvalidRequestError("File type must be a zip");
+  }
+
+  const user = ctx.state.user;
+  authorize(user, "import", Collection);
+
+  const { documents, attachments, collections } = await collectionImporter({
+    file,
+    user,
+    type,
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: {
+      attachmentCount: attachments.length,
+      documentCount: documents.length,
+      collectionCount: collections.length,
+      collections: collections.map((collection) =>
+        presentCollection(collection)
+      ),
+    },
+    policies: presentPolicies(user, collections),
   };
 });
 

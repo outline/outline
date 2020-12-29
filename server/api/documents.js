@@ -2,7 +2,6 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { subtractDate } from "../../shared/utils/date";
-import documentBatchImporter from "../commands/documentBatchImporter";
 import documentCreator from "../commands/documentCreator";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
@@ -1103,44 +1102,6 @@ router.post("documents.unpublish", auth(), async (ctx) => {
   ctx.body = {
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
-  };
-});
-
-router.post("documents.batchImport", auth(), async (ctx) => {
-  const { type } = ctx.body;
-  ctx.assertIn(type, ["outline"], "type must be one of 'outline'");
-
-  if (!ctx.is("multipart/form-data")) {
-    throw new InvalidRequestError("Request type must be multipart/form-data");
-  }
-
-  const file: any = Object.values(ctx.request.files)[0];
-  ctx.assertPresent(file, "file is required");
-
-  if (file.type !== "application/zip") {
-    throw new InvalidRequestError("File type must be a zip");
-  }
-
-  const user = ctx.state.user;
-  authorize(user, "batchImport", Document);
-
-  const { documents, attachments, collections } = await documentBatchImporter({
-    file,
-    user,
-    type,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    data: {
-      attachmentCount: attachments.length,
-      documentCount: documents.length,
-      collectionCount: collections.length,
-      collections: collections.map((collection) =>
-        presentCollection(collection)
-      ),
-    },
-    policies: presentPolicies(user, collections),
   };
 });
 

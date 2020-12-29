@@ -19,7 +19,7 @@ function ImportExport() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const fileRef = React.useRef();
-  const { ui, collections, documents } = useStores();
+  const { ui, collections } = useStores();
   const { showToast } = ui;
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
@@ -34,7 +34,7 @@ function ImportExport() {
       setImporting(true);
 
       try {
-        const { documentCount, collectionCount } = await documents.batchImport(
+        const { documentCount, collectionCount } = await collections.import(
           file
         );
         showToast(t("Import completed"));
@@ -50,7 +50,7 @@ function ImportExport() {
         setImportDetails(undefined);
       }
     },
-    [t, file, documents, showToast]
+    [t, file, collections, showToast]
   );
 
   const handleFilePicked = React.useCallback(async (ev) => {

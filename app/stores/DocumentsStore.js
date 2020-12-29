@@ -498,21 +498,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  batchImport = async (file: File) => {
-    const formData = new FormData();
-    formData.append("type", "outline");
-    formData.append("file", file);
-
-    const res = await client.post("/documents.batchImport", formData);
-    invariant(res && res.data, "Data should be available");
-
-    this.addPolicies(res.policies);
-    res.data.collections.forEach(this.rootStore.collections.add);
-
-    return res.data;
-  };
-
-  @action
   import = async (
     file: File,
     parentDocumentId: string,

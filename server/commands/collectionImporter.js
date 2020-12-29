@@ -16,7 +16,7 @@ import documentImporter from "./documentImporter";
 
 const log = debug("commands");
 
-export default async function documentBatchImporter({
+export default async function collectionImporter({
   file,
   type,
   user,

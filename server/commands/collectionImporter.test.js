@@ -4,13 +4,13 @@ import File from "formidable/lib/file";
 import { Attachment, Document, Collection } from "../models";
 import { buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
-import documentBatchImporter from "./documentBatchImporter";
+import collectionImporter from "./collectionImporter";
 
 jest.mock("../utils/s3");
 
 beforeEach(() => flushdb());
 
-describe("documentBatchImporter", () => {
+describe("collectionImporter", () => {
   const ip = "127.0.0.1";
 
   it("should import documents in outline format", async () => {
@@ -22,7 +22,7 @@ describe("documentBatchImporter", () => {
       path: path.resolve(__dirname, "..", "test", "fixtures", name),
     });
 
-    const response = await documentBatchImporter({
+    const response = await collectionImporter({
       type: "outline",
       user,
       file,
@@ -49,7 +49,7 @@ describe("documentBatchImporter", () => {
 
     let error;
     try {
-      await documentBatchImporter({
+      await collectionImporter({
         type: "outline",
         user,
         file,
@@ -73,7 +73,7 @@ describe("documentBatchImporter", () => {
 
     let error;
     try {
-      await documentBatchImporter({
+      await collectionImporter({
         type: "outline",
         user,
         file,

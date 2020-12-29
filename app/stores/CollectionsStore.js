@@ -1,6 +1,7 @@
 // @flow
+import invariant from "invariant";
 import { concat, filter, last } from "lodash";
-import { computed } from "mobx";
+import { action, computed } from "mobx";
 
 import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
@@ -87,6 +88,21 @@ export default class CollectionsStore extends BaseStore<Collection> {
       };
     });
   }
+
+  @action
+  import = async (file: File) => {
+    const formData = new FormData();
+    formData.append("type", "outline");
+    formData.append("file", file);
+
+    const res = await client.post("/collections.import", formData);
+    invariant(res && res.data, "Data should be available");
+
+    this.addPolicies(res.policies);
+    res.data.collections.forEach(this.add);
+
+    return res.data;
+  };
 
   getPathForDocument(documentId: string): ?DocumentPath {
     return this.pathsToDocuments.find((path) => path.id === documentId);

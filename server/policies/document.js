@@ -1,17 +1,11 @@
 // @flow
 import invariant from "invariant";
-import { AdminRequiredError } from "../errors";
 import { Document, Revision, User } from "../models";
 import policy from "./policy";
 
 const { allow, cannot } = policy;
 
 allow(User, "create", Document);
-
-allow(User, "batchImport", Document, (actor) => {
-  if (actor.isAdmin) return true;
-  throw new AdminRequiredError();
-});
 
 allow(User, ["read", "download"], Document, (user, document) => {
   // existence of collection option is not required here to account for share tokens
