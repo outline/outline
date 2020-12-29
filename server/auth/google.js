@@ -68,15 +68,23 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
   const cbResponse = await fetch(cbUrl);
   const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
 
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      googleId,
-    },
-    defaults: {
-      name: teamName,
-      avatarUrl,
-    },
-  });
+  let team, isFirstUser;
+  try {
+    [team, isFirstUser] = await Team.findOrCreate({
+      where: {
+        googleId,
+      },
+      defaults: {
+        name: teamName,
+        avatarUrl,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Sequelize.UniqueConstraintError) {
+      ctx.redirect(`/?notice=auth-error`);
+      return;
+    }
+  }
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({

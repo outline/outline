@@ -69,6 +69,7 @@ const Team = sequelize.define(
     slackData: DataTypes.JSONB,
   },
   {
+    paranoid: true,
     getterMethods: {
       url() {
         if (this.domain) {
