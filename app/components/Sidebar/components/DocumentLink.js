@@ -153,21 +153,15 @@ function DocumentLink({
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
-      console.log("after => ", node.title);
-
       if (!collection) return;
+      if (item.id === node.id) return;
 
       if (expanded) {
         documents.move(item.id, collection.id, node.id, 0);
         return;
       }
 
-      if (item.id === node.id) {
-        // this is the same item mov
-      } else {
-        documents.move(item.id, collection.id, parentId, index + 1);
-        return;
-      }
+      documents.move(item.id, collection.id, parentId, index + 1);
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
