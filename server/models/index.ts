@@ -1,4 +1,3 @@
-// @flow
 import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import Authentication from "./Authentication";

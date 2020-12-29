@@ -1,4 +1,3 @@
-// @flow
 import path from "path";
 import { DataTypes, sequelize } from "../sequelize";
 import { deleteFromS3 } from "../utils/s3";

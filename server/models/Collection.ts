@@ -1,4 +1,3 @@
-// @flow
 import { find, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import slug from "slug";

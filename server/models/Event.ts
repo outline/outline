@@ -1,4 +1,3 @@
-// @flow
 import events from "../events";
 import { DataTypes, sequelize } from "../sequelize";
 

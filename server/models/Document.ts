@@ -1,4 +1,3 @@
-// @flow
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
@@ -228,9 +227,9 @@ type SearchResponse = {
   results: {
     ranking: number,
     context: string,
-    document: Document,
+    document: Document
   }[],
-  totalCount: number,
+  totalCount: number
 };
 
 type SearchOptions = {
@@ -240,7 +239,7 @@ type SearchOptions = {
   dateFilter?: "day" | "week" | "month" | "year",
   collaboratorIds?: string[],
   includeArchived?: boolean,
-  includeDrafts?: boolean,
+  includeDrafts?: boolean
 };
 
 function escape(query: string): string {
@@ -249,11 +248,7 @@ function escape(query: string): string {
   return sequelize.escape(query).replace("\\", "\\\\");
 }
 
-Document.searchForTeam = async (
-  team,
-  query,
-  options: SearchOptions = {}
-): Promise<SearchResponse> => {
+Document.searchForTeam = async (team, query, options: SearchOptions = {}): Promise<SearchResponse> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;
@@ -339,11 +334,7 @@ Document.searchForTeam = async (
   };
 };
 
-Document.searchForUser = async (
-  user,
-  query,
-  options: SearchOptions = {}
-): Promise<SearchResponse> => {
+Document.searchForUser = async (user, query, options: SearchOptions = {}): Promise<SearchResponse> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
   const wildcardQuery = `${escape(query)}:*`;

@@ -1,4 +1,3 @@
-// @flow
 import { sequelize } from "../sequelize";
 
 const GroupUser = sequelize.define(

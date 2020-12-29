@@ -1,4 +1,3 @@
-// @flow
 import crypto from "crypto";
 import addMinutes from "date-fns/add_minutes";
 import subMinutes from "date-fns/sub_minutes";

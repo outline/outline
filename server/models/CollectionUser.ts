@@ -1,8 +1,7 @@
-// @flow
 import { DataTypes, sequelize } from "../sequelize";
 
-const CollectionGroup = sequelize.define(
-  "collection_group",
+const CollectionUser = sequelize.define(
+  "collection_user",
   {
     permission: {
       type: DataTypes.STRING,
@@ -14,25 +13,22 @@ const CollectionGroup = sequelize.define(
   },
   {
     timestamps: true,
-    paranoid: true,
   }
 );
 
-CollectionGroup.associate = (models) => {
-  CollectionGroup.belongsTo(models.Collection, {
+CollectionUser.associate = (models) => {
+  CollectionUser.belongsTo(models.Collection, {
     as: "collection",
     foreignKey: "collectionId",
-    primary: true,
   });
-  CollectionGroup.belongsTo(models.Group, {
-    as: "group",
-    foreignKey: "groupId",
-    primary: true,
+  CollectionUser.belongsTo(models.User, {
+    as: "user",
+    foreignKey: "userId",
   });
-  CollectionGroup.belongsTo(models.User, {
+  CollectionUser.belongsTo(models.User, {
     as: "createdBy",
     foreignKey: "createdById",
   });
 };
 
-export default CollectionGroup;
+export default CollectionUser;

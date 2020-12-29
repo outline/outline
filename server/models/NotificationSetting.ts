@@ -1,4 +1,3 @@
-// @flow
 import crypto from "crypto";
 import { DataTypes, sequelize } from "../sequelize";
 

@@ -1,4 +1,3 @@
-// @flow
 import { CollectionGroup, GroupUser } from "../models";
 import { Op, DataTypes, sequelize } from "../sequelize";
 

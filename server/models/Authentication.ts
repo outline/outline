@@ -1,4 +1,3 @@
-// @flow
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
 
 const Authentication = sequelize.define("authentication", {

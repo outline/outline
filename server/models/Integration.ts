@@ -1,4 +1,3 @@
-// @flow
 import { DataTypes, sequelize } from "../sequelize";
 
 const Integration = sequelize.define("integration", {
