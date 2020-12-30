@@ -30,7 +30,13 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("collections.create", auth(), async (ctx) => {
-  const { name, color, description, icon } = ctx.body;
+  const {
+    name,
+    color,
+    description,
+    icon,
+    sort = Collection.DEFAULT_SORT,
+  } = ctx.body;
   const isPrivate = ctx.body.private;
   ctx.assertPresent(name, "name is required");
 
@@ -49,6 +55,7 @@ router.post("collections.create", auth(), async (ctx) => {
     teamId: user.teamId,
     creatorId: user.id,
     private: isPrivate,
+    sort,
   });
 
   await Event.create({
@@ -451,22 +458,8 @@ router.post("collections.update", auth(), async (ctx) => {
   if (color) {
     ctx.assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
   }
-  if (sort) {
-    ctx.assertIn(
-      sort.field,
-      ["title", "index"],
-      "sort.field must be one of title,index"
-    );
-    ctx.assertIn(
-      sort.direction,
-      ["asc", "desc"],
-      "sort.direction must be one of asc,desc"
-    );
-    sort = { field: sort.field, direction: sort.direction };
-  }
 
   const user = ctx.state.user;
-
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);

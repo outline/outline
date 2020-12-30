@@ -864,6 +864,8 @@ describe("#collections.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBeTruthy();
     expect(body.data.name).toBe("Test");
+    expect(body.data.sort.field).toBe("index");
+    expect(body.data.sort.direction).toBe("asc");
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[0].abilities.export).toBeTruthy();
@@ -1054,6 +1056,15 @@ describe("#collections.update", () => {
   it("does not allow setting unknown sort fields", async () => {
     const { user, collection } = await seed();
     const sort = { field: "blah", direction: "desc" };
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, sort },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("does not allow setting unknown sort directions", async () => {
+    const { user, collection } = await seed();
+    const sort = { field: "title", direction: "blah" };
     const res = await server.post("/api/collections.update", {
       body: { token: user.getJwtToken(), id: collection.id, sort },
     });
