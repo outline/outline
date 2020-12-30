@@ -84,6 +84,7 @@ function CollectionLink({
                 collection={collection}
                 onOpen={() => setMenuOpen(true)}
                 onClose={() => setMenuOpen(false)}
+                showSort
               />
             }
           ></SidebarLink>

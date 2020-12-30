@@ -26,6 +26,7 @@ type Props = {
   documents: DocumentsStore,
   collection: Collection,
   history: RouterHistory,
+  showSort?: boolean,
   onOpen?: () => void,
   onClose?: () => void,
   t: TFunction,
@@ -121,6 +122,7 @@ class CollectionMenu extends React.Component<Props> {
       documents,
       collection,
       position,
+      showSort,
       onOpen,
       onClose,
       t,
@@ -174,7 +176,7 @@ class CollectionMenu extends React.Component<Props> {
               },
               {
                 title: t("Sort"),
-                visible: can.update,
+                visible: can.update && showSort,
                 hover: true,
                 style: {
                   left: 170,
@@ -183,7 +185,7 @@ class CollectionMenu extends React.Component<Props> {
                 },
                 items: [
                   {
-                    title: t("Title"),
+                    title: t("Alphabetical"),
                     onClick: () => this.handleChangeSort("title"),
                     selected: collection.sort.field === "title",
                   },
