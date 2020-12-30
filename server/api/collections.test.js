@@ -916,6 +916,29 @@ describe("#collections.update", () => {
     expect(body.policies.length).toBe(1);
   });
 
+  it("allows editing sort", async () => {
+    const { user, collection } = await seed();
+    const sort = { field: "index", direction: "desc" };
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, sort },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sort.field).toBe("index");
+    expect(body.data.sort.direction).toBe("desc");
+  });
+
+  it("allows editing individual fields", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, private: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.private).toBe(true);
+    expect(body.data.name).toBe(collection.name);
+  });
+
   it("allows editing from non-private to private collection", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.update", {
@@ -1026,6 +1049,15 @@ describe("#collections.update", () => {
       body: { token: user.getJwtToken(), id: collection.id, name: "Test" },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("does not allow setting unknown sort fields", async () => {
+    const { user, collection } = await seed();
+    const sort = { field: "blah", direction: "desc" };
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, sort },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 
