@@ -35,7 +35,7 @@ import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 import { type LocationWithState } from "types";
-import { meta } from "utils/keyboard";
+import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -279,8 +279,8 @@ class Search extends React.Component<Props> {
             <Fade>
               <HelpText small>
                 <Trans>
-                  Use the <strong>{{ meta }}+K</strong> shortcut to search from
-                  anywhere in your knowledge base
+                  Use the <strong>{{ meta: metaDisplay }}+K</strong> shortcut to
+                  search from anywhere in your knowledge base
                 </Trans>
               </HelpText>
             </Fade>
