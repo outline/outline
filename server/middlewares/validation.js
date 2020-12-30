@@ -37,7 +37,7 @@ export default function validation() {
     };
 
     ctx.assertPositiveInteger = (value, message) => {
-      if (!validator.isInt(value, { min: 0 })) {
+      if (!validator.isInt(String(value), { min: 0 })) {
         throw new ValidationError(message);
       }
     };

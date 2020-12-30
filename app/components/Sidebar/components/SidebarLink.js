@@ -48,16 +48,20 @@ function SidebarLink({
   }, [depth]);
 
   const activeStyle = {
-    color: theme.text,
     fontWeight: 600,
+    color: theme.text,
     background: theme.sidebarItemBackground,
     ...style,
+  };
+
+  const activeFontWeightOnly = {
+    fontWeight: 600,
   };
 
   return (
     <StyledNavLink
       $isActiveDrop={isActiveDrop}
-      activeStyle={isActiveDrop ? undefined : activeStyle}
+      activeStyle={isActiveDrop ? activeFontWeightOnly : activeStyle}
       style={active ? activeStyle : style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -106,6 +110,7 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
+  transition: background 50ms, color 50ms;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
@@ -115,6 +120,7 @@ const StyledNavLink = styled(NavLink)`
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
+    transition: fill 50ms
   }
 
   &:hover {

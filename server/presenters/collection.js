@@ -33,16 +33,16 @@ export default function present(collection: Collection) {
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: collection.documentStructure,
+    documents: collection.documentStructure || [],
   };
 
-  // "index" field is manually sorted and is represented by the documentStructure
-  // already saved in the database, no further sort is needed. We also handle
-  // the "sort" field being empty here for backwards compatability.
+  // Handle the "sort" field being empty here for backwards compatability
   if (!data.sort) {
     data.sort = { field: "title", direction: "asc" };
   }
 
+  // "index" field is manually sorted and is represented by the documentStructure
+  // already saved in the database, no further sort is needed
   if (data.sort.field !== "index") {
     data.documents = sortDocuments(collection.documentStructure, data.sort);
   }
