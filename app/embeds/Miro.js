@@ -18,7 +18,7 @@ export default class RealtimeBoard extends React.Component<Props> {
     const { matches } = this.props.attrs;
     const domain = matches[1];
     const boardId = matches[2];
-    const titleName = domain === 'realtimeboard' ? `RealtimeBoard` : `Miro`;
+    const titleName = domain === "realtimeboard" ? "RealtimeBoard" : "Miro";
 
     return (
       <Frame

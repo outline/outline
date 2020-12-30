@@ -16,7 +16,7 @@ describe("Miro", () => {
   test("to extract the domain as part of the match for later use", () => {
     expect(
       "https://realtimeboard.com/app/board/o9J_k0fwiss=".match(match)[1]
-    ).toBe('realtimeboard');
+    ).toBe("realtimeboard");
   });
 
   test("to not be enabled elsewhere", () => {
