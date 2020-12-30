@@ -1,5 +1,6 @@
 // @flow
 import addHours from "date-fns/add_hours";
+import invariant from "invariant";
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
@@ -40,15 +41,24 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
 
   const data = await Slack.oauthAccess(code);
 
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      slackId: data.team.id,
-    },
-    defaults: {
-      name: data.team.name,
-      avatarUrl: data.team.image_88,
-    },
-  });
+  let team, isFirstUser;
+  try {
+    [team, isFirstUser] = await Team.findOrCreate({
+      where: {
+        slackId: data.team.id,
+      },
+      defaults: {
+        name: data.team.name,
+        avatarUrl: data.team.image_88,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Sequelize.UniqueConstraintError) {
+      ctx.redirect(`/?notice=auth-error`);
+      return;
+    }
+  }
+  invariant(team, "Team must exist");
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({
