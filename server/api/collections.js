@@ -445,12 +445,24 @@ router.post("collections.export_all", auth(), async (ctx) => {
 });
 
 router.post("collections.update", auth(), async (ctx) => {
-  const { id, name, description, icon, color } = ctx.body;
+  let { id, name, description, icon, color, sort } = ctx.body;
   const isPrivate = ctx.body.private;
-  ctx.assertPresent(name, "name is required");
 
   if (color) {
     ctx.assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
+  }
+  if (sort) {
+    ctx.assertIn(
+      sort.field,
+      ["title", "index"],
+      "sort.field must be one of title,index"
+    );
+    ctx.assertIn(
+      sort.direction,
+      ["asc", "desc"],
+      "sort.direction must be one of asc,desc"
+    );
+    sort = { field: sort.field, direction: sort.direction };
   }
 
   const user = ctx.state.user;
@@ -478,11 +490,24 @@ router.post("collections.update", auth(), async (ctx) => {
 
   const isPrivacyChanged = isPrivate !== collection.private;
 
-  collection.name = name;
-  collection.description = description;
-  collection.icon = icon;
-  collection.color = color;
-  collection.private = isPrivate;
+  if (name !== undefined) {
+    collection.name = name;
+  }
+  if (description !== undefined) {
+    collection.description = description;
+  }
+  if (icon !== undefined) {
+    collection.icon = icon;
+  }
+  if (color !== undefined) {
+    collection.color = color;
+  }
+  if (isPrivate !== undefined) {
+    collection.private = isPrivate;
+  }
+  if (sort !== undefined) {
+    collection.sort = sort;
+  }
 
   await collection.save();
 

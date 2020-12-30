@@ -24,6 +24,7 @@ const Collection = sequelize.define(
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
     documentStructure: DataTypes.JSONB,
+    sort: DataTypes.JSONB,
   },
   {
     tableName: "collections",

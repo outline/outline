@@ -70,6 +70,15 @@ class CollectionMenu extends React.Component<Props> {
     }
   };
 
+  handleChangeSort = (field: string) => {
+    return this.props.collection.save({
+      sort: {
+        field,
+        direction: "asc",
+      },
+    });
+  };
+
   handleEditCollectionOpen = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.showCollectionEdit = true;
@@ -147,12 +156,12 @@ class CollectionMenu extends React.Component<Props> {
             items={[
               {
                 title: t("New document"),
-                visible: !!(collection && can.update),
+                visible: can.update,
                 onClick: this.onNewDocument,
               },
               {
                 title: t("Import document"),
-                visible: !!(collection && can.update),
+                visible: can.update,
                 onClick: this.onImportDocument,
               },
               {
@@ -160,12 +169,34 @@ class CollectionMenu extends React.Component<Props> {
               },
               {
                 title: `${t("Edit")}…`,
-                visible: !!(collection && can.update),
+                visible: can.update,
                 onClick: this.handleEditCollectionOpen,
               },
               {
+                title: t("Sort"),
+                visible: can.update,
+                hover: true,
+                style: {
+                  left: 170,
+                  position: "relative",
+                  top: -40,
+                },
+                items: [
+                  {
+                    title: t("Title"),
+                    onClick: () => this.handleChangeSort("title"),
+                    selected: collection.sort.field === "title",
+                  },
+                  {
+                    title: t("Custom"),
+                    onClick: () => this.handleChangeSort("index"),
+                    selected: collection.sort.field === "index",
+                  },
+                ],
+              },
+              {
                 title: `${t("Permissions")}…`,
-                visible: !!(collection && can.update),
+                visible: can.update,
                 onClick: this.handleMembersModalOpen,
               },
               {

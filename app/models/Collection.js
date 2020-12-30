@@ -20,6 +20,7 @@ export default class Collection extends BaseModel {
   createdAt: ?string;
   updatedAt: ?string;
   deletedAt: ?string;
+  sort: { field: string, direction: "asc" | "desc" };
   url: string;
 
   @computed
@@ -108,6 +109,7 @@ export default class Collection extends BaseModel {
       "description",
       "icon",
       "private",
+      "sort",
     ]);
   };
 
