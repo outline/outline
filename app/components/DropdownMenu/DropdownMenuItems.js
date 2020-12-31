@@ -1,6 +1,9 @@
 // @flow
+import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
+import styled from "styled-components";
+import Flex from "components/Flex";
 import DropdownMenu from "./DropdownMenu";
 import DropdownMenuItem from "./DropdownMenuItem";
 
@@ -47,6 +50,10 @@ type MenuItem =
 type Props = {|
   items: MenuItem[],
 |};
+
+const Disclosure = styled(ExpandedIcon)`
+  transform: rotate(270deg);
+`;
 
 export default function DropdownMenuItems({ items }: Props): React.Node {
   let filtered = items.filter((item) => item.visible !== false);
@@ -114,7 +121,10 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
           style={item.style}
           label={
             <DropdownMenuItem disabled={item.disabled}>
-              {item.title}
+              <Flex justify="space-between" align="center" auto>
+                {item.title}
+                <Disclosure color="currentColor" />
+              </Flex>
             </DropdownMenuItem>
           }
           hover={item.hover}

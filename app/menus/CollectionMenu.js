@@ -175,7 +175,20 @@ class CollectionMenu extends React.Component<Props> {
                 onClick: this.handleEditCollectionOpen,
               },
               {
-                title: t("Sort"),
+                title: `${t("Permissions")}…`,
+                visible: can.update,
+                onClick: this.handleMembersModalOpen,
+              },
+              {
+                title: `${t("Export")}…`,
+                visible: !!(collection && can.export),
+                onClick: this.handleExportCollectionOpen,
+              },
+              {
+                type: "separator",
+              },
+              {
+                title: t("Sort in sidebar"),
                 visible: can.update && showSort,
                 hover: true,
                 style: {
@@ -190,21 +203,14 @@ class CollectionMenu extends React.Component<Props> {
                     selected: collection.sort.field === "title",
                   },
                   {
-                    title: t("Custom"),
+                    title: t("Manual sort"),
                     onClick: () => this.handleChangeSort("index"),
                     selected: collection.sort.field === "index",
                   },
                 ],
               },
               {
-                title: `${t("Permissions")}…`,
-                visible: can.update,
-                onClick: this.handleMembersModalOpen,
-              },
-              {
-                title: `${t("Export")}…`,
-                visible: !!(collection && can.export),
-                onClick: this.handleExportCollectionOpen,
+                type: "separator",
               },
               {
                 title: `${t("Delete")}…`,

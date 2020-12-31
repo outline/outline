@@ -119,10 +119,10 @@ class CollectionEdit extends React.Component<Props> {
             maxHeight={200}
           />
           <InputSelect
-            label={t("Sort")}
+            label={t("Sort in sidebar")}
             options={[
               { label: t("Alphabetical"), value: "title.asc" },
-              { label: t("Custom"), value: "index.asc" },
+              { label: t("Manual sort"), value: "index.asc" },
             ]}
             value={`${this.sort.field}.${this.sort.direction}`}
             onChange={this.handleSortChange}
