@@ -164,7 +164,7 @@ class CollectionScene extends React.Component<Props> {
           </>
         )}
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <CollectionMenu collection={this.collection} showSort={false} />
         </Action>
       </Actions>
     );
@@ -179,9 +179,10 @@ class CollectionScene extends React.Component<Props> {
     const pinnedDocuments = this.collection
       ? documents.pinnedInCollection(this.collection.id)
       : [];
-    const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
     const collectionName = collection ? collection.name : "";
+    const hasPinnedDocuments = !!pinnedDocuments.length;
+    const hasDescription = collection ? collection.hasDescription : false;
 
     return (
       <CenteredContent>
@@ -240,7 +241,7 @@ class CollectionScene extends React.Component<Props> {
                   {collection.name}
                 </Heading>
 
-                {collection.description && (
+                {hasDescription && (
                   <React.Suspense fallback={<p>Loading…</p>}>
                     <Editor
                       id={collection.id}

@@ -51,9 +51,11 @@ class NewChildDocumentMenu extends React.Component<Props> {
           items={[
             {
               title: (
-                <Trans>
-                  New document in <strong>{{ collectionName }}</strong>
-                </Trans>
+                <span>
+                  <Trans>
+                    New document in <strong>{{ collectionName }}</strong>
+                  </Trans>
+                </span>
               ),
               onClick: this.handleNewDocument,
             },

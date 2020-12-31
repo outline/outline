@@ -1,6 +1,9 @@
 // @flow
+import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
+import styled from "styled-components";
+import Flex from "components/Flex";
 import DropdownMenu from "./DropdownMenu";
 import DropdownMenuItem from "./DropdownMenuItem";
 
@@ -9,18 +12,21 @@ type MenuItem =
       title: React.Node,
       to: string,
       visible?: boolean,
+      selected?: boolean,
       disabled?: boolean,
     |}
   | {|
       title: React.Node,
       onClick: (event: SyntheticEvent<>) => void | Promise<void>,
       visible?: boolean,
+      selected?: boolean,
       disabled?: boolean,
     |}
   | {|
       title: React.Node,
       href: string,
       visible?: boolean,
+      selected?: boolean,
       disabled?: boolean,
     |}
   | {|
@@ -44,6 +50,10 @@ type MenuItem =
 type Props = {|
   items: MenuItem[],
 |};
+
+const Disclosure = styled(ExpandedIcon)`
+  transform: rotate(270deg);
+`;
 
 export default function DropdownMenuItems({ items }: Props): React.Node {
   let filtered = items.filter((item) => item.visible !== false);
@@ -71,6 +81,7 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
           to={item.to}
           key={index}
           disabled={item.disabled}
+          selected={item.selected}
         >
           {item.title}
         </DropdownMenuItem>
@@ -83,6 +94,7 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
           href={item.href}
           key={index}
           disabled={item.disabled}
+          selected={item.selected}
           target="_blank"
         >
           {item.title}
@@ -95,6 +107,7 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
         <DropdownMenuItem
           onClick={item.onClick}
           disabled={item.disabled}
+          selected={item.selected}
           key={index}
         >
           {item.title}
@@ -108,7 +121,10 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
           style={item.style}
           label={
             <DropdownMenuItem disabled={item.disabled}>
-              {item.title}
+              <Flex justify="space-between" align="center" auto>
+                {item.title}
+                <Disclosure color="currentColor" />
+              </Flex>
             </DropdownMenuItem>
           }
           hover={item.hover}

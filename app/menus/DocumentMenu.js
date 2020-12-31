@@ -200,7 +200,7 @@ class DocumentMenu extends React.Component<Props> {
                 onClick: this.handleRestore,
               },
               {
-                title: `${t("Restore")}…`,
+                title: t("Restore"),
                 visible: !collection && !!can.restore,
                 style: {
                   left: -170,
