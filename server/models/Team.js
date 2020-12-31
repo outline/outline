@@ -145,6 +145,7 @@ Team.prototype.provisionFirstCollection = async function (userId) {
       "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
     teamId: this.id,
     creatorId: userId,
+    sort: Collection.DEFAULT_SORT,
   });
 
   // For the first collection we go ahead and create some intitial documents to get

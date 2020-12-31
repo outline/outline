@@ -1,5 +1,5 @@
 // @flow
-import { find, concat, remove, uniq } from "lodash";
+import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import slug from "slug";
 import { DataTypes, sequelize } from "../sequelize";
@@ -24,6 +24,27 @@ const Collection = sequelize.define(
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
     documentStructure: DataTypes.JSONB,
+    sort: {
+      type: DataTypes.JSONB,
+      validate: {
+        isSort(value) {
+          if (
+            typeof value !== "object" ||
+            !value.direction ||
+            !value.field ||
+            Object.keys(value).length !== 2
+          ) {
+            throw new Error("Sort must be an object with field,direction");
+          }
+          if (!["asc", "desc"].includes(value.direction)) {
+            throw new Error("Sort direction must be one of asc,desc");
+          }
+          if (!["title", "index"].includes(value.field)) {
+            throw new Error("Sort field must be one of title,index");
+          }
+        },
+      },
+    },
   },
   {
     tableName: "collections",
@@ -40,6 +61,11 @@ const Collection = sequelize.define(
     },
   }
 );
+
+Collection.DEFAULT_SORT = {
+  field: "index",
+  direction: "asc",
+};
 
 Collection.addHook("beforeSave", async (model) => {
   if (model.icon === "collection") {
@@ -350,7 +376,7 @@ Collection.prototype.removeDocumentInStructure = async function (
 
       const match = find(children, { id });
       if (match) {
-        if (!returnValue) returnValue = match;
+        if (!returnValue) returnValue = [match, findIndex(children, { id })];
         remove(children, { id });
       }
 
