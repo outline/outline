@@ -54,6 +54,7 @@ export default async function documentMover({
       // so when the initial item is removed above, the list will reduce by 1.
       // We need to compensate for this when reordering
       const toIndex =
+        index !== undefined &&
         document.parentDocumentId === parentDocumentId &&
         document.collectionId === collectionId &&
         fromIndex < index
