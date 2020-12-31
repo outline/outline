@@ -121,6 +121,7 @@ function DocumentLink({
 
   const [menuOpen, setMenuOpen] = React.useState(false);
   const isMoving = documents.movingDocumentId === node.id;
+  const manualSort = collection?.sort.field === "index";
 
   // Draggable
   const [{ isDragging }, drag] = useDrag({
@@ -221,7 +222,9 @@ function DocumentLink({
             </DropToImport>
           </div>
         </Draggable>
-        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+        {manualSort && (
+          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+        )}
       </div>
       {expanded && !isDragging && (
         <>

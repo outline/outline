@@ -40,6 +40,7 @@ function CollectionLink({
 
   const { documents, policies } = useStores();
   const expanded = collection.id === ui.activeCollectionId;
+  const manualSort = collection.sort.field === "index";
 
   // Drop to re-parent
   const [{ isOver, canDrop }, drop] = useDrop({
@@ -102,7 +103,7 @@ function CollectionLink({
             }
           ></SidebarLink>
         </DropToImport>
-        {expanded && (
+        {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </div>
