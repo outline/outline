@@ -21,7 +21,7 @@ import UsersStore from "stores/UsersStore";
 
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
-import DocumentPreview from "components/DocumentPreview";
+import DocumentListItem from "components/DocumentListItem";
 import Empty from "components/Empty";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
@@ -350,7 +350,7 @@ class Search extends React.Component<Props> {
                 if (!document) return null;
 
                 return (
-                  <DocumentPreview
+                  <DocumentListItem
                     ref={(ref) => index === 0 && this.setFirstDocumentRef(ref)}
                     key={document.id}
                     document={document}

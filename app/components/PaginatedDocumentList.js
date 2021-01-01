@@ -2,7 +2,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import Document from "models/Document";
-import DocumentPreview from "components/DocumentPreview";
+import DocumentListItem from "components/DocumentListItem";
 import PaginatedList from "components/PaginatedList";
 
 type Props = {
@@ -26,7 +26,7 @@ class PaginatedDocumentList extends React.Component<Props> {
         fetch={fetch}
         options={options}
         renderItem={(item) => (
-          <DocumentPreview key={item.id} document={item} {...rest} />
+          <DocumentListItem key={item.id} document={item} {...rest} />
         )}
       />
     );
