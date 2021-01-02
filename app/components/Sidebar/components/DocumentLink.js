@@ -134,7 +134,13 @@ function DocumentLink({
     },
   });
 
-  const isHoverExpanding = React.useRef(false);
+  const hoverExpanding = React.useRef(null);
+  const resetHoverExpanding = React.useCallback(() => {
+    if (hoverExpanding.current) {
+      clearTimeout(hoverExpanding.current);
+      hoverExpanding.current = null;
+    }
+  }, []);
 
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
@@ -144,6 +150,7 @@ function DocumentLink({
       if (!collection) return;
       documents.move(item.id, collection.id, node.id);
     },
+
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
 
@@ -153,10 +160,9 @@ function DocumentLink({
         monitor.canDrop() &&
         monitor.isOver({ shallow: true })
       ) {
-        if (!isHoverExpanding.current) {
-          isHoverExpanding.current = true;
-          setTimeout(() => {
-            isHoverExpanding.current = false;
+        if (!hoverExpanding.current) {
+          hoverExpanding.current = setTimeout(() => {
+            hoverExpanding.current = null;
             if (monitor.isOver({ shallow: true })) {
               setExpanded(true);
             }
@@ -192,7 +198,7 @@ function DocumentLink({
 
   return (
     <>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} onDragLeave={resetHoverExpanding}>
         <Draggable
           key={node.id}
           ref={drag}
