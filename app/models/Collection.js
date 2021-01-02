@@ -47,7 +47,7 @@ export default class Collection extends BaseModel {
   }
 
   @computed
-  get hasDescription(): string {
+  get hasDescription(): boolean {
     return !!trim(this.description, "\\").trim();
   }
 
