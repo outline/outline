@@ -134,6 +134,8 @@ function DocumentLink({
     },
   });
 
+  const isHoverExpanding = React.useRef(false);
+
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
@@ -144,6 +146,25 @@ function DocumentLink({
     },
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
+
+    hover: (item, monitor) => {
+      if (
+        hasChildDocuments &&
+        monitor.canDrop() &&
+        monitor.isOver({ shallow: true })
+      ) {
+        if (!isHoverExpanding.current) {
+          isHoverExpanding.current = true;
+          setTimeout(() => {
+            isHoverExpanding.current = false;
+            if (monitor.isOver({ shallow: true })) {
+              setExpanded(true);
+            }
+          }, 500);
+        }
+      }
+    },
+
     collect: (monitor) => ({
       isOverReparent: !!monitor.isOver({ shallow: true }),
       canDropToReparent: monitor.canDrop(),
