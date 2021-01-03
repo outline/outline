@@ -2,6 +2,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
+import styled from "styled-components";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -13,6 +14,7 @@ import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import useStores from "hooks/useStores";
 import CollectionMenu from "menus/CollectionMenu";
+import CollectionSortMenu from "menus/CollectionSortMenu";
 
 type Props = {|
   collection: Collection,
@@ -41,6 +43,7 @@ function CollectionLink({
   const { documents, policies } = useStores();
   const expanded = collection.id === ui.activeCollectionId;
   const manualSort = collection.sort.field === "index";
+  const can = policies.abilities(collection.id);
 
   // Drop to re-parent
   const [{ isOver, canDrop }, drop] = useDrop({
@@ -83,7 +86,7 @@ function CollectionLink({
             }
             iconColor={collection.color}
             expanded={expanded}
-            menuOpen={menuOpen}
+            showActions={menuOpen || expanded}
             isActiveDrop={isOver && canDrop}
             label={
               <EditableTitle
@@ -94,12 +97,22 @@ function CollectionLink({
             }
             exact={false}
             menu={
-              <CollectionMenu
-                position="right"
-                collection={collection}
-                onOpen={() => setMenuOpen(true)}
-                onClose={() => setMenuOpen(false)}
-              />
+              <>
+                {can.update && (
+                  <CollectionSortMenuWithMargin
+                    position="right"
+                    collection={collection}
+                    onOpen={() => setMenuOpen(true)}
+                    onClose={() => setMenuOpen(false)}
+                  />
+                )}
+                <CollectionMenu
+                  position="right"
+                  collection={collection}
+                  onOpen={() => setMenuOpen(true)}
+                  onClose={() => setMenuOpen(false)}
+                />
+              </>
             }
           ></SidebarLink>
         </DropToImport>
@@ -124,5 +137,9 @@ function CollectionLink({
     </>
   );
 }
+
+const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`
+  margin-right: 4px;
+`;
 
 export default observer(CollectionLink);

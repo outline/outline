@@ -164,7 +164,7 @@ class CollectionScene extends React.Component<Props> {
           </>
         )}
         <Action>
-          <CollectionMenu collection={this.collection} showSort={false} />
+          <CollectionMenu collection={this.collection} />
         </Action>
       </Actions>
     );

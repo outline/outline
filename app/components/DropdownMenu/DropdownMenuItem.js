@@ -27,9 +27,7 @@ const DropdownMenuItem = ({
     >
       {selected !== undefined && (
         <>
-          <CheckmarkIcon
-            color={selected === false ? "transparent" : undefined}
-          />
+          {selected ? <CheckmarkIcon /> : <Spacer />}
           &nbsp;
         </>
       )}
@@ -37,6 +35,11 @@ const DropdownMenuItem = ({
     </MenuItem>
   );
 };
+
+const Spacer = styled.div`
+  width: 24px;
+  height: 24px;
+`;
 
 const MenuItem = styled.a`
   display: flex;

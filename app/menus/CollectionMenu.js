@@ -26,7 +26,6 @@ type Props = {
   documents: DocumentsStore,
   collection: Collection,
   history: RouterHistory,
-  showSort?: boolean,
   onOpen?: () => void,
   onClose?: () => void,
   t: TFunction,
@@ -71,15 +70,6 @@ class CollectionMenu extends React.Component<Props> {
     }
   };
 
-  handleChangeSort = (field: string) => {
-    return this.props.collection.save({
-      sort: {
-        field,
-        direction: "asc",
-      },
-    });
-  };
-
   handleEditCollectionOpen = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.showCollectionEdit = true;
@@ -122,7 +112,6 @@ class CollectionMenu extends React.Component<Props> {
       documents,
       collection,
       position,
-      showSort,
       onOpen,
       onClose,
       t,
@@ -186,28 +175,6 @@ class CollectionMenu extends React.Component<Props> {
               },
               {
                 type: "separator",
-              },
-              {
-                title: t("Sort in sidebar"),
-                visible: can.update && showSort,
-                hover: true,
-                style: {
-                  left: 170,
-                  position: "relative",
-                  top: -40,
-                },
-                items: [
-                  {
-                    title: t("Alphabetical"),
-                    onClick: () => this.handleChangeSort("title"),
-                    selected: collection.sort.field === "title",
-                  },
-                  {
-                    title: t("Manual sort"),
-                    onClick: () => this.handleChangeSort("index"),
-                    selected: collection.sort.field === "index",
-                  },
-                ],
               },
               {
                 type: "separator",
