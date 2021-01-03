@@ -82,13 +82,13 @@ function DocumentDelete({ document, onSubmit }: Props) {
             <Trans>
               Are you sure about that? Deleting the{" "}
               <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              template will delete all of its history and any nested documents.
+              template will delete all of its history.
             </Trans>
           ) : (
             <Trans>
               Are you sure about that? Deleting the{" "}
               <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              document will delete all of its history.
+              document will delete all of its history and any nested documents.
             </Trans>
           )}
         </HelpText>
