@@ -126,7 +126,7 @@
     "mobx-react": "^6.2.5",
     "natural-sort": "^1.0.0",
     "nodemailer": "^4.4.0",
-    "outline-icons": "^1.23.0-1",
+    "outline-icons": "^1.23.0",
     "oy-vey": "^0.10.0",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
@@ -205,7 +205,6 @@
     "webpack-manifest-plugin": "^2.2.0"
   },
   "resolutions": {
-    "outline-icons": "1.23.0-1",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },

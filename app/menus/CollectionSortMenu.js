@@ -1,6 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-import { AlphabeticSortIcon, ManualSortIcon } from "outline-icons";
+import { AlphabeticalSortIcon, ManualSortIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Collection from "models/Collection";
@@ -44,7 +44,7 @@ function CollectionSortMenu({
       onClose={onClose}
       label={
         <NudeButton aria-label={t("Sort in sidebar")} aria-haspopup="true">
-          {alphabeticalSort ? <AlphabeticSortIcon /> : <ManualSortIcon />}
+          {alphabeticalSort ? <AlphabeticalSortIcon /> : <ManualSortIcon />}
         </NudeButton>
       }
       position={position}
