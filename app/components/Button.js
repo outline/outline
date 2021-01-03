@@ -47,10 +47,9 @@ const RealButton = styled.button`
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
     box-shadow: ${
-      props.borderOnHover ? "none" : "rgba(0, 0, 0, 0.07) 0px 1px 2px"
-    };
-    border: 1px solid ${
-      props.borderOnHover ? "transparent" : props.theme.buttonNeutralBorder
+      props.borderOnHover
+        ? "none"
+        : `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`
     };
 
     svg {
@@ -59,7 +58,9 @@ const RealButton = styled.button`
 
     &:hover {
       background: ${darken(0.05, props.theme.buttonNeutralBackground)};
-      border: 1px solid ${props.theme.buttonNeutralBorder};
+      box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
+        props.theme.buttonNeutralBorder
+      } 0 0 0 1px inset;
     }
 
     &:disabled {
