@@ -80,9 +80,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
         <HelpText>
           {document.isTemplate ? (
             <Trans>
-              Are you sure about that? Deleting the{" "}
+              Are you sure you want to delete the{" "}
               <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              template will delete all of its history.
+              template?
             </Trans>
           ) : (
             <Trans>
@@ -95,7 +95,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
         {canArchive && (
           <HelpText>
             <Trans>
-              If you’d like the option of referencing or restoring this{" "}
+              If you’d like the option of referencing or restoring the{" "}
               {{ noun: document.noun }} in the future, consider archiving it
               instead.
             </Trans>
