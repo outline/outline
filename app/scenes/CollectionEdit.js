@@ -47,9 +47,11 @@ class CollectionEdit extends React.Component<Props> {
         sort: this.sort,
       });
       this.props.onSubmit();
-      this.props.ui.showToast(t("The collection was updated"));
+      this.props.ui.showToast(t("The collection was updated"), {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }

@@ -45,7 +45,7 @@ class DocumentShare extends React.Component<Props> {
     try {
       await share.save({ published: event.target.checked });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }

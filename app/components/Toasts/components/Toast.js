@@ -1,4 +1,5 @@
 // @flow
+import { CheckboxIcon, InfoIcon, WarningIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
@@ -14,7 +15,7 @@ type Props = {
 function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
   const timeout = React.useRef();
   const [pulse, setPulse] = React.useState(false);
-  const { action, reoccurring } = toast;
+  const { action, type = "info", reoccurring } = toast;
 
   React.useEffect(() => {
     timeout.current = setTimeout(onRequestClose, toast.timeout || closeAfterMs);
@@ -42,6 +43,10 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
         onClick={action ? undefined : onRequestClose}
         type={toast.type || "success"}
       >
+        {type === "info" && <InfoIcon color="currentColor" />}
+        {type === "success" && <CheckboxIcon checked color="currentColor" />}
+        {type === "warning" ||
+          (type === "error" && <WarningIcon color="currentColor" />)}
         <Message>{message}</Message>
         {action && (
           <Action type={toast.type || "success"} onClick={action.onClick}>
@@ -78,10 +83,11 @@ const ListItem = styled.li`
 `;
 
 const Container = styled.div`
-  display: inline-block;
+  display: inline-flex;
   align-items: center;
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;
+  padding: 0 12px;
   color: ${(props) => props.theme.toastText};
   background: ${(props) => props.theme.toastBackground};
   font-size: 15px;
@@ -95,7 +101,8 @@ const Container = styled.div`
 
 const Message = styled.div`
   display: inline-block;
-  padding: 10px 12px;
+  font-weight: 500;
+  padding: 10px 4px;
 `;
 
 export default Toast;

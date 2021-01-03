@@ -60,7 +60,9 @@ class DropToImport extends React.Component<Props> {
         }
       }
     } catch (err) {
-      this.props.ui.showToast(`Could not import file. ${err.message}`);
+      this.props.ui.showToast(`Could not import file. ${err.message}`, {
+        type: "error",
+      });
     } finally {
       this.isImporting = false;
       importingLock = false;

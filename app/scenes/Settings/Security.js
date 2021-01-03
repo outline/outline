@@ -56,7 +56,7 @@ class Security extends React.Component<Props> {
   };
 
   showSuccessMessage = debounce(() => {
-    this.props.ui.showToast("Settings saved");
+    this.props.ui.showToast("Settings saved", { type: "success" });
   }, 500);
 
   render() {

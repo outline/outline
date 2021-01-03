@@ -30,7 +30,7 @@ class GroupDelete extends React.Component<Props> {
       this.props.history.push(groupSettings());
       this.props.onSubmit();
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isDeleting = false;
     }

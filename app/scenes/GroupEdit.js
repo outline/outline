@@ -30,7 +30,7 @@ class GroupEdit extends React.Component<Props> {
       await this.props.group.save({ name: this.name });
       this.props.onSubmit();
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }

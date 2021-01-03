@@ -100,6 +100,7 @@ class DocumentScene extends React.Component<Props> {
           `Document updated by ${document.updatedBy.name}`,
           {
             timeout: 30 * 1000,
+            type: "warning",
             action: {
               text: "Reload",
               onClick: () => {
@@ -239,7 +240,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
       this.isPublishing = false;

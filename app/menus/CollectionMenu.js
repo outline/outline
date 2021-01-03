@@ -66,7 +66,9 @@ class CollectionMenu extends React.Component<Props> {
       );
       this.props.history.push(document.url);
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, {
+        type: "error",
+      });
     }
   };
 

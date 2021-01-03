@@ -86,7 +86,7 @@ class DocumentMenu extends React.Component<Props> {
     // when duplicating, go straight to the duplicated document content
     this.redirectTo = duped.url;
     const { t } = this.props;
-    this.props.ui.showToast(t("Document duplicated"));
+    this.props.ui.showToast(t("Document duplicated"), { type: "success" });
   };
 
   handleOpenTemplateModal = () => {
@@ -104,7 +104,7 @@ class DocumentMenu extends React.Component<Props> {
   handleArchive = async (ev: SyntheticEvent<>) => {
     await this.props.document.archive();
     const { t } = this.props;
-    this.props.ui.showToast(t("Document archived"));
+    this.props.ui.showToast(t("Document archived"), { type: "success" });
   };
 
   handleRestore = async (
@@ -113,13 +113,13 @@ class DocumentMenu extends React.Component<Props> {
   ) => {
     await this.props.document.restore(options);
     const { t } = this.props;
-    this.props.ui.showToast(t("Document restored"));
+    this.props.ui.showToast(t("Document restored"), { type: "success" });
   };
 
   handleUnpublish = async (ev: SyntheticEvent<>) => {
     await this.props.document.unpublish();
     const { t } = this.props;
-    this.props.ui.showToast(t("Document unpublished"));
+    this.props.ui.showToast(t("Document unpublished"), { type: "success" });
   };
 
   handlePin = (ev: SyntheticEvent<>) => {

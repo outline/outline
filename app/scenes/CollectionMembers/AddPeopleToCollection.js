@@ -62,10 +62,13 @@ class AddPeopleToCollection extends React.Component<Props> {
         permission: "read_write",
       });
       this.props.ui.showToast(
-        t("{{ userName }} was added to the collection", { userName: user.name })
+        t("{{ userName }} was added to the collection", {
+          userName: user.name,
+        }),
+        { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not add user"));
+      this.props.ui.showToast(t("Could not add user"), { type: "error" });
     }
   };
 

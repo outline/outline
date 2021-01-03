@@ -28,10 +28,12 @@ class DocumentTemplatize extends React.Component<Props> {
     try {
       const template = await this.props.document.templatize();
       this.props.history.push(documentUrl(template));
-      this.props.ui.showToast("Template created, go ahead and customize it");
+      this.props.ui.showToast("Template created, go ahead and customize it", {
+        type: "info",
+      });
       this.props.onSubmit();
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }

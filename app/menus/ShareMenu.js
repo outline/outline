@@ -39,15 +39,15 @@ class ShareMenu extends React.Component<Props> {
     try {
       await this.props.shares.revoke(this.props.share);
       const { t } = this.props;
-      this.props.ui.showToast(t("Share link revoked"));
+      this.props.ui.showToast(t("Share link revoked"), { type: "info" });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     }
   };
 
   handleCopy = () => {
     const { t } = this.props;
-    this.props.ui.showToast(t("Share link copied"));
+    this.props.ui.showToast(t("Share link copied"), { type: "info" });
   };
 
   render() {

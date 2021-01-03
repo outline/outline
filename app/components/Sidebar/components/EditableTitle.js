@@ -52,7 +52,9 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
         setOriginalValue(value);
       } catch (error) {
         setValue(originalValue);
-        ui.showToast(error.message);
+        ui.showToast(error.message, {
+          type: "error",
+        });
         throw error;
       }
     }

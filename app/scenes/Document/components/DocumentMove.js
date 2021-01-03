@@ -86,7 +86,7 @@ class DocumentMove extends React.Component<Props> {
   }
 
   handleSuccess = () => {
-    this.props.ui.showToast("Document moved");
+    this.props.ui.showToast("Document moved", { type: "info" });
     this.props.onRequestClose();
   };
 

@@ -61,9 +61,11 @@ class CollectionMembers extends React.Component<Props> {
         collectionId: this.props.collection.id,
         userId: user.id,
       });
-      this.props.ui.showToast(`${user.name} was removed from the collection`);
+      this.props.ui.showToast(`${user.name} was removed from the collection`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not remove user");
+      this.props.ui.showToast("Could not remove user", { type: "error" });
     }
   };
 
@@ -74,9 +76,11 @@ class CollectionMembers extends React.Component<Props> {
         userId: user.id,
         permission,
       });
-      this.props.ui.showToast(`${user.name} permissions were updated`);
+      this.props.ui.showToast(`${user.name} permissions were updated`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not update user");
+      this.props.ui.showToast("Could not update user", { type: "error" });
     }
   };
 
@@ -86,9 +90,11 @@ class CollectionMembers extends React.Component<Props> {
         collectionId: this.props.collection.id,
         groupId: group.id,
       });
-      this.props.ui.showToast(`${group.name} was removed from the collection`);
+      this.props.ui.showToast(`${group.name} was removed from the collection`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not remove group");
+      this.props.ui.showToast("Could not remove group", { type: "error" });
     }
   };
 
@@ -99,9 +105,11 @@ class CollectionMembers extends React.Component<Props> {
         groupId: group.id,
         permission,
       });
-      this.props.ui.showToast(`${group.name} permissions were updated`);
+      this.props.ui.showToast(`${group.name} permissions were updated`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not update user");
+      this.props.ui.showToast("Could not update user", { type: "error" });
     }
   };
 

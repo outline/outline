@@ -28,13 +28,13 @@ class RevisionMenu extends React.Component<Props> {
     ev.preventDefault();
     await this.props.document.restore({ revisionId: this.props.revision.id });
     const { t } = this.props;
-    this.props.ui.showToast(t("Document restored"));
+    this.props.ui.showToast(t("Document restored"), { type: "success" });
     this.props.history.push(this.props.document.url);
   };
 
   handleCopy = () => {
     const { t } = this.props;
-    this.props.ui.showToast(t("Link copied"));
+    this.props.ui.showToast(t("Link copied"), { type: "info" });
   };
 
   render() {
