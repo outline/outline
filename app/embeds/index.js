@@ -5,6 +5,7 @@ import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
+import Excalidraw from "./Excalidraw";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
@@ -71,6 +72,13 @@ export default [
     icon: () => <Img src="/images/codepen.png" />,
     component: Codepen,
     matcher: matcher(Codepen),
+  },
+  {
+    title: "Excalidraw",
+    keywords: "design svg vector",
+    icon: () => <Img src="/images/excalidraw.png" />,
+    component: Excalidraw,
+    matcher: matcher(Excalidraw),
   },
   {
     title: "Figma",

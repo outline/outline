@@ -59,13 +59,13 @@ class Frame extends React.Component<PropsWithRef> {
       <Rounded
         width={width}
         height={height}
-        withBar={withBar}
+        $withBar={withBar}
         className={isSelected ? "ProseMirror-selectednode" : ""}
       >
         {this.isLoaded && (
           <Component
             ref={forwardedRef}
-            withBar={withBar}
+            $withBar={withBar}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             width={width}
             height={height}
@@ -97,10 +97,10 @@ class Frame extends React.Component<PropsWithRef> {
 }
 
 const Rounded = styled.div`
-  border-radius: ${(props) => (props.withBar ? "3px 3px 0 0" : "3px")};
+  border-radius: ${(props) => (props.$withBar ? "3px 3px 0 0" : "3px")};
   overflow: hidden;
   width: ${(props) => props.width};
-  height: ${(props) => (props.withBar ? props.height + 28 : props.height)};
+  height: ${(props) => (props.$withBar ? props.height + 28 : props.height)};
 `;
 
 const Open = styled.a`
@@ -134,9 +134,10 @@ const Bar = styled(Flex)`
 const Iframe = (props) => <iframe {...props} />;
 
 const StyledIframe = styled(Iframe)`
+  box-sizing: border-box !important;
   border: 1px solid;
   border-color: ${(props) => props.theme.embedBorder};
-  border-radius: ${(props) => (props.withBar ? "3px 3px 0 0" : "3px")};
+  border-radius: ${(props) => (props.$withBar ? "3px 3px 0 0" : "3px")};
   display: block;
 `;
 
