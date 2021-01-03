@@ -17,6 +17,7 @@ export type Toast = {
   message: string,
   type: "warning" | "error" | "info" | "success",
   timeout?: number,
+  reoccurring?: number,
   action?: {
     text: string,
     onClick: () => void,

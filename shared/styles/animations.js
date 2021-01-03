@@ -80,3 +80,9 @@ export const pulsate = keyframes`
   50% { opacity: 0.5; }
   100% { opacity: 1; }
 `;
+
+export const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+`;
