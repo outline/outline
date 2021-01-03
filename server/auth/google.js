@@ -27,7 +27,7 @@ router.get("google", async (ctx) => {
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
     ],
-    prompt: "consent",
+    prompt: process.env.GOOGLE_AUTH_PROMPT || "consent",
   });
   ctx.redirect(authorizeUrl);
 });
