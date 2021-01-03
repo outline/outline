@@ -135,6 +135,9 @@ function DocumentLink({
   });
 
   const hoverExpanding = React.useRef(null);
+
+  // We set a timeout when the user first starts hovering over the document link,
+  // to trigger expansion of children. Clear this timeout when they stop hovering.
   const resetHoverExpanding = React.useCallback(() => {
     if (hoverExpanding.current) {
       clearTimeout(hoverExpanding.current);
@@ -155,6 +158,8 @@ function DocumentLink({
       pathToNode && !pathToNode.includes(monitor.getItem().id),
 
     hover: (item, monitor) => {
+      // Enables expansion of document children when hovering over the document
+      // for more than half a second.
       if (
         hasChildDocuments &&
         monitor.canDrop() &&
