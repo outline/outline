@@ -10,6 +10,8 @@ const Button = styled.button`
   line-height: 0;
   border: 0;
   padding: 0;
+  cursor: pointer;
+  user-select: none;
 `;
 
 export default React.forwardRef<any, typeof Button>((props, ref) => (

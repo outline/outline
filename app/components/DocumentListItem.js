@@ -4,7 +4,7 @@ import { StarredIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled, { css, withTheme } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
@@ -40,6 +40,7 @@ function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const history = useHistory();
+  const [menuOpen, setMenuOpen] = React.useState(false);
   const {
     document,
     showCollection,
@@ -89,6 +90,7 @@ function DocumentListItem(props: Props) {
 
   return (
     <DocumentLink
+      menuOpen={menuOpen}
       to={{
         pathname: document.url,
         state: { title: document.titleWithDefault },
@@ -128,7 +130,12 @@ function DocumentListItem(props: Props) {
           )}
           &nbsp;
           <EventBoundary>
-            <DocumentMenu document={document} showPin={showPin} />
+            <DocumentMenu
+              document={document}
+              showPin={showPin}
+              onOpen={() => setMenuOpen(true)}
+              onClose={() => setMenuOpen(false)}
+            />
           </EventBoundary>
         </SecondaryActions>
       </Heading>
@@ -205,6 +212,20 @@ const DocumentLink = styled(Link)`
       }
     }
   }
+
+  ${(props) =>
+    props.menuOpen &&
+    css`
+      background: ${(props) => props.theme.listItemHoverBackground};
+
+      ${SecondaryActions} {
+        opacity: 1;
+      }
+
+      ${StyledStar} {
+        opacity: 0.5;
+      }
+    `}
 `;
 
 const Heading = styled.h3`
