@@ -22,9 +22,9 @@ const element = document.getElementById("root");
 
 if (element) {
   render(
-    <ErrorBoundary>
-      <Provider {...stores}>
-        <Theme>
+    <Provider {...stores}>
+      <Theme>
+        <ErrorBoundary>
           <DndProvider backend={HTML5Backend}>
             <Router>
               <>
@@ -35,9 +35,9 @@ if (element) {
               </>
             </Router>
           </DndProvider>
-        </Theme>
-      </Provider>
-    </ErrorBoundary>,
+        </ErrorBoundary>
+      </Theme>
+    </Provider>,
     element
   );
 }
