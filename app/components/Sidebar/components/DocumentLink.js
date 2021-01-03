@@ -134,6 +134,17 @@ function DocumentLink({
     },
   });
 
+  const hoverExpanding = React.useRef(null);
+
+  // We set a timeout when the user first starts hovering over the document link,
+  // to trigger expansion of children. Clear this timeout when they stop hovering.
+  const resetHoverExpanding = React.useCallback(() => {
+    if (hoverExpanding.current) {
+      clearTimeout(hoverExpanding.current);
+      hoverExpanding.current = null;
+    }
+  }, []);
+
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
@@ -142,8 +153,29 @@ function DocumentLink({
       if (!collection) return;
       documents.move(item.id, collection.id, node.id);
     },
+
     canDrop: (item, monitor) =>
       pathToNode && !pathToNode.includes(monitor.getItem().id),
+
+    hover: (item, monitor) => {
+      // Enables expansion of document children when hovering over the document
+      // for more than half a second.
+      if (
+        hasChildDocuments &&
+        monitor.canDrop() &&
+        monitor.isOver({ shallow: true })
+      ) {
+        if (!hoverExpanding.current) {
+          hoverExpanding.current = setTimeout(() => {
+            hoverExpanding.current = null;
+            if (monitor.isOver({ shallow: true })) {
+              setExpanded(true);
+            }
+          }, 500);
+        }
+      }
+    },
+
     collect: (monitor) => ({
       isOverReparent: !!monitor.isOver({ shallow: true }),
       canDropToReparent: monitor.canDrop(),
@@ -171,7 +203,7 @@ function DocumentLink({
 
   return (
     <>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} onDragLeave={resetHoverExpanding}>
         <Draggable
           key={node.id}
           ref={drag}
