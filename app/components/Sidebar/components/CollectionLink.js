@@ -86,7 +86,7 @@ function CollectionLink({
             }
             iconColor={collection.color}
             expanded={expanded}
-            menuOpen={menuOpen}
+            showActions={menuOpen || expanded}
             isActiveDrop={isOver && canDrop}
             label={
               <EditableTitle

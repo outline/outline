@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Collection from "models/Collection";
 import { DropdownMenu } from "components/DropdownMenu";
 import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
+import NudeButton from "components/NudeButton";
 
 type Props = {
   position?: "left" | "right" | "center",
@@ -41,7 +42,11 @@ function CollectionSortMenu({
     <DropdownMenu
       onOpen={onOpen}
       onClose={onClose}
-      label={alphabeticalSort ? <AlphabeticSortIcon /> : <ManualSortIcon />}
+      label={
+        <NudeButton aria-label={t("Sidebar sort")} aria-haspopup="true">
+          {alphabeticalSort ? <AlphabeticSortIcon /> : <ManualSortIcon />}
+        </NudeButton>
+      }
       position={position}
       {...rest}
     >

@@ -14,7 +14,7 @@ type Props = {
   icon?: React.Node,
   label?: React.Node,
   menu?: React.Node,
-  menuOpen?: boolean,
+  showActions?: boolean,
   iconColor?: string,
   active?: boolean,
   isActiveDrop?: boolean,
@@ -33,7 +33,7 @@ function SidebarLink({
   active,
   isActiveDrop,
   menu,
-  menuOpen,
+  showActions,
   theme,
   exact,
   href,
@@ -73,7 +73,7 @@ function SidebarLink({
     >
       {icon && <IconWrapper>{icon}</IconWrapper>}
       <Label>{label}</Label>
-      {menu && <Actions menuOpen={menuOpen}>{menu}</Actions>}
+      {menu && <Actions showActions={showActions}>{menu}</Actions>}
     </StyledNavLink>
   );
 }
@@ -86,11 +86,13 @@ const IconWrapper = styled.span`
 `;
 
 const Actions = styled.span`
-  display: ${(props) => (props.menuOpen ? "inline-flex" : "none")};
+  display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
   top: 4px;
   right: 4px;
   color: ${(props) => props.theme.textTertiary};
+  opacity: 0.75;
+  transition: opacity 50ms;
 
   svg {
     opacity: 0.75;
@@ -136,6 +138,7 @@ const StyledNavLink = styled(NavLink)`
   &:hover,
   &:active {
     > ${Actions} {
+      opacity: 1;
       display: inline-flex;
     }
   }

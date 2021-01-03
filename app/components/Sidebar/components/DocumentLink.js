@@ -205,7 +205,7 @@ function DocumentLink({
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
-                menuOpen={menuOpen}
+                showActions={menuOpen}
                 menu={
                   document && !isMoving ? (
                     <Fade>
