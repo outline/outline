@@ -43,7 +43,7 @@ function CollectionSortMenu({
       onOpen={onOpen}
       onClose={onClose}
       label={
-        <NudeButton aria-label={t("Sidebar sort")} aria-haspopup="true">
+        <NudeButton aria-label={t("Sort in sidebar")} aria-haspopup="true">
           {alphabeticalSort ? <AlphabeticSortIcon /> : <ManualSortIcon />}
         </NudeButton>
       }
