@@ -1,6 +1,7 @@
 // @flow
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
+import { MenuItem } from "reakit/Menu";
 import styled from "styled-components";
 
 type Props = {
@@ -21,17 +22,19 @@ const DropdownMenuItem = ({
     <MenuItem
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      role="menuitem"
-      tabIndex="-1"
       {...rest}
     >
-      {selected !== undefined && (
-        <>
-          {selected ? <CheckmarkIcon /> : <Spacer />}
-          &nbsp;
-        </>
+      {(props) => (
+        <MenuItemAnchor {...props}>
+          {selected !== undefined && (
+            <>
+              {selected ? <CheckmarkIcon /> : <Spacer />}
+              &nbsp;
+            </>
+          )}
+          {children}
+        </MenuItemAnchor>
       )}
-      {children}
     </MenuItem>
   );
 };
@@ -41,7 +44,7 @@ const Spacer = styled.div`
   height: 24px;
 `;
 
-const MenuItem = styled.a`
+const MenuItemAnchor = styled.a`
   display: flex;
   margin: 0;
   padding: 6px 12px;

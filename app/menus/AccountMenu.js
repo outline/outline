@@ -1,15 +1,21 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { SunIcon, MoonIcon } from "outline-icons";
+import { rgba } from "polished";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import {
+  useMenuState,
+  Menu,
+  MenuButton,
+  MenuGroup,
+  MenuSeparator,
+} from "reakit/Menu";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
+import { fadeAndScaleIn } from "shared/styles/animations";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import { DropdownMenuItem } from "components/DropdownMenu";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import {
@@ -19,116 +25,138 @@ import {
   mailToUrl,
   settings,
 } from "../../shared/utils/routeHelpers";
+import useStores from "hooks/useStores";
 
 type Props = {
-  label: React.Node,
-  ui: UiStore,
-  auth: AuthStore,
-  t: TFunction,
+  children: (props) => React.Node,
 };
 
-@observer
-class AccountMenu extends React.Component<Props> {
-  @observable keyboardShortcutsOpen: boolean = false;
+const AppearanceMenu = React.forwardRef((props, ref) => {
+  const { ui } = useStores();
+  const { t } = useTranslation();
+  const menu = useMenuState();
 
-  handleLogout = () => {
-    this.props.auth.logout();
-  };
+  return (
+    <>
+      <MenuButton ref={ref} {...menu} {...props}>
+        <ChangeTheme justify="space-between">
+          {t("Appearance")}
+          {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
+        </ChangeTheme>
+      </MenuButton>
+      <Menu {...menu} aria-label={t("Appearance")}>
+        <MenuGroup {...menu}>
+          <DropdownMenuItem
+            {...menu}
+            onClick={() => ui.setTheme("system")}
+            selected={ui.theme === "system"}
+          >
+            {t("System")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            {...menu}
+            onClick={() => ui.setTheme("light")}
+            selected={ui.theme === "light"}
+          >
+            {t("Light")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            {...menu}
+            onClick={() => ui.setTheme("dark")}
+            selected={ui.theme === "dark"}
+          >
+            {t("Dark")}
+          </DropdownMenuItem>
+        </MenuGroup>
+      </Menu>
+    </>
+  );
+});
 
-  handleOpenKeyboardShortcuts = () => {
-    this.keyboardShortcutsOpen = true;
-  };
+function AccountMenu(props: Props) {
+  const menu = useMenuState();
+  const { auth } = useStores();
+  const { t } = useTranslation();
+  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
+    false
+  );
 
-  handleCloseKeyboardShortcuts = () => {
-    this.keyboardShortcutsOpen = false;
-  };
+  const handleLogout = React.useCallback(() => {
+    auth.logout();
+  }, [auth]);
 
-  render() {
-    const { ui, t } = this.props;
-
-    return (
-      <>
-        <Modal
-          isOpen={this.keyboardShortcutsOpen}
-          onRequestClose={this.handleCloseKeyboardShortcuts}
-          title={t("Keyboard shortcuts")}
-        >
-          <KeyboardShortcuts />
-        </Modal>
-        <DropdownMenu
-          style={{ marginRight: 10, marginTop: -10 }}
-          label={this.props.label}
-        >
-          <DropdownMenuItem as={Link} to={settings()}>
+  return (
+    <>
+      <Modal
+        isOpen={keyboardShortcutsOpen}
+        onRequestClose={() => setKeyboardShortcutsOpen(false)}
+        title={t("Keyboard shortcuts")}
+      >
+        <KeyboardShortcuts />
+      </Modal>
+      <MenuButton {...menu}>{props.children}</MenuButton>
+      <Menu {...menu} aria-label={t("Account")}>
+        <TempWrapper>
+          <DropdownMenuItem {...menu} as={Link} to={settings()}>
             {t("Settings")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
+          <DropdownMenuItem
+            {...menu}
+            onClick={() => setKeyboardShortcutsOpen(true)}
+          >
             {t("Keyboard shortcuts")}
           </DropdownMenuItem>
-          <DropdownMenuItem href={developers()} target="_blank">
+          <DropdownMenuItem {...menu} href={developers()} target="_blank">
             {t("API documentation")}
           </DropdownMenuItem>
-          <hr />
-          <DropdownMenuItem href={changelog()} target="_blank">
+          <MenuSeparator as="hr" {...menu} />
+          <DropdownMenuItem {...menu} href={changelog()} target="_blank">
             {t("Changelog")}
           </DropdownMenuItem>
-          <DropdownMenuItem href={mailToUrl()} target="_blank">
+          <DropdownMenuItem {...menu} href={mailToUrl()} target="_blank">
             {t("Send us feedback")}
           </DropdownMenuItem>
-          <DropdownMenuItem href={githubIssuesUrl()} target="_blank">
+          <DropdownMenuItem {...menu} href={githubIssuesUrl()} target="_blank">
             {t("Report a bug")}
           </DropdownMenuItem>
-          <hr />
-          <DropdownMenu
-            position="right"
-            style={{
-              left: 170,
-              position: "relative",
-              top: -40,
-            }}
-            label={
-              <DropdownMenuItem>
-                <ChangeTheme justify="space-between">
-                  {t("Appearance")}
-                  {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
-                </ChangeTheme>
-              </DropdownMenuItem>
-            }
-            hover
-          >
-            <DropdownMenuItem
-              onClick={() => ui.setTheme("system")}
-              selected={ui.theme === "system"}
-            >
-              {t("System")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => ui.setTheme("light")}
-              selected={ui.theme === "light"}
-            >
-              {t("Light")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => ui.setTheme("dark")}
-              selected={ui.theme === "dark"}
-            >
-              {t("Dark")}
-            </DropdownMenuItem>
-          </DropdownMenu>
-          <hr />
-          <DropdownMenuItem onClick={this.handleLogout}>
+          <MenuSeparator as="hr" {...menu} />
+          <DropdownMenuItem {...menu} as={AppearanceMenu} />
+          <MenuSeparator as="hr" {...menu} />
+          <DropdownMenuItem {...menu} onClick={handleLogout}>
             {t("Log out")}
           </DropdownMenuItem>
-        </DropdownMenu>
-      </>
-    );
-  }
+        </TempWrapper>
+      </Menu>
+    </>
+  );
 }
 
 const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
-export default withTranslation()<AccountMenu>(
-  inject("ui", "auth")(AccountMenu)
-);
+const TempWrapper = styled.div`
+  animation: ${fadeAndScaleIn} 200ms ease;
+  transform-origin: ${(props) => (props.left !== undefined ? "25%" : "75%")} 0;
+  backdrop-filter: blur(10px);
+  background: ${(props) => rgba(props.theme.menuBackground, 0.8)};
+  border: ${(props) =>
+    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
+  border-radius: 2px;
+  padding: 0.5em 0;
+  min-width: 180px;
+  box-shadow: ${(props) => props.theme.menuShadow};
+  pointer-events: all;
+  position: absolute;
+  z-index: ${(props) => props.theme.depths.menu};
+
+  hr {
+    margin: 0.5em 12px;
+  }
+
+  @media print {
+    display: none;
+  }
+`;
+
+export default observer(AccountMenu);

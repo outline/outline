@@ -75,16 +75,17 @@ class MainSidebar extends React.Component<Props> {
 
     return (
       <Sidebar>
-        <AccountMenu
-          label={
+        <AccountMenu>
+          {(props) => (
             <HeaderBlock
+              {...props}
               subheading={user.name}
               teamName={team.name}
               logoUrl={team.avatarUrl}
               showDisclosure
             />
-          }
-        />
+          )}
+        </AccountMenu>
         <Flex auto column>
           <Scrollable shadow>
             <Section>
