@@ -89,8 +89,6 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
 
   let collection = collections.get(document.collectionId);
   if (!collection) {
-    if (!document.deletedAt) return <div />;
-
     collection = {
       id: document.collectionId,
       name: t("Deleted Collection"),

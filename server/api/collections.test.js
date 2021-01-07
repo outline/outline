@@ -1,8 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Collection, CollectionUser, CollectionGroup } from "../models";
-import { buildUser, buildGroup, buildCollection } from "../test/factories";
+import { Document, CollectionUser, CollectionGroup } from "../models";
+import {
+  buildUser,
+  buildGroup,
+  buildCollection,
+  buildDocument,
+} from "../test/factories";
 import { flushdb, seed } from "../test/support";
 const server = new TestServer(app.callback());
 
@@ -1100,9 +1105,9 @@ describe("#collections.delete", () => {
 
   it("should delete collection", async () => {
     const { user, collection } = await seed();
-    await Collection.create({
-      name: "Blah",
-      urlId: "blah",
+
+    // to ensure it isn't the last collection
+    await buildCollection({
       teamId: user.teamId,
       creatorId: user.id,
     });
@@ -1114,6 +1119,37 @@ describe("#collections.delete", () => {
 
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+  });
+
+  it("should delete published documents", async () => {
+    const { user, collection } = await seed();
+
+    // to ensure it isn't the last collection
+    await buildCollection({
+      teamId: user.teamId,
+      creatorId: user.id,
+    });
+
+    // archived document should not be deleted
+    await buildDocument({
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.delete", {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+    expect(
+      await Document.count({
+        where: {
+          collectionId: collection.id,
+        },
+      })
+    ).toEqual(1);
   });
 
   it("allows deleting by read-write collection group user", async () => {
