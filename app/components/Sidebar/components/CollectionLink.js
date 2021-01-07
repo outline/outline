@@ -78,7 +78,7 @@ function CollectionLink({
     <>
       <div ref={drop} style={{ position: "relative" }}>
         <DropToImport key={collection.id} collectionId={collection.id}>
-          <SidebarLink
+          <SidebarLinkWithPadding
             key={collection.id}
             to={collection.url}
             icon={
@@ -114,7 +114,7 @@ function CollectionLink({
                 />
               </>
             }
-          ></SidebarLink>
+          />
         </DropToImport>
         {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
@@ -137,6 +137,10 @@ function CollectionLink({
     </>
   );
 }
+
+const SidebarLinkWithPadding = styled(SidebarLink)`
+  padding-right: 60px;
+`;
 
 const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`
   margin-right: 4px;
