@@ -1,10 +1,10 @@
 // @flow
 import { observer } from "mobx-react";
-import { StarredIcon, PlusIcon } from "outline-icons";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
-import styled, { css, withTheme } from "styled-components";
+import styled, { css } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
@@ -12,6 +12,7 @@ import DocumentMeta from "components/DocumentMeta";
 import EventBoundary from "components/EventBoundary";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
+import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
 import useCurrentUser from "hooks/useCurrentUser";
 import DocumentMenu from "menus/DocumentMenu";
@@ -52,24 +53,6 @@ function DocumentListItem(props: Props) {
     context,
   } = props;
 
-  const handleStar = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      document.star();
-    },
-    [document]
-  );
-
-  const handleUnstar = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      document.unstar();
-    },
-    [document]
-  );
-
   const handleNewFromTemplate = React.useCallback(
     (ev: SyntheticEvent<>) => {
       ev.preventDefault();
@@ -90,7 +73,8 @@ function DocumentListItem(props: Props) {
 
   return (
     <DocumentLink
-      menuOpen={menuOpen}
+      $isStarred={document.isStarred}
+      $menuOpen={menuOpen}
       to={{
         pathname: document.url,
         state: { title: document.titleWithDefault },
@@ -103,11 +87,7 @@ function DocumentListItem(props: Props) {
         )}
         {!document.isDraft && !document.isArchived && !document.isTemplate && (
           <Actions>
-            {document.isStarred ? (
-              <StyledStar onClick={handleUnstar} solid />
-            ) : (
-              <StyledStar onClick={handleStar} />
-            )}
+            <StarButton document={document} />
           </Actions>
         )}
         {document.isDraft && showDraft && (
@@ -157,21 +137,6 @@ function DocumentListItem(props: Props) {
   );
 }
 
-const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
-  <StarredIcon color={theme.text} {...props} />
-))`
-  flex-shrink: 0;
-  opacity: ${(props) => (props.solid ? "1 !important" : 0)};
-  transition: all 100ms ease-in-out;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-  &:active {
-    transform: scale(0.95);
-  }
-`);
-
 const SecondaryActions = styled(Flex)`
   align-items: center;
   position: absolute;
@@ -195,6 +160,10 @@ const DocumentLink = styled(Link)`
     opacity: 0;
   }
 
+  ${AnimatedStar} {
+    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
+  }
+
   &:hover,
   &:active,
   &:focus {
@@ -204,7 +173,7 @@ const DocumentLink = styled(Link)`
       opacity: 1;
     }
 
-    ${StyledStar} {
+    ${AnimatedStar} {
       opacity: 0.5;
 
       &:hover {
@@ -214,7 +183,7 @@ const DocumentLink = styled(Link)`
   }
 
   ${(props) =>
-    props.menuOpen &&
+    props.$menuOpen &&
     css`
       background: ${(props) => props.theme.listItemHoverBackground};
 
@@ -222,7 +191,7 @@ const DocumentLink = styled(Link)`
         opacity: 1;
       }
 
-      ${StyledStar} {
+      ${AnimatedStar} {
         opacity: 0.5;
       }
     `}
