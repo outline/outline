@@ -114,7 +114,7 @@ class DocumentEditor extends React.Component<Props> {
             $isStarred={document.isStarred}
           >
             <span>{normalizedTitle}</span>{" "}
-            <StarButton document={document} size={32} />
+            {!isShare && <StarButton document={document} size={32} />}
           </Title>
         ) : (
           <Title
