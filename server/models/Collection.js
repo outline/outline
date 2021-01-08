@@ -2,7 +2,7 @@
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import slug from "slug";
-import { DataTypes, sequelize } from "../sequelize";
+import { Op, DataTypes, sequelize } from "../sequelize";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 
@@ -182,6 +182,9 @@ Collection.addHook("afterDestroy", async (model: Collection) => {
   await Document.destroy({
     where: {
       collectionId: model.id,
+      archivedAt: {
+        [Op.eq]: null,
+      },
     },
   });
 });
