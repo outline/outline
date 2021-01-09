@@ -70,6 +70,7 @@ function SidebarLink({
       as={to ? undefined : href ? "a" : "div"}
       href={href}
       ref={innerRef}
+      {...rest}
     >
       {icon && <IconWrapper>{icon}</IconWrapper>}
       <Label>{label}</Label>
@@ -91,16 +92,17 @@ const Actions = styled.span`
   top: 4px;
   right: 4px;
   color: ${(props) => props.theme.textTertiary};
-  opacity: 0.75;
   transition: opacity 50ms;
 
   svg {
-    opacity: 0.75;
+    color: ${(props) => props.theme.textSecondary};
+    fill: currentColor;
+    opacity: 0.5;
   }
 
   &:hover {
     svg {
-      opacity: 1;
+      opacity: 0.75;
     }
   }
 `;
@@ -138,8 +140,11 @@ const StyledNavLink = styled(NavLink)`
   &:hover,
   &:active {
     > ${Actions} {
-      opacity: 1;
       display: inline-flex;
+
+      svg {
+        opacity: 0.75;
+      }
     }
   }
 `;

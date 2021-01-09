@@ -67,7 +67,7 @@ export const base = {
   selected: colors.primary,
   buttonBackground: colors.primary,
   buttonText: colors.white,
-  textHighlight: "#B3E7FF",
+  textHighlight: "#FDEA9B",
 
   codeComment: "#6a737d",
   codePunctuation: "#5e6687",
