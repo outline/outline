@@ -5,18 +5,31 @@ import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
 
-export default function ContextMenu({ children, ...rest }) {
-  console.log(rest);
+type Props = {|
+  children: React.Node,
+|};
+
+export default function ContextMenu({ children, ...rest }: Props) {
   return (
-    <Menu {...rest}>{(props) => <Wrapper {...props}>{children}</Wrapper>}</Menu>
+    <Menu {...rest}>
+      {(props) => (
+        <Position {...props}>
+          <Background>{children}</Background>
+        </Position>
+      )}
+    </Menu>
   );
 }
 
-const Wrapper = styled.div`
+const Position = styled.div`
+  position: absolute;
+  z-index: ${(props) => props.theme.depths.menu};
+`;
+
+const Background = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: ${(props) => (props.left !== undefined ? "25%" : "75%")} 0;
-  backdrop-filter: blur(10px);
-  background: ${(props) => rgba(props.theme.menuBackground, 0.8)};
+  background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
   border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 2px;
@@ -26,10 +39,6 @@ const Wrapper = styled.div`
   overflow-y: auto;
   box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
-
-  hr {
-    margin: 0.5em 12px;
-  }
 
   @media print {
     display: none;

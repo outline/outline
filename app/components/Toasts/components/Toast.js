@@ -8,7 +8,7 @@ import type { Toast as TToast } from "types";
 
 type Props = {
   onRequestClose: () => void,
-  closeAfterMs: number,
+  closeAfterMs?: number,
   toast: TToast,
 };
 

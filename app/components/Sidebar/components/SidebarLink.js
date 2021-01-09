@@ -1,6 +1,11 @@
 // @flow
 import * as React from "react";
-import { withRouter, NavLink } from "react-router-dom";
+import {
+  withRouter,
+  NavLink,
+  type RouterHistory,
+  type Match,
+} from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import { type Theme } from "types";
 
@@ -18,6 +23,8 @@ type Props = {
   iconColor?: string,
   active?: boolean,
   isActiveDrop?: boolean,
+  history: RouterHistory,
+  match: Match,
   theme: Theme,
   exact?: boolean,
   depth?: number,
@@ -39,6 +46,8 @@ function SidebarLink({
   href,
   innerRef,
   depth,
+  history,
+  match,
   ...rest
 }: Props) {
   const style = React.useMemo(() => {
@@ -110,7 +119,6 @@ const Actions = styled.span`
 const StyledNavLink = styled(NavLink)`
   display: flex;
   position: relative;
-  overflow: hidden;
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;

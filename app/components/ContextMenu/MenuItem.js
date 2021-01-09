@@ -1,7 +1,7 @@
 // @flow
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
-import { MenuItem } from "reakit/Menu";
+import { MenuItem as BaseMenu } from "reakit/Menu";
 import styled from "styled-components";
 
 type Props = {
@@ -9,9 +9,10 @@ type Props = {
   children?: React.Node,
   selected?: boolean,
   disabled?: boolean,
+  as?: React.Node,
 };
 
-const DropdownMenuItem = ({
+const MenuItem = ({
   onClick,
   children,
   selected,
@@ -20,13 +21,13 @@ const DropdownMenuItem = ({
   ...rest
 }: Props) => {
   return (
-    <MenuItem
+    <BaseMenu
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       {...rest}
     >
       {(props) => (
-        <DropdownAnchor as={as} {...props}>
+        <MenuAnchor as={as} {...props}>
           {selected !== undefined && (
             <>
               {selected ? <CheckmarkIcon /> : <Spacer />}
@@ -34,9 +35,9 @@ const DropdownMenuItem = ({
             </>
           )}
           {children}
-        </DropdownAnchor>
+        </MenuAnchor>
       )}
-    </MenuItem>
+    </BaseMenu>
   );
 };
 
@@ -45,7 +46,7 @@ const Spacer = styled.div`
   height: 24px;
 `;
 
-export const DropdownAnchor = styled.a`
+export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
   padding: 6px 12px;
@@ -92,4 +93,4 @@ export const DropdownAnchor = styled.a`
   `};
 `;
 
-export default DropdownMenuItem;
+export default MenuItem;
