@@ -39,6 +39,7 @@ const Background = styled.div`
   overflow-y: auto;
   box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
+  font-weight: normal;
 
   @media print {
     display: none;
