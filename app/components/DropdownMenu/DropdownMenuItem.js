@@ -25,7 +25,7 @@ const DropdownMenuItem = ({
       {...rest}
     >
       {(props) => (
-        <MenuItemAnchor {...props}>
+        <DropdownAnchor {...props}>
           {selected !== undefined && (
             <>
               {selected ? <CheckmarkIcon /> : <Spacer />}
@@ -33,7 +33,7 @@ const DropdownMenuItem = ({
             </>
           )}
           {children}
-        </MenuItemAnchor>
+        </DropdownAnchor>
       )}
     </MenuItem>
   );
@@ -44,7 +44,7 @@ const Spacer = styled.div`
   height: 24px;
 `;
 
-const MenuItemAnchor = styled.a`
+export const DropdownAnchor = styled.a`
   display: flex;
   margin: 0;
   padding: 6px 12px;
@@ -72,7 +72,8 @@ const MenuItemAnchor = styled.a`
       ? "pointer-events: none;"
       : `
 
-  &:hover {
+  &:hover,
+  &.focus-visible {
     color: ${props.theme.white};
     background: ${props.theme.primary};
     box-shadow: none;

@@ -9,13 +9,13 @@ import {
   useMenuState,
   Menu,
   MenuButton,
-  MenuGroup,
+  MenuItemRadio,
   MenuSeparator,
 } from "reakit/Menu";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import { DropdownMenuItem } from "components/DropdownMenu";
+import { DropdownMenuItem, DropdownAnchor } from "components/DropdownMenu";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import {
@@ -28,7 +28,7 @@ import {
 import useStores from "hooks/useStores";
 
 type Props = {
-  children: (props) => React.Node,
+  children: (props: any) => React.Node,
 };
 
 const AppearanceMenu = React.forwardRef((props, ref) => {
@@ -39,15 +39,20 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
   return (
     <>
       <MenuButton ref={ref} {...menu} {...props}>
-        <ChangeTheme justify="space-between">
-          {t("Appearance")}
-          {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
-        </ChangeTheme>
+        {(props) => (
+          <DropdownAnchor {...props}>
+            <ChangeTheme justify="space-between">
+              {t("Appearance")}
+              {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
+            </ChangeTheme>
+          </DropdownAnchor>
+        )}
       </MenuButton>
       <Menu {...menu} aria-label={t("Appearance")}>
-        <MenuGroup {...menu}>
+        <TempWrapper>
           <DropdownMenuItem
             {...menu}
+            href="#"
             onClick={() => ui.setTheme("system")}
             selected={ui.theme === "system"}
           >
@@ -55,6 +60,7 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             {...menu}
+            href="#"
             onClick={() => ui.setTheme("light")}
             selected={ui.theme === "light"}
           >
@@ -62,19 +68,22 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             {...menu}
+            href="#"
             onClick={() => ui.setTheme("dark")}
             selected={ui.theme === "dark"}
           >
             {t("Dark")}
           </DropdownMenuItem>
-        </MenuGroup>
+        </TempWrapper>
       </Menu>
     </>
   );
 });
 
 function AccountMenu(props: Props) {
-  const menu = useMenuState();
+  const menu = useMenuState({
+    placement: "bottom-start",
+  });
   const { auth } = useStores();
   const { t } = useTranslation();
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
