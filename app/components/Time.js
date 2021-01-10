@@ -3,6 +3,7 @@ import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import format from "date-fns/format";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
+import useStores from "hooks/useStores";
 
 let callbacks = [];
 
@@ -28,44 +29,53 @@ type Props = {
   shorten?: boolean,
 };
 
-class Time extends React.Component<Props> {
-  removeEachMinuteCallback: () => void;
+function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
+  const { auth } = useStores();
+  const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
+  const callback = React.useRef();
 
-  componentDidMount() {
-    this.removeEachMinuteCallback = eachMinute(() => {
-      this.forceUpdate();
-    });
-  }
-
-  componentWillUnmount() {
-    this.removeEachMinuteCallback();
-  }
-
-  render() {
-    const { shorten, addSuffix } = this.props;
-    let content = distanceInWordsToNow(this.props.dateTime, {
-      addSuffix,
+  React.useEffect(() => {
+    callback.current = eachMinute(() => {
+      setMinutesMounted((state) => ++state);
     });
 
-    if (shorten) {
-      content = content
-        .replace("about", "")
-        .replace("less than a minute ago", "just now")
-        .replace("minute", "min");
-    }
+    return () => {
+      if (callback.current) {
+        callback.current();
+      }
+    };
+  }, []);
 
-    return (
-      <Tooltip
-        tooltip={format(this.props.dateTime, "MMMM Do, YYYY h:mm a")}
-        delay={this.props.tooltipDelay}
-        placement="bottom"
-      >
-        <time dateTime={this.props.dateTime}>
-          {this.props.children || content}
-        </time>
-      </Tooltip>
-    );
+  let content = distanceInWordsToNow(dateTime, {
+    addSuffix,
+    locale: getLocaleForUser(auth.user),
+  });
+
+  if (shorten) {
+    content = content
+      .replace("about", "")
+      .replace("less than a minute ago", "just now")
+      .replace("minute", "min");
   }
+
+  return (
+    <Tooltip
+      tooltip={format(dateTime, "MMMM Do, YYYY h:mm a")}
+      delay={tooltipDelay}
+      placement="bottom"
+    >
+      <time dateTime={dateTime}>{children || content}</time>
+    </Tooltip>
+  );
+}
+
+function getLocaleForUser(user) {
+  if (!user) {
+    return undefined;
+  }
+
+  const userLanguage = user.language.split("_")[0];
+  return require(`date-fns/locale/${userLanguage}`);
 }
 
 export default Time;
