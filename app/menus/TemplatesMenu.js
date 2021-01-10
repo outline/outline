@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton, useMenuState } from "reakit/menu";
+import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import Document from "models/Document";
 import Button from "components/Button";
