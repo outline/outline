@@ -27,7 +27,7 @@ const MenuItem = ({
       {...rest}
     >
       {(props) => (
-        <MenuAnchor as={as} {...props}>
+        <MenuAnchor as={onClick ? "button" : as} {...props}>
           {selected !== undefined && (
             <>
               {selected ? <CheckmarkIcon /> : <Spacer />}
