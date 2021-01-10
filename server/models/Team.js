@@ -144,7 +144,7 @@ Team.prototype.provisionFirstCollection = async function (userId) {
     description:
       "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
     teamId: this.id,
-    creatorId: userId,
+    createdById: userId,
     sort: Collection.DEFAULT_SORT,
   });
 
@@ -175,9 +175,9 @@ Team.prototype.provisionFirstCollection = async function (userId) {
       parentDocumentId: null,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.creatorId,
-      lastModifiedById: collection.creatorId,
-      createdById: collection.creatorId,
+      userId: collection.createdById,
+      lastModifiedById: collection.createdById,
+      createdById: collection.createdById,
       title,
       text,
     });

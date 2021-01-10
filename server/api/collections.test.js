@@ -1109,7 +1109,7 @@ describe("#collections.delete", () => {
     // to ensure it isn't the last collection
     await buildCollection({
       teamId: user.teamId,
-      creatorId: user.id,
+      createdById: user.id,
     });
 
     const res = await server.post("/api/collections.delete", {
@@ -1127,7 +1127,7 @@ describe("#collections.delete", () => {
     // to ensure it isn't the last collection
     await buildCollection({
       teamId: user.teamId,
-      creatorId: user.id,
+      createdById: user.id,
     });
 
     // archived document should not be deleted

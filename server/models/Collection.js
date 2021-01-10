@@ -103,7 +103,7 @@ Collection.associate = (models) => {
   });
   Collection.belongsTo(models.User, {
     as: "user",
-    foreignKey: "creatorId",
+    foreignKey: "createdById",
   });
   Collection.belongsTo(models.Team, {
     as: "team",
@@ -194,11 +194,11 @@ Collection.addHook("afterCreate", (model: Collection, options) => {
     return CollectionUser.findOrCreate({
       where: {
         collectionId: model.id,
-        userId: model.creatorId,
+        userId: model.createdById,
       },
       defaults: {
         permission: "read_write",
-        createdById: model.creatorId,
+        createdById: model.createdById,
       },
       transaction: options.transaction,
     });

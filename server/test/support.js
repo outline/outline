@@ -61,16 +61,16 @@ const seed = async () => {
     name: "Collection",
     urlId: "collection",
     teamId: team.id,
-    creatorId: user.id,
+    createdById: user.id,
   });
 
   const document = await Document.create({
     parentDocumentId: null,
     collectionId: collection.id,
     teamId: team.id,
-    userId: collection.creatorId,
-    lastModifiedById: collection.creatorId,
-    createdById: collection.creatorId,
+    userId: collection.createdById,
+    lastModifiedById: collection.createdById,
+    createdById: collection.createdById,
     title: "First ever document",
     text: "# Much test support",
   });
