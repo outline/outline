@@ -1,19 +1,18 @@
 // @flow
 import { observer } from "mobx-react";
-import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { useMenuState, MenuButton } from "reakit/Menu";
+import { useMenuState } from "reakit/Menu";
 import Collection from "models/Collection";
 import CollectionDelete from "scenes/CollectionDelete";
 import CollectionEdit from "scenes/CollectionEdit";
 import CollectionExport from "scenes/CollectionExport";
 import CollectionMembers from "scenes/CollectionMembers";
 import ContextMenu from "components/ContextMenu";
+import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
-import NudeButton from "components/NudeButton";
 import VisuallyHidden from "components/VisuallyHidden";
 import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -93,13 +92,7 @@ function CollectionMenu({ collection }: Props) {
           accept={documents.importFileTypes.join(", ")}
         />
       </VisuallyHidden>
-      <MenuButton {...menu}>
-        {(props) => (
-          <NudeButton {...props}>
-            <MoreIcon />
-          </NudeButton>
-        )}
-      </MenuButton>
+      <OverflowMenuButton {...menu} />
       <ContextMenu {...menu} aria-label={t("Collection")}>
         <Template
           {...menu}

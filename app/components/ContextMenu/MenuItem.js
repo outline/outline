@@ -1,7 +1,7 @@
 // @flow
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
-import { MenuItem as BaseMenu } from "reakit/Menu";
+import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
   children?: React.Node,
   selected?: boolean,
   disabled?: boolean,
-  as?: React.Element<*>,
+  as?: string | React.ComponentType<*>,
 };
 
 const MenuItem = ({
@@ -21,7 +21,7 @@ const MenuItem = ({
   ...rest
 }: Props) => {
   return (
-    <BaseMenu
+    <BaseMenuItem
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       {...rest}
@@ -37,7 +37,7 @@ const MenuItem = ({
           {children}
         </MenuAnchor>
       )}
-    </BaseMenu>
+    </BaseMenuItem>
   );
 };
 

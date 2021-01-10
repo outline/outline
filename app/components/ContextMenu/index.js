@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
 
 type Props = {|
+  "aria-label": string,
   children: React.Node,
 |};
 

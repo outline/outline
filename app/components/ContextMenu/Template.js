@@ -1,9 +1,15 @@
 // @flow
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import {
+  useMenuState,
+  MenuButton,
+  MenuItem as BaseMenuItem,
+} from "reakit/Menu";
 import styled from "styled-components";
-import MenuItem from "./MenuItem";
+import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
 
@@ -55,7 +61,8 @@ const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
 `;
 
-export default function MenuItems({ items, ...menu }: Props): React.Node {
+export default function Template({ items, ...menu }: Props): React.Node {
+  const { t } = useTranslation();
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators
@@ -120,24 +127,34 @@ export default function MenuItems({ items, ...menu }: Props): React.Node {
     }
 
     if (item.items) {
-      // return (
-      //   <MenuItem {...menu} as={() } />
-      //   <DropdownMenu
-      //     style={item.style}
-      //     label={
-      //       <MenuItem disabled={item.disabled}>
-      //         <Flex justify="space-between" align="center" auto>
-      //           {item.title}
-      //           <Disclosure color="currentColor" />
-      //         </Flex>
-      //       </MenuItem>
-      //     }
-      //     hover={item.hover}
-      //     key={index}
-      //   >
-      //     <MenuItems items={item.items} />
-      //   </DropdownMenu>
-      // );
+      const Submenu = React.forwardRef((props, ref) => {
+        const menu = useMenuState({ modal: true });
+
+        return (
+          <>
+            <MenuButton ref={ref} {...menu} {...props}>
+              {(props) => (
+                <MenuAnchor {...props}>
+                  {props.label} <Disclosure />
+                </MenuAnchor>
+              )}
+            </MenuButton>
+            <ContextMenu {...menu} aria-label={t("Submenu")}>
+              <Template {...menu} items={items} />
+            </ContextMenu>
+          </>
+        );
+      });
+
+      return (
+        <BaseMenuItem as={Submenu} {...menu}>
+          {(props) => (
+            <MenuAnchor {...props} key={index}>
+              {item.title}
+            </MenuAnchor>
+          )}
+        </BaseMenuItem>
+      );
     }
 
     if (item.type === "separator") {

@@ -1,13 +1,12 @@
 // @flow
 import { observer } from "mobx-react";
-import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState, MenuButton } from "reakit/Menu";
+import { useMenuState } from "reakit/Menu";
 import User from "models/User";
 import ContextMenu from "components/ContextMenu";
+import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
-import NudeButton from "components/NudeButton";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -89,13 +88,7 @@ function UserMenu({ user }: Props) {
 
   return (
     <>
-      <MenuButton {...menu}>
-        {(props) => (
-          <NudeButton {...props}>
-            <MoreIcon />
-          </NudeButton>
-        )}
-      </MenuButton>
+      <OverflowMenuButton {...menu} />
       <ContextMenu {...menu} aria-label={t("User Options")}>
         <Template
           {...menu}
