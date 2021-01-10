@@ -24,7 +24,7 @@ function CollectionSortMenu({
   ...rest
 }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState();
+  const menu = useMenuState({ modal: true });
 
   const handleChangeSort = React.useCallback(
     (field: string) => {

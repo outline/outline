@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import MenuItem from "./MenuItem";
+import Separator from "./Separator";
 import ContextMenu from ".";
 
 type TMenuItem =
@@ -34,7 +35,7 @@ type TMenuItem =
       disabled?: boolean,
       style?: Object,
       hover?: boolean,
-      items: MenuItem[],
+      items: TMenuItem[],
     |}
   | {|
       type: "separator",
@@ -106,6 +107,7 @@ export default function MenuItems({ items, ...menu }: Props): React.Node {
     if (item.onClick) {
       return (
         <MenuItem
+          as="button"
           onClick={item.onClick}
           disabled={item.disabled}
           selected={item.selected}
@@ -139,7 +141,7 @@ export default function MenuItems({ items, ...menu }: Props): React.Node {
     }
 
     if (item.type === "separator") {
-      return <hr key={index} />;
+      return <Separator key={index} />;
     }
 
     return null;

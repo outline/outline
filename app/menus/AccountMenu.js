@@ -75,6 +75,7 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
 function AccountMenu(props: Props) {
   const menu = useMenuState({
     placement: "bottom-start",
+    modal: true,
   });
   const { auth } = useStores();
   const { t } = useTranslation();

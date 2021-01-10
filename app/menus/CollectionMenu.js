@@ -24,7 +24,7 @@ type Props = {|
 |};
 
 function CollectionMenu({ collection }: Props) {
-  const menu = useMenuState();
+  const menu = useMenuState({ modal: true });
   const { ui, documents, policies } = useStores();
   const { t } = useTranslation();
   const history = useHistory();

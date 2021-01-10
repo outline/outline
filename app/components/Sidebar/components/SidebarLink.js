@@ -93,6 +93,7 @@ const IconWrapper = styled.span`
   margin-left: -4px;
   margin-right: 4px;
   height: 24px;
+  overflow: hidden;
 `;
 
 const Actions = styled.span`

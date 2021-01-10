@@ -9,7 +9,7 @@ type Props = {
   children?: React.Node,
   selected?: boolean,
   disabled?: boolean,
-  as?: React.Node,
+  as?: React.Element<*>,
 };
 
 const MenuItem = ({
@@ -49,10 +49,11 @@ const Spacer = styled.div`
 export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
+  border: 0;
   padding: 6px 12px;
   width: 100%;
   min-height: 32px;
-
+  background: none;
   color: ${(props) =>
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
