@@ -45,9 +45,7 @@ class RevisionListItem extends React.Component<Props> {
           <StyledRevisionMenu
             document={document}
             revision={revision}
-            label={
-              <MoreIcon color={selected ? theme.white : theme.textTertiary} />
-            }
+            iconColor={selected ? theme.white : theme.textTertiary}
           />
         )}
       </StyledNavLink>
