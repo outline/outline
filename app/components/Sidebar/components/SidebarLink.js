@@ -7,6 +7,7 @@ import {
   type Match,
 } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import EventBoundary from "components/EventBoundary";
 import { type Theme } from "types";
 
 type Props = {
@@ -97,7 +98,7 @@ const IconWrapper = styled.span`
   overflow: hidden;
 `;
 
-const Actions = styled.span`
+const Actions = styled(EventBoundary)`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
   top: 4px;

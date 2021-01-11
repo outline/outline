@@ -21,6 +21,7 @@ function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
 
   const handleChangeSort = React.useCallback(
     (field: string) => {
+      menu.hide();
       return collection.save({
         sort: {
           field,
@@ -28,7 +29,7 @@ function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
         },
       });
     },
-    [collection]
+    [collection, menu]
   );
 
   const alphabeticalSort = collection.sort.field === "title";

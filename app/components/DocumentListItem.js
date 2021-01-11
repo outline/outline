@@ -128,14 +128,12 @@ function DocumentListItem(props: Props) {
             </Button>
           )}
           &nbsp;
-          <EventBoundary>
-            <DocumentMenu
-              document={document}
-              showPin={showPin}
-              onOpen={() => setMenuOpen(true)}
-              onClose={() => setMenuOpen(false)}
-            />
-          </EventBoundary>
+          <DocumentMenu
+            document={document}
+            showPin={showPin}
+            onOpen={() => setMenuOpen(true)}
+            onClose={() => setMenuOpen(false)}
+          />
         </SecondaryActions>
       </Heading>
 
@@ -171,7 +169,8 @@ const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
   }
 `);
 
-const SecondaryActions = styled(Flex)`
+const SecondaryActions = styled(EventBoundary)`
+  display: flex;
   align-items: center;
   position: absolute;
   right: 16px;

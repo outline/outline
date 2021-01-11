@@ -22,7 +22,7 @@ import {
   newDocumentUrl,
 } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
   document: Document,
   className: string,
   isRevision?: boolean,
@@ -32,7 +32,7 @@ type Props = {
   label?: (any) => React.Node,
   onOpen?: () => void,
   onClose?: () => void,
-};
+|};
 
 function DocumentMenu({
   document,
