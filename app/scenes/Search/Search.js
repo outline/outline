@@ -1,6 +1,6 @@
 // @flow
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
-import { debounce } from "lodash";
+import { debounce, isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
@@ -52,6 +52,7 @@ type Props = {
 class Search extends React.Component<Props> {
   firstDocument: ?React.Component<any>;
   lastQuery: string = "";
+  lastParams: Object;
 
   @observable
   query: string = decodeURIComponent(this.props.match.params.term || "");
@@ -194,25 +195,28 @@ class Search extends React.Component<Props> {
   @action
   fetchResults = async () => {
     if (this.query) {
+      const params = {
+        offset: this.offset,
+        limit: DEFAULT_PAGINATION_LIMIT,
+        dateFilter: this.dateFilter,
+        includeArchived: this.includeArchived,
+        includeDrafts: true,
+        collectionId: this.collectionId,
+        userId: this.userId,
+      };
+
       // we just requested this thing – no need to try again
-      if (this.lastQuery === this.query) {
+      if (this.lastQuery === this.query && isEqual(params, this.lastParams)) {
         this.isLoading = false;
         return;
       }
 
       this.isLoading = true;
       this.lastQuery = this.query;
+      this.lastParams = params;
 
       try {
-        const results = await this.props.documents.search(this.query, {
-          offset: this.offset,
-          limit: DEFAULT_PAGINATION_LIMIT,
-          dateFilter: this.dateFilter,
-          includeArchived: this.includeArchived,
-          includeDrafts: true,
-          collectionId: this.collectionId,
-          userId: this.userId,
-        });
+        const results = await this.props.documents.search(this.query, params);
 
         this.pinToTop = true;
 

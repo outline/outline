@@ -72,7 +72,7 @@ const Wrapper = styled("div")`
   position: sticky;
   top: 80px;
 
-  box-shadow: 1px 0 0 ${(props) => darken(0.05, props.theme.sidebarBackground)};
+  box-shadow: 1px 0 0 ${(props) => props.theme.divider};
   margin-top: 40px;
   margin-right: 2em;
   min-height: 40px;
@@ -108,7 +108,7 @@ const ListItem = styled("li")`
   padding-right: 2em;
   line-height: 1.3;
   border-right: 3px solid
-    ${(props) => (props.active ? props.theme.textSecondary : "transparent")};
+    ${(props) => (props.active ? props.theme.divider : "transparent")};
 `;
 
 const Link = styled("a")`

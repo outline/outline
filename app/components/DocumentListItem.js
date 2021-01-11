@@ -1,9 +1,10 @@
 // @flow
-import { StarredIcon, PlusIcon } from "outline-icons";
+import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled, { css, withTheme } from "styled-components";
+import styled, { css } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
@@ -11,12 +12,13 @@ import DocumentMeta from "components/DocumentMeta";
 import EventBoundary from "components/EventBoundary";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
+import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
 import useCurrentUser from "hooks/useCurrentUser";
 import DocumentMenu from "menus/DocumentMenu";
 import { newDocumentUrl } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
   document: Document,
   highlight?: ?string,
   context?: ?string,
@@ -25,7 +27,7 @@ type Props = {
   showPin?: boolean,
   showDraft?: boolean,
   showTemplate?: boolean,
-};
+|};
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
@@ -50,30 +52,15 @@ function DocumentListItem(props: Props) {
     context,
   } = props;
 
-  const handleStar = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      document.star();
-    },
-    [document]
-  );
-
-  const handleUnstar = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      document.unstar();
-    },
-    [document]
-  );
-
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
+  const canStar =
+    !document.isDraft && !document.isArchived && !document.isTemplate;
 
   return (
     <DocumentLink
+      $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
         pathname: document.url,
@@ -85,13 +72,9 @@ function DocumentListItem(props: Props) {
         {document.isNew && document.createdBy.id !== currentUser.id && (
           <Badge yellow>{t("New")}</Badge>
         )}
-        {!document.isDraft && !document.isArchived && !document.isTemplate && (
+        {canStar && (
           <Actions>
-            {document.isStarred ? (
-              <StyledStar onClick={handleUnstar} solid />
-            ) : (
-              <StyledStar onClick={handleStar} />
-            )}
+            <StarButton document={document} />
           </Actions>
         )}
         {document.isDraft && showDraft && (
@@ -146,21 +129,6 @@ function DocumentListItem(props: Props) {
   );
 }
 
-const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
-  <StarredIcon color={theme.text} {...props} />
-))`
-  flex-shrink: 0;
-  opacity: ${(props) => (props.solid ? "1 !important" : 0)};
-  transition: all 100ms ease-in-out;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-  &:active {
-    transform: scale(0.95);
-  }
-`);
-
 const SecondaryActions = styled(EventBoundary)`
   display: flex;
   align-items: center;
@@ -185,6 +153,10 @@ const DocumentLink = styled(Link)`
     opacity: 0;
   }
 
+  ${AnimatedStar} {
+    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
+  }
+
   &:hover,
   &:active,
   &:focus,
@@ -195,7 +167,7 @@ const DocumentLink = styled(Link)`
       opacity: 1;
     }
 
-    ${StyledStar} {
+    ${AnimatedStar} {
       opacity: 0.5;
 
       &:hover {
@@ -213,7 +185,7 @@ const DocumentLink = styled(Link)`
         opacity: 1;
       }
 
-      ${StyledStar} {
+      ${AnimatedStar} {
         opacity: 0.5;
       }
     `}
@@ -251,4 +223,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default DocumentListItem;
+export default observer(DocumentListItem);
