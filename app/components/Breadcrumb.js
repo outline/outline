@@ -145,6 +145,11 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
   );
 };
 
+export const Slash = styled(GoToIcon)`
+  flex-shrink: 0;
+  fill: ${(props) => props.theme.divider};
+`;
+
 const Wrapper = styled(Flex)`
   display: none;
 
@@ -163,22 +168,6 @@ const SmallSlash = styled(GoToIcon)`
   height: 10px;
   flex-shrink: 0;
   opacity: 0.25;
-`;
-
-export const Slash = styled(GoToIcon)`
-  flex-shrink: 0;
-  fill: ${(props) => props.theme.divider};
-`;
-
-const Overflow = styled(MoreIcon)`
-  flex-shrink: 0;
-  transition: opacity 100ms ease-in-out;
-  fill: ${(props) => props.theme.divider};
-
-  &:active,
-  &:hover {
-    fill: ${(props) => props.theme.text};
-  }
 `;
 
 const Crumb = styled(Link)`
