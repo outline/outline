@@ -9,20 +9,13 @@ import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import NudeButton from "components/NudeButton";
 
-type Props = {
-  position?: "left" | "right" | "center",
+type Props = {|
   collection: Collection,
   onOpen?: () => void,
   onClose?: () => void,
-};
+|};
 
-function CollectionSortMenu({
-  collection,
-  position,
-  onOpen,
-  onClose,
-  ...rest
-}: Props) {
+function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
   const { t } = useTranslation();
   const menu = useMenuState({ modal: true });
 

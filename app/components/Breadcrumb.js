@@ -14,18 +14,15 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
-import CollectionsStore from "stores/CollectionsStore";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
-import BreadcrumbMenu from "./BreadcrumbMenu";
 import useStores from "hooks/useStores";
+import BreadcrumbMenu from "menus/BreadcrumbMenu";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
   document: Document,
-  collections: CollectionsStore,
   onlyText: boolean,
 };
 
@@ -133,7 +130,7 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
       </CollectionName>
       {isNestedDocument && (
         <>
-          <Slash /> <BreadcrumbMenu label={<Overflow />} path={menuPath} />
+          <Slash /> <BreadcrumbMenu path={menuPath} />
         </>
       )}
       {lastPath && (
