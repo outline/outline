@@ -1,60 +1,39 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
-import { Redirect } from "react-router-dom";
-
-import CollectionsStore from "stores/CollectionsStore";
-import PoliciesStore from "stores/PoliciesStore";
+import { useTranslation } from "react-i18next";
+import { useMenuState, MenuButton } from "reakit/Menu";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
-import { DropdownMenu, Header } from "components/DropdownMenu";
-import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
+import ContextMenu from "components/ContextMenu";
+import Header from "components/ContextMenu/Header";
+import Template from "components/ContextMenu/Template";
+import useStores from "hooks/useStores";
 import { newDocumentUrl } from "utils/routeHelpers";
 
-type Props = {
-  label?: React.Node,
-  collections: CollectionsStore,
-  policies: PoliciesStore,
-  t: TFunction,
-};
+function NewTemplateMenu() {
+  const menu = useMenuState({ modal: true });
+  const { t } = useTranslation();
+  const { collections, policies } = useStores();
 
-@observer
-class NewTemplateMenu extends React.Component<Props> {
-  @observable redirectTo: ?string;
-
-  componentDidUpdate() {
-    this.redirectTo = undefined;
-  }
-
-  handleNewDocument = (collectionId: string) => {
-    this.redirectTo = newDocumentUrl(collectionId, {
-      template: true,
-    });
-  };
-
-  render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
-    const { collections, policies, label, t, ...rest } = this.props;
-
-    return (
-      <DropdownMenu
-        label={
-          label || (
-            <Button icon={<PlusIcon />} small>
-              {t("New template")}…
-            </Button>
-          )
-        }
-        {...rest}
-      >
+  return (
+    <>
+      <MenuButton {...menu}>
+        {(props) => (
+          <Button icon={<PlusIcon />} {...props} small>
+            {t("New template")}…
+          </Button>
+        )}
+      </MenuButton>
+      <ContextMenu {...menu}>
         <Header>{t("Choose a collection")}</Header>
-        <DropdownMenuItems
+        <Template
+          {...menu}
           items={collections.orderedData.map((collection) => ({
-            onClick: () => this.handleNewDocument(collection.id),
+            to: newDocumentUrl(collection.id, {
+              template: true,
+            }),
             disabled: !policies.abilities(collection.id).update,
             title: (
               <>
@@ -64,11 +43,9 @@ class NewTemplateMenu extends React.Component<Props> {
             ),
           }))}
         />
-      </DropdownMenu>
-    );
-  }
+      </ContextMenu>
+    </>
+  );
 }
 
-export default withTranslation()<NewTemplateMenu>(
-  inject("collections", "policies")(NewTemplateMenu)
-);
+export default observer(NewTemplateMenu);
