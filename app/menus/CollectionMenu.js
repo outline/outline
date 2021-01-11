@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { useMenuState } from "reakit/Menu";
+import { useMenuState, MenuButton } from "reakit/Menu";
 import Collection from "models/Collection";
 import CollectionDelete from "scenes/CollectionDelete";
 import CollectionEdit from "scenes/CollectionEdit";
@@ -20,11 +20,12 @@ import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   collection: Collection,
+  label?: (any) => React.Node,
   onOpen?: () => void,
   onClose?: () => void,
 |};
 
-function CollectionMenu({ collection, onOpen, onClose }: Props) {
+function CollectionMenu({ collection, label, onOpen, onClose }: Props) {
   const menu = useMenuState({ modal: true });
   const { ui, documents, policies } = useStores();
   const { t } = useTranslation();
@@ -94,7 +95,11 @@ function CollectionMenu({ collection, onOpen, onClose }: Props) {
           accept={documents.importFileTypes.join(", ")}
         />
       </VisuallyHidden>
-      <OverflowMenuButton {...menu} />
+      {label ? (
+        <MenuButton {...menu}>{label}</MenuButton>
+      ) : (
+        <OverflowMenuButton {...menu} />
+      )}
       <ContextMenu
         {...menu}
         onOpen={onOpen}

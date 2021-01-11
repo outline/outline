@@ -26,7 +26,7 @@ function NewTemplateMenu() {
           </Button>
         )}
       </MenuButton>
-      <ContextMenu {...menu}>
+      <ContextMenu aria-label={t("New template")} {...menu}>
         <Header>{t("Choose a collection")}</Header>
         <Template
           {...menu}

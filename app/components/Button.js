@@ -42,7 +42,7 @@ const RealButton = styled.button`
   }
 
   ${(props) =>
-    props.neutral &&
+    props.$neutral &&
     `
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
@@ -108,6 +108,7 @@ export type Props = {
   children?: React.Node,
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
+  neutral?: boolean,
   fullwidth?: boolean,
   borderOnHover?: boolean,
 };
@@ -119,13 +120,14 @@ function Button({
   value,
   disclosure,
   innerRef,
+  neutral,
   ...rest
 }: Props) {
   const hasText = children !== undefined || value !== undefined;
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton type={type} ref={innerRef} {...rest}>
+    <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}

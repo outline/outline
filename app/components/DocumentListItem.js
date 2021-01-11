@@ -1,5 +1,4 @@
 // @flow
-import { observer } from "mobx-react";
 import { StarredIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -90,7 +89,7 @@ function DocumentListItem(props: Props) {
 
   return (
     <DocumentLink
-      menuOpen={menuOpen}
+      $menuOpen={menuOpen}
       to={{
         pathname: document.url,
         state: { title: document.titleWithDefault },
@@ -214,7 +213,7 @@ const DocumentLink = styled(Link)`
   }
 
   ${(props) =>
-    props.menuOpen &&
+    props.$menuOpen &&
     css`
       background: ${(props) => props.theme.listItemHoverBackground};
 
@@ -260,4 +259,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default observer(DocumentListItem);
+export default DocumentListItem;

@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 
-import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
+import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
@@ -164,7 +164,19 @@ class CollectionScene extends React.Component<Props> {
           </>
         )}
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <CollectionMenu
+            collection={this.collection}
+            label={(props) => (
+              <Button
+                icon={<MoreIcon />}
+                iconColor="currentColor"
+                {...props}
+                borderOnHover
+                neutral
+                small
+              />
+            )}
+          />
         </Action>
       </Actions>
     );

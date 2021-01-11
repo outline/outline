@@ -21,9 +21,9 @@ import Flex from "components/Flex";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   children: (props: any) => React.Node,
-};
+|};
 
 const AppearanceMenu = React.forwardRef((props, ref) => {
   const { ui } = useStores();

@@ -15,6 +15,7 @@ type Props = {
   innerRef?: (?HTMLElement) => void,
   onClick?: (SyntheticEvent<>) => void,
   onMouseEnter?: (SyntheticEvent<>) => void,
+  className?: string,
   children?: React.Node,
   icon?: React.Node,
   label?: React.Node,
@@ -48,7 +49,7 @@ function SidebarLink({
   depth,
   history,
   match,
-  ...rest
+  className,
 }: Props) {
   const style = React.useMemo(() => {
     return {
@@ -79,7 +80,7 @@ function SidebarLink({
       as={to ? undefined : href ? "a" : "div"}
       href={href}
       ref={innerRef}
-      {...rest}
+      className={className}
     >
       {icon && <IconWrapper>{icon}</IconWrapper>}
       <Label>{label}</Label>

@@ -17,7 +17,7 @@ function NewDocumentMenu() {
   const menu = useMenuState({ modal: true, placement: "bottom-start" });
   const { t } = useTranslation();
   const { collections, policies } = useStores();
-  const singleCollection = collections.orderedData.length >= 1;
+  const singleCollection = collections.orderedData.length === 1;
 
   if (singleCollection) {
     return (
