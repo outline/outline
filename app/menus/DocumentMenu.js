@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { useMenuState } from "reakit/Menu";
+import { useMenuState, MenuButton } from "reakit/Menu";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentShare from "scenes/DocumentShare";
@@ -29,7 +29,7 @@ type Props = {
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
-  label?: React.Node,
+  label?: (any) => React.Node,
   onOpen?: () => void,
   onClose?: () => void,
 };
@@ -123,7 +123,11 @@ function DocumentMenu({
 
   return (
     <>
-      <OverflowMenuButton className={className} {...menu} />
+      {label ? (
+        <MenuButton {...menu}>{label}</MenuButton>
+      ) : (
+        <OverflowMenuButton className={className} {...menu} />
+      )}
       <ContextMenu
         {...menu}
         aria-label={t("Document options")}

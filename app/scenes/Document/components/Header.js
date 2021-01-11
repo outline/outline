@@ -343,15 +343,16 @@ class Header extends React.Component<Props> {
                 <DocumentMenu
                   document={document}
                   isRevision={isRevision}
-                  label={
+                  label={(props) => (
                     <Button
                       icon={<MoreIcon />}
                       iconColor="currentColor"
+                      {...props}
                       borderOnHover
                       neutral
                       small
                     />
-                  }
+                  )}
                   showToggleEmbeds={canToggleEmbeds}
                   showPrint
                 />

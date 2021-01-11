@@ -12,7 +12,7 @@ type Props = {
   logoUrl: string,
 };
 
-const HeaderBlock = React.forwardRef(
+const HeaderBlock = React.forwardRef<Props, any>(
   ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => {
     return (
       <Header justify="flex-start" align="center" ref={ref} {...rest}>

@@ -7,10 +7,30 @@ import { fadeAndScaleIn } from "shared/styles/animations";
 
 type Props = {|
   "aria-label": string,
+  visible?: Boolean,
   children: React.Node,
+  onOpen?: () => void,
+  onClose?: () => void,
 |};
 
-export default function ContextMenu({ children, ...rest }: Props) {
+export default function ContextMenu({
+  children,
+  onOpen,
+  onClose,
+  ...rest
+}: Props) {
+  React.useEffect(() => {
+    if (rest.visible) {
+      if (onOpen) {
+        onOpen();
+      }
+    } else {
+      if (onClose) {
+        onClose();
+      }
+    }
+  }, [onOpen, onClose, rest.visible]);
+
   return (
     <Menu {...rest}>
       {(props) => (

@@ -20,9 +20,11 @@ import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   collection: Collection,
+  onOpen?: () => void,
+  onClose?: () => void,
 |};
 
-function CollectionMenu({ collection }: Props) {
+function CollectionMenu({ collection, onOpen, onClose }: Props) {
   const menu = useMenuState({ modal: true });
   const { ui, documents, policies } = useStores();
   const { t } = useTranslation();
@@ -93,7 +95,12 @@ function CollectionMenu({ collection }: Props) {
         />
       </VisuallyHidden>
       <OverflowMenuButton {...menu} />
-      <ContextMenu {...menu} aria-label={t("Collection")}>
+      <ContextMenu
+        {...menu}
+        onOpen={onOpen}
+        onClose={onClose}
+        aria-label={t("Collection")}
+      >
         <Template
           {...menu}
           items={[

@@ -42,7 +42,12 @@ function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
           </NudeButton>
         )}
       </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Sort in sidebar")}>
+      <ContextMenu
+        {...menu}
+        onOpen={onOpen}
+        onClose={onClose}
+        aria-label={t("Sort in sidebar")}
+      >
         <Template
           {...menu}
           items={[
