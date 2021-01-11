@@ -195,7 +195,8 @@ const DocumentLink = styled(Link)`
 
   &:hover,
   &:active,
-  &:focus {
+  &:focus,
+  &:focus-within {
     background: ${(props) => props.theme.listItemHoverBackground};
 
     ${SecondaryActions} {

@@ -67,6 +67,7 @@ export const MenuAnchor = styled.a`
   }
 
   svg {
+    flex-shrink: 0;
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 

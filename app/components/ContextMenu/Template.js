@@ -59,10 +59,30 @@ type Props = {|
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
+  justify-self: flex-end;
 `;
 
-export default function Template({ items, ...menu }: Props): React.Node {
+const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   const { t } = useTranslation();
+  const menu = useMenuState({ modal: true });
+
+  return (
+    <>
+      <MenuButton ref={ref} {...menu} {...rest}>
+        {(props) => (
+          <MenuAnchor {...props}>
+            {title} <Disclosure color="currentColor" />
+          </MenuAnchor>
+        )}
+      </MenuButton>
+      <ContextMenu {...menu} aria-label={t("Submenu")}>
+        <Template {...menu} items={templateItems} />
+      </ContextMenu>
+    </>
+  );
+});
+
+export default function Template({ items, ...menu }: Props): React.Node {
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators
@@ -127,33 +147,14 @@ export default function Template({ items, ...menu }: Props): React.Node {
     }
 
     if (item.items) {
-      const Submenu = React.forwardRef((props, ref) => {
-        const menu = useMenuState({ modal: true });
-
-        return (
-          <>
-            <MenuButton ref={ref} {...menu} {...props}>
-              {(props) => (
-                <MenuAnchor {...props}>
-                  {props.label} <Disclosure />
-                </MenuAnchor>
-              )}
-            </MenuButton>
-            <ContextMenu {...menu} aria-label={t("Submenu")}>
-              <Template {...menu} items={items} />
-            </ContextMenu>
-          </>
-        );
-      });
-
       return (
-        <BaseMenuItem as={Submenu} {...menu}>
-          {(props) => (
-            <MenuAnchor {...props} key={index}>
-              {item.title}
-            </MenuAnchor>
-          )}
-        </BaseMenuItem>
+        <BaseMenuItem
+          key={index}
+          as={Submenu}
+          templateItems={item.items}
+          title={item.title}
+          {...menu}
+        />
       );
     }
 

@@ -49,9 +49,17 @@ function DocumentMenu({
   const menu = useMenuState({ modal: true });
   const history = useHistory();
   const { t } = useTranslation();
+  const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
   const [showShareModal, setShowShareModal] = React.useState(false);
+
+  const handleOpen = React.useCallback(() => {
+    setRenderModals(true);
+    if (onOpen) {
+      onOpen();
+    }
+  }, [onOpen]);
 
   const handleDuplicate = React.useCallback(
     async (ev: SyntheticEvent<>) => {
@@ -131,7 +139,7 @@ function DocumentMenu({
       <ContextMenu
         {...menu}
         aria-label={t("Document options")}
-        onOpen={onOpen}
+        onOpen={handleOpen}
         onClose={onClose}
       >
         <Template
@@ -281,38 +289,42 @@ function DocumentMenu({
           ]}
         />
       </ContextMenu>
-      <Modal
-        title={t("Delete {{ documentName }}", {
-          documentName: document.noun,
-        })}
-        onRequestClose={() => setShowDeleteModal(false)}
-        isOpen={showDeleteModal}
-      >
-        <DocumentDelete
-          document={document}
-          onSubmit={() => setShowDeleteModal(false)}
-        />
-      </Modal>
-      <Modal
-        title={t("Create template")}
-        onRequestClose={() => setShowTemplateModal(false)}
-        isOpen={showTemplateModal}
-      >
-        <DocumentTemplatize
-          document={document}
-          onSubmit={() => setShowTemplateModal(false)}
-        />
-      </Modal>
-      <Modal
-        title={t("Share document")}
-        onRequestClose={() => setShowShareModal(false)}
-        isOpen={showShareModal}
-      >
-        <DocumentShare
-          document={document}
-          onSubmit={() => setShowShareModal(false)}
-        />
-      </Modal>
+      {renderModals && (
+        <>
+          <Modal
+            title={t("Delete {{ documentName }}", {
+              documentName: document.noun,
+            })}
+            onRequestClose={() => setShowDeleteModal(false)}
+            isOpen={showDeleteModal}
+          >
+            <DocumentDelete
+              document={document}
+              onSubmit={() => setShowDeleteModal(false)}
+            />
+          </Modal>
+          <Modal
+            title={t("Create template")}
+            onRequestClose={() => setShowTemplateModal(false)}
+            isOpen={showTemplateModal}
+          >
+            <DocumentTemplatize
+              document={document}
+              onSubmit={() => setShowTemplateModal(false)}
+            />
+          </Modal>
+          <Modal
+            title={t("Share document")}
+            onRequestClose={() => setShowShareModal(false)}
+            isOpen={showShareModal}
+          >
+            <DocumentShare
+              document={document}
+              onSubmit={() => setShowShareModal(false)}
+            />
+          </Modal>
+        </>
+      )}
     </>
   );
 }
