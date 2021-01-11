@@ -290,18 +290,18 @@ class Header extends React.Component<Props> {
             <Action>
               <NewChildDocumentMenu
                 document={document}
-                label={
+                label={(props) => (
                   <Tooltip
                     tooltip={t("New document")}
                     shortcut="n"
                     delay={500}
                     placement="bottom"
                   >
-                    <Button icon={<PlusIcon />} neutral>
+                    <Button icon={<PlusIcon />} {...props} neutral>
                       {t("New doc")}
                     </Button>
                   </Tooltip>
-                }
+                )}
               />
             </Action>
           )}
