@@ -3,7 +3,7 @@ import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import format from "date-fns/format";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
-import useStores from "hooks/useStores";
+import useUserLocale from "hooks/useUserLocale";
 
 let callbacks = [];
 
@@ -30,7 +30,7 @@ type Props = {
 };
 
 function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
-  const { auth } = useStores();
+  const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
   const callback = React.useRef();
 
@@ -48,7 +48,7 @@ function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
 
   let content = distanceInWordsToNow(dateTime, {
     addSuffix,
-    locale: getLocaleForUser(auth.user),
+    locale: userLocale ? require(`date-fns/locale/${userLocale}`) : undefined,
   });
 
   if (shorten) {
@@ -67,15 +67,6 @@ function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
       <time dateTime={dateTime}>{children || content}</time>
     </Tooltip>
   );
-}
-
-function getLocaleForUser(user) {
-  if (!user) {
-    return undefined;
-  }
-
-  const userLanguage = user.language.split("_")[0];
-  return require(`date-fns/locale/${userLanguage}`);
 }
 
 export default Time;
