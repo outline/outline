@@ -4,7 +4,6 @@ import {
   ArchiveIcon,
   EditIcon,
   GoToIcon,
-  MoreIcon,
   PadlockIcon,
   ShapesIcon,
   TrashIcon,
