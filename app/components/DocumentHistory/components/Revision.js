@@ -1,6 +1,5 @@
 // @flow
 import format from "date-fns/format";
-import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import { NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";

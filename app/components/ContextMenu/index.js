@@ -38,6 +38,7 @@ const Background = styled.div`
   min-width: 180px;
   overflow: hidden;
   overflow-y: auto;
+  max-height: 75vh;
   box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
   font-weight: normal;
