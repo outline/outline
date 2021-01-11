@@ -23,7 +23,7 @@ type Props = {|
 
 function RevisionMenu({ document, revision, className, iconColor }: Props) {
   const { ui } = useStores();
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
   const { t } = useTranslation();
   const history = useHistory();
 

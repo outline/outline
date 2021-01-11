@@ -20,7 +20,7 @@ type Props = {|
 function GroupMenu({ group, onMembers }: Props) {
   const { t } = useTranslation();
   const { policies } = useStores();
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const can = policies.abilities(group.id);

@@ -16,7 +16,7 @@ type Props = {|
 function UserMenu({ user }: Props) {
   const { users } = useStores();
   const { t } = useTranslation();
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
 
   const handlePromote = React.useCallback(
     (ev: SyntheticEvent<>) => {

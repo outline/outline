@@ -2,7 +2,7 @@
 import { StarredIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled, { css, withTheme } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
@@ -38,7 +38,6 @@ function replaceResultMarks(tag: string) {
 function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const history = useHistory();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const {
     document,
@@ -67,20 +66,6 @@ function DocumentListItem(props: Props) {
       document.unstar();
     },
     [document]
-  );
-
-  const handleNewFromTemplate = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      history.push(
-        newDocumentUrl(document.collectionId, {
-          templateId: document.id,
-        })
-      );
-    },
-    [history, document]
   );
 
   const queryIsInTitle =
@@ -123,7 +108,14 @@ function DocumentListItem(props: Props) {
         )}
         <SecondaryActions>
           {document.isTemplate && !document.isArchived && !document.isDeleted && (
-            <Button onClick={handleNewFromTemplate} icon={<PlusIcon />} neutral>
+            <Button
+              as={Link}
+              to={newDocumentUrl(document.collectionId, {
+                templateId: document.id,
+              })}
+              icon={<PlusIcon />}
+              neutral
+            >
               {t("New doc")}
             </Button>
           )}

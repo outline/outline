@@ -17,7 +17,7 @@ type Props = {|
 
 function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
 
   const handleChangeSort = React.useCallback(
     (field: string) => {

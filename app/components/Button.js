@@ -22,9 +22,13 @@ const RealButton = styled.button`
   cursor: pointer;
   user-select: none;
 
-  svg {
-    fill: ${(props) => props.iconColor || props.theme.buttonText};
-  }
+  ${(props) =>
+    !props.borderOnHover &&
+    `
+      svg {
+        fill: ${props.iconColor || props.theme.buttonText};
+      }
+    `}
 
   &::-moz-focus-inner {
     padding: 0;
@@ -52,9 +56,14 @@ const RealButton = styled.button`
         : `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`
     };
 
-    svg {
+    ${
+      props.borderOnHover
+        ? ""
+        : `svg {
       fill: ${props.iconColor || props.theme.buttonNeutralText};
+    }`
     }
+    
 
     &:hover {
       background: ${darken(0.05, props.theme.buttonNeutralBackground)};
@@ -72,9 +81,9 @@ const RealButton = styled.button`
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
-    &:hover {
-      background: ${darken(0.05, props.theme.danger)};
-    }
+      &:hover {
+        background: ${darken(0.05, props.theme.danger)};
+      }
   `};
 `;
 

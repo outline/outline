@@ -16,7 +16,7 @@ type Props = {|
 |};
 
 function TemplatesMenu({ document }: Props) {
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
   const { documents } = useStores();
   const { t } = useTranslation();
   const templates = documents.templatesInCollection(document.collectionId);

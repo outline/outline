@@ -74,6 +74,7 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
 
 function AccountMenu(props: Props) {
   const menu = useMenuState({
+    animated: 200,
     placement: "bottom-start",
     modal: true,
   });

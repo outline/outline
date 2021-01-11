@@ -166,10 +166,10 @@ class CollectionScene extends React.Component<Props> {
         <Action>
           <CollectionMenu
             collection={this.collection}
+            placement="bottom-end"
             label={(props) => (
               <Button
                 icon={<MoreIcon />}
-                iconColor="currentColor"
                 {...props}
                 borderOnHover
                 neutral

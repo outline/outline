@@ -16,7 +16,7 @@ type Props = {
 };
 
 function ShareMenu({ share }: Props) {
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
   const { ui, shares } = useStores();
   const { t } = useTranslation();
   const history = useHistory();

@@ -12,7 +12,11 @@ type Props = {
 
 export default function BreadcrumbMenu({ path }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({ modal: true, placement: "bottom" });
+  const menu = useMenuState({
+    animated: 200,
+    modal: true,
+    placement: "bottom",
+  });
 
   return (
     <>

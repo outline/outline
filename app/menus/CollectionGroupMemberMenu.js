@@ -14,7 +14,7 @@ type Props = {|
 
 function CollectionGroupMemberMenu({ onMembers, onRemove }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
 
   return (
     <>

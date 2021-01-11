@@ -13,7 +13,7 @@ import useStores from "hooks/useStores";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 function NewTemplateMenu() {
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
   const { t } = useTranslation();
   const { collections, policies } = useStores();
 

@@ -64,7 +64,7 @@ const Disclosure = styled(ExpandedIcon)`
 
 const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   const { t } = useTranslation();
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
 
   return (
     <>
@@ -82,7 +82,7 @@ const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   );
 });
 
-export default function Template({ items, ...menu }: Props): React.Node {
+function Template({ items, ...menu }: Props): React.Node {
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators
@@ -165,3 +165,5 @@ export default function Template({ items, ...menu }: Props): React.Node {
     return null;
   });
 }
+
+export default React.memo<Props>(Template);

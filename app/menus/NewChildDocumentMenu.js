@@ -15,7 +15,7 @@ type Props = {
 };
 
 function NewChildDocumentMenu({ document, label }: Props) {
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState({ animated: 200, modal: true });
   const { collections } = useStores();
   const { t } = useTranslation();
   const collection = collections.get(document.collectionId);
