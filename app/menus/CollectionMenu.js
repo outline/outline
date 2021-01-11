@@ -93,6 +93,7 @@ function CollectionMenu({ collection, label, onOpen, onClose }: Props) {
           onChange={handleFilePicked}
           onClick={(ev) => ev.stopPropagation()}
           accept={documents.importFileTypes.join(", ")}
+          tabIndex="-1"
         />
       </VisuallyHidden>
       {label ? (
