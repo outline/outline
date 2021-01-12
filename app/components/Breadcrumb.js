@@ -184,12 +184,17 @@ const Crumb = styled(Link)`
 
 const CollectionName = styled(Link)`
   display: flex;
-  flex-shrink: 0;
+  flex-shrink: 1;
   color: ${(props) => props.theme.text};
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
+  min-width: 0;
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 export default observer(Breadcrumb);

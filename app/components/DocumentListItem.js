@@ -144,7 +144,7 @@ const Content = styled.div`
 const Actions = styled(EventBoundary)`
   display: none;
   align-items: center;
-  margin-left: 8px;
+  margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
 
