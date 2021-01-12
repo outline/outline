@@ -21,6 +21,7 @@ import { newDocumentUrl } from "utils/routeHelpers";
 type Props = {|
   collection: Collection,
   placement?: string,
+  modal?: boolean,
   label?: (any) => React.Node,
   onOpen?: () => void,
   onClose?: () => void,
@@ -29,11 +30,12 @@ type Props = {|
 function CollectionMenu({
   collection,
   label,
+  modal = true,
   placement,
   onOpen,
   onClose,
 }: Props) {
-  const menu = useMenuState({ modal: true, placement });
+  const menu = useMenuState({ modal, placement });
   const [renderModals, setRenderModals] = React.useState(false);
   const { ui, documents, policies } = useStores();
   const { t } = useTranslation();

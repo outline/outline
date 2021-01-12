@@ -4,16 +4,18 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
+import styled from "styled-components";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
 import ContextMenu from "components/ContextMenu";
 import Header from "components/ContextMenu/Header";
 import Template from "components/ContextMenu/Template";
+import Flex from "components/Flex";
 import useStores from "hooks/useStores";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 function NewTemplateMenu() {
-  const menu = useMenuState({ modal: true });
+  const menu = useMenuState();
   const { t } = useTranslation();
   const { collections, policies } = useStores();
 
@@ -36,10 +38,10 @@ function NewTemplateMenu() {
             }),
             disabled: !policies.abilities(collection.id).update,
             title: (
-              <>
+              <Flex align="center">
                 <CollectionIcon collection={collection} />
-                &nbsp;{collection.name}
-              </>
+                <CollectionName>{collection.name}</CollectionName>
+              </Flex>
             ),
           }))}
         />
@@ -47,5 +49,11 @@ function NewTemplateMenu() {
     </>
   );
 }
+
+const CollectionName = styled.div`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`;
 
 export default observer(NewTemplateMenu);

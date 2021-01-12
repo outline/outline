@@ -132,6 +132,7 @@ const StyledNavLink = styled(NavLink)`
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
+  overflow: hidden;
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}

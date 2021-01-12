@@ -89,7 +89,7 @@ function UserMenu({ user }: Props) {
   return (
     <>
       <OverflowMenuButton {...menu} />
-      <ContextMenu {...menu} aria-label={t("User Options")}>
+      <ContextMenu {...menu} aria-label={t("User options")}>
         <Template
           {...menu}
           items={[

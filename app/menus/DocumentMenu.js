@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton } from "reakit/Menu";
+import styled from "styled-components";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentShare from "scenes/DocumentShare";
@@ -12,6 +13,7 @@ import CollectionIcon from "components/CollectionIcon";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
+import Flex from "components/Flex";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
 import {
@@ -176,10 +178,10 @@ function DocumentMenu({
 
                   return {
                     title: (
-                      <>
+                      <Flex align="center">
                         <CollectionIcon collection={collection} />
-                        &nbsp;{collection.name}
-                      </>
+                        <CollectionName>{collection.name}</CollectionName>
+                      </Flex>
                     ),
                     onClick: (ev) =>
                       handleRestore(ev, { collectionId: collection.id }),
@@ -330,5 +332,11 @@ function DocumentMenu({
     </>
   );
 }
+
+const CollectionName = styled.div`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`;
 
 export default observer(DocumentMenu);

@@ -167,6 +167,7 @@ class CollectionScene extends React.Component<Props> {
           <CollectionMenu
             collection={this.collection}
             placement="bottom-end"
+            modal={false}
             label={(props) => (
               <Button
                 icon={<MoreIcon />}
