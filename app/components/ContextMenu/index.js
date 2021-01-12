@@ -4,6 +4,7 @@ import * as React from "react";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
+import usePrevious from "hooks/usePrevious";
 
 type Props = {|
   "aria-label": string,
@@ -20,17 +21,20 @@ export default function ContextMenu({
   onClose,
   ...rest
 }: Props) {
+  const previousVisible = usePrevious(rest.visible);
+
   React.useEffect(() => {
-    if (rest.visible) {
+    if (rest.visible && !previousVisible) {
       if (onOpen) {
         onOpen();
       }
-    } else {
+    }
+    if (!rest.visible && previousVisible) {
       if (onClose) {
         onClose();
       }
     }
-  }, [onOpen, onClose, rest.visible]);
+  }, [onOpen, onClose, previousVisible, rest.visible]);
 
   return (
     <Menu {...rest}>
