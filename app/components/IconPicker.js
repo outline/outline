@@ -133,7 +133,6 @@ type Props = {|
 function IconPicker({ onOpen, icon, color, onChange }: Props) {
   const { t } = useTranslation();
   const menu = useMenuState({
-    animated: 200,
     modal: true,
     placement: "bottom-end",
   });

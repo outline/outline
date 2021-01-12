@@ -71,7 +71,6 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
 
 function AccountMenu(props: Props) {
   const menu = useMenuState({
-    animated: 200,
     placement: "bottom-start",
     modal: true,
   });
@@ -80,10 +79,6 @@ function AccountMenu(props: Props) {
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
     false
   );
-
-  const handleLogout = React.useCallback(() => {
-    auth.logout();
-  }, [auth]);
 
   return (
     <>
@@ -118,7 +113,7 @@ function AccountMenu(props: Props) {
         <Separator {...menu} />
         <MenuItem {...menu} as={AppearanceMenu} />
         <Separator {...menu} />
-        <MenuItem {...menu} onClick={handleLogout}>
+        <MenuItem {...menu} onClick={auth.logout}>
           {t("Log out")}
         </MenuItem>
       </ContextMenu>

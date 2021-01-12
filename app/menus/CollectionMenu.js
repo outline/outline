@@ -33,7 +33,7 @@ function CollectionMenu({
   onOpen,
   onClose,
 }: Props) {
-  const menu = useMenuState({ animated: 200, modal: true, placement });
+  const menu = useMenuState({ modal: true, placement });
   const [renderModals, setRenderModals] = React.useState(false);
   const { ui, documents, policies } = useStores();
   const { t } = useTranslation();

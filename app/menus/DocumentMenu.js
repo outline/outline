@@ -48,7 +48,7 @@ function DocumentMenu({
   onClose,
 }: Props) {
   const { policies, collections, auth, ui } = useStores();
-  const menu = useMenuState({ animated: 200, modal });
+  const menu = useMenuState({ modal });
   const history = useHistory();
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);

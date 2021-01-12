@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
@@ -67,30 +68,48 @@ function DocumentListItem(props: Props) {
         state: { title: document.titleWithDefault },
       }}
     >
-      <Heading>
-        <Title text={document.titleWithDefault} highlight={highlight} />
-        {document.isNew && document.createdBy.id !== currentUser.id && (
-          <Badge yellow>{t("New")}</Badge>
+      <Content>
+        <Heading>
+          <Title text={document.titleWithDefault} highlight={highlight} />
+          {document.isNew && document.createdBy.id !== currentUser.id && (
+            <Badge yellow>{t("New")}</Badge>
+          )}
+          {canStar && (
+            <StarPositioner>
+              <StarButton document={document} />
+            </StarPositioner>
+          )}
+          {document.isDraft && showDraft && (
+            <Tooltip
+              tooltip={t("Only visible to you")}
+              delay={500}
+              placement="top"
+            >
+              <Badge>{t("Draft")}</Badge>
+            </Tooltip>
+          )}
+          {document.isTemplate && showTemplate && (
+            <Badge primary>{t("Template")}</Badge>
+          )}
+        </Heading>
+
+        {!queryIsInTitle && (
+          <ResultContext
+            text={context}
+            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+            processResult={replaceResultMarks}
+          />
         )}
-        {canStar && (
-          <Actions>
-            <StarButton document={document} />
-          </Actions>
-        )}
-        {document.isDraft && showDraft && (
-          <Tooltip
-            tooltip={t("Only visible to you")}
-            delay={500}
-            placement="top"
-          >
-            <Badge>{t("Draft")}</Badge>
-          </Tooltip>
-        )}
-        {document.isTemplate && showTemplate && (
-          <Badge primary>{t("Template")}</Badge>
-        )}
-        <SecondaryActions>
-          {document.isTemplate && !document.isArchived && !document.isDeleted && (
+        <DocumentMeta
+          document={document}
+          showCollection={showCollection}
+          showPublished={showPublished}
+          showLastViewed
+        />
+      </Content>
+      <Actions>
+        {document.isTemplate && !document.isArchived && !document.isDeleted && (
+          <>
             <Button
               as={Link}
               to={newDocumentUrl(document.collectionId, {
@@ -101,56 +120,50 @@ function DocumentListItem(props: Props) {
             >
               {t("New doc")}
             </Button>
-          )}
-          &nbsp;
-          <DocumentMenu
-            document={document}
-            showPin={showPin}
-            onOpen={() => setMenuOpen(true)}
-            onClose={() => setMenuOpen(false)}
-            modal={false}
-          />
-        </SecondaryActions>
-      </Heading>
-
-      {!queryIsInTitle && (
-        <ResultContext
-          text={context}
-          highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-          processResult={replaceResultMarks}
+            &nbsp;
+          </>
+        )}
+        <DocumentMenu
+          document={document}
+          showPin={showPin}
+          onOpen={() => setMenuOpen(true)}
+          onClose={() => setMenuOpen(false)}
+          modal={false}
         />
-      )}
-      <DocumentMeta
-        document={document}
-        showCollection={showCollection}
-        showPublished={showPublished}
-        showLastViewed
-      />
+      </Actions>
     </DocumentLink>
   );
 }
 
-const SecondaryActions = styled(EventBoundary)`
-  display: flex;
+const Content = styled.div`
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
+`;
+
+const Actions = styled(EventBoundary)`
+  display: none;
   align-items: center;
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
+  margin-left: 8px;
+  flex-shrink: 0;
+  flex-grow: 0;
+
+  ${breakpoint("tablet")`
+    display: flex;
+  `};
 `;
 
 const DocumentLink = styled(Link)`
-  display: block;
+  display: flex;
+  align-items: center;
   margin: 10px -8px;
   padding: 6px 8px;
   border-radius: 8px;
   max-height: 50vh;
   min-width: 100%;
   max-width: calc(100vw - 40px);
-  position: relative;
 
-  ${SecondaryActions} {
+  ${Actions} {
     opacity: 0;
   }
 
@@ -164,7 +177,7 @@ const DocumentLink = styled(Link)`
   &:focus-within {
     background: ${(props) => props.theme.listItemHoverBackground};
 
-    ${SecondaryActions} {
+    ${Actions} {
       opacity: 1;
     }
 
@@ -182,7 +195,7 @@ const DocumentLink = styled(Link)`
     css`
       background: ${(props) => props.theme.listItemHoverBackground};
 
-      ${SecondaryActions} {
+      ${Actions} {
         opacity: 1;
       }
 
@@ -205,7 +218,7 @@ const Heading = styled.h3`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
-const Actions = styled(Flex)`
+const StarPositioner = styled(Flex)`
   margin-left: 4px;
   align-items: center;
 `;

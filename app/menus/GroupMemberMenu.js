@@ -13,7 +13,7 @@ type Props = {|
 
 function GroupMemberMenu({ onRemove }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({ animated: 200, modal: true });
+  const menu = useMenuState({ modal: true });
 
   return (
     <>
