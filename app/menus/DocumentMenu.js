@@ -27,6 +27,7 @@ type Props = {|
   className: string,
   isRevision?: boolean,
   showPrint?: boolean,
+  modal?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
   label?: (any) => React.Node,
@@ -38,6 +39,7 @@ function DocumentMenu({
   document,
   isRevision,
   className,
+  modal = true,
   showToggleEmbeds,
   showPrint,
   showPin,
@@ -46,7 +48,7 @@ function DocumentMenu({
   onClose,
 }: Props) {
   const { policies, collections, auth, ui } = useStores();
-  const menu = useMenuState({ animated: 200, modal: true });
+  const menu = useMenuState({ animated: 200, modal });
   const history = useHistory();
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);

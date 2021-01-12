@@ -108,6 +108,7 @@ function DocumentListItem(props: Props) {
             showPin={showPin}
             onOpen={() => setMenuOpen(true)}
             onClose={() => setMenuOpen(false)}
+            modal={false}
           />
         </SecondaryActions>
       </Heading>
@@ -136,6 +137,7 @@ const SecondaryActions = styled(EventBoundary)`
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 1;
 `;
 
 const DocumentLink = styled(Link)`
@@ -146,7 +148,6 @@ const DocumentLink = styled(Link)`
   max-height: 50vh;
   min-width: 100%;
   max-width: calc(100vw - 40px);
-  overflow: hidden;
   position: relative;
 
   ${SecondaryActions} {

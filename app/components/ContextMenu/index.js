@@ -7,7 +7,8 @@ import { fadeAndScaleIn } from "shared/styles/animations";
 
 type Props = {|
   "aria-label": string,
-  visible?: Boolean,
+  visible?: boolean,
+  animating?: boolean,
   children: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
@@ -35,7 +36,9 @@ export default function ContextMenu({
     <Menu {...rest}>
       {(props) => (
         <Position {...props}>
-          <Background>{children}</Background>
+          <Background>
+            {rest.visible || rest.animating ? children : null}
+          </Background>
         </Position>
       )}
     </Menu>

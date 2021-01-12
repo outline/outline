@@ -45,7 +45,6 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
       <ContextMenu {...menu} aria-label={t("Appearance")}>
         <MenuItem
           {...menu}
-          href="#"
           onClick={() => ui.setTheme("system")}
           selected={ui.theme === "system"}
         >
@@ -53,7 +52,6 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
         </MenuItem>
         <MenuItem
           {...menu}
-          href="#"
           onClick={() => ui.setTheme("light")}
           selected={ui.theme === "light"}
         >
@@ -61,7 +59,6 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
         </MenuItem>
         <MenuItem
           {...menu}
-          href="#"
           onClick={() => ui.setTheme("dark")}
           selected={ui.theme === "dark"}
         >
