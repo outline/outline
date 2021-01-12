@@ -28,7 +28,7 @@ describe("documentMover", () => {
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.creatorId,
+      userId: collection.createdById,
       title: "Child document",
       text: "content",
     });
@@ -59,7 +59,7 @@ describe("documentMover", () => {
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.creatorId,
+      userId: collection.createdById,
       title: "Child document",
       text: "content",
     });

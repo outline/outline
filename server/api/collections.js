@@ -53,7 +53,7 @@ router.post("collections.create", auth(), async (ctx) => {
     icon,
     color,
     teamId: user.teamId,
-    creatorId: user.id,
+    createdById: user.id,
     private: isPrivate,
     sort,
   });
