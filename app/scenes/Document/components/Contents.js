@@ -1,6 +1,5 @@
 // @flow
 import useWindowScrollPosition from "@rehooks/window-scroll-position";
-import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
