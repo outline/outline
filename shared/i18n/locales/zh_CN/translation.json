@@ -238,7 +238,7 @@
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "您确定要删除吗？删除<2>{{documentTitle}}</2>文档将删除其所有历史记录以及所有的相关文件。",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "如果您将来希望引用或还原{{noun}}，请考虑将其存档。",
   "Deleting": "正在删除",
-  "I’m sure – Delete": "我确定– 删除",
+  "I’m sure – Delete": "确定– 删除",
   "Archiving": "正在归档",
   "No documents found for your filters.": "没有找到相关文档。",
   "You’ve not got any drafts at the moment.": "您目前还没有任何草稿。",
