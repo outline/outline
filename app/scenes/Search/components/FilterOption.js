@@ -17,8 +17,8 @@ const FilterOption = ({ label, note, onSelect, active, ...rest }: Props) => {
   return (
     <MenuItem onClick={active ? undefined : onSelect} {...rest}>
       {(props) => (
-        <ListItem active={active}>
-          <Anchor {...props}>
+        <ListItem>
+          <Button active={active} {...props}>
             <Flex align="center" justify="space-between">
               <span>
                 {label}
@@ -26,7 +26,7 @@ const FilterOption = ({ label, note, onSelect, active, ...rest }: Props) => {
               </span>
               {active && <Checkmark />}
             </Flex>
-          </Anchor>
+          </Button>
         </ListItem>
       )}
     </MenuItem>
@@ -43,12 +43,19 @@ const Checkmark = styled(CheckmarkIcon)`
   fill: ${(props) => props.theme.text};
 `;
 
-const Anchor = styled("a")`
+const Button = styled.button`
   display: flex;
   flex-direction: column;
   font-size: 15px;
   padding: 4px 8px;
+  margin: 0;
+  border: 0;
+  background: none;
   color: ${(props) => props.theme.text};
+  text-align: left;
+  font-weight: ${(props) => (props.active ? "600" : "normal")};
+  justify-content: center;
+  width: 100%;
   min-height: 32px;
 
   ${HelpText} {
@@ -63,7 +70,6 @@ const Anchor = styled("a")`
 
 const ListItem = styled("li")`
   list-style: none;
-  font-weight: ${(props) => (props.active ? "600" : "normal")};
   max-width: 250px;
 `;
 
