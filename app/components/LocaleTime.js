@@ -2,16 +2,17 @@
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import format from "date-fns/format";
 import * as React from "react";
-import { languages } from "shared/i18n";
 import Tooltip from "components/Tooltip";
-import useStores from "hooks/useStores";
+import useUserLocale from "hooks/useUserLocale";
 
-let locales = {};
-
-for (let lang of languages) {
-  const locale = lang.split("_")[0];
-  locales[lang] = require(`date-fns/locale/${locale}`);
-}
+const locales = {
+  en: require(`date-fns/locale/en`),
+  de: require(`date-fns/locale/de`),
+  es: require(`date-fns/locale/es`),
+  fr: require(`date-fns/locale/fr`),
+  ko: require(`date-fns/locale/ko`),
+  pt: require(`date-fns/locale/pt`),
+};
 
 let callbacks = [];
 
@@ -38,7 +39,7 @@ type Props = {
 };
 
 function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
-  const { auth } = useStores();
+  const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
   const callback = React.useRef();
 
@@ -56,7 +57,7 @@ function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
 
   let content = distanceInWordsToNow(dateTime, {
     addSuffix,
-    locale: auth.user ? locales[auth.user.language] : undefined,
+    locale: locales[userLocale],
   });
 
   if (shorten) {
