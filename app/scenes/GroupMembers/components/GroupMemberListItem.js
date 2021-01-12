@@ -1,6 +1,5 @@
 // @flow
 import * as React from "react";
-import GroupMembership from "models/GroupMembership";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
@@ -12,17 +11,11 @@ import GroupMemberMenu from "menus/GroupMemberMenu";
 
 type Props = {|
   user: User,
-  groupMembership?: ?GroupMembership,
   onAdd?: () => Promise<void>,
   onRemove?: () => Promise<void>,
 |};
 
-const GroupMemberListItem = ({
-  user,
-  groupMembership,
-  onRemove,
-  onAdd,
-}: Props) => {
+const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
   return (
     <ListItem
       title={user.name}

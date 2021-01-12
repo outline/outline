@@ -112,7 +112,6 @@ class AddPeopleToGroup extends React.Component<Props> {
               key={item.id}
               user={item}
               onAdd={() => this.handleAddUser(item)}
-              canEdit
             />
           )}
         />

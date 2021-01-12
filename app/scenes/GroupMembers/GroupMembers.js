@@ -103,7 +103,6 @@ class GroupMembers extends React.Component<Props> {
             <GroupMemberListItem
               key={item.id}
               user={item}
-              membership={groupMemberships.get(`${item.id}-${group.id}`)}
               onRemove={
                 can.update ? () => this.handleRemoveUser(item) : undefined
               }

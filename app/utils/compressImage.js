@@ -1,7 +1,7 @@
 // @flow
 import Compressor from "compressorjs";
 
-type Options = Omit<Compressor.Options, "success" | "error">;
+type Options = { maxWidth?: number, maxHeight?: number };
 
 export const compressImage = async (
   file: File | Blob,
