@@ -361,6 +361,7 @@ class Search extends React.Component<Props> {
                     highlight={this.query}
                     context={result.context}
                     showCollection
+                    showTemplate
                   />
                 );
               })}
