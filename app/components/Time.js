@@ -14,7 +14,7 @@ type Props = {
 
 function Time(props: Props) {
   let content = distanceInWordsToNow(props.dateTime, {
-    addSufix: props.addSuffix,
+    addSuffix: props.addSuffix,
   });
 
   if (props.shorten) {
