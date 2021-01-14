@@ -17,6 +17,11 @@ export default class GoogleDrive extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
-    return <Frame src={this.props.attrs.href} title="Google Drive Embed" />;
+    return (
+      <Frame
+        src={this.props.attrs.href.replace("/view", "/preview")}
+        title="Google Drive Embed"
+      />
+    );
   }
 }
