@@ -12,7 +12,7 @@ import {
 import { transparentize, darken } from "polished";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
-import { Redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -63,7 +63,6 @@ type Props = {
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
   @observable showShareModal = false;
-  @observable redirectTo: ?string;
 
   componentDidMount() {
     window.addEventListener("scroll", this.handleScroll);
@@ -78,18 +77,6 @@ class Header extends React.Component<Props> {
   };
 
   handleScroll = throttle(this.updateIsScrolled, 50);
-
-  handleEdit = () => {
-    this.redirectTo = editDocumentUrl(this.props.document);
-  };
-
-  handleNewFromTemplate = () => {
-    const { document } = this.props;
-
-    this.redirectTo = newDocumentUrl(document.collectionId, {
-      templateId: document.id,
-    });
-  };
 
   handleSave = () => {
     this.props.onSave({ done: true });
@@ -118,8 +105,6 @@ class Header extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     const {
       shares,
       document,
@@ -276,8 +261,9 @@ class Header extends React.Component<Props> {
                 placement="bottom"
               >
                 <Button
+                  as={Link}
                   icon={<EditIcon />}
-                  onClick={this.handleEdit}
+                  to={editDocumentUrl(this.props.document)}
                   neutral
                   small
                 >
@@ -309,7 +295,10 @@ class Header extends React.Component<Props> {
             <Action>
               <Button
                 icon={<PlusIcon />}
-                onClick={this.handleNewFromTemplate}
+                as={Link}
+                to={newDocumentUrl(document.collectionId, {
+                  templateId: document.id,
+                })}
                 primary
                 small
               >
@@ -423,6 +412,7 @@ const Title = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  cursor: pointer;
   display: none;
   width: 0;
 

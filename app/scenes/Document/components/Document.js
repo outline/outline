@@ -81,12 +81,12 @@ class DocumentScene extends React.Component<Props> {
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
 
-  componentDidMount() {
-    this.updateIsDirty();
-  }
-
   componentDidUpdate(prevProps) {
     const { auth, document } = this.props;
+
+    if (prevProps.readOnly && !this.props.readOnly) {
+      this.updateIsDirty();
+    }
 
     if (this.props.readOnly) {
       this.lastRevision = document.revision;
@@ -440,7 +440,7 @@ class DocumentScene extends React.Component<Props> {
                     ui={this.props.ui}
                   />
                 </Flex>
-                {readOnly && !isShare && !revision && (
+                {!isShare && !revision && (
                   <>
                     <MarkAsViewed document={document} />
                     <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>

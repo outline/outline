@@ -102,7 +102,7 @@ export const Inner = styled.span`
   line-height: ${(props) => (props.hasIcon ? 24 : 32)}px;
   justify-content: center;
   align-items: center;
-  min-height: 30px;
+  min-height: 32px;
 
   ${(props) => props.hasIcon && props.hasText && "padding-left: 4px;"};
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
