@@ -7,11 +7,11 @@ import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Flex from "components/Flex";
 import InputSelect from "components/InputSelect";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
+import MemberMenu from "menus/MemberMenu";
 
 type Props = {
   user: User,
@@ -69,13 +69,7 @@ const MemberListItem = ({
             />
           )}
           &nbsp;&nbsp;
-          {canEdit && onRemove && (
-            <DropdownMenu>
-              <DropdownMenuItem onClick={onRemove}>
-                {t("Remove")}
-              </DropdownMenuItem>
-            </DropdownMenu>
-          )}
+          {canEdit && onRemove && <MemberMenu onRemove={onRemove} />}
           {canEdit && onAdd && (
             <Button onClick={onAdd} neutral>
               {t("Add")}

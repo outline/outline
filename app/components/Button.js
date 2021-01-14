@@ -22,9 +22,13 @@ const RealButton = styled.button`
   cursor: pointer;
   user-select: none;
 
-  svg {
-    fill: ${(props) => props.iconColor || props.theme.buttonText};
-  }
+  ${(props) =>
+    !props.borderOnHover &&
+    `
+      svg {
+        fill: ${props.iconColor || props.theme.buttonText};
+      }
+    `}
 
   &::-moz-focus-inner {
     padding: 0;
@@ -42,7 +46,7 @@ const RealButton = styled.button`
   }
 
   ${(props) =>
-    props.neutral &&
+    props.$neutral &&
     `
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
@@ -52,9 +56,14 @@ const RealButton = styled.button`
         : `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`
     };
 
-    svg {
+    ${
+      props.borderOnHover
+        ? ""
+        : `svg {
       fill: ${props.iconColor || props.theme.buttonNeutralText};
+    }`
     }
+    
 
     &:hover {
       background: ${darken(0.05, props.theme.buttonNeutralBackground)};
@@ -72,9 +81,9 @@ const RealButton = styled.button`
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
-    &:hover {
-      background: ${darken(0.05, props.theme.danger)};
-    }
+      &:hover {
+        background: ${darken(0.05, props.theme.danger)};
+      }
   `};
 `;
 
@@ -108,6 +117,7 @@ export type Props = {
   children?: React.Node,
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
+  neutral?: boolean,
   fullwidth?: boolean,
   borderOnHover?: boolean,
 };
@@ -119,13 +129,14 @@ function Button({
   value,
   disclosure,
   innerRef,
+  neutral,
   ...rest
 }: Props) {
   const hasText = children !== undefined || value !== undefined;
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton type={type} ref={innerRef} {...rest}>
+    <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}

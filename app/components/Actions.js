@@ -11,11 +11,6 @@ export const Action = styled(Flex)`
   font-size: 15px;
   flex-shrink: 0;
 
-  a {
-    color: ${(props) => props.theme.text};
-    height: 24px;
-  }
-
   &:empty {
     display: none;
   }

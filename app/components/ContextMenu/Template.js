@@ -1,13 +1,19 @@
 // @flow
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import {
+  useMenuState,
+  MenuButton,
+  MenuItem as BaseMenuItem,
+} from "reakit/Menu";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import DropdownMenu from "./DropdownMenu";
-import DropdownMenuItem from "./DropdownMenuItem";
+import MenuItem, { MenuAnchor } from "./MenuItem";
+import Separator from "./Separator";
+import ContextMenu from ".";
 
-type MenuItem =
+type TMenuItem =
   | {|
       title: React.Node,
       to: string,
@@ -35,7 +41,7 @@ type MenuItem =
       disabled?: boolean,
       style?: Object,
       hover?: boolean,
-      items: MenuItem[],
+      items: TMenuItem[],
     |}
   | {|
       type: "separator",
@@ -48,14 +54,35 @@ type MenuItem =
     |};
 
 type Props = {|
-  items: MenuItem[],
+  items: TMenuItem[],
 |};
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
+  justify-self: flex-end;
 `;
 
-export default function DropdownMenuItems({ items }: Props): React.Node {
+const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
+  const { t } = useTranslation();
+  const menu = useMenuState({ modal: true });
+
+  return (
+    <>
+      <MenuButton ref={ref} {...menu} {...rest}>
+        {(props) => (
+          <MenuAnchor {...props}>
+            {title} <Disclosure color="currentColor" />
+          </MenuAnchor>
+        )}
+      </MenuButton>
+      <ContextMenu {...menu} aria-label={t("Submenu")}>
+        <Template {...menu} items={templateItems} />
+      </ContextMenu>
+    </>
+  );
+});
+
+function Template({ items, ...menu }: Props): React.Node {
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators
@@ -76,69 +103,67 @@ export default function DropdownMenuItems({ items }: Props): React.Node {
   return filtered.map((item, index) => {
     if (item.to) {
       return (
-        <DropdownMenuItem
+        <MenuItem
           as={Link}
           to={item.to}
           key={index}
           disabled={item.disabled}
           selected={item.selected}
+          {...menu}
         >
           {item.title}
-        </DropdownMenuItem>
+        </MenuItem>
       );
     }
 
     if (item.href) {
       return (
-        <DropdownMenuItem
+        <MenuItem
           href={item.href}
           key={index}
           disabled={item.disabled}
           selected={item.selected}
           target="_blank"
+          {...menu}
         >
           {item.title}
-        </DropdownMenuItem>
+        </MenuItem>
       );
     }
 
     if (item.onClick) {
       return (
-        <DropdownMenuItem
+        <MenuItem
+          as="button"
           onClick={item.onClick}
           disabled={item.disabled}
           selected={item.selected}
           key={index}
+          {...menu}
         >
           {item.title}
-        </DropdownMenuItem>
+        </MenuItem>
       );
     }
 
     if (item.items) {
       return (
-        <DropdownMenu
-          style={item.style}
-          label={
-            <DropdownMenuItem disabled={item.disabled}>
-              <Flex justify="space-between" align="center" auto>
-                {item.title}
-                <Disclosure color="currentColor" />
-              </Flex>
-            </DropdownMenuItem>
-          }
-          hover={item.hover}
+        <BaseMenuItem
           key={index}
-        >
-          <DropdownMenuItems items={item.items} />
-        </DropdownMenu>
+          as={Submenu}
+          templateItems={item.items}
+          title={item.title}
+          {...menu}
+        />
       );
     }
 
     if (item.type === "separator") {
-      return <hr key={index} />;
+      return <Separator key={index} />;
     }
 
     return null;
   });
 }
+
+export default React.memo<Props>(Template);

@@ -242,7 +242,6 @@ function DocumentLink({
                   document && !isMoving ? (
                     <Fade>
                       <DocumentMenu
-                        position="right"
                         document={document}
                         onOpen={() => setMenuOpen(true)}
                         onClose={() => setMenuOpen(false)}

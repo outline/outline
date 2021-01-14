@@ -4,7 +4,6 @@ import {
   ArchiveIcon,
   EditIcon,
   GoToIcon,
-  MoreIcon,
   PadlockIcon,
   ShapesIcon,
   TrashIcon,
@@ -14,18 +13,15 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
-import CollectionsStore from "stores/CollectionsStore";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
-import BreadcrumbMenu from "./BreadcrumbMenu";
 import useStores from "hooks/useStores";
+import BreadcrumbMenu from "menus/BreadcrumbMenu";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
   document: Document,
-  collections: CollectionsStore,
   onlyText: boolean,
 };
 
@@ -133,7 +129,7 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
       </CollectionName>
       {isNestedDocument && (
         <>
-          <Slash /> <BreadcrumbMenu label={<Overflow />} path={menuPath} />
+          <Slash /> <BreadcrumbMenu path={menuPath} />
         </>
       )}
       {lastPath && (
@@ -147,6 +143,11 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
     </Wrapper>
   );
 };
+
+export const Slash = styled(GoToIcon)`
+  flex-shrink: 0;
+  fill: ${(props) => props.theme.divider};
+`;
 
 const Wrapper = styled(Flex)`
   display: none;
@@ -168,22 +169,6 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.25;
 `;
 
-export const Slash = styled(GoToIcon)`
-  flex-shrink: 0;
-  fill: ${(props) => props.theme.divider};
-`;
-
-const Overflow = styled(MoreIcon)`
-  flex-shrink: 0;
-  transition: opacity 100ms ease-in-out;
-  fill: ${(props) => props.theme.divider};
-
-  &:active,
-  &:hover {
-    fill: ${(props) => props.theme.text};
-  }
-`;
-
 const Crumb = styled(Link)`
   color: ${(props) => props.theme.text};
   font-size: 15px;
@@ -199,12 +184,17 @@ const Crumb = styled(Link)`
 
 const CollectionName = styled(Link)`
   display: flex;
-  flex-shrink: 0;
+  flex-shrink: 1;
   color: ${(props) => props.theme.text};
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
+  min-width: 0;
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 export default observer(Breadcrumb);

@@ -1,98 +1,110 @@
 // @flow
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-
-import { withTranslation, type TFunction } from "react-i18next";
-import UsersStore from "stores/UsersStore";
+import { useTranslation } from "react-i18next";
+import { useMenuState } from "reakit/Menu";
 import User from "models/User";
-import { DropdownMenu } from "components/DropdownMenu";
-import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
+import ContextMenu from "components/ContextMenu";
+import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
+import Template from "components/ContextMenu/Template";
+import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   user: User,
-  users: UsersStore,
-  t: TFunction,
-};
+|};
 
-@observer
-class UserMenu extends React.Component<Props> {
-  handlePromote = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    const { user, users, t } = this.props;
-    if (
-      !window.confirm(
-        t(
-          "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
-          { userName: user.name }
+function UserMenu({ user }: Props) {
+  const { users } = useStores();
+  const { t } = useTranslation();
+  const menu = useMenuState({ modal: true });
+
+  const handlePromote = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      if (
+        !window.confirm(
+          t(
+            "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
+            { userName: user.name }
+          )
         )
-      )
-    ) {
-      return;
-    }
-    users.promote(user);
-  };
+      ) {
+        return;
+      }
+      users.promote(user);
+    },
+    [users, user, t]
+  );
 
-  handleDemote = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    const { user, users, t } = this.props;
-    if (
-      !window.confirm(
-        t("Are you sure you want to make {{ userName }} a member?", {
-          userName: user.name,
-        })
-      )
-    ) {
-      return;
-    }
-    users.demote(user);
-  };
-
-  handleSuspend = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    const { user, users, t } = this.props;
-    if (
-      !window.confirm(
-        t(
-          "Are you sure you want to suspend this account? Suspended users will be prevented from logging in."
+  const handleDemote = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      if (
+        !window.confirm(
+          t("Are you sure you want to make {{ userName }} a member?", {
+            userName: user.name,
+          })
         )
-      )
-    ) {
-      return;
-    }
-    users.suspend(user);
-  };
+      ) {
+        return;
+      }
+      users.demote(user);
+    },
+    [users, user, t]
+  );
 
-  handleRevoke = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    const { user, users } = this.props;
-    users.delete(user, { confirmation: true });
-  };
+  const handleSuspend = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      if (
+        !window.confirm(
+          t(
+            "Are you sure you want to suspend this account? Suspended users will be prevented from logging in."
+          )
+        )
+      ) {
+        return;
+      }
+      users.suspend(user);
+    },
+    [users, user, t]
+  );
 
-  handleActivate = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    const { user, users } = this.props;
-    users.activate(user);
-  };
+  const handleRevoke = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      users.delete(user, { confirmation: true });
+    },
+    [users, user]
+  );
 
-  render() {
-    const { user, t } = this.props;
+  const handleActivate = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      users.activate(user);
+    },
+    [users, user]
+  );
 
-    return (
-      <DropdownMenu>
-        <DropdownMenuItems
+  return (
+    <>
+      <OverflowMenuButton {...menu} />
+      <ContextMenu {...menu} aria-label={t("User options")}>
+        <Template
+          {...menu}
           items={[
             {
               title: t("Make {{ userName }} a member…", {
                 userName: user.name,
               }),
-              onClick: this.handleDemote,
+              onClick: handleDemote,
               visible: user.isAdmin,
             },
             {
               title: t("Make {{ userName }} an admin…", {
                 userName: user.name,
               }),
-              onClick: this.handlePromote,
+              onClick: handlePromote,
               visible: !user.isAdmin && !user.isSuspended,
             },
             {
@@ -100,24 +112,24 @@ class UserMenu extends React.Component<Props> {
             },
             {
               title: `${t("Revoke invite")}…`,
-              onClick: this.handleRevoke,
+              onClick: handleRevoke,
               visible: user.isInvited,
             },
             {
               title: t("Activate account"),
-              onClick: this.handleActivate,
+              onClick: handleActivate,
               visible: !user.isInvited && user.isSuspended,
             },
             {
               title: `${t("Suspend account")}…`,
-              onClick: this.handleSuspend,
+              onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },
           ]}
         />
-      </DropdownMenu>
-    );
-  }
+      </ContextMenu>
+    </>
+  );
 }
 
-export default withTranslation()<UserMenu>(inject("users")(UserMenu));
+export default observer(UserMenu);

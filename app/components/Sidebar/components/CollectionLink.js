@@ -100,14 +100,12 @@ function CollectionLink({
               <>
                 {can.update && (
                   <CollectionSortMenuWithMargin
-                    position="right"
                     collection={collection}
                     onOpen={() => setMenuOpen(true)}
                     onClose={() => setMenuOpen(false)}
                   />
                 )}
                 <CollectionMenu
-                  position="right"
                   collection={collection}
                   onOpen={() => setMenuOpen(true)}
                   onClose={() => setMenuOpen(false)}

@@ -1,7 +1,13 @@
 // @flow
 import * as React from "react";
-import { withRouter, NavLink } from "react-router-dom";
+import {
+  withRouter,
+  NavLink,
+  type RouterHistory,
+  type Match,
+} from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import EventBoundary from "components/EventBoundary";
 import { type Theme } from "types";
 
 type Props = {
@@ -10,6 +16,7 @@ type Props = {
   innerRef?: (?HTMLElement) => void,
   onClick?: (SyntheticEvent<>) => void,
   onMouseEnter?: (SyntheticEvent<>) => void,
+  className?: string,
   children?: React.Node,
   icon?: React.Node,
   label?: React.Node,
@@ -18,6 +25,8 @@ type Props = {
   iconColor?: string,
   active?: boolean,
   isActiveDrop?: boolean,
+  history: RouterHistory,
+  match: Match,
   theme: Theme,
   exact?: boolean,
   depth?: number,
@@ -39,7 +48,9 @@ function SidebarLink({
   href,
   innerRef,
   depth,
-  ...rest
+  history,
+  match,
+  className,
 }: Props) {
   const style = React.useMemo(() => {
     return {
@@ -70,7 +81,7 @@ function SidebarLink({
       as={to ? undefined : href ? "a" : "div"}
       href={href}
       ref={innerRef}
-      {...rest}
+      className={className}
     >
       {icon && <IconWrapper>{icon}</IconWrapper>}
       <Label>{label}</Label>
@@ -84,9 +95,10 @@ const IconWrapper = styled.span`
   margin-left: -4px;
   margin-right: 4px;
   height: 24px;
+  overflow: hidden;
 `;
 
-const Actions = styled.span`
+const Actions = styled(EventBoundary)`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
   top: 4px;
@@ -110,7 +122,6 @@ const Actions = styled.span`
 const StyledNavLink = styled(NavLink)`
   display: flex;
   position: relative;
-  overflow: hidden;
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
@@ -121,6 +132,7 @@ const StyledNavLink = styled(NavLink)`
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
+  overflow: hidden;
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}

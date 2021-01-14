@@ -290,18 +290,18 @@ class Header extends React.Component<Props> {
             <Action>
               <NewChildDocumentMenu
                 document={document}
-                label={
+                label={(props) => (
                   <Tooltip
                     tooltip={t("New document")}
                     shortcut="n"
                     delay={500}
                     placement="bottom"
                   >
-                    <Button icon={<PlusIcon />} neutral>
+                    <Button icon={<PlusIcon />} {...props} neutral>
                       {t("New doc")}
                     </Button>
                   </Tooltip>
-                }
+                )}
               />
             </Action>
           )}
@@ -343,15 +343,16 @@ class Header extends React.Component<Props> {
                 <DocumentMenu
                   document={document}
                   isRevision={isRevision}
-                  label={
+                  label={(props) => (
                     <Button
                       icon={<MoreIcon />}
                       iconColor="currentColor"
+                      {...props}
                       borderOnHover
                       neutral
                       small
                     />
-                  }
+                  )}
                   showToggleEmbeds={canToggleEmbeds}
                   showPrint
                 />
