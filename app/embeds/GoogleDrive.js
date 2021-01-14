@@ -3,7 +3,7 @@ import * as React from "react";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  "^https?://drive.google.com/file/d/(.*)/view?usp=sharing$"
+  "^https?://drive.google.com/file/d/(.*)/(preview|view).?usp=sharing$"
 );
 
 type Props = {|
