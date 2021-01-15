@@ -20,7 +20,17 @@ export default class GoogleDrive extends React.Component<Props> {
     return (
       <Frame
         src={this.props.attrs.href.replace("/view", "/preview")}
+        icon={
+          <img
+            src="/images/google-drive.png"
+            alt="Google Drive Icon"
+            width={16}
+            height={16}
+          />
+        }
         title="Google Drive Embed"
+        canonicalUrl={this.props.attrs.href}
+        border
       />
     );
   }
