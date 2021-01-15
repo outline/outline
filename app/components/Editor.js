@@ -172,6 +172,10 @@ const StyledEditor = styled(RichMarkdownEditor)`
     font-weight: 500;
   }
 
+  .heading-anchor {
+    box-sizing: border-box;
+  }
+
   .heading-name {
     pointer-events: none;
   }

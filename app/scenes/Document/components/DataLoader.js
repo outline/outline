@@ -240,13 +240,11 @@ class DataLoader extends React.Component<Props> {
     }
 
     const abilities = policies.abilities(document.id);
-    const key = this.isEditing ? "editing" : "read-only";
 
     return (
       <SocketPresence documentId={document.id} isEditing={this.isEditing}>
         {this.isEditing && <HideSidebar ui={ui} />}
         <DocumentComponent
-          key={key}
           document={document}
           revision={revision}
           abilities={abilities}
