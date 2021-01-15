@@ -181,8 +181,8 @@ const StyledEditor = styled(RichMarkdownEditor)`
   .heading-name::before {
     content: "";
     display: ${(props) => (props.readOnly ? "block" : "none")};
-    height: 72px;
-    margin: -72px 0 0;
+    height: 60px;
+    margin: -60px 0 0;
   }
 
   .heading-name:first-child {
