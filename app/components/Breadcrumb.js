@@ -31,11 +31,11 @@ function Icon({ document }) {
   if (document.isDeleted) {
     return (
       <>
-        <CollectionName to="/trash">
+        <CategoryName to="/trash">
           <TrashIcon color="currentColor" />
           &nbsp;
           <span>{t("Trash")}</span>
-        </CollectionName>
+        </CategoryName>
         <Slash />
       </>
     );
@@ -43,11 +43,11 @@ function Icon({ document }) {
   if (document.isArchived) {
     return (
       <>
-        <CollectionName to="/archive">
+        <CategoryName to="/archive">
           <ArchiveIcon color="currentColor" />
           &nbsp;
           <span>{t("Archive")}</span>
-        </CollectionName>
+        </CategoryName>
         <Slash />
       </>
     );
@@ -55,11 +55,11 @@ function Icon({ document }) {
   if (document.isDraft) {
     return (
       <>
-        <CollectionName to="/drafts">
+        <CategoryName to="/drafts">
           <EditIcon color="currentColor" />
           &nbsp;
           <span>{t("Drafts")}</span>
-        </CollectionName>
+        </CategoryName>
         <Slash />
       </>
     );
@@ -67,11 +67,11 @@ function Icon({ document }) {
   if (document.isTemplate) {
     return (
       <>
-        <CollectionName to="/templates">
+        <CategoryName to="/templates">
           <ShapesIcon color="currentColor" />
           &nbsp;
           <span>{t("Templates")}</span>
-        </CollectionName>
+        </CategoryName>
         <Slash />
       </>
     );
@@ -195,6 +195,10 @@ const CollectionName = styled(Link)`
   svg {
     flex-shrink: 0;
   }
+`;
+
+const CategoryName = styled(CollectionName)`
+  flex-shrink: 0;
 `;
 
 export default observer(Breadcrumb);
