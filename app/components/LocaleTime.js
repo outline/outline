@@ -38,7 +38,13 @@ type Props = {
   shorten?: boolean,
 };
 
-function LocaleTime({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
+function LocaleTime({
+  addSuffix,
+  children,
+  dateTime,
+  shorten,
+  tooltipDelay,
+}: Props) {
   const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
   const callback = React.useRef();
