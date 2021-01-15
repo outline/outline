@@ -96,7 +96,7 @@ export default [
     matcher: matcher(Gist),
   },
   {
-    title: "Google Drawnings",
+    title: "Google Drawings",
     keywords: "drawings",
     icon: () => <Img src="/images/google-drawings.png" />,
     component: GoogleDrawings,

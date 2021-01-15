@@ -5,7 +5,7 @@ describe("GoogleSheets", () => {
   const match = GoogleDrawings.ENABLED[0];
   test("to be enabled on share link", () => {
     expect(
-      "https://docs.google.com/drawings/d/1EApyZ36bJmLuBCu2QY4XIb6qQclaBzjNIcNAVSWOJus/edit".match(
+      "https://docs.google.com/drawings/d/1zDLtJ4HSCnjGCGSoCgqGe3F8p6o7R8Vjk8MDR6dKf-U/edit".match(
         match
       )
     ).toBeTruthy();
