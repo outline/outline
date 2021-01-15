@@ -178,15 +178,10 @@ const StyledEditor = styled(RichMarkdownEditor)`
 
   .heading-name {
     pointer-events: none;
-  }
-
-  /* pseudo element allows us to add spacing for fixed header */
-  /* ref: https://stackoverflow.com/a/28824157 */
-  .heading-name::before {
-    content: "";
-    display: ${(props) => (props.readOnly ? "block" : "none")};
-    height: 60px;
-    margin: -60px 0 0;
+    display: block;
+    position: relative;
+    top: -60px;
+    visibility: hidden;
   }
 
   .heading-name:first-child {
