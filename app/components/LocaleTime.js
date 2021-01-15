@@ -38,7 +38,7 @@ type Props = {
   shorten?: boolean,
 };
 
-function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
+function LocaleTime({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
   const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
   const callback = React.useRef();
@@ -57,7 +57,7 @@ function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
 
   let content = distanceInWordsToNow(dateTime, {
     addSuffix,
-    locale: locales[userLocale],
+    locale: userLocale ? locales[userLocale] : undefined,
   });
 
   if (shorten) {
@@ -78,4 +78,4 @@ function Time({ addSuffix, children, dateTime, shorten, tooltipDelay }: Props) {
   );
 }
 
-export default Time;
+export default LocaleTime;
