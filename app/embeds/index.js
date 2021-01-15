@@ -8,6 +8,7 @@ import Codepen from "./Codepen";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GoogleDrive from "./GoogleDrive";
 import GoogleDocs from "./GoogleDocs";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
@@ -92,6 +93,13 @@ export default [
     icon: () => <Img src="/images/github-gist.png" />,
     component: Gist,
     matcher: matcher(Gist),
+  },
+  {
+    title: "Google Drive",
+    keywords: "drive",
+    icon: () => <Img src="/images/google-drive.png" />,
+    component: GoogleDrive,
+    matcher: matcher(GoogleDrive),
   },
   {
     title: "Google Docs",
