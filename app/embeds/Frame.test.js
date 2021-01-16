@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import Frame from "./Frame";
 
-describe("GoogleDocs", () => {
+describe("Frame", () => {
   const match = Frame.ENABLED[0];
   test("to be enabled on share link", () => {
     expect(
