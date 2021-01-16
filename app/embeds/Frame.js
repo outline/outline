@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import Frame from "./components/Frame";
+import FrameComponent from "./components/Frame";
 
 const URL_REGEX = new RegExp("^https?://(.*)$");
 
@@ -11,12 +11,12 @@ type Props = {|
   |},
 |};
 
-export default class GoogleDocs extends React.Component<Props> {
+export default class Frame extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
     return (
-      <Frame
+      <FrameComponent
         {...this.props}
         src={this.props.attrs.href}
         icon={
