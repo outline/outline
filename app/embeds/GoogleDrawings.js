@@ -2,7 +2,9 @@
 import * as React from "react";
 import Frame from "./components/Frame";
 
-const URL_REGEX = new RegExp("^https://docs.google.com/drawings/d/(.*)$");
+const URL_REGEX = new RegExp(
+  "^https://docs.google.com/drawings/d/(.*)/(edit|preview)$"
+);
 
 type Props = {|
   attrs: {|
@@ -27,7 +29,7 @@ export default class GoogleDrawings extends React.Component<Props> {
             height={16}
           />
         }
-        canonicalUrl={this.props.attrs.href}
+        canonicalUrl={this.props.attrs.href.replace("/preview", "/edit")}
         title="Google Drawings"
         border
       />
