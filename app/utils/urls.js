@@ -1,7 +1,8 @@
 // @flow
 import { parseDomain } from "../../shared/utils/domains";
+import env from "env";
 
-export default function isInternalUrl(href: string) {
+export function isInternalUrl(href: string) {
   if (href[0] === "/") return true;
 
   const outline = parseDomain(window.location.href);
@@ -18,4 +19,12 @@ export default function isInternalUrl(href: string) {
   }
 
   return false;
+}
+
+export function cdnPath(path: string): string {
+  return `${env.CDN_URL}${path}`;
+}
+
+export function imagePath(path: string): string {
+  return cdnPath(`/images/${path}`);
 }

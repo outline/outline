@@ -10,7 +10,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
   output: {
     path: path.join(__dirname, 'build/app'),
     filename: '[name].[contenthash].js',
-    publicPath: '/static/',
+    publicPath: `${process.env.CDN_URL || ""}/static/`,
   },
   cache: true,
   mode: "production",

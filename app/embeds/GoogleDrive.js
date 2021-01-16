@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import Image from "components/Image";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
@@ -21,7 +22,7 @@ export default class GoogleDrive extends React.Component<Props> {
       <Frame
         src={this.props.attrs.href.replace("/view", "/preview")}
         icon={
-          <img
+          <Image
             src="/images/google-drive.png"
             alt="Google Drive Icon"
             width={16}

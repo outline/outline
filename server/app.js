@@ -14,12 +14,31 @@ import enforceHttps from "koa-sslify";
 import api from "./api";
 import auth from "./auth";
 import emails from "./emails";
+import env from "./env";
 import routes from "./routes";
 import updates from "./utils/updates";
 
 const app = new Koa();
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
+
+// Construct scripts CSP based on services in use by this installation
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  "'unsafe-eval'",
+  "gist.github.com",
+];
+
+if (env.GOOGLE_ANALYTICS_ID) {
+  scriptSrc.push("www.google-analytics.com");
+}
+if (env.SENTRY_DSN) {
+  scriptSrc.push("browser.sentry-cdn.com");
+}
+if (env.CDN_URL) {
+  scriptSrc.push(env.CDN_URL);
+}
 
 app.use(compress());
 
@@ -149,14 +168,7 @@ app.use(
   contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "'unsafe-eval'",
-        "gist.github.com",
-        "www.google-analytics.com",
-        "browser.sentry-cdn.com",
-      ],
+      scriptSrc,
       styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
       imgSrc: ["*", "data:", "blob:"],
       frameSrc: ["*"],
