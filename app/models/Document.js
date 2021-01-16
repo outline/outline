@@ -287,7 +287,7 @@ export default class Document extends BaseModel {
 
     const body = unescape(this.text);
     const blob = new Blob([`# ${this.title}\n\n${body}`], {
-      type: "text/markdown",
+      type: "text/plain; charset=UTF-8",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
