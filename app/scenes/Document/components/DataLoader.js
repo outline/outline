@@ -24,7 +24,7 @@ import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
 import { type LocationWithState, type Theme } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
-import isInternalUrl from "utils/isInternalUrl";
+import { isInternalUrl } from "utils/urls";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|

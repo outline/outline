@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
+import Image from "components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import ClickUp from "./ClickUp";
@@ -38,7 +39,7 @@ function matcher(Component) {
   };
 }
 
-const Img = styled.img`
+const Img = styled(Image)`
   margin: 4px;
   width: 18px;
   height: 18px;
