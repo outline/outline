@@ -10,6 +10,7 @@ import presentIntegration from "./integration";
 import presentMembership from "./membership";
 import presentNotificationSetting from "./notificationSetting";
 import presentPolicies from "./policy";
+import presentRequestedDoc from "./requestedDocs";
 import presentRevision from "./revision";
 import presentShare from "./share";
 import presentSlackAttachment from "./slackAttachment";
@@ -35,4 +36,5 @@ export {
   presentPolicies,
   presentGroupMembership,
   presentCollectionGroupMembership,
+  presentRequestedDoc,
 };

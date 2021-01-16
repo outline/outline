@@ -10,6 +10,7 @@ import {
   ShapesIcon,
   TrashIcon,
   PlusIcon,
+  NewDocumentIcon,
 } from "outline-icons";
 import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
@@ -137,6 +138,14 @@ class MainSidebar extends React.Component<Props> {
                       !documents.active.isTemplate
                     : undefined
                 }
+              />
+            </Section>
+            <Section>
+              <SidebarLink
+                to="/requested-docs"
+                icon={<NewDocumentIcon color="currentColor" />}
+                exact={false}
+                label="Requested Docs"
               />
             </Section>
             <Section>

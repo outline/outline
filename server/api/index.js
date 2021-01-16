@@ -20,6 +20,7 @@ import integrations from "./integrations";
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
 import notificationSettings from "./notificationSettings";
+import requesteddocs from "./requestedDocs";
 import revisions from "./revisions";
 import shares from "./shares";
 import team from "./team";
@@ -60,6 +61,7 @@ router.use("/", notificationSettings.routes());
 router.use("/", attachments.routes());
 router.use("/", utils.routes());
 router.use("/", groups.routes());
+router.use("/", requesteddocs.routes());
 
 router.post("*", (ctx) => {
   ctx.throw(new NotFoundError("Endpoint not found"));
