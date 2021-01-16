@@ -3,7 +3,7 @@ import * as React from "react";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  "^https://docs.google.com/drawings/d/(.*)/(edit|preview)$"
+  "^https://docs.google.com/drawings/d/(.*)/(edit|preview)(.*)$"
 );
 
 type Props = {|

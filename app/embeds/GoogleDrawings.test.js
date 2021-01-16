@@ -9,6 +9,11 @@ describe("GoogleDrawings", () => {
         match
       )
     ).toBeTruthy();
+    expect(
+      "https://docs.google.com/drawings/d/1zDLtJ4HSCnjGCGSoCgqGe3F8p6o7R8Vjk8MDR6dKf-U/edit?usp=sharing".match(
+        match
+      )
+    ).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {
