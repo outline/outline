@@ -6,6 +6,7 @@ import Airtable from "./Airtable";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
 import Figma from "./Figma";
+import Frame from "./Frame";
 import Framer from "./Framer";
 import Gist from "./Gist";
 import GoogleDocs from "./GoogleDocs";
@@ -79,6 +80,13 @@ export default [
     icon: () => <Img src="/images/figma.png" />,
     component: Figma,
     matcher: matcher(Figma),
+  },
+  {
+    title: "Frame",
+    keywords: "frame",
+    icon: () => <Img src="/images/frame.png" />,
+    component: Frame,
+    matcher: matcher(Frame),
   },
   {
     title: "Framer",
