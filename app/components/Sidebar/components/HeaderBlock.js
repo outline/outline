@@ -16,7 +16,12 @@ const HeaderBlock = React.forwardRef<Props, any>(
   ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => {
     return (
       <Header justify="flex-start" align="center" ref={ref} {...rest}>
-        <TeamLogo alt={`${teamName} logo`} src={logoUrl} size="38px" />
+        <TeamLogo
+          alt={`${teamName} logo`}
+          src={logoUrl}
+          width={38}
+          height={38}
+        />
         <Flex align="flex-start" column>
           <TeamName showDisclosure>
             {teamName}{" "}
