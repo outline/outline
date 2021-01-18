@@ -203,7 +203,7 @@
     "url-loader": "^0.6.2",
     "webpack": "4.44.1",
     "webpack-cli": "^3.3.12",
-    "webpack-manifest-plugin": "^2.2.0"
+    "webpack-manifest-plugin": "^3.0.0"
   },
   "resolutions": {
     "dot-prop": "^5.2.0",
