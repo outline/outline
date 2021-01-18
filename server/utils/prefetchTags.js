@@ -33,22 +33,24 @@ Object.values(manifestData).forEach((filename) => {
   if (!env.CDN_URL) return;
 
   if (filename.endsWith(".js")) {
+    //  Preload resources you have high-confidence will be used in the current
+    // page.Prefetch resources likely to be used for future navigations
+    const shouldPreload =
+      filename.includes("/main") ||
+      filename.includes("/runtime") ||
+      filename.includes("/vendors");
+
     prefetchTags.push(
       <link
-        rel="prefetch"
-        href={`${env.CDN_URL}${filename}`}
+        rel={shouldPreload ? "preload" : "prefetch"}
+        href={filename}
         key={filename}
         as="script"
       />
     );
   } else if (filename.endsWith(".css")) {
     prefetchTags.push(
-      <link
-        rel="prefetch"
-        href={`${env.CDN_URL}${filename}`}
-        key={filename}
-        as="style"
-      />
+      <link rel="prefetch" href={filename} key={filename} as="style" />
     );
   }
 });
