@@ -23,6 +23,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
 
 // Construct scripts CSP based on services in use by this installation
+const prefetchSrc = ["'self'"];
 const scriptSrc = [
   "'self'",
   "'unsafe-inline'",
@@ -38,6 +39,7 @@ if (env.SENTRY_DSN) {
 }
 if (env.CDN_URL) {
   scriptSrc.push(env.CDN_URL);
+  prefetchSrc.push(env.CDN_URL);
 }
 
 app.use(compress());
@@ -169,6 +171,7 @@ app.use(
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc,
+      prefetchSrc,
       styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
       imgSrc: ["*", "data:", "blob:"],
       frameSrc: ["*"],
