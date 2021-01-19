@@ -43,14 +43,21 @@ function Sidebar({ location, children }: Props) {
 
     if (isSmallerThanMinimum) {
       setWidth(minWidth);
+      ui.setSidebarWidth(`${minWidth}px`);
       setAnimating(true);
+    } else if (width) {
+      ui.setSidebarWidth(`${width}px`);
     }
-  }, [isSmallerThanMinimum, minWidth]);
+  }, [isSmallerThanMinimum, minWidth, width, ui]);
 
   const handleStartDrag = React.useCallback(() => {
+    if (ui.sidebarCollapsed) {
+      return;
+    }
+
     setResizing(true);
     setAnimating(false);
-  }, []);
+  }, [ui.sidebarCollapsed]);
 
   React.useEffect(() => {
     if (isAnimating && (ui.sidebarCollapsed || ui.editMode)) {
@@ -79,6 +86,7 @@ function Sidebar({ location, children }: Props) {
   const content = (
     <Container
       style={width ? { width: `${width}px` } : undefined}
+      sidebarWidth={ui.sidebarWidth}
       $isAnimating={isAnimating}
       $isSmallerThanMinimum={isSmallerThanMinimum}
       mobileSidebarVisible={ui.mobileSidebarVisible}
@@ -104,7 +112,11 @@ function Sidebar({ location, children }: Props) {
         </>
       )}
       {children}
-      <ResizeHandle onMouseDown={handleStartDrag} $isResizing={isResizing} />
+      {!ui.sidebarCollapsed && (
+        <ResizeBorder onMouseDown={handleStartDrag} $isResizing={isResizing}>
+          <ResizeHandle />
+        </ResizeBorder>
+      )}
     </Container>
   );
 
@@ -118,24 +130,55 @@ function Sidebar({ location, children }: Props) {
 }
 
 const ResizeHandle = styled.div`
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+  transform: translateY(-50%);
+  position: absolute;
+  top: 50%;
+  height: 40px;
+  right: -10px;
+  width: 8px;
+  background: ${(props) => props.theme.sidebarBackground};
+  border-radius: 8px;
+  cursor: ew-resize;
+
+  &:hover {
+    background: ${(props) => props.theme.sidebarItemBackground};
+  }
+`;
+
+const ResizeBorder = styled.div`
   position: absolute;
   top: 0;
   bottom: 0;
-  right: 0;
-  width: 3px;
+  right: -5px;
+  width: 10px;
   cursor: ew-resize;
+
+  ${(props) =>
+    props.$isResizing &&
+    `
+  ${ResizeHandle} {
+    opacity: 1;
+  }
+  `}
+
+  &:hover {
+    ${ResizeHandle} {
+      opacity: 1;
+    }
+  }
 `;
 
 const Container = styled(Flex)`
-  overflow: hidden;
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
   transition: box-shadow, 100ms, ease-in-out, left 100ms ease-out,
-    ${(props) => props.theme.backgroundTransition},
-    ${(props) => (props.$isAnimating ? "width 250ms ease-out" : "")};
+    ${(props) => props.theme.backgroundTransition}
+      ${(props) => (props.$isAnimating ? ",width 250ms ease-out" : "")};
   margin-left: ${(props) => (props.mobileSidebarVisible ? 0 : "-100%")};
   z-index: ${(props) => props.theme.depths.sidebar};
 
@@ -163,22 +206,21 @@ const Container = styled(Flex)`
   ${breakpoint("tablet")`
     left: ${(props) =>
       props.collapsed
-        ? `calc(-${props.theme.sidebarWidth} + ${props.theme.sidebarCollapsedWidth})`
+        ? `calc(-${props.sidebarWidth} + ${props.theme.sidebarCollapsedWidth})`
         : 0};
-    width: ${(props) => props.theme.sidebarWidth};
+    width: ${(props) => props.sidebarWidth};
     margin: 0;
     z-index: 3;
-
-    box-shadow: ${(props) =>
-      props.$isSmallerThanMinimum
-        ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-        : "none"};
 
     &:hover,
     &:focus-within {
       left: 0;
       box-shadow: ${(props) =>
-        props.collapsed ? "rgba(0, 0, 0, 0.2) 1px 0 4px" : "none"};
+        props.collapsed
+          ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
+          : props.$isSmallerThanMinimum
+          ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+          : "none"};
 
       & ${Button} {
         opacity: .75;

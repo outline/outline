@@ -129,6 +129,7 @@ class Layout extends React.Component<Props> {
             auto
             justify="center"
             sidebarCollapsed={ui.editMode || ui.sidebarCollapsed}
+            sidebarWidth={ui.sidebarWidth}
           >
             {this.props.children}
           </Content>
@@ -172,7 +173,7 @@ const Content = styled(Flex)`
     margin-left: ${(props) =>
       props.sidebarCollapsed
         ? props.theme.sidebarCollapsedWidth
-        : props.theme.sidebarWidth};
+        : props.sidebarWidth};
   `};
 `;
 
