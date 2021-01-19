@@ -70,6 +70,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     where = { ...where, createdById };
   }
 
+  let documentIds = [];
   // if a specific collection is passed then we need to check auth to view it
   if (collectionId) {
     ctx.assertUuid(collectionId, "collection must be a UUID");
@@ -80,8 +81,10 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     }).findByPk(collectionId);
     authorize(user, "read", collection);
 
+    // index sort is special because it uses the order of the documents in the
+    // collection.documentStructure rather than a database column
     if (sort === "index") {
-      const documentIds = collection.documentStructure
+      documentIds = collection.documentStructure
         .map((node) => node.id)
         .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
       where = { ...where, id: documentIds };
@@ -139,6 +142,14 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
+  // index sort is special because it uses the order of the documents in the
+  // collection.documentStructure rather than a database column
+  if (documentIds.length) {
+    documents.sort(
+      (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
+    );
+  }
 
   const data = await Promise.all(
     documents.map((document) => presentDocument(document))

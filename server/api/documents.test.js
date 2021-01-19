@@ -513,6 +513,32 @@ describe("#documents.list", () => {
     expect(body.data[1].id).toEqual(anotherDoc.id);
   });
 
+  it("should allow sorting by collection index", async () => {
+    const { user, document, collection } = await seed();
+    const anotherDoc = await buildDocument({
+      title: "another document",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await collection.addDocumentToStructure(anotherDoc, 0);
+
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        sort: "index",
+        direction: "ASC",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[0].id).toEqual(anotherDoc.id);
+    expect(body.data[1].id).toEqual(document.id);
+  });
+
   it("should allow filtering by collection", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.list", {
