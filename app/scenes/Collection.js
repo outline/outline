@@ -276,9 +276,12 @@ class CollectionScene extends React.Component<Props> {
 
                 <Tabs>
                   <Tab to={collectionUrl(collection.id)} exact>
+                    {t("Documents")}
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, "updated")} exact>
                     {t("Recently updated")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "recent")} exact>
+                  <Tab to={collectionUrl(collection.id, "published")} exact>
                     {t("Recently published")}
                   </Tab>
                   <Tab to={collectionUrl(collection.id, "old")} exact>
@@ -311,9 +314,9 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id, "recent")}>
+                  <Route path={collectionUrl(collection.id, "updated")}>
                     <PaginatedDocumentList
-                      key="recent"
+                      key="updated"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -325,11 +328,14 @@ class CollectionScene extends React.Component<Props> {
                   </Route>
                   <Route path={collectionUrl(collection.id)}>
                     <PaginatedDocumentList
-                      documents={documents.recentlyUpdatedInCollection(
-                        collection.id
-                      )}
-                      fetch={documents.fetchRecentlyUpdated}
-                      options={{ collectionId: collection.id }}
+                      documents={documents.rootInCollection(collection.id)}
+                      fetch={documents.fetchPage}
+                      options={{
+                        collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: "ASC",
+                      }}
                       showPin
                     />
                   </Route>

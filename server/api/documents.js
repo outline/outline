@@ -37,7 +37,7 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
-  const {
+  let {
     sort = "updatedAt",
     template,
     backlinkDocumentId,
@@ -80,6 +80,13 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     }).findByPk(collectionId);
     authorize(user, "read", collection);
 
+    if (sort === "index") {
+      const documentIds = collection.documentStructure
+        .map((node) => node.id)
+        .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+      where = { ...where, id: documentIds };
+    }
+
     // otherwise, filter by all collections the user has access to
   } else {
     const collectionIds = await user.collectionIds();
@@ -111,6 +118,10 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
       ...where,
       id: backlinks.map((backlink) => backlink.reverseDocumentId),
     };
+  }
+
+  if (sort === "index") {
+    sort = "updatedAt";
   }
 
   // add the users starred state to the response by default
