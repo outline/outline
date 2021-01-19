@@ -96,6 +96,7 @@ const IconWrapper = styled.span`
   margin-right: 4px;
   height: 24px;
   overflow: hidden;
+  flex-shrink: 0;
 `;
 
 const Actions = styled(EventBoundary)`

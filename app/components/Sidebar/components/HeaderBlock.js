@@ -54,6 +54,7 @@ const TeamName = styled.div`
   padding-right: 24px;
   font-weight: 600;
   color: ${(props) => props.theme.text};
+  white-space: nowrap;
   text-decoration: none;
   font-size: 16px;
 `;
@@ -63,12 +64,12 @@ const Header = styled.button`
   align-items: center;
   flex-shrink: 0;
   padding: 20px 24px;
-  position: relative;
   background: none;
   line-height: inherit;
   border: 0;
   margin: 0;
   cursor: pointer;
+  min-width: ${(props) => props.theme.sidebarMinWidth};
   width: 100%;
 
   &:active,

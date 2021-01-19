@@ -49,8 +49,8 @@ const spacing = {
   hpadding: "1.875vw",
   sidebarWidth: "280px",
   sidebarCollapsedWidth: "16px",
-  sidebarMinWidth: "250px",
-  sidebarMaxWidth: "350px",
+  sidebarMinWidth: "200px",
+  sidebarMaxWidth: "400px",
 };
 
 export const base = {
