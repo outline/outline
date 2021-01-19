@@ -6,6 +6,7 @@ import { type Theme } from "types";
 
 type Props = {
   theme: Theme,
+  right?: boolean,
 };
 
 const StyledNavLink = styled(NavLink)`
@@ -15,8 +16,10 @@ const StyledNavLink = styled(NavLink)`
   font-weight: 500;
   font-size: 14px;
   color: ${(props) => props.theme.textTertiary};
-  margin-right: 24px;
+  margin-left: ${(props) => (props.right ? "24px" : 0)};
+  margin-right: ${(props) => (props.right ? 0 : "24px")};
   padding-bottom: 8px;
+  float: ${(props) => (props.right ? "right" : "left")};
 
   &:hover {
     color: ${(props) => props.theme.textSecondary};

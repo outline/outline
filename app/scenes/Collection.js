@@ -278,17 +278,25 @@ class CollectionScene extends React.Component<Props> {
                   <Tab to={collectionUrl(collection.id)} exact>
                     {t("Documents")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "updated")} exact>
-                    {t("Recently updated")}
+                  <Tab
+                    to={collectionUrl(collection.id, "alphabetical")}
+                    right
+                    exact
+                  >
+                    {t("A–Z")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "published")} exact>
-                    {t("Recently published")}
-                  </Tab>
-                  <Tab to={collectionUrl(collection.id, "old")} exact>
+                  <Tab to={collectionUrl(collection.id, "old")} right exact>
                     {t("Least recently updated")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
-                    {t("A–Z")}
+                  <Tab
+                    to={collectionUrl(collection.id, "published")}
+                    right
+                    exact
+                  >
+                    {t("Recently published")}
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, "updated")} right exact>
+                    {t("Recently updated")}
                   </Tab>
                 </Tabs>
                 <Switch>
