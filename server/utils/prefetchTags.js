@@ -25,7 +25,7 @@ try {
   );
   manifestData = JSON.parse(manifest);
 } catch (err) {
-  console.warn(err);
+  // no-op
 }
 
 Object.values(manifestData).forEach((filename) => {
