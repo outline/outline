@@ -91,6 +91,12 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     where = { ...where, parentDocumentId };
   }
 
+  // Explicitly passing 'null' as the parentDocumentId allows listing documents
+  // that have no parent document (aka they are at the root of the collection)
+  if (parentDocumentId === null) {
+    where = { ...where, parentDocumentId: { [Op.eq]: null } };
+  }
+
   if (backlinkDocumentId) {
     ctx.assertUuid(backlinkDocumentId, "backlinkDocumentId must be a UUID");
 

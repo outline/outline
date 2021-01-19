@@ -433,7 +433,27 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(document.id);
   });
 
-  it("should not return unpublished documents", async () => {
+  it("should allow filtering documents with no parent", async () => {
+    const { user, document } = await seed();
+    await buildDocument({
+      title: "child document",
+      text: "random text",
+      parentDocumentId: document.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.list", {
+      body: { token: user.getJwtToken(), parentDocumentId: null },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not return draft documents", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
     await document.save();
