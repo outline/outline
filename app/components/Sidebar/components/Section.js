@@ -6,7 +6,7 @@ const Section = styled(Flex)`
   position: relative;
   flex-direction: column;
   margin: 24px 8px;
-  min-width: ${(props) => props.theme.sidebarMinWidth};
+  min-width: ${(props) => props.theme.sidebarMinWidth}px;
 `;
 
 export default Section;

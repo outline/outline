@@ -1,6 +1,7 @@
 // @flow
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
+import { observer } from "mobx-react";
 import { v4 } from "uuid";
 import { light as defaultTheme } from "shared/styles/theme";
 import Collection from "models/Collection";
@@ -24,7 +25,7 @@ class UiStore {
   @observable editMode: boolean = false;
   @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
-  @observable sidebarWidth: string;
+  @observable sidebarWidth: number;
   @observable sidebarCollapsed: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
   lastToastId: string;
@@ -114,7 +115,7 @@ class UiStore {
   };
 
   @action
-  setSidebarWidth = (sidebarWidth: string): void => {
+  setSidebarWidth = (sidebarWidth: number): void => {
     this.sidebarWidth = sidebarWidth;
   };
 

@@ -13,8 +13,8 @@ type Props = {
 };
 
 const HeaderBlock = React.forwardRef<Props, any>(
-  ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => {
-    return (
+  ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => (
+    <Wrapper>
       <Header justify="flex-start" align="center" ref={ref} {...rest}>
         <TeamLogo
           alt={`${teamName} logo`}
@@ -30,8 +30,8 @@ const HeaderBlock = React.forwardRef<Props, any>(
           <Subheading>{subheading}</Subheading>
         </Flex>
       </Header>
-    );
-  }
+    </Wrapper>
+  )
 );
 
 const StyledExpandedIcon = styled(ExpandedIcon)`
@@ -45,6 +45,7 @@ const Subheading = styled.div`
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
+  white-space: nowrap;
   color: ${(props) => props.theme.sidebarText};
 `;
 
@@ -59,17 +60,20 @@ const TeamName = styled.div`
   font-size: 16px;
 `;
 
+const Wrapper = styled.div`
+  flex-shrink: 0;
+  overflow: hidden;
+`;
+
 const Header = styled.button`
   display: flex;
   align-items: center;
-  flex-shrink: 0;
   padding: 20px 24px;
   background: none;
   line-height: inherit;
   border: 0;
   margin: 0;
   cursor: pointer;
-  min-width: ${(props) => props.theme.sidebarMinWidth};
   width: 100%;
 
   &:active,

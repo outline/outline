@@ -16,11 +16,12 @@ import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
 import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
-
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
+import SkipNavContent from "components/SkipNavContent";
+import SkipNavLink from "components/SkipNavLink";
 import { type Theme } from "types";
 import { meta } from "utils/keyboard";
 import {
@@ -99,6 +100,7 @@ class Layout extends React.Component<Props> {
     const { auth, t, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
+    const sidebarCollapsed = ui.editMode || ui.sidebarCollapsed;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
@@ -112,6 +114,7 @@ class Layout extends React.Component<Props> {
             content="width=device-width, initial-scale=1.0"
           />
         </Helmet>
+        <SkipNavLink />
         <Analytics />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
@@ -125,11 +128,16 @@ class Layout extends React.Component<Props> {
             </Switch>
           )}
 
+          <SkipNavContent />
           <Content
             auto
             justify="center"
-            sidebarCollapsed={ui.editMode || ui.sidebarCollapsed}
-            sidebarWidth={ui.sidebarWidth}
+            $sidebarCollapsed={sidebarCollapsed}
+            style={
+              sidebarCollapsed
+                ? undefined
+                : { marginLeft: `${ui.sidebarWidth}px` }
+            }
           >
             {this.props.children}
           </Content>
@@ -163,17 +171,21 @@ const Container = styled(Flex)`
 
 const Content = styled(Flex)`
   margin: 0;
-  transition: margin-left 100ms ease-out;
+  transition: ${(props) =>
+    props.$sidebarCollapsed ? `margin-left 100ms ease-out` : "none"};
 
   @media print {
     margin: 0;
   }
 
+  ${breakpoint("mobile", "tablet")`
+    margin-left: 0 !important;
+  `}
+
   ${breakpoint("tablet")`
-    margin-left: ${(props) =>
-      props.sidebarCollapsed
-        ? props.theme.sidebarCollapsedWidth
-        : props.sidebarWidth};
+    ${(props) =>
+      props.$sidebarCollapsed &&
+      `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
 `;
 
