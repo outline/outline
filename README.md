@@ -87,7 +87,7 @@ docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
 
 If you're running Outline by cloning this repository, run the following command to upgrade:
 ```
-yarn upgrade
+yarn run upgrade
 ```
 
 ## Development
