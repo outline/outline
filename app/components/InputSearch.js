@@ -9,6 +9,7 @@ import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Input from "./Input";
 import { type Theme } from "types";
+import { meta } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -25,7 +26,7 @@ class InputSearch extends React.Component<Props> {
   input: ?Input;
   @observable focused: boolean = false;
 
-  @keydown("meta+f")
+  @keydown(`${meta}+f`)
   focus(ev: SyntheticEvent<>) {
     ev.preventDefault();
 

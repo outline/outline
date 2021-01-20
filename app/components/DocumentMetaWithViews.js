@@ -35,6 +35,8 @@ function DocumentMetaWithViews({ to, isDraft, document }: Props) {
 const Meta = styled(DocumentMeta)`
   margin: -12px 0 2em 0;
   font-size: 14px;
+  position: relative;
+  z-index: 1;
 
   a {
     color: inherit;

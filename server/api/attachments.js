@@ -98,11 +98,18 @@ router.post("attachments.delete", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const attachment = await Attachment.findByPk(id);
-  const document = await Document.findByPk(attachment.documentId, {
-    userId: user.id,
-  });
-  authorize(user, "update", document);
+  if (!attachment) {
+    throw new NotFoundError();
+  }
 
+  if (attachment.documentId) {
+    const document = await Document.findByPk(attachment.documentId, {
+      userId: user.id,
+    });
+    authorize(user, "update", document);
+  }
+
+  authorize(user, "delete", attachment);
   await attachment.destroy();
 
   await Event.create({

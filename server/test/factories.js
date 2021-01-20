@@ -113,7 +113,7 @@ export async function buildCollection(overrides: Object = {}) {
   return Collection.create({
     name: `Test Collection ${count}`,
     description: "Test collection description",
-    creatorId: overrides.userId,
+    createdById: overrides.userId,
     ...overrides,
   });
 }

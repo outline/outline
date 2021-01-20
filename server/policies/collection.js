@@ -72,7 +72,7 @@ allow(User, "delete", Collection, (user, collection) => {
   }
 
   if (user.isAdmin) return true;
-  if (user.id === collection.creatorId) return true;
+  if (user.id === collection.createdById) return true;
 
   throw new AdminRequiredError();
 });

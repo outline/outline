@@ -1334,7 +1334,22 @@ describe("#documents.restore", () => {
     expect(body.data.collectionId).toEqual(collection.id);
   });
 
-  it("should now allow restore of trashed documents to collection user cannot access", async () => {
+  it("should not allow restore of documents in deleted collection", async () => {
+    const { user, document, collection } = await seed();
+
+    await document.destroy(user.id);
+    await collection.destroy();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow restore of trashed documents to collection user cannot access", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection();
 

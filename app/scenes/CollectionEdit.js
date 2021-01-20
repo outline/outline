@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { withTranslation, Trans, type TFunction } from "react-i18next";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
@@ -11,6 +11,7 @@ import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Input from "components/Input";
 import InputRich from "components/InputRich";
+import InputSelect from "components/InputSelect";
 import Switch from "components/Switch";
 
 type Props = {
@@ -27,6 +28,8 @@ class CollectionEdit extends React.Component<Props> {
   @observable icon: string = this.props.collection.icon;
   @observable color: string = this.props.collection.color || "#4E5C6E";
   @observable private: boolean = this.props.collection.private;
+  @observable sort: { field: string, direction: "asc" | "desc" } = this.props
+    .collection.sort;
   @observable isSaving: boolean;
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
@@ -41,13 +44,24 @@ class CollectionEdit extends React.Component<Props> {
         icon: this.icon,
         color: this.color,
         private: this.private,
+        sort: this.sort,
       });
       this.props.onSubmit();
-      this.props.ui.showToast(t("The collection was updated"));
+      this.props.ui.showToast(t("The collection was updated"), {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
+    }
+  };
+
+  handleSortChange = (ev: SyntheticInputEvent<HTMLSelectElement>) => {
+    const [field, direction] = ev.target.value.split(".");
+
+    if (direction === "asc" || direction === "desc") {
+      this.sort = { field, direction };
     }
   };
 
@@ -75,9 +89,10 @@ class CollectionEdit extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            {t(
-              "You can edit the name and other details at any time, however doing so often might confuse your team mates."
-            )}
+            <Trans>
+              You can edit the name and other details at any time, however doing
+              so often might confuse your team mates.
+            </Trans>
           </HelpText>
           <Flex>
             <Input
@@ -105,6 +120,15 @@ class CollectionEdit extends React.Component<Props> {
             minHeight={68}
             maxHeight={200}
           />
+          <InputSelect
+            label={t("Sort in sidebar")}
+            options={[
+              { label: t("Alphabetical"), value: "title.asc" },
+              { label: t("Manual sort"), value: "index.asc" },
+            ]}
+            value={`${this.sort.field}.${this.sort.direction}`}
+            onChange={this.handleSortChange}
+          />
           <Switch
             id="private"
             label={t("Private collection")}
@@ -112,9 +136,9 @@ class CollectionEdit extends React.Component<Props> {
             checked={this.private}
           />
           <HelpText>
-            {t(
-              "A private collection will only be visible to invited team members."
-            )}
+            <Trans>
+              A private collection will only be visible to invited team members.
+            </Trans>
           </HelpText>
           <Button
             type="submit"

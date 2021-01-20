@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import Image from "components/Image";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp("^https?://docs.google.com/presentation/d/(.*)$");
@@ -22,7 +23,7 @@ export default class GoogleSlides extends React.Component<Props> {
           .replace("/edit", "/preview")
           .replace("/pub", "/embed")}
         icon={
-          <img
+          <Image
             src="/images/google-slides.png"
             alt="Google Slides Icon"
             width={16}

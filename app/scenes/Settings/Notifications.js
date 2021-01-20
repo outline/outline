@@ -75,7 +75,7 @@ class Notifications extends React.Component<Props> {
   };
 
   showSuccessMessage = debounce(() => {
-    this.props.ui.showToast("Notifications saved");
+    this.props.ui.showToast("Notifications saved", { type: "success" });
   }, 500);
 
   render() {

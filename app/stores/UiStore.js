@@ -25,6 +25,7 @@ class UiStore {
   @observable mobileSidebarVisible: boolean = false;
   @observable sidebarCollapsed: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
+  lastToastId: string;
 
   constructor() {
     // Rehydrate
@@ -178,9 +179,19 @@ class UiStore {
   ) => {
     if (!message) return;
 
+    const lastToast = this.toasts.get(this.lastToastId);
+    if (lastToast && lastToast.message === message) {
+      this.toasts.set(this.lastToastId, {
+        ...lastToast,
+        reoccurring: lastToast.reoccurring ? ++lastToast.reoccurring : 1,
+      });
+      return;
+    }
+
     const id = v4();
     const createdAt = new Date().toISOString();
     this.toasts.set(id, { message, createdAt, id, ...options });
+    this.lastToastId = id;
     return id;
   };
 

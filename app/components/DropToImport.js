@@ -60,7 +60,9 @@ class DropToImport extends React.Component<Props> {
         }
       }
     } catch (err) {
-      this.props.ui.showToast(`Could not import file. ${err.message}`);
+      this.props.ui.showToast(`Could not import file. ${err.message}`, {
+        type: "error",
+      });
     } finally {
       this.isImporting = false;
       importingLock = false;
@@ -87,7 +89,11 @@ class DropToImport extends React.Component<Props> {
           isDragAccept,
           isDragReject,
         }) => (
-          <DropzoneContainer {...getRootProps()} {...{ isDragActive }}>
+          <DropzoneContainer
+            {...getRootProps()}
+            {...{ isDragActive }}
+            tabIndex="-1"
+          >
             <input {...getInputProps()} />
             {this.isImporting && <LoadingIndicator />}
             {this.props.children}

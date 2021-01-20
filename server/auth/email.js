@@ -25,6 +25,10 @@ router.post("email", async (ctx) => {
 
   if (user) {
     const team = await Team.findByPk(user.teamId);
+    if (!team) {
+      ctx.redirect(`/?notice=auth-error`);
+      return;
+    }
 
     // If the user matches an email address associated with an SSO
     // signin then just forward them directly to that service's
@@ -45,7 +49,11 @@ router.post("email", async (ctx) => {
       user.lastSigninEmailSentAt &&
       user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
     ) {
-      ctx.redirect(`${team.url}?notice=email-auth-ratelimit`);
+      ctx.body = {
+        redirect: `${team.url}?notice=email-auth-ratelimit`,
+        message: "Rate limit exceeded",
+        success: false,
+      };
       return;
     }
 

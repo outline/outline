@@ -1,7 +1,13 @@
 // @flow
 import * as React from "react";
-import { withRouter, NavLink } from "react-router-dom";
+import {
+  withRouter,
+  NavLink,
+  type RouterHistory,
+  type Match,
+} from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import EventBoundary from "components/EventBoundary";
 import { type Theme } from "types";
 
 type Props = {
@@ -10,14 +16,17 @@ type Props = {
   innerRef?: (?HTMLElement) => void,
   onClick?: (SyntheticEvent<>) => void,
   onMouseEnter?: (SyntheticEvent<>) => void,
+  className?: string,
   children?: React.Node,
   icon?: React.Node,
   label?: React.Node,
   menu?: React.Node,
-  menuOpen?: boolean,
+  showActions?: boolean,
   iconColor?: string,
   active?: boolean,
   isActiveDrop?: boolean,
+  history: RouterHistory,
+  match: Match,
   theme: Theme,
   exact?: boolean,
   depth?: number,
@@ -33,13 +42,15 @@ function SidebarLink({
   active,
   isActiveDrop,
   menu,
-  menuOpen,
+  showActions,
   theme,
   exact,
   href,
   innerRef,
   depth,
-  ...rest
+  history,
+  match,
+  className,
 }: Props) {
   const style = React.useMemo(() => {
     return {
@@ -48,16 +59,20 @@ function SidebarLink({
   }, [depth]);
 
   const activeStyle = {
-    color: theme.text,
     fontWeight: 600,
+    color: theme.text,
     background: theme.sidebarItemBackground,
     ...style,
+  };
+
+  const activeFontWeightOnly = {
+    fontWeight: 600,
   };
 
   return (
     <StyledNavLink
       $isActiveDrop={isActiveDrop}
-      activeStyle={isActiveDrop ? undefined : activeStyle}
+      activeStyle={isActiveDrop ? activeFontWeightOnly : activeStyle}
       style={active ? activeStyle : style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -66,10 +81,11 @@ function SidebarLink({
       as={to ? undefined : href ? "a" : "div"}
       href={href}
       ref={innerRef}
+      className={className}
     >
       {icon && <IconWrapper>{icon}</IconWrapper>}
       <Label>{label}</Label>
-      {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
+      {menu && <Actions showActions={showActions}>{menu}</Actions>}
     </StyledNavLink>
   );
 }
@@ -79,22 +95,26 @@ const IconWrapper = styled.span`
   margin-left: -4px;
   margin-right: 4px;
   height: 24px;
+  overflow: hidden;
 `;
 
-const Action = styled.span`
-  display: ${(props) => (props.menuOpen ? "inline" : "none")};
+const Actions = styled(EventBoundary)`
+  display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
   top: 4px;
   right: 4px;
   color: ${(props) => props.theme.textTertiary};
+  transition: opacity 50ms;
 
   svg {
-    opacity: 0.75;
+    color: ${(props) => props.theme.textSecondary};
+    fill: currentColor;
+    opacity: 0.5;
   }
 
   &:hover {
     svg {
-      opacity: 1;
+      opacity: 0.75;
     }
   }
 `;
@@ -102,19 +122,21 @@ const Action = styled.span`
 const StyledNavLink = styled(NavLink)`
   display: flex;
   position: relative;
-  overflow: hidden;
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
+  transition: background 50ms, color 50ms;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
+  overflow: hidden;
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
+    transition: fill 50ms
   }
 
   &:hover {
@@ -127,9 +149,14 @@ const StyledNavLink = styled(NavLink)`
     background: ${(props) => props.theme.black05};
   }
 
-  &:hover {
-    > ${Action} {
-      display: inline;
+  &:hover,
+  &:active {
+    > ${Actions} {
+      display: inline-flex;
+
+      svg {
+        opacity: 0.75;
+      }
     }
   }
 `;

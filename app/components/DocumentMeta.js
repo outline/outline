@@ -15,6 +15,7 @@ const Container = styled(Flex)`
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
+  min-width: 0;
 `;
 
 const Modified = styled.span`

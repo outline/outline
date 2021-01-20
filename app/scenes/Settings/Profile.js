@@ -55,7 +55,7 @@ class Profile extends React.Component<Props> {
       language: this.language,
     });
 
-    this.props.ui.showToast(t("Profile saved"));
+    this.props.ui.showToast(t("Profile saved"), { type: "success" });
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -69,12 +69,15 @@ class Profile extends React.Component<Props> {
     await this.props.auth.updateUser({
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast(t("Profile picture updated"));
+    this.props.ui.showToast(t("Profile picture updated"), { type: "success" });
   };
 
   handleAvatarError = (error: ?string) => {
     const { t } = this.props;
-    this.props.ui.showToast(error || t("Unable to upload new profile picture"));
+    this.props.ui.showToast(
+      error || t("Unable to upload new profile picture"),
+      { type: "error" }
+    );
   };
 
   handleLanguageChange = (ev: SyntheticInputEvent<*>) => {

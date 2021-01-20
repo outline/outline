@@ -5,7 +5,7 @@ import styled from "styled-components";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Key from "components/Key";
-import { meta } from "utils/keyboard";
+import { metaDisplay } from "utils/keyboard";
 
 function KeyboardShortcuts() {
   const { t } = useTranslation();
@@ -41,9 +41,13 @@ function KeyboardShortcuts() {
         </Keys>
         <Label>{t("Jump to dashboard")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
+          <Key>{metaDisplay}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
         </Keys>
         <Label>{t("Table of contents")}</Label>
+        <Keys>
+          <Key>{metaDisplay}</Key> + <Key>.</Key>
+        </Keys>
+        <Label>{t("Toggle sidebar")}</Label>
         <Keys>
           <Key>?</Key>
         </Keys>
@@ -53,47 +57,47 @@ function KeyboardShortcuts() {
       <h2>{t("Editor")}</h2>
       <List>
         <Keys>
-          <Key>{meta}</Key> + <Key>Enter</Key>
+          <Key>{metaDisplay}</Key> + <Key>Enter</Key>
         </Keys>
         <Label>{t("Save and exit document edit mode")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>Shift</Key> + <Key>p</Key>
+          <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>p</Key>
         </Keys>
         <Label>{t("Publish and exit document edit mode")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>s</Key>
+          <Key>{metaDisplay}</Key> + <Key>s</Key>
         </Keys>
         <Label>{t("Save document and continue editing")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>Esc</Key>
+          <Key>{metaDisplay}</Key> + <Key>Esc</Key>
         </Keys>
         <Label>{t("Cancel editing")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>b</Key>
+          <Key>{metaDisplay}</Key> + <Key>b</Key>
         </Keys>
         <Label>{t("Bold")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>i</Key>
+          <Key>{metaDisplay}</Key> + <Key>i</Key>
         </Keys>
         <Label>{t("Italic")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>u</Key>
+          <Key>{metaDisplay}</Key> + <Key>u</Key>
         </Keys>
         <Label>{t("Underline")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>d</Key>
+          <Key>{metaDisplay}</Key> + <Key>d</Key>
         </Keys>
         <Label>{t("Strikethrough")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>k</Key>
+          <Key>{metaDisplay}</Key> + <Key>k</Key>
         </Keys>
         <Label>{t("Link")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>z</Key>
+          <Key>{metaDisplay}</Key> + <Key>z</Key>
         </Keys>
         <Label>{t("Undo")}</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>Shift</Key> + <Key>z</Key>
+          <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>z</Key>
         </Keys>
         <Label>{t("Redo")}</Label>
       </List>

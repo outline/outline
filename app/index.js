@@ -1,5 +1,4 @@
 // @flow
-import "mobx-react-lite/batchingForReactDom";
 import "focus-visible";
 import { Provider } from "mobx-react";
 import * as React from "react";
@@ -22,9 +21,9 @@ const element = document.getElementById("root");
 
 if (element) {
   render(
-    <ErrorBoundary>
-      <Provider {...stores}>
-        <Theme>
+    <Provider {...stores}>
+      <Theme>
+        <ErrorBoundary>
           <DndProvider backend={HTML5Backend}>
             <Router>
               <>
@@ -35,9 +34,9 @@ if (element) {
               </>
             </Router>
           </DndProvider>
-        </Theme>
-      </Provider>
-    </ErrorBoundary>,
+        </ErrorBoundary>
+      </Theme>
+    </Provider>,
     element
   );
 }

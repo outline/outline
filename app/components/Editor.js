@@ -8,8 +8,9 @@ import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
-import isInternalUrl from "utils/isInternalUrl";
+import { isMetaKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
+import { isInternalUrl } from "utils/urls";
 
 const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
 
@@ -49,7 +50,7 @@ function Editor(props: PropsWithRef) {
         return;
       }
 
-      if (isInternalUrl(href) && !event.metaKey && !event.shiftKey) {
+      if (isInternalUrl(href) && !isMetaKey(event) && !event.shiftKey) {
         // relative
         let navigateTo = href;
 
@@ -171,17 +172,16 @@ const StyledEditor = styled(RichMarkdownEditor)`
     font-weight: 500;
   }
 
-  .heading-name {
-    pointer-events: none;
+  .heading-anchor {
+    box-sizing: border-box;
   }
 
-  /* pseudo element allows us to add spacing for fixed header */
-  /* ref: https://stackoverflow.com/a/28824157 */
-  .heading-name::before {
-    content: "";
-    display: ${(props) => (props.readOnly ? "block" : "none")};
-    height: 72px;
-    margin: -72px 0 0;
+  .heading-name {
+    pointer-events: none;
+    display: block;
+    position: relative;
+    top: -60px;
+    visibility: hidden;
   }
 
   .heading-name:first-child {

@@ -1,6 +1,7 @@
 // @flow
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
+import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
 
 type Props = {
@@ -8,43 +9,51 @@ type Props = {
   children?: React.Node,
   selected?: boolean,
   disabled?: boolean,
+  as?: string | React.ComponentType<*>,
 };
 
-const DropdownMenuItem = ({
+const MenuItem = ({
   onClick,
   children,
   selected,
   disabled,
+  as,
   ...rest
 }: Props) => {
   return (
-    <MenuItem
+    <BaseMenuItem
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      role="menuitem"
-      tabIndex="-1"
       {...rest}
     >
-      {selected !== undefined && (
-        <>
-          <CheckmarkIcon
-            color={selected === false ? "transparent" : undefined}
-          />
-          &nbsp;
-        </>
+      {(props) => (
+        <MenuAnchor as={onClick ? "button" : as} {...props}>
+          {selected !== undefined && (
+            <>
+              {selected ? <CheckmarkIcon /> : <Spacer />}
+              &nbsp;
+            </>
+          )}
+          {children}
+        </MenuAnchor>
       )}
-      {children}
-    </MenuItem>
+    </BaseMenuItem>
   );
 };
 
-const MenuItem = styled.a`
+const Spacer = styled.div`
+  width: 24px;
+  height: 24px;
+`;
+
+export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
+  border: 0;
   padding: 6px 12px;
   width: 100%;
   min-height: 32px;
-
+  background: none;
   color: ${(props) =>
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
@@ -58,6 +67,7 @@ const MenuItem = styled.a`
   }
 
   svg {
+    flex-shrink: 0;
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
@@ -66,7 +76,8 @@ const MenuItem = styled.a`
       ? "pointer-events: none;"
       : `
 
-  &:hover {
+  &:hover,
+  &.focus-visible {
     color: ${props.theme.white};
     background: ${props.theme.primary};
     box-shadow: none;
@@ -84,4 +95,4 @@ const MenuItem = styled.a`
   `};
 `;
 
-export default DropdownMenuItem;
+export default MenuItem;

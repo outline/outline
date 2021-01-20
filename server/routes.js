@@ -8,9 +8,9 @@ import sendfile from "koa-sendfile";
 import serve from "koa-static";
 import { languages } from "../shared/i18n";
 import environment from "./env";
-import { NotFoundError } from "./errors";
 import apexRedirect from "./middlewares/apexRedirect";
 import { opensearchResponse } from "./utils/opensearch";
+import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -51,6 +51,7 @@ const renderApp = async (ctx, next) => {
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, env)
+    .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
@@ -78,7 +79,8 @@ router.get("/locales/:lng.json", async (ctx) => {
   let { lng } = ctx.params;
 
   if (!languages.includes(lng)) {
-    throw new NotFoundError();
+    ctx.status = 404;
+    return;
   }
 
   if (process.env.NODE_ENV === "production") {

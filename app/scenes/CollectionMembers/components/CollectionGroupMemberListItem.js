@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import GroupListItem from "components/GroupListItem";
 import InputSelect from "components/InputSelect";
+import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 
 type Props = {
   group: Group,
@@ -50,15 +50,10 @@ const MemberListItem = ({
             labelHidden
           />
           <ButtonWrap>
-            <DropdownMenu>
-              <DropdownMenuItem onClick={openMembersModal}>
-                {t("Members")}…
-              </DropdownMenuItem>
-              <hr />
-              <DropdownMenuItem onClick={onRemove}>
-                {t("Remove")}
-              </DropdownMenuItem>
-            </DropdownMenu>
+            <CollectionGroupMemberMenu
+              onMembers={openMembersModal}
+              onRemove={onRemove}
+            />
           </ButtonWrap>
         </>
       )}

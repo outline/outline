@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 
-import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
+import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
@@ -164,7 +164,20 @@ class CollectionScene extends React.Component<Props> {
           </>
         )}
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <CollectionMenu
+            collection={this.collection}
+            placement="bottom-end"
+            modal={false}
+            label={(props) => (
+              <Button
+                icon={<MoreIcon />}
+                {...props}
+                borderOnHover
+                neutral
+                small
+              />
+            )}
+          />
         </Action>
       </Actions>
     );
@@ -179,9 +192,10 @@ class CollectionScene extends React.Component<Props> {
     const pinnedDocuments = this.collection
       ? documents.pinnedInCollection(this.collection.id)
       : [];
-    const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
     const collectionName = collection ? collection.name : "";
+    const hasPinnedDocuments = !!pinnedDocuments.length;
+    const hasDescription = collection ? collection.hasDescription : false;
 
     return (
       <CenteredContent>
@@ -240,7 +254,7 @@ class CollectionScene extends React.Component<Props> {
                   {collection.name}
                 </Heading>
 
-                {collection.description && (
+                {hasDescription && (
                   <React.Suspense fallback={<p>Loading…</p>}>
                     <Editor
                       id={collection.id}

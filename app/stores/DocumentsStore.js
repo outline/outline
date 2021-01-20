@@ -453,7 +453,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   move = async (
     documentId: string,
     collectionId: string,
-    parentDocumentId: ?string
+    parentDocumentId: ?string,
+    index: ?number
   ) => {
     this.movingDocumentId = documentId;
 
@@ -462,6 +463,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         id: documentId,
         collectionId,
         parentDocumentId,
+        index: index,
       });
       invariant(res && res.data, "Data not available");
 

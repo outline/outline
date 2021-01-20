@@ -522,17 +522,26 @@ router.post("documents.restore", auth(), async (ctx) => {
     throw new NotFoundError();
   }
 
+  // Passing collectionId allows restoring to a different collection than the
+  // document was originally within
   if (collectionId) {
     ctx.assertUuid(collectionId, "collectionId must be a uuid");
-    authorize(user, "restore", document);
-
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collectionId);
-    authorize(user, "update", collection);
-
     document.collectionId = collectionId;
   }
+
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findByPk(document.collectionId);
+
+  // if the collectionId was provided in the request and isn't valid then it will
+  // be caught as a 403 on the authorize call below. Otherwise we're checking here
+  // that the original collection still exists and advising to pass collectionId
+  // if not.
+  if (!collectionId) {
+    ctx.assertPresent(collection, "collectionId is required");
+  }
+
+  authorize(user, "update", collection);
 
   if (document.deletedAt) {
     authorize(user, "restore", document);

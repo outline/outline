@@ -59,7 +59,7 @@ export const makePolicy = (
     expiration: format(tomorrow, "YYYY-MM-DDTHH:mm:ss\\Z"),
   };
 
-  return new Buffer(JSON.stringify(policy)).toString("base64");
+  return Buffer.from(JSON.stringify(policy)).toString("base64");
 };
 
 export const getSignature = (policy: any) => {
