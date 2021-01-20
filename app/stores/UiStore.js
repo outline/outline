@@ -1,7 +1,6 @@
 // @flow
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
-import { observer } from "mobx-react";
 import { v4 } from "uuid";
 import { light as defaultTheme } from "shared/styles/theme";
 import Collection from "models/Collection";
