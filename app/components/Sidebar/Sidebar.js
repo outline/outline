@@ -138,7 +138,9 @@ function Sidebar({ location, children }: Props) {
       )}
       {ui.mobileSidebarVisible ? (
         <Portal>
-          <Background onClick={ui.toggleMobileSidebar} />
+          <Fade>
+            <Background onClick={ui.toggleMobileSidebar} />
+          </Fade>
         </Portal>
       ) : (
         <Toggle onClick={ui.toggleMobileSidebar}>
@@ -242,7 +244,8 @@ const Container = styled(Flex)`
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
-  transition: box-shadow, 100ms, ease-in-out, left 100ms ease-out,
+  transition: box-shadow, 100ms, ease-in-out, margin-left 100ms ease-out,
+    left 100ms ease-out,
     ${(props) => props.theme.backgroundTransition}
       ${(props) =>
         props.$isAnimating ? `,width ${BOUNCE_ANIMATION_MS}ms ease-out` : ""};
@@ -275,7 +278,7 @@ const Container = styled(Flex)`
   ${breakpoint("tablet")`
     margin: 0;
     z-index: 3;
-    min-width: ${(props) => props.theme.sidebarMinWidth}px;
+    min-width: 0;
 
     &:hover,
     &:focus-within {
