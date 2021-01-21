@@ -5,7 +5,7 @@ export const metaDisplay = isMac ? "⌘" : "Ctrl";
 
 export const meta = isMac ? "cmd" : "ctrl";
 
-export function isMetaKey(
+export function isModKey(
   event: KeyboardEvent | MouseEvent | SyntheticKeyboardEvent<>
 ) {
   return isMac ? event.metaKey : event.ctrlKey;
