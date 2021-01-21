@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { id } from "components/SkipNavContent";
 
 export default function SkipNavLink() {
-  return <Anchor href={`#${id}`}>Skip to content</Anchor>;
+  return <Anchor href={`#${id}`}>Skip navigation</Anchor>;
 }
 
 const Anchor = styled.a`
@@ -16,7 +16,6 @@ const Anchor = styled.a`
   padding: 0;
   overflow: hidden;
   position: absolute;
-  outline: none;
   z-index: 1;
 
   &:focus {
@@ -26,10 +25,8 @@ const Anchor = styled.a`
     left: 12px;
     background: ${(props) => props.theme.background};
     color: ${(props) => props.theme.text};
-    outline-width: 2px;
-    outline-style: solid;
     outline-color: ${(props) => props.theme.primary};
-    z-index: 3;
+    z-index: ${(props) => props.theme.depths.popover};
     width: auto;
     height: auto;
     clip: auto;

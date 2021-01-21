@@ -7,6 +7,7 @@ import {
   type Match,
 } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
 import { type Theme } from "types";
 
@@ -124,7 +125,7 @@ const StyledNavLink = styled(NavLink)`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
-  padding: 4px 16px;
+  padding: 6px 16px;
   border-radius: 4px;
   transition: background 50ms, color 50ms;
   background: ${(props) =>
@@ -160,6 +161,10 @@ const StyledNavLink = styled(NavLink)`
       }
     }
   }
+
+  ${breakpoint("tablet")`
+    padding: 4px 16px;
+  `}
 `;
 
 const Label = styled.div`

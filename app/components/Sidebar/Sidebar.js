@@ -136,14 +136,16 @@ function Sidebar({ location, children }: Props) {
           onClick={ui.toggleCollapsedSidebar}
         />
       )}
-      {!ui.mobileSidebarVisible && (
+      {ui.mobileSidebarVisible ? (
+        <Portal>
+          <Background onClick={ui.toggleMobileSidebar} />
+        </Portal>
+      ) : (
         <Toggle onClick={ui.toggleMobileSidebar}>
           <MenuIcon size={32} />
         </Toggle>
       )}
-      <Portal>
-        <Background onClick={ui.toggleMobileSidebar} />
-      </Portal>
+
       {children}
       {!ui.sidebarCollapsed && (
         <ResizeBorder
@@ -223,6 +225,17 @@ const ResizeBorder = styled.div`
   }
 `;
 
+const Background = styled.a`
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  cursor: default;
+  z-index: ${(props) => props.theme.depths.sidebar - 1};
+  background: rgba(0, 0, 0, 0.5);
+`;
+
 const Container = styled(Flex)`
   position: fixed;
   top: 0;
@@ -235,6 +248,8 @@ const Container = styled(Flex)`
         props.$isAnimating ? `,width ${BOUNCE_ANIMATION_MS}ms ease-out` : ""};
   margin-left: ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")};
   z-index: ${(props) => props.theme.depths.sidebar};
+  max-width: 70%;
+  min-width: 280px;
 
   @media print {
     display: none;
@@ -260,6 +275,7 @@ const Container = styled(Flex)`
   ${breakpoint("tablet")`
     margin: 0;
     z-index: 3;
+    min-width: ${(props) => props.theme.sidebarMinWidth}px;
 
     &:hover,
     &:focus-within {
@@ -295,20 +311,6 @@ const Toggle = styled.a`
   left: 0;
   z-index: 1;
   margin: 12px;
-
-  ${breakpoint("tablet")`
-    display: none;
-  `};
-`;
-
-const Background = styled.a`
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  cursor: default;
-  z-index: ${(props) => props.theme.depths.sidebar - 1};
 
   ${breakpoint("tablet")`
     display: none;
