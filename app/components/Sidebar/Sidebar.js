@@ -1,6 +1,5 @@
 // @flow
 import { observer } from "mobx-react";
-import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Portal } from "react-portal";
 import { withRouter } from "react-router-dom";
@@ -9,7 +8,11 @@ import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
-import CollapseToggle, { Button } from "./components/CollapseToggle";
+import CollapseToggle, {
+  Button as CollapseButton,
+} from "./components/CollapseToggle";
+import ResizeBorder from "./components/ResizeBorder";
+import ResizeHandle from "./components/ResizeHandle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
@@ -115,9 +118,12 @@ function Sidebar({ location, children }: Props) {
   const style = React.useMemo(
     () => ({
       width: `${width}px`,
-      left: collapsed ? `${-width + theme.sidebarCollapsedWidth}px` : 0,
+      left:
+        collapsed && !ui.mobileSidebarVisible
+          ? `${-width + theme.sidebarCollapsedWidth}px`
+          : 0,
     }),
-    [width, collapsed, theme.sidebarCollapsedWidth]
+    [width, collapsed, theme.sidebarCollapsedWidth, ui.mobileSidebarVisible]
   );
 
   const content = (
@@ -136,16 +142,12 @@ function Sidebar({ location, children }: Props) {
           onClick={ui.toggleCollapsedSidebar}
         />
       )}
-      {ui.mobileSidebarVisible ? (
+      {ui.mobileSidebarVisible && (
         <Portal>
           <Fade>
             <Background onClick={ui.toggleMobileSidebar} />
           </Fade>
         </Portal>
-      ) : (
-        <Toggle onClick={ui.toggleMobileSidebar}>
-          <MenuIcon size={32} />
-        </Toggle>
       )}
 
       {children}
@@ -169,63 +171,6 @@ function Sidebar({ location, children }: Props) {
 
   return content;
 }
-
-const ResizeHandle = styled.button`
-  opacity: 0;
-  transition: opacity 100ms ease-in-out;
-  transform: translateY(-50%);
-  position: absolute;
-  top: 50%;
-  height: 40px;
-  right: -10px;
-  width: 8px;
-  padding: 0;
-  border: 0;
-  background: ${(props) => props.theme.sidebarBackground};
-  border-radius: 8px;
-  pointer-events: none;
-
-  &:after {
-    content: "";
-    position: absolute;
-    top: -24px;
-    bottom: -24px;
-    left: -12px;
-    right: -12px;
-  }
-
-  &:active {
-    background: ${(props) => props.theme.sidebarText};
-  }
-
-  ${breakpoint("tablet")`
-    pointer-events: all;
-    cursor: ew-resize;
-  `}
-`;
-
-const ResizeBorder = styled.div`
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: -6px;
-  width: 12px;
-  cursor: ew-resize;
-
-  ${(props) =>
-    props.$isResizing &&
-    `
-  ${ResizeHandle} {
-    opacity: 1;
-  }
-  `}
-
-  &:hover {
-    ${ResizeHandle} {
-      opacity: 1;
-    }
-  }
-`;
 
 const Background = styled.a`
   position: fixed;
@@ -259,22 +204,6 @@ const Container = styled(Flex)`
     left: 0;
   }
 
-  &:before,
-  &:after {
-    content: "";
-    background: ${(props) => props.theme.sidebarBackground};
-    position: absolute;
-    top: -50vh;
-    left: 0;
-    width: 100%;
-    height: 50vh;
-  }
-
-  &:after {
-    top: auto;
-    bottom: -50vh;
-  }
-
   ${breakpoint("tablet")`
     margin: 0;
     z-index: 3;
@@ -290,11 +219,11 @@ const Container = styled(Flex)`
           ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
           : "none"};
 
-      & ${Button} {
+      & ${CollapseButton} {
         opacity: .75;
       }
 
-      & ${Button}:hover {
+      & ${CollapseButton}:hover {
         opacity: 1;
       }
     }
@@ -303,20 +232,6 @@ const Container = styled(Flex)`
       opacity: ${(props) => (props.$collapsed ? "0" : "1")};
       transition: opacity 100ms ease-in-out;
     }
-  `};
-`;
-
-const Toggle = styled.a`
-  display: flex;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  margin: 12px;
-
-  ${breakpoint("tablet")`
-    display: none;
   `};
 `;
 

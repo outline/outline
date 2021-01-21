@@ -1,6 +1,7 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation, type TFunction } from "react-i18next";
@@ -14,6 +15,7 @@ import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
+import Button from "components/Button";
 import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
@@ -120,6 +122,13 @@ class Layout extends React.Component<Props> {
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}
 
+        <MobileMenuButton
+          onClick={ui.toggleMobileSidebar}
+          icon={<MenuIcon />}
+          iconColor="currentColor"
+          neutral
+        />
+
         <Container auto>
           {showSidebar && (
             <Switch>
@@ -167,6 +176,17 @@ const Container = styled(Flex)`
   position: relative;
   width: 100%;
   min-height: 100%;
+`;
+
+const MobileMenuButton = styled(Button)`
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: ${(props) => props.theme.depths.sidebar - 1};
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
 `;
 
 const Content = styled(Flex)`
