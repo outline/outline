@@ -14,28 +14,18 @@ import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
 let firstRender = true;
+let BOUNCE_ANIMATION_MS = 250;
 
 type Props = {
   children: React.Node,
   location: Location,
 };
 
-function Sidebar({ location, children }: Props) {
-  const theme = useTheme();
-  const { ui } = useStores();
-  const previousLocation = usePrevious(location);
+const useResize = ({ width, minWidth, maxWidth, setWidth }) => {
   const [offset, setOffset] = React.useState(0);
   const [isAnimating, setAnimating] = React.useState(false);
   const [isResizing, setResizing] = React.useState(false);
-
-  const width = ui.sidebarWidth;
-  const minWidth = theme.sidebarMinWidth + 16; // padding
   const isSmallerThanMinimum = width < minWidth;
-  const collapsed = ui.editMode || ui.sidebarCollapsed;
-
-  const handleReset = React.useCallback(() => {
-    ui.setSidebarWidth(theme.sidebarWidth);
-  }, [ui, theme.sidebarWidth]);
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
@@ -43,41 +33,37 @@ function Sidebar({ location, children }: Props) {
       event.preventDefault();
 
       // this is simple because the sidebar is always against the left edge
-      const width = Math.min(event.pageX - offset, theme.sidebarMaxWidth);
-      ui.setSidebarWidth(width);
+      const width = Math.min(event.pageX - offset, maxWidth);
+      setWidth(width);
     },
-    [offset, theme.sidebarMaxWidth, ui]
+    [offset, maxWidth, setWidth]
   );
 
   const handleStopDrag = React.useCallback(() => {
     setResizing(false);
 
     if (isSmallerThanMinimum) {
-      ui.setSidebarWidth(minWidth);
+      setWidth(minWidth);
       setAnimating(true);
     } else {
-      ui.setSidebarWidth(width);
+      setWidth(width);
     }
-  }, [isSmallerThanMinimum, minWidth, width, ui]);
+  }, [isSmallerThanMinimum, minWidth, width, setWidth]);
 
   const handleStartDrag = React.useCallback(
     (event) => {
-      if (ui.sidebarCollapsed) {
-        return;
-      }
-
-      setOffset(event.pageX - ui.sidebarWidth);
+      setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
     },
-    [ui.sidebarWidth, ui.sidebarCollapsed]
+    [width]
   );
 
   React.useEffect(() => {
-    if (isAnimating && (ui.sidebarCollapsed || ui.editMode)) {
-      setAnimating(false);
+    if (isAnimating) {
+      setTimeout(() => setAnimating(false), BOUNCE_ANIMATION_MS);
     }
-  }, [isAnimating, ui.sidebarCollapsed, ui.editMode]);
+  }, [isAnimating]);
 
   React.useEffect(() => {
     if (isResizing) {
@@ -90,6 +76,35 @@ function Sidebar({ location, children }: Props) {
       document.removeEventListener("mouseup", handleStopDrag);
     };
   }, [isResizing, handleDrag, handleStopDrag]);
+
+  return { isAnimating, isSmallerThanMinimum, isResizing, handleStartDrag };
+};
+
+function Sidebar({ location, children }: Props) {
+  const theme = useTheme();
+  const { ui } = useStores();
+  const previousLocation = usePrevious(location);
+
+  const width = ui.sidebarWidth;
+  const maxWidth = theme.sidebarMaxWidth;
+  const minWidth = theme.sidebarMinWidth + 16; // padding
+  const collapsed = ui.editMode || ui.sidebarCollapsed;
+
+  const {
+    isAnimating,
+    isSmallerThanMinimum,
+    isResizing,
+    handleStartDrag,
+  } = useResize({
+    width,
+    minWidth,
+    maxWidth,
+    setWidth: ui.setSidebarWidth,
+  });
+
+  const handleReset = React.useCallback(() => {
+    ui.setSidebarWidth(theme.sidebarWidth);
+  }, [ui, theme.sidebarWidth]);
 
   React.useEffect(() => {
     if (location !== previousLocation) {
@@ -216,7 +231,8 @@ const Container = styled(Flex)`
   background: ${(props) => props.theme.sidebarBackground};
   transition: box-shadow, 100ms, ease-in-out, left 100ms ease-out,
     ${(props) => props.theme.backgroundTransition}
-      ${(props) => (props.$isAnimating ? ",width 250ms ease-out" : "")};
+      ${(props) =>
+        props.$isAnimating ? `,width ${BOUNCE_ANIMATION_MS}ms ease-out` : ""};
   margin-left: ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")};
   z-index: ${(props) => props.theme.depths.sidebar};
 
