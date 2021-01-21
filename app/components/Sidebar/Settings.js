@@ -58,7 +58,7 @@ function SettingsSidebar() {
       />
 
       <Flex auto column>
-        <Scrollable shadow>
+        <Scrollable topShadow>
           <Section>
             <Header>{t("Account")}</Header>
             <SidebarLink
