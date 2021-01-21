@@ -2,6 +2,7 @@
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
 import { v4 } from "uuid";
+import { light as defaultTheme } from "shared/styles/theme";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import type { Toast } from "types";
@@ -23,6 +24,7 @@ class UiStore {
   @observable editMode: boolean = false;
   @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
+  @observable sidebarWidth: number;
   @observable sidebarCollapsed: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
   lastToastId: string;
@@ -54,6 +56,7 @@ class UiStore {
     // persisted keys
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = data.sidebarCollapsed;
+    this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
     this.tocVisible = data.tocVisible;
     this.theme = data.theme || "system";
 
@@ -108,6 +111,11 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.activeCollectionId = undefined;
+  };
+
+  @action
+  setSidebarWidth = (sidebarWidth: number): void => {
+    this.sidebarWidth = sidebarWidth;
   };
 
   @action
@@ -219,6 +227,7 @@ class UiStore {
     return JSON.stringify({
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,
+      sidebarWidth: this.sidebarWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       theme: this.theme,
     });

@@ -171,7 +171,6 @@ class Header extends React.Component<Props> {
                   iconColor="currentColor"
                   borderOnHover
                   neutral
-                  small
                 />
               </Tooltip>
             </>
@@ -223,7 +222,6 @@ class Header extends React.Component<Props> {
                   icon={isPubliclyShared ? <GlobeIcon /> : undefined}
                   onClick={this.handleShareLink}
                   neutral
-                  small
                 >
                   {t("Share")}
                 </Button>
@@ -244,7 +242,6 @@ class Header extends React.Component<Props> {
                     disabled={savingIsDisabled}
                     isSaving={isSaving}
                     neutral={isDraft}
-                    small
                   >
                     {isDraft ? t("Save Draft") : t("Done Editing")}
                   </Button>
@@ -265,7 +262,6 @@ class Header extends React.Component<Props> {
                   icon={<EditIcon />}
                   to={editDocumentUrl(this.props.document)}
                   neutral
-                  small
                 >
                   {t("Edit")}
                 </Button>
@@ -300,7 +296,6 @@ class Header extends React.Component<Props> {
                   templateId: document.id,
                 })}
                 primary
-                small
               >
                 {t("New from template")}
               </Button>
@@ -318,7 +313,6 @@ class Header extends React.Component<Props> {
                   onClick={this.handlePublish}
                   title={t("Publish document")}
                   disabled={publishingIsDisabled}
-                  small
                 >
                   {isPublishing ? `${t("Publishing")}…` : t("Publish")}
                 </Button>
@@ -339,7 +333,6 @@ class Header extends React.Component<Props> {
                       {...props}
                       borderOnHover
                       neutral
-                      small
                     />
                   )}
                   showToggleEmbeds={canToggleEmbeds}

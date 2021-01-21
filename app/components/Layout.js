@@ -1,6 +1,7 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation, type TFunction } from "react-i18next";
@@ -14,13 +15,15 @@ import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
+import Button from "components/Button";
 import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
-
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
+import SkipNavContent from "components/SkipNavContent";
+import SkipNavLink from "components/SkipNavLink";
 import { type Theme } from "types";
 import { meta } from "utils/keyboard";
 import {
@@ -99,6 +102,7 @@ class Layout extends React.Component<Props> {
     const { auth, t, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
+    const sidebarCollapsed = ui.editMode || ui.sidebarCollapsed;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
@@ -112,10 +116,18 @@ class Layout extends React.Component<Props> {
             content="width=device-width, initial-scale=1.0"
           />
         </Helmet>
+        <SkipNavLink />
         <Analytics />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}
+
+        <MobileMenuButton
+          onClick={ui.toggleMobileSidebar}
+          icon={<MenuIcon />}
+          iconColor="currentColor"
+          neutral
+        />
 
         <Container auto>
           {showSidebar && (
@@ -125,10 +137,16 @@ class Layout extends React.Component<Props> {
             </Switch>
           )}
 
+          <SkipNavContent />
           <Content
             auto
             justify="center"
-            sidebarCollapsed={ui.editMode || ui.sidebarCollapsed}
+            $sidebarCollapsed={sidebarCollapsed}
+            style={
+              sidebarCollapsed
+                ? undefined
+                : { marginLeft: `${ui.sidebarWidth}px` }
+            }
           >
             {this.props.children}
           </Content>
@@ -160,19 +178,34 @@ const Container = styled(Flex)`
   min-height: 100%;
 `;
 
+const MobileMenuButton = styled(Button)`
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: ${(props) => props.theme.depths.sidebar - 1};
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
+`;
+
 const Content = styled(Flex)`
   margin: 0;
-  transition: margin-left 100ms ease-out;
+  transition: ${(props) =>
+    props.$sidebarCollapsed ? `margin-left 100ms ease-out` : "none"};
 
   @media print {
     margin: 0;
   }
 
+  ${breakpoint("mobile", "tablet")`
+    margin-left: 0 !important;
+  `}
+
   ${breakpoint("tablet")`
-    margin-left: ${(props) =>
-      props.sidebarCollapsed
-        ? props.theme.sidebarCollapsedWidth
-        : props.theme.sidebarWidth};
+    ${(props) =>
+      props.$sidebarCollapsed &&
+      `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
 `;
 
