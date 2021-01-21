@@ -36,7 +36,7 @@ export const initI18n = () => {
 
 export const languageOptions = [
   { label: "English (US)", value: "en_US" },
-  { label: "Chinese, Simplified (简体中文)", value: "zh_CN" },
+  { label: "简体中文 (Chinese, Simplified)", value: "zh_CN" },
   { label: "Deutsch (Deutschland)", value: "de_DE" },
   { label: "Español (España)", value: "es_ES" },
   { label: "Français (France)", value: "fr_FR" },
