@@ -63,8 +63,7 @@ function MainSidebar() {
     setInviteModalOpen(true);
   }, []);
 
-  const handleInviteModalClose = React.useCallback((ev: SyntheticEvent<>) => {
-    ev.preventDefault();
+  const handleInviteModalClose = React.useCallback(() => {
     setInviteModalOpen(false);
   }, []);
 
