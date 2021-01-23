@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { Switch, Route, Redirect, type Match } from "react-router-dom";
+import { Switch, Redirect, type Match } from "react-router-dom";
 import Archive from "scenes/Archive";
 import Collection from "scenes/Collection";
 import Dashboard from "scenes/Dashboard";
@@ -16,6 +16,7 @@ import Trash from "scenes/Trash";
 import CenteredContent from "components/CenteredContent";
 import Layout from "components/Layout";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
+import Route from "components/ProfiledRoute";
 import SocketProvider from "components/SocketProvider";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 

@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch } from "react-router-dom";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
 import Export from "scenes/Settings/Export";
@@ -12,6 +12,7 @@ import Shares from "scenes/Settings/Shares";
 import Slack from "scenes/Settings/Slack";
 import Tokens from "scenes/Settings/Tokens";
 import Zapier from "scenes/Settings/Zapier";
+import Route from "components/ProfiledRoute";
 
 export default function SettingsRoutes() {
   return (
