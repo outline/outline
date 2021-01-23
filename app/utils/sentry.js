@@ -9,7 +9,6 @@ export function initSentry(history: RouterHistory) {
     dsn: env.SENTRY_DSN,
     integrations: [
       new Integrations.BrowserTracing({
-        // Can also use reactRouterV4Instrumentation
         routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
       }),
     ],
