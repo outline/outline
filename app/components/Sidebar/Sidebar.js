@@ -1,6 +1,7 @@
 // @flow
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { withRouter } from "react-router-dom";
 import type { Location } from "react-router-dom";
@@ -85,6 +86,7 @@ const useResize = ({ width, minWidth, maxWidth, setWidth }) => {
 
 function Sidebar({ location, children }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { ui } = useStores();
   const previousLocation = usePrevious(location);
 
@@ -157,7 +159,7 @@ function Sidebar({ location, children }: Props) {
           onDoubleClick={handleReset}
           $isResizing={isResizing}
         >
-          <ResizeHandle />
+          <ResizeHandle name={t("Resize sidebar")} />
         </ResizeBorder>
       )}
     </Container>

@@ -51,6 +51,7 @@ function RevisionMenu({ document, revision, className, iconColor }: Props) {
       <OverflowMenuButton
         className={className}
         iconColor={iconColor}
+        aria-label={t("Show menu")}
         {...menu}
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>

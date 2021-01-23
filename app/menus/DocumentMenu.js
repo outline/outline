@@ -140,7 +140,11 @@ function DocumentMenu({
       {label ? (
         <MenuButton {...menu}>{label}</MenuButton>
       ) : (
-        <OverflowMenuButton className={className} {...menu} />
+        <OverflowMenuButton
+          className={className}
+          aria-label={t("Show menu")}
+          {...menu}
+        />
       )}
       <ContextMenu
         {...menu}

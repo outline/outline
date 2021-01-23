@@ -116,7 +116,7 @@ function CollectionMenu({
       {label ? (
         <MenuButton {...menu}>{label}</MenuButton>
       ) : (
-        <OverflowMenuButton {...menu} />
+        <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       )}
       <ContextMenu
         {...menu}

@@ -38,7 +38,7 @@ function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <NudeButton {...props}>
+          <NudeButton aria-label={t("Show sort menu")} {...props}>
             {alphabeticalSort ? <AlphabeticalSortIcon /> : <ManualSortIcon />}
           </NudeButton>
         )}

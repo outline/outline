@@ -145,6 +145,8 @@ class CollectionScene extends React.Component<Props> {
               <InputSearch
                 source="collection"
                 placeholder={`${t("Search in collection")}…`}
+                label={`${t("Search in collection")}…`}
+                labelHidden
                 collectionId={match.params.id}
               />
             </Action>

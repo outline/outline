@@ -21,7 +21,7 @@ function CollapseToggle({ collapsed, ...rest }: Props) {
       delay={500}
       placement="bottom"
     >
-      <Button {...rest} aria-hidden>
+      <Button {...rest} tabIndex="-1" aria-hidden>
         {collapsed ? (
           <NextIcon color="currentColor" />
         ) : (

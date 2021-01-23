@@ -19,7 +19,7 @@ export default function BreadcrumbMenu({ path }: Props) {
 
   return (
     <>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show path to document")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Path to document")}>
         <Template
           {...menu}
