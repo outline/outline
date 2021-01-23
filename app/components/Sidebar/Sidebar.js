@@ -159,7 +159,7 @@ function Sidebar({ location, children }: Props) {
           onDoubleClick={handleReset}
           $isResizing={isResizing}
         >
-          <ResizeHandle name={t("Resize sidebar")} />
+          <ResizeHandle aria-label={t("Resize sidebar")} />
         </ResizeBorder>
       )}
     </Container>
