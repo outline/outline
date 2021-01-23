@@ -26,6 +26,7 @@ class UiStore {
   @observable mobileSidebarVisible: boolean = false;
   @observable sidebarWidth: number;
   @observable sidebarCollapsed: boolean = false;
+  @observable sidebarIsResizing: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
   lastToastId: string;
 
@@ -95,6 +96,11 @@ class UiStore {
     ) {
       this.activeCollectionId = document.collectionId;
     }
+  };
+
+  @action
+  setSidebarResizing = (sidebarIsResizing: boolean): void => {
+    this.sidebarIsResizing = sidebarIsResizing;
   };
 
   @action

@@ -112,6 +112,10 @@ function Sidebar({ location, children }: Props) {
   }, [ui, theme.sidebarWidth]);
 
   React.useEffect(() => {
+    ui.setSidebarResizing(isResizing);
+  }, [ui, isResizing]);
+
+  React.useEffect(() => {
     if (location !== previousLocation) {
       ui.hideMobileSidebar();
     }

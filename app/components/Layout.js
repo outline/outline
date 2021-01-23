@@ -141,6 +141,7 @@ class Layout extends React.Component<Props> {
           <Content
             auto
             justify="center"
+            $isResizing={ui.sidebarIsResizing}
             $sidebarCollapsed={sidebarCollapsed}
             style={
               sidebarCollapsed
@@ -192,7 +193,7 @@ const MobileMenuButton = styled(Button)`
 const Content = styled(Flex)`
   margin: 0;
   transition: ${(props) =>
-    props.$sidebarCollapsed ? `margin-left 100ms ease-out` : "none"};
+    props.$isResizing ? "none" : `margin-left 100ms ease-out`};
 
   @media print {
     margin: 0;
