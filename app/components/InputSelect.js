@@ -2,8 +2,8 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
-import VisuallyHidden from "components/VisuallyHidden";
 import { Outline, LabelText } from "./Input";
 
 const Select = styled.select`

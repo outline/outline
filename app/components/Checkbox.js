@@ -1,8 +1,8 @@
 // @flow
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
-import VisuallyHidden from "components/VisuallyHidden";
 
 export type Props = {
   checked?: boolean,
