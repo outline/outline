@@ -52,7 +52,6 @@ const renderApp = async (ctx, next) => {
     .toString()
     .replace(/\/\/inject-env\/\//g, env)
     .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
-    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
 
