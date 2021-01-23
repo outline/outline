@@ -36,7 +36,7 @@ export default function download(
   }
 
   //go ahead and download dataURLs right away
-  if (String(x).match(/^data\:[\w+\-]+\/[\w+\-]+[,;]/)) {
+  if (String(x).match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
     // $FlowIssue
     return navigator.msSaveBlob // IE10 can't do a[download], only Blobs:
       ? // $FlowIssue
@@ -98,7 +98,7 @@ export default function download(
     D.body && D.body.appendChild(f);
     if (!winMode) {
       // force a mime that will download:
-      url = "data:" + url.replace(/^data:([\w\/\-\+]+)/, u);
+      url = "data:" + url.replace(/^data:([\w/\-+]+)/, u);
     }
 
     f.src = url;

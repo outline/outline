@@ -13,6 +13,7 @@ import Collection from "models/Collection";
 import Group from "models/Group";
 import GroupNew from "scenes/GroupNew";
 import Button from "components/Button";
+import ButtonLink from "components/ButtonLink";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import GroupListItem from "components/GroupListItem";
@@ -85,9 +86,9 @@ class AddGroupsToCollection extends React.Component<Props> {
       <Flex column>
         <HelpText>
           {t("Can’t find the group you’re looking for?")}{" "}
-          <a role="button" onClick={this.handleNewGroupModalOpen}>
+          <ButtonLink onClick={this.handleNewGroupModalOpen}>
             {t("Create a group")}
-          </a>
+          </ButtonLink>
           .
         </HelpText>
 

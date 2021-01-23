@@ -9,11 +9,12 @@ import { Outline, LabelText } from "./Input";
 const Select = styled.select`
   border: 0;
   flex: 1;
-  padding: 8px 0;
+  padding: 4px 0;
   margin: 0 12px;
   outline: none;
   background: none;
   color: ${(props) => props.theme.text};
+  height: 30px;
 
   &:disabled,
   &::placeholder {

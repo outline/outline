@@ -115,7 +115,7 @@ class DocumentShare extends React.Component<Props> {
           </Button>
         </CopyToClipboard>
         &nbsp;&nbsp;&nbsp;
-        <a href={share.url} target="_blank">
+        <a href={share.url} target="_blank" rel="noreferrer">
           Preview
         </a>
       </div>
