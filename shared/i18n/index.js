@@ -24,7 +24,7 @@ export const initI18n = () => {
       },
       lng,
       fallbackLng: lng,
-      debug: process.env.NODE_ENV !== "production",
+      debug: process.env.NODE_ENV === "development",
       keySeparator: false,
     });
 
