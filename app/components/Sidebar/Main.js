@@ -50,13 +50,9 @@ function MainSidebar() {
     []
   );
 
-  const handleCreateCollectionModalClose = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      setCreateCollectionModalOpen(false);
-    },
-    []
-  );
+  const handleCreateCollectionModalClose = React.useCallback(() => {
+    setCreateCollectionModalOpen(false);
+  }, []);
 
   const handleInviteModalOpen = React.useCallback((ev: SyntheticEvent<>) => {
     ev.preventDefault();
