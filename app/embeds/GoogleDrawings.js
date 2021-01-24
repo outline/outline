@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import Image from "components/Image";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
@@ -22,7 +23,7 @@ export default class GoogleDrawings extends React.Component<Props> {
         {...this.props}
         src={this.props.attrs.href.replace("/edit", "/preview")}
         icon={
-          <img
+          <Image
             src="/images/google-drawings.png"
             alt="Google Drawings"
             width={16}
