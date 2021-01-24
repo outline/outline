@@ -1,6 +1,7 @@
 // @flow
 export default {
   URL: process.env.URL,
+  CDN_URL: process.env.CDN_URL || "",
   DEPLOYMENT: process.env.DEPLOYMENT,
   SENTRY_DSN: process.env.SENTRY_DSN,
   TEAM_LOGO: process.env.TEAM_LOGO,

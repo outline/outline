@@ -41,7 +41,7 @@ function GroupMenu({ group, onMembers }: Props) {
       >
         <GroupDelete group={group} onSubmit={() => setDeleteModalOpen(false)} />
       </Modal>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Group options")}>
         <Template
           {...menu}

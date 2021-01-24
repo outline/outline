@@ -106,6 +106,7 @@ function DocumentMenu({
 
   const handleStar = React.useCallback(
     (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
       ev.stopPropagation();
       document.star();
     },
@@ -114,6 +115,7 @@ function DocumentMenu({
 
   const handleUnstar = React.useCallback(
     (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
       ev.stopPropagation();
       document.unstar();
     },
@@ -138,7 +140,11 @@ function DocumentMenu({
       {label ? (
         <MenuButton {...menu}>{label}</MenuButton>
       ) : (
-        <OverflowMenuButton className={className} {...menu} />
+        <OverflowMenuButton
+          className={className}
+          aria-label={t("Show menu")}
+          {...menu}
+        />
       )}
       <ContextMenu
         {...menu}

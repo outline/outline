@@ -113,7 +113,11 @@ class Drafts extends React.Component<Props> {
 
         <Actions align="center" justify="flex-end">
           <Action>
-            <InputSearch source="drafts" />
+            <InputSearch
+              source="drafts"
+              label={t("Search documents")}
+              labelHidden
+            />
           </Action>
           <Action>
             <NewDocumentMenu />

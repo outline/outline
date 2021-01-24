@@ -17,6 +17,8 @@ type Props = {
   theme: Theme,
   source: string,
   placeholder?: string,
+  label?: string,
+  labelHidden?: boolean,
   collectionId?: string,
   t: TFunction,
 };
@@ -68,6 +70,8 @@ class InputSearch extends React.Component<Props> {
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
           />
         }
+        label={this.props.label}
+        labelHidden={this.props.labelHidden}
         onFocus={this.handleFocus}
         onBlur={this.handleBlur}
         margin={0}

@@ -10,6 +10,7 @@ import { languages } from "../shared/i18n";
 import environment from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
 import { opensearchResponse } from "./utils/opensearch";
+import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -50,7 +51,7 @@ const renderApp = async (ctx, next) => {
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, env)
-    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
+    .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
 

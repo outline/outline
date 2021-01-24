@@ -11,6 +11,7 @@ import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
 import User from "models/User";
 import Invite from "scenes/Invite";
+import ButtonLink from "components/ButtonLink";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -81,9 +82,9 @@ class AddPeopleToCollection extends React.Component<Props> {
       <Flex column>
         <HelpText>
           {t("Need to add someone who’s not yet on the team yet?")}{" "}
-          <a role="button" onClick={this.handleInviteModalOpen}>
+          <ButtonLink onClick={this.handleInviteModalOpen}>
             {t("Invite people to {{ teamName }}", { teamName: team.name })}
-          </a>
+          </ButtonLink>
           .
         </HelpText>
 

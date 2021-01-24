@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import Image from "components/Image";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp("^https?://docs.google.com/document/(.*)$");
@@ -20,7 +21,7 @@ export default class GoogleDocs extends React.Component<Props> {
         {...this.props}
         src={this.props.attrs.href.replace("/edit", "/preview")}
         icon={
-          <img
+          <Image
             src="/images/google-docs.png"
             alt="Google Docs Icon"
             width={16}

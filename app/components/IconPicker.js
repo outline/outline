@@ -145,8 +145,8 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
       </Label>
       <MenuButton {...menu}>
         {(props) => (
-          <Button {...props}>
-            <Component role="button" color={color} size={30} />
+          <Button aria-label={t("Show menu")} {...props}>
+            <Component color={color} size={30} />
           </Button>
         )}
       </MenuButton>

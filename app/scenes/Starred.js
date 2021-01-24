@@ -48,7 +48,11 @@ function Starred(props: Props) {
 
       <Actions align="center" justify="flex-end">
         <Action>
-          <InputSearch source="starred" />
+          <InputSearch
+            source="starred"
+            label={t("Search documents")}
+            labelHidden
+          />
         </Action>
         <Action>
           <NewDocumentMenu />

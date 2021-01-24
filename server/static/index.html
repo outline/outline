@@ -4,6 +4,8 @@
     <title>Outline</title>
     <meta name="slack-app-id" content="//inject-slack-app-id//" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…">
+    //inject-prefetch//
     <link
       rel="shortcut icon"
       type="image/png"
@@ -42,29 +44,7 @@
     <script>
       //inject-env//
     </script>
-    <script
-      src="https://browser.sentry-cdn.com/5.22.3/bundle.min.js"
-      integrity="sha384-A1qzcXXJWl+bzYr+r8AdFzSaLbdcbYRFmG37MEDKr4EYjtraUyoZ6UiMw31jHcV9"
-      crossorigin="anonymous"
-    ></script>
     <script>
-      if ("//inject-sentry-dsn//" && window.Sentry) {
-        window.Sentry.init({
-          dsn: "//inject-sentry-dsn//",
-          ignoreErrors: [
-            "ResizeObserver loop limit exceeded",
-            "AuthorizationError",
-            "BadRequestError",
-            "NetworkError",
-            "NotFoundError",
-            "OfflineError",
-            "ServiceUnavailableError",
-            "UpdateRequiredError",
-            "ChunkLoadError",
-          ],
-        });
-      }
-
       if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
         window.document.querySelector("#root").style.background = "#111319";
       }

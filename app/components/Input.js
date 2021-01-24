@@ -2,9 +2,9 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import Flex from "components/Flex";
-import VisuallyHidden from "components/VisuallyHidden";
 
 const RealTextarea = styled.textarea`
   border: 0;

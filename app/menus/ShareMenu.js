@@ -49,7 +49,7 @@ function ShareMenu({ share }: Props) {
 
   return (
     <>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Share options")}>
         <CopyToClipboard text={share.url} onCopy={handleCopy}>
           <MenuItem {...menu}>{t("Copy link")}</MenuItem>
