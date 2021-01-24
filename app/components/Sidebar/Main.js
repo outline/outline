@@ -167,7 +167,7 @@ function MainSidebar() {
                 to="/settings/people"
                 onClick={handleInviteModalOpen}
                 icon={<PlusIcon color="currentColor" />}
-                label={t("Invite people…")}
+                label={`${t("Invite people")}…`}
               />
             )}
           </Section>
