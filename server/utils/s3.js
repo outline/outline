@@ -84,6 +84,14 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
     "localhost:"
   ).replace(/\/$/, "");
 
+  // support old path-style S3 uploads and new virtual host uploads by checking
+  // for the bucket name in the endpoint url before appending.
+  const isVirtualHost = host.includes(AWS_S3_UPLOAD_BUCKET_NAME);
+
+  if (isVirtualHost) {
+    return `${host}/`;
+  }
+
   return `${host}/${
     isServerUpload && isDocker ? "s3/" : ""
   }${AWS_S3_UPLOAD_BUCKET_NAME}`;
