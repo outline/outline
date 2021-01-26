@@ -2296,10 +2296,10 @@ autotrack@^2.4.1:
     rollup-plugin-node-resolve "^3.0.0"
     source-map "^0.5.6"
 
-aws-sdk@^2.135.0:
-  version "2.791.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.791.0.tgz#a85bedd46c97e0d262edb055651075c3171a171c"
-  integrity sha512-oIWu0hLKmDS+rOmjud2Z1CaDXtmxKSJF4937dSNLf/vNkxxjJA/6HapSfKqsraLnekI9DLP8uop5HnCHC++Abw==
+aws-sdk@^2.831.0:
+  version "2.831.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.831.0.tgz#02607cc911a2136e5aabe624c1282e821830aef2"
+  integrity sha512-lrOjbGFpjk2xpESyUx2PGsTZgptCy5xycZazPeakNbFO19cOoxjHx3xyxOHsMCYb3pQwns35UvChQT60B4u6cw==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
