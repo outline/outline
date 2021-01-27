@@ -88,7 +88,7 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // for the bucket name in the endpoint url before appending.
   const isVirtualHost = host.includes(AWS_S3_UPLOAD_BUCKET_NAME);
 
-  if (isVirtualHost && !AWS_S3_FORCE_PATH_STYLE) {
+  if (isVirtualHost) {
     return host;
   }
 
