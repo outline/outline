@@ -16,7 +16,7 @@ const s3 = new AWS.S3({
   s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
   accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+  region: AWS_REGION,
   signatureVersion: "v4",
 });
 
@@ -88,8 +88,8 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // for the bucket name in the endpoint url before appending.
   const isVirtualHost = host.includes(AWS_S3_UPLOAD_BUCKET_NAME);
 
-  if (isVirtualHost) {
-    return `${host}/`;
+  if (isVirtualHost && !AWS_S3_FORCE_PATH_STYLE) {
+    return host;
   }
 
   return `${host}/${
