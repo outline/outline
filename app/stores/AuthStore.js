@@ -1,10 +1,12 @@
 // @flow
+import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import RootStore from "stores/RootStore";
 import Team from "models/Team";
 import User from "models/User";
+import env from "env";
 import { client } from "utils/ApiClient";
 import { getCookieDomain } from "utils/domains";
 
@@ -125,8 +127,8 @@ export default class AuthStore {
         this.user = new User(user);
         this.team = new Team(team);
 
-        if (window.Sentry) {
-          window.Sentry.configureScope(function (scope) {
+        if (env.SENTRY_DSN) {
+          Sentry.configureScope(function (scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);

@@ -1,4 +1,5 @@
 // @flow
+import * as Sentry from "@sentry/react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -36,8 +37,8 @@ class ErrorBoundary extends React.Component<Props> {
       return;
     }
 
-    if (window.Sentry) {
-      window.Sentry.captureException(error);
+    if (env.SENTRY_DSN) {
+      Sentry.captureException(error);
     }
   }
 
@@ -56,7 +57,7 @@ class ErrorBoundary extends React.Component<Props> {
   render() {
     if (this.error) {
       const error = this.error;
-      const isReported = !!window.Sentry && env.DEPLOYMENT === "hosted";
+      const isReported = !!env.SENTRY_DSN && env.DEPLOYMENT === "hosted";
       const isChunkError = this.error.message.match(/chunk/);
 
       if (isChunkError) {
