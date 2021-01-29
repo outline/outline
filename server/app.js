@@ -79,7 +79,7 @@ if (isProduction) {
 
     watchOptions: {
       poll: 1000,
-      ignored: ["node_modules"]
+      ignored: ["node_modules"],
     },
 
     // public path to bind the middleware to
