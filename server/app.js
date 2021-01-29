@@ -77,6 +77,11 @@ if (isProduction) {
     // that means no watching, but recompilation on every request
     lazy: false,
 
+    watchOptions: {
+      poll: 1000,
+      ignored: ["node_modules"]
+    },
+
     // public path to bind the middleware to
     // use the same as in webpack
     publicPath: config.output.publicPath,
