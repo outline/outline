@@ -575,24 +575,27 @@ Document.prototype.archiveWithChildren = async function (userId, options) {
   return this.save(options);
 };
 
-Document.prototype.publish = async function (options) {
+Document.prototype.publish = async function (userId: string, options) {
   if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
   await collection.addDocumentToStructure(this, 0);
 
+  this.lastModifiedById = userId;
   this.publishedAt = new Date();
   await this.save(options);
 
   return this;
 };
 
-Document.prototype.unpublish = async function (options) {
+Document.prototype.unpublish = async function (userId: string, options) {
   if (!this.publishedAt) return this;
 
   const collection = await this.getCollection();
   await collection.removeDocumentInStructure(this);
 
+  this.userId = userId;
+  this.lastModifiedById = userId;
   this.publishedAt = null;
   await this.save(options);
 
