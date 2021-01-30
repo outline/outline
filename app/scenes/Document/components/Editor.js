@@ -23,7 +23,6 @@ type Props = {|
   document: Document,
   isDraft: boolean,
   isShare: boolean,
-  grow?: boolean,
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
 |};
@@ -140,6 +139,7 @@ class DocumentEditor extends React.Component<Props> {
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
+          readOnly={readOnly}
           grow
           {...rest}
         />
