@@ -5,12 +5,13 @@ import styled from "styled-components";
 import Flex from "components/Flex";
 import TeamLogo from "components/TeamLogo";
 
-type Props = {
+type Props = {|
   teamName: string,
   subheading: React.Node,
   showDisclosure?: boolean,
+  onClick: (event: SyntheticEvent<>) => void,
   logoUrl: string,
-};
+|};
 
 const HeaderBlock = React.forwardRef<Props, any>(
   ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => (

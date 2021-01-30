@@ -9,24 +9,24 @@ import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
-import Editor from "components/Editor";
+import Editor, { type Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import Star, { AnimatedStar } from "components/Star";
 import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
+  ...EditorProps,
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
   title: string,
-  defaultValue: string,
   document: Document,
   isDraft: boolean,
   isShare: boolean,
-  readOnly?: boolean,
-  onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
+  grow?: boolean,
+  onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
-};
+|};
 
 @observer
 class DocumentEditor extends React.Component<Props> {
@@ -98,6 +98,7 @@ class DocumentEditor extends React.Component<Props> {
       isShare,
       readOnly,
       innerRef,
+      ...rest
     } = this.props;
 
     const { emoji } = parseTitle(title);
@@ -135,12 +136,12 @@ class DocumentEditor extends React.Component<Props> {
         />
         <Editor
           ref={innerRef}
-          autoFocus={title && !this.props.defaultValue}
+          autoFocus={!!title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
           grow
-          {...this.props}
+          {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
         {this.activeLinkEvent && !isShare && readOnly && (

@@ -23,14 +23,14 @@ const Modified = styled.span`
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
-type Props = {
+type Props = {|
   showCollection?: boolean,
   showPublished?: boolean,
   showLastViewed?: boolean,
   document: Document,
   children: React.Node,
   to?: string,
-};
+|};
 
 function DocumentMeta({
   showPublished,

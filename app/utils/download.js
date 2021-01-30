@@ -110,6 +110,7 @@ export default function download(
   // $FlowIssue
   if (navigator.msSaveBlob) {
     // IE10+ : (has Blob, but not a[download] or URL)
+    // $FlowIssue
     return navigator.msSaveBlob(blob, fn);
   }
 

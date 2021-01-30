@@ -87,7 +87,6 @@ class AddPeopleToGroup extends React.Component<Props> {
           </ButtonLink>
           .
         </HelpText>
-
         <Input
           type="search"
           placeholder={`${t("Search by name")}…`}

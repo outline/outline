@@ -3,12 +3,15 @@ import * as React from "react";
 import styled from "styled-components";
 import { LabelText } from "components/Input";
 
-type Props = {
+type Props = {|
   width?: number,
   height?: number,
   label?: string,
+  checked?: boolean,
+  disabled?: boolean,
+  onChange: (event: SyntheticInputEvent<HTMLInputElement>) => mixed,
   id?: string,
-};
+|};
 
 function Switch({ width = 38, height = 20, label, ...props }: Props) {
   const component = (

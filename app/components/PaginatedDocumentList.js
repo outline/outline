@@ -5,13 +5,18 @@ import Document from "models/Document";
 import DocumentListItem from "components/DocumentListItem";
 import PaginatedList from "components/PaginatedList";
 
-type Props = {
+type Props = {|
   documents: Document[],
   fetch: (options: ?Object) => Promise<void>,
   options?: Object,
   heading?: React.Node,
   empty?: React.Node,
-};
+  showCollection?: boolean,
+  showPublished?: boolean,
+  showPin?: boolean,
+  showDraft?: boolean,
+  showTemplate?: boolean,
+|};
 
 @observer
 class PaginatedDocumentList extends React.Component<Props> {

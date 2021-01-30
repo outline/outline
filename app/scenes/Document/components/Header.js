@@ -240,7 +240,6 @@ class Header extends React.Component<Props> {
                   <Button
                     onClick={this.handleSave}
                     disabled={savingIsDisabled}
-                    isSaving={isSaving}
                     neutral={isDraft}
                   >
                     {isDraft ? t("Save Draft") : t("Done Editing")}
@@ -311,7 +310,6 @@ class Header extends React.Component<Props> {
               >
                 <Button
                   onClick={this.handlePublish}
-                  title={t("Publish document")}
                   disabled={publishingIsDisabled}
                 >
                   {isPublishing ? `${t("Publishing")}…` : t("Publish")}

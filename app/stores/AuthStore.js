@@ -4,6 +4,7 @@ import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import RootStore from "stores/RootStore";
+import Policy from "models/Policy";
 import Team from "models/Team";
 import User from "models/User";
 import env from "env";
@@ -13,17 +14,17 @@ import { getCookieDomain } from "utils/domains";
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 
-type Service = {
+type Service = {|
   id: string,
   name: string,
   authUrl: string,
-};
+|};
 
-type Config = {
+type Config = {|
   name?: string,
   hostname?: string,
   services: Service[],
-};
+|};
 
 export default class AuthStore {
   @observable user: ?User;
@@ -88,7 +89,7 @@ export default class AuthStore {
     }
   }
 
-  addPolicies = (policies) => {
+  addPolicies = (policies: Policy[]) => {
     if (policies) {
       policies.forEach((policy) => this.rootStore.policies.add(policy));
     }

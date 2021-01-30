@@ -36,6 +36,8 @@ export type Props = {
   className?: string,
   labelHidden?: boolean,
   options: Option[],
+  onBlur?: () => void,
+  onFocus?: () => void,
 };
 
 @observer

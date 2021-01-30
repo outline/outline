@@ -182,13 +182,15 @@ class UiStore {
   @action
   showToast = (
     message: string,
-    options?: {
-      type?: "warning" | "error" | "info" | "success",
+    options: {
+      type: "warning" | "error" | "info" | "success",
       timeout?: number,
       action?: {
         text: string,
         onClick: () => void,
       },
+    } = {
+      type: "info",
     }
   ) => {
     if (!message) return;
@@ -204,7 +206,14 @@ class UiStore {
 
     const id = v4();
     const createdAt = new Date().toISOString();
-    this.toasts.set(id, { message, createdAt, id, ...options });
+    this.toasts.set(id, {
+      id,
+      message,
+      createdAt,
+      type: options.type,
+      timeout: options.timeout,
+      action: options.action,
+    });
     this.lastToastId = id;
     return id;
   };

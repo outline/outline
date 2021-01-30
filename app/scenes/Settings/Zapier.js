@@ -17,10 +17,9 @@ function Zapier() {
       </HelpText>
       <p>
         <Button
-          as="a"
-          href="https://zapier.com/apps/outline"
-          rel="noopener noreferrer"
-          target="_blank"
+          onClick={() =>
+            (window.location.href = "https://zapier.com/apps/outline")
+          }
         >
           Open Zapier →
         </Button>
