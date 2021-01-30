@@ -246,7 +246,9 @@ export default class Document extends BaseModel {
           collectionId: this.collectionId,
           title: this.title,
           text: this.text,
-          ...options,
+          publish: options.publish,
+          done: options.done,
+          autosave: options.autosave,
         });
       }
 
@@ -257,7 +259,9 @@ export default class Document extends BaseModel {
           text: this.text,
           templateId: this.templateId,
           lastRevision: options.lastRevision,
-          ...options,
+          publish: options.publish,
+          done: options.done,
+          autosave: options.autosave,
         });
       }
 

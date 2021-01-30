@@ -89,7 +89,7 @@ export type Props = {|
   minLength?: number,
   maxLength?: number,
   autoFocus?: boolean,
-  autoComplete?: boolean,
+  autoComplete?: boolean | string,
   readOnly?: boolean,
   required?: boolean,
   placeholder?: string,
