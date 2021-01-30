@@ -251,7 +251,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchNamedPage = async (
     request: string = "list",
-    options: ?PaginationParams
+    options: ?Object
   ): Promise<?(Document[])> => {
     this.isFetching = true;
 
@@ -344,10 +344,9 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  searchTitles = async (query: string, options: PaginationParams = {}) => {
+  searchTitles = async (query: string) => {
     const res = await client.get("/documents.search_titles", {
       query,
-      ...options,
     });
     invariant(res && res.data, "Search response should be available");
 
@@ -360,7 +359,15 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   search = async (
     query: string,
-    options: PaginationParams = {}
+    options: {
+      offset?: number,
+      limit?: number,
+      dateFilter?: "day" | "week" | "month" | "year",
+      includeArchived?: boolean,
+      includeDrafts?: boolean,
+      collectionId?: string,
+      userId?: string,
+    }
   ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
