@@ -108,8 +108,8 @@ export const Inner = styled.span`
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
-export type Props = {
-  type?: string,
+export type Props = {|
+  type?: "button" | "submit",
   value?: string,
   icon?: React.Node,
   iconColor?: string,
@@ -118,9 +118,21 @@ export type Props = {
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
   neutral?: boolean,
+  danger?: boolean,
+  primary?: boolean,
+  disabled?: boolean,
   fullwidth?: boolean,
+  autoFocus?: boolean,
+  style?: Object,
+  as?: React.ComponentType<any>,
+  to?: string,
+  onClick?: (event: SyntheticEvent<>) => mixed,
   borderOnHover?: boolean,
-};
+
+  "data-on"?: string,
+  "data-event-category"?: string,
+  "data-event-action"?: string,
+|};
 
 function Button({
   type = "text",

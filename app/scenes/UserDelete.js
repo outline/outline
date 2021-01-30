@@ -34,10 +34,10 @@ class UserDelete extends React.Component<Props> {
   };
 
   render() {
-    const { auth, ...rest } = this.props;
+    const { onRequestClose } = this.props;
 
     return (
-      <Modal isOpen title="Delete Account" {...rest}>
+      <Modal isOpen title="Delete Account" onRequestClose={onRequestClose}>
         <Flex column>
           <form onSubmit={this.handleSubmit}>
             <HelpText>

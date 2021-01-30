@@ -142,7 +142,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  updateFromJson = (data) => {
+  updateFromJson = (data: Object) => {
     set(this, data);
   };
 
@@ -150,7 +150,7 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (options) => {
+  restore = (options: { revisionId?: string, collectionId?: string }) => {
     return this.store.restore(this, options);
   };
 
@@ -233,7 +233,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: SaveOptions) => {
+  save = async (options: SaveOptions = {}) => {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;

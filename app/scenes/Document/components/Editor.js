@@ -23,7 +23,12 @@ type Props = {
   document: Document,
   isDraft: boolean,
   isShare: boolean,
+  grow?: boolean,
   readOnly?: boolean,
+  scrollTo?: string,
+  ref?: React.Ref<>,
+  placeholder?: string,
+  onHoverLink?: () => mixed,
   onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
   innerRef: { current: any },
 };

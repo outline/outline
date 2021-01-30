@@ -27,7 +27,6 @@ function NewDocumentMenu() {
         as={Link}
         to={newDocumentUrl(collections.orderedData[0].id)}
         icon={<PlusIcon />}
-        small
       >
         {t("New doc")}
       </Button>

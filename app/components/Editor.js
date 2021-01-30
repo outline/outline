@@ -16,14 +16,16 @@ const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
 
 const EMPTY_ARRAY = [];
 
-type Props = {
+type Props = {|
   id?: string,
   defaultValue?: string,
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
-};
+  onBlur?: () => void,
+  onFocus?: () => void,
+|};
 
 type PropsWithRef = Props & {
   forwardedRef: React.Ref<any>,

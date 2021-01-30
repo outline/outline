@@ -174,7 +174,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.drafts().length;
   }
 
-  drafts = (options = {}): Document[] => {
+  drafts = (
+    options: {
+      ...PaginationParams,
+      dateFilter?: "day" | "week" | "month" | "year",
+      collectionId?: string,
+    } = {}
+  ): Document[] => {
     let drafts = filter(
       orderBy(this.all, "updatedAt", "desc"),
       (doc) => !doc.publishedAt
@@ -185,7 +191,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         drafts,
         (draft) =>
           new Date(draft.updatedAt) >=
-          subtractDate(new Date(), options.dateFilter)
+          subtractDate(new Date(), options.dateFilter || "year")
       );
     }
 
@@ -601,10 +607,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  restore = async (document: Document, options = {}) => {
+  restore = async (
+    document: Document,
+    options: { revisionId?: string, collectionId?: string } = {}
+  ) => {
     const res = await client.post("/documents.restore", {
       id: document.id,
-      ...options,
+      revisionId: options.revisionId,
+      collectionId: options.collectionId,
     });
     runInAction("Document#restore", () => {
       invariant(res && res.data, "Data should be available");

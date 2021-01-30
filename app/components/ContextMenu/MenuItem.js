@@ -4,13 +4,16 @@ import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
 
-type Props = {
+type Props = {|
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
   children?: React.Node,
   selected?: boolean,
   disabled?: boolean,
+  to?: string,
+  href?: string,
+  target?: "_blank",
   as?: string | React.ComponentType<*>,
-};
+|};
 
 const MenuItem = ({
   onClick,
