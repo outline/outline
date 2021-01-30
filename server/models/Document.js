@@ -594,7 +594,10 @@ Document.prototype.unpublish = async function (userId: string, options) {
   const collection = await this.getCollection();
   await collection.removeDocumentInStructure(this);
 
+  // unpublishing a document converts the "ownership" to yourself, so that it
+  // can appear in your drafts rather than the original creators
   this.userId = userId;
+
   this.lastModifiedById = userId;
   this.publishedAt = null;
   await this.save(options);
