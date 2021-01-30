@@ -47,7 +47,6 @@ export default class AuthStore {
       // no-op Safari private mode
     }
 
-    setImmediate(() => this.fetchConfig());
     this.rehydrate(data);
 
     // persists this entire store to localstorage whenever any keys are changed
