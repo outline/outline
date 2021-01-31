@@ -23,6 +23,8 @@
   "Never viewed": "Не просмотрено",
   "Viewed": "Просмотрено",
   "in": "в",
+  "nested document": "nested document",
+  "nested document_plural": "nested documents",
   "Insert column after": "Вставить столбец справа",
   "Insert column before": "Вставить столбец слева",
   "Insert row after": "Вставить строку снизу",
