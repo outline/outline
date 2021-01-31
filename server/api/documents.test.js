@@ -1962,7 +1962,7 @@ describe("#documents.delete", () => {
 
 describe("#documents.unpublish", () => {
   it("should unpublish a document", async () => {
-    const { user, document } = await seed();
+    let { user, document } = await seed();
     const res = await server.post("/api/documents.unpublish", {
       body: { token: user.getJwtToken(), id: document.id },
     });
@@ -1972,13 +1972,13 @@ describe("#documents.unpublish", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
 
-    await document.reload();
+    document = await Document.unscoped().findOne(document.id);
     expect(document.userId).toEqual(user.id);
   });
 
   it("should unpublish another users document", async () => {
     const { user, collection } = await seed();
-    const document = await buildDocument({
+    let document = await buildDocument({
       teamId: user.teamId,
       collectionId: collection.id,
     });
@@ -1991,7 +1991,7 @@ describe("#documents.unpublish", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
 
-    await document.reload();
+    document = await Document.unscoped().findOne(document.id);
     expect(document.userId).toEqual(user.id);
   });
 
