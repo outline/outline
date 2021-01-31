@@ -23,6 +23,8 @@
   "Never viewed": "미조회",
   "Viewed": "조회",
   "in": "안에",
+  "nested document": "nested document",
+  "nested document_plural": "nested documents",
   "Insert column after": "뒤에 열 추가",
   "Insert column before": "앞에 열 추가",
   "Insert row after": "뒤에 행 추가",
