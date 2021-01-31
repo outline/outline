@@ -316,6 +316,9 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
+                  <Route path={collectionUrl(collection.id, "recent")}>
+                    <Redirect to={collectionUrl(collection.id, "published")} />
+                  </Route>
                   <Route path={collectionUrl(collection.id, "published")}>
                     <PaginatedDocumentList
                       key="published"
@@ -351,9 +354,6 @@ class CollectionScene extends React.Component<Props> {
                       }}
                       showPin
                     />
-                  </Route>
-                  <Route>
-                    <Redirect to={collectionUrl(collection.id)} />
                   </Route>
                 </Switch>
               </>
