@@ -249,7 +249,6 @@
   "Edit {{noun}}": "Edit {{noun}}",
   "New from template": "テンプレートから作成",
   "Publish": "公開",
-  "Publish document": "ドキュメントの公開",
   "Publishing": "Publishing",
   "Are you sure you want to delete the <2>{{documentTitle}}</2> template?": "Are you sure you want to delete the <2>{{documentTitle}}</2> template?",
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.",
