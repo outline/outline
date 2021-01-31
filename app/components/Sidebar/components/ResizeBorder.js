@@ -1,6 +1,6 @@
 // @flow
 import styled from "styled-components";
-import ResizeHandle from "./ResizeHandle";
+import { ResizeButton } from "./ResizeHandle";
 
 const ResizeBorder = styled.div`
   position: absolute;
@@ -10,19 +10,19 @@ const ResizeBorder = styled.div`
   width: 12px;
   cursor: ew-resize;
 
-  ${(props) =>
-    props.$isResizing &&
-    `
-  ${ResizeHandle} {
-    opacity: 1;
-  }
-  `}
-
   &:hover {
-    ${ResizeHandle} {
+    ${ResizeButton} {
       opacity: 1;
     }
   }
+
+  ${(props) =>
+    props.$isResizing &&
+    `
+  ${ResizeButton} {
+    opacity: 1;
+  }
+  `}
 `;
 
 export default ResizeBorder;

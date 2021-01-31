@@ -3,30 +3,39 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
-import { withRouter } from "react-router-dom";
-import type { Location } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import { useLocation } from "react-router-dom";
+import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
-import CollapseToggle, {
-  Button as CollapseButton,
-} from "./components/CollapseToggle";
 import ResizeBorder from "./components/ResizeBorder";
-import ResizeHandle from "./components/ResizeHandle";
+import ResizeHandle, { ResizeButton } from "./components/ResizeHandle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
 let firstRender = true;
-let BOUNCE_ANIMATION_MS = 250;
+let ANIMATION_MS = 250;
 
 type Props = {
   children: React.Node,
-  location: Location,
 };
 
-const useResize = ({ width, minWidth, maxWidth, setWidth }) => {
+function Sidebar({ children }: Props) {
+  const [isCollapsing, setCollapsing] = React.useState(false);
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const { ui } = useStores();
+  const location = useLocation();
+  const previousLocation = usePrevious(location);
+
+  const width = ui.sidebarWidth;
+  const maxWidth = theme.sidebarMaxWidth;
+  const minWidth = theme.sidebarMinWidth + 16; // padding
+  const collapsed = ui.editMode || ui.sidebarCollapsed;
+  const setWidth = ui.setSidebarWidth;
+
   const [offset, setOffset] = React.useState(0);
+  const [startWidth, setStartWidth] = React.useState(width);
   const [isAnimating, setAnimating] = React.useState(false);
   const [isResizing, setResizing] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
@@ -38,24 +47,56 @@ const useResize = ({ width, minWidth, maxWidth, setWidth }) => {
 
       // this is simple because the sidebar is always against the left edge
       const width = Math.min(event.pageX - offset, maxWidth);
-      setWidth(width);
+      const isSmallerThanCollapsePoint = width < minWidth / 2;
+
+      if (isSmallerThanCollapsePoint) {
+        setWidth(theme.sidebarCollapsedWidth);
+      } else {
+        setWidth(width);
+      }
     },
-    [offset, maxWidth, setWidth]
+    [theme, offset, minWidth, maxWidth, setWidth]
   );
 
-  const handleStopDrag = React.useCallback(() => {
-    setResizing(false);
+  const handleStopDrag = React.useCallback(
+    (event: MouseEvent) => {
+      setResizing(false);
 
-    if (isSmallerThanMinimum) {
-      setWidth(minWidth);
-      setAnimating(true);
-    } else {
-      setWidth(width);
-    }
-  }, [isSmallerThanMinimum, minWidth, width, setWidth]);
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
 
-  const handleStartDrag = React.useCallback(
-    (event) => {
+      if (startWidth - event.pageX === 0) {
+        if (ui.sidebarCollapsed) {
+          ui.expandSidebar();
+        } else {
+          setCollapsing(true);
+          ui.collapseSidebar();
+        }
+        return;
+      }
+
+      if (isSmallerThanMinimum) {
+        const isSmallerThanCollapsePoint = width < minWidth / 2;
+
+        if (isSmallerThanCollapsePoint) {
+          setAnimating(false);
+          setCollapsing(true);
+          ui.collapseSidebar();
+        } else {
+          setWidth(minWidth);
+          setAnimating(true);
+        }
+      } else {
+        setWidth(width);
+      }
+    },
+    [ui, isSmallerThanMinimum, startWidth, minWidth, width, setWidth]
+  );
+
+  const handleMouseDown = React.useCallback(
+    (event: MouseEvent) => {
+      setStartWidth(event.pageX);
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
@@ -65,9 +106,18 @@ const useResize = ({ width, minWidth, maxWidth, setWidth }) => {
 
   React.useEffect(() => {
     if (isAnimating) {
-      setTimeout(() => setAnimating(false), BOUNCE_ANIMATION_MS);
+      setTimeout(() => setAnimating(false), ANIMATION_MS);
     }
   }, [isAnimating]);
+
+  React.useEffect(() => {
+    if (isCollapsing) {
+      setTimeout(() => {
+        setWidth(minWidth);
+        setCollapsing(false);
+      }, ANIMATION_MS);
+    }
+  }, [setWidth, minWidth, isCollapsing]);
 
   React.useEffect(() => {
     if (isResizing) {
@@ -80,32 +130,6 @@ const useResize = ({ width, minWidth, maxWidth, setWidth }) => {
       document.removeEventListener("mouseup", handleStopDrag);
     };
   }, [isResizing, handleDrag, handleStopDrag]);
-
-  return { isAnimating, isSmallerThanMinimum, isResizing, handleStartDrag };
-};
-
-function Sidebar({ location, children }: Props) {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  const { ui } = useStores();
-  const previousLocation = usePrevious(location);
-
-  const width = ui.sidebarWidth;
-  const maxWidth = theme.sidebarMaxWidth;
-  const minWidth = theme.sidebarMinWidth + 16; // padding
-  const collapsed = ui.editMode || ui.sidebarCollapsed;
-
-  const {
-    isAnimating,
-    isSmallerThanMinimum,
-    isResizing,
-    handleStartDrag,
-  } = useResize({
-    width,
-    minWidth,
-    maxWidth,
-    setWidth: ui.setSidebarWidth,
-  });
 
   const handleReset = React.useCallback(() => {
     ui.setSidebarWidth(theme.sidebarWidth);
@@ -136,18 +160,13 @@ function Sidebar({ location, children }: Props) {
     <Container
       style={style}
       $sidebarWidth={ui.sidebarWidth}
+      $isCollapsing={isCollapsing}
       $isAnimating={isAnimating}
       $isSmallerThanMinimum={isSmallerThanMinimum}
       $mobileSidebarVisible={ui.mobileSidebarVisible}
       $collapsed={collapsed}
       column
     >
-      {!isResizing && (
-        <CollapseToggle
-          collapsed={ui.sidebarCollapsed}
-          onClick={ui.toggleCollapsedSidebar}
-        />
-      )}
       {ui.mobileSidebarVisible && (
         <Portal>
           <Fade>
@@ -157,15 +176,17 @@ function Sidebar({ location, children }: Props) {
       )}
 
       {children}
-      {!ui.sidebarCollapsed && (
-        <ResizeBorder
-          onMouseDown={handleStartDrag}
-          onDoubleClick={handleReset}
-          $isResizing={isResizing}
-        >
-          <ResizeHandle aria-label={t("Resize sidebar")} />
-        </ResizeBorder>
-      )}
+
+      <ResizeBorder
+        onMouseDown={handleMouseDown}
+        onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+        $isResizing={isResizing}
+      >
+        <ResizeHandle
+          direction={ui.sidebarCollapsed ? "right" : "left"}
+          aria-label={t("Resize sidebar")}
+        />
+      </ResizeBorder>
     </Container>
   );
 
@@ -195,11 +216,10 @@ const Container = styled(Flex)`
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
-  transition: box-shadow, 100ms, ease-in-out, margin-left 100ms ease-out,
-    left 100ms ease-out,
+  transition: box-shadow 100ms ease-in-out, margin-left 100ms ease-out,
     ${(props) => props.theme.backgroundTransition}
       ${(props) =>
-        props.$isAnimating ? `,width ${BOUNCE_ANIMATION_MS}ms ease-out` : ""};
+        props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   margin-left: ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")};
   z-index: ${(props) => props.theme.depths.sidebar};
   max-width: 70%;
@@ -215,30 +235,31 @@ const Container = styled(Flex)`
     z-index: 3;
     min-width: 0;
 
-    &:hover,
-    &:focus-within {
-      left: 0 !important;
-      box-shadow: ${(props) =>
-        props.$collapsed
-          ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
-          : props.$isSmallerThanMinimum
-          ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-          : "none"};
+    ${(props) =>
+      props.$isCollapsing
+        ? ""
+        : css`
+            &:hover,
+            &:focus-within {
+              left: 0 !important;
+              box-shadow: ${(props) =>
+                props.$collapsed
+                  ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
+                  : props.$isSmallerThanMinimum
+                  ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+                  : "none"};
 
-      & ${CollapseButton} {
-        opacity: .75;
-      }
+              ${ResizeButton} {
+                opacity: 1;
+              }
+            }
 
-      & ${CollapseButton}:hover {
-        opacity: 1;
-      }
-    }
-
-    &:not(:hover):not(:focus-within) > div {
-      opacity: ${(props) => (props.$collapsed ? "0" : "1")};
-      transition: opacity 100ms ease-in-out;
-    }
+            &:not(:hover):not(:focus-within) > div {
+              opacity: ${(props) => (props.$collapsed ? "0" : "1")};
+              transition: opacity 100ms ease-in-out;
+            }
+          `}
   `};
 `;
 
-export default withRouter(observer(Sidebar));
+export default observer(Sidebar);
