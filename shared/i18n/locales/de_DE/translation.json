@@ -249,7 +249,6 @@
   "Edit {{noun}}": "{{noun}} bearbeiten",
   "New from template": "Neu aus Vorlage",
   "Publish": "Veröffentlichen",
-  "Publish document": "Dokument veröffentlichen",
   "Publishing": "Wird publiziert",
   "Are you sure you want to delete the <2>{{documentTitle}}</2> template?": "Sind Sie sicher, dass Sie die Vorlage <2>{{documentTitle}}</2> löschen möchten?",
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "Bist du dir sicher? Das Löschen des Dokuments <2>{{documentTitle}}</2> löscht den gesamten Verlauf und alle verschachtelten Dokumente.",
