@@ -249,7 +249,6 @@
   "Edit {{noun}}": "Modifica {{noun}}",
   "New from template": "Nuovo da template",
   "Publish": "Pubblica",
-  "Publish document": "Pubblica documento",
   "Publishing": "In fase di pubblicazione",
   "Are you sure you want to delete the <2>{{documentTitle}}</2> template?": "Sei sicuro di voler eliminare il template <2>{{documentTitle}}</2>?",
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "Sei sicuro di questo? L'eliminazione del documento <2>{{documentTitle}}</2> eliminerà tutta la sua cronologia e tutti i documenti nidificati.",
