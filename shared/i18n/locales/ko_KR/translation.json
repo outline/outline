@@ -249,7 +249,6 @@
   "Edit {{noun}}": "{{noun}} 편집하기",
   "New from template": "새 템플릿 문서",
   "Publish": "게시하기",
-  "Publish document": "문서 게시",
   "Publishing": "게시 중",
   "Are you sure you want to delete the <2>{{documentTitle}}</2> template?": "Are you sure you want to delete the <2>{{documentTitle}}</2> template?",
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.",
