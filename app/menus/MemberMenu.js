@@ -17,7 +17,7 @@ function MemberMenu({ onRemove }: Props) {
 
   return (
     <>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Member options")}>
         <Template
           {...menu}

@@ -64,7 +64,11 @@ function Dashboard() {
       </Switch>
       <Actions align="center" justify="flex-end">
         <Action>
-          <InputSearch source="dashboard" />
+          <InputSearch
+            source="dashboard"
+            label={t("Search documents")}
+            labelHidden
+          />
         </Action>
         <Action>
           <NewDocumentMenu />

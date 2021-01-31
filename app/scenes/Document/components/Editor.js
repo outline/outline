@@ -9,24 +9,23 @@ import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
-import Editor from "components/Editor";
+import Editor, { type Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import Star, { AnimatedStar } from "components/Star";
-import { isMetaKey } from "utils/keyboard";
+import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
+  ...EditorProps,
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
   title: string,
-  defaultValue: string,
   document: Document,
   isDraft: boolean,
   isShare: boolean,
-  readOnly?: boolean,
-  onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
+  onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
-};
+|};
 
 @observer
 class DocumentEditor extends React.Component<Props> {
@@ -55,7 +54,7 @@ class DocumentEditor extends React.Component<Props> {
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      if (isMetaKey(event)) {
+      if (isModKey(event)) {
         this.props.onSave({ done: true });
         return;
       }
@@ -69,12 +68,12 @@ class DocumentEditor extends React.Component<Props> {
       this.focusAtStart();
       return;
     }
-    if (event.key === "p" && isMetaKey(event) && event.shiftKey) {
+    if (event.key === "p" && isModKey(event) && event.shiftKey) {
       event.preventDefault();
       this.props.onSave({ publish: true, done: true });
       return;
     }
-    if (event.key === "s" && isMetaKey(event)) {
+    if (event.key === "s" && isModKey(event)) {
       event.preventDefault();
       this.props.onSave({});
       return;
@@ -98,6 +97,7 @@ class DocumentEditor extends React.Component<Props> {
       isShare,
       readOnly,
       innerRef,
+      ...rest
     } = this.props;
 
     const { emoji } = parseTitle(title);
@@ -135,12 +135,13 @@ class DocumentEditor extends React.Component<Props> {
         />
         <Editor
           ref={innerRef}
-          autoFocus={title && !this.props.defaultValue}
+          autoFocus={!!title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
+          readOnly={readOnly}
           grow
-          {...this.props}
+          {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
         {this.activeLinkEvent && !isShare && readOnly && (

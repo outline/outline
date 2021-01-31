@@ -6,6 +6,17 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "components/Flex";
 
+// This wrapper allows us to pass non-standard HTML attributes through to the DOM element
+// https://www.styled-components.com/docs/basics#passed-props
+const Iframe = (props) => <iframe title="Embed" {...props} />;
+
+const StyledIframe = styled(Iframe)`
+  border: 1px solid;
+  border-color: ${(props) => props.theme.embedBorder};
+  border-radius: ${(props) => (props.withBar ? "3px 3px 0 0" : "3px")};
+  display: block;
+`;
+
 type Props = {
   src?: string,
   border?: boolean,
@@ -127,17 +138,6 @@ const Bar = styled(Flex)`
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
   user-select: none;
-`;
-
-// This wrapper allows us to pass non-standard HTML attributes through to the DOM element
-// https://www.styled-components.com/docs/basics#passed-props
-const Iframe = (props) => <iframe {...props} />;
-
-const StyledIframe = styled(Iframe)`
-  border: 1px solid;
-  border-color: ${(props) => props.theme.embedBorder};
-  border-radius: ${(props) => (props.withBar ? "3px 3px 0 0" : "3px")};
-  display: block;
 `;
 
 export default React.forwardRef<Props, typeof Frame>((props, ref) => (

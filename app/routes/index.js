@@ -1,8 +1,9 @@
 // @flow
 import * as React from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch } from "react-router-dom";
 import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
+import Route from "components/ProfiledRoute";
 
 const Authenticated = React.lazy(() => import("components/Authenticated"));
 const AuthenticatedRoutes = React.lazy(() => import("./authenticated"));

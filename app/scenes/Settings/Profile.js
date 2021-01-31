@@ -154,13 +154,16 @@ class Profile extends React.Component<Props> {
         </form>
 
         <DangerZone>
-          <LabelText>{t("Delete Account")}</LabelText>
-          <p>
-            {t(
-              "You may delete your account at any time, note that this is unrecoverable"
-            )}
-            . <a onClick={this.toggleDeleteAccount}>{t("Delete account")}</a>.
-          </p>
+          <h2>{t("Delete Account")}</h2>
+          <HelpText small>
+            <Trans>
+              You may delete your account at any time, note that this is
+              unrecoverable
+            </Trans>
+          </HelpText>
+          <Button onClick={this.toggleDeleteAccount} neutral>
+            {t("Delete account")}…
+          </Button>
         </DangerZone>
         {this.showDeleteModal && (
           <UserDelete onRequestClose={this.toggleDeleteAccount} />
@@ -171,10 +174,7 @@ class Profile extends React.Component<Props> {
 }
 
 const DangerZone = styled.div`
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
-  position: absolute;
-  bottom: 16px;
+  margin-top: 60px;
 `;
 
 const ProfilePicture = styled(Flex)`

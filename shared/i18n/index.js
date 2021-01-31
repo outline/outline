@@ -24,7 +24,7 @@ export const initI18n = () => {
       },
       lng,
       fallbackLng: lng,
-      debug: process.env.NODE_ENV !== "production",
+      debug: process.env.NODE_ENV === "development",
       keySeparator: false,
     });
 
@@ -36,9 +36,11 @@ export const initI18n = () => {
 
 export const languageOptions = [
   { label: "English (US)", value: "en_US" },
+  { label: "简体中文 (Chinese, Simplified)", value: "zh_CN" },
   { label: "Deutsch (Deutschland)", value: "de_DE" },
   { label: "Español (España)", value: "es_ES" },
   { label: "Français (France)", value: "fr_FR" },
+  { label: "Italiano (Italia)", value: "it_IT" },
   { label: "한국어 (Korean)", value: "ko_KR" },
   { label: "Português (Portugal)", value: "pt_PT" },
 ];

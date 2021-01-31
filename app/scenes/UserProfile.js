@@ -19,11 +19,11 @@ import Subheading from "components/Subheading";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   user: User,
   history: RouterHistory,
   onRequestClose: () => void,
-};
+|};
 
 function UserProfile(props: Props) {
   const { t } = useTranslation();

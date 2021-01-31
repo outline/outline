@@ -490,7 +490,7 @@ Document.addHook("afterCreate", async (model) => {
     return;
   }
 
-  await collection.addDocumentToStructure(model);
+  await collection.addDocumentToStructure(model, 0);
   model.collection = collection;
 
   return model;
@@ -579,7 +579,7 @@ Document.prototype.publish = async function (options) {
   if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
-  await collection.addDocumentToStructure(this);
+  await collection.addDocumentToStructure(this, 0);
 
   this.publishedAt = new Date();
   await this.save(options);

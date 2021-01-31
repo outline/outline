@@ -2,18 +2,19 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
-import VisuallyHidden from "components/VisuallyHidden";
 import { Outline, LabelText } from "./Input";
 
 const Select = styled.select`
   border: 0;
   flex: 1;
-  padding: 8px 0;
+  padding: 4px 0;
   margin: 0 12px;
   outline: none;
   background: none;
   color: ${(props) => props.theme.text};
+  height: 30px;
 
   &:disabled,
   &::placeholder {
@@ -35,6 +36,8 @@ export type Props = {
   className?: string,
   labelHidden?: boolean,
   options: Option[],
+  onBlur?: () => void,
+  onFocus?: () => void,
 };
 
 @observer

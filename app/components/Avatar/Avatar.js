@@ -3,13 +3,17 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import User from "models/User";
 import placeholder from "./placeholder.png";
 
-type Props = {
+type Props = {|
   src: string,
   size: number,
   icon?: React.Node,
-};
+  user?: User,
+  onClick?: () => void,
+  className?: string,
+|};
 
 @observer
 class Avatar extends React.Component<Props> {

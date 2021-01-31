@@ -18,6 +18,7 @@
 
 [options]
 emoji=true
+sharedmemory.heap_size=3221225472
 
 module.system.node.resolve_dirname=node_modules
 module.system.node.resolve_dirname=app

@@ -10,6 +10,7 @@ const TeamLogo = styled.img`
   background: ${(props) => props.theme.background};
   border: 1px solid ${(props) => props.theme.divider};
   overflow: hidden;
+  flex-shrink: 0;
 `;
 
 export default TeamLogo;

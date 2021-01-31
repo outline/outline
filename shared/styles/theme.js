@@ -47,10 +47,10 @@ const spacing = {
   padding: "1.5vw 1.875vw",
   vpadding: "1.5vw",
   hpadding: "1.875vw",
-  sidebarWidth: "280px",
-  sidebarCollapsedWidth: "16px",
-  sidebarMinWidth: "250px",
-  sidebarMaxWidth: "350px",
+  sidebarWidth: 260,
+  sidebarCollapsedWidth: 16,
+  sidebarMinWidth: 200,
+  sidebarMaxWidth: 400,
 };
 
 export const base = {
@@ -68,6 +68,7 @@ export const base = {
   buttonBackground: colors.primary,
   buttonText: colors.white,
   textHighlight: "#FDEA9B",
+  textHighlightForeground: colors.almostBlack,
 
   codeComment: "#6a737d",
   codePunctuation: "#5e6687",

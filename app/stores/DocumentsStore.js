@@ -183,7 +183,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.drafts().length;
   }
 
-  drafts = (options = {}): Document[] => {
+  drafts = (
+    options: {
+      ...PaginationParams,
+      dateFilter?: "day" | "week" | "month" | "year",
+      collectionId?: string,
+    } = {}
+  ): Document[] => {
     let drafts = filter(
       orderBy(this.all, "updatedAt", "desc"),
       (doc) => !doc.publishedAt
@@ -194,7 +200,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         drafts,
         (draft) =>
           new Date(draft.updatedAt) >=
-          subtractDate(new Date(), options.dateFilter)
+          subtractDate(new Date(), options.dateFilter || "year")
       );
     }
 
@@ -254,7 +260,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchNamedPage = async (
     request: string = "list",
-    options: ?PaginationParams
+    options: ?Object
   ): Promise<?(Document[])> => {
     this.isFetching = true;
 
@@ -347,10 +353,9 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  searchTitles = async (query: string, options: PaginationParams = {}) => {
+  searchTitles = async (query: string) => {
     const res = await client.get("/documents.search_titles", {
       query,
-      ...options,
     });
     invariant(res && res.data, "Search response should be available");
 
@@ -363,7 +368,15 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   search = async (
     query: string,
-    options: PaginationParams = {}
+    options: {
+      offset?: number,
+      limit?: number,
+      dateFilter?: "day" | "week" | "month" | "year",
+      includeArchived?: boolean,
+      includeDrafts?: boolean,
+      collectionId?: string,
+      userId?: string,
+    }
   ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
@@ -610,10 +623,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  restore = async (document: Document, options = {}) => {
+  restore = async (
+    document: Document,
+    options: { revisionId?: string, collectionId?: string } = {}
+  ) => {
     const res = await client.post("/documents.restore", {
       id: document.id,
-      ...options,
+      revisionId: options.revisionId,
+      collectionId: options.collectionId,
     });
     runInAction("Document#restore", () => {
       invariant(res && res.data, "Data should be available");

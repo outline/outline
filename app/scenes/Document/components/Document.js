@@ -61,7 +61,7 @@ type Props = {
   document: Document,
   revision: Revision,
   readOnly: boolean,
-  onCreateLink: (title: string) => string,
+  onCreateLink: (title: string) => Promise<string>,
   onSearchLink: (term: string) => any,
   theme: Theme,
   auth: AuthStore,

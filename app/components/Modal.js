@@ -13,12 +13,12 @@ import Scrollable from "components/Scrollable";
 
 ReactModal.setAppElement("#root");
 
-type Props = {
+type Props = {|
   children?: React.Node,
   isOpen: boolean,
   title?: string,
   onRequestClose: () => void,
-};
+|};
 
 const GlobalStyles = createGlobalStyle`
   .ReactModal__Overlay {

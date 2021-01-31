@@ -10,8 +10,10 @@ const locales = {
   de: require(`date-fns/locale/de`),
   es: require(`date-fns/locale/es`),
   fr: require(`date-fns/locale/fr`),
+  it: require(`date-fns/locale/it`),
   ko: require(`date-fns/locale/ko`),
   pt: require(`date-fns/locale/pt`),
+  zh: require(`date-fns/locale/zh_cn`),
 };
 
 let callbacks = [];
