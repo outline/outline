@@ -278,9 +278,12 @@ class CollectionScene extends React.Component<Props> {
 
                 <Tabs>
                   <Tab to={collectionUrl(collection.id)} exact>
+                    {t("Documents")}
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, "updated")} exact>
                     {t("Recently updated")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "recent")} exact>
+                  <Tab to={collectionUrl(collection.id, "published")} exact>
                     {t("Recently published")}
                   </Tab>
                   <Tab to={collectionUrl(collection.id, "old")} exact>
@@ -313,9 +316,9 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id, "recent")}>
+                  <Route path={collectionUrl(collection.id, "published")}>
                     <PaginatedDocumentList
-                      key="recent"
+                      key="published"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -325,8 +328,9 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id)}>
+                  <Route path={collectionUrl(collection.id, "updated")}>
                     <PaginatedDocumentList
+                      key="updated"
                       documents={documents.recentlyUpdatedInCollection(
                         collection.id
                       )}
@@ -334,6 +338,22 @@ class CollectionScene extends React.Component<Props> {
                       options={{ collectionId: collection.id }}
                       showPin
                     />
+                  </Route>
+                  <Route path={collectionUrl(collection.id)} exact>
+                    <PaginatedDocumentList
+                      documents={documents.rootInCollection(collection.id)}
+                      fetch={documents.fetchPage}
+                      options={{
+                        collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: "ASC",
+                      }}
+                      showPin
+                    />
+                  </Route>
+                  <Route>
+                    <Redirect to={collectionUrl(collection.id)} />
                   </Route>
                 </Switch>
               </>
