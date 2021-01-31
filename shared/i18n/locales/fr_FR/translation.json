@@ -249,7 +249,6 @@
   "Edit {{noun}}": "Éditer {{noun}}",
   "New from template": "Nouveau à partir d'un modèle",
   "Publish": "Publier",
-  "Publish document": "Publier le document",
   "Publishing": "Publication en cours",
   "Are you sure you want to delete the <2>{{documentTitle}}</2> template?": "Are you sure you want to delete the <2>{{documentTitle}}</2> template?",
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.",
