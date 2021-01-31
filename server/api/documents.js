@@ -942,7 +942,7 @@ router.post("documents.update", auth(), async (ctx) => {
     transaction = await sequelize.transaction();
 
     if (publish) {
-      await document.publish({ transaction });
+      await document.publish(user.id, { transaction });
     } else {
       await document.save({ autosave, transaction });
     }
@@ -1119,7 +1119,7 @@ router.post("documents.unpublish", auth(), async (ctx) => {
 
   authorize(user, "unpublish", document);
 
-  await document.unpublish();
+  await document.unpublish(user.id);
 
   await Event.create({
     name: "documents.unpublish",
@@ -1213,7 +1213,7 @@ export async function createDocumentFromContext(ctx: any) {
   });
 
   if (publish) {
-    await document.publish();
+    await document.publish(user.id);
 
     await Event.create({
       name: "documents.publish",

@@ -1962,7 +1962,7 @@ describe("#documents.delete", () => {
 
 describe("#documents.unpublish", () => {
   it("should unpublish a document", async () => {
-    const { user, document } = await seed();
+    let { user, document } = await seed();
     const res = await server.post("/api/documents.unpublish", {
       body: { token: user.getJwtToken(), id: document.id },
     });
@@ -1971,6 +1971,28 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
+
+    document = await Document.unscoped().findByPk(document.id);
+    expect(document.userId).toEqual(user.id);
+  });
+
+  it("should unpublish another users document", async () => {
+    const { user, collection } = await seed();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.unpublish", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.publishedAt).toBeNull();
+
+    document = await Document.unscoped().findByPk(document.id);
+    expect(document.userId).toEqual(user.id);
   });
 
   it("should fail to unpublish a draft document", async () => {
@@ -1996,7 +2018,7 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should fail to unpublish a archived document", async () => {
+  it("should fail to unpublish an archived document", async () => {
     const { user, document } = await seed();
     await document.archive();
 
