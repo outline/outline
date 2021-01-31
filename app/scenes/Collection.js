@@ -352,6 +352,7 @@ class CollectionScene extends React.Component<Props> {
                         sort: collection.sort.field,
                         direction: "ASC",
                       }}
+                      showNestedDocuments
                       showPin
                     />
                   </Route>

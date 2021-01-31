@@ -11,6 +11,7 @@ type Props = {|
   options?: Object,
   heading?: React.Node,
   empty?: React.Node,
+  showNestedDocuments?: boolean,
   showCollection?: boolean,
   showPublished?: boolean,
   showPin?: boolean,
