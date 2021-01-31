@@ -316,9 +316,9 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id, "updated")}>
+                  <Route path={collectionUrl(collection.id, "published")}>
                     <PaginatedDocumentList
-                      key="updated"
+                      key="published"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -328,7 +328,18 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id)}>
+                  <Route path={collectionUrl(collection.id, "updated")}>
+                    <PaginatedDocumentList
+                      key="updated"
+                      documents={documents.recentlyUpdatedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchRecentlyUpdated}
+                      options={{ collectionId: collection.id }}
+                      showPin
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id)} exact>
                     <PaginatedDocumentList
                       documents={documents.rootInCollection(collection.id)}
                       fetch={documents.fetchPage}
@@ -340,6 +351,9 @@ class CollectionScene extends React.Component<Props> {
                       }}
                       showPin
                     />
+                  </Route>
+                  <Route>
+                    <Redirect to={collectionUrl(collection.id)} />
                   </Route>
                 </Switch>
               </>
