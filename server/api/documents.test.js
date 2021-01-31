@@ -1972,7 +1972,7 @@ describe("#documents.unpublish", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
 
-    document = await Document.unscoped().findOne(document.id);
+    document = await Document.unscoped().findByPk(document.id);
     expect(document.userId).toEqual(user.id);
   });
 
@@ -1991,7 +1991,7 @@ describe("#documents.unpublish", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
 
-    document = await Document.unscoped().findOne(document.id);
+    document = await Document.unscoped().findByPk(document.id);
     expect(document.userId).toEqual(user.id);
   });
 
