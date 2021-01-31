@@ -249,7 +249,6 @@
   "Edit {{noun}}": "Редактировать {{noun}}",
   "New from template": "Создать из шаблона",
   "Publish": "Опубликовать",
-  "Publish document": "Опубликовать документ",
   "Publishing": "Публикация",
   "Are you sure you want to delete the <2>{{documentTitle}}</2> template?": "Вы действительно хотите удалить шаблон <2>{{documentTitle}}</2>?",
   "Are you sure about that? Deleting the <2>{{documentTitle}}</2> document will delete all of its history and any nested documents.": "Вы уверены? Удаление <2>{{documentTitle}}</2> также означает удаление всей его истории и дочерних документов.",
