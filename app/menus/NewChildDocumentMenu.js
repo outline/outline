@@ -31,9 +31,11 @@ function NewChildDocumentMenu({ document, label }: Props) {
             {
               title: (
                 <span>
-                  <Trans>
-                    New document in <strong>{{ collectionName }}</strong>
-                  </Trans>
+                  <Trans
+                    defaults="New document in <em>{{ collectionName }}</em>"
+                    values={{ collectionName }}
+                    components={{ em: <strong /> }}
+                  />
                 </span>
               ),
               to: newDocumentUrl(document.collectionId),

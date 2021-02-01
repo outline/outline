@@ -207,10 +207,12 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  <Trans>
-                    <strong>{{ collectionName }}</strong> doesn’t contain any
-                    documents yet.
-                  </Trans>
+                  <Trans
+                    defaults="<em>{{ collectionName }}</em> doesn’t contain any
+                    documents yet."
+                    values={{ collectionName }}
+                    components={{ em: <strong /> }}
+                  />
                   <br />
                   <Trans>Get started by creating a new one!</Trans>
                 </HelpText>

@@ -21,14 +21,11 @@ const ErrorSuspended = ({ auth }: { auth: AuthStore }) => {
       </h1>
 
       <p>
-        <Trans>
-          A team admin (
-          <strong>
-            {{ suspendedContactEmail: auth.suspendedContactEmail }}
-          </strong>
-          ) has suspended your account. To re-activate your account, please
-          reach out to them directly.
-        </Trans>
+        <Trans
+          defaults="A team admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly."
+          values={{ suspendedContactEmail: auth.suspendedContactEmail }}
+          components={{ em: <strong /> }}
+        />
       </p>
     </CenteredContent>
   );
