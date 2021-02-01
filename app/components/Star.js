@@ -1,5 +1,5 @@
 // @flow
-import { StarredIcon } from "outline-icons";
+import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -38,11 +38,11 @@ function Star({ size, document, ...rest }: Props) {
       aria-label={document.isStarred ? t("Unstar") : t("Star")}
       {...rest}
     >
-      <AnimatedStar
-        solid={document.isStarred}
-        size={size}
-        color="currentColor"
-      />
+      {document.isStarred ? (
+        <AnimatedStar size={size} color="currentColor" />
+      ) : (
+        <AnimatedStar size={size} color="currentColor" as={UnstarredIcon} />
+      )}
     </Button>
   );
 }
