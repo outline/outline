@@ -21,7 +21,6 @@ type Props = {|
   canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
-  activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
   index: number,
@@ -33,7 +32,6 @@ function DocumentLink({
   canUpdate,
   collection,
   activeDocument,
-  activeDocumentRef,
   prefetchDocument,
   depth,
   index,
@@ -213,7 +211,6 @@ function DocumentLink({
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
-                innerRef={isActiveDocument ? activeDocumentRef : undefined}
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
