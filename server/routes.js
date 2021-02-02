@@ -7,7 +7,7 @@ import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
 import { languages } from "../shared/i18n";
-import environment from "./env";
+import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
 import { opensearchResponse } from "./utils/opensearch";
 import prefetchTags from "./utils/prefetchTags";
@@ -45,12 +45,12 @@ const renderApp = async (ctx, next) => {
   }
 
   const page = await readIndexFile(ctx);
-  const env = `
-    window.env = ${JSON.stringify(environment)};
+  const environment = `
+    window.env = ${JSON.stringify(env)};
   `;
   ctx.body = page
     .toString()
-    .replace(/\/\/inject-env\/\//g, env)
+    .replace(/\/\/inject-env\/\//g, environment)
     .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
@@ -111,7 +111,24 @@ router.get("/share/*", (ctx, next) => {
 // catch all for application
 router.get("*", renderApp);
 
-// middleware
+// In order to report all possible performance metrics to Sentry this header
+// must be provided when serving the application, see:
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
+const timingOrigins = [];
+if (env.SENTRY_DSN) {
+  timingOrigins.push("https://sentry.io");
+}
+if (env.CDN_URL) {
+  timingOrigins.push(env.CDN_URL);
+}
+
+if (timingOrigins.length) {
+  koa.use(async (ctx, next) => {
+    ctx.headers["Timing-Allow-Origin"] = timingOrigins.join(", ");
+    await next();
+  });
+}
+
 koa.use(apexRedirect());
 koa.use(router.routes());
 

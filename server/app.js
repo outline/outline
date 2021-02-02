@@ -185,16 +185,6 @@ app.use(
   })
 );
 
-// In order to report all possible performance metrics to Sentry this header
-// must be provided, see:
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
-if (env.SENTRY_DSN) {
-  app.use(async (ctx, next) => {
-    ctx.headers["Timing-Allow-Origin"] = "https://sentry.io";
-    await next();
-  });
-}
-
 // Allow DNS prefetching for performance, we do not care about leaking requests
 // to our own CDN's
 app.use(dnsPrefetchControl({ allow: true }));
