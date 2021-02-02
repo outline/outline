@@ -28,6 +28,7 @@ try {
   // no-op
 }
 
+let index = 0;
 Object.values(manifestData).forEach((filename) => {
   if (typeof filename !== "string") return;
   if (!env.CDN_URL) return;
@@ -40,14 +41,19 @@ Object.values(manifestData).forEach((filename) => {
       filename.includes("/runtime") ||
       filename.includes("/vendors");
 
-    prefetchTags.push(
-      <link
-        rel={shouldPreload ? "preload" : "prefetch"}
-        href={filename}
-        key={filename}
-        as="script"
-      />
-    );
+    // only prefetch the first few javascript chunks or it gets out of hand fast
+    const shouldPrefetch = ++index <= 6;
+
+    if (shouldPreload || shouldPrefetch) {
+      prefetchTags.push(
+        <link
+          rel={shouldPreload ? "preload" : "prefetch"}
+          href={filename}
+          key={filename}
+          as="script"
+        />
+      );
+    }
   } else if (filename.endsWith(".css")) {
     prefetchTags.push(
       <link rel="prefetch" href={filename} key={filename} as="style" />
