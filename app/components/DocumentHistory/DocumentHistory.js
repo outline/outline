@@ -156,7 +156,7 @@ const Wrapper = styled(Flex)`
   top: 0;
   right: 0;
   z-index: 1;
-  min-width: ${(props) => props.theme.sidebarWidth};
+  min-width: ${(props) => props.theme.sidebarWidth}px;
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: none;
@@ -165,7 +165,7 @@ const Wrapper = styled(Flex)`
 const Sidebar = styled(Flex)`
   display: none;
   background: ${(props) => props.theme.background};
-  min-width: ${(props) => props.theme.sidebarWidth};
+  min-width: ${(props) => props.theme.sidebarWidth}px;
   border-left: 1px solid ${(props) => props.theme.divider};
   z-index: 1;
 
