@@ -1,14 +1,10 @@
 // @flow
 import * as React from "react";
-import {
-  withRouter,
-  NavLink,
-  type RouterHistory,
-  type Match,
-} from "react-router-dom";
+import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
+import NavLink from "./NavLink";
 import { type Theme } from "types";
 
 type Props = {
@@ -47,7 +43,6 @@ function SidebarLink({
   theme,
   exact,
   href,
-  innerRef,
   depth,
   history,
   match,
@@ -66,14 +61,14 @@ function SidebarLink({
     ...style,
   };
 
-  const activeFontWeightOnly = {
+  const activeDropStyle = {
     fontWeight: 600,
   };
 
   return (
-    <StyledNavLink
+    <Link
       $isActiveDrop={isActiveDrop}
-      activeStyle={isActiveDrop ? activeFontWeightOnly : activeStyle}
+      activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
       style={active ? activeStyle : style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -81,13 +76,12 @@ function SidebarLink({
       to={to}
       as={to ? undefined : href ? "a" : "div"}
       href={href}
-      ref={innerRef}
       className={className}
     >
       {icon && <IconWrapper>{icon}</IconWrapper>}
       <Label>{label}</Label>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
-    </StyledNavLink>
+    </Link>
   );
 }
 
@@ -121,7 +115,7 @@ const Actions = styled(EventBoundary)`
   }
 `;
 
-const StyledNavLink = styled(NavLink)`
+const Link = styled(NavLink)`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
@@ -138,7 +132,7 @@ const StyledNavLink = styled(NavLink)`
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
-    transition: fill 50ms
+    transition: fill 50ms;
   }
 
   &:hover {

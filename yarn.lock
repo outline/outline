@@ -11028,7 +11028,7 @@ slugify@^1.4.0:
   resolved "https://registry.yarnpkg.com/slugify/-/slugify-1.4.6.tgz#ef288d920a47fb01c2be56b3487b6722f5e34ace"
   integrity sha512-ZdJIgv9gdrYwhXqxsH9pv7nXxjUEyQ6nqhngRxoAAOlmMGA28FDq5O4/5US4G2/Nod7d1ovNcgURQJ7kHq50KQ==
 
-smooth-scroll-into-view-if-needed@^1.1.27:
+smooth-scroll-into-view-if-needed@^1.1.27, smooth-scroll-into-view-if-needed@^1.1.29:
   version "1.1.29"
   resolved "https://registry.yarnpkg.com/smooth-scroll-into-view-if-needed/-/smooth-scroll-into-view-if-needed-1.1.29.tgz#4f532d9f0353dbca122e546fb062e7b5e0643734"
   integrity sha512-UxvIEbmMEqwbw0aZI4SOAtwwkMaLYVION20bDQmazVp3sNb1+WIA5koukqoJizRuAAUANRmcBcrTnodcB7maqw==
