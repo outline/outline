@@ -114,20 +114,15 @@ router.get("*", renderApp);
 // In order to report all possible performance metrics to Sentry this header
 // must be provided when serving the application, see:
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
-const timingOrigins = [];
+const timingOrigins = [env.URL];
 if (env.SENTRY_DSN) {
   timingOrigins.push("https://sentry.io");
 }
-if (env.CDN_URL) {
-  timingOrigins.push(env.CDN_URL);
-}
 
-if (timingOrigins.length) {
-  koa.use(async (ctx, next) => {
-    ctx.headers["Timing-Allow-Origin"] = timingOrigins.join(", ");
-    await next();
-  });
-}
+koa.use(async (ctx, next) => {
+  ctx.set("Timing-Allow-Origin", timingOrigins.join(", "));
+  await next();
+});
 
 koa.use(apexRedirect());
 koa.use(router.routes());
