@@ -188,6 +188,10 @@ const MobileMenuButton = styled(Button)`
   ${breakpoint("tablet")`
     display: none;
   `};
+
+  @media print {
+    display: none;
+  }
 `;
 
 const Content = styled(Flex)`
