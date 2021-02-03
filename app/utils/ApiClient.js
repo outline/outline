@@ -5,10 +5,12 @@ import stores from "stores";
 import download from "./download";
 import {
   AuthorizationError,
+  BadRequestError,
   NetworkError,
   NotFoundError,
   OfflineError,
   RequestError,
+  ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
 
@@ -110,6 +112,8 @@ class ApiClient {
 
       download(blob, trim(fileName, '"'));
       return;
+    } else if (success && response.status === 204) {
+      return;
     } else if (success) {
       return response.json();
     }
@@ -139,12 +143,20 @@ class ApiClient {
       throw new UpdateRequiredError(error.message);
     }
 
+    if (response.status === 400) {
+      throw new BadRequestError(error.message);
+    }
+
     if (response.status === 403) {
       throw new AuthorizationError(error.message);
     }
 
     if (response.status === 404) {
       throw new NotFoundError(error.message);
+    }
+
+    if (response.status === 503) {
+      throw new ServiceUnavailableError(error.message);
     }
 
     throw new RequestError(error.message);

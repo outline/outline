@@ -8,7 +8,7 @@ import { fadeAndSlideIn } from "shared/styles/animations";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
-import isInternalUrl from "utils/isInternalUrl";
+import { isInternalUrl } from "utils/urls";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;

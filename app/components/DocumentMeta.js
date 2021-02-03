@@ -1,20 +1,21 @@
 // @flow
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import CollectionsStore from "stores/CollectionsStore";
 import Document from "models/Document";
 import Breadcrumb from "components/Breadcrumb";
 import Flex from "components/Flex";
 import Time from "components/Time";
+import useStores from "hooks/useStores";
 
 const Container = styled(Flex)`
   color: ${(props) => props.theme.textTertiary};
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
+  min-width: 0;
 `;
 
 const Modified = styled.span`
@@ -22,28 +23,28 @@ const Modified = styled.span`
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
-type Props = {
-  collections: CollectionsStore,
-  auth: AuthStore,
+type Props = {|
   showCollection?: boolean,
   showPublished?: boolean,
   showLastViewed?: boolean,
+  showNestedDocuments?: boolean,
   document: Document,
   children: React.Node,
   to?: string,
-};
+|};
 
 function DocumentMeta({
-  auth,
-  collections,
   showPublished,
   showCollection,
   showLastViewed,
+  showNestedDocuments,
   document,
   children,
   to,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
+  const { collections, auth } = useStores();
   const {
     modifiedSinceViewed,
     updatedAt,
@@ -67,37 +68,37 @@ function DocumentMeta({
   if (deletedAt) {
     content = (
       <span>
-        deleted <Time dateTime={deletedAt} addSuffix />
+        {t("deleted")} <Time dateTime={deletedAt} addSuffix />
       </span>
     );
   } else if (archivedAt) {
     content = (
       <span>
-        archived <Time dateTime={archivedAt} addSuffix />
+        {t("archived")} <Time dateTime={archivedAt} addSuffix />
       </span>
     );
   } else if (createdAt === updatedAt) {
     content = (
       <span>
-        created <Time dateTime={updatedAt} addSuffix />
+        {t("created")} <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
     content = (
       <span>
-        published <Time dateTime={publishedAt} addSuffix />
+        {t("published")} <Time dateTime={publishedAt} addSuffix />
       </span>
     );
   } else if (isDraft) {
     content = (
       <span>
-        saved <Time dateTime={updatedAt} addSuffix />
+        {t("saved")} <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else {
     content = (
       <Modified highlight={modifiedSinceViewed}>
-        updated <Time dateTime={updatedAt} addSuffix />
+        {t("updated")} <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
   }
@@ -112,28 +113,38 @@ function DocumentMeta({
     if (!lastViewedAt) {
       return (
         <>
-          •&nbsp;<Modified highlight>Never viewed</Modified>
+          •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
         </>
       );
     }
 
     return (
       <span>
-        •&nbsp;Viewed <Time dateTime={lastViewedAt} addSuffix shorten />
+        •&nbsp;{t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
       </span>
     );
   };
 
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
+
   return (
     <Container align="center" {...rest}>
-      {updatedByMe ? "You" : updatedBy.name}&nbsp;
+      {updatedByMe ? t("You") : updatedBy.name}&nbsp;
       {to ? <Link to={to}>{content}</Link> : content}
       {showCollection && collection && (
         <span>
-          &nbsp;in&nbsp;
+          &nbsp;{t("in")}&nbsp;
           <strong>
             <Breadcrumb document={document} onlyText />
           </strong>
+        </span>
+      )}
+      {showNestedDocuments && nestedDocumentsCount > 0 && (
+        <span>
+          &nbsp;&middot; {nestedDocumentsCount}{" "}
+          {t("nested document", { count: nestedDocumentsCount })}
         </span>
       )}
       &nbsp;{timeSinceNow()}
@@ -142,4 +153,4 @@ function DocumentMeta({
   );
 }
 
-export default inject("collections", "auth")(observer(DocumentMeta));
+export default observer(DocumentMeta);

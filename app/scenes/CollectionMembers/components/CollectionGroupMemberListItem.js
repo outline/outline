@@ -1,16 +1,13 @@
 // @flow
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import GroupListItem from "components/GroupListItem";
 import InputSelect from "components/InputSelect";
+import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 
-const PERMISSIONS = [
-  { label: "Read only", value: "read" },
-  { label: "Read & Edit", value: "read_write" },
-];
 type Props = {
   group: Group,
   collectionGroupMembership: ?CollectionGroupMembership,
@@ -24,6 +21,16 @@ const MemberListItem = ({
   onUpdate,
   onRemove,
 }: Props) => {
+  const { t } = useTranslation();
+
+  const PERMISSIONS = React.useMemo(
+    () => [
+      { label: t("Read only"), value: "read" },
+      { label: t("Read & Edit"), value: "read_write" },
+    ],
+    [t]
+  );
+
   return (
     <GroupListItem
       group={group}
@@ -32,7 +39,7 @@ const MemberListItem = ({
       renderActions={({ openMembersModal }) => (
         <>
           <Select
-            label="Permissions"
+            label={t("Permissions")}
             options={PERMISSIONS}
             value={
               collectionGroupMembership
@@ -43,13 +50,10 @@ const MemberListItem = ({
             labelHidden
           />
           <ButtonWrap>
-            <DropdownMenu>
-              <DropdownMenuItem onClick={openMembersModal}>
-                Members…
-              </DropdownMenuItem>
-              <hr />
-              <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
-            </DropdownMenu>
+            <CollectionGroupMemberMenu
+              onMembers={openMembersModal}
+              onRemove={onRemove}
+            />
           </ButtonWrap>
         </>
       )}

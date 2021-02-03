@@ -1,71 +1,69 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
-
-import SharesStore from "stores/SharesStore";
-import UiStore from "stores/UiStore";
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
+import { useMenuState } from "reakit/Menu";
 import Share from "models/Share";
+import ContextMenu from "components/ContextMenu";
+import MenuItem from "components/ContextMenu/MenuItem";
+import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import CopyToClipboard from "components/CopyToClipboard";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import useStores from "hooks/useStores";
 
 type Props = {
-  onOpen?: () => void,
-  onClose: () => void,
-  shares: SharesStore,
-  ui: UiStore,
   share: Share,
 };
 
-@observer
-class ShareMenu extends React.Component<Props> {
-  @observable redirectTo: ?string;
+function ShareMenu({ share }: Props) {
+  const menu = useMenuState({ modal: true });
+  const { ui, shares } = useStores();
+  const { t } = useTranslation();
+  const history = useHistory();
 
-  componentDidUpdate() {
-    this.redirectTo = undefined;
-  }
+  const handleGoToDocument = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      history.push(share.documentUrl);
+    },
+    [history, share]
+  );
 
-  handleGoToDocument = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.redirectTo = this.props.share.documentUrl;
-  };
+  const handleRevoke = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
 
-  handleRevoke = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
+      try {
+        await shares.revoke(share);
+        ui.showToast(t("Share link revoked"), { type: "info" });
+      } catch (err) {
+        ui.showToast(err.message, { type: "error" });
+      }
+    },
+    [t, shares, share, ui]
+  );
 
-    try {
-      await this.props.shares.revoke(this.props.share);
-      this.props.ui.showToast("Share link revoked");
-    } catch (err) {
-      this.props.ui.showToast(err.message);
-    }
-  };
+  const handleCopy = React.useCallback(() => {
+    ui.showToast(t("Share link copied"), { type: "info" });
+  }, [t, ui]);
 
-  handleCopy = () => {
-    this.props.ui.showToast("Share link copied");
-  };
-
-  render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
-    const { share, onOpen, onClose } = this.props;
-
-    return (
-      <DropdownMenu onOpen={onOpen} onClose={onClose}>
-        <CopyToClipboard text={share.url} onCopy={this.handleCopy}>
-          <DropdownMenuItem>Copy link</DropdownMenuItem>
+  return (
+    <>
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
+      <ContextMenu {...menu} aria-label={t("Share options")}>
+        <CopyToClipboard text={share.url} onCopy={handleCopy}>
+          <MenuItem {...menu}>{t("Copy link")}</MenuItem>
         </CopyToClipboard>
-        <DropdownMenuItem onClick={this.handleGoToDocument}>
-          Go to document
-        </DropdownMenuItem>
+        <MenuItem {...menu} onClick={handleGoToDocument}>
+          {t("Go to document")}
+        </MenuItem>
         <hr />
-        <DropdownMenuItem onClick={this.handleRevoke}>
-          Revoke link
-        </DropdownMenuItem>
-      </DropdownMenu>
-    );
-  }
+        <MenuItem {...menu} onClick={handleRevoke}>
+          {t("Revoke link")}
+        </MenuItem>
+      </ContextMenu>
+    </>
+  );
 }
 
-export default inject("shares", "ui")(ShareMenu);
+export default observer(ShareMenu);

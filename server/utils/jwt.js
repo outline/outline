@@ -2,7 +2,7 @@
 import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
 import { AuthenticationError } from "../errors";
-import { User } from "../models";
+import { Team, User } from "../models";
 
 function getJWTPayload(token) {
   let payload;
@@ -28,7 +28,15 @@ export async function getUserForJWT(token: string): Promise<User> {
     }
   }
 
-  const user = await User.findByPk(payload.id);
+  const user = await User.findByPk(payload.id, {
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
+  });
 
   if (payload.type === "transfer") {
     // If the user has made a single API request since the transfer token was

@@ -43,9 +43,9 @@ class DocumentShare extends React.Component<Props> {
     this.isSaving = true;
 
     try {
-      await share.save({ published: event.target.checked });
+      await share.save({ published: event.currentTarget.checked });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }
@@ -115,7 +115,7 @@ class DocumentShare extends React.Component<Props> {
           </Button>
         </CopyToClipboard>
         &nbsp;&nbsp;&nbsp;
-        <a href={share.url} target="_blank">
+        <a href={share.url} target="_blank" rel="noreferrer">
           Preview
         </a>
       </div>

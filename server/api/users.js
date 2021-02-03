@@ -91,10 +91,11 @@ router.post("users.info", auth(), async (ctx) => {
 
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { name, avatarUrl } = ctx.body;
+  const { name, avatarUrl, language } = ctx.body;
 
   if (name) user.name = name;
   if (avatarUrl) user.avatarUrl = avatarUrl;
+  if (language) user.language = language;
 
   await user.save();
 

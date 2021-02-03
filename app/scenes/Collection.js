@@ -2,8 +2,9 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 
-import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
+import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 
@@ -47,6 +48,7 @@ type Props = {
   policies: PoliciesStore,
   match: Match,
   theme: Theme,
+  t: TFunction,
 };
 
 @observer
@@ -64,7 +66,7 @@ class CollectionScene extends React.Component<Props> {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     const { id } = this.props.match.params;
 
     if (this.collection) {
@@ -132,7 +134,7 @@ class CollectionScene extends React.Component<Props> {
   };
 
   renderActions() {
-    const { match, policies } = this.props;
+    const { match, policies, t } = this.props;
     const can = policies.abilities(match.params.id || "");
 
     return (
@@ -142,19 +144,21 @@ class CollectionScene extends React.Component<Props> {
             <Action>
               <InputSearch
                 source="collection"
-                placeholder="Search in collection…"
+                placeholder={`${t("Search in collection")}…`}
+                label={`${t("Search in collection")}…`}
+                labelHidden
                 collectionId={match.params.id}
               />
             </Action>
             <Action>
               <Tooltip
-                tooltip="New document"
+                tooltip={t("New document")}
                 shortcut="n"
                 delay={500}
                 placement="bottom"
               >
                 <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
-                  New doc
+                  {t("New doc")}
                 </Button>
               </Tooltip>
             </Action>
@@ -162,14 +166,27 @@ class CollectionScene extends React.Component<Props> {
           </>
         )}
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <CollectionMenu
+            collection={this.collection}
+            placement="bottom-end"
+            modal={false}
+            label={(props) => (
+              <Button
+                icon={<MoreIcon />}
+                {...props}
+                borderOnHover
+                neutral
+                small
+              />
+            )}
+          />
         </Action>
       </Actions>
     );
   }
 
   render() {
-    const { documents, theme } = this.props;
+    const { documents, theme, t } = this.props;
 
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
     if (!this.isFetching && !this.collection) return <Search notFound />;
@@ -177,8 +194,10 @@ class CollectionScene extends React.Component<Props> {
     const pinnedDocuments = this.collection
       ? documents.pinnedInCollection(this.collection.id)
       : [];
-    const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
+    const collectionName = collection ? collection.name : "";
+    const hasPinnedDocuments = !!pinnedDocuments.length;
+    const hasDescription = collection ? collection.hasDescription : false;
 
     return (
       <CenteredContent>
@@ -188,26 +207,30 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  <strong>{collection.name}</strong> doesn’t contain any
-                  documents yet.
+                  <Trans
+                    defaults="<em>{{ collectionName }}</em> doesn’t contain any
+                    documents yet."
+                    values={{ collectionName }}
+                    components={{ em: <strong /> }}
+                  />
                   <br />
-                  Get started by creating a new one!
+                  <Trans>Get started by creating a new one!</Trans>
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection.id)}>
                     <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
-                      Create a document
+                      {t("Create a document")}
                     </Button>
                   </Link>
                   &nbsp;&nbsp;
                   {collection.private && (
                     <Button onClick={this.onPermissions} neutral>
-                      Manage members…
+                      {t("Manage members")}…
                     </Button>
                   )}
                 </Wrapper>
                 <Modal
-                  title="Collection permissions"
+                  title={t("Collection permissions")}
                   onRequestClose={this.handlePermissionsModalClose}
                   isOpen={this.permissionsModalOpen}
                 >
@@ -218,7 +241,7 @@ class CollectionScene extends React.Component<Props> {
                   />
                 </Modal>
                 <Modal
-                  title="Edit collection"
+                  title={t("Edit collection")}
                   onRequestClose={this.handleEditModalClose}
                   isOpen={this.editModalOpen}
                 >
@@ -235,7 +258,7 @@ class CollectionScene extends React.Component<Props> {
                   {collection.name}
                 </Heading>
 
-                {collection.description && (
+                {hasDescription && (
                   <React.Suspense fallback={<p>Loading…</p>}>
                     <Editor
                       id={collection.id}
@@ -249,7 +272,7 @@ class CollectionScene extends React.Component<Props> {
                 {hasPinnedDocuments && (
                   <>
                     <Subheading>
-                      <TinyPinIcon size={18} /> Pinned
+                      <TinyPinIcon size={18} /> {t("Pinned")}
                     </Subheading>
                     <DocumentList documents={pinnedDocuments} showPin />
                   </>
@@ -257,16 +280,19 @@ class CollectionScene extends React.Component<Props> {
 
                 <Tabs>
                   <Tab to={collectionUrl(collection.id)} exact>
-                    Recently updated
+                    {t("Documents")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "recent")} exact>
-                    Recently published
+                  <Tab to={collectionUrl(collection.id, "updated")} exact>
+                    {t("Recently updated")}
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, "published")} exact>
+                    {t("Recently published")}
                   </Tab>
                   <Tab to={collectionUrl(collection.id, "old")} exact>
-                    Least recently updated
+                    {t("Least recently updated")}
                   </Tab>
                   <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
-                    A–Z
+                    {t("A–Z")}
                   </Tab>
                 </Tabs>
                 <Switch>
@@ -293,8 +319,11 @@ class CollectionScene extends React.Component<Props> {
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, "recent")}>
+                    <Redirect to={collectionUrl(collection.id, "published")} />
+                  </Route>
+                  <Route path={collectionUrl(collection.id, "published")}>
                     <PaginatedDocumentList
-                      key="recent"
+                      key="published"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -304,13 +333,28 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id)}>
+                  <Route path={collectionUrl(collection.id, "updated")}>
                     <PaginatedDocumentList
+                      key="updated"
                       documents={documents.recentlyUpdatedInCollection(
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyUpdated}
                       options={{ collectionId: collection.id }}
+                      showPin
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id)} exact>
+                    <PaginatedDocumentList
+                      documents={documents.rootInCollection(collection.id)}
+                      fetch={documents.fetchPage}
+                      options={{
+                        collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: "ASC",
+                      }}
+                      showNestedDocuments
                       showPin
                     />
                   </Route>
@@ -351,9 +395,11 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject(
-  "collections",
-  "policies",
-  "documents",
-  "ui"
-)(withTheme(CollectionScene));
+export default withTranslation()<CollectionScene>(
+  inject(
+    "collections",
+    "policies",
+    "documents",
+    "ui"
+  )(withTheme(CollectionScene))
+);

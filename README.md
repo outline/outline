@@ -12,6 +12,7 @@
   <a href="https://circleci.com/gh/outline/outline" rel="nofollow"><img src="https://circleci.com/gh/outline/outline.svg?style=shield&amp;circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a"></a>
   <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat"></a>
   <a href="https://github.com/styled-components/styled-components"><img src="https://img.shields.io/badge/style-%F0%9F%92%85%20styled--components-orange.svg"></a>
+  <a href="https://translate.getoutline.com/project/outline"><img src="https://badges.crowdin.net/outline/localized.svg"></a>
 </p>
 
 This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
@@ -74,6 +75,20 @@ In development you can quickly get an environment running using Docker by follow
     1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
+### Upgrade
+
+#### Docker
+
+If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
+```
+docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
+```
+#### Yarn
+
+If you're running Outline by cloning this repository, run the following command to upgrade:
+```
+yarn run upgrade
+```
 
 ## Development
 
@@ -164,6 +179,7 @@ However, before working on a pull request please let the core team know by creat
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
+* [Translation](TRANSLATION.md) into other languages
 * Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
 * Performance improvements, both on server and frontend
 * Developer happiness and documentation

@@ -3,14 +3,14 @@ import Tippy from "@tippy.js/react";
 import * as React from "react";
 import styled from "styled-components";
 
-type Props = {
+type Props = {|
   tooltip: React.Node,
   shortcut?: React.Node,
   placement?: "top" | "bottom" | "left" | "right",
   children: React.Node,
   delay?: number,
   className?: string,
-};
+|};
 
 class Tooltip extends React.Component<Props> {
   render() {

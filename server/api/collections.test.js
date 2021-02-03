@@ -1,8 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Collection, CollectionUser, CollectionGroup } from "../models";
-import { buildUser, buildGroup, buildCollection } from "../test/factories";
+import { Document, CollectionUser, CollectionGroup } from "../models";
+import {
+  buildUser,
+  buildGroup,
+  buildCollection,
+  buildDocument,
+} from "../test/factories";
 import { flushdb, seed } from "../test/support";
 const server = new TestServer(app.callback());
 
@@ -864,6 +869,8 @@ describe("#collections.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBeTruthy();
     expect(body.data.name).toBe("Test");
+    expect(body.data.sort.field).toBe("index");
+    expect(body.data.sort.direction).toBe("asc");
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[0].abilities.export).toBeTruthy();
@@ -914,6 +921,29 @@ describe("#collections.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.name).toBe("Test");
     expect(body.policies.length).toBe(1);
+  });
+
+  it("allows editing sort", async () => {
+    const { user, collection } = await seed();
+    const sort = { field: "index", direction: "desc" };
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, sort },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sort.field).toBe("index");
+    expect(body.data.sort.direction).toBe("desc");
+  });
+
+  it("allows editing individual fields", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, private: true },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.private).toBe(true);
+    expect(body.data.name).toBe(collection.name);
   });
 
   it("allows editing from non-private to private collection", async () => {
@@ -1027,6 +1057,24 @@ describe("#collections.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
+  it("does not allow setting unknown sort fields", async () => {
+    const { user, collection } = await seed();
+    const sort = { field: "blah", direction: "desc" };
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, sort },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("does not allow setting unknown sort directions", async () => {
+    const { user, collection } = await seed();
+    const sort = { field: "title", direction: "blah" };
+    const res = await server.post("/api/collections.update", {
+      body: { token: user.getJwtToken(), id: collection.id, sort },
+    });
+    expect(res.status).toEqual(400);
+  });
 });
 
 describe("#collections.delete", () => {
@@ -1057,11 +1105,11 @@ describe("#collections.delete", () => {
 
   it("should delete collection", async () => {
     const { user, collection } = await seed();
-    await Collection.create({
-      name: "Blah",
-      urlId: "blah",
+
+    // to ensure it isn't the last collection
+    await buildCollection({
       teamId: user.teamId,
-      creatorId: user.id,
+      createdById: user.id,
     });
 
     const res = await server.post("/api/collections.delete", {
@@ -1071,6 +1119,37 @@ describe("#collections.delete", () => {
 
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+  });
+
+  it("should delete published documents", async () => {
+    const { user, collection } = await seed();
+
+    // to ensure it isn't the last collection
+    await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    // archived document should not be deleted
+    await buildDocument({
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.delete", {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+    expect(
+      await Document.count({
+        where: {
+          collectionId: collection.id,
+        },
+      })
+    ).toEqual(1);
   });
 
   it("allows deleting by read-write collection group user", async () => {

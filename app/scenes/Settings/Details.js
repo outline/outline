@@ -52,9 +52,9 @@ class Details extends React.Component<Props> {
         avatarUrl: this.avatarUrl,
         subdomain: this.subdomain,
       });
-      this.props.ui.showToast("Settings saved");
+      this.props.ui.showToast("Settings saved", { type: "success" });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     }
   };
 

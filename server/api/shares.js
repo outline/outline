@@ -30,7 +30,7 @@ router.post("shares.info", auth(), async (ctx) => {
         },
   });
   if (!share || !share.document) {
-    throw new NotFoundError();
+    return (ctx.response.status = 204);
   }
 
   authorize(user, "read", share);

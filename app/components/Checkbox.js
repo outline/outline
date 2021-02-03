@@ -1,18 +1,21 @@
 // @flow
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
-import VisuallyHidden from "components/VisuallyHidden";
 
-export type Props = {
+export type Props = {|
   checked?: boolean,
   label?: string,
   labelHidden?: boolean,
   className?: string,
+  name?: string,
+  disabled?: boolean,
+  onChange: (event: SyntheticInputEvent<HTMLInputElement>) => mixed,
   note?: string,
   short?: boolean,
   small?: boolean,
-};
+|};
 
 const LabelText = styled.span`
   font-weight: 500;

@@ -37,17 +37,19 @@ router.post("team.update", auth(), async (ctx) => {
 
   await team.save();
 
-  for (const change of changes) {
-    data[change] = team[change];
-  }
+  if (changes) {
+    for (const change of changes) {
+      data[change] = team[change];
+    }
 
-  await Event.create({
-    name: "teams.update",
-    actorId: user.id,
-    teamId: user.teamId,
-    data,
-    ip: ctx.request.ip,
-  });
+    await Event.create({
+      name: "teams.update",
+      actorId: user.id,
+      teamId: user.teamId,
+      data,
+      ip: ctx.request.ip,
+    });
+  }
 
   ctx.body = {
     data: presentTeam(team),

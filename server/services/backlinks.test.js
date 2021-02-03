@@ -9,6 +9,56 @@ const Backlinks = new BacklinksService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
+describe("documents.publish", () => {
+  test("should create new backlink records", async () => {
+    const otherDocument = await buildDocument();
+    const document = await buildDocument({
+      text: `[this is a link](${otherDocument.url})`,
+    });
+
+    await Backlinks.on({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+    });
+
+    const backlinks = await Backlink.findAll({
+      where: { reverseDocumentId: document.id },
+    });
+
+    expect(backlinks.length).toBe(1);
+  });
+
+  test("should not fail when linked document is destroyed", async () => {
+    const otherDocument = await buildDocument();
+    await otherDocument.destroy();
+
+    const document = await buildDocument({
+      version: null,
+      text: `[ ] checklist item`,
+    });
+
+    document.text = `[this is a link](${otherDocument.url})`;
+    await document.save();
+
+    await Backlinks.on({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+    });
+
+    const backlinks = await Backlink.findAll({
+      where: { reverseDocumentId: document.id },
+    });
+
+    expect(backlinks.length).toBe(0);
+  });
+});
+
 describe("documents.update", () => {
   test("should not fail on a document with no previous revisions", async () => {
     const otherDocument = await buildDocument();

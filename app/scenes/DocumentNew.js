@@ -37,7 +37,9 @@ class DocumentNew extends React.Component<Props> {
       });
       this.props.history.replace(editDocumentUrl(document));
     } catch (err) {
-      this.props.ui.showToast("Couldn’t create the document, try again?");
+      this.props.ui.showToast("Couldn’t create the document, try again?", {
+        type: "error",
+      });
       this.props.history.goBack();
     }
   }

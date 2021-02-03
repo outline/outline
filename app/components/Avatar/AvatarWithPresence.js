@@ -4,6 +4,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import User from "models/User";
 import UserProfile from "scenes/UserProfile";
@@ -16,6 +17,7 @@ type Props = {
   isEditing: boolean,
   isCurrentUser: boolean,
   lastViewedAt: string,
+  t: TFunction,
 };
 
 @observer
@@ -37,20 +39,25 @@ class AvatarWithPresence extends React.Component<Props> {
       isPresent,
       isEditing,
       isCurrentUser,
+      t,
     } = this.props;
+
+    const action = isPresent
+      ? isEditing
+        ? t("currently editing")
+        : t("currently viewing")
+      : t("viewed {{ timeAgo }} ago", {
+          timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
+        });
 
     return (
       <>
         <Tooltip
           tooltip={
             <Centered>
-              <strong>{user.name}</strong> {isCurrentUser && "(You)"}
+              <strong>{user.name}</strong> {isCurrentUser && `(${t("You")})`}
               <br />
-              {isPresent
-                ? isEditing
-                  ? "currently editing"
-                  : "currently viewing"
-                : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`}
+              {action}
             </Centered>
           }
           placement="bottom"
@@ -83,4 +90,4 @@ const AvatarWrapper = styled.div`
   transition: opacity 250ms ease-in-out;
 `;
 
-export default AvatarWithPresence;
+export default withTranslation()<AvatarWithPresence>(AvatarWithPresence);

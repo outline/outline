@@ -1,11 +1,13 @@
 // @flow
-import "mobx-react-lite/batchingForReactDom";
 import "focus-visible";
+import { createBrowserHistory } from "history";
 import { Provider } from "mobx-react";
 import * as React from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { render } from "react-dom";
-import { BrowserRouter as Router } from "react-router-dom";
-
+import { Router } from "react-router-dom";
+import { initI18n } from "shared/i18n";
 import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
 import ScrollToTop from "components/ScrollToTop";
@@ -13,25 +15,35 @@ import Theme from "components/Theme";
 import Toasts from "components/Toasts";
 import Routes from "./routes";
 import env from "env";
+import { initSentry } from "utils/sentry";
+
+initI18n();
 
 const element = document.getElementById("root");
+const history = createBrowserHistory();
+
+if (env.SENTRY_DSN) {
+  initSentry(history);
+}
 
 if (element) {
   render(
-    <ErrorBoundary>
-      <Provider {...stores}>
-        <Theme>
-          <Router>
-            <>
-              <ScrollToTop>
-                <Routes />
-              </ScrollToTop>
-              <Toasts />
-            </>
-          </Router>
-        </Theme>
-      </Provider>
-    </ErrorBoundary>,
+    <Provider {...stores}>
+      <Theme>
+        <ErrorBoundary>
+          <DndProvider backend={HTML5Backend}>
+            <Router history={history}>
+              <>
+                <ScrollToTop>
+                  <Routes />
+                </ScrollToTop>
+                <Toasts />
+              </>
+            </Router>
+          </DndProvider>
+        </ErrorBoundary>
+      </Theme>
+    </Provider>,
     element
   );
 }

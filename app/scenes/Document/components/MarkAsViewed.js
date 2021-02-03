@@ -16,8 +16,9 @@ class MarkAsViewed extends React.Component<Props> {
     const { document } = this.props;
 
     this.viewTimeout = setTimeout(async () => {
-      if (document.publishedAt) {
-        const view = await document.view();
+      const view = await document.view();
+
+      if (view) {
         document.updateLastViewed(view);
       }
     }, MARK_AS_VIEWED_AFTER);

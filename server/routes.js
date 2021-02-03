@@ -6,9 +6,11 @@ import Koa from "koa";
 import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
-import environment from "./env";
+import { languages } from "../shared/i18n";
+import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
 import { opensearchResponse } from "./utils/opensearch";
+import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -43,13 +45,13 @@ const renderApp = async (ctx, next) => {
   }
 
   const page = await readIndexFile(ctx);
-  const env = `
-    window.env = ${JSON.stringify(environment)};
+  const environment = `
+    window.env = ${JSON.stringify(env)};
   `;
   ctx.body = page
     .toString()
-    .replace(/\/\/inject-env\/\//g, env)
-    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
+    .replace(/\/\/inject-env\/\//g, environment)
+    .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
 
@@ -72,6 +74,26 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+router.get("/locales/:lng.json", async (ctx) => {
+  let { lng } = ctx.params;
+
+  if (!languages.includes(lng)) {
+    ctx.status = 404;
+    return;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    ctx.set({
+      "Cache-Control": `max-age=${7 * 24 * 60 * 60}`,
+    });
+  }
+
+  await sendfile(
+    ctx,
+    path.join(__dirname, "../shared/i18n/locales", lng, "translation.json")
+  );
+});
+
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse(ctx);
 });
@@ -89,7 +111,19 @@ router.get("/share/*", (ctx, next) => {
 // catch all for application
 router.get("*", renderApp);
 
-// middleware
+// In order to report all possible performance metrics to Sentry this header
+// must be provided when serving the application, see:
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
+const timingOrigins = [env.URL];
+if (env.SENTRY_DSN) {
+  timingOrigins.push("https://sentry.io");
+}
+
+koa.use(async (ctx, next) => {
+  ctx.set("Timing-Allow-Origin", timingOrigins.join(", "));
+  await next();
+});
+
 koa.use(apexRedirect());
 koa.use(router.routes());
 

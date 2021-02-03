@@ -22,9 +22,13 @@ const RealButton = styled.button`
   cursor: pointer;
   user-select: none;
 
-  svg {
-    fill: ${(props) => props.iconColor || props.theme.buttonText};
-  }
+  ${(props) =>
+    !props.borderOnHover &&
+    `
+      svg {
+        fill: ${props.iconColor || props.theme.buttonText};
+      }
+    `}
 
   &::-moz-focus-inner {
     padding: 0;
@@ -42,24 +46,30 @@ const RealButton = styled.button`
   }
 
   ${(props) =>
-    props.neutral &&
+    props.$neutral &&
     `
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
     box-shadow: ${
-      props.borderOnHover ? "none" : "rgba(0, 0, 0, 0.07) 0px 1px 2px"
-    };
-    border: 1px solid ${
-      props.borderOnHover ? "transparent" : props.theme.buttonNeutralBorder
+      props.borderOnHover
+        ? "none"
+        : `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`
     };
 
-    svg {
+    ${
+      props.borderOnHover
+        ? ""
+        : `svg {
       fill: ${props.iconColor || props.theme.buttonNeutralText};
+    }`
     }
+    
 
     &:hover {
       background: ${darken(0.05, props.theme.buttonNeutralBackground)};
-      border: 1px solid ${props.theme.buttonNeutralBorder};
+      box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
+        props.theme.buttonNeutralBorder
+      } 0 0 0 1px inset;
     }
 
     &:disabled {
@@ -71,9 +81,9 @@ const RealButton = styled.button`
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
-    &:hover {
-      background: ${darken(0.05, props.theme.danger)};
-    }
+      &:hover {
+        background: ${darken(0.05, props.theme.danger)};
+      }
   `};
 `;
 
@@ -92,14 +102,14 @@ export const Inner = styled.span`
   line-height: ${(props) => (props.hasIcon ? 24 : 32)}px;
   justify-content: center;
   align-items: center;
-  min-height: 30px;
+  min-height: 32px;
 
   ${(props) => props.hasIcon && props.hasText && "padding-left: 4px;"};
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
-export type Props = {
-  type?: string,
+export type Props = {|
+  type?: "button" | "submit",
   value?: string,
   icon?: React.Node,
   iconColor?: string,
@@ -107,9 +117,22 @@ export type Props = {
   children?: React.Node,
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
+  neutral?: boolean,
+  danger?: boolean,
+  primary?: boolean,
+  disabled?: boolean,
   fullwidth?: boolean,
+  autoFocus?: boolean,
+  style?: Object,
+  as?: React.ComponentType<any>,
+  to?: string,
+  onClick?: (event: SyntheticEvent<>) => mixed,
   borderOnHover?: boolean,
-};
+
+  "data-on"?: string,
+  "data-event-category"?: string,
+  "data-event-action"?: string,
+|};
 
 function Button({
   type = "text",
@@ -118,13 +141,14 @@ function Button({
   value,
   disclosure,
   innerRef,
+  neutral,
   ...rest
 }: Props) {
   const hasText = children !== undefined || value !== undefined;
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton type={type} ref={innerRef} {...rest}>
+    <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}

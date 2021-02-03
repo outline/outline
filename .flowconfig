@@ -18,6 +18,7 @@
 
 [options]
 emoji=true
+sharedmemory.heap_size=3221225472
 
 module.system.node.resolve_dirname=node_modules
 module.system.node.resolve_dirname=app
@@ -32,6 +33,7 @@ module.file_ext=.json
 esproposal.decorators=ignore
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
+esproposal.optional_chaining=enable
 
 suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue

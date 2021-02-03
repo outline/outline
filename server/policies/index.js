@@ -1,7 +1,8 @@
 // @flow
-import { Team, User, Collection, Document, Group } from "../models";
+import { Attachment, Team, User, Collection, Document, Group } from "../models";
 import policy from "./policy";
 import "./apiKey";
+import "./attachment";
 import "./collection";
 import "./document";
 import "./integration";
@@ -24,7 +25,7 @@ type Policy = {
  */
 export function serialize(
   model: User,
-  target: Team | Collection | Document | Group
+  target: Attachment | Team | Collection | Document | Group
 ): Policy {
   let output = {};
 

@@ -1,21 +1,18 @@
 // @flow
 import * as React from "react";
+import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Membership from "models/Membership";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Flex from "components/Flex";
 import InputSelect from "components/InputSelect";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
+import MemberMenu from "menus/MemberMenu";
 
-const PERMISSIONS = [
-  { label: "Read only", value: "read" },
-  { label: "Read & Edit", value: "read_write" },
-];
 type Props = {
   user: User,
   membership?: ?Membership,
@@ -33,20 +30,30 @@ const MemberListItem = ({
   onAdd,
   canEdit,
 }: Props) => {
+  const { t } = useTranslation();
+
+  const PERMISSIONS = React.useMemo(
+    () => [
+      { label: t("Read only"), value: "read" },
+      { label: t("Read & Edit"), value: "read_write" },
+    ],
+    [t]
+  );
+
   return (
     <ListItem
       title={user.name}
       subtitle={
         <>
           {user.lastActiveAt ? (
-            <>
+            <Trans>
               Active <Time dateTime={user.lastActiveAt} /> ago
-            </>
+            </Trans>
           ) : (
-            "Never signed in"
+            t("Never signed in")
           )}
-          {user.isInvited && <Badge>Invited</Badge>}
-          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
+          {user.isInvited && <Badge>{t("Invited")}</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
       image={<Avatar src={user.avatarUrl} size={40} />}
@@ -54,7 +61,7 @@ const MemberListItem = ({
         <Flex align="center">
           {canEdit && onUpdate && (
             <Select
-              label="Permissions"
+              label={t("Permissions")}
               options={PERMISSIONS}
               value={membership ? membership.permission : undefined}
               onChange={(ev) => onUpdate(ev.target.value)}
@@ -62,14 +69,10 @@ const MemberListItem = ({
             />
           )}
           &nbsp;&nbsp;
-          {canEdit && onRemove && (
-            <DropdownMenu>
-              <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
-            </DropdownMenu>
-          )}
+          {canEdit && onRemove && <MemberMenu onRemove={onRemove} />}
           {canEdit && onAdd && (
             <Button onClick={onAdd} neutral>
-              Add
+              {t("Add")}
             </Button>
           )}
         </Flex>

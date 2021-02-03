@@ -281,7 +281,7 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should not find revoked share", async () => {
@@ -295,7 +295,7 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should not find share for deleted document", async () => {
@@ -309,7 +309,7 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should require authentication", async () => {

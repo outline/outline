@@ -1,6 +1,4 @@
 // @flow
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import {
   CollectionIcon,
   CoinsIcon,
@@ -22,12 +20,16 @@ import {
   VehicleIcon,
 } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled from "styled-components";
-import { DropdownMenu } from "components/DropdownMenu";
+import ContextMenu from "components/ContextMenu";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import { LabelText } from "components/Input";
 import NudeButton from "components/NudeButton";
+
+const style = { width: 30, height: 30 };
 
 const TwitterPicker = React.lazy(() =>
   import("react-color/lib/components/twitter/Twitter")
@@ -121,105 +123,77 @@ const colors = [
   "#2F362F",
 ];
 
-type Props = {
+type Props = {|
   onOpen?: () => void,
   onChange: (color: string, icon: string) => void,
   icon: string,
   color: string,
-};
+|};
 
-function preventEventBubble(event) {
-  event.stopPropagation();
+function IconPicker({ onOpen, icon, color, onChange }: Props) {
+  const { t } = useTranslation();
+  const menu = useMenuState({
+    modal: true,
+    placement: "bottom-end",
+  });
+  const Component = icons[icon || "collection"].component;
+
+  return (
+    <Wrapper>
+      <Label>
+        <LabelText>{t("Icon")}</LabelText>
+      </Label>
+      <MenuButton {...menu}>
+        {(props) => (
+          <Button aria-label={t("Show menu")} {...props}>
+            <Component color={color} size={30} />
+          </Button>
+        )}
+      </MenuButton>
+      <ContextMenu {...menu} onOpen={onOpen} aria-label={t("Choose icon")}>
+        <Icons>
+          {Object.keys(icons).map((name) => {
+            const Component = icons[name].component;
+            return (
+              <MenuItem
+                key={name}
+                onClick={() => onChange(color, name)}
+                {...menu}
+              >
+                {(props) => (
+                  <IconButton style={style} {...props}>
+                    <Component color={color} size={30} />
+                  </IconButton>
+                )}
+              </MenuItem>
+            );
+          })}
+        </Icons>
+        <Flex>
+          <React.Suspense fallback={<Loading>{t("Loading")}…</Loading>}>
+            <ColorPicker
+              color={color}
+              onChange={(color) => onChange(color.hex, icon)}
+              colors={colors}
+              triangle="hide"
+            />
+          </React.Suspense>
+        </Flex>
+      </ContextMenu>
+    </Wrapper>
+  );
 }
 
-@observer
-class IconPicker extends React.Component<Props> {
-  @observable isOpen: boolean = false;
-  node: ?HTMLElement;
-
-  componentDidMount() {
-    window.addEventListener("click", this.handleClickOutside);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("click", this.handleClickOutside);
-  }
-
-  handleClose = () => {
-    this.isOpen = false;
-  };
-
-  handleOpen = () => {
-    this.isOpen = true;
-
-    if (this.props.onOpen) {
-      this.props.onOpen();
-    }
-  };
-
-  handleClickOutside = (ev: SyntheticMouseEvent<>) => {
-    // $FlowFixMe
-    if (ev.target && this.node && this.node.contains(ev.target)) {
-      return;
-    }
-
-    this.handleClose();
-  };
-
-  render() {
-    const Component = icons[this.props.icon || "collection"].component;
-
-    return (
-      <Wrapper ref={(ref) => (this.node = ref)}>
-        <label>
-          <LabelText>Icon</LabelText>
-        </label>
-        <DropdownMenu
-          onOpen={this.handleOpen}
-          label={
-            <LabelButton>
-              <Component role="button" color={this.props.color} size={30} />
-            </LabelButton>
-          }
-        >
-          <Icons onClick={preventEventBubble}>
-            {Object.keys(icons).map((name) => {
-              const Component = icons[name].component;
-              return (
-                <IconButton
-                  key={name}
-                  onClick={() => this.props.onChange(this.props.color, name)}
-                  style={{ width: 30, height: 30 }}
-                >
-                  <Component color={this.props.color} size={30} />
-                </IconButton>
-              );
-            })}
-          </Icons>
-          <Flex onClick={preventEventBubble}>
-            <React.Suspense fallback={<Loading>Loading…</Loading>}>
-              <ColorPicker
-                color={this.props.color}
-                onChange={(color) =>
-                  this.props.onChange(color.hex, this.props.icon)
-                }
-                colors={colors}
-                triangle="hide"
-              />
-            </React.Suspense>
-          </Flex>
-        </DropdownMenu>
-      </Wrapper>
-    );
-  }
-}
+const Label = styled.label`
+  display: block;
+`;
 
 const Icons = styled.div`
   padding: 15px 9px 9px 15px;
   width: 276px;
 `;
 
-const LabelButton = styled(NudeButton)`
+const Button = styled(NudeButton)`
   border: 1px solid ${(props) => props.theme.inputBorder};
   width: 32px;
   height: 32px;

@@ -3,11 +3,13 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Input from "./Input";
 import { type Theme } from "types";
+import { meta } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -15,7 +17,10 @@ type Props = {
   theme: Theme,
   source: string,
   placeholder?: string,
+  label?: string,
+  labelHidden?: boolean,
   collectionId?: string,
+  t: TFunction,
 };
 
 @observer
@@ -23,8 +28,8 @@ class InputSearch extends React.Component<Props> {
   input: ?Input;
   @observable focused: boolean = false;
 
-  @keydown("meta+f")
-  focus(ev) {
+  @keydown(`${meta}+f`)
+  focus(ev: SyntheticEvent<>) {
     ev.preventDefault();
 
     if (this.input) {
@@ -32,7 +37,7 @@ class InputSearch extends React.Component<Props> {
     }
   }
 
-  handleSearchInput = (ev) => {
+  handleSearchInput = (ev: SyntheticInputEvent<>) => {
     ev.preventDefault();
     this.props.history.push(
       searchUrl(ev.target.value, {
@@ -51,7 +56,8 @@ class InputSearch extends React.Component<Props> {
   };
 
   render() {
-    const { theme, placeholder = "Search…" } = this.props;
+    const { t } = this.props;
+    const { theme, placeholder = `${t("Search")}…` } = this.props;
 
     return (
       <InputMaxWidth
@@ -64,6 +70,8 @@ class InputSearch extends React.Component<Props> {
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
           />
         }
+        label={this.props.label}
+        labelHidden={this.props.labelHidden}
         onFocus={this.handleFocus}
         onBlur={this.handleBlur}
         margin={0}
@@ -76,4 +84,6 @@ const InputMaxWidth = styled(Input)`
   max-width: 30vw;
 `;
 
-export default withTheme(withRouter(InputSearch));
+export default withTranslation()<InputSearch>(
+  withTheme(withRouter(InputSearch))
+);

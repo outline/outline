@@ -1,163 +1,291 @@
 // @flow
-import { observable } from "mobx";
 import { observer } from "mobx-react";
+import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
+import { useDrag, useDrop } from "react-dnd";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import DocumentsStore from "stores/DocumentsStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
-import Flex from "components/Flex";
+import DropCursor from "./DropCursor";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
 type Props = {|
   node: NavigationNode,
-  documents: DocumentsStore,
   canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
-  activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
+  index: number,
+  parentId?: string,
 |};
 
-@observer
-class DocumentLink extends React.Component<Props> {
-  @observable menuOpen = false;
+function DocumentLink({
+  node,
+  canUpdate,
+  collection,
+  activeDocument,
+  prefetchDocument,
+  depth,
+  index,
+  parentId,
+}: Props) {
+  const { documents, policies } = useStores();
+  const { t } = useTranslation();
 
-  componentDidMount() {
-    if (this.isActiveDocument() && this.hasChildDocuments()) {
-      this.props.documents.fetchChildDocuments(this.props.node.id);
+  const isActiveDocument = activeDocument && activeDocument.id === node.id;
+  const hasChildDocuments = !!node.children.length;
+
+  const document = documents.get(node.id);
+  const { fetchChildDocuments } = documents;
+
+  React.useEffect(() => {
+    if (isActiveDocument && hasChildDocuments) {
+      fetchChildDocuments(node.id);
     }
-  }
+  }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.activeDocument !== this.props.activeDocument) {
-      if (this.isActiveDocument() && this.hasChildDocuments()) {
-        this.props.documents.fetchChildDocuments(this.props.node.id);
-      }
-    }
-  }
+  const pathToNode = React.useMemo(
+    () =>
+      collection && collection.pathToDocument(node.id).map((entry) => entry.id),
+    [collection, node]
+  );
 
-  handleMouseEnter = (ev: SyntheticEvent<>) => {
-    const { node, prefetchDocument } = this.props;
-
-    ev.stopPropagation();
-    ev.preventDefault();
-    prefetchDocument(node.id);
-  };
-
-  handleTitleChange = async (title: string) => {
-    const document = this.props.documents.get(this.props.node.id);
-    if (!document) return;
-
-    await this.props.documents.update({
-      id: document.id,
-      lastRevision: document.revision,
-      text: document.text,
-      title,
-    });
-  };
-
-  isActiveDocument = () => {
-    return (
-      this.props.activeDocument &&
-      this.props.activeDocument.id === this.props.node.id
-    );
-  };
-
-  hasChildDocuments = () => {
-    return !!this.props.node.children.length;
-  };
-
-  render() {
-    const {
-      node,
-      documents,
-      collection,
-      activeDocument,
-      activeDocumentRef,
-      prefetchDocument,
-      depth,
-      canUpdate,
-    } = this.props;
-
-    const showChildren = !!(
+  const showChildren = React.useMemo(() => {
+    return !!(
+      hasChildDocuments &&
       activeDocument &&
       collection &&
       (collection
-        .pathToDocument(activeDocument)
+        .pathToDocument(activeDocument.id)
         .map((entry) => entry.id)
         .includes(node.id) ||
-        this.isActiveDocument())
+        isActiveDocument)
     );
-    const document = documents.get(node.id);
-    const title = node.title || "Untitled";
+  }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
 
-    return (
-      <Flex
-        column
-        key={node.id}
-        ref={this.isActiveDocument() ? activeDocumentRef : undefined}
-        onMouseEnter={this.handleMouseEnter}
-      >
-        <DropToImport documentId={node.id} activeClassName="activeDropZone">
-          <SidebarLink
-            to={{
-              pathname: node.url,
-              state: { title: node.title },
-            }}
-            expanded={showChildren ? true : undefined}
-            label={
-              <EditableTitle
-                title={title}
-                onSubmit={this.handleTitleChange}
-                canUpdate={canUpdate}
+  const [expanded, setExpanded] = React.useState(showChildren);
+
+  React.useEffect(() => {
+    if (showChildren) {
+      setExpanded(showChildren);
+    }
+  }, [showChildren]);
+
+  // when the last child document is removed,
+  // also close the local folder state to closed
+  React.useEffect(() => {
+    if (expanded && !hasChildDocuments) {
+      setExpanded(false);
+    }
+  }, [expanded, hasChildDocuments]);
+
+  const handleDisclosureClick = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setExpanded(!expanded);
+    },
+    [expanded]
+  );
+
+  const handleMouseEnter = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      prefetchDocument(node.id);
+    },
+    [prefetchDocument, node]
+  );
+
+  const handleTitleChange = React.useCallback(
+    async (title: string) => {
+      if (!document) return;
+
+      await documents.update({
+        id: document.id,
+        lastRevision: document.revision,
+        text: document.text,
+        title,
+      });
+    },
+    [documents, document]
+  );
+
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const isMoving = documents.movingDocumentId === node.id;
+  const manualSort = collection?.sort.field === "index";
+
+  // Draggable
+  const [{ isDragging }, drag] = useDrag({
+    item: { type: "document", ...node, depth, active: isActiveDocument },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+    canDrag: (monitor) => {
+      return policies.abilities(node.id).move;
+    },
+  });
+
+  const hoverExpanding = React.useRef(null);
+
+  // We set a timeout when the user first starts hovering over the document link,
+  // to trigger expansion of children. Clear this timeout when they stop hovering.
+  const resetHoverExpanding = React.useCallback(() => {
+    if (hoverExpanding.current) {
+      clearTimeout(hoverExpanding.current);
+      hoverExpanding.current = null;
+    }
+  }, []);
+
+  // Drop to re-parent
+  const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
+    accept: "document",
+    drop: async (item, monitor) => {
+      if (monitor.didDrop()) return;
+      if (!collection) return;
+      documents.move(item.id, collection.id, node.id);
+    },
+
+    canDrop: (item, monitor) =>
+      pathToNode && !pathToNode.includes(monitor.getItem().id),
+
+    hover: (item, monitor) => {
+      // Enables expansion of document children when hovering over the document
+      // for more than half a second.
+      if (
+        hasChildDocuments &&
+        monitor.canDrop() &&
+        monitor.isOver({ shallow: true })
+      ) {
+        if (!hoverExpanding.current) {
+          hoverExpanding.current = setTimeout(() => {
+            hoverExpanding.current = null;
+            if (monitor.isOver({ shallow: true })) {
+              setExpanded(true);
+            }
+          }, 500);
+        }
+      }
+    },
+
+    collect: (monitor) => ({
+      isOverReparent: !!monitor.isOver({ shallow: true }),
+      canDropToReparent: monitor.canDrop(),
+    }),
+  });
+
+  // Drop to reorder
+  const [{ isOverReorder }, dropToReorder] = useDrop({
+    accept: "document",
+    drop: async (item, monitor) => {
+      if (!collection) return;
+      if (item.id === node.id) return;
+
+      if (expanded) {
+        documents.move(item.id, collection.id, node.id, 0);
+        return;
+      }
+
+      documents.move(item.id, collection.id, parentId, index + 1);
+    },
+    collect: (monitor) => ({
+      isOverReorder: !!monitor.isOver(),
+    }),
+  });
+
+  return (
+    <>
+      <div style={{ position: "relative" }} onDragLeave={resetHoverExpanding}>
+        <Draggable
+          key={node.id}
+          ref={drag}
+          $isDragging={isDragging}
+          $isMoving={isMoving}
+        >
+          <div ref={dropToReparent}>
+            <DropToImport documentId={node.id} activeClassName="activeDropZone">
+              <SidebarLink
+                onMouseEnter={handleMouseEnter}
+                to={{
+                  pathname: node.url,
+                  state: { title: node.title },
+                }}
+                label={
+                  <>
+                    {hasChildDocuments && (
+                      <Disclosure
+                        expanded={expanded && !isDragging}
+                        onClick={handleDisclosureClick}
+                      />
+                    )}
+                    <EditableTitle
+                      title={node.title || t("Untitled")}
+                      onSubmit={handleTitleChange}
+                      canUpdate={canUpdate}
+                    />
+                  </>
+                }
+                isActiveDrop={isOverReparent && canDropToReparent}
+                depth={depth}
+                exact={false}
+                showActions={menuOpen}
+                menu={
+                  document && !isMoving ? (
+                    <Fade>
+                      <DocumentMenu
+                        document={document}
+                        onOpen={() => setMenuOpen(true)}
+                        onClose={() => setMenuOpen(false)}
+                      />
+                    </Fade>
+                  ) : undefined
+                }
               />
-            }
-            depth={depth}
-            exact={false}
-            menuOpen={this.menuOpen}
-            menu={
-              document ? (
-                <Fade>
-                  <DocumentMenu
-                    position="right"
-                    document={document}
-                    onOpen={() => (this.menuOpen = true)}
-                    onClose={() => (this.menuOpen = false)}
-                  />
-                </Fade>
-              ) : undefined
-            }
-          >
-            {this.hasChildDocuments() && (
-              <DocumentChildren column>
-                {node.children.map((childNode) => (
-                  <DocumentLink
-                    key={childNode.id}
-                    collection={collection}
-                    node={childNode}
-                    documents={documents}
-                    activeDocument={activeDocument}
-                    prefetchDocument={prefetchDocument}
-                    depth={depth + 1}
-                    canUpdate={canUpdate}
-                  />
-                ))}
-              </DocumentChildren>
-            )}
-          </SidebarLink>
-        </DropToImport>
-      </Flex>
-    );
-  }
+            </DropToImport>
+          </div>
+        </Draggable>
+        {manualSort && (
+          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+        )}
+      </div>
+      {expanded && !isDragging && (
+        <>
+          {node.children.map((childNode, index) => (
+            <ObservedDocumentLink
+              key={childNode.id}
+              collection={collection}
+              node={childNode}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              depth={depth + 1}
+              canUpdate={canUpdate}
+              index={index}
+              parentId={node.id}
+            />
+          ))}
+        </>
+      )}
+    </>
+  );
 }
 
-const DocumentChildren = styled(Flex)``;
+const Draggable = styled("div")`
+  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
+`;
 
-export default DocumentLink;
+const Disclosure = styled(CollapsedIcon)`
+  position: absolute;
+  left: -24px;
+
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+`;
+
+const ObservedDocumentLink = observer(DocumentLink);
+export default ObservedDocumentLink;

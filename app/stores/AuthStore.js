@@ -1,27 +1,30 @@
 // @flow
+import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import RootStore from "stores/RootStore";
+import Policy from "models/Policy";
 import Team from "models/Team";
 import User from "models/User";
+import env from "env";
 import { client } from "utils/ApiClient";
 import { getCookieDomain } from "utils/domains";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 
-type Service = {
+type Service = {|
   id: string,
   name: string,
   authUrl: string,
-};
+|};
 
-type Config = {
+type Config = {|
   name?: string,
   hostname?: string,
   services: Service[],
-};
+|};
 
 export default class AuthStore {
   @observable user: ?User;
@@ -45,7 +48,6 @@ export default class AuthStore {
       // no-op Safari private mode
     }
 
-    setImmediate(() => this.fetchConfig());
     this.rehydrate(data);
 
     // persists this entire store to localstorage whenever any keys are changed
@@ -87,7 +89,7 @@ export default class AuthStore {
     }
   }
 
-  addPolicies = (policies) => {
+  addPolicies = (policies: Policy[]) => {
     if (policies) {
       policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
@@ -125,8 +127,8 @@ export default class AuthStore {
         this.user = new User(user);
         this.team = new Team(team);
 
-        if (window.Sentry) {
-          window.Sentry.configureScope(function (scope) {
+        if (env.SENTRY_DSN) {
+          Sentry.configureScope(function (scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);

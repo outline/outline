@@ -92,6 +92,38 @@ router.post("attachments.create", auth(), async (ctx) => {
   };
 });
 
+router.post("attachments.delete", auth(), async (ctx) => {
+  let { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
+
+  const user = ctx.state.user;
+  const attachment = await Attachment.findByPk(id);
+  if (!attachment) {
+    throw new NotFoundError();
+  }
+
+  if (attachment.documentId) {
+    const document = await Document.findByPk(attachment.documentId, {
+      userId: user.id,
+    });
+    authorize(user, "update", document);
+  }
+
+  authorize(user, "delete", attachment);
+  await attachment.destroy();
+
+  await Event.create({
+    name: "attachments.delete",
+    teamId: user.teamId,
+    userId: user.id,
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 router.post("attachments.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");

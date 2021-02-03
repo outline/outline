@@ -1,62 +1,70 @@
 // @flow
-import { inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-
-import UiStore from "stores/UiStore";
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
+import { useMenuState } from "reakit/Menu";
 import Document from "models/Document";
 import Revision from "models/Revision";
+import ContextMenu from "components/ContextMenu";
+import MenuItem from "components/ContextMenu/MenuItem";
+import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
+import Separator from "components/ContextMenu/Separator";
 import CopyToClipboard from "components/CopyToClipboard";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import useStores from "hooks/useStores";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-type Props = {
-  onOpen?: () => void,
-  onClose: () => void,
-  history: RouterHistory,
+type Props = {|
   document: Document,
   revision: Revision,
+  iconColor?: string,
   className?: string,
-  label: React.Node,
-  ui: UiStore,
-};
+|};
 
-class RevisionMenu extends React.Component<Props> {
-  handleRestore = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    await this.props.document.restore({ revisionId: this.props.revision.id });
-    this.props.ui.showToast("Document restored");
-    this.props.history.push(this.props.document.url);
-  };
+function RevisionMenu({ document, revision, className, iconColor }: Props) {
+  const { ui } = useStores();
+  const menu = useMenuState({ modal: true });
+  const { t } = useTranslation();
+  const history = useHistory();
 
-  handleCopy = () => {
-    this.props.ui.showToast("Link copied");
-  };
+  const handleRestore = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      await document.restore({ revisionId: revision.id });
+      ui.showToast(t("Document restored"), { type: "success" });
+      history.push(document.url);
+    },
+    [history, ui, t, document, revision]
+  );
 
-  render() {
-    const { className, label, onOpen, onClose } = this.props;
-    const url = `${window.location.origin}${documentHistoryUrl(
-      this.props.document,
-      this.props.revision.id
-    )}`;
+  const handleCopy = React.useCallback(() => {
+    ui.showToast(t("Link copied"), { type: "info" });
+  }, [ui, t]);
 
-    return (
-      <DropdownMenu
-        onOpen={onOpen}
-        onClose={onClose}
+  const url = `${window.location.origin}${documentHistoryUrl(
+    document,
+    revision.id
+  )}`;
+
+  return (
+    <>
+      <OverflowMenuButton
         className={className}
-        label={label}
-      >
-        <DropdownMenuItem onClick={this.handleRestore}>
-          Restore version
-        </DropdownMenuItem>
-        <hr />
-        <CopyToClipboard text={url} onCopy={this.handleCopy}>
-          <DropdownMenuItem>Copy link</DropdownMenuItem>
+        iconColor={iconColor}
+        aria-label={t("Show menu")}
+        {...menu}
+      />
+      <ContextMenu {...menu} aria-label={t("Revision options")}>
+        <MenuItem {...menu} onClick={handleRestore}>
+          {t("Restore version")}
+        </MenuItem>
+        <Separator />
+        <CopyToClipboard text={url} onCopy={handleCopy}>
+          <MenuItem {...menu}>{t("Copy link")}</MenuItem>
         </CopyToClipboard>
-      </DropdownMenu>
-    );
-  }
+      </ContextMenu>
+    </>
+  );
 }
 
-export default withRouter(inject("ui")(RevisionMenu));
+export default observer(RevisionMenu);

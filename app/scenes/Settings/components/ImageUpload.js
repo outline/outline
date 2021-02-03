@@ -10,6 +10,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
+import { compressImage } from "utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 const EMPTY_OBJECT = {};
@@ -28,7 +29,7 @@ class ImageUpload extends React.Component<Props> {
   @observable isUploading: boolean = false;
   @observable isCropping: boolean = false;
   @observable zoom: number = 1;
-  file: File;
+  @observable file: File;
   avatarEditorRef: AvatarEditor;
 
   static defaultProps = {
@@ -53,7 +54,11 @@ class ImageUpload extends React.Component<Props> {
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
-      const attachment = await uploadFile(imageBlob, {
+      const compressed = await compressImage(imageBlob, {
+        maxHeight: 512,
+        maxWidth: 512,
+      });
+      const attachment = await uploadFile(compressed, {
         name: this.file.name,
         public: true,
       });
@@ -128,7 +133,12 @@ class ImageUpload extends React.Component<Props> {
         style={EMPTY_OBJECT}
         disablePreview
       >
-        {this.props.children}
+        {({ getRootProps, getInputProps, isDragActive }) => (
+          <div {...getRootProps()} {...{ isDragActive }}>
+            <input {...getInputProps()} />
+            {this.props.children}
+          </div>
+        )}
       </Dropzone>
     );
   }

@@ -5,7 +5,7 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
-import { createGlobalStyle } from "styled-components";
+import styled, { css } from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
 import LoadingIndicator from "components/LoadingIndicator";
@@ -17,8 +17,6 @@ type Props = {
   children: React.Node,
   collectionId: string,
   documentId?: string,
-  activeClassName?: string,
-  rejectClassName?: string,
   ui: UiStore,
   documents: DocumentsStore,
   disabled: boolean,
@@ -27,18 +25,6 @@ type Props = {
   history: RouterHistory,
   staticContext: Object,
 };
-
-export const GlobalStyles = createGlobalStyle`
-  .activeDropZone {
-    border-radius: 4px;
-    background: ${(props) => props.theme.slateDark};
-    svg { fill: ${(props) => props.theme.white}; }
-  }
-
-  .activeDropZone a {
-    color: ${(props) => props.theme.white} !important;
-  }
-`;
 
 @observer
 class DropToImport extends React.Component<Props> {
@@ -74,7 +60,9 @@ class DropToImport extends React.Component<Props> {
         }
       }
     } catch (err) {
-      this.props.ui.showToast(`Could not import file. ${err.message}`);
+      this.props.ui.showToast(`Could not import file. ${err.message}`, {
+        type: "error",
+      });
     } finally {
       this.isImporting = false;
       importingLock = false;
@@ -82,17 +70,7 @@ class DropToImport extends React.Component<Props> {
   };
 
   render() {
-    const {
-      documentId,
-      collectionId,
-      documents,
-      disabled,
-      location,
-      match,
-      history,
-      staticContext,
-      ...rest
-    } = this.props;
+    const { documents } = this.props;
 
     if (this.props.disabled) return this.props.children;
 
@@ -101,16 +79,45 @@ class DropToImport extends React.Component<Props> {
         accept={documents.importFileTypes.join(", ")}
         onDropAccepted={this.onDropAccepted}
         style={EMPTY_OBJECT}
-        disableClick
-        disablePreview
+        noClick
         multiple
-        {...rest}
       >
-        {this.isImporting && <LoadingIndicator />}
-        {this.props.children}
+        {({
+          getRootProps,
+          getInputProps,
+          isDragActive,
+          isDragAccept,
+          isDragReject,
+        }) => (
+          <DropzoneContainer
+            {...getRootProps()}
+            {...{ isDragActive }}
+            tabIndex="-1"
+          >
+            <input {...getInputProps()} />
+            {this.isImporting && <LoadingIndicator />}
+            {this.props.children}
+          </DropzoneContainer>
+        )}
       </Dropzone>
     );
   }
 }
+
+const DropzoneContainer = styled("div")`
+  border-radius: 4px;
+
+  ${({ isDragActive, theme }) =>
+    isDragActive &&
+    css`
+      background: ${theme.slateDark};
+      a {
+        color: ${theme.white} !important;
+      }
+      svg {
+        fill: ${theme.white};
+      }
+    `}
+`;
 
 export default inject("documents", "ui")(withRouter(DropToImport));

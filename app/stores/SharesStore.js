@@ -1,6 +1,6 @@
 // @flow
 import invariant from "invariant";
-import { sortBy, filter, find } from "lodash";
+import { sortBy, filter, find, isUndefined } from "lodash";
 import { action, computed } from "mobx";
 import Share from "models/Share";
 import BaseStore from "./BaseStore";
@@ -47,6 +47,8 @@ export default class SharesStore extends BaseStore<Share> {
 
     try {
       const res = await client.post(`/${this.modelName}s.info`, { documentId });
+      if (isUndefined(res)) return;
+
       invariant(res && res.data, "Data should be available");
 
       this.addPolicies(res.policies);

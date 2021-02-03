@@ -142,7 +142,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  updateFromJson = (data) => {
+  updateFromJson = (data: Object) => {
     set(this, data);
   };
 
@@ -150,7 +150,7 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (options) => {
+  restore = (options: { revisionId?: string, collectionId?: string }) => {
     return this.store.restore(this, options);
   };
 
@@ -206,6 +206,11 @@ export default class Document extends BaseModel {
 
   @action
   view = () => {
+    // we don't record views for documents in the trash
+    if (this.isDeleted || !this.publishedAt) {
+      return;
+    }
+
     return this.store.rootStore.views.create({ documentId: this.id });
   };
 
@@ -228,7 +233,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: SaveOptions) => {
+  save = async (options: SaveOptions = {}) => {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
@@ -241,7 +246,9 @@ export default class Document extends BaseModel {
           collectionId: this.collectionId,
           title: this.title,
           text: this.text,
-          ...options,
+          publish: options.publish,
+          done: options.done,
+          autosave: options.autosave,
         });
       }
 
@@ -252,7 +259,9 @@ export default class Document extends BaseModel {
           text: this.text,
           templateId: this.templateId,
           lastRevision: options.lastRevision,
-          ...options,
+          publish: options.publish,
+          done: options.done,
+          autosave: options.autosave,
         });
       }
 
@@ -263,7 +272,7 @@ export default class Document extends BaseModel {
   };
 
   move = (collectionId: string, parentDocumentId: ?string) => {
-    return this.store.move(this, collectionId, parentDocumentId);
+    return this.store.move(this.id, collectionId, parentDocumentId);
   };
 
   duplicate = () => {

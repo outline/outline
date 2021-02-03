@@ -8,6 +8,7 @@ import { type Theme } from "types";
 type Props = {
   onChange: (string) => void,
   defaultValue?: string,
+  placeholder?: string,
   theme: Theme,
 };
 
@@ -44,7 +45,7 @@ class SearchField extends React.Component<Props> {
           ref={(ref) => (this.input = ref)}
           onChange={this.handleChange}
           spellCheck="false"
-          placeholder="Search…"
+          placeholder={this.props.placeholder}
           type="search"
           autoFocus
         />

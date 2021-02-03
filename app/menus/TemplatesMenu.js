@@ -1,40 +1,42 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
 import Button from "components/Button";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import ContextMenu from "components/ContextMenu";
+import MenuItem from "components/ContextMenu/MenuItem";
+import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   document: Document,
-  documents: DocumentsStore,
-};
+|};
 
-@observer
-class TemplatesMenu extends React.Component<Props> {
-  render() {
-    const { documents, document, ...rest } = this.props;
-    const templates = documents.templatesInCollection(document.collectionId);
+function TemplatesMenu({ document }: Props) {
+  const menu = useMenuState({ modal: true });
+  const { documents } = useStores();
+  const { t } = useTranslation();
+  const templates = documents.templatesInCollection(document.collectionId);
 
-    if (!templates.length) {
-      return null;
-    }
+  if (!templates.length) {
+    return null;
+  }
 
-    return (
-      <DropdownMenu
-        position="left"
-        label={
-          <Button disclosure neutral>
-            Templates
+  return (
+    <>
+      <MenuButton {...menu}>
+        {(props) => (
+          <Button {...props} disclosure neutral>
+            {t("Templates")}
           </Button>
-        }
-        {...rest}
-      >
+        )}
+      </MenuButton>
+      <ContextMenu {...menu} aria-label={t("Templates")}>
         {templates.map((template) => (
-          <DropdownMenuItem
+          <MenuItem
             key={template.id}
             onClick={() => document.updateFromTemplate(template)}
           >
@@ -42,17 +44,19 @@ class TemplatesMenu extends React.Component<Props> {
             <div>
               <strong>{template.titleWithDefault}</strong>
               <br />
-              <Author>By {template.createdBy.name}</Author>
+              <Author>
+                {t("By {{ author }}", { author: template.createdBy.name })}
+              </Author>
             </div>
-          </DropdownMenuItem>
+          </MenuItem>
         ))}
-      </DropdownMenu>
-    );
-  }
+      </ContextMenu>
+    </>
+  );
 }
 
 const Author = styled.div`
   font-size: 13px;
 `;
 
-export default inject("documents")(TemplatesMenu);
+export default observer(TemplatesMenu);
