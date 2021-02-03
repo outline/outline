@@ -2702,43 +2702,10 @@ boundless-arrow-key-navigation@^1.0.4:
     boundless-utils-omit-keys "^1.1.0"
     boundless-utils-uuid "^1.1.0"
 
-boundless-dialog@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-dialog/-/boundless-dialog-1.1.0.tgz#31e97a17c5eb1e2aa9068066a752720aa04d5df2"
-  integrity sha1-Mel6F8XrHiqpBoBmp1JyCqBNXfI=
-  dependencies:
-    boundless-portal "^1.1.0"
-    boundless-utils-omit-keys "^1.1.0"
-    classnames "^2.1.5"
-
-boundless-popover@^1.0.4:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-popover/-/boundless-popover-1.1.0.tgz#1c4d8aa045486a34aa3eaf9fdccccfa7aed478cf"
-  integrity sha1-HE2KoEVIajSqPq+f3MzPp67UeM8=
-  dependencies:
-    boundless-dialog "^1.1.0"
-    boundless-portal "^1.1.0"
-    boundless-utils-omit-keys "^1.1.0"
-    boundless-utils-transform-property "^1.1.0"
-    classnames "^2.1.5"
-
-boundless-portal@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-portal/-/boundless-portal-1.1.0.tgz#cbf990f7f9a03cecf44736bffdb4d780f6c9e8c1"
-  integrity sha1-y/mQ9/mgPOz0Rza//bTXgPbJ6ME=
-  dependencies:
-    boundless-utils-omit-keys "^1.1.0"
-    boundless-utils-uuid "^1.1.0"
-
 boundless-utils-omit-keys@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/boundless-utils-omit-keys/-/boundless-utils-omit-keys-1.1.0.tgz#fae73cdb90c113d56201d0b62e8f1143e0d193be"
   integrity sha1-+uc825DBE9ViAdC2Lo8RQ+DRk74=
-
-boundless-utils-transform-property@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-utils-transform-property/-/boundless-utils-transform-property-1.1.0.tgz#95da14d79d8dd05fe7bfe6d9636b8b8d1ec7565d"
-  integrity sha1-ldoU152N0F/nv+bZY2uLjR7HVl0=
 
 boundless-utils-uuid@^1.1.0:
   version "1.1.0"
@@ -3295,11 +3262,6 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
-
-classnames@^2.1.5:
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
-  integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
 
 clean-css@4.2.x, clean-css@^4.0.12:
   version "4.2.3"

@@ -78,7 +78,6 @@
     "babel-plugin-styled-components": "^1.11.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "boundless-arrow-key-navigation": "^1.0.4",
-    "boundless-popover": "^1.0.4",
     "bull": "^3.5.2",
     "cancan": "3.1.0",
     "compressorjs": "^1.0.7",
