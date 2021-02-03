@@ -134,7 +134,6 @@ class Header extends React.Component<Props> {
       <Actions
         align="center"
         justify="space-between"
-        readOnly={!isEditing}
         isCompact={this.isScrolled}
         shrink={false}
       >
@@ -148,8 +147,7 @@ class Header extends React.Component<Props> {
             onSubmit={this.handleCloseShareModal}
           />
         </Modal>
-        <BreadcrumbAndContents align="center" justify="flex-start">
-          <Breadcrumb document={document} />
+        <Breadcrumb document={document}>
           {!isEditing && (
             <>
               <Slash />
@@ -175,7 +173,7 @@ class Header extends React.Component<Props> {
               </Tooltip>
             </>
           )}
-        </BreadcrumbAndContents>
+        </Breadcrumb>
         {this.isScrolled && (
           <Title onClick={this.handleClickTitle}>
             <Fade>
@@ -349,15 +347,6 @@ const Status = styled.div`
   color: ${(props) => props.theme.slate};
 `;
 
-const BreadcrumbAndContents = styled(Flex)`
-  display: none;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-    width: 33.3%;
-  `};
-`;
-
 const Wrapper = styled(Flex)`
   width: 100%;
   align-self: flex-end;
@@ -391,6 +380,10 @@ const Actions = styled(Flex)`
 
   ${breakpoint("tablet")`
     padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
+
+    > div {
+      width: 33.3%;
+    }
   `};
 `;
 
