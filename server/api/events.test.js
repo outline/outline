@@ -61,7 +61,7 @@ describe("#events.list", () => {
     });
 
     const res = await server.post("/api/events.list", {
-      body: { token: user.getJwtToken(), auditLog: true },
+      body: { token: admin.getJwtToken(), auditLog: true },
     });
     const body = await res.json();
 
@@ -92,7 +92,7 @@ describe("#events.list", () => {
     });
 
     const res = await server.post("/api/events.list", {
-      body: { token: user.getJwtToken(), auditLog: true, actorId: admin.id },
+      body: { token: admin.getJwtToken(), auditLog: true, actorId: admin.id },
     });
     const body = await res.json();
 
@@ -157,6 +157,15 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
+  });
+
+  it("should require authorization for audit events", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/events.list", {
+      body: { token: user.getJwtToken(), auditLog: true },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
