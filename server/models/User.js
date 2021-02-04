@@ -270,4 +270,23 @@ User.afterCreate(async (user, options) => {
   ]);
 });
 
+User.prototype.getCount = async function () {
+  const countSql = `
+    SELECT 
+      COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
+      COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
+      COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
+      COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
+      COUNT(*) as count
+    FROM users
+    WHERE "deletedAt" IS NULL
+  `;
+
+  const results = await sequelize.query(countSql, {
+    type: sequelize.QueryTypes.SELECT,
+  });
+
+  return results[0];
+};
+
 export default User;

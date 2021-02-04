@@ -1,6 +1,5 @@
 // @flow
 import Router from "koa-router";
-import { filter } from "lodash";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
@@ -48,13 +47,8 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
-  const total = await User.count({ where });
-
   ctx.body = {
-    pagination: {
-      ...ctx.state.pagination,
-      total,
-    },
+    pagination: ctx.state.pagination,
     data: users.map((listUser) =>
       presentUser(listUser, { includeDetails: user.isAdmin })
     ),
@@ -63,23 +57,18 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 
 router.post("users.count", auth(), async (ctx) => {
   const user = ctx.state.user;
-  const users = await User.findAll({
-    where: {
-      teamId: user.teamId,
-    },
-  });
-
-  const count = {
-    active: filter(users, (user) => !user.isSuspended && user.lastActiveAt)
-      .length,
-    admins: filter(users, (user) => user.isAdmin).length,
-    all: users.length,
-    invited: filter(users, (user) => user.isInvited).length,
-    suspended: filter(users, (user) => user.isSuspended).length,
-  };
+  const counts = await user.getCount();
 
   ctx.body = {
-    data: { count },
+    data: {
+      count: {
+        active: parseInt(counts.activeCount),
+        admins: parseInt(counts.adminCount),
+        all: parseInt(counts.count),
+        invited: parseInt(counts.invitedCount),
+        suspended: parseInt(counts.suspendedCount),
+      },
+    },
   };
 });
 

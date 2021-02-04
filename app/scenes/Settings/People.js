@@ -70,11 +70,7 @@ class People extends React.Component<Props> {
     }
 
     const can = policies.abilities(team.id);
-    const totalUsers = this.props.users.total;
-
     const { count } = this.props.users;
-
-    console.log({ count });
 
     return (
       <CenteredContent>
@@ -97,8 +93,8 @@ class People extends React.Component<Props> {
           Invite people…
         </Button>
 
-        <TotalCount $loading={totalUsers === 0}>
-          {totalUsers} total {totalUsers > 1 ? "users" : "user"}
+        <TotalCount $loading={!count.all}>
+          {count.all} total {count.all > 1 ? "users" : "user"}
         </TotalCount>
 
         <Tabs $loading={!count.all}>

@@ -87,7 +87,6 @@ export default class UsersStore extends BaseStore<User> {
     invariant(res && res.data, "Data should be available");
     runInAction(`invite`, () => {
       res.data.users.forEach(this.add);
-      this.total += res.data.sent.length;
       this.count.invited += res.data.sent.length;
       this.count.all += res.data.sent.length;
     });
