@@ -353,3 +353,16 @@ describe("#users.activate", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe("#users.count", () => {
+  it("should return the count", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.count", {
+      body: { token: user.getJwtToken(), id: user.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+});

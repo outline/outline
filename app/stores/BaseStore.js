@@ -20,7 +20,6 @@ export default class BaseStore<T: BaseModel> {
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
   @observable isLoaded: boolean = false;
-  @observable total: number = 0;
 
   model: Class<T>;
   modelName: string;
