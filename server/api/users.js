@@ -56,18 +56,13 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("users.count", auth(), async (ctx) => {
+  const { teamId } = ctx.body;
   const user = ctx.state.user;
-  const counts = await user.getCount();
+  const counts = await user.getCounts(teamId);
 
   ctx.body = {
     data: {
-      count: {
-        active: parseInt(counts.activeCount),
-        admins: parseInt(counts.adminCount),
-        all: parseInt(counts.count),
-        invited: parseInt(counts.invitedCount),
-        suspended: parseInt(counts.suspendedCount),
-      },
+      counts,
     },
   };
 });

@@ -270,7 +270,7 @@ User.afterCreate(async (user, options) => {
   ]);
 });
 
-User.prototype.getCount = async function () {
+User.prototype.getCounts = async function (teamId: string) {
   const countSql = `
     SELECT 
       COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
@@ -280,13 +280,19 @@ User.prototype.getCount = async function () {
       COUNT(*) as count
     FROM users
     WHERE "deletedAt" IS NULL
+    AND "teamId" = '${teamId}'
   `;
-
   const results = await sequelize.query(countSql, {
     type: sequelize.QueryTypes.SELECT,
   });
-
-  return results[0];
+  const counts = results[0];
+  return {
+    active: parseInt(counts.activeCount),
+    admins: parseInt(counts.adminCount),
+    all: parseInt(counts.count),
+    invited: parseInt(counts.invitedCount),
+    suspended: parseInt(counts.suspendedCount),
+  };
 };
 
 export default User;

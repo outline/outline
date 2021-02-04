@@ -78,6 +78,7 @@ export default class UsersStore extends BaseStore<User> {
 
   @action
   activate = (user: User) => {
+    this.count.suspended -= 1;
     return this.actionOnUser("activate", user);
   };
 
@@ -94,22 +95,22 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
-  fetchCount = async (): Promise<*> => {
+  fetchCounts = async (teamId: string): Promise<*> => {
     if (!this.actions.includes("count")) {
       throw new Error(`Cannot count ${this.modelName}`);
     }
 
-    const res = await client.post(`/${this.modelName}s.count`);
+    const res = await client.post(`/${this.modelName}s.counts`, { teamId });
     invariant(res && res.data, "Data should be available");
 
     this.addPolicies(res.policies);
-    this.count = res.data.count;
+    this.count = res.data.counts;
     return res.data;
   };
 
   @action
-  async delete(user: User) {
-    super.delete(user, { confirmation: true });
+  async delete(user: User, options: Object = {}) {
+    super.delete(user, options);
     if (!user.isSuspended && user.lastActiveAt) {
       this.count.active -= 1;
     }

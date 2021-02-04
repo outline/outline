@@ -5,7 +5,6 @@ import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { type Match } from "react-router-dom";
-import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -35,7 +34,10 @@ class People extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
 
   componentDidMount() {
-    this.props.users.fetchCount();
+    const { team } = this.props.auth;
+    if (team) {
+      this.props.users.fetchCounts(team.id);
+    }
   }
 
   handleInviteModalOpen = () => {
@@ -70,7 +72,7 @@ class People extends React.Component<Props> {
     }
 
     const can = policies.abilities(team.id);
-    const { count } = this.props.users;
+    const { counts } = this.props.users;
 
     return (
       <CenteredContent>
@@ -92,10 +94,6 @@ class People extends React.Component<Props> {
         >
           Invite people…
         </Button>
-
-        <TotalCount $loading={!count.all}>
-          {count.all} total {count.all > 1 ? "users" : "user"}
-        </TotalCount>
 
         <Tabs $loading={!count.all}>
           <Tab to="/settings/people" exact>
@@ -146,14 +144,5 @@ class People extends React.Component<Props> {
     );
   }
 }
-
-const TotalCount = styled.p`
-  font-size: 11px;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: ${(props) => props.theme.textSecondary};
-  opacity: ${(props) => (props.$loading ? 0 : 1)};
-  transition: opacity 100ms ease-out;
-`;
 
 export default inject("auth", "users", "policies")(People);

@@ -27,22 +27,6 @@ Object {
 }
 `;
 
-exports[`#users.count should return the count 1`] = `
-Object {
-  "data": Object {
-    "count": Object {
-      "active": 1,
-      "admins": 0,
-      "all": 1,
-      "invited": 0,
-      "suspended": 0,
-    },
-  },
-  "ok": true,
-  "status": 200,
-}
-`;
-
 exports[`#users.delete should require authentication 1`] = `
 Object {
   "error": "authentication_required",
