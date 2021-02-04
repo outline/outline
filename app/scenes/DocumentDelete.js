@@ -79,17 +79,17 @@ function DocumentDelete({ document, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           {document.isTemplate ? (
-            <Trans>
-              Are you sure you want to delete the{" "}
-              <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              template?
-            </Trans>
+            <Trans
+              defaults="Are you sure you want to delete the <em>{{ documentTitle }}</em> template?"
+              values={{ documentTitle: document.titleWithDefault }}
+              components={{ em: <strong /> }}
+            />
           ) : (
-            <Trans>
-              Are you sure about that? Deleting the{" "}
-              <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              document will delete all of its history and any nested documents.
-            </Trans>
+            <Trans
+              defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents."
+              values={{ documentTitle: document.titleWithDefault }}
+              components={{ em: <strong /> }}
+            />
           )}
         </HelpText>
         {canArchive && (

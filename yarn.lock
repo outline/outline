@@ -2702,43 +2702,10 @@ boundless-arrow-key-navigation@^1.0.4:
     boundless-utils-omit-keys "^1.1.0"
     boundless-utils-uuid "^1.1.0"
 
-boundless-dialog@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-dialog/-/boundless-dialog-1.1.0.tgz#31e97a17c5eb1e2aa9068066a752720aa04d5df2"
-  integrity sha1-Mel6F8XrHiqpBoBmp1JyCqBNXfI=
-  dependencies:
-    boundless-portal "^1.1.0"
-    boundless-utils-omit-keys "^1.1.0"
-    classnames "^2.1.5"
-
-boundless-popover@^1.0.4:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-popover/-/boundless-popover-1.1.0.tgz#1c4d8aa045486a34aa3eaf9fdccccfa7aed478cf"
-  integrity sha1-HE2KoEVIajSqPq+f3MzPp67UeM8=
-  dependencies:
-    boundless-dialog "^1.1.0"
-    boundless-portal "^1.1.0"
-    boundless-utils-omit-keys "^1.1.0"
-    boundless-utils-transform-property "^1.1.0"
-    classnames "^2.1.5"
-
-boundless-portal@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-portal/-/boundless-portal-1.1.0.tgz#cbf990f7f9a03cecf44736bffdb4d780f6c9e8c1"
-  integrity sha1-y/mQ9/mgPOz0Rza//bTXgPbJ6ME=
-  dependencies:
-    boundless-utils-omit-keys "^1.1.0"
-    boundless-utils-uuid "^1.1.0"
-
 boundless-utils-omit-keys@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/boundless-utils-omit-keys/-/boundless-utils-omit-keys-1.1.0.tgz#fae73cdb90c113d56201d0b62e8f1143e0d193be"
   integrity sha1-+uc825DBE9ViAdC2Lo8RQ+DRk74=
-
-boundless-utils-transform-property@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-utils-transform-property/-/boundless-utils-transform-property-1.1.0.tgz#95da14d79d8dd05fe7bfe6d9636b8b8d1ec7565d"
-  integrity sha1-ldoU152N0F/nv+bZY2uLjR7HVl0=
 
 boundless-utils-uuid@^1.1.0:
   version "1.1.0"
@@ -3295,11 +3262,6 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
-
-classnames@^2.1.5:
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
-  integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
 
 clean-css@4.2.x, clean-css@^4.0.12:
   version "4.2.3"
@@ -8946,10 +8908,10 @@ os-tmpdir@~1.0.2:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=
 
-outline-icons@^1.23.0:
-  version "1.23.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.23.0.tgz#46c9655f7f7f77900349ca39d4676dd99550e3ea"
-  integrity sha512-p4QZ1KIOnkB3qju1+NNJxQPsmVOibqOBp7AksFas7Igchg94plR/fnDbs9Oe2uBzD64PApR4ypU/pe6mkMGong==
+outline-icons@^1.23.0, outline-icons@^1.24.0:
+  version "1.24.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.24.0.tgz#d66c3fe036dec4440ef442c0a75ac0ace7fa09ec"
+  integrity sha512-B+3f4rKHTr70OVUcfY6G7wtBRDppq1/X2hmraF0Qa+/c8nbi8U+W0xj6wj1Sm2lgrPgiOot77lxBIsKEemGgRQ==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -11028,7 +10990,7 @@ slugify@^1.4.0:
   resolved "https://registry.yarnpkg.com/slugify/-/slugify-1.4.6.tgz#ef288d920a47fb01c2be56b3487b6722f5e34ace"
   integrity sha512-ZdJIgv9gdrYwhXqxsH9pv7nXxjUEyQ6nqhngRxoAAOlmMGA28FDq5O4/5US4G2/Nod7d1ovNcgURQJ7kHq50KQ==
 
-smooth-scroll-into-view-if-needed@^1.1.27:
+smooth-scroll-into-view-if-needed@^1.1.27, smooth-scroll-into-view-if-needed@^1.1.29:
   version "1.1.29"
   resolved "https://registry.yarnpkg.com/smooth-scroll-into-view-if-needed/-/smooth-scroll-into-view-if-needed-1.1.29.tgz#4f532d9f0353dbca122e546fb062e7b5e0643734"
   integrity sha512-UxvIEbmMEqwbw0aZI4SOAtwwkMaLYVION20bDQmazVp3sNb1+WIA5koukqoJizRuAAUANRmcBcrTnodcB7maqw==

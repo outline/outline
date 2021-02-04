@@ -23,6 +23,7 @@ type Props = {|
   document: Document,
   highlight?: ?string,
   context?: ?string,
+  showNestedDocuments?: boolean,
   showCollection?: boolean,
   showPublished?: boolean,
   showPin?: boolean,
@@ -44,6 +45,7 @@ function DocumentListItem(props: Props) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const {
     document,
+    showNestedDocuments,
     showCollection,
     showPublished,
     showPin,
@@ -104,6 +106,7 @@ function DocumentListItem(props: Props) {
           document={document}
           showCollection={showCollection}
           showPublished={showPublished}
+          showNestedDocuments={showNestedDocuments}
           showLastViewed
         />
       </Content>

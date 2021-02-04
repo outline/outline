@@ -39,7 +39,7 @@ function Login({ location }: Props) {
 
   React.useEffect(() => {
     auth.fetchConfig();
-  }, []);
+  }, [auth]);
 
   console.log(config);
 

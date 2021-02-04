@@ -111,6 +111,15 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  rootInCollection(collectionId: string): Document[] {
+    const collection = this.rootStore.collections.get(collectionId);
+    if (!collection) {
+      return [];
+    }
+
+    return compact(collection.documents.map((node) => this.get(node.id)));
+  }
+
   leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
     return orderBy(this.inCollection(collectionId), "updatedAt", "asc");
   }

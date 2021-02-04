@@ -282,10 +282,11 @@ class Search extends React.Component<Props> {
           {showShortcutTip && (
             <Fade>
               <HelpText small>
-                <Trans>
-                  Use the <strong>{{ meta: metaDisplay }}+K</strong> shortcut to
-                  search from anywhere in your knowledge base
-                </Trans>
+                <Trans
+                  defaults="Use the <em>{{ meta }}+K</em> shortcut to search from anywhere in your knowledge base"
+                  values={{ meta: metaDisplay }}
+                  components={{ em: <strong /> }}
+                />
               </HelpText>
             </Fade>
           )}

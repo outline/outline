@@ -207,10 +207,12 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  <Trans>
-                    <strong>{{ collectionName }}</strong> doesn’t contain any
-                    documents yet.
-                  </Trans>
+                  <Trans
+                    defaults="<em>{{ collectionName }}</em> doesn’t contain any
+                    documents yet."
+                    values={{ collectionName }}
+                    components={{ em: <strong /> }}
+                  />
                   <br />
                   <Trans>Get started by creating a new one!</Trans>
                 </HelpText>
@@ -278,9 +280,12 @@ class CollectionScene extends React.Component<Props> {
 
                 <Tabs>
                   <Tab to={collectionUrl(collection.id)} exact>
+                    {t("Documents")}
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, "updated")} exact>
                     {t("Recently updated")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "recent")} exact>
+                  <Tab to={collectionUrl(collection.id, "published")} exact>
                     {t("Recently published")}
                   </Tab>
                   <Tab to={collectionUrl(collection.id, "old")} exact>
@@ -314,8 +319,11 @@ class CollectionScene extends React.Component<Props> {
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, "recent")}>
+                    <Redirect to={collectionUrl(collection.id, "published")} />
+                  </Route>
+                  <Route path={collectionUrl(collection.id, "published")}>
                     <PaginatedDocumentList
-                      key="recent"
+                      key="published"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -325,13 +333,28 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id)}>
+                  <Route path={collectionUrl(collection.id, "updated")}>
                     <PaginatedDocumentList
+                      key="updated"
                       documents={documents.recentlyUpdatedInCollection(
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyUpdated}
                       options={{ collectionId: collection.id }}
+                      showPin
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id)} exact>
+                    <PaginatedDocumentList
+                      documents={documents.rootInCollection(collection.id)}
+                      fetch={documents.fetchPage}
+                      options={{
+                        collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: "ASC",
+                      }}
+                      showNestedDocuments
                       showPin
                     />
                   </Route>

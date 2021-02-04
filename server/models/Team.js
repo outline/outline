@@ -181,7 +181,7 @@ Team.prototype.provisionFirstCollection = async function (userId) {
       title,
       text,
     });
-    await document.publish();
+    await document.publish(collection.createdById);
   }
 };
 

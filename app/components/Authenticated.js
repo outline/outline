@@ -20,8 +20,10 @@ const Authenticated = ({ children }: Props) => {
   // Watching for language changes here as this is the earliest point we have
   // the user available and means we can start loading translations faster
   React.useEffect(() => {
-    if (i18n.language !== language) {
-      i18n.changeLanguage(language);
+    if (language && i18n.language !== language) {
+      // Languages are stored in en_US format in the database, however the
+      // frontend translation framework (i18next) expects en-US
+      i18n.changeLanguage(language.replace("_", "-"));
     }
   }, [i18n, language]);
 

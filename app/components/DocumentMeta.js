@@ -27,6 +27,7 @@ type Props = {|
   showCollection?: boolean,
   showPublished?: boolean,
   showLastViewed?: boolean,
+  showNestedDocuments?: boolean,
   document: Document,
   children: React.Node,
   to?: string,
@@ -36,6 +37,7 @@ function DocumentMeta({
   showPublished,
   showCollection,
   showLastViewed,
+  showNestedDocuments,
   document,
   children,
   to,
@@ -123,6 +125,10 @@ function DocumentMeta({
     );
   };
 
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
+
   return (
     <Container align="center" {...rest}>
       {updatedByMe ? t("You") : updatedBy.name}&nbsp;
@@ -133,6 +139,12 @@ function DocumentMeta({
           <strong>
             <Breadcrumb document={document} onlyText />
           </strong>
+        </span>
+      )}
+      {showNestedDocuments && nestedDocumentsCount > 0 && (
+        <span>
+          &nbsp;&middot; {nestedDocumentsCount}{" "}
+          {t("nested document", { count: nestedDocumentsCount })}
         </span>
       )}
       &nbsp;{timeSinceNow()}

@@ -74,7 +74,7 @@ const seed = async () => {
     title: "First ever document",
     text: "# Much test support",
   });
-  await document.publish();
+  await document.publish(collection.createdById);
   await collection.reload();
 
   return {

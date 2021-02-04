@@ -20,10 +20,11 @@ import useStores from "hooks/useStores";
 import BreadcrumbMenu from "menus/BreadcrumbMenu";
 import { collectionUrl } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
   document: Document,
+  children?: React.Node,
   onlyText: boolean,
-};
+|};
 
 function Icon({ document }) {
   const { t } = useTranslation();
@@ -79,9 +80,13 @@ function Icon({ document }) {
   return null;
 }
 
-const Breadcrumb = ({ document, onlyText }: Props) => {
+const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const { collections } = useStores();
   const { t } = useTranslation();
+
+  if (!collections.isLoaded) {
+    return <Wrapper />;
+  }
 
   let collection = collections.get(document.collectionId);
   if (!collection) {
@@ -140,6 +145,7 @@ const Breadcrumb = ({ document, onlyText }: Props) => {
           </Crumb>
         </>
       )}
+      {children}
     </Wrapper>
   );
 };

@@ -433,7 +433,27 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(document.id);
   });
 
-  it("should not return unpublished documents", async () => {
+  it("should allow filtering documents with no parent", async () => {
+    const { user, document } = await seed();
+    await buildDocument({
+      title: "child document",
+      text: "random text",
+      parentDocumentId: document.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.list", {
+      body: { token: user.getJwtToken(), parentDocumentId: null },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should not return draft documents", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
     await document.save();
@@ -491,6 +511,32 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data[0].id).toEqual(document.id);
     expect(body.data[1].id).toEqual(anotherDoc.id);
+  });
+
+  it("should allow sorting by collection index", async () => {
+    const { user, document, collection } = await seed();
+    const anotherDoc = await buildDocument({
+      title: "another document",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await collection.addDocumentToStructure(anotherDoc, 0);
+
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        sort: "index",
+        direction: "ASC",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[0].id).toEqual(anotherDoc.id);
+    expect(body.data[1].id).toEqual(document.id);
   });
 
   it("should allow filtering by collection", async () => {
@@ -1962,7 +2008,7 @@ describe("#documents.delete", () => {
 
 describe("#documents.unpublish", () => {
   it("should unpublish a document", async () => {
-    const { user, document } = await seed();
+    let { user, document } = await seed();
     const res = await server.post("/api/documents.unpublish", {
       body: { token: user.getJwtToken(), id: document.id },
     });
@@ -1971,6 +2017,28 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
+
+    document = await Document.unscoped().findByPk(document.id);
+    expect(document.userId).toEqual(user.id);
+  });
+
+  it("should unpublish another users document", async () => {
+    const { user, collection } = await seed();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.unpublish", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.publishedAt).toBeNull();
+
+    document = await Document.unscoped().findByPk(document.id);
+    expect(document.userId).toEqual(user.id);
   });
 
   it("should fail to unpublish a draft document", async () => {
@@ -1996,7 +2064,7 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should fail to unpublish a archived document", async () => {
+  it("should fail to unpublish an archived document", async () => {
     const { user, document } = await seed();
     await document.archive();
 
