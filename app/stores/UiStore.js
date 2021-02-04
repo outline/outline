@@ -21,7 +21,7 @@ class UiStore {
   @observable activeDocumentId: ?string;
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
-  @observable editMode: boolean = false;
+  @observable isEditing: boolean = false;
   @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
   @observable sidebarWidth: number;
@@ -151,12 +151,12 @@ class UiStore {
 
   @action
   enableEditMode = () => {
-    this.editMode = true;
+    this.isEditing = true;
   };
 
   @action
   disableEditMode = () => {
-    this.editMode = false;
+    this.isEditing = false;
   };
 
   @action

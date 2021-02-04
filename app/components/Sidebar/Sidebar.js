@@ -9,7 +9,7 @@ import breakpoint from "styled-components-breakpoint";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
 import ResizeBorder from "./components/ResizeBorder";
-import ResizeHandle, { ResizeButton } from "./components/ResizeHandle";
+import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
@@ -31,11 +31,9 @@ function Sidebar({ children }: Props) {
   const width = ui.sidebarWidth;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
-  const collapsed = ui.editMode || ui.sidebarCollapsed;
   const setWidth = ui.setSidebarWidth;
 
   const [offset, setOffset] = React.useState(0);
-  const [startWidth, setStartWidth] = React.useState(width);
   const [isAnimating, setAnimating] = React.useState(false);
   const [isResizing, setResizing] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
@@ -66,16 +64,6 @@ function Sidebar({ children }: Props) {
         document.activeElement.blur();
       }
 
-      if (startWidth - event.pageX === 0) {
-        if (ui.sidebarCollapsed) {
-          ui.expandSidebar();
-        } else {
-          setCollapsing(true);
-          ui.collapseSidebar();
-        }
-        return;
-      }
-
       if (isSmallerThanMinimum) {
         const isSmallerThanCollapsePoint = width < minWidth / 2;
 
@@ -91,12 +79,11 @@ function Sidebar({ children }: Props) {
         setWidth(width);
       }
     },
-    [ui, isSmallerThanMinimum, startWidth, minWidth, width, setWidth]
+    [ui, isSmallerThanMinimum, minWidth, width, setWidth]
   );
 
   const handleMouseDown = React.useCallback(
     (event: MouseEvent) => {
-      setStartWidth(event.pageX);
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
@@ -149,45 +136,66 @@ function Sidebar({ children }: Props) {
     () => ({
       width: `${width}px`,
       left:
-        collapsed && !ui.mobileSidebarVisible
+        ui.sidebarCollapsed && !ui.mobileSidebarVisible
           ? `${-width + theme.sidebarCollapsedWidth}px`
           : 0,
     }),
-    [width, collapsed, theme.sidebarCollapsedWidth, ui.mobileSidebarVisible]
+    [
+      width,
+      ui.sidebarCollapsed,
+      theme.sidebarCollapsedWidth,
+      ui.mobileSidebarVisible,
+    ]
+  );
+
+  const toggleStyle = React.useMemo(
+    () => ({
+      right: "auto",
+      left: `${ui.sidebarCollapsed ? theme.sidebarCollapsedWidth : width}px`,
+    }),
+    [width, theme.sidebarCollapsedWidth, ui.sidebarCollapsed]
   );
 
   const content = (
-    <Container
-      style={style}
-      $sidebarWidth={ui.sidebarWidth}
-      $isCollapsing={isCollapsing}
-      $isAnimating={isAnimating}
-      $isSmallerThanMinimum={isSmallerThanMinimum}
-      $mobileSidebarVisible={ui.mobileSidebarVisible}
-      $collapsed={collapsed}
-      column
-    >
-      {ui.mobileSidebarVisible && (
-        <Portal>
-          <Fade>
-            <Background onClick={ui.toggleMobileSidebar} />
-          </Fade>
-        </Portal>
-      )}
-
-      {children}
-
-      <ResizeBorder
-        onMouseDown={handleMouseDown}
-        onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
-        $isResizing={isResizing}
+    <>
+      <Container
+        style={style}
+        $sidebarWidth={ui.sidebarWidth}
+        $isCollapsing={isCollapsing}
+        $isAnimating={isAnimating}
+        $isSmallerThanMinimum={isSmallerThanMinimum}
+        $mobileSidebarVisible={ui.mobileSidebarVisible}
+        $collapsed={ui.sidebarCollapsed}
+        column
       >
-        <ResizeHandle
-          direction={ui.sidebarCollapsed ? "right" : "left"}
-          aria-label={t("Resize sidebar")}
+        {ui.mobileSidebarVisible && (
+          <Portal>
+            <Fade>
+              <Background onClick={ui.toggleMobileSidebar} />
+            </Fade>
+          </Portal>
+        )}
+        {children}
+        <ResizeBorder
+          onMouseDown={handleMouseDown}
+          onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+          $isResizing={isResizing}
         />
-      </ResizeBorder>
-    </Container>
+        {ui.sidebarCollapsed && (
+          <Toggle
+            onClick={ui.toggleCollapsedSidebar}
+            direction={"right"}
+            aria-label={t("Expand")}
+          />
+        )}
+      </Container>
+      <Toggle
+        style={toggleStyle}
+        onClick={ui.toggleCollapsedSidebar}
+        direction={ui.sidebarCollapsed ? "right" : "left"}
+        aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
+      />
+    </>
   );
 
   // Fade in the sidebar on first render after page load
@@ -225,6 +233,10 @@ const Container = styled(Flex)`
   max-width: 70%;
   min-width: 280px;
 
+  ${Positioner} {
+    display: none;
+  }
+
   @media print {
     display: none;
     left: 0;
@@ -249,7 +261,11 @@ const Container = styled(Flex)`
                   ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
                   : "none"};
 
-              ${ResizeButton} {
+              ${Positioner} {
+                display: block;
+              }
+
+              ${ToggleButton} {
                 opacity: 1;
               }
             }
