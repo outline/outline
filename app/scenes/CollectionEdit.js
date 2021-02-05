@@ -24,7 +24,6 @@ type Props = {
 @observer
 class CollectionEdit extends React.Component<Props> {
   @observable name: string = this.props.collection.name;
-  @observable description: string = this.props.collection.description;
   @observable icon: string = this.props.collection.icon;
   @observable color: string = this.props.collection.color || "#4E5C6E";
   @observable private: boolean = this.props.collection.private;
@@ -40,7 +39,6 @@ class CollectionEdit extends React.Component<Props> {
     try {
       await this.props.collection.save({
         name: this.name,
-        description: this.description,
         icon: this.icon,
         color: this.color,
         private: this.private,
@@ -63,10 +61,6 @@ class CollectionEdit extends React.Component<Props> {
     if (direction === "asc" || direction === "desc") {
       this.sort = { field, direction };
     }
-  };
-
-  handleDescriptionChange = (getValue: () => string) => {
-    this.description = getValue();
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -111,15 +105,6 @@ class CollectionEdit extends React.Component<Props> {
               icon={this.icon}
             />
           </Flex>
-          <InputRich
-            id={this.props.collection.id}
-            label={t("Description")}
-            onChange={this.handleDescriptionChange}
-            defaultValue={this.description || ""}
-            placeholder={t("More details about this collection…")}
-            minHeight={68}
-            maxHeight={200}
-          />
           <InputSelect
             label={t("Sort in sidebar")}
             options={[
