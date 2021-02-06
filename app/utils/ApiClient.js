@@ -1,9 +1,9 @@
 // @flow
 import invariant from "invariant";
 import { map, trim } from "lodash";
+import { getCookie } from "tiny-cookie";
 import stores from "stores";
 import download from "./download";
-import { getCookie } from "tiny-cookie";
 import {
   AuthorizationError,
   BadRequestError,
