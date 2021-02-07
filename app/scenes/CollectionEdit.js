@@ -10,7 +10,6 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Input from "components/Input";
-import InputRich from "components/InputRich";
 import InputSelect from "components/InputSelect";
 import Switch from "components/Switch";
 

@@ -1,11 +1,11 @@
 // @flow
-import { debounce } from "lodash";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import ButtonLink from "components/ButtonLink";
 import Editor from "components/Editor";
+import useDebounce from "hooks/useDebounce";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -26,12 +26,13 @@ function CollectionDescription({ collection }: Props) {
     setEditing(false);
   }, []);
 
-  const handleChange = React.useCallback(
-    debounce((getValue) => {
+  const handleChange = useDebounce(
+    (getValue) => {
       collection.save({
         description: getValue(),
       });
-    }, 1000),
+    },
+    1000,
     [collection]
   );
 
