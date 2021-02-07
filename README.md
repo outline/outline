@@ -19,7 +19,7 @@ This is the source code that runs [**Outline**](https://www.getoutline.com) and 
 
 If you'd like to run your own copy of Outline or contribute to development then this is the place for you.
 
-## Installation
+# Installation
 
 Outline requires the following dependencies:
 
@@ -31,7 +31,9 @@ Outline requires the following dependencies:
 - Slack or Google developer application for authentication
 
 
-### Production
+## Self-Hosted Production
+
+### Docker
 
 For a manual self-hosted production installation these are the recommended steps:
 
@@ -55,10 +57,32 @@ Postgres is on the same machine and is not SSL you can migrate with `yarn sequel
 
 1. (Optional) You can add an `nginx` or other reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
+### Terraform
 
-### Development
+Alternatively a community member maintains a script to deploy Outline on Google Cloud Platform with [Terraform & Ansible](https://github.com/rjsgn/outline-terraform-ansible).
 
-In development you can quickly get an environment running using Docker by following these steps:
+### Upgrading
+
+#### Docker
+
+If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
+
+```shell
+docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
+```
+
+#### Git
+
+If you're running Outline by cloning this repository, run the following command to upgrade:
+
+```shell
+yarn run upgrade
+```
+
+
+## Local Development
+
+For contributing features and fixes you can quickly get an environment running using Docker by following these steps:
 
 1. Install these dependencies if you don't already have them
   1. [Docker for Desktop](https://www.docker.com)
@@ -76,25 +100,27 @@ In development you can quickly get an environment running using Docker by follow
     1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
-### Upgrade
 
-#### Docker
+# Contributing
 
-If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
-```
-docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
-```
-#### Yarn
+Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-If you're running Outline by cloning this repository, run the following command to upgrade:
-```
-yarn run upgrade
-```
+Before submitting a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written. This will result in a much higher liklihood of code being accepted.
 
-## Development
+If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
+
+* [Translation](TRANSLATION.md) into other languages
+* Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
+* Performance improvements, both on server and frontend
+* Developer happiness and documentation
+* Bugs and other issues listed on GitHub
+
+
+## Architecture
 
 If you're interested in contributing or learning more about the Outline codebase
 please refer to the [architecture document](ARCHITECTURE.md) first for a high level overview of how the application is put together.
+
 
 ## Debugging
 
@@ -143,20 +169,6 @@ Or to run migrations on test database:
 ```
 yarn sequelize db:migrate --env test
 ```
-## Contributing
-
-Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
-
-Before submitting a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written. This will result in a much higher
-liklihood of your code being accepted.
-
-If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
-
-* [Translation](TRANSLATION.md) into other languages
-* Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
-* Performance improvements, both on server and frontend
-* Developer happiness and documentation
-* Bugs and other issues listed on GitHub
 
 ## License
 
