@@ -33,26 +33,27 @@ Outline requires the following dependencies:
 
 ### Production
 
-For a manual self-hosted production installation these are the suggested steps:
+For a manual self-hosted production installation these are the recommended steps:
 
-1. Clone this repo and install dependencies with `yarn install`
-1. Build the source code with `yarn build`
-1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
-    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
-    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
-    1. `URL` (the public facing URL of your installation)
-    1. `AWS_` (all of the keys beginning with AWS)
-1. Migrate database schema with `yarn sequelize:migrate`. Production assumes an SSL connection, if
-Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`.
-1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline `
+1. First setup Redis and Postgres servers, this is outside the scope of the guide.
+1. Download the latest official Docker image, new releases are available around the middle of every month:
+
+   `docker pull outlinewiki/outline`
+1. Using the [.env.sample](.env.sample) as a reference, set the required variables in your production environment. You can export the environment variables directly, or create a `.env` file and pass it to the docker image like so:
+
+   `docker run --env-file=.env outlinewiki/outline`
+1. Setup the database with `yarn sequelize:migrate`. Production assumes an SSL connection to the database by default, if
+Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`, for example:
+
+   `docker run --rm outlinewiki/outline yarn sequelize:migrate`
+1. Start the container:
+
+   `docker run outlinewiki/outline`
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
    > Port number can be changed using the `PORT` environment variable
 
-1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
+1. (Optional) You can add an `nginx` or other reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
 
 ### Development
