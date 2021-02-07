@@ -265,7 +265,7 @@
   "Offline": "离线",
   "We were unable to load the document while offline.": "离线状态无法加载文档。",
   "Your account has been suspended": "您的账户已被停用",
-  "A team admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly.": "A team admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly.",
+  "A team admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly.": "团队管理员（<em>{{ suspendedContactEmail }}</em>）已暂停您的帐户。要重新激活您的帐户，请直接与他们联系。",
   "{{userName}} was added to the group": "{{userName}} 已添加到群组",
   "Add team members below to give them access to the group. Need to add someone who’s not yet on the team yet?": "在下方添加团队成员以便让他们访问群组。需要添加尚未加入团队的人吗？",
   "Invite them to {{teamName}}": "邀请他们加入 {{teamName}}",
