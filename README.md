@@ -92,59 +92,16 @@ yarn run upgrade
 
 ## Development
 
-### Server
+If you're interested in contributing or learning more about the Outline codebase
+please refer to the [architecture document](ARCHITECTURE.md) first for a high level overview of how the application is put together.
+
+## Debugging
 
 Outline uses [debug](https://www.npmjs.com/package/debug). To enable debugging output, the following categories are available:
 
 ```
 DEBUG=sql,cache,presenters,events,logistics,emails,mailer
 ```
-
-## Migrations
-
-Sequelize is used to create and run migrations, for example:
-
-```
-yarn sequelize migration:generate --name my-migration
-yarn sequelize db:migrate
-```
-
-Or to run migrations on test database:
-
-```
-yarn sequelize db:migrate --env test
-```
-
-## Structure
-
-Outline is composed of separate backend and frontend application which are both driven by the same Node process. As both are written in Javascript, they share some code but are mostly separate. We utilize the latest language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier and ESLint are enforced by CI.
-
-### Frontend
-
-Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage.
-
-The editor itself is built on [Prosemirror](https://github.com/prosemirror) and hosted in a separate repository to encourage reuse: [rich-markdown-editor](https://github.com/outline/rich-markdown-editor)
-
-- `app/` - Frontend React application
-- `app/scenes` - Full page views
-- `app/components` - Reusable React components
-- `app/stores` - Global state stores
-- `app/models` - State models
-- `app/types` - Flow types for non-models
-
-### Backend
-
-Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](http://docs.sequelizejs.com/) (database) and React for public pages and emails.
-
-- `server/api` - API endpoints
-- `server/commands` - Domain logic, currently being refactored from /models
-- `server/emails`  - React rendered email templates
-- `server/models` - Database models
-- `server/policies` - Authorization logic
-- `server/presenters` - API responses for database models
-- `server/test` - Test helps and support
-- `server/utils` - Utility methods
-- `shared` - Code shared between frontend and backend applications
 
 ## Tests
 
@@ -171,11 +128,26 @@ yarn test:server
 yarn test:app
 ```
 
+## Migrations
+
+Sequelize is used to create and run migrations, for example:
+
+```
+yarn sequelize migration:generate --name my-migration
+yarn sequelize db:migrate
+```
+
+Or to run migrations on test database:
+
+```
+yarn sequelize db:migrate --env test
+```
 ## Contributing
 
 Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
+Before submitting a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written. This will result in a much higher
+liklihood of your code being accepted.
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
@@ -187,4 +159,4 @@ If you’re looking for ways to get started, here's a list of ways to help us im
 
 ## License
 
-Outline is [BSL 1.1 licensed](https://github.com/outline/outline/blob/master/LICENSE).
+Outline is [BSL 1.1 licensed](LICENSE).
