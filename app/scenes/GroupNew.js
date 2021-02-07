@@ -39,7 +39,7 @@ class GroupNew extends React.Component<Props> {
     try {
       this.group = await group.save();
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }

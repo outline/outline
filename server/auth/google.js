@@ -1,6 +1,7 @@
 // @flow
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
+import invariant from "invariant";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import Sequelize from "sequelize";
@@ -26,7 +27,7 @@ router.get("google", async (ctx) => {
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
     ],
-    prompt: "consent",
+    prompt: "select_account consent",
   });
   ctx.redirect(authorizeUrl);
 });
@@ -68,15 +69,24 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
   const cbResponse = await fetch(cbUrl);
   const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
 
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      googleId,
-    },
-    defaults: {
-      name: teamName,
-      avatarUrl,
-    },
-  });
+  let team, isFirstUser;
+  try {
+    [team, isFirstUser] = await Team.findOrCreate({
+      where: {
+        googleId,
+      },
+      defaults: {
+        name: teamName,
+        avatarUrl,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Sequelize.UniqueConstraintError) {
+      ctx.redirect(`/?notice=auth-error`);
+      return;
+    }
+  }
+  invariant(team, "Team must exist");
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({

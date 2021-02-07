@@ -1,30 +1,24 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import UiStore from "../../stores/UiStore";
 import Toast from "./components/Toast";
+import useStores from "hooks/useStores";
 
-type Props = {
-  ui: UiStore,
-};
-@observer
-class Toasts extends React.Component<Props> {
-  render() {
-    const { ui } = this.props;
+function Toasts() {
+  const { ui } = useStores();
 
-    return (
-      <List>
-        {ui.orderedToasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            toast={toast}
-            onRequestClose={() => ui.removeToast(toast.id)}
-          />
-        ))}
-      </List>
-    );
-  }
+  return (
+    <List>
+      {ui.orderedToasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          toast={toast}
+          onRequestClose={() => ui.removeToast(toast.id)}
+        />
+      ))}
+    </List>
+  );
 }
 
 const List = styled.ol`
@@ -37,4 +31,4 @@ const List = styled.ol`
   z-index: ${(props) => props.theme.depths.toasts};
 `;
 
-export default inject("ui")(Toasts);
+export default observer(Toasts);

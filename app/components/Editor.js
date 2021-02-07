@@ -8,21 +8,39 @@ import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
-import isInternalUrl from "utils/isInternalUrl";
+import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
+import { isInternalUrl } from "utils/urls";
 
 const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
 
 const EMPTY_ARRAY = [];
 
-type Props = {
+export type Props = {|
   id?: string,
+  value?: string,
   defaultValue?: string,
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
-};
+  autoFocus?: boolean,
+  template?: boolean,
+  placeholder?: string,
+  scrollTo?: string,
+  readOnlyWriteCheckboxes?: boolean,
+  onBlur?: (event: SyntheticEvent<>) => any,
+  onFocus?: (event: SyntheticEvent<>) => any,
+  onPublish?: (event: SyntheticEvent<>) => any,
+  onSave?: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
+  onCancel?: () => any,
+  onChange?: (getValue: () => string) => any,
+  onSearchLink?: (title: string) => any,
+  onHoverLink?: (event: MouseEvent) => any,
+  onCreateLink?: (title: string) => Promise<string>,
+  onImageUploadStart?: () => any,
+  onImageUploadStop?: () => any,
+|};
 
 type PropsWithRef = Props & {
   forwardedRef: React.Ref<any>,
@@ -49,7 +67,7 @@ function Editor(props: PropsWithRef) {
         return;
       }
 
-      if (isInternalUrl(href) && !event.metaKey && !event.shiftKey) {
+      if (isInternalUrl(href) && !isModKey(event) && !event.shiftKey) {
         // relative
         let navigateTo = href;
 
@@ -171,17 +189,16 @@ const StyledEditor = styled(RichMarkdownEditor)`
     font-weight: 500;
   }
 
-  .heading-name {
-    pointer-events: none;
+  .heading-anchor {
+    box-sizing: border-box;
   }
 
-  /* pseudo element allows us to add spacing for fixed header */
-  /* ref: https://stackoverflow.com/a/28824157 */
-  .heading-name::before {
-    content: "";
-    display: ${(props) => (props.readOnly ? "block" : "none")};
-    height: 72px;
-    margin: -72px 0 0;
+  .heading-name {
+    pointer-events: none;
+    display: block;
+    position: relative;
+    top: -60px;
+    visibility: hidden;
   }
 
   .heading-name:first-child {

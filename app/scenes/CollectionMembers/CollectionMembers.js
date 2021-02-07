@@ -12,6 +12,7 @@ import UiStore from "stores/UiStore";
 import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
+import ButtonLink from "components/ButtonLink";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -61,9 +62,11 @@ class CollectionMembers extends React.Component<Props> {
         collectionId: this.props.collection.id,
         userId: user.id,
       });
-      this.props.ui.showToast(`${user.name} was removed from the collection`);
+      this.props.ui.showToast(`${user.name} was removed from the collection`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not remove user");
+      this.props.ui.showToast("Could not remove user", { type: "error" });
     }
   };
 
@@ -74,9 +77,11 @@ class CollectionMembers extends React.Component<Props> {
         userId: user.id,
         permission,
       });
-      this.props.ui.showToast(`${user.name} permissions were updated`);
+      this.props.ui.showToast(`${user.name} permissions were updated`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not update user");
+      this.props.ui.showToast("Could not update user", { type: "error" });
     }
   };
 
@@ -86,9 +91,11 @@ class CollectionMembers extends React.Component<Props> {
         collectionId: this.props.collection.id,
         groupId: group.id,
       });
-      this.props.ui.showToast(`${group.name} was removed from the collection`);
+      this.props.ui.showToast(`${group.name} was removed from the collection`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not remove group");
+      this.props.ui.showToast("Could not remove group", { type: "error" });
     }
   };
 
@@ -99,9 +106,11 @@ class CollectionMembers extends React.Component<Props> {
         groupId: group.id,
         permission,
       });
-      this.props.ui.showToast(`${group.name} permissions were updated`);
+      this.props.ui.showToast(`${group.name} permissions were updated`, {
+        type: "success",
+      });
     } catch (err) {
-      this.props.ui.showToast("Could not update user");
+      this.props.ui.showToast("Could not update user", { type: "error" });
     }
   };
 
@@ -131,9 +140,9 @@ class CollectionMembers extends React.Component<Props> {
               documents in the private <strong>{collection.name}</strong>{" "}
               collection. You can make this collection visible to the entire
               team by{" "}
-              <a role="button" onClick={this.props.onEdit}>
+              <ButtonLink onClick={this.props.onEdit}>
                 changing the visibility
-              </a>
+              </ButtonLink>
               .
             </HelpText>
             <span>
@@ -152,9 +161,7 @@ class CollectionMembers extends React.Component<Props> {
             The <strong>{collection.name}</strong> collection is accessible by
             everyone on the team. If you want to limit who can view the
             collection,{" "}
-            <a role="button" onClick={this.props.onEdit}>
-              make it private
-            </a>
+            <ButtonLink onClick={this.props.onEdit}>make it private</ButtonLink>
             .
           </HelpText>
         )}

@@ -33,6 +33,7 @@ import References from "./References";
 import { type LocationWithState, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
+import { meta } from "utils/keyboard";
 import {
   collectionUrl,
   documentMoveUrl,
@@ -60,7 +61,7 @@ type Props = {
   document: Document,
   revision: Revision,
   readOnly: boolean,
-  onCreateLink: (title: string) => string,
+  onCreateLink: (title: string) => Promise<string>,
   onSearchLink: (term: string) => any,
   theme: Theme,
   auth: AuthStore,
@@ -80,12 +81,12 @@ class DocumentScene extends React.Component<Props> {
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
 
-  componentDidMount() {
-    this.updateIsDirty();
-  }
-
   componentDidUpdate(prevProps) {
     const { auth, document } = this.props;
+
+    if (prevProps.readOnly && !this.props.readOnly) {
+      this.updateIsDirty();
+    }
 
     if (this.props.readOnly) {
       this.lastRevision = document.revision;
@@ -99,6 +100,7 @@ class DocumentScene extends React.Component<Props> {
           `Document updated by ${document.updatedBy.name}`,
           {
             timeout: 30 * 1000,
+            type: "warning",
             action: {
               text: "Reload",
               onClick: () => {
@@ -163,7 +165,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  @keydown("meta+shift+p")
+  @keydown(`${meta}+shift+p`)
   onPublish(ev) {
     ev.preventDefault();
     const { document } = this.props;
@@ -171,7 +173,7 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
-  @keydown("meta+ctrl+h")
+  @keydown(`${meta}+ctrl+h`)
   onToggleTableOfContents(ev) {
     if (!this.props.readOnly) return;
 
@@ -238,7 +240,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
       this.isPublishing = false;
@@ -438,7 +440,7 @@ class DocumentScene extends React.Component<Props> {
                     ui={this.props.ui}
                   />
                 </Flex>
-                {readOnly && !isShare && !revision && (
+                {!isShare && !revision && (
                   <>
                     <MarkAsViewed document={document} />
                     <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>

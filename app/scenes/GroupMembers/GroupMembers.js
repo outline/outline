@@ -52,10 +52,11 @@ class GroupMembers extends React.Component<Props> {
         userId: user.id,
       });
       this.props.ui.showToast(
-        t(`{{userName}} was removed from the group`, { userName: user.name })
+        t(`{{userName}} was removed from the group`, { userName: user.name }),
+        { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not remove user"));
+      this.props.ui.showToast(t("Could not remove user"), { type: "error" });
     }
   };
 
@@ -102,7 +103,6 @@ class GroupMembers extends React.Component<Props> {
             <GroupMemberListItem
               key={item.id}
               user={item}
-              membership={groupMemberships.get(`${item.id}-${group.id}`)}
               onRemove={
                 can.update ? () => this.handleRemoveUser(item) : undefined
               }

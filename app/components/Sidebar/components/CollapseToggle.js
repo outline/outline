@@ -8,7 +8,7 @@ import { meta } from "utils/keyboard";
 
 type Props = {|
   collapsed: boolean,
-  onClick?: () => void,
+  onClick?: (event: SyntheticEvent<>) => void,
 |};
 
 function CollapseToggle({ collapsed, ...rest }: Props) {
@@ -21,7 +21,7 @@ function CollapseToggle({ collapsed, ...rest }: Props) {
       delay={500}
       placement="bottom"
     >
-      <Button {...rest} aria-hidden>
+      <Button {...rest} tabIndex="-1" aria-hidden>
         {collapsed ? (
           <NextIcon color="currentColor" />
         ) : (
@@ -43,7 +43,7 @@ export const Button = styled.button`
   z-index: 1;
   font-weight: 600;
   color: ${(props) => props.theme.sidebarText};
-  background: ${(props) => props.theme.sidebarItemBackground};
+  background: transparent;
   transition: opacity 100ms ease-in-out;
   border-radius: 4px;
   opacity: 0;

@@ -12,7 +12,7 @@ import {
 import { transparentize, darken } from "polished";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
-import { Redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -34,7 +34,7 @@ import Tooltip from "components/Tooltip";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
-import { meta } from "utils/keyboard";
+import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -63,7 +63,6 @@ type Props = {
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
   @observable showShareModal = false;
-  @observable redirectTo: ?string;
 
   componentDidMount() {
     window.addEventListener("scroll", this.handleScroll);
@@ -78,18 +77,6 @@ class Header extends React.Component<Props> {
   };
 
   handleScroll = throttle(this.updateIsScrolled, 50);
-
-  handleEdit = () => {
-    this.redirectTo = editDocumentUrl(this.props.document);
-  };
-
-  handleNewFromTemplate = () => {
-    const { document } = this.props;
-
-    this.redirectTo = newDocumentUrl(document.collectionId, {
-      templateId: document.id,
-    });
-  };
 
   handleSave = () => {
     this.props.onSave({ done: true });
@@ -118,8 +105,6 @@ class Header extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     const {
       shares,
       document,
@@ -149,7 +134,6 @@ class Header extends React.Component<Props> {
       <Actions
         align="center"
         justify="space-between"
-        readOnly={!isEditing}
         isCompact={this.isScrolled}
         shrink={false}
       >
@@ -163,8 +147,7 @@ class Header extends React.Component<Props> {
             onSubmit={this.handleCloseShareModal}
           />
         </Modal>
-        <BreadcrumbAndContents align="center" justify="flex-start">
-          <Breadcrumb document={document} />
+        <Breadcrumb document={document}>
           {!isEditing && (
             <>
               <Slash />
@@ -172,7 +155,7 @@ class Header extends React.Component<Props> {
                 tooltip={
                   ui.tocVisible ? t("Hide contents") : t("Show contents")
                 }
-                shortcut={`ctrl+${meta}+h`}
+                shortcut={`ctrl+${metaDisplay}+h`}
                 delay={250}
                 placement="bottom"
               >
@@ -186,12 +169,11 @@ class Header extends React.Component<Props> {
                   iconColor="currentColor"
                   borderOnHover
                   neutral
-                  small
                 />
               </Tooltip>
             </>
           )}
-        </BreadcrumbAndContents>
+        </Breadcrumb>
         {this.isScrolled && (
           <Title onClick={this.handleClickTitle}>
             <Fade>
@@ -238,7 +220,6 @@ class Header extends React.Component<Props> {
                   icon={isPubliclyShared ? <GlobeIcon /> : undefined}
                   onClick={this.handleShareLink}
                   neutral
-                  small
                 >
                   {t("Share")}
                 </Button>
@@ -250,16 +231,14 @@ class Header extends React.Component<Props> {
               <Action>
                 <Tooltip
                   tooltip={t("Save")}
-                  shortcut={`${meta}+enter`}
+                  shortcut={`${metaDisplay}+enter`}
                   delay={500}
                   placement="bottom"
                 >
                   <Button
                     onClick={this.handleSave}
                     disabled={savingIsDisabled}
-                    isSaving={isSaving}
                     neutral={isDraft}
-                    small
                   >
                     {isDraft ? t("Save Draft") : t("Done Editing")}
                   </Button>
@@ -276,10 +255,10 @@ class Header extends React.Component<Props> {
                 placement="bottom"
               >
                 <Button
+                  as={Link}
                   icon={<EditIcon />}
-                  onClick={this.handleEdit}
+                  to={editDocumentUrl(this.props.document)}
                   neutral
-                  small
                 >
                   {t("Edit")}
                 </Button>
@@ -290,18 +269,18 @@ class Header extends React.Component<Props> {
             <Action>
               <NewChildDocumentMenu
                 document={document}
-                label={
+                label={(props) => (
                   <Tooltip
                     tooltip={t("New document")}
                     shortcut="n"
                     delay={500}
                     placement="bottom"
                   >
-                    <Button icon={<PlusIcon />} neutral>
+                    <Button icon={<PlusIcon />} {...props} neutral>
                       {t("New doc")}
                     </Button>
                   </Tooltip>
-                }
+                )}
               />
             </Action>
           )}
@@ -309,9 +288,11 @@ class Header extends React.Component<Props> {
             <Action>
               <Button
                 icon={<PlusIcon />}
-                onClick={this.handleNewFromTemplate}
+                as={Link}
+                to={newDocumentUrl(document.collectionId, {
+                  templateId: document.id,
+                })}
                 primary
-                small
               >
                 {t("New from template")}
               </Button>
@@ -321,15 +302,13 @@ class Header extends React.Component<Props> {
             <Action>
               <Tooltip
                 tooltip={t("Publish")}
-                shortcut={`${meta}+shift+p`}
+                shortcut={`${metaDisplay}+shift+p`}
                 delay={500}
                 placement="bottom"
               >
                 <Button
                   onClick={this.handlePublish}
-                  title={t("Publish document")}
                   disabled={publishingIsDisabled}
-                  small
                 >
                   {isPublishing ? `${t("Publishing")}…` : t("Publish")}
                 </Button>
@@ -343,15 +322,15 @@ class Header extends React.Component<Props> {
                 <DocumentMenu
                   document={document}
                   isRevision={isRevision}
-                  label={
+                  label={(props) => (
                     <Button
                       icon={<MoreIcon />}
                       iconColor="currentColor"
+                      {...props}
                       borderOnHover
                       neutral
-                      small
                     />
-                  }
+                  )}
                   showToggleEmbeds={canToggleEmbeds}
                   showPrint
                 />
@@ -366,15 +345,6 @@ class Header extends React.Component<Props> {
 
 const Status = styled.div`
   color: ${(props) => props.theme.slate};
-`;
-
-const BreadcrumbAndContents = styled(Flex)`
-  display: none;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-    width: 33.3%;
-  `};
 `;
 
 const Wrapper = styled(Flex)`
@@ -410,6 +380,10 @@ const Actions = styled(Flex)`
 
   ${breakpoint("tablet")`
     padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
+
+    > div {
+      width: 33.3%;
+    }
   `};
 `;
 
@@ -422,6 +396,7 @@ const Title = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  cursor: pointer;
   display: none;
   width: 0;
 

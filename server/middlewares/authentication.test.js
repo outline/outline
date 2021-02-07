@@ -1,8 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import randomstring from "randomstring";
 import { ApiKey } from "../models";
-import { buildUser } from "../test/factories";
-import { flushdb, seed } from "../test/support";
+import { buildUser, buildTeam } from "../test/factories";
+import { flushdb } from "../test/support";
 import auth from "./authentication";
 
 beforeEach(() => flushdb());
@@ -11,7 +11,7 @@ describe("Authentication middleware", () => {
   describe("with JWT", () => {
     it("should authenticate with correct token", async () => {
       const state = {};
-      const { user } = await seed();
+      const user = await buildUser();
       const authMiddleware = auth();
 
       await authMiddleware(
@@ -29,7 +29,7 @@ describe("Authentication middleware", () => {
 
     it("should return error with invalid token", async () => {
       const state = {};
-      const { user } = await seed();
+      const user = await buildUser();
       const authMiddleware = auth();
 
       try {
@@ -52,7 +52,7 @@ describe("Authentication middleware", () => {
   describe("with API key", () => {
     it("should authenticate user with valid API key", async () => {
       const state = {};
-      const { user } = await seed();
+      const user = await buildUser();
       const authMiddleware = auth();
       const key = await ApiKey.create({
         userId: user.id,
@@ -116,7 +116,7 @@ describe("Authentication middleware", () => {
 
   it("should allow passing auth token as a GET param", async () => {
     const state = {};
-    const { user } = await seed();
+    const user = await buildUser();
     const authMiddleware = auth();
 
     await authMiddleware(
@@ -138,7 +138,7 @@ describe("Authentication middleware", () => {
 
   it("should allow passing auth token in body params", async () => {
     const state = {};
-    const { user } = await seed();
+    const user = await buildUser();
     const authMiddleware = auth();
 
     await authMiddleware(
@@ -159,13 +159,14 @@ describe("Authentication middleware", () => {
 
   it("should return an error for suspended users", async () => {
     const state = {};
-    const admin = await buildUser({});
+    const admin = await buildUser();
     const user = await buildUser({
       suspendedAt: new Date(),
       suspendedById: admin.id,
     });
     const authMiddleware = auth();
 
+    let error;
     try {
       await authMiddleware(
         {
@@ -177,11 +178,38 @@ describe("Authentication middleware", () => {
         },
         jest.fn()
       );
-    } catch (e) {
-      expect(e.message).toEqual(
-        "Your access has been suspended by the team admin"
-      );
-      expect(e.errorData.adminEmail).toEqual(admin.email);
+    } catch (err) {
+      error = err;
     }
+    expect(error.message).toEqual(
+      "Your access has been suspended by the team admin"
+    );
+    expect(error.errorData.adminEmail).toEqual(admin.email);
+  });
+
+  it("should return an error for deleted team", async () => {
+    const state = {};
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+
+    await team.destroy();
+
+    const authMiddleware = auth();
+    let error;
+    try {
+      await authMiddleware(
+        {
+          request: {
+            get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
+          },
+          state,
+          cache: {},
+        },
+        jest.fn()
+      );
+    } catch (err) {
+      error = err;
+    }
+    expect(error.message).toEqual("Invalid token");
   });
 });

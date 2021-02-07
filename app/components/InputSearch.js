@@ -9,6 +9,7 @@ import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Input from "./Input";
 import { type Theme } from "types";
+import { meta } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -16,6 +17,8 @@ type Props = {
   theme: Theme,
   source: string,
   placeholder?: string,
+  label?: string,
+  labelHidden?: boolean,
   collectionId?: string,
   t: TFunction,
 };
@@ -25,7 +28,7 @@ class InputSearch extends React.Component<Props> {
   input: ?Input;
   @observable focused: boolean = false;
 
-  @keydown("meta+f")
+  @keydown(`${meta}+f`)
   focus(ev: SyntheticEvent<>) {
     ev.preventDefault();
 
@@ -67,6 +70,8 @@ class InputSearch extends React.Component<Props> {
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
           />
         }
+        label={this.props.label}
+        labelHidden={this.props.labelHidden}
         onFocus={this.handleFocus}
         onBlur={this.handleBlur}
         margin={0}

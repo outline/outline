@@ -51,9 +51,9 @@ class Invite extends React.Component<Props> {
     try {
       await this.props.users.invite(this.invites);
       this.props.onSubmit();
-      this.props.ui.showToast("We sent out your invites!");
+      this.props.ui.showToast("We sent out your invites!", { type: "success" });
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }
@@ -73,7 +73,8 @@ class Invite extends React.Component<Props> {
   handleAdd = () => {
     if (this.invites.length >= MAX_INVITES) {
       this.props.ui.showToast(
-        `Sorry, you can only send ${MAX_INVITES} invites at a time`
+        `Sorry, you can only send ${MAX_INVITES} invites at a time`,
+        { type: "warning" }
       );
     }
 
@@ -88,7 +89,9 @@ class Invite extends React.Component<Props> {
 
   handleCopy = () => {
     this.linkCopied = true;
-    this.props.ui.showToast("A link was copied to your clipboard");
+    this.props.ui.showToast("Share link copied", {
+      type: "success",
+    });
   };
 
   render() {

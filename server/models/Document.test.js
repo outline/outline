@@ -279,4 +279,25 @@ describe("#delete", () => {
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
   });
+
+  test("should soft delete templates", async () => {
+    let document = await buildDocument({ template: true });
+    let user = await buildUser();
+
+    await document.delete(user.id);
+
+    document = await Document.findByPk(document.id, { paranoid: false });
+    expect(document.lastModifiedById).toBe(user.id);
+    expect(document.deletedAt).toBeTruthy();
+  });
+  test("should soft delete archived", async () => {
+    let document = await buildDocument({ archivedAt: new Date() });
+    let user = await buildUser();
+
+    await document.delete(user.id);
+
+    document = await Document.findByPk(document.id, { paranoid: false });
+    expect(document.lastModifiedById).toBe(user.id);
+    expect(document.deletedAt).toBeTruthy();
+  });
 });

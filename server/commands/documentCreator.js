@@ -60,7 +60,7 @@ export default async function documentCreator({
   });
 
   if (publish) {
-    await document.publish();
+    await document.publish(user.id);
 
     await Event.create({
       name: "documents.publish",

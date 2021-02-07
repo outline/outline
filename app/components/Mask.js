@@ -5,10 +5,10 @@ import { randomInteger } from "shared/random";
 import { pulsate } from "shared/styles/animations";
 import Flex from "components/Flex";
 
-type Props = {
+type Props = {|
   header?: boolean,
   height?: number,
-};
+|};
 
 class Mask extends React.Component<Props> {
   width: number;
@@ -23,7 +23,7 @@ class Mask extends React.Component<Props> {
   }
 
   render() {
-    return <Redacted width={this.width} {...this.props} />;
+    return <Redacted width={this.width} />;
   }
 }
 

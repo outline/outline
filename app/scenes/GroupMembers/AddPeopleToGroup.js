@@ -11,6 +11,7 @@ import UsersStore from "stores/UsersStore";
 import Group from "models/Group";
 import User from "models/User";
 import Invite from "scenes/Invite";
+import ButtonLink from "components/ButtonLink";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -62,10 +63,11 @@ class AddPeopleToGroup extends React.Component<Props> {
         userId: user.id,
       });
       this.props.ui.showToast(
-        t(`{{userName}} was added to the group`, { userName: user.name })
+        t(`{{userName}} was added to the group`, { userName: user.name }),
+        { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not add user"));
+      this.props.ui.showToast(t("Could not add user"), { type: "error" });
     }
   };
 
@@ -80,12 +82,11 @@ class AddPeopleToGroup extends React.Component<Props> {
           {t(
             "Add team members below to give them access to the group. Need to add someone who’s not yet on the team yet?"
           )}{" "}
-          <a role="button" onClick={this.handleInviteModalOpen}>
+          <ButtonLink onClick={this.handleInviteModalOpen}>
             {t("Invite them to {{teamName}}", { teamName: team.name })}
-          </a>
+          </ButtonLink>
           .
         </HelpText>
-
         <Input
           type="search"
           placeholder={`${t("Search by name")}…`}
@@ -111,7 +112,6 @@ class AddPeopleToGroup extends React.Component<Props> {
               key={item.id}
               user={item}
               onAdd={() => this.handleAddUser(item)}
-              canEdit
             />
           )}
         />

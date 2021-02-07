@@ -1,12 +1,11 @@
 // @flow
 import { find } from "lodash";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
-import { Redirect, Link } from "react-router-dom";
+import { Redirect, Link, type Location } from "react-router-dom";
 import styled from "styled-components";
 import getQueryVariable from "shared/utils/getQueryVariable";
-import AuthStore from "stores/AuthStore";
 import ButtonLarge from "components/ButtonLarge";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
@@ -18,147 +17,141 @@ import TeamLogo from "components/TeamLogo";
 import Notices from "./Notices";
 import Service from "./Service";
 import env from "env";
+import useStores from "hooks/useStores";
 
-type Props = {
-  auth: AuthStore,
-  location: Object,
-};
+type Props = {|
+  location: Location,
+|};
 
-type State = {
-  emailLinkSentTo: string,
-};
+function Login({ location }: Props) {
+  const { auth } = useStores();
+  const { config } = auth;
+  const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
+  const isCreate = location.pathname === "/create";
 
-@observer
-class Login extends React.Component<Props, State> {
-  state = {
-    emailLinkSentTo: "",
-  };
+  const handleReset = React.useCallback(() => {
+    setEmailLinkSentTo("");
+  }, []);
 
-  handleReset = () => {
-    this.setState({ emailLinkSentTo: "" });
-  };
+  const handleEmailSuccess = React.useCallback((email) => {
+    setEmailLinkSentTo(email);
+  }, []);
 
-  handleEmailSuccess = (email) => {
-    this.setState({ emailLinkSentTo: email });
-  };
+  React.useEffect(() => {
+    auth.fetchConfig();
+  }, [auth]);
 
-  render() {
-    const { auth, location } = this.props;
-    const { config } = auth;
-    const isCreate = location.pathname === "/create";
+  console.log(config);
 
-    if (auth.authenticated) {
-      return <Redirect to="/home" />;
-    }
+  if (auth.authenticated) {
+    return <Redirect to="/home" />;
+  }
 
-    // we're counting on the config request being fast
-    if (!config) {
-      return null;
-    }
+  // we're counting on the config request being fast
+  if (!config) {
+    return null;
+  }
 
-    const hasMultipleServices = config.services.length > 1;
-    const defaultService = find(
-      config.services,
-      (service) => service.id === auth.lastSignedIn && !isCreate
-    );
+  const hasMultipleServices = config.services.length > 1;
+  const defaultService = find(
+    config.services,
+    (service) => service.id === auth.lastSignedIn && !isCreate
+  );
 
-    const header =
-      env.DEPLOYMENT === "hosted" &&
-      (config.hostname ? (
-        <Back href={env.URL}>
-          <BackIcon color="currentColor" /> Back to home
-        </Back>
-      ) : (
-        <Back href="https://www.getoutline.com">
-          <BackIcon color="currentColor" /> Back to website
-        </Back>
-      ));
+  const header =
+    env.DEPLOYMENT === "hosted" &&
+    (config.hostname ? (
+      <Back href={env.URL}>
+        <BackIcon color="currentColor" /> Back to home
+      </Back>
+    ) : (
+      <Back href="https://www.getoutline.com">
+        <BackIcon color="currentColor" /> Back to website
+      </Back>
+    ));
 
-    if (this.state.emailLinkSentTo) {
-      return (
-        <Background>
-          {header}
-          <Centered align="center" justify="center" column auto>
-            <PageTitle title="Check your email" />
-            <CheckEmailIcon size={38} color="currentColor" />
-
-            <Heading centered>Check your email</Heading>
-            <Note>
-              A magic sign-in link has been sent to the email{" "}
-              <em>{this.state.emailLinkSentTo}</em>, no password needed.
-            </Note>
-            <br />
-            <ButtonLarge onClick={this.handleReset} fullwidth neutral>
-              Back to login
-            </ButtonLarge>
-          </Centered>
-        </Background>
-      );
-    }
-
+  if (emailLinkSentTo) {
     return (
       <Background>
         {header}
         <Centered align="center" justify="center" column auto>
-          <PageTitle title="Login" />
-          <Logo>
-            {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
-              <TeamLogo src={env.TEAM_LOGO} />
-            ) : (
-              <OutlineLogo size={38} fill="currentColor" />
-            )}
-          </Logo>
+          <PageTitle title="Check your email" />
+          <CheckEmailIcon size={38} color="currentColor" />
 
-          {isCreate ? (
-            <Heading centered>Create an account</Heading>
-          ) : (
-            <Heading centered>Login to {config.name || "Outline"}</Heading>
-          )}
-
-          <Notices notice={getQueryVariable("notice")} />
-
-          {defaultService && (
-            <React.Fragment key={defaultService.id}>
-              <Service
-                isCreate={isCreate}
-                onEmailSuccess={this.handleEmailSuccess}
-                {...defaultService}
-              />
-              {hasMultipleServices && (
-                <>
-                  <Note>
-                    You signed in with {defaultService.name} last time.
-                  </Note>
-                  <Or />
-                </>
-              )}
-            </React.Fragment>
-          )}
-
-          {config.services.map((service) => {
-            if (defaultService && service.id === defaultService.id) {
-              return null;
-            }
-
-            return (
-              <Service
-                key={service.id}
-                isCreate={isCreate}
-                onEmailSuccess={this.handleEmailSuccess}
-                {...service}
-              />
-            );
-          })}
-
-          {isCreate && (
-            <Note>
-              Already have an account? Go to <Link to="/">login</Link>.
-            </Note>
-          )}
+          <Heading centered>Check your email</Heading>
+          <Note>
+            A magic sign-in link has been sent to the email{" "}
+            <em>{emailLinkSentTo}</em>, no password needed.
+          </Note>
+          <br />
+          <ButtonLarge onClick={handleReset} fullwidth neutral>
+            Back to login
+          </ButtonLarge>
         </Centered>
       </Background>
     );
   }
+
+  return (
+    <Background>
+      {header}
+      <Centered align="center" justify="center" column auto>
+        <PageTitle title="Login" />
+        <Logo>
+          {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
+            <TeamLogo src={env.TEAM_LOGO} />
+          ) : (
+            <OutlineLogo size={38} fill="currentColor" />
+          )}
+        </Logo>
+
+        {isCreate ? (
+          <Heading centered>Create an account</Heading>
+        ) : (
+          <Heading centered>Login to {config.name || "Outline"}</Heading>
+        )}
+
+        <Notices notice={getQueryVariable("notice")} />
+
+        {defaultService && (
+          <React.Fragment key={defaultService.id}>
+            <Service
+              isCreate={isCreate}
+              onEmailSuccess={handleEmailSuccess}
+              {...defaultService}
+            />
+            {hasMultipleServices && (
+              <>
+                <Note>You signed in with {defaultService.name} last time.</Note>
+                <Or />
+              </>
+            )}
+          </React.Fragment>
+        )}
+
+        {config.services.map((service) => {
+          if (defaultService && service.id === defaultService.id) {
+            return null;
+          }
+
+          return (
+            <Service
+              key={service.id}
+              isCreate={isCreate}
+              onEmailSuccess={handleEmailSuccess}
+              {...service}
+            />
+          );
+        })}
+
+        {isCreate && (
+          <Note>
+            Already have an account? Go to <Link to="/">login</Link>.
+          </Note>
+        )}
+      </Centered>
+    </Background>
+  );
 }
 
 const CheckEmailIcon = styled(EmailIcon)`
@@ -234,4 +227,4 @@ const Centered = styled(Flex)`
   margin: 0 auto;
 `;
 
-export default inject("auth")(Login);
+export default observer(Login);

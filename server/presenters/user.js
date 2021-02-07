@@ -24,7 +24,7 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   userData.isAdmin = user.isAdmin;
   userData.isSuspended = user.isSuspended;
   userData.avatarUrl = user.avatarUrl;
-  userData.language = user.language;
+  userData.language = user.language || process.env.DEFAULT_LANGUAGE || "en_US";
 
   if (options.includeDetails) {
     userData.email = user.email;

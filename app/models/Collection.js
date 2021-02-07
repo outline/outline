@@ -1,5 +1,5 @@
 // @flow
-import { pick } from "lodash";
+import { pick, trim } from "lodash";
 import { action, computed, observable } from "mobx";
 import BaseModel from "models/BaseModel";
 import Document from "models/Document";
@@ -20,6 +20,7 @@ export default class Collection extends BaseModel {
   createdAt: ?string;
   updatedAt: ?string;
   deletedAt: ?string;
+  sort: { field: string, direction: "asc" | "desc" };
   url: string;
 
   @computed
@@ -43,6 +44,11 @@ export default class Collection extends BaseModel {
 
     travelDocuments(this.documents);
     return results;
+  }
+
+  @computed
+  get hasDescription(): boolean {
+    return !!trim(this.description, "\\").trim();
   }
 
   @action
@@ -108,6 +114,7 @@ export default class Collection extends BaseModel {
       "description",
       "icon",
       "private",
+      "sort",
     ]);
   };
 

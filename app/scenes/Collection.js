@@ -2,7 +2,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 
-import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
+import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
@@ -145,6 +145,8 @@ class CollectionScene extends React.Component<Props> {
               <InputSearch
                 source="collection"
                 placeholder={`${t("Search in collection")}…`}
+                label={`${t("Search in collection")}…`}
+                labelHidden
                 collectionId={match.params.id}
               />
             </Action>
@@ -164,7 +166,20 @@ class CollectionScene extends React.Component<Props> {
           </>
         )}
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <CollectionMenu
+            collection={this.collection}
+            placement="bottom-end"
+            modal={false}
+            label={(props) => (
+              <Button
+                icon={<MoreIcon />}
+                {...props}
+                borderOnHover
+                neutral
+                small
+              />
+            )}
+          />
         </Action>
       </Actions>
     );
@@ -179,9 +194,10 @@ class CollectionScene extends React.Component<Props> {
     const pinnedDocuments = this.collection
       ? documents.pinnedInCollection(this.collection.id)
       : [];
-    const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
     const collectionName = collection ? collection.name : "";
+    const hasPinnedDocuments = !!pinnedDocuments.length;
+    const hasDescription = collection ? collection.hasDescription : false;
 
     return (
       <CenteredContent>
@@ -191,10 +207,12 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  <Trans>
-                    <strong>{{ collectionName }}</strong> doesn’t contain any
-                    documents yet.
-                  </Trans>
+                  <Trans
+                    defaults="<em>{{ collectionName }}</em> doesn’t contain any
+                    documents yet."
+                    values={{ collectionName }}
+                    components={{ em: <strong /> }}
+                  />
                   <br />
                   <Trans>Get started by creating a new one!</Trans>
                 </HelpText>
@@ -240,7 +258,7 @@ class CollectionScene extends React.Component<Props> {
                   {collection.name}
                 </Heading>
 
-                {collection.description && (
+                {hasDescription && (
                   <React.Suspense fallback={<p>Loading…</p>}>
                     <Editor
                       id={collection.id}
@@ -262,9 +280,12 @@ class CollectionScene extends React.Component<Props> {
 
                 <Tabs>
                   <Tab to={collectionUrl(collection.id)} exact>
+                    {t("Documents")}
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, "updated")} exact>
                     {t("Recently updated")}
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, "recent")} exact>
+                  <Tab to={collectionUrl(collection.id, "published")} exact>
                     {t("Recently published")}
                   </Tab>
                   <Tab to={collectionUrl(collection.id, "old")} exact>
@@ -298,8 +319,11 @@ class CollectionScene extends React.Component<Props> {
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, "recent")}>
+                    <Redirect to={collectionUrl(collection.id, "published")} />
+                  </Route>
+                  <Route path={collectionUrl(collection.id, "published")}>
                     <PaginatedDocumentList
-                      key="recent"
+                      key="published"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -309,13 +333,28 @@ class CollectionScene extends React.Component<Props> {
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id)}>
+                  <Route path={collectionUrl(collection.id, "updated")}>
                     <PaginatedDocumentList
+                      key="updated"
                       documents={documents.recentlyUpdatedInCollection(
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyUpdated}
                       options={{ collectionId: collection.id }}
+                      showPin
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id)} exact>
+                    <PaginatedDocumentList
+                      documents={documents.rootInCollection(collection.id)}
+                      fetch={documents.fetchPage}
+                      options={{
+                        collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: "ASC",
+                      }}
+                      showNestedDocuments
                       showPin
                     />
                   </Route>
