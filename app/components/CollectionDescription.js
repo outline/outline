@@ -5,7 +5,7 @@ import styled from "styled-components";
 import Collection from "models/Collection";
 import ButtonLink from "components/ButtonLink";
 import Editor from "components/Editor";
-import useDebounce from "hooks/useDebounce";
+import useDebouncedCallback from "hooks/useDebouncedCallback";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -26,15 +26,11 @@ function CollectionDescription({ collection }: Props) {
     setEditing(false);
   }, []);
 
-  const handleChange = useDebounce(
-    (getValue) => {
-      collection.save({
-        description: getValue(),
-      });
-    },
-    1000,
-    [collection]
-  );
+  const handleChange = useDebouncedCallback((getValue) => {
+    collection.save({
+      description: getValue(),
+    });
+  }, 1000);
 
   const placeholder = `${t("Add description")}…`;
 
