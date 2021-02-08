@@ -136,18 +136,14 @@ function Sidebar({ children }: Props) {
   const style = React.useMemo(
     () => ({
       width: `${width}px`,
-      left:
-        collapsed && !ui.mobileSidebarVisible
-          ? `${-width + theme.sidebarCollapsedWidth}px`
-          : 0,
     }),
-    [width, collapsed, theme.sidebarCollapsedWidth, ui.mobileSidebarVisible]
+    [width]
   );
 
   const toggleStyle = React.useMemo(
     () => ({
       right: "auto",
-      left: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
+      marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
     }),
     [width, theme.sidebarCollapsedWidth, collapsed]
   );
@@ -222,11 +218,13 @@ const Container = styled(Flex)`
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
-  transition: box-shadow 100ms ease-in-out, margin-left 100ms ease-out,
+  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
     ${(props) => props.theme.backgroundTransition}
       ${(props) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
-  margin-left: ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")};
+  transform: translateX(
+    ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
+  );
   z-index: ${(props) => props.theme.depths.sidebar};
   max-width: 70%;
   min-width: 280px;
@@ -237,17 +235,19 @@ const Container = styled(Flex)`
 
   @media print {
     display: none;
-    left: 0;
+    transform: none;
   }
 
   ${breakpoint("tablet")`
     margin: 0;
     z-index: 3;
     min-width: 0;
+    transform: translateX(${(props) =>
+      props.$collapsed ? "calc(-100% + 16px)" : 0});
 
     &:hover,
     &:focus-within {
-      left: 0 !important;
+      transform: none;
       box-shadow: ${(props) =>
         props.$collapsed
           ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
