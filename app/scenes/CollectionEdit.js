@@ -159,8 +159,7 @@ class CollectionEdit extends React.Component<Props> {
           <HelpText>
             {teamSharingEnabled ? (
               <Trans>
-                When enabled, documents can be shared publicly on the internet
-                by any team member.
+                When enabled, documents can be shared publicly on the internet.
               </Trans>
             ) : (
               <Trans>

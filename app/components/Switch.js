@@ -43,9 +43,7 @@ const Label = styled.label`
   display: flex;
   align-items: center;
 
-  &[disabled] {
-    opacity: 0.75;
-  }
+  ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
 
 const Wrapper = styled.label`
