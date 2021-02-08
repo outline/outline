@@ -47,7 +47,7 @@ allow(User, "share", Collection, (user, collection) => {
     );
 
     return some(allMemberships, (m) =>
-      ["read", "read_write", "maintainer"].includes(m.permission)
+      ["read_write", "maintainer"].includes(m.permission)
     );
   }
 
