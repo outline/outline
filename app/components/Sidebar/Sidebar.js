@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
-import styled, { useTheme, css } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
@@ -29,6 +29,7 @@ function Sidebar({ children }: Props) {
   const previousLocation = usePrevious(location);
 
   const width = ui.sidebarWidth;
+  const collapsed = ui.isEditing || ui.sidebarCollapsed;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
   const setWidth = ui.setSidebarWidth;
@@ -136,24 +137,19 @@ function Sidebar({ children }: Props) {
     () => ({
       width: `${width}px`,
       left:
-        ui.sidebarCollapsed && !ui.mobileSidebarVisible
+        collapsed && !ui.mobileSidebarVisible
           ? `${-width + theme.sidebarCollapsedWidth}px`
           : 0,
     }),
-    [
-      width,
-      ui.sidebarCollapsed,
-      theme.sidebarCollapsedWidth,
-      ui.mobileSidebarVisible,
-    ]
+    [width, collapsed, theme.sidebarCollapsedWidth, ui.mobileSidebarVisible]
   );
 
   const toggleStyle = React.useMemo(
     () => ({
       right: "auto",
-      left: `${ui.sidebarCollapsed ? theme.sidebarCollapsedWidth : width}px`,
+      left: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
     }),
-    [width, theme.sidebarCollapsedWidth, ui.sidebarCollapsed]
+    [width, theme.sidebarCollapsedWidth, collapsed]
   );
 
   const content = (
@@ -165,7 +161,7 @@ function Sidebar({ children }: Props) {
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
         $mobileSidebarVisible={ui.mobileSidebarVisible}
-        $collapsed={ui.sidebarCollapsed}
+        $collapsed={collapsed}
         column
       >
         {ui.mobileSidebarVisible && (
@@ -181,7 +177,7 @@ function Sidebar({ children }: Props) {
           onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
           $isResizing={isResizing}
         />
-        {ui.sidebarCollapsed && (
+        {ui.sidebarCollapsed && !ui.isEditing && (
           <Toggle
             onClick={ui.toggleCollapsedSidebar}
             direction={"right"}
@@ -189,12 +185,14 @@ function Sidebar({ children }: Props) {
           />
         )}
       </Container>
-      <Toggle
-        style={toggleStyle}
-        onClick={ui.toggleCollapsedSidebar}
-        direction={ui.sidebarCollapsed ? "right" : "left"}
-        aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
-      />
+      {!ui.isEditing && (
+        <Toggle
+          style={toggleStyle}
+          onClick={ui.toggleCollapsedSidebar}
+          direction={ui.sidebarCollapsed ? "right" : "left"}
+          aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
+        />
+      )}
     </>
   );
 
@@ -247,34 +245,29 @@ const Container = styled(Flex)`
     z-index: 3;
     min-width: 0;
 
-    ${(props) =>
-      props.$isCollapsing
-        ? ""
-        : css`
-            &:hover,
-            &:focus-within {
-              left: 0 !important;
-              box-shadow: ${(props) =>
-                props.$collapsed
-                  ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
-                  : props.$isSmallerThanMinimum
-                  ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-                  : "none"};
+    &:hover,
+    &:focus-within {
+      left: 0 !important;
+      box-shadow: ${(props) =>
+        props.$collapsed
+          ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
+          : props.$isSmallerThanMinimum
+          ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+          : "none"};
 
-              ${Positioner} {
-                display: block;
-              }
+      ${Positioner} {
+        display: block;
+      }
 
-              ${ToggleButton} {
-                opacity: 1;
-              }
-            }
+      ${ToggleButton} {
+        opacity: 1;
+      }
+    }
 
-            &:not(:hover):not(:focus-within) > div {
-              opacity: ${(props) => (props.$collapsed ? "0" : "1")};
-              transition: opacity 100ms ease-in-out;
-            }
-          `}
+    &:not(:hover):not(:focus-within) > div {
+      opacity: ${(props) => (props.$collapsed ? "0" : "1")};
+      transition: opacity 100ms ease-in-out;
+    }
   `};
 `;
 

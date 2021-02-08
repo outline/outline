@@ -76,7 +76,6 @@ class Layout extends React.Component<Props> {
 
   @keydown("shift+/")
   handleOpenKeyboardShortcuts() {
-    if (this.props.ui.isEditing) return;
     this.keyboardShortcutsOpen = true;
   }
 
@@ -86,7 +85,6 @@ class Layout extends React.Component<Props> {
 
   @keydown(["t", "/", `${meta}+k`])
   goToSearch(ev: SyntheticEvent<>) {
-    if (this.props.ui.isEditing) return;
     ev.preventDefault();
     ev.stopPropagation();
     this.redirectTo = searchUrl();
@@ -94,7 +92,6 @@ class Layout extends React.Component<Props> {
 
   @keydown("d")
   goToDashboard() {
-    if (this.props.ui.isEditing) return;
     this.redirectTo = homeUrl();
   }
 
@@ -102,6 +99,7 @@ class Layout extends React.Component<Props> {
     const { auth, t, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
+    const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
 
     if (auth.isSuspended) return <ErrorSuspended />;
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
@@ -141,9 +139,9 @@ class Layout extends React.Component<Props> {
             auto
             justify="center"
             $isResizing={ui.sidebarIsResizing}
-            $sidebarCollapsed={ui.sidebarCollapsed}
+            $sidebarCollapsed={sidebarCollapsed}
             style={
-              ui.sidebarCollapsed
+              sidebarCollapsed
                 ? undefined
                 : { marginLeft: `${ui.sidebarWidth}px` }
             }
