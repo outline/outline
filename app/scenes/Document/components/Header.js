@@ -126,7 +126,7 @@ class Header extends React.Component<Props> {
     const isNew = document.isNew;
     const isTemplate = document.isTemplate;
     const can = policies.abilities(document.id);
-    const canShareDocuments = auth.team && auth.team.sharing && can.share;
+    const canShareDocument = auth.team && auth.team.sharing && can.share;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
     const canEdit = can.update && !isEditing;
 
@@ -200,7 +200,7 @@ class Header extends React.Component<Props> {
               <TemplatesMenu document={document} />
             </Action>
           )}
-          {!isEditing && canShareDocuments && (
+          {!isEditing && canShareDocument && (
             <Action>
               <Tooltip
                 tooltip={

@@ -13,17 +13,23 @@ type Props = {|
   id?: string,
 |};
 
-function Switch({ width = 38, height = 20, label, ...props }: Props) {
+function Switch({ width = 38, height = 20, label, disabled, ...props }: Props) {
   const component = (
     <Wrapper width={width} height={height}>
-      <HiddenInput type="checkbox" width={width} height={height} {...props} />
+      <HiddenInput
+        type="checkbox"
+        width={width}
+        height={height}
+        disabled={disabled}
+        {...props}
+      />
       <Slider width={width} height={height} />
     </Wrapper>
   );
 
   if (label) {
     return (
-      <Label htmlFor={props.id}>
+      <Label disabled={disabled} htmlFor={props.id}>
         {component}
         <LabelText>{label}</LabelText>
       </Label>
@@ -36,6 +42,10 @@ function Switch({ width = 38, height = 20, label, ...props }: Props) {
 const Label = styled.label`
   display: flex;
   align-items: center;
+
+  &[disabled] {
+    opacity: 0.75;
+  }
 `;
 
 const Wrapper = styled.label`
@@ -78,6 +88,11 @@ const HiddenInput = styled.input`
   width: 0;
   height: 0;
   visibility: hidden;
+
+  &:disabled + ${Slider} {
+    opacity: 0.75;
+    cursor: default;
+  }
 
   &:checked + ${Slider} {
     background-color: ${(props) => props.theme.primary};

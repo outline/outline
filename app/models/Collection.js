@@ -16,6 +16,7 @@ export default class Collection extends BaseModel {
   icon: string;
   color: string;
   private: boolean;
+  sharing: boolean;
   documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;

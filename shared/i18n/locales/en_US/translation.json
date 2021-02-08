@@ -210,6 +210,8 @@
   "Alphabetical": "Alphabetical",
   "Private collection": "Private collection",
   "A private collection will only be visible to invited team members.": "A private collection will only be visible to invited team members.",
+  "Public document sharing": "Public document sharing",
+  "When enabled, documents can be shared publicly on the internet by any team member.": "When enabled, documents can be shared publicly on the internet by any team member.",
   "Saving": "Saving",
   "Save": "Save",
   "{{ groupName }} was added to the collection": "{{ groupName }} was added to the collection",
