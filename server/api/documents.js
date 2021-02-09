@@ -468,7 +468,7 @@ async function loadDocument({ id, shareId, user }) {
       include: [
         {
           // unscoping here allows us to return unpublished documents
-          model: Document.unscoped().scope("withCollection"),
+          model: Document.unscoped(),
           include: [
             { model: User, as: "createdBy", paranoid: false },
             { model: User, as: "updatedBy", paranoid: false },
@@ -488,7 +488,8 @@ async function loadDocument({ id, shareId, user }) {
       authorize(user, "read", document);
     }
 
-    if (!document.collection.sharing) {
+    const collection = await Collection.findByPk(document.collectionId);
+    if (!collection.sharing) {
       throw new AuthorizationError();
     }
 
