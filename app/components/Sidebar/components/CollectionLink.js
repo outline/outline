@@ -75,7 +75,7 @@ function CollectionLink({
   });
 
   //Drop to reorder Collection
-  const [{ isCollectionDroppping }, dropToReorderCollection] = useDrop({
+  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
       if (!collection) return;
@@ -151,9 +151,9 @@ function CollectionLink({
         {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        {isCollectionDroppping && (
+        {isCollectionDropping && (
           <DropCursor
-            isActiveDrop={isCollectionDroppping}
+            isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}
           />
         )}
