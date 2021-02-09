@@ -34,6 +34,7 @@ router.post("collections.create", auth(), async (ctx) => {
     name,
     color,
     description,
+    sharing,
     icon,
     sort = Collection.DEFAULT_SORT,
   } = ctx.body;
@@ -55,6 +56,7 @@ router.post("collections.create", auth(), async (ctx) => {
     teamId: user.teamId,
     createdById: user.id,
     private: isPrivate,
+    sharing,
     sort,
   });
 

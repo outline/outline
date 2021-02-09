@@ -113,6 +113,7 @@ export default class Collection extends BaseModel {
       "name",
       "color",
       "description",
+      "sharing",
       "icon",
       "private",
       "sort",
