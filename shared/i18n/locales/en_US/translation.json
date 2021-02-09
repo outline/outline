@@ -212,7 +212,7 @@
   "A private collection will only be visible to invited team members.": "A private collection will only be visible to invited team members.",
   "Public document sharing": "Public document sharing",
   "When enabled, documents can be shared publicly on the internet.": "When enabled, documents can be shared publicly on the internet.",
-  "Public sharing is globally disabled in the team settings.": "Public sharing is globally disabled in the team settings.",
+  "Public sharing is currently disabled in the team security settings.": "Public sharing is currently disabled in the team security settings.",
   "Saving": "Saving",
   "Save": "Save",
   "{{ groupName }} was added to the collection": "{{ groupName }} was added to the collection",

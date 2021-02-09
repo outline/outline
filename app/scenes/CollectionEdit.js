@@ -163,7 +163,8 @@ class CollectionEdit extends React.Component<Props> {
               </Trans>
             ) : (
               <Trans>
-                Public sharing is globally disabled in the team settings.
+                Public sharing is currently disabled in the team security
+                settings.
               </Trans>
             )}
           </HelpText>
