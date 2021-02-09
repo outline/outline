@@ -6,11 +6,18 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
-import { Switch, Route, Redirect } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  Redirect,
+  withRouter,
+  type RouterHistory,
+} from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
@@ -30,6 +37,7 @@ import {
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
+  newDocumentUrl,
 } from "utils/routeHelpers";
 
 type Props = {
@@ -39,6 +47,8 @@ type Props = {
   title?: ?React.Node,
   auth: AuthStore,
   ui: UiStore,
+  history: RouterHistory,
+  policies: PoliciesStore,
   notifications?: React.Node,
   theme: Theme,
   i18n: Object,
@@ -96,6 +106,19 @@ class Layout extends React.Component<Props> {
   goToDashboard() {
     if (this.props.ui.editMode) return;
     this.redirectTo = homeUrl();
+  }
+
+  @keydown("n")
+  goToNewDocument() {
+    if (this.props.ui.editMode) return;
+
+    const { activeCollectionId } = this.props.ui;
+    if (!activeCollectionId) return;
+
+    const can = this.props.policies.abilities(activeCollectionId);
+    if (!can.update) return;
+
+    this.props.history.push(newDocumentUrl(activeCollectionId));
   }
 
   render() {
@@ -215,5 +238,5 @@ const Content = styled(Flex)`
 `;
 
 export default withTranslation()<Layout>(
-  inject("auth", "ui", "documents")(withTheme(Layout))
+  inject("auth", "ui", "documents", "policies")(withRouter(withTheme(Layout)))
 );

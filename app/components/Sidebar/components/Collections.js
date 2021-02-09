@@ -3,9 +3,6 @@ import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
-import keydown from "react-keydown";
-import { withRouter, type RouterHistory } from "react-router-dom";
-
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -16,10 +13,8 @@ import CollectionLink from "./CollectionLink";
 import CollectionsLoading from "./CollectionsLoading";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
-import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
-  history: RouterHistory,
   policies: PoliciesStore,
   collections: CollectionsStore,
   documents: DocumentsStore,
@@ -38,19 +33,6 @@ class Collections extends React.Component<Props> {
     if (!collections.isFetching && !collections.isLoaded) {
       collections.fetchPage({ limit: 100 });
     }
-  }
-
-  @keydown("n")
-  goToNewDocument() {
-    if (this.props.ui.editMode) return;
-
-    const { activeCollectionId } = this.props.ui;
-    if (!activeCollectionId) return;
-
-    const can = this.props.policies.abilities(activeCollectionId);
-    if (!can.update) return;
-
-    this.props.history.push(newDocumentUrl(activeCollectionId));
   }
 
   render() {
@@ -96,5 +78,5 @@ class Collections extends React.Component<Props> {
 }
 
 export default withTranslation()<Collections>(
-  inject("collections", "ui", "documents", "policies")(withRouter(Collections))
+  inject("collections", "ui", "documents", "policies")(Collections)
 );
