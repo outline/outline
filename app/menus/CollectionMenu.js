@@ -83,20 +83,19 @@ function CollectionMenu({
 
       try {
         const file = files[0];
-        const document = await documents.import(
-          file,
-          null,
-          this.props.collection.id,
-          { publish: true }
-        );
+        const document = await documents.import(file, null, collection.id, {
+          publish: true,
+        });
         history.push(document.url);
       } catch (err) {
         ui.showToast(err.message, {
           type: "error",
         });
+
+        throw err;
       }
     },
-    [history, ui, documents]
+    [history, ui, collection.id, documents]
   );
 
   const can = policies.abilities(collection.id);
