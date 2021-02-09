@@ -151,10 +151,12 @@ function CollectionLink({
         {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        <DropCursor
-          isActiveDrop={isCollectionDroppping}
-          innerRef={dropToReorderCollection}
-        />
+        {isCollectionDroppping && (
+          <DropCursor
+            isActiveDrop={isCollectionDroppping}
+            innerRef={dropToReorderCollection}
+          />
+        )}
       </div>
 
       {expanded &&
