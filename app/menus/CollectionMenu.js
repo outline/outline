@@ -145,7 +145,7 @@ function CollectionMenu({
               onClick: () => setShowCollectionEdit(true),
             },
             {
-              title: `${t("Permissions")}…`,
+              title: `${t("Members")}…`,
               visible: can.update,
               onClick: () => setShowCollectionMembers(true),
             },
@@ -171,7 +171,7 @@ function CollectionMenu({
       {renderModals && (
         <>
           <Modal
-            title={t("Collection permissions")}
+            title={t("Collection members")}
             onRequestClose={() => setShowCollectionMembers(false)}
             isOpen={showCollectionMembers}
           >
