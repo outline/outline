@@ -280,12 +280,16 @@ User.prototype.getCounts = async function (teamId: string) {
       COUNT(*) as count
     FROM users
     WHERE "deletedAt" IS NULL
-    AND "teamId" = '${teamId}'
+    AND "teamId" = :teamId
   `;
   const results = await sequelize.query(countSql, {
     type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      teamId,
+    },
   });
   const counts = results[0];
+
   return {
     active: parseInt(counts.activeCount),
     admins: parseInt(counts.adminCount),
