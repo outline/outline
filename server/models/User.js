@@ -270,7 +270,7 @@ User.afterCreate(async (user, options) => {
   ]);
 });
 
-User.prototype.getCounts = async function (teamId: string) {
+User.getCounts = async function (teamId: string) {
   const countSql = `
     SELECT 
       COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",

@@ -56,9 +56,8 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("users.count", auth(), async (ctx) => {
-  const { teamId } = ctx.body;
   const user = ctx.state.user;
-  const counts = await user.getCounts(teamId);
+  const counts = await User.getCounts(user.teamId);
 
   ctx.body = {
     data: {
