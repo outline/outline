@@ -8,6 +8,7 @@ const Tabs = styled.nav`
   margin-bottom: 12px;
   overflow-y: auto;
   white-space: nowrap;
+  transition: opacity 250ms ease-out;
 `;
 
 export const Separator = styled.span`

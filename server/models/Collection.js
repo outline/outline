@@ -24,6 +24,11 @@ const Collection = sequelize.define(
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
     documentStructure: DataTypes.JSONB,
+    sharing: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     sort: {
       type: DataTypes.JSONB,
       validate: {

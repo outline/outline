@@ -1,6 +1,7 @@
 // @flow
 import invariant from "invariant";
 import { map, trim } from "lodash";
+import { getCookie } from "tiny-cookie";
 import stores from "stores";
 import download from "./download";
 import {
@@ -17,6 +18,11 @@ import {
 type Options = {
   baseUrl?: string,
 };
+
+// authorization cookie set by a Cloudflare Access proxy
+const CF_AUTHORIZATION = getCookie("CF_Authorization");
+// if the cookie is set, we must pass it with all ApiClient requests
+const CREDENTIALS = CF_AUTHORIZATION ? "same-origin" : "omit";
 
 class ApiClient {
   baseUrl: string;
@@ -91,7 +97,7 @@ class ApiClient {
         body,
         headers,
         redirect: "follow",
-        credentials: "omit",
+        credentials: CREDENTIALS,
         cache: "no-cache",
       });
     } catch (err) {

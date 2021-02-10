@@ -1,8 +1,8 @@
 // @flow
 import * as React from "react";
 
-export default function useDebouncedCallback<T>(
-  callback: (...args: T) => void,
+export default function useDebouncedCallback(
+  callback: (any) => void,
   wait: number
 ) {
   // track args & timeout handle between calls
@@ -18,7 +18,7 @@ export default function useDebouncedCallback<T>(
   // make sure our timeout gets cleared if consuming component gets unmounted
   React.useEffect(() => cleanup, []);
 
-  return function (...args: T) {
+  return function (...args: any) {
     argsRef.current = args;
     cleanup();
 

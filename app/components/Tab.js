@@ -10,8 +10,8 @@ type Props = {
 
 const StyledNavLink = styled(NavLink)`
   position: relative;
-
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-weight: 500;
   font-size: 14px;
   color: ${(props) => props.theme.textTertiary};

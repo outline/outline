@@ -1,10 +1,12 @@
 // @flow
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import ButtonLink from "components/ButtonLink";
 import Editor from "components/Editor";
+import LoadingIndicator from "components/LoadingIndicator";
 import useDebouncedCallback from "hooks/useDebouncedCallback";
 import useStores from "hooks/useStores";
 
@@ -13,17 +15,28 @@ type Props = {|
 |};
 
 function CollectionDescription({ collection }: Props) {
-  const { policies } = useStores();
+  const timeoutRef = React.useRef();
+  const { collections, policies } = useStores();
   const { t } = useTranslation();
   const [isEditing, setEditing] = React.useState(false);
   const can = policies.abilities(collection.id);
 
   const handleStartEditing = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
     setEditing(true);
   }, []);
 
   const handleStopEditing = React.useCallback(() => {
-    setEditing(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      setEditing(false);
+    }, 1500);
   }, []);
 
   const handleChange = useDebouncedCallback((getValue) => {
@@ -32,25 +45,30 @@ function CollectionDescription({ collection }: Props) {
     });
   }, 1000);
 
+  React.useEffect(() => {
+    setEditing(false);
+  }, [collection.id]);
+
   const placeholder = `${t("Add description")}…`;
 
   return (
     <Input
       onClick={isEditing ? undefined : handleStartEditing}
-      $isEditing={isEditing}
+      $isEditable={can.update}
     >
+      {collections.isSaving && <LoadingIndicator />}
       {(collection.hasDescription || isEditing) && (
-        <React.Suspense fallback={<span>Loading…</span>}>
+        <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <Editor
             id={collection.id}
-            key={isEditing ? "editing" : collection.description}
+            key={isEditing ? collection.id : collection.description}
             defaultValue={collection.description}
             onChange={handleChange}
-            onBlur={handleStopEditing}
             placeholder={placeholder}
             readOnly={!isEditing}
             autoFocus={isEditing}
             handleDOMEvents={{
+              focus: handleStartEditing,
               blur: handleStopEditing,
             }}
             readOnlyWriteCheckboxes
@@ -66,15 +84,19 @@ function CollectionDescription({ collection }: Props) {
 
 const Placeholder = styled(ButtonLink)`
   color: ${(props) => props.theme.placeholder};
-  min-height: 27px;
 `;
 
 const Input = styled.div`
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
-  background: ${(props) =>
-    props.$isEditing ? props.theme.secondaryBackground : "transparent"};
+  min-height: 44px;
+  cursor: ${(props) => (props.$isEditable ? "text" : "default")};
+  transition: background 100ms ease-out;
+
+  &:focus-within {
+    background: ${(props) => props.theme.secondaryBackground};
+  }
 `;
 
-export default CollectionDescription;
+export default observer(CollectionDescription);

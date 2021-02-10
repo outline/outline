@@ -22,6 +22,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable movingDocumentId: ?string;
 
   importFileTypes: string[] = [
+    ".md",
     "text/markdown",
     "text/plain",
     "text/html",

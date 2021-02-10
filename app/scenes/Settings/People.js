@@ -4,12 +4,13 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { withTranslation, type TFunction, Trans } from "react-i18next";
 import { type Match } from "react-router-dom";
-
 import AuthStore from "stores/AuthStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UsersStore from "stores/UsersStore";
 import Invite from "scenes/Invite";
+import Bubble from "components/Bubble";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
@@ -27,11 +28,19 @@ type Props = {
   users: UsersStore,
   policies: PoliciesStore,
   match: Match,
+  t: TFunction,
 };
 
 @observer
 class People extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
+
+  componentDidMount() {
+    const { team } = this.props.auth;
+    if (team) {
+      this.props.users.fetchCounts(team.id);
+    }
+  }
 
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
@@ -46,7 +55,7 @@ class People extends React.Component<Props> {
   };
 
   render() {
-    const { auth, policies, match } = this.props;
+    const { auth, policies, match, t } = this.props;
     const { filter } = match.params;
     const currentUser = auth.user;
     const team = auth.team;
@@ -65,15 +74,18 @@ class People extends React.Component<Props> {
     }
 
     const can = policies.abilities(team.id);
+    const { counts } = this.props.users;
 
     return (
       <CenteredContent>
-        <PageTitle title="People" />
-        <h1>People</h1>
+        <PageTitle title={t("People")} />
+        <h1>{t("People")}</h1>
         <HelpText>
-          Everyone that has signed into Outline appears here. It’s possible that
-          there are other users who have access through {team.signinMethods} but
-          haven’t signed in yet.
+          <Trans>
+            Everyone that has signed into Outline appears here. It’s possible
+            that there are other users who have access through{" "}
+            {team.signinMethods} but haven’t signed in yet.
+          </Trans>
         </HelpText>
         <Button
           type="button"
@@ -84,37 +96,36 @@ class People extends React.Component<Props> {
           icon={<PlusIcon />}
           neutral
         >
-          Invite people…
+          {t("Invite people")}…
         </Button>
 
         <Tabs>
           <Tab to="/settings/people" exact>
-            Active
+            {t("Active")} <Bubble count={counts.active} />
           </Tab>
           <Tab to="/settings/people/admins" exact>
-            Admins
+            {t("Admins")} <Bubble count={counts.admins} />
           </Tab>
           {can.update && (
             <Tab to="/settings/people/suspended" exact>
-              Suspended
+              {t("Suspended")} <Bubble count={counts.suspended} />
             </Tab>
           )}
           <Tab to="/settings/people/all" exact>
-            Everyone
+            {t("Everyone")} <Bubble count={counts.all - counts.invited} />
           </Tab>
-
           {can.invite && (
             <>
               <Separator />
               <Tab to="/settings/people/invited" exact>
-                Invited
+                {t("Invited")} <Bubble count={counts.invited} />
               </Tab>
             </>
           )}
         </Tabs>
         <PaginatedList
           items={users}
-          empty={<Empty>No people to see here.</Empty>}
+          empty={<Empty>{t("No people to see here.")}</Empty>}
           fetch={this.fetchPage}
           renderItem={(item) => (
             <UserListItem
@@ -126,7 +137,7 @@ class People extends React.Component<Props> {
         />
 
         <Modal
-          title="Invite people"
+          title={t("Invite people")}
           onRequestClose={this.handleInviteModalClose}
           isOpen={this.inviteModalOpen}
         >
@@ -137,4 +148,8 @@ class People extends React.Component<Props> {
   }
 }
 
-export default inject("auth", "users", "policies")(People);
+export default inject(
+  "auth",
+  "users",
+  "policies"
+)(withTranslation()<People>(People));
