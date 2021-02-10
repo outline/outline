@@ -8,7 +8,7 @@ import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
 
 export default class UsersStore extends BaseStore<User> {
-  @observable count: {
+  @observable counts: {
     active: number,
     admins: number,
     all: number,
@@ -60,25 +60,25 @@ export default class UsersStore extends BaseStore<User> {
 
   @action
   promote = (user: User) => {
-    this.count.admins += 1;
+    this.counts.admins += 1;
     return this.actionOnUser("promote", user);
   };
 
   @action
   demote = (user: User) => {
-    this.count.admins -= 1;
+    this.counts.admins -= 1;
     return this.actionOnUser("demote", user);
   };
 
   @action
   suspend = (user: User) => {
-    this.count.suspended += 1;
+    this.counts.suspended += 1;
     return this.actionOnUser("suspend", user);
   };
 
   @action
   activate = (user: User) => {
-    this.count.suspended -= 1;
+    this.counts.suspended -= 1;
     return this.actionOnUser("activate", user);
   };
 
@@ -88,23 +88,18 @@ export default class UsersStore extends BaseStore<User> {
     invariant(res && res.data, "Data should be available");
     runInAction(`invite`, () => {
       res.data.users.forEach(this.add);
-      this.count.invited += res.data.sent.length;
-      this.count.all += res.data.sent.length;
+      this.counts.invited += res.data.sent.length;
+      this.counts.all += res.data.sent.length;
     });
     return res.data;
   };
 
   @action
   fetchCounts = async (teamId: string): Promise<*> => {
-    if (!this.actions.includes("count")) {
-      throw new Error(`Cannot count ${this.modelName}`);
-    }
-
-    const res = await client.post(`/${this.modelName}s.counts`, { teamId });
+    const res = await client.post(`/users.count`, { teamId });
     invariant(res && res.data, "Data should be available");
 
-    this.addPolicies(res.policies);
-    this.count = res.data.counts;
+    this.counts = res.data.counts;
     return res.data;
   };
 
@@ -112,18 +107,18 @@ export default class UsersStore extends BaseStore<User> {
   async delete(user: User, options: Object = {}) {
     super.delete(user, options);
     if (!user.isSuspended && user.lastActiveAt) {
-      this.count.active -= 1;
+      this.counts.active -= 1;
     }
     if (user.isInvited) {
-      this.count.invited -= 1;
+      this.counts.invited -= 1;
     }
     if (user.isAdmin) {
-      this.count.admins -= 1;
+      this.counts.admins -= 1;
     }
     if (user.isSuspended) {
-      this.count.suspended -= 1;
+      this.counts.suspended -= 1;
     }
-    this.count.all -= 1;
+    this.counts.all -= 1;
   }
 
   notInCollection = (collectionId: string, query: string = "") => {

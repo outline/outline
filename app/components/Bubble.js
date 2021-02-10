@@ -3,11 +3,15 @@ import * as React from "react";
 import styled from "styled-components";
 import { bounceIn } from "shared/styles/animations";
 
-type Props = {
+type Props = {|
   count: number,
-};
+|};
 
 const Bubble = ({ count }: Props) => {
+  if (!count) {
+    return null;
+  }
+
   return <Count>{count}</Count>;
 };
 

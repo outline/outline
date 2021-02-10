@@ -16,11 +16,11 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import CollectionNew from "scenes/CollectionNew";
 import Invite from "scenes/Invite";
+import Bubble from "components/Bubble";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Scrollable from "components/Scrollable";
 import Sidebar from "./Sidebar";
-import Bubble from "./components/Bubble";
 import Collections from "./components/Collections";
 import HeaderBlock from "./components/HeaderBlock";
 import Section from "./components/Section";
@@ -118,9 +118,7 @@ function MainSidebar() {
               label={
                 <Drafts align="center">
                   {t("Drafts")}
-                  {documents.totalDrafts > 0 && (
-                    <Bubble count={documents.totalDrafts} />
-                  )}
+                  <Bubble count={documents.totalDrafts} />
                 </Drafts>
               }
               active={

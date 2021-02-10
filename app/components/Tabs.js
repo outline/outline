@@ -8,7 +8,6 @@ const Tabs = styled.nav`
   margin-bottom: 12px;
   overflow-y: auto;
   white-space: nowrap;
-  opacity: ${(props) => (props.$loading ? 0 : 1)};
   transition: opacity 250ms ease-out;
 `;
 
