@@ -1656,6 +1656,7 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
     expect(newDocument.collectionId).toBe(collection.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("should not allow very long titles", async () => {
@@ -1688,6 +1689,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("new document");
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("should error with invalid parentDocument", async () => {
@@ -1722,6 +1724,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("new document");
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 });
 

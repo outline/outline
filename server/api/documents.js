@@ -1205,6 +1205,7 @@ router.post("documents.import", auth(), async (ctx) => {
     user,
     ip: ctx.request.ip,
   });
+  document.collection = collection;
 
   return (ctx.body = {
     data: await presentDocument(document),
@@ -1275,6 +1276,7 @@ router.post("documents.create", auth(), async (ctx) => {
     editorVersion,
     ip: ctx.request.ip,
   });
+  document.collection = collection;
 
   return (ctx.body = {
     data: await presentDocument(document),
