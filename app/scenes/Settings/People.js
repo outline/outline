@@ -33,6 +33,13 @@ type Props = {
 class People extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
 
+  componentDidMount() {
+    const { team } = this.props.auth;
+    if (team) {
+      this.props.users.fetchCounts(team.id);
+    }
+  }
+
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
   };
@@ -65,6 +72,7 @@ class People extends React.Component<Props> {
     }
 
     const can = policies.abilities(team.id);
+    const { counts } = this.props.users;
 
     return (
       <CenteredContent>
@@ -87,27 +95,27 @@ class People extends React.Component<Props> {
           Invite people…
         </Button>
 
-        <Tabs>
+        <Tabs $loading={!count.all}>
           <Tab to="/settings/people" exact>
-            Active
+            Active ({count.active})
           </Tab>
           <Tab to="/settings/people/admins" exact>
-            Admins
+            Admins ({count.admins})
           </Tab>
           {can.update && (
             <Tab to="/settings/people/suspended" exact>
-              Suspended
+              Suspended ({count.suspended})
             </Tab>
           )}
           <Tab to="/settings/people/all" exact>
-            Everyone
+            Everyone ({count.all})
           </Tab>
 
           {can.invite && (
             <>
               <Separator />
               <Tab to="/settings/people/invited" exact>
-                Invited
+                Invited ({count.invited})
               </Tab>
             </>
           )}

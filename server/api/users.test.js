@@ -2,7 +2,8 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 
-import { buildUser } from "../test/factories";
+import { buildTeam, buildUser } from "../test/factories";
+
 import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -351,5 +352,23 @@ describe("#users.activate", () => {
 
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#users.count", () => {
+  it("should return the count", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/users.count", {
+      body: { token: user.getJwtToken(), id: user.id, teamId: team.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.counts.all).toEqual(1);
+    expect(body.data.counts.admins).toEqual(0);
+    expect(body.data.counts.invited).toEqual(0);
+    expect(body.data.counts.suspended).toEqual(0);
+    expect(body.data.counts.active).toEqual(1);
   });
 });
