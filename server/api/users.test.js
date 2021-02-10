@@ -390,18 +390,19 @@ describe("#users.count", () => {
 
   it("should count suspended users", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id, suspendedAt: new Date() });
+    const user = await buildUser({ teamId: team.id });
+    await buildUser({ teamId: team.id, suspendedAt: new Date() });
     const res = await server.post("/api/users.count", {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.counts.all).toEqual(1);
+    expect(body.data.counts.all).toEqual(2);
     expect(body.data.counts.admins).toEqual(0);
     expect(body.data.counts.invited).toEqual(0);
     expect(body.data.counts.suspended).toEqual(1);
-    expect(body.data.counts.active).toEqual(0);
+    expect(body.data.counts.active).toEqual(1);
   });
 
   it("should count invited users", async () => {
