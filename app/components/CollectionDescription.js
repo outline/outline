@@ -87,6 +87,7 @@ const Placeholder = styled(ButtonLink)`
 `;
 
 const Input = styled.div`
+  display: flex;
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
