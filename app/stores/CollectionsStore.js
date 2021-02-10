@@ -1,8 +1,7 @@
 // @flow
 import invariant from "invariant";
 import { concat, filter, last } from "lodash";
-import { action, computed } from "mobx";
-
+import { computed, action } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
@@ -103,6 +102,24 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
     return res.data;
   };
+
+  async update(params: Object): Promise<Collection> {
+    const result = await super.update(params);
+
+    // If we're changing sharing permissions on the collection then we need to
+    // remove all locally cached policies for documents in the collection as they
+    // are now invalid
+    if (params.sharing !== undefined) {
+      const collection = this.get(params.id);
+      if (collection) {
+        collection.documentIds.forEach((id) => {
+          this.rootStore.policies.remove(id);
+        });
+      }
+    }
+
+    return result;
+  }
 
   getPathForDocument(documentId: string): ?DocumentPath {
     return this.pathsToDocuments.find((path) => path.id === documentId);

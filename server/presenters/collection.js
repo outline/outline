@@ -30,6 +30,7 @@ export default function present(collection: Collection) {
     icon: collection.icon,
     color: collection.color || "#4E5C6E",
     private: collection.private,
+    sharing: collection.sharing,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,

@@ -3,8 +3,9 @@ import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { withTranslation, type TFunction, Trans } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
+import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
@@ -18,6 +19,7 @@ import Switch from "components/Switch";
 
 type Props = {
   history: RouterHistory,
+  auth: AuthStore,
   ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
@@ -30,6 +32,7 @@ class CollectionNew extends React.Component<Props> {
   @observable description: string = "";
   @observable icon: string = "";
   @observable color: string = "#4E5C6E";
+  @observable sharing: boolean = true;
   @observable private: boolean = false;
   @observable isSaving: boolean;
   hasOpenedIconPicker: boolean = false;
@@ -41,6 +44,7 @@ class CollectionNew extends React.Component<Props> {
       {
         name: this.name,
         description: this.description,
+        sharing: this.sharing,
         icon: this.icon,
         color: this.color,
         private: this.private,
@@ -59,7 +63,7 @@ class CollectionNew extends React.Component<Props> {
     }
   };
 
-  handleNameChange = (ev: SyntheticInputEvent<*>) => {
+  handleNameChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
     this.name = ev.target.value;
 
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -90,8 +94,12 @@ class CollectionNew extends React.Component<Props> {
     this.description = getValue();
   };
 
-  handlePrivateChange = (ev: SyntheticInputEvent<*>) => {
+  handlePrivateChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
     this.private = ev.target.checked;
+  };
+
+  handleSharingChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+    this.sharing = ev.target.checked;
   };
 
   handleChange = (color: string, icon: string) => {
@@ -100,14 +108,17 @@ class CollectionNew extends React.Component<Props> {
   };
 
   render() {
-    const { t } = this.props;
+    const { t, auth } = this.props;
+    const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          {t(
-            "Collections are for grouping your knowledge base. They work best when organized around a topic or internal team — Product or Engineering for example."
-          )}
+          <Trans>
+            Collections are for grouping your knowledge base. They work best
+            when organized around a topic or internal team — Product or
+            Engineering for example.
+          </Trans>
         </HelpText>
         <Flex>
           <Input
@@ -142,10 +153,25 @@ class CollectionNew extends React.Component<Props> {
           checked={this.private}
         />
         <HelpText>
-          {t(
-            "A private collection will only be visible to invited team members."
-          )}
+          <Trans>
+            A private collection will only be visible to invited team members.
+          </Trans>
         </HelpText>
+        {teamSharingEnabled && (
+          <>
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              onChange={this.handleSharingChange}
+              checked={this.sharing}
+            />
+            <HelpText>
+              <Trans>
+                When enabled, documents can be shared publicly on the internet.
+              </Trans>
+            </HelpText>
+          </>
+        )}
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? `${t("Creating")}…` : t("Create")}
@@ -156,5 +182,5 @@ class CollectionNew extends React.Component<Props> {
 }
 
 export default withTranslation()<CollectionNew>(
-  inject("collections", "ui")(withRouter(CollectionNew))
+  inject("collections", "ui", "auth")(withRouter(CollectionNew))
 );

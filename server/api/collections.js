@@ -35,6 +35,7 @@ router.post("collections.create", auth(), async (ctx) => {
     name,
     color,
     description,
+    sharing,
     icon,
     sort = Collection.DEFAULT_SORT,
   } = ctx.body;
@@ -56,6 +57,7 @@ router.post("collections.create", auth(), async (ctx) => {
     teamId: user.teamId,
     createdById: user.id,
     private: isPrivate,
+    sharing,
     sort,
   });
 
@@ -491,7 +493,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
 });
 
 router.post("collections.update", auth(), async (ctx) => {
-  let { id, name, description, icon, color, sort } = ctx.body;
+  let { id, name, description, icon, color, sort, sharing } = ctx.body;
   const isPrivate = ctx.body.private;
 
   if (color) {
@@ -536,6 +538,9 @@ router.post("collections.update", auth(), async (ctx) => {
   }
   if (isPrivate !== undefined) {
     collection.private = isPrivate;
+  }
+  if (sharing !== undefined) {
+    collection.sharing = sharing;
   }
   if (sort !== undefined) {
     collection.sort = sort;

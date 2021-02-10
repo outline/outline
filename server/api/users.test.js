@@ -2,7 +2,8 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 
-import { buildUser } from "../test/factories";
+import { buildTeam, buildUser } from "../test/factories";
+
 import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -351,5 +352,77 @@ describe("#users.activate", () => {
 
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#users.count", () => {
+  it("should count active users", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/users.count", {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.counts.all).toEqual(1);
+    expect(body.data.counts.admins).toEqual(0);
+    expect(body.data.counts.invited).toEqual(0);
+    expect(body.data.counts.suspended).toEqual(0);
+    expect(body.data.counts.active).toEqual(1);
+  });
+
+  it("should count admin users", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id, isAdmin: true });
+    const res = await server.post("/api/users.count", {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.counts.all).toEqual(1);
+    expect(body.data.counts.admins).toEqual(1);
+    expect(body.data.counts.invited).toEqual(0);
+    expect(body.data.counts.suspended).toEqual(0);
+    expect(body.data.counts.active).toEqual(1);
+  });
+
+  it("should count suspended users", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    await buildUser({ teamId: team.id, suspendedAt: new Date() });
+    const res = await server.post("/api/users.count", {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.counts.all).toEqual(2);
+    expect(body.data.counts.admins).toEqual(0);
+    expect(body.data.counts.invited).toEqual(0);
+    expect(body.data.counts.suspended).toEqual(1);
+    expect(body.data.counts.active).toEqual(1);
+  });
+
+  it("should count invited users", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id, lastActiveAt: null });
+    const res = await server.post("/api/users.count", {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.counts.all).toEqual(1);
+    expect(body.data.counts.admins).toEqual(0);
+    expect(body.data.counts.invited).toEqual(1);
+    expect(body.data.counts.suspended).toEqual(0);
+    expect(body.data.counts.active).toEqual(0);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/users.count");
+    expect(res.status).toEqual(401);
   });
 });

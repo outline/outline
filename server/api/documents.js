@@ -489,6 +489,11 @@ async function loadDocument({ id, shareId, user }) {
       authorize(user, "read", document);
     }
 
+    const collection = await Collection.findByPk(document.collectionId);
+    if (!collection.sharing) {
+      throw new AuthorizationError();
+    }
+
     const team = await Team.findByPk(document.teamId);
     if (!team.sharing) {
       throw new AuthorizationError();
