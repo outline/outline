@@ -7,7 +7,7 @@ import BaseModel from "../models/BaseModel";
 import type { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
 
-type Action = "list" | "info" | "create" | "update" | "delete";
+type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
 function modelNameFromClassName(string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
@@ -24,7 +24,7 @@ export default class BaseStore<T: BaseModel> {
   model: Class<T>;
   modelName: string;
   rootStore: RootStore;
-  actions: Action[] = ["list", "info", "create", "update", "delete"];
+  actions: Action[] = ["list", "info", "create", "update", "delete", "count"];
 
   constructor(rootStore: RootStore, model: Class<T>) {
     this.rootStore = rootStore;
