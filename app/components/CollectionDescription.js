@@ -5,9 +5,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
+import Arrow from "components/Arrow";
 import ButtonLink from "components/ButtonLink";
 import Editor from "components/Editor";
 import LoadingIndicator from "components/LoadingIndicator";
+import NudeButton from "components/NudeButton";
 import useDebouncedCallback from "hooks/useDebouncedCallback";
 import useStores from "hooks/useStores";
 
@@ -18,6 +20,7 @@ type Props = {|
 function CollectionDescription({ collection }: Props) {
   const { collections, ui, policies } = useStores();
   const { t } = useTranslation();
+  const [isExpanded, setExpanded] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
   const [isDirty, setDirty] = React.useState(false);
   const can = policies.abilities(collection.id);
@@ -29,6 +32,19 @@ function CollectionDescription({ collection }: Props) {
   const handleStopEditing = React.useCallback(() => {
     setEditing(false);
   }, []);
+
+  const handleClickDisclosure = React.useCallback(
+    (event) => {
+      event.preventDefault();
+
+      if (isExpanded && document.activeElement) {
+        document.activeElement.blur();
+      }
+
+      setExpanded(!isExpanded);
+    },
+    [isExpanded]
+  );
 
   const handleSave = useDebouncedCallback(async (getValue) => {
     try {
@@ -64,34 +80,59 @@ function CollectionDescription({ collection }: Props) {
     <Input
       $isEditable={can.update}
       $isEditing={isEditing}
-      onClick={can.update ? handleStartEditing : undefined}
+      expanded={isExpanded}
     >
-      {collections.isSaving && <LoadingIndicator />}
-      {(collection.hasDescription || isEditing) && (
-        <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-          <Editor
-            id={collection.id}
-            key={isEditing || isDirty ? "draft" : collection.updatedAt}
-            defaultValue={collection.description}
-            onChange={handleChange}
-            placeholder={placeholder}
-            readOnly={!isEditing}
-            autoFocus={isEditing}
-            onFocus={handleStartEditing}
-            onBlur={handleStopEditing}
-            maxLength={1000}
-            disableEmbeds
-            readOnlyWriteCheckboxes
-            grow
-          />
-        </React.Suspense>
-      )}
-      {!collection.hasDescription && can.update && !isEditing && (
-        <Placeholder>{placeholder}</Placeholder>
+      <span onClick={can.update ? handleStartEditing : undefined}>
+        {collections.isSaving && <LoadingIndicator />}
+        {(collection.hasDescription || isEditing) && (
+          <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
+            <Editor
+              id={collection.id}
+              key={isEditing || isDirty ? "draft" : collection.updatedAt}
+              defaultValue={collection.description}
+              onChange={handleChange}
+              placeholder={placeholder}
+              readOnly={!isEditing}
+              autoFocus={isEditing}
+              onFocus={handleStartEditing}
+              onBlur={handleStopEditing}
+              maxLength={1000}
+              disableEmbeds
+              readOnlyWriteCheckboxes
+              grow
+            />
+          </React.Suspense>
+        )}
+        {!collection.hasDescription && can.update && !isEditing && (
+          <Placeholder>{placeholder}</Placeholder>
+        )}
+      </span>
+      {!isEditing && (
+        <Disclosure
+          onClick={handleClickDisclosure}
+          aria-label={isExpanded ? t("Collapse") : t("Expand")}
+        >
+          <Arrow />
+        </Disclosure>
       )}
     </Input>
   );
 }
+
+const Disclosure = styled(NudeButton)`
+  opacity: 0;
+  color: ${(props) => props.theme.divider};
+  position: absolute;
+  top: calc(25vh - 40px);
+  left: 50%;
+  transform: rotate(-90deg) translateX(-50%);
+  z-index: 1;
+  transition: opacity 100ms ease-in-out;
+
+  &:active {
+    color: ${(props) => props.theme.sidebarText};
+  }
+`;
 
 const Placeholder = styled(ButtonLink)`
   color: ${(props) => props.theme.placeholder};
@@ -113,7 +154,7 @@ const Input = styled.div`
   &:after {
     content: "";
     position: absolute;
-    bottom: 0;
+    top: calc(25vh - 50px);
     left: 0;
     right: 0;
     height: 50px;
@@ -126,7 +167,8 @@ const Input = styled.div`
   }
 
   &:focus,
-  &:focus-within {
+  &:focus-within,
+  &[expanded] {
     max-height: initial;
     overflow: initial;
     background: ${(props) => props.theme.secondaryBackground};
@@ -134,6 +176,17 @@ const Input = styled.div`
     &:after {
       background: transparent;
     }
+
+    ${Disclosure} {
+      opacity: 1;
+      top: initial;
+      bottom: 0;
+      transform: rotate(90deg) translateX(-50%);
+    }
+  }
+
+  &:hover ${Disclosure} {
+    opacity: 1;
   }
 `;
 
