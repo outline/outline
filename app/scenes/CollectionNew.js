@@ -108,9 +108,9 @@ class CollectionNew extends React.Component<Props> {
       <form onSubmit={this.handleSubmit}>
         <HelpText>
           <Trans>
-            Collections are for grouping your knowledge base. They work best
-            when organized around a topic or internal team — Product or
-            Engineering for example.
+            Collections are for grouping your documents. They work best when
+            organized around a topic or internal team — Product or Engineering
+            for example.
           </Trans>
         </HelpText>
         <Flex>
