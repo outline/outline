@@ -15,35 +15,43 @@ type Props = {|
 |};
 
 function CollectionDescription({ collection }: Props) {
-  const timeoutRef = React.useRef();
-  const { collections, policies } = useStores();
+  const { collections, ui, policies } = useStores();
   const { t } = useTranslation();
   const [isEditing, setEditing] = React.useState(false);
+  const [isDirty, setDirty] = React.useState(false);
   const can = policies.abilities(collection.id);
 
   const handleStartEditing = React.useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
     setEditing(true);
   }, []);
 
   const handleStopEditing = React.useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setEditing(false);
-    }, 1500);
+    setEditing(false);
   }, []);
 
-  const handleChange = useDebouncedCallback((getValue) => {
-    collection.save({
-      description: getValue(),
-    });
+  const handleSave = useDebouncedCallback(async (getValue) => {
+    try {
+      await collection.save({
+        description: getValue(),
+      });
+      setDirty(false);
+    } catch (err) {
+      ui.showToast(
+        t("Sorry, an error occurred saving the collection", {
+          type: "error",
+        })
+      );
+      throw err;
+    }
   }, 1000);
+
+  const handleChange = React.useCallback(
+    (getValue) => {
+      handleSave(getValue);
+      setDirty(true);
+    },
+    [handleSave]
+  );
 
   React.useEffect(() => {
     setEditing(false);
@@ -53,30 +61,30 @@ function CollectionDescription({ collection }: Props) {
 
   return (
     <Input
-      onClick={isEditing ? undefined : handleStartEditing}
       $isEditable={can.update}
+      $isEditing={isEditing}
+      onClick={can.update ? handleStartEditing : undefined}
     >
       {collections.isSaving && <LoadingIndicator />}
       {(collection.hasDescription || isEditing) && (
         <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <Editor
             id={collection.id}
-            key={isEditing ? collection.id : collection.description}
+            key={isEditing || isDirty ? "draft" : collection.updatedAt}
             defaultValue={collection.description}
             onChange={handleChange}
             placeholder={placeholder}
             readOnly={!isEditing}
             autoFocus={isEditing}
-            handleDOMEvents={{
-              focus: handleStartEditing,
-              blur: handleStopEditing,
-            }}
+            onFocus={handleStartEditing}
+            onBlur={handleStopEditing}
             readOnlyWriteCheckboxes
+            grow
           />
         </React.Suspense>
       )}
       {!collection.hasDescription && can.update && !isEditing && (
-        <Placeholder onClick={handleStartEditing}>{placeholder}</Placeholder>
+        <Placeholder>{placeholder}</Placeholder>
       )}
     </Input>
   );
@@ -87,14 +95,16 @@ const Placeholder = styled(ButtonLink)`
 `;
 
 const Input = styled.div`
-  display: flex;
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
   min-height: 44px;
   cursor: ${(props) => (props.$isEditable ? "text" : "default")};
   transition: background 100ms ease-out;
+  background: ${(props) =>
+    props.$isEditing ? props.theme.secondaryBackground : "transparent"};
 
+  &:focus,
   &:focus-within {
     background: ${(props) => props.theme.secondaryBackground};
   }

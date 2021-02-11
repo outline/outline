@@ -2,7 +2,7 @@
 import * as React from "react";
 
 export default function useDebouncedCallback(
-  callback: (any) => void,
+  callback: (any) => mixed,
   wait: number
 ) {
   // track args & timeout handle between calls
