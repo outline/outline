@@ -1,5 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
+import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -100,15 +101,39 @@ const Input = styled.div`
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
+  position: relative;
   min-height: 44px;
+  max-height: 25vh;
+  overflow: hidden;
   cursor: ${(props) => (props.$isEditable ? "text" : "default")};
-  transition: background 100ms ease-out;
+  transition: ${(props) => props.theme.backgroundTransition};
   background: ${(props) =>
     props.$isEditing ? props.theme.secondaryBackground : "transparent"};
 
+  &:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      ${(props) => transparentize(1, props.theme.background)} 0%,
+      ${(props) => props.theme.background} 100%
+    );
+  }
+
   &:focus,
   &:focus-within {
+    max-height: initial;
+    overflow: initial;
     background: ${(props) => props.theme.secondaryBackground};
+
+    &:after {
+      background: transparent;
+    }
   }
 `;
 
