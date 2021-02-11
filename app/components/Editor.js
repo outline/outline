@@ -27,6 +27,7 @@ export type Props = {|
   autoFocus?: boolean,
   template?: boolean,
   placeholder?: string,
+  maxLength?: number,
   scrollTo?: string,
   handleDOMEvents?: Object,
   readOnlyWriteCheckboxes?: boolean,
