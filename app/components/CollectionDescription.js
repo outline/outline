@@ -96,7 +96,6 @@ function CollectionDescription({ collection }: Props) {
                 placeholder={placeholder}
                 readOnly={!isEditing}
                 autoFocus={isEditing}
-                onFocus={handleStartEditing}
                 onBlur={handleStopEditing}
                 maxLength={1000}
                 disableEmbeds
@@ -126,10 +125,10 @@ const Disclosure = styled(NudeButton)`
   opacity: 0;
   color: ${(props) => props.theme.divider};
   position: absolute;
-  top: calc(25vh - 42px);
+  top: calc(25vh - 50px);
   left: 50%;
-  transform: rotate(-90deg) translateX(-50%);
   z-index: 1;
+  transform: rotate(-90deg) translateX(-50%);
   transition: opacity 100ms ease-in-out;
 
   &:focus,
@@ -202,6 +201,11 @@ const Input = styled.div`
 
   &[data-editing="true"] {
     background: ${(props) => props.theme.secondaryBackground};
+  }
+
+  .block-menu-trigger,
+  .heading-anchor {
+    display: none !important;
   }
 `;
 
