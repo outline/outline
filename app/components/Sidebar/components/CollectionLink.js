@@ -78,25 +78,28 @@ function CollectionLink({
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
-      if (!collection) return;
-      //documents.move()
       console.log("move collection");
     },
     collect: (monitor) => ({
-      isCollectionDroppping: monitor.isOver(),
+      isCollectionDropping: monitor.isOver(),
     }),
   });
 
   // Drag to reorder Collection
   const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
-    item: { type: "collection" },
+    item: { type: "collection", activeCollectionId: ui.activeCollectionId },
     collect: (monitor) => ({
       isCollectionDragging: monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      ui.activeCollectionId = "";
       //policies to allow admin
       return true;
+    },
+    begin: (monitor) => {
+      ui.activeCollectionId = "";
+    },
+    end: (monitor) => {
+      ui.activeCollectionId = monitor.activeCollectionId;
     },
   });
 
@@ -147,11 +150,10 @@ function CollectionLink({
             />
           </DropToImport>
         </Draggable>
-
         {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        {isCollectionDropping && (
+        {!expanded && (
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}

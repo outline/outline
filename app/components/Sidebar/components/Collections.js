@@ -2,12 +2,14 @@
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
 import CollectionsLoading from "./CollectionsLoading";
+import DropCursor from "./DropCursor";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
 
@@ -25,8 +27,24 @@ function Collections({ onCreateCollection }: Props) {
     }
   });
 
+  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
+    accept: "collection",
+    drop: async (item, monitor) => {
+      //documents.move()
+      console.log("move collection");
+    },
+    collect: (monitor) => ({
+      isCollectionDropping: monitor.isOver(),
+    }),
+  });
+
   const content = (
     <>
+      <DropCursor
+        isActiveDrop={isCollectionDropping}
+        innerRef={dropToReorderCollection}
+        from="collections"
+      />
       {collections.orderedData.map((collection) => (
         <CollectionLink
           key={collection.id}
@@ -47,18 +65,19 @@ function Collections({ onCreateCollection }: Props) {
     </>
   );
 
+  if (!collections.isLoaded) {
+    return (
+      <Flex column>
+        <Header>{t("Collections")}</Header>
+        <CollectionsLoading />
+      </Flex>
+    );
+  }
+
   return (
     <Flex column>
       <Header>{t("Collections")}</Header>
-      {collections.isLoaded ? (
-        isPreloaded ? (
-          content
-        ) : (
-          <Fade>{content}</Fade>
-        )
-      ) : (
-        <CollectionsLoading />
-      )}
+      {isPreloaded ? content : <Fade>{content}</Fade>}
     </Flex>
   );
 }
