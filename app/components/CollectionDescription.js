@@ -64,8 +64,8 @@ function CollectionDescription({ collection }: Props) {
 
   const handleChange = React.useCallback(
     (getValue) => {
-      handleSave(getValue);
       setDirty(true);
+      handleSave(getValue);
     },
     [handleSave]
   );
@@ -75,6 +75,7 @@ function CollectionDescription({ collection }: Props) {
   }, [collection.id]);
 
   const placeholder = `${t("Add a description")}…`;
+  const key = isEditing || isDirty ? "draft" : collection.updatedAt;
 
   return (
     <MaxHeight data-editing={isEditing} data-expanded={isExpanded}>
@@ -85,11 +86,11 @@ function CollectionDescription({ collection }: Props) {
       >
         <span onClick={can.update ? handleStartEditing : undefined}>
           {collections.isSaving && <LoadingIndicator />}
-          {(collection.hasDescription || isEditing) && (
+          {collection.hasDescription || isEditing || isDirty ? (
             <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
               <Editor
                 id={collection.id}
-                key={isEditing || isDirty ? "draft" : collection.updatedAt}
+                key={key}
                 defaultValue={collection.description}
                 onChange={handleChange}
                 placeholder={placeholder}
@@ -103,9 +104,8 @@ function CollectionDescription({ collection }: Props) {
                 grow
               />
             </React.Suspense>
-          )}
-          {!collection.hasDescription && can.update && !isEditing && (
-            <Placeholder>{placeholder}</Placeholder>
+          ) : (
+            can.update && <Placeholder>{placeholder}</Placeholder>
           )}
         </span>
       </Input>
@@ -152,6 +152,8 @@ const MaxHeight = styled.div`
   position: relative;
   max-height: 25vh;
   overflow: hidden;
+  margin: -8px;
+  padding: 8px;
 
   &[data-editing="true"],
   &[data-expanded="true"] {
@@ -175,8 +177,6 @@ const Input = styled.div`
   padding: 8px;
   border-radius: 8px;
   transition: ${(props) => props.theme.backgroundTransition};
-  background: ${(props) =>
-    props.$isEditing ? props.theme.secondaryBackground : "transparent"};
 
   &:after {
     content: "";
