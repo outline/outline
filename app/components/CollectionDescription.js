@@ -74,48 +74,51 @@ function CollectionDescription({ collection }: Props) {
     setEditing(false);
   }, [collection.id]);
 
-  const placeholder = `${t("Add description")}…`;
+  const placeholder = `${t("Add a description")}…`;
 
   return (
-    <Input
-      $isEditable={can.update}
-      $isEditing={isEditing}
-      expanded={isExpanded}
-    >
-      <span onClick={can.update ? handleStartEditing : undefined}>
-        {collections.isSaving && <LoadingIndicator />}
-        {(collection.hasDescription || isEditing) && (
-          <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-            <Editor
-              id={collection.id}
-              key={isEditing || isDirty ? "draft" : collection.updatedAt}
-              defaultValue={collection.description}
-              onChange={handleChange}
-              placeholder={placeholder}
-              readOnly={!isEditing}
-              autoFocus={isEditing}
-              onFocus={handleStartEditing}
-              onBlur={handleStopEditing}
-              maxLength={1000}
-              disableEmbeds
-              readOnlyWriteCheckboxes
-              grow
-            />
-          </React.Suspense>
-        )}
-        {!collection.hasDescription && can.update && !isEditing && (
-          <Placeholder>{placeholder}</Placeholder>
-        )}
-      </span>
+    <MaxHeight data-editing={isEditing} data-expanded={isExpanded}>
+      <Input
+        $isEditable={can.update}
+        data-editing={isEditing}
+        data-expanded={isExpanded}
+      >
+        <span onClick={can.update ? handleStartEditing : undefined}>
+          {collections.isSaving && <LoadingIndicator />}
+          {(collection.hasDescription || isEditing) && (
+            <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
+              <Editor
+                id={collection.id}
+                key={isEditing || isDirty ? "draft" : collection.updatedAt}
+                defaultValue={collection.description}
+                onChange={handleChange}
+                placeholder={placeholder}
+                readOnly={!isEditing}
+                autoFocus={isEditing}
+                onFocus={handleStartEditing}
+                onBlur={handleStopEditing}
+                maxLength={1000}
+                disableEmbeds
+                readOnlyWriteCheckboxes
+                grow
+              />
+            </React.Suspense>
+          )}
+          {!collection.hasDescription && can.update && !isEditing && (
+            <Placeholder>{placeholder}</Placeholder>
+          )}
+        </span>
+      </Input>
       {!isEditing && (
         <Disclosure
           onClick={handleClickDisclosure}
           aria-label={isExpanded ? t("Collapse") : t("Expand")}
+          size={30}
         >
           <Arrow />
         </Disclosure>
       )}
-    </Input>
+    </MaxHeight>
   );
 }
 
@@ -123,11 +126,16 @@ const Disclosure = styled(NudeButton)`
   opacity: 0;
   color: ${(props) => props.theme.divider};
   position: absolute;
-  top: calc(25vh - 40px);
+  top: calc(25vh - 42px);
   left: 50%;
   transform: rotate(-90deg) translateX(-50%);
   z-index: 1;
   transition: opacity 100ms ease-in-out;
+
+  &:focus,
+  &:hover {
+    opacity: 1;
+  }
 
   &:active {
     color: ${(props) => props.theme.sidebarText};
@@ -136,17 +144,36 @@ const Disclosure = styled(NudeButton)`
 
 const Placeholder = styled(ButtonLink)`
   color: ${(props) => props.theme.placeholder};
+  cursor: text;
+  min-height: 27px;
+`;
+
+const MaxHeight = styled.div`
+  position: relative;
+  max-height: 25vh;
+  overflow: hidden;
+
+  &[data-editing="true"],
+  &[data-expanded="true"] {
+    max-height: initial;
+    overflow: initial;
+
+    ${Disclosure} {
+      top: initial;
+      bottom: 0;
+      transform: rotate(90deg) translateX(-50%);
+    }
+  }
+
+  &:hover ${Disclosure} {
+    opacity: 1;
+  }
 `;
 
 const Input = styled.div`
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
-  position: relative;
-  min-height: 44px;
-  max-height: 25vh;
-  overflow: hidden;
-  cursor: ${(props) => (props.$isEditable ? "text" : "default")};
   transition: ${(props) => props.theme.backgroundTransition};
   background: ${(props) =>
     props.$isEditing ? props.theme.secondaryBackground : "transparent"};
@@ -166,27 +193,15 @@ const Input = styled.div`
     );
   }
 
-  &:focus,
-  &:focus-within,
-  &[expanded] {
-    max-height: initial;
-    overflow: initial;
-    background: ${(props) => props.theme.secondaryBackground};
-
+  &[data-editing="true"],
+  &[data-expanded="true"] {
     &:after {
       background: transparent;
     }
-
-    ${Disclosure} {
-      opacity: 1;
-      top: initial;
-      bottom: 0;
-      transform: rotate(90deg) translateX(-50%);
-    }
   }
 
-  &:hover ${Disclosure} {
-    opacity: 1;
+  &[data-editing="true"] {
+    background: ${(props) => props.theme.secondaryBackground};
   }
 `;
 
