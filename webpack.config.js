@@ -50,7 +50,9 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      EDITOR_VERSION: JSON.stringify(pkg.version)
+      "process.env.SOURCE_COMMIT": JSON.stringify(process.env.SOURCE_COMMIT),
+      "process.env.SOURCE_VERSION": JSON.stringify(process.env.SOURCE_VERSION),
+      "EDITOR_VERSION": JSON.stringify(pkg.version)
     }),
     new webpack.ProvidePlugin({
       fetch: 'imports-loader?this=>global!exports-loader?global.fetch!isomorphic-fetch',
