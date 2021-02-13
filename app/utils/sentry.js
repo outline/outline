@@ -16,6 +16,7 @@ export function initSentry(history: RouterHistory) {
     ],
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
     ignoreErrors: [
+      "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "AuthorizationError",
       "BadRequestError",
