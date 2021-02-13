@@ -183,6 +183,7 @@
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "eslint": "^7.6.0",
     "eslint-config-react-app": "3.0.6",
     "eslint-plugin-flowtype": "^5.2.0",
