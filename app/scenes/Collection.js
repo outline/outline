@@ -1,12 +1,11 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-
 import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -20,9 +19,9 @@ import Search from "scenes/Search";
 import Actions, { Action, Separator } from "components/Actions";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
+import CollectionDescription from "components/CollectionDescription";
 import CollectionIcon from "components/CollectionIcon";
 import DocumentList from "components/DocumentList";
-import Editor from "components/Editor";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
@@ -37,7 +36,6 @@ import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import CollectionMenu from "menus/CollectionMenu";
-import { type Theme } from "types";
 import { AuthorizationError } from "utils/errors";
 import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
@@ -47,7 +45,6 @@ type Props = {
   collections: CollectionsStore,
   policies: PoliciesStore,
   match: Match,
-  theme: Theme,
   t: TFunction,
 };
 
@@ -57,7 +54,6 @@ class CollectionScene extends React.Component<Props> {
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
   @observable editModalOpen: boolean = false;
-  @observable redirectTo: ?string;
 
   componentDidMount() {
     const { id } = this.props.match.params;
@@ -108,14 +104,6 @@ class CollectionScene extends React.Component<Props> {
     }
   };
 
-  onNewDocument = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-
-    if (this.collection) {
-      this.redirectTo = newDocumentUrl(this.collection.id);
-    }
-  };
-
   onPermissions = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.permissionsModalOpen = true;
@@ -157,7 +145,12 @@ class CollectionScene extends React.Component<Props> {
                 delay={500}
                 placement="bottom"
               >
-                <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+                <Button
+                  as={Link}
+                  to={this.collection ? newDocumentUrl(this.collection.id) : ""}
+                  disabled={!this.collection}
+                  icon={<PlusIcon />}
+                >
                   {t("New doc")}
                 </Button>
               </Tooltip>
@@ -186,9 +179,8 @@ class CollectionScene extends React.Component<Props> {
   }
 
   render() {
-    const { documents, theme, t } = this.props;
+    const { documents, t } = this.props;
 
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
     if (!this.isFetching && !this.collection) return <Search notFound />;
 
     const pinnedDocuments = this.collection
@@ -197,7 +189,6 @@ class CollectionScene extends React.Component<Props> {
     const collection = this.collection;
     const collectionName = collection ? collection.name : "";
     const hasPinnedDocuments = !!pinnedDocuments.length;
-    const hasDescription = collection ? collection.hasDescription : false;
 
     return (
       <CenteredContent>
@@ -218,7 +209,7 @@ class CollectionScene extends React.Component<Props> {
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection.id)}>
-                    <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
+                    <Button icon={<NewDocumentIcon color="currentColor" />}>
                       {t("Create a document")}
                     </Button>
                   </Link>
@@ -257,17 +248,7 @@ class CollectionScene extends React.Component<Props> {
                   <CollectionIcon collection={collection} size={40} expanded />{" "}
                   {collection.name}
                 </Heading>
-
-                {hasDescription && (
-                  <React.Suspense fallback={<p>Loading…</p>}>
-                    <Editor
-                      id={collection.id}
-                      key={collection.description}
-                      defaultValue={collection.description}
-                      readOnly
-                    />
-                  </React.Suspense>
-                )}
+                <CollectionDescription collection={collection} />
 
                 {hasPinnedDocuments && (
                   <>
@@ -396,10 +377,5 @@ const Wrapper = styled(Flex)`
 `;
 
 export default withTranslation()<CollectionScene>(
-  inject(
-    "collections",
-    "policies",
-    "documents",
-    "ui"
-  )(withTheme(CollectionScene))
+  inject("collections", "policies", "documents", "ui")(CollectionScene)
 );
