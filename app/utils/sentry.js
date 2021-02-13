@@ -7,6 +7,8 @@ import env from "env";
 export function initSentry(history: RouterHistory) {
   Sentry.init({
     dsn: env.SENTRY_DSN,
+    environment: env.ENVIRONMENT,
+    release: env.RELEASE,
     integrations: [
       new Integrations.BrowserTracing({
         routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
