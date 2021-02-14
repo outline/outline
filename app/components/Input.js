@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Flex from "components/Flex";
 
 const RealTextarea = styled.textarea`
@@ -33,6 +34,10 @@ const RealInput = styled.input`
   &::placeholder {
     color: ${(props) => props.theme.placeholder};
   }
+
+  ${breakpoint("mobile", "tablet")`
+    font-size: 16px;
+  `};
 `;
 
 const Wrapper = styled.div`

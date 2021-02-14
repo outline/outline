@@ -1,15 +1,15 @@
 // @flow
 import { observer } from "mobx-react";
+import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { type Match } from "react-router-dom";
-import Actions, { Action } from "components/Actions";
-import CenteredContent from "components/CenteredContent";
+import { Action } from "components/Actions";
 import Empty from "components/Empty";
 import Heading from "components/Heading";
 import InputSearch from "components/InputSearch";
-import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Scene from "components/Scene";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import useStores from "hooks/useStores";
@@ -26,8 +26,24 @@ function Starred(props: Props) {
   const { sort } = props.match.params;
 
   return (
-    <CenteredContent column auto>
-      <PageTitle title={t("Starred")} />
+    <Scene
+      icon={<StarredIcon color="currentColor" />}
+      title={t("Starred")}
+      actions={
+        <>
+          <Action>
+            <InputSearch
+              source="starred"
+              label={t("Search documents")}
+              labelHidden
+            />
+          </Action>
+          <Action>
+            <NewDocumentMenu />
+          </Action>
+        </>
+      }
+    >
       <Heading>{t("Starred")}</Heading>
       <PaginatedDocumentList
         heading={
@@ -45,20 +61,7 @@ function Starred(props: Props) {
         documents={sort === "alphabetical" ? starredAlphabetical : starred}
         showCollection
       />
-
-      <Actions align="center" justify="flex-end">
-        <Action>
-          <InputSearch
-            source="starred"
-            label={t("Search documents")}
-            labelHidden
-          />
-        </Action>
-        <Action>
-          <NewDocumentMenu />
-        </Action>
-      </Actions>
-    </CenteredContent>
+    </Scene>
   );
 }
 

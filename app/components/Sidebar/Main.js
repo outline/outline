@@ -22,9 +22,9 @@ import Modal from "components/Modal";
 import Scrollable from "components/Scrollable";
 import Sidebar from "./Sidebar";
 import Collections from "./components/Collections";
-import HeaderBlock from "./components/HeaderBlock";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
+import TeamButton from "./components/TeamButton";
 import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
 
@@ -72,7 +72,7 @@ function MainSidebar() {
     <Sidebar>
       <AccountMenu>
         {(props) => (
-          <HeaderBlock
+          <TeamButton
             {...props}
             subheading={user.name}
             teamName={team.name}

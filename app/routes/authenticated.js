@@ -3,11 +3,11 @@ import * as React from "react";
 import { Switch, Redirect, type Match } from "react-router-dom";
 import Archive from "scenes/Archive";
 import Collection from "scenes/Collection";
-import Dashboard from "scenes/Dashboard";
 import KeyedDocument from "scenes/Document/KeyedDocument";
 import DocumentNew from "scenes/DocumentNew";
 import Drafts from "scenes/Drafts";
 import Error404 from "scenes/Error404";
+import Home from "scenes/Home";
 import Search from "scenes/Search";
 import Starred from "scenes/Starred";
 import Templates from "scenes/Templates";
@@ -37,8 +37,8 @@ export default function AuthenticatedRoutes() {
       <Layout>
         <Switch>
           <Redirect from="/dashboard" to="/home" />
-          <Route path="/home/:tab" component={Dashboard} />
-          <Route path="/home" component={Dashboard} />
+          <Route path="/home/:tab" component={Home} />
+          <Route path="/home" component={Home} />
           <Route exact path="/starred" component={Starred} />
           <Route exact path="/starred/:sort" component={Starred} />
           <Route exact path="/templates" component={Templates} />
