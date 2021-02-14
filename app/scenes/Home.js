@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import { Action } from "components/Actions";
+import Heading from "components/Heading";
 import InputSearch from "components/InputSearch";
 import LanguagePrompt from "components/LanguagePrompt";
 import Scene from "components/Scene";
@@ -23,13 +24,8 @@ function Home() {
 
   return (
     <Scene
-      textTitle={t("Home")}
-      title={
-        <>
-          <HomeIcon color="currentColor" />
-          &nbsp;{t("Home")}
-        </>
-      }
+      icon={<HomeIcon color="currentColor" />}
+      title={t("Home")}
       actions={
         <>
           <Action>
@@ -46,7 +42,7 @@ function Home() {
       }
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
-      <h1>{t("Home")}</h1>
+      <Heading>{t("Home")}</Heading>
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently updated")}

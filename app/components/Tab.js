@@ -16,7 +16,7 @@ const TabLink = styled(NavLink)`
   font-size: 14px;
   color: ${(props) => props.theme.textTertiary};
   margin-right: 24px;
-  padding: 8px 0;
+  padding: 6px 0;
 
   &:hover {
     color: ${(props) => props.theme.textSecondary};

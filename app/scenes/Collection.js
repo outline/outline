@@ -358,10 +358,6 @@ class CollectionScene extends React.Component<Props> {
   }
 }
 
-const FillWidth = styled.div`
-  width: 100%;
-`;
-
 const Centered = styled(Flex)`
   text-align: center;
   margin: 40vh auto 0;

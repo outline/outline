@@ -89,11 +89,9 @@ const Title = styled(Flex)`
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
-  display: none;
   width: 0;
 
   ${breakpoint("tablet")`	
-    display: flex;
     flex-grow: 1;
   `};
 `;

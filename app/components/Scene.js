@@ -6,6 +6,7 @@ import Header from "components/Header";
 import PageTitle from "components/PageTitle";
 
 type Props = {|
+  icon?: React.Node,
   title: React.Node,
   textTitle?: string,
   children: React.Node,
@@ -13,11 +14,30 @@ type Props = {|
   actions?: React.Node,
 |};
 
-function Scene({ title, textTitle, actions, breadcrumb, children }: Props) {
+function Scene({
+  title,
+  icon,
+  textTitle,
+  actions,
+  breadcrumb,
+  children,
+}: Props) {
   return (
     <FillWidth>
       <PageTitle title={textTitle || title} />
-      <Header title={title} actions={actions} breadcrumb={breadcrumb} />
+      <Header
+        title={
+          icon ? (
+            <>
+              {icon}&nbsp;{title}
+            </>
+          ) : (
+            title
+          )
+        }
+        actions={actions}
+        breadcrumb={breadcrumb}
+      />
       <CenteredContent withStickyHeader>{children}</CenteredContent>
     </FillWidth>
   );

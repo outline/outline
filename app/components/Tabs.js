@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 const Tabs = styled.nav`
   position: sticky;
-  top: 56px;
+  top: 54px;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   border-bottom: 1px solid ${(props) => props.theme.divider};
