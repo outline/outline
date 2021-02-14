@@ -1,7 +1,7 @@
 // @flow
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
-import { transparentize, darken } from "polished";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -66,11 +66,6 @@ const Wrapper = styled(Flex)`
   left: 0;
   z-index: 2;
   background: ${(props) => transparentize(0.2, props.theme.background)};
-  box-shadow: 0 1px 0
-    ${(props) =>
-      props.isCompact
-        ? darken(0.05, props.theme.sidebarBackground)
-        : "transparent"};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);

@@ -1,7 +1,5 @@
 // @flow
-import { throttle } from "lodash";
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import {
   TableOfContentsIcon,
   EditIcon,
@@ -9,18 +7,11 @@ import {
   PlusIcon,
   MoreIcon,
 } from "outline-icons";
-import { transparentize, darken } from "polished";
 import * as React from "react";
-import { withTranslation, Trans, type TFunction } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import AuthStore from "stores/AuthStore";
-import PoliciesStore from "stores/PoliciesStore";
-import SharesStore from "stores/SharesStore";
-import UiStore from "stores/UiStore";
 import Document from "models/Document";
-
 import DocumentShare from "scenes/DocumentShare";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
@@ -28,20 +19,17 @@ import Breadcrumb, { Slash } from "components/Breadcrumb";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
 import Fade from "components/Fade";
-import Flex from "components/Flex";
+import Header from "components/Header";
 import Modal from "components/Modal";
 import Tooltip from "components/Tooltip";
+import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
-type Props = {
-  auth: AuthStore,
-  ui: UiStore,
-  shares: SharesStore,
-  policies: PoliciesStore,
+type Props = {|
   document: Document,
   isDraft: boolean,
   isEditing: boolean,
@@ -56,356 +44,263 @@ type Props = {
     publish?: boolean,
     autosave?: boolean,
   }) => void,
-  t: TFunction,
-};
+|};
 
-@observer
-class Header extends React.Component<Props> {
-  @observable isScrolled = false;
-  @observable showShareModal = false;
+function DocumentHeader({
+  document,
+  isEditing,
+  isDraft,
+  isPublishing,
+  isRevision,
+  isSaving,
+  savingIsDisabled,
+  publishingIsDisabled,
+  onSave,
+}: Props) {
+  const { t } = useTranslation();
+  const { auth, ui, shares, policies } = useStores();
+  const [showShareModal, setShowShareModal] = React.useState(false);
 
-  componentDidMount() {
-    window.addEventListener("scroll", this.handleScroll);
-  }
+  const handleSave = React.useCallback(() => {
+    onSave({ done: true });
+  }, [onSave]);
 
-  componentWillUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
-  }
+  const handlePublish = React.useCallback(() => {
+    onSave({ done: true, publish: true });
+  }, [onSave]);
 
-  updateIsScrolled = () => {
-    this.isScrolled = window.scrollY > 75;
-  };
+  const handleShareLink = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      await document.share();
 
-  handleScroll = throttle(this.updateIsScrolled, 50);
+      setShowShareModal(true);
+    },
+    [document]
+  );
 
-  handleSave = () => {
-    this.props.onSave({ done: true });
-  };
+  const handleCloseShareModal = React.useCallback(() => {
+    setShowShareModal(false);
+  }, []);
 
-  handlePublish = () => {
-    this.props.onSave({ done: true, publish: true });
-  };
+  const share = shares.getByDocumentId(document.id);
+  const isPubliclyShared = share && share.published;
+  const isNew = document.isNew;
+  const isTemplate = document.isTemplate;
+  const can = policies.abilities(document.id);
+  const canShareDocument = auth.team && auth.team.sharing && can.share;
+  const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
+  const canEdit = can.update && !isEditing;
 
-  handleShareLink = async (ev: SyntheticEvent<>) => {
-    const { document } = this.props;
-    await document.share();
-
-    this.showShareModal = true;
-  };
-
-  handleCloseShareModal = () => {
-    this.showShareModal = false;
-  };
-
-  handleClickTitle = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  render() {
-    const {
-      shares,
-      document,
-      policies,
-      isEditing,
-      isDraft,
-      isPublishing,
-      isRevision,
-      isSaving,
-      savingIsDisabled,
-      publishingIsDisabled,
-      ui,
-      auth,
-      t,
-    } = this.props;
-
-    const share = shares.getByDocumentId(document.id);
-    const isPubliclyShared = share && share.published;
-    const isNew = document.isNew;
-    const isTemplate = document.isTemplate;
-    const can = policies.abilities(document.id);
-    const canShareDocument = auth.team && auth.team.sharing && can.share;
-    const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
-    const canEdit = can.update && !isEditing;
-
-    return (
-      <Actions
-        align="center"
-        justify="space-between"
-        isCompact={this.isScrolled}
-        shrink={false}
+  return (
+    <>
+      <Modal
+        isOpen={showShareModal}
+        onRequestClose={handleCloseShareModal}
+        title={t("Share document")}
       >
-        <Modal
-          isOpen={this.showShareModal}
-          onRequestClose={this.handleCloseShareModal}
-          title={t("Share document")}
-        >
-          <DocumentShare
-            document={document}
-            onSubmit={this.handleCloseShareModal}
-          />
-        </Modal>
-        <Breadcrumb document={document}>
-          {!isEditing && (
-            <>
-              <Slash />
-              <Tooltip
-                tooltip={
-                  ui.tocVisible ? t("Hide contents") : t("Show contents")
-                }
-                shortcut={`ctrl+${metaDisplay}+h`}
-                delay={250}
-                placement="bottom"
-              >
-                <Button
-                  onClick={
-                    ui.tocVisible
-                      ? ui.hideTableOfContents
-                      : ui.showTableOfContents
+        <DocumentShare document={document} onSubmit={handleCloseShareModal} />
+      </Modal>
+      <Header
+        breadcrumb={
+          <Breadcrumb document={document}>
+            {!isEditing && (
+              <>
+                <Slash />
+                <Tooltip
+                  tooltip={
+                    ui.tocVisible ? t("Hide contents") : t("Show contents")
                   }
-                  icon={<TableOfContentsIcon />}
-                  iconColor="currentColor"
-                  borderOnHover
-                  neutral
-                />
-              </Tooltip>
-            </>
-          )}
-        </Breadcrumb>
-        {this.isScrolled && (
-          <Title onClick={this.handleClickTitle}>
-            <Fade>
-              {document.title}{" "}
-              {document.isArchived && <Badge>{t("Archived")}</Badge>}
-            </Fade>
-          </Title>
-        )}
-        <Wrapper align="center" justify="flex-end">
-          {isSaving && !isPublishing && (
-            <Action>
-              <Status>{t("Saving")}…</Status>
-            </Action>
-          )}
-          &nbsp;
-          <Fade>
-            <Collaborators
-              document={document}
-              currentUserId={auth.user ? auth.user.id : undefined}
-            />
-          </Fade>
-          {isEditing && !isTemplate && isNew && (
-            <Action>
-              <TemplatesMenu document={document} />
-            </Action>
-          )}
-          {!isEditing && canShareDocument && (
-            <Action>
-              <Tooltip
-                tooltip={
-                  isPubliclyShared ? (
-                    <Trans>
-                      Anyone with the link <br />
-                      can view this document
-                    </Trans>
-                  ) : (
-                    ""
-                  )
-                }
-                delay={500}
-                placement="bottom"
-              >
-                <Button
-                  icon={isPubliclyShared ? <GlobeIcon /> : undefined}
-                  onClick={this.handleShareLink}
-                  neutral
+                  shortcut={`ctrl+${metaDisplay}+h`}
+                  delay={250}
+                  placement="bottom"
                 >
-                  {t("Share")}
-                </Button>
-              </Tooltip>
-            </Action>
-          )}
-          {isEditing && (
-            <>
+                  <Button
+                    onClick={
+                      ui.tocVisible
+                        ? ui.hideTableOfContents
+                        : ui.showTableOfContents
+                    }
+                    icon={<TableOfContentsIcon />}
+                    iconColor="currentColor"
+                    borderOnHover
+                    neutral
+                  />
+                </Tooltip>
+              </>
+            )}
+          </Breadcrumb>
+        }
+        title={
+          <>
+            {document.title}{" "}
+            {document.isArchived && <Badge>{t("Archived")}</Badge>}
+          </>
+        }
+        actions={
+          <>
+            {isSaving && !isPublishing && (
+              <Action>
+                <Status>{t("Saving")}…</Status>
+              </Action>
+            )}
+            &nbsp;
+            <Fade>
+              <Collaborators
+                document={document}
+                currentUserId={auth.user ? auth.user.id : undefined}
+              />
+            </Fade>
+            {isEditing && !isTemplate && isNew && (
+              <Action>
+                <TemplatesMenu document={document} />
+              </Action>
+            )}
+            {!isEditing && canShareDocument && (
               <Action>
                 <Tooltip
-                  tooltip={t("Save")}
-                  shortcut={`${metaDisplay}+enter`}
+                  tooltip={
+                    isPubliclyShared ? (
+                      <Trans>
+                        Anyone with the link <br />
+                        can view this document
+                      </Trans>
+                    ) : (
+                      ""
+                    )
+                  }
                   delay={500}
                   placement="bottom"
                 >
                   <Button
-                    onClick={this.handleSave}
-                    disabled={savingIsDisabled}
-                    neutral={isDraft}
+                    icon={isPubliclyShared ? <GlobeIcon /> : undefined}
+                    onClick={handleShareLink}
+                    neutral
                   >
-                    {isDraft ? t("Save Draft") : t("Done Editing")}
+                    {t("Share")}
                   </Button>
                 </Tooltip>
               </Action>
-            </>
-          )}
-          {canEdit && (
-            <Action>
-              <Tooltip
-                tooltip={t("Edit {{noun}}", { noun: document.noun })}
-                shortcut="e"
-                delay={500}
-                placement="bottom"
-              >
-                <Button
-                  as={Link}
-                  icon={<EditIcon />}
-                  to={editDocumentUrl(this.props.document)}
-                  neutral
-                >
-                  {t("Edit")}
-                </Button>
-              </Tooltip>
-            </Action>
-          )}
-          {canEdit && can.createChildDocument && (
-            <Action>
-              <NewChildDocumentMenu
-                document={document}
-                label={(props) => (
+            )}
+            {isEditing && (
+              <>
+                <Action>
                   <Tooltip
-                    tooltip={t("New document")}
-                    shortcut="n"
+                    tooltip={t("Save")}
+                    shortcut={`${metaDisplay}+enter`}
                     delay={500}
                     placement="bottom"
                   >
-                    <Button icon={<PlusIcon />} {...props} neutral>
-                      {t("New doc")}
+                    <Button
+                      onClick={handleSave}
+                      disabled={savingIsDisabled}
+                      neutral={isDraft}
+                    >
+                      {isDraft ? t("Save Draft") : t("Done Editing")}
                     </Button>
                   </Tooltip>
-                )}
-              />
-            </Action>
-          )}
-          {canEdit && isTemplate && !isDraft && !isRevision && (
-            <Action>
-              <Button
-                icon={<PlusIcon />}
-                as={Link}
-                to={newDocumentUrl(document.collectionId, {
-                  templateId: document.id,
-                })}
-                primary
-              >
-                {t("New from template")}
-              </Button>
-            </Action>
-          )}
-          {can.update && isDraft && !isRevision && (
-            <Action>
-              <Tooltip
-                tooltip={t("Publish")}
-                shortcut={`${metaDisplay}+shift+p`}
-                delay={500}
-                placement="bottom"
-              >
-                <Button
-                  onClick={this.handlePublish}
-                  disabled={publishingIsDisabled}
-                >
-                  {isPublishing ? `${t("Publishing")}…` : t("Publish")}
-                </Button>
-              </Tooltip>
-            </Action>
-          )}
-          {!isEditing && (
-            <>
-              <Separator />
+                </Action>
+              </>
+            )}
+            {canEdit && (
               <Action>
-                <DocumentMenu
+                <Tooltip
+                  tooltip={t("Edit {{noun}}", { noun: document.noun })}
+                  shortcut="e"
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    as={Link}
+                    icon={<EditIcon />}
+                    to={editDocumentUrl(document)}
+                    neutral
+                  >
+                    {t("Edit")}
+                  </Button>
+                </Tooltip>
+              </Action>
+            )}
+            {canEdit && can.createChildDocument && (
+              <Action>
+                <NewChildDocumentMenu
                   document={document}
-                  isRevision={isRevision}
                   label={(props) => (
-                    <Button
-                      icon={<MoreIcon />}
-                      iconColor="currentColor"
-                      {...props}
-                      borderOnHover
-                      neutral
-                    />
+                    <Tooltip
+                      tooltip={t("New document")}
+                      shortcut="n"
+                      delay={500}
+                      placement="bottom"
+                    >
+                      <Button icon={<PlusIcon />} {...props} neutral>
+                        {t("New doc")}
+                      </Button>
+                    </Tooltip>
                   )}
-                  showToggleEmbeds={canToggleEmbeds}
-                  showPrint
                 />
               </Action>
-            </>
-          )}
-        </Wrapper>
-      </Actions>
-    );
-  }
+            )}
+            {canEdit && isTemplate && !isDraft && !isRevision && (
+              <Action>
+                <Button
+                  icon={<PlusIcon />}
+                  as={Link}
+                  to={newDocumentUrl(document.collectionId, {
+                    templateId: document.id,
+                  })}
+                  primary
+                >
+                  {t("New from template")}
+                </Button>
+              </Action>
+            )}
+            {can.update && isDraft && !isRevision && (
+              <Action>
+                <Tooltip
+                  tooltip={t("Publish")}
+                  shortcut={`${metaDisplay}+shift+p`}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    onClick={handlePublish}
+                    disabled={publishingIsDisabled}
+                  >
+                    {isPublishing ? `${t("Publishing")}…` : t("Publish")}
+                  </Button>
+                </Tooltip>
+              </Action>
+            )}
+            {!isEditing && (
+              <>
+                <Separator />
+                <Action>
+                  <DocumentMenu
+                    document={document}
+                    isRevision={isRevision}
+                    label={(props) => (
+                      <Button
+                        icon={<MoreIcon />}
+                        iconColor="currentColor"
+                        {...props}
+                        borderOnHover
+                        neutral
+                      />
+                    )}
+                    showToggleEmbeds={canToggleEmbeds}
+                    showPrint
+                  />
+                </Action>
+              </>
+            )}
+          </>
+        }
+      />
+    </>
+  );
 }
 
 const Status = styled.div`
   color: ${(props) => props.theme.slate};
 `;
 
-const Wrapper = styled(Flex)`
-  width: 100%;
-  align-self: flex-end;
-  height: 32px;
-
-  ${breakpoint("tablet")`	
-    width: 33.3%;
-  `};
-`;
-
-const Actions = styled(Flex)`
-  position: sticky;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 2;
-  background: ${(props) => transparentize(0.2, props.theme.background)};
-  box-shadow: 0 1px 0
-    ${(props) =>
-      props.isCompact
-        ? darken(0.05, props.theme.sidebarBackground)
-        : "transparent"};
-  padding: 12px;
-  transition: all 100ms ease-out;
-  transform: translate3d(0, 0, 0);
-  backdrop-filter: blur(20px);
-
-  @media print {
-    display: none;
-  }
-
-  ${breakpoint("tablet")`
-    padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
-
-    > div {
-      width: 33.3%;
-    }
-  `};
-`;
-
-const Title = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  cursor: pointer;
-  display: none;
-  width: 0;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-    flex-grow: 1;
-  `};
-`;
-
-export default withTranslation()<Header>(
-  inject("auth", "ui", "policies", "shares")(Header)
-);
+export default observer(DocumentHeader);

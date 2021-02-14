@@ -78,7 +78,7 @@ class Drafts extends React.Component<Props> {
     };
 
     return (
-      <CenteredContent column auto>
+      <CenteredContent>
         <PageTitle title={t("Drafts")} />
         <Heading>{t("Drafts")}</Heading>
         <Subheading>

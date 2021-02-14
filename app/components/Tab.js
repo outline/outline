@@ -8,7 +8,7 @@ type Props = {
   theme: Theme,
 };
 
-const StyledNavLink = styled(NavLink)`
+const TabLink = styled(NavLink)`
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -32,7 +32,7 @@ function Tab({ theme, ...rest }: Props) {
     color: theme.textSecondary,
   };
 
-  return <StyledNavLink {...rest} activeStyle={activeStyle} />;
+  return <TabLink {...rest} activeStyle={activeStyle} />;
 }
 
 export default withTheme(Tab);

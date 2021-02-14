@@ -26,7 +26,7 @@ function Starred(props: Props) {
   const { sort } = props.match.params;
 
   return (
-    <CenteredContent column auto>
+    <CenteredContent>
       <PageTitle title={t("Starred")} />
       <Heading>{t("Starred")}</Heading>
       <PaginatedDocumentList

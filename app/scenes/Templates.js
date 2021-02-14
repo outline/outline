@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { type Match } from "react-router-dom";
-
 import Actions, { Action } from "components/Actions";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
@@ -26,7 +25,7 @@ function Templates(props: Props) {
   const { sort } = props.match.params;
 
   return (
-    <CenteredContent column auto>
+    <CenteredContent>
       <PageTitle title={t("Templates")} />
       <Heading>{t("Templates")}</Heading>
       <PaginatedDocumentList

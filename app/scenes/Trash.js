@@ -16,7 +16,7 @@ function Trash() {
   const { documents } = useStores();
 
   return (
-    <CenteredContent column auto>
+    <CenteredContent>
       <PageTitle title={t("Trash")} />
       <Heading>{t("Trash")}</Heading>
       <PaginatedDocumentList
