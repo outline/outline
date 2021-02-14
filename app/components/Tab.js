@@ -8,7 +8,7 @@ type Props = {
   theme: Theme,
 };
 
-const StyledNavLink = styled(NavLink)`
+const TabLink = styled(NavLink)`
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -16,7 +16,7 @@ const StyledNavLink = styled(NavLink)`
   font-size: 14px;
   color: ${(props) => props.theme.textTertiary};
   margin-right: 24px;
-  padding-bottom: 8px;
+  padding: 6px 0;
 
   &:hover {
     color: ${(props) => props.theme.textSecondary};
@@ -32,7 +32,7 @@ function Tab({ theme, ...rest }: Props) {
     color: theme.textSecondary,
   };
 
-  return <StyledNavLink {...rest} activeStyle={activeStyle} />;
+  return <TabLink {...rest} activeStyle={activeStyle} />;
 }
 
 export default withTheme(Tab);
