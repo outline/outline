@@ -47,6 +47,7 @@ export default createGlobalStyle`
       right: 0;
       height: 1px;
       background: ${(props) => props.theme.divider};
+      z-index: ${(props) => props.theme.depths.pwaSeparator};
     }
   }
 
