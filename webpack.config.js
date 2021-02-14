@@ -65,7 +65,7 @@ module.exports = {
       name: "Outline",
       short_name: "Outline",
       background_color: "#fff",
-      start_url: "/home?source=pwa",
+      theme_color: "#fff",
       display: "standalone",
       icons: [
         {
@@ -76,24 +76,6 @@ module.exports = {
           // pixel-perfection, provide icons in increments of 48dp.
           sizes: [512, 192],
           purpose: "any maskable",
-        },
-      ],
-      "shortcuts" : [
-        {
-          "name": "Home",
-          "url": "/home",
-        },
-        {
-          "name": "Search",
-          "url": "/search",
-        },
-        {
-          "name": "Starred",
-          "url": "/starred",
-        },
-        {
-          "name": "Settings",
-          "url": "/settings",
         },
       ]
     }),
