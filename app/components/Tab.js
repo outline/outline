@@ -16,7 +16,7 @@ const StyledNavLink = styled(NavLink)`
   font-size: 14px;
   color: ${(props) => props.theme.textTertiary};
   margin-right: 24px;
-  padding-bottom: 8px;
+  padding: 8px 0;
 
   &:hover {
     color: ${(props) => props.theme.textSecondary};

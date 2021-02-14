@@ -3,9 +3,10 @@ import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
-type Props = {
+type Props = {|
   children?: React.Node,
-};
+  withStickyHeader?: boolean,
+|};
 
 const Container = styled.div`
   width: 100%;
@@ -13,7 +14,7 @@ const Container = styled.div`
   padding: 60px 20px;
 
   ${breakpoint("tablet")`
-    padding: 60px;
+    padding: ${(props) => (props.withStickyHeader ? "4px 60px" : "60px")};
   `};
 `;
 

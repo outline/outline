@@ -2,10 +2,12 @@
 import styled from "styled-components";
 
 const Tabs = styled.nav`
-  position: relative;
+  position: sticky;
+  top: 56px;
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   border-bottom: 1px solid ${(props) => props.theme.divider};
-  margin-top: 22px;
-  margin-bottom: 12px;
+  margin: 12px 0;
   overflow-y: auto;
   white-space: nowrap;
   transition: opacity 250ms ease-out;
