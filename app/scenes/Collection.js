@@ -12,7 +12,6 @@ import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
-
 import CollectionEdit from "scenes/CollectionEdit";
 import CollectionMembers from "scenes/CollectionMembers";
 import Search from "scenes/Search";
@@ -23,15 +22,14 @@ import CollectionDescription from "components/CollectionDescription";
 import CollectionIcon from "components/CollectionIcon";
 import DocumentList from "components/DocumentList";
 import Flex from "components/Flex";
-import Header from "components/Header";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import InputSearch from "components/InputSearch";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
 import Mask from "components/Mask";
 import Modal from "components/Modal";
-import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
@@ -192,168 +190,163 @@ class CollectionScene extends React.Component<Props> {
     const hasPinnedDocuments = !!pinnedDocuments.length;
 
     return collection ? (
-      <FillWidth>
-        <Header
-          title={
-            <Flex>
-              <CollectionIcon collection={collection} expanded />
-              &nbsp;
-              {collection.name}
-            </Flex>
-          }
-          actions={this.renderActions()}
-        />
-        <CenteredContent withStickyHeader>
-          <PageTitle title={collection.name} />
-          {collection.isEmpty ? (
-            <Centered column>
-              <HelpText>
-                <Trans
-                  defaults="<em>{{ collectionName }}</em> doesn’t contain any
+      <Scene
+        textTitle={collection.name}
+        title={
+          <>
+            <CollectionIcon collection={collection} expanded />
+            &nbsp;
+            {collection.name}
+          </>
+        }
+        actions={this.renderActions()}
+      >
+        {collection.isEmpty ? (
+          <Centered column>
+            <HelpText>
+              <Trans
+                defaults="<em>{{ collectionName }}</em> doesn’t contain any
                     documents yet."
-                  values={{ collectionName }}
-                  components={{ em: <strong /> }}
-                />
-                <br />
-                <Trans>Get started by creating a new one!</Trans>
-              </HelpText>
-              <Empty>
-                <Link to={newDocumentUrl(collection.id)}>
-                  <Button icon={<NewDocumentIcon color="currentColor" />}>
-                    {t("Create a document")}
-                  </Button>
-                </Link>
-                &nbsp;&nbsp;
-                {collection.private && (
-                  <Button onClick={this.onPermissions} neutral>
-                    {t("Manage members")}…
-                  </Button>
-                )}
-              </Empty>
-              <Modal
-                title={t("Collection members")}
-                onRequestClose={this.handlePermissionsModalClose}
-                isOpen={this.permissionsModalOpen}
-              >
-                <CollectionMembers
-                  collection={this.collection}
-                  onSubmit={this.handlePermissionsModalClose}
-                  onEdit={this.handleEditModalOpen}
-                />
-              </Modal>
-              <Modal
-                title={t("Edit collection")}
-                onRequestClose={this.handleEditModalClose}
-                isOpen={this.editModalOpen}
-              >
-                <CollectionEdit
-                  collection={this.collection}
-                  onSubmit={this.handleEditModalClose}
-                />
-              </Modal>
-            </Centered>
-          ) : (
-            <>
-              <Heading>
-                <CollectionIcon collection={collection} size={40} expanded />{" "}
-                {collection.name}
-              </Heading>
-              <CollectionDescription collection={collection} />
-
-              {hasPinnedDocuments && (
-                <>
-                  <Subheading>
-                    <TinyPinIcon size={18} /> {t("Pinned")}
-                  </Subheading>
-                  <DocumentList documents={pinnedDocuments} showPin />
-                </>
+                values={{ collectionName }}
+                components={{ em: <strong /> }}
+              />
+              <br />
+              <Trans>Get started by creating a new one!</Trans>
+            </HelpText>
+            <Empty>
+              <Link to={newDocumentUrl(collection.id)}>
+                <Button icon={<NewDocumentIcon color="currentColor" />}>
+                  {t("Create a document")}
+                </Button>
+              </Link>
+              &nbsp;&nbsp;
+              {collection.private && (
+                <Button onClick={this.onPermissions} neutral>
+                  {t("Manage members")}…
+                </Button>
               )}
+            </Empty>
+            <Modal
+              title={t("Collection members")}
+              onRequestClose={this.handlePermissionsModalClose}
+              isOpen={this.permissionsModalOpen}
+            >
+              <CollectionMembers
+                collection={this.collection}
+                onSubmit={this.handlePermissionsModalClose}
+                onEdit={this.handleEditModalOpen}
+              />
+            </Modal>
+            <Modal
+              title={t("Edit collection")}
+              onRequestClose={this.handleEditModalClose}
+              isOpen={this.editModalOpen}
+            >
+              <CollectionEdit
+                collection={this.collection}
+                onSubmit={this.handleEditModalClose}
+              />
+            </Modal>
+          </Centered>
+        ) : (
+          <>
+            <Heading>
+              <CollectionIcon collection={collection} size={40} expanded />{" "}
+              {collection.name}
+            </Heading>
+            <CollectionDescription collection={collection} />
 
-              <Tabs>
-                <Tab to={collectionUrl(collection.id)} exact>
-                  {t("Documents")}
-                </Tab>
-                <Tab to={collectionUrl(collection.id, "updated")} exact>
-                  {t("Recently updated")}
-                </Tab>
-                <Tab to={collectionUrl(collection.id, "published")} exact>
-                  {t("Recently published")}
-                </Tab>
-                <Tab to={collectionUrl(collection.id, "old")} exact>
-                  {t("Least recently updated")}
-                </Tab>
-                <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
-                  {t("A–Z")}
-                </Tab>
-              </Tabs>
-              <Switch>
-                <Route path={collectionUrl(collection.id, "alphabetical")}>
-                  <PaginatedDocumentList
-                    key="alphabetical"
-                    documents={documents.alphabeticalInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchAlphabetical}
-                    options={{ collectionId: collection.id }}
-                    showPin
-                  />
-                </Route>
-                <Route path={collectionUrl(collection.id, "old")}>
-                  <PaginatedDocumentList
-                    key="old"
-                    documents={documents.leastRecentlyUpdatedInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchLeastRecentlyUpdated}
-                    options={{ collectionId: collection.id }}
-                    showPin
-                  />
-                </Route>
-                <Route path={collectionUrl(collection.id, "recent")}>
-                  <Redirect to={collectionUrl(collection.id, "published")} />
-                </Route>
-                <Route path={collectionUrl(collection.id, "published")}>
-                  <PaginatedDocumentList
-                    key="published"
-                    documents={documents.recentlyPublishedInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchRecentlyPublished}
-                    options={{ collectionId: collection.id }}
-                    showPublished
-                    showPin
-                  />
-                </Route>
-                <Route path={collectionUrl(collection.id, "updated")}>
-                  <PaginatedDocumentList
-                    key="updated"
-                    documents={documents.recentlyUpdatedInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchRecentlyUpdated}
-                    options={{ collectionId: collection.id }}
-                    showPin
-                  />
-                </Route>
-                <Route path={collectionUrl(collection.id)} exact>
-                  <PaginatedDocumentList
-                    documents={documents.rootInCollection(collection.id)}
-                    fetch={documents.fetchPage}
-                    options={{
-                      collectionId: collection.id,
-                      parentDocumentId: null,
-                      sort: collection.sort.field,
-                      direction: "ASC",
-                    }}
-                    showNestedDocuments
-                    showPin
-                  />
-                </Route>
-              </Switch>
-            </>
-          )}
-        </CenteredContent>
-      </FillWidth>
+            {hasPinnedDocuments && (
+              <>
+                <Subheading>
+                  <TinyPinIcon size={18} /> {t("Pinned")}
+                </Subheading>
+                <DocumentList documents={pinnedDocuments} showPin />
+              </>
+            )}
+
+            <Tabs>
+              <Tab to={collectionUrl(collection.id)} exact>
+                {t("Documents")}
+              </Tab>
+              <Tab to={collectionUrl(collection.id, "updated")} exact>
+                {t("Recently updated")}
+              </Tab>
+              <Tab to={collectionUrl(collection.id, "published")} exact>
+                {t("Recently published")}
+              </Tab>
+              <Tab to={collectionUrl(collection.id, "old")} exact>
+                {t("Least recently updated")}
+              </Tab>
+              <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
+                {t("A–Z")}
+              </Tab>
+            </Tabs>
+            <Switch>
+              <Route path={collectionUrl(collection.id, "alphabetical")}>
+                <PaginatedDocumentList
+                  key="alphabetical"
+                  documents={documents.alphabeticalInCollection(collection.id)}
+                  fetch={documents.fetchAlphabetical}
+                  options={{ collectionId: collection.id }}
+                  showPin
+                />
+              </Route>
+              <Route path={collectionUrl(collection.id, "old")}>
+                <PaginatedDocumentList
+                  key="old"
+                  documents={documents.leastRecentlyUpdatedInCollection(
+                    collection.id
+                  )}
+                  fetch={documents.fetchLeastRecentlyUpdated}
+                  options={{ collectionId: collection.id }}
+                  showPin
+                />
+              </Route>
+              <Route path={collectionUrl(collection.id, "recent")}>
+                <Redirect to={collectionUrl(collection.id, "published")} />
+              </Route>
+              <Route path={collectionUrl(collection.id, "published")}>
+                <PaginatedDocumentList
+                  key="published"
+                  documents={documents.recentlyPublishedInCollection(
+                    collection.id
+                  )}
+                  fetch={documents.fetchRecentlyPublished}
+                  options={{ collectionId: collection.id }}
+                  showPublished
+                  showPin
+                />
+              </Route>
+              <Route path={collectionUrl(collection.id, "updated")}>
+                <PaginatedDocumentList
+                  key="updated"
+                  documents={documents.recentlyUpdatedInCollection(
+                    collection.id
+                  )}
+                  fetch={documents.fetchRecentlyUpdated}
+                  options={{ collectionId: collection.id }}
+                  showPin
+                />
+              </Route>
+              <Route path={collectionUrl(collection.id)} exact>
+                <PaginatedDocumentList
+                  documents={documents.rootInCollection(collection.id)}
+                  fetch={documents.fetchPage}
+                  options={{
+                    collectionId: collection.id,
+                    parentDocumentId: null,
+                    sort: collection.sort.field,
+                    direction: "ASC",
+                  }}
+                  showNestedDocuments
+                  showPin
+                />
+              </Route>
+            </Switch>
+          </>
+        )}
+      </Scene>
     ) : (
       <CenteredContent>
         <Heading>

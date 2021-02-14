@@ -49,7 +49,9 @@ function Header({ breadcrumb, title, actions }: Props) {
           justify={breadcrumb ? "center" : "flex-start"}
           onClick={handleClickTitle}
         >
-          <Fade>{title}</Fade>
+          <Fade>
+            <Flex align="center">{title}</Flex>
+          </Fade>
         </Title>
       ) : (
         <div />
