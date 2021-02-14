@@ -19,11 +19,24 @@ import { initSentry } from "utils/sentry";
 
 initI18n();
 
-const element = document.getElementById("root");
+const element = window.document.getElementById("root");
 const history = createBrowserHistory();
 
 if (env.SENTRY_DSN) {
   initSentry(history);
+}
+
+if ("serviceWorker" in window.navigator) {
+  window.addEventListener("load", () => {
+    window.navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
+        console.log("SW registered: ", registration);
+      })
+      .catch((registrationError) => {
+        console.log("SW registration failed: ", registrationError);
+      });
+  });
 }
 
 if (element) {
