@@ -78,9 +78,16 @@ class DataLoader extends React.Component<Props> {
   }
 
   updateBackground() {
-    // ensure the wider page color always matches the theme. This is to
-    // account for share links which don't sit in the wider Layout component
-    window.document.body.style.background = this.props.theme.background;
+    // ensure the wider page color always matches the theme
+    if (document.body) {
+      document.body.style.background = this.props.theme.background;
+    }
+
+    // theme-color adjusts the title bar color for PWA
+    const themeElement = document.querySelector('meta[name="theme-color"]');
+    if (themeElement) {
+      themeElement.setAttribute("content", this.props.theme.background);
+    }
   }
 
   get isEditing() {

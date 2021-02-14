@@ -37,6 +37,19 @@ export default createGlobalStyle`
     text-rendering: optimizeLegibility;
   }
 
+  @media (display-mode: standalone) {
+    body:after {
+      content: "";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: ${(props) => props.theme.divider};
+    }
+  }
+
   a {
     color: ${(props) => props.theme.link};
     text-decoration: none;

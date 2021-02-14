@@ -66,7 +66,15 @@ class Layout extends React.Component<Props> {
 
   updateBackground(props: Props) {
     // ensure the wider page color always matches the theme
-    window.document.body.style.background = props.theme.background;
+    if (document.body) {
+      document.body.style.background = props.theme.background;
+    }
+
+    // theme-color adjusts the title bar color for PWA
+    const themeElement = document.querySelector('meta[name="theme-color"]');
+    if (themeElement) {
+      themeElement.setAttribute("content", props.theme.background);
+    }
   }
 
   @keydown(`${meta}+.`)
