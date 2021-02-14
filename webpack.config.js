@@ -66,6 +66,7 @@ module.exports = {
       short_name: "Outline",
       background_color: "#fff",
       theme_color: "#fff",
+      start_url: process.env.URL,
       display: "standalone",
       icons: [
         {
