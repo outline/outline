@@ -67,6 +67,7 @@ router.get("/_health", (ctx) => (ctx.body = "OK"));
 if (process.env.NODE_ENV === "production") {
   router.get("/static/*", async (ctx) => {
     ctx.set({
+      "Access-Control-Allow-Origin": "*",
       "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
     });
 

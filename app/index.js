@@ -29,7 +29,7 @@ if (env.SENTRY_DSN) {
 if ("serviceWorker" in window.navigator) {
   window.addEventListener("load", () => {
     window.navigator.serviceWorker
-      .register("/service-worker.js")
+      .register(`/static/service-worker.js`)
       .then((registration) => {
         console.log("SW registered: ", registration);
       })
