@@ -37,7 +37,8 @@ export default createGlobalStyle`
     text-rendering: optimizeLegibility;
   }
 
-  @media (max-width: 737px) and (display-mode: standalone) {
+  @media (min-width: ${(props) =>
+    props.theme.breakpoints.tablet}px) and (display-mode: standalone) {
     body:after {
       content: "";
       display: block;
