@@ -10,6 +10,7 @@ import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
 import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
+import PageTheme from "components/PageTheme";
 import ScrollToTop from "components/ScrollToTop";
 import Theme from "components/Theme";
 import Toasts from "components/Toasts";
@@ -49,6 +50,7 @@ if (element) {
           <DndProvider backend={HTML5Backend}>
             <Router history={history}>
               <>
+                <PageTheme />
                 <ScrollToTop>
                   <Routes />
                 </ScrollToTop>
