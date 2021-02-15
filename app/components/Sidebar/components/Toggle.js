@@ -46,6 +46,7 @@ export const ToggleButton = styled.button`
 `;
 
 export const Positioner = styled.div`
+  display: none;
   z-index: 2;
   position: absolute;
   top: 0;
@@ -56,6 +57,10 @@ export const Positioner = styled.div`
   &:hover ${ToggleButton}, &:focus-within ${ToggleButton} {
     opacity: 1;
   }
+
+  ${breakpoint("tablet")`
+    display: block;
+  `}
 `;
 
 export default Toggle;

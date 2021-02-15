@@ -37,7 +37,7 @@ export default createGlobalStyle`
     text-rendering: optimizeLegibility;
   }
 
-  @media (display-mode: standalone) {
+  @media (max-width: 737px) and (display-mode: standalone) {
     body:after {
       content: "";
       display: block;

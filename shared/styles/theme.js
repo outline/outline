@@ -108,7 +108,6 @@ export const base = {
 
   depths: {
     sidebar: 1000,
-    stickyHeader: 1500,
     modalOverlay: 2000,
     modal: 3000,
     menu: 4000,
