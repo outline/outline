@@ -11,7 +11,7 @@ type Props = {|
 const Container = styled.div`
   width: 100%;
   max-width: 100vw;
-  padding: ${(props) => (props.withStickyHeader ? "4px 20px" : "60px 20px")};
+  padding: ${(props) => (props.withStickyHeader ? "4px 12px" : "60px 12px")};
 
   ${breakpoint("tablet")`
     padding: ${(props) => (props.withStickyHeader ? "4px 60px" : "60px")};

@@ -163,8 +163,11 @@ const DocumentLink = styled(Link)`
   padding: 6px 8px;
   border-radius: 8px;
   max-height: 50vh;
-  min-width: 100%;
-  max-width: calc(100vw - 40px);
+  width: calc(100vw - 8px);
+
+  ${breakpoint("tablet")`
+    width: auto;
+  `};
 
   ${Actions} {
     opacity: 0;
