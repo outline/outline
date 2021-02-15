@@ -23,7 +23,10 @@
       "plan": "heroku-redis"
     },
     {
-      "plan": "heroku-postgresql"
+      "plan": "heroku-postgresql",
+      "options": {
+        "version": "10"
+      }
     }
   ],
   "scripts": {
