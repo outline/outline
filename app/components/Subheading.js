@@ -33,7 +33,7 @@ const Sticky = styled.div`
   padding: 0 8px;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
-  z-index: ${(props) => props.theme.depths.stickyHeader};
+  z-index: 1;
 `;
 
 const Subheading = ({ children, ...rest }: Props) => {

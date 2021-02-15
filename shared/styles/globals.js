@@ -37,6 +37,21 @@ export default createGlobalStyle`
     text-rendering: optimizeLegibility;
   }
 
+  @media (min-width: ${(props) =>
+    props.theme.breakpoints.tablet}px) and (display-mode: standalone) {
+    body:after {
+      content: "";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: ${(props) => props.theme.divider};
+      z-index: ${(props) => props.theme.depths.pwaSeparator};
+    }
+  }
+
   a {
     color: ${(props) => props.theme.link};
     text-decoration: none;
