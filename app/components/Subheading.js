@@ -20,8 +20,8 @@ const Underline = styled.div`
   line-height: 1.5;
   color: ${(props) => props.theme.textSecondary};
   border-bottom: 3px solid ${(props) => props.theme.textSecondary};
-  padding-top: 7px;
-  padding-bottom: 5px;
+  padding-top: 6px;
+  padding-bottom: 4px;
 `;
 
 // When sticky we need extra background coverage around the sides otherwise
