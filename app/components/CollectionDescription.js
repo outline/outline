@@ -91,7 +91,7 @@ function CollectionDescription({ collection }: Props) {
               <Editor
                 id={collection.id}
                 key={key}
-                defaultValue={collection.description}
+                defaultValue={collection.description || ""}
                 onChange={handleChange}
                 placeholder={placeholder}
                 readOnly={!isEditing}
