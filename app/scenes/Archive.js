@@ -20,7 +20,7 @@ function Archive(props: Props) {
   const { documents } = props;
 
   return (
-    <CenteredContent column auto>
+    <CenteredContent>
       <PageTitle title={t("Archive")} />
       <Heading>{t("Archive")}</Heading>
       <PaginatedDocumentList

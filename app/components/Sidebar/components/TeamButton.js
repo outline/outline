@@ -13,7 +13,7 @@ type Props = {|
   logoUrl: string,
 |};
 
-const HeaderBlock = React.forwardRef<Props, any>(
+const TeamButton = React.forwardRef<Props, any>(
   ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => (
     <Wrapper>
       <Header justify="flex-start" align="center" ref={ref} {...rest}>
@@ -25,8 +25,7 @@ const HeaderBlock = React.forwardRef<Props, any>(
         />
         <Flex align="flex-start" column>
           <TeamName showDisclosure>
-            {teamName}{" "}
-            {showDisclosure && <StyledExpandedIcon color="currentColor" />}
+            {teamName} {showDisclosure && <Disclosure color="currentColor" />}
           </TeamName>
           <Subheading>{subheading}</Subheading>
         </Flex>
@@ -35,7 +34,7 @@ const HeaderBlock = React.forwardRef<Props, any>(
   )
 );
 
-const StyledExpandedIcon = styled(ExpandedIcon)`
+const Disclosure = styled(ExpandedIcon)`
   position: absolute;
   right: 0;
   top: 0;
@@ -84,4 +83,4 @@ const Header = styled.button`
   }
 `;
 
-export default HeaderBlock;
+export default TeamButton;

@@ -1,6 +1,7 @@
 // @flow
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import { EditIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
@@ -9,15 +10,13 @@ import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import CollectionFilter from "scenes/Search/components/CollectionFilter";
 import DateFilter from "scenes/Search/components/DateFilter";
-
-import Actions, { Action } from "components/Actions";
-import CenteredContent from "components/CenteredContent";
+import { Action } from "components/Actions";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
 import InputSearch from "components/InputSearch";
-import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 import { type LocationWithState } from "types";
@@ -78,8 +77,24 @@ class Drafts extends React.Component<Props> {
     };
 
     return (
-      <CenteredContent column auto>
-        <PageTitle title={t("Drafts")} />
+      <Scene
+        icon={<EditIcon color="currentColor" />}
+        title={t("Drafts")}
+        actions={
+          <>
+            <Action>
+              <InputSearch
+                source="drafts"
+                label={t("Search documents")}
+                labelHidden
+              />
+            </Action>
+            <Action>
+              <NewDocumentMenu />
+            </Action>
+          </>
+        }
+      >
         <Heading>{t("Drafts")}</Heading>
         <Subheading>
           {t("Documents")}
@@ -110,20 +125,7 @@ class Drafts extends React.Component<Props> {
           options={options}
           showCollection
         />
-
-        <Actions align="center" justify="flex-end">
-          <Action>
-            <InputSearch
-              source="drafts"
-              label={t("Search documents")}
-              labelHidden
-            />
-          </Action>
-          <Action>
-            <NewDocumentMenu />
-          </Action>
-        </Actions>
-      </CenteredContent>
+      </Scene>
     );
   }
 }

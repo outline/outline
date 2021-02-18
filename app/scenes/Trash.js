@@ -1,13 +1,12 @@
 // @flow
 import { observer } from "mobx-react";
+import { TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-
-import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
 import Heading from "components/Heading";
-import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import useStores from "hooks/useStores";
 
@@ -16,8 +15,7 @@ function Trash() {
   const { documents } = useStores();
 
   return (
-    <CenteredContent column auto>
-      <PageTitle title={t("Trash")} />
+    <Scene icon={<TrashIcon color="currentColor" />} title={t("Trash")}>
       <Heading>{t("Trash")}</Heading>
       <PaginatedDocumentList
         documents={documents.deleted}
@@ -27,7 +25,7 @@ function Trash() {
         showCollection
         showTemplate
       />
-    </CenteredContent>
+    </Scene>
   );
 }
 

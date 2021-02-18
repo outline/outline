@@ -17,6 +17,15 @@
     ]
   ],
   "plugins": [
-    "transform-class-properties"
+    "transform-class-properties",
+    [
+      "transform-inline-environment-variables",
+      {
+        "include": [
+          "SOURCE_COMMIT",
+          "SOURCE_VERSION"
+        ]
+      }
+    ]
   ]
 }

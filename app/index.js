@@ -10,6 +10,7 @@ import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
 import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
+import PageTheme from "components/PageTheme";
 import ScrollToTop from "components/ScrollToTop";
 import Theme from "components/Theme";
 import Toasts from "components/Toasts";
@@ -19,11 +20,26 @@ import { initSentry } from "utils/sentry";
 
 initI18n();
 
-const element = document.getElementById("root");
+const element = window.document.getElementById("root");
 const history = createBrowserHistory();
 
 if (env.SENTRY_DSN) {
   initSentry(history);
+}
+
+if ("serviceWorker" in window.navigator) {
+  window.addEventListener("load", () => {
+    window.navigator.serviceWorker
+      .register("/static/service-worker.js", {
+        scope: "/",
+      })
+      .then((registration) => {
+        console.log("SW registered: ", registration);
+      })
+      .catch((registrationError) => {
+        console.log("SW registration failed: ", registrationError);
+      });
+  });
 }
 
 if (element) {
@@ -34,6 +50,7 @@ if (element) {
           <DndProvider backend={HTML5Backend}>
             <Router history={history}>
               <>
+                <PageTheme />
                 <ScrollToTop>
                   <Routes />
                 </ScrollToTop>

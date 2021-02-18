@@ -2,8 +2,11 @@
 <html lang="en">
   <head>
     <title>Outline</title>
+    <meta name="theme-color" content="#FFF" />
     <meta name="slack-app-id" content="//inject-slack-app-id//" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…">
     //inject-prefetch//
     <link
@@ -12,7 +15,12 @@
       href="/favicon-32.png"
       sizes="32x32"
     />
-    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="/apple-touch-icon.png"
+      sizes="192x192"
+    />
     <link
       rel="search"
       type="application/opensearchdescription+xml"
@@ -46,7 +54,9 @@
     </script>
     <script>
       if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
-        window.document.querySelector("#root").style.background = "#111319";
+        var color = "#111319";
+        document.querySelector("#root").style.background = color;
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", color);
       }
     </script>
   </body>

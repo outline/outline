@@ -27,13 +27,16 @@ export type Props = {|
   autoFocus?: boolean,
   template?: boolean,
   placeholder?: string,
+  maxLength?: number,
   scrollTo?: string,
+  handleDOMEvents?: Object,
   readOnlyWriteCheckboxes?: boolean,
   onBlur?: (event: SyntheticEvent<>) => any,
   onFocus?: (event: SyntheticEvent<>) => any,
   onPublish?: (event: SyntheticEvent<>) => any,
   onSave?: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   onCancel?: () => any,
+  onDoubleClick?: () => any,
   onChange?: (getValue: () => string) => any,
   onSearchLink?: (title: string) => any,
   onHoverLink?: (event: MouseEvent) => any,
@@ -177,7 +180,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
   justify-content: start;
 
   > div {
-    transition: ${(props) => props.theme.backgroundTransition};
+    background: transparent;
   }
 
   & * {

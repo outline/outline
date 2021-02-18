@@ -21,9 +21,9 @@ import Scrollable from "components/Scrollable";
 
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
-import HeaderBlock from "./components/HeaderBlock";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
+import TeamButton from "./components/TeamButton";
 import Version from "./components/Version";
 import SlackIcon from "./icons/Slack";
 import ZapierIcon from "./icons/Zapier";
@@ -46,7 +46,7 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
-      <HeaderBlock
+      <TeamButton
         subheading={
           <ReturnToApp align="center">
             <BackIcon color="currentColor" /> {t("Return to App")}

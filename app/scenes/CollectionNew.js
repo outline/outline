@@ -14,7 +14,6 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
-import InputRich from "components/InputRich";
 import Switch from "components/Switch";
 
 type Props = {
@@ -29,7 +28,6 @@ type Props = {
 @observer
 class CollectionNew extends React.Component<Props> {
   @observable name: string = "";
-  @observable description: string = "";
   @observable icon: string = "";
   @observable color: string = "#4E5C6E";
   @observable sharing: boolean = true;
@@ -43,7 +41,6 @@ class CollectionNew extends React.Component<Props> {
     const collection = new Collection(
       {
         name: this.name,
-        description: this.description,
         sharing: this.sharing,
         icon: this.icon,
         color: this.color,
@@ -90,10 +87,6 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handleDescriptionChange = (getValue: () => string) => {
-    this.description = getValue();
-  };
-
   handlePrivateChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
     this.private = ev.target.checked;
   };
@@ -115,9 +108,9 @@ class CollectionNew extends React.Component<Props> {
       <form onSubmit={this.handleSubmit}>
         <HelpText>
           <Trans>
-            Collections are for grouping your knowledge base. They work best
-            when organized around a topic or internal team — Product or
-            Engineering for example.
+            Collections are for grouping your documents. They work best when
+            organized around a topic or internal team — Product or Engineering
+            for example.
           </Trans>
         </HelpText>
         <Flex>
@@ -138,14 +131,6 @@ class CollectionNew extends React.Component<Props> {
             icon={this.icon}
           />
         </Flex>
-        <InputRich
-          label={t("Description")}
-          onChange={this.handleDescriptionChange}
-          defaultValue={this.description || ""}
-          placeholder={t("More details about this collection…")}
-          minHeight={68}
-          maxHeight={200}
-        />
         <Switch
           id="private"
           label={t("Private collection")}

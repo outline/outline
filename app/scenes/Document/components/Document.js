@@ -480,7 +480,7 @@ const ReferencesWrapper = styled("div")`
 const MaxWidth = styled(Flex)`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-  padding: 0 16px;
+  padding: 0 12px;
   max-width: 100vw;
   width: 100%;
 
