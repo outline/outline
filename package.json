@@ -93,6 +93,7 @@
     "file-loader": "^1.1.6",
     "flow-typed": "^2.6.2",
     "focus-visible": "^5.1.0",
+    "fractional-index": "^1.0.0",
     "fs-extra": "^4.0.2",
     "google-auth-library": "^5.5.1",
     "http-errors": "1.4.0",

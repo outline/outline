@@ -5810,6 +5810,11 @@ formidable@^1.1.1:
   resolved "https://registry.yarnpkg.com/formidable/-/formidable-1.2.2.tgz#bf69aea2972982675f00865342b982986f6b8dd9"
   integrity sha512-V8gLm+41I/8kguQ4/o1D3RIHRmhYFG4pnNyonvua+40rqcEmT4+V71yaZ3B457xbbgCsCfjSPi65u/W6vK1U5Q==
 
+fractional-index@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fractional-index/-/fractional-index-1.0.0.tgz#98d528e26176a70930ef397e3f912de259b6cda9"
+  integrity sha512-AsCqhK0KuX37mZC8BtP9jSTfor6GxIivLYhbYJS1e6gW//kph+d9oF+BM/Y6NMcCHfGCxhuj+ueyXLLIc+ri1A==
+
 fragment-cache@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/fragment-cache/-/fragment-cache-0.2.1.tgz#4290fad27f13e89be7f33799c6bc5a0abfff0d19"

@@ -24,6 +24,7 @@ import {
 } from "../presenters";
 import { Op } from "../sequelize";
 import { archiveCollection, archiveCollections } from "../utils/zip";
+import collectionIndexing from "./middlewares/collectionIndexing";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -530,27 +531,33 @@ router.post("collections.update", auth(), async (ctx) => {
   };
 });
 
-router.post("collections.list", auth(), pagination(), async (ctx) => {
-  const user = ctx.state.user;
-  const collectionIds = await user.collectionIds();
-  let collections = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findAll({
-    where: {
-      teamId: user.teamId,
-      id: collectionIds,
-    },
-    order: [["updatedAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+router.post(
+  "collections.list",
+  auth(),
+  collectionIndexing(),
+  pagination(),
+  async (ctx) => {
+    const user = ctx.state.user;
+    const collectionIds = await user.collectionIds();
+    let collections = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findAll({
+      where: {
+        teamId: user.teamId,
+        id: collectionIds,
+      },
+      order: [["updatedAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: collections.map(presentCollection),
-    policies: presentPolicies(user, collections),
-  };
-});
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: collections.map(presentCollection),
+      policies: presentPolicies(user, collections),
+    };
+  }
+);
 
 router.post("collections.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
