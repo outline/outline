@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
+import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
@@ -10,13 +11,13 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Input from "components/Input";
-import InputRich from "components/InputRich";
 import InputSelect from "components/InputSelect";
 import Switch from "components/Switch";
 
 type Props = {
   collection: Collection,
   ui: UiStore,
+  auth: AuthStore,
   onSubmit: () => void,
   t: TFunction,
 };
@@ -24,7 +25,7 @@ type Props = {
 @observer
 class CollectionEdit extends React.Component<Props> {
   @observable name: string = this.props.collection.name;
-  @observable description: string = this.props.collection.description;
+  @observable sharing: boolean = this.props.collection.sharing;
   @observable icon: string = this.props.collection.icon;
   @observable color: string = this.props.collection.color || "#4E5C6E";
   @observable private: boolean = this.props.collection.private;
@@ -40,10 +41,10 @@ class CollectionEdit extends React.Component<Props> {
     try {
       await this.props.collection.save({
         name: this.name,
-        description: this.description,
         icon: this.icon,
         color: this.color,
         private: this.private,
+        sharing: this.sharing,
         sort: this.sort,
       });
       this.props.onSubmit();
@@ -65,10 +66,6 @@ class CollectionEdit extends React.Component<Props> {
     }
   };
 
-  handleDescriptionChange = (getValue: () => string) => {
-    this.description = getValue();
-  };
-
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
   };
@@ -82,8 +79,13 @@ class CollectionEdit extends React.Component<Props> {
     this.private = ev.target.checked;
   };
 
+  handleSharingChange = (ev: SyntheticInputEvent<*>) => {
+    this.sharing = ev.target.checked;
+  };
+
   render() {
-    const { t } = this.props;
+    const { auth, t } = this.props;
+    const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
     return (
       <Flex column>
@@ -111,15 +113,6 @@ class CollectionEdit extends React.Component<Props> {
               icon={this.icon}
             />
           </Flex>
-          <InputRich
-            id={this.props.collection.id}
-            label={t("Description")}
-            onChange={this.handleDescriptionChange}
-            defaultValue={this.description || ""}
-            placeholder={t("More details about this collection…")}
-            minHeight={68}
-            maxHeight={200}
-          />
           <InputSelect
             label={t("Sort in sidebar")}
             options={[
@@ -140,6 +133,25 @@ class CollectionEdit extends React.Component<Props> {
               A private collection will only be visible to invited team members.
             </Trans>
           </HelpText>
+          <Switch
+            id="sharing"
+            label={t("Public document sharing")}
+            onChange={this.handleSharingChange}
+            checked={this.sharing && teamSharingEnabled}
+            disabled={!teamSharingEnabled}
+          />
+          <HelpText>
+            {teamSharingEnabled ? (
+              <Trans>
+                When enabled, documents can be shared publicly on the internet.
+              </Trans>
+            ) : (
+              <Trans>
+                Public sharing is currently disabled in the team security
+                settings.
+              </Trans>
+            )}
+          </HelpText>
           <Button
             type="submit"
             disabled={this.isSaving || !this.props.collection.name}
@@ -152,4 +164,6 @@ class CollectionEdit extends React.Component<Props> {
   }
 }
 
-export default withTranslation()<CollectionEdit>(inject("ui")(CollectionEdit));
+export default withTranslation()<CollectionEdit>(
+  inject("ui", "auth")(CollectionEdit)
+);

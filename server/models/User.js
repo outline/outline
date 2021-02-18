@@ -51,6 +51,9 @@ const User = sequelize.define(
       isSuspended() {
         return !!this.suspendedAt;
       },
+      isInvited() {
+        return !this.lastActiveAt;
+      },
       avatarUrl() {
         const original = this.getDataValue("avatarUrl");
         if (original) {
@@ -266,5 +269,34 @@ User.afterCreate(async (user, options) => {
     }),
   ]);
 });
+
+User.getCounts = async function (teamId: string) {
+  const countSql = `
+    SELECT 
+      COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
+      COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
+      COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
+      COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
+      COUNT(*) as count
+    FROM users
+    WHERE "deletedAt" IS NULL
+    AND "teamId" = :teamId
+  `;
+  const results = await sequelize.query(countSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      teamId,
+    },
+  });
+  const counts = results[0];
+
+  return {
+    active: parseInt(counts.activeCount),
+    admins: parseInt(counts.adminCount),
+    all: parseInt(counts.count),
+    invited: parseInt(counts.invitedCount),
+    suspended: parseInt(counts.suspendedCount),
+  };
+};
 
 export default User;

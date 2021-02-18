@@ -31,12 +31,22 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["update", "share"], Document, (user, document) => {
+allow(User, "share", Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
 
-  // existence of collection option is not required here to account for share tokens
-  if (document.collection && cannot(user, "update", document.collection)) {
+  if (cannot(user, "share", document.collection)) {
+    return false;
+  }
+
+  return user.teamId === document.teamId;
+});
+
+allow(User, "update", Document, (user, document) => {
+  if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
+
+  if (cannot(user, "update", document.collection)) {
     return false;
   }
 

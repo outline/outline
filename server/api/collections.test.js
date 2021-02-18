@@ -876,6 +876,18 @@ describe("#collections.create", () => {
     expect(body.policies[0].abilities.export).toBeTruthy();
   });
 
+  it("should allow setting sharing to false", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/collections.create", {
+      body: { token: user.getJwtToken(), name: "Test", sharing: false },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBeTruthy();
+    expect(body.data.sharing).toBe(false);
+  });
+
   it("should return correct policies with private collection", async () => {
     const { user } = await seed();
     const res = await server.post("/api/collections.create", {

@@ -13,7 +13,7 @@ import {
   withRouter,
   type RouterHistory,
 } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -31,7 +31,6 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
-import { type Theme } from "types";
 import { meta } from "utils/keyboard";
 import {
   homeUrl,
@@ -50,7 +49,6 @@ type Props = {
   history: RouterHistory,
   policies: PoliciesStore,
   notifications?: React.Node,
-  theme: Theme,
   i18n: Object,
   t: TFunction,
 };
@@ -61,22 +59,10 @@ class Layout extends React.Component<Props> {
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  constructor(props: Props) {
-    super();
-    this.updateBackground(props);
-  }
-
   componentDidUpdate() {
-    this.updateBackground(this.props);
-
     if (this.redirectTo) {
       this.redirectTo = undefined;
     }
-  }
-
-  updateBackground(props: Props) {
-    // ensure the wider page color always matches the theme
-    window.document.body.style.background = props.theme.background;
   }
 
   @keydown(`${meta}+.`)
@@ -235,5 +221,5 @@ const Content = styled(Flex)`
 `;
 
 export default withTranslation()<Layout>(
-  inject("auth", "ui", "documents", "policies")(withRouter(withTheme(Layout)))
+  inject("auth", "ui", "documents", "policies")(withRouter(Layout))
 );

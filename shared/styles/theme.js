@@ -114,6 +114,7 @@ export const base = {
     toasts: 5000,
     loadingIndicatorBar: 6000,
     popover: 9000,
+    pwaSeparator: 10000,
   },
 };
 

@@ -64,6 +64,10 @@ function CollectionMenu({
     [history, collection.id]
   );
 
+  const stopPropagation = React.useCallback((ev: SyntheticEvent<>) => {
+    ev.stopPropagation();
+  }, []);
+
   const handleImportDocument = React.useCallback(
     (ev: SyntheticEvent<>) => {
       ev.preventDefault();
@@ -107,7 +111,7 @@ function CollectionMenu({
           type="file"
           ref={file}
           onChange={handleFilePicked}
-          onClick={(ev) => ev.stopPropagation()}
+          onClick={stopPropagation}
           accept={documents.importFileTypes.join(", ")}
           tabIndex="-1"
         />
@@ -145,7 +149,7 @@ function CollectionMenu({
               onClick: () => setShowCollectionEdit(true),
             },
             {
-              title: `${t("Permissions")}…`,
+              title: `${t("Members")}…`,
               visible: can.update,
               onClick: () => setShowCollectionMembers(true),
             },
@@ -171,7 +175,7 @@ function CollectionMenu({
       {renderModals && (
         <>
           <Modal
-            title={t("Collection permissions")}
+            title={t("Collection members")}
             onRequestClose={() => setShowCollectionMembers(false)}
             isOpen={showCollectionMembers}
           >

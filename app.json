@@ -30,6 +30,10 @@
     "postdeploy": "yarn sequelize db:migrate"
   },
   "env": {
+    "NODE_ENV": {
+      "value": "production",
+      "required": true
+    },
     "SECRET_KEY": {
       "description": "A secret key",
       "generator": "secret",

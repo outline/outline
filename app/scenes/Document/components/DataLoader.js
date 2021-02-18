@@ -7,7 +7,6 @@ import { observer, inject } from "mobx-react";
 import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
-import { withTheme } from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -22,7 +21,7 @@ import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
-import { type LocationWithState, type Theme } from "types";
+import { type LocationWithState } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 import { isInternalUrl } from "utils/urls";
@@ -35,7 +34,6 @@ type Props = {|
   policies: PoliciesStore,
   revisions: RevisionsStore,
   ui: UiStore,
-  theme: Theme,
   history: RouterHistory,
 |};
 
@@ -49,7 +47,6 @@ class DataLoader extends React.Component<Props> {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
     this.loadDocument();
-    this.updateBackground();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -74,13 +71,6 @@ class DataLoader extends React.Component<Props> {
     ) {
       this.loadRevision();
     }
-    this.updateBackground();
-  }
-
-  updateBackground() {
-    // ensure the wider page color always matches the theme. This is to
-    // account for share links which don't sit in the wider Layout component
-    window.document.body.style.background = this.props.theme.background;
   }
 
   get isEditing() {
@@ -266,5 +256,5 @@ export default withRouter(
     "revisions",
     "policies",
     "shares"
-  )(withTheme(DataLoader))
+  )(DataLoader)
 );

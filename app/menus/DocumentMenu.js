@@ -15,6 +15,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import {
   documentHistoryUrl,
@@ -49,7 +50,8 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const { policies, collections, auth, ui } = useStores();
+  const team = useCurrentTeam();
+  const { policies, collections, ui } = useStores();
   const menu = useMenuState({ modal });
   const history = useHistory();
   const { t } = useTranslation();
@@ -130,10 +132,10 @@ function DocumentMenu({
     [document]
   );
 
-  const can = policies.abilities(document.id);
-  const canShareDocuments = !!(can.share && auth.team && auth.team.sharing);
-  const canViewHistory = can.read && !can.restore;
   const collection = collections.get(document.collectionId);
+  const can = policies.abilities(document.id);
+  const canShareDocuments = !!(can.share && team.sharing);
+  const canViewHistory = can.read && !can.restore;
 
   return (
     <>

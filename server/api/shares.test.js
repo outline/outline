@@ -202,9 +202,18 @@ describe("#shares.create", () => {
     expect(body.data.id).toBe(share.id);
   });
 
-  it("should not allow creating a share record if disabled", async () => {
+  it("should not allow creating a share record if team sharing disabled", async () => {
     const { user, document, team } = await seed();
     await team.update({ sharing: false });
+    const res = await server.post("/api/shares.create", {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a share record if collection sharing disabled", async () => {
+    const { user, collection, document } = await seed();
+    await collection.update({ sharing: false });
     const res = await server.post("/api/shares.create", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
