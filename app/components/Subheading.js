@@ -4,6 +4,7 @@ import styled from "styled-components";
 
 type Props = {|
   children: React.Node,
+  sticky?: boolean,
 |};
 
 const H3 = styled.h3`
@@ -26,9 +27,9 @@ const Underline = styled.div`
 
 // When sticky we need extra background coverage around the sides otherwise
 // items that scroll past can "stick out" the sides of the heading
-const Sticky = styled.div`
-  position: sticky;
-  top: 54px;
+const Background = styled.div`
+  position: ${(props) => (props.sticky ? "sticky" : "relative")};
+  ${(props) => (props.sticky ? "top: 54px;" : "")}
   margin: 0 -8px;
   padding: 0 8px;
   background: ${(props) => props.theme.background};
@@ -36,13 +37,13 @@ const Sticky = styled.div`
   z-index: 1;
 `;
 
-const Subheading = ({ children, ...rest }: Props) => {
+const Subheading = ({ children, sticky, ...rest }: Props) => {
   return (
-    <Sticky>
+    <Background sticky={sticky}>
       <H3 {...rest}>
         <Underline>{children}</Underline>
       </H3>
-    </Sticky>
+    </Background>
   );
 };
 
