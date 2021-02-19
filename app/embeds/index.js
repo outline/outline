@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Image from "components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
 import Figma from "./Figma";
@@ -60,6 +61,13 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "Cawemo",
+    keywords: "bpmn process",
+    icon: () => <Img src="/images/cawemo.png" />,
+    component: Cawemo,
+    matcher: matcher(Cawemo),
   },
   {
     title: "ClickUp",
