@@ -107,7 +107,7 @@ describe("#users.info", () => {
 
 describe("#users.invite", () => {
   it("should return sent invites", async () => {
-    const user = await buildUser();
+    const user = await buildUser({ isAdmin: true });
     const res = await server.post("/api/users.invite", {
       body: {
         token: user.getJwtToken(),
@@ -117,6 +117,17 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
+  });
+
+  it("should require admin", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: [{ email: "test@example.com", name: "Test", guest: false }],
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {

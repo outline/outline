@@ -87,17 +87,19 @@ class People extends React.Component<Props> {
             {team.signinMethods} but haven’t signed in yet.
           </Trans>
         </HelpText>
-        <Button
-          type="button"
-          data-on="click"
-          data-event-category="invite"
-          data-event-action="peoplePage"
-          onClick={this.handleInviteModalOpen}
-          icon={<PlusIcon />}
-          neutral
-        >
-          {t("Invite people")}…
-        </Button>
+        {can.invite && (
+          <Button
+            type="button"
+            data-on="click"
+            data-event-category="invite"
+            data-event-action="peoplePage"
+            onClick={this.handleInviteModalOpen}
+            icon={<PlusIcon />}
+            neutral
+          >
+            {t("Invite people")}…
+          </Button>
+        )}
 
         <Tabs>
           <Tab to="/settings/people" exact>
@@ -135,14 +137,15 @@ class People extends React.Component<Props> {
             />
           )}
         />
-
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={this.handleInviteModalClose}
-          isOpen={this.inviteModalOpen}
-        >
-          <Invite onSubmit={this.handleInviteModalClose} />
-        </Modal>
+        {can.invite && (
+          <Modal
+            title={t("Invite people")}
+            onRequestClose={this.handleInviteModalClose}
+            isOpen={this.inviteModalOpen}
+          >
+            <Invite onSubmit={this.handleInviteModalClose} />
+          </Modal>
+        )}
       </CenteredContent>
     );
   }
