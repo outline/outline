@@ -128,8 +128,8 @@ function ImportExport() {
       {isImported && (
         <Notice>
           <Trans>
-            Your file has been uploaded and the import is being processed, you
-            can safely leave this page.
+            Your file has been uploaded and the import is currently being
+            processed, you can safely leave this page while it completes.
           </Trans>
         </Notice>
       )}
@@ -167,7 +167,7 @@ function ImportExport() {
             disabled={isImporting}
             primary
           >
-            {isImporting ? `${t("Importing")}…` : t("Confirm & Import")}
+            {isImporting ? `${t("Uploading")}…` : t("Confirm & Import")}
           </Button>
         </>
       ) : (

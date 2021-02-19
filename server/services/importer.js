@@ -32,6 +32,8 @@ export default class Importer {
           ip: event.ip,
         });
 
+        await attachment.destroy();
+
         return;
       }
       default:
