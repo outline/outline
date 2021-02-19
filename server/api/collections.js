@@ -1,9 +1,6 @@
 // @flow
 import fs from "fs";
-import os from "os";
-import File from "formidable/lib/file";
 import Router from "koa-router";
-import collectionImporter from "../commands/collectionImporter";
 import { ValidationError } from "../errors";
 import { exportCollections } from "../logistics";
 import auth from "../middlewares/authentication";
@@ -113,34 +110,17 @@ router.post("collections.import", auth(), async (ctx) => {
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);
 
-  const buffer = await attachment.buffer;
-  const tmpDir = os.tmpdir();
-  const tmpFilePath = `${tmpDir}/upload-${attachmentId}`;
-
-  await fs.promises.writeFile(tmpFilePath, buffer);
-  const file = new File({
-    name: attachment.name,
-    type: attachment.type,
-    path: tmpFilePath,
-  });
-
-  const { documents, attachments, collections } = await collectionImporter({
-    file,
-    user,
-    type,
+  await Event.create({
+    name: "collections.import",
+    modelId: attachmentId,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { type },
     ip: ctx.request.ip,
   });
 
   ctx.body = {
-    data: {
-      attachmentCount: attachments.length,
-      documentCount: documents.length,
-      collectionCount: collections.length,
-      collections: collections.map((collection) =>
-        presentCollection(collection)
-      ),
-    },
-    policies: presentPolicies(user, collections),
+    success: true,
   };
 });
 

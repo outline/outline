@@ -57,7 +57,7 @@ export default async function collectionImporter({
           name: item.name,
         },
         defaults: {
-          creatorId: user.id,
+          createdById: user.id,
           private: false,
         },
       });
@@ -69,7 +69,7 @@ export default async function collectionImporter({
         const name = `${item.name} (Imported)`;
         collection = await Collection.create({
           teamId: user.teamId,
-          creatorId: user.id,
+          createdById: user.id,
           name,
           private: false,
         });

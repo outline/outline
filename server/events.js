@@ -101,6 +101,15 @@ export type RevisionEvent = {
   teamId: string,
 };
 
+export type CollectionImportEvent = {
+  name: "collections.import",
+  modelId: string,
+  teamId: string,
+  actorId: string,
+  data: { type: "outline" },
+  ip: string,
+};
+
 export type CollectionEvent =
   | {
   name: | "collections.create" // eslint-disable-line
@@ -167,6 +176,7 @@ export type Event =
   | UserEvent
   | DocumentEvent
   | CollectionEvent
+  | CollectionImportEvent
   | IntegrationEvent
   | GroupEvent
   | RevisionEvent
