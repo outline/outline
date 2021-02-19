@@ -172,7 +172,7 @@ function ImportExport() {
         </>
       ) : (
         <Button type="submit" onClick={handlePickFile} primary>
-          {t("Choose File…")}
+          {t("Choose File")}…
         </Button>
       )}
 
