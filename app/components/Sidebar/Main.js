@@ -171,13 +171,15 @@ function MainSidebar() {
           </Section>
         </Secondary>
       </Flex>
-      <Modal
-        title={t("Invite people")}
-        onRequestClose={handleInviteModalClose}
-        isOpen={inviteModalOpen}
-      >
-        <Invite onSubmit={handleInviteModalClose} />
-      </Modal>
+      {can.invite && (
+        <Modal
+          title={t("Invite people")}
+          onRequestClose={handleInviteModalClose}
+          isOpen={inviteModalOpen}
+        >
+          <Invite onSubmit={handleInviteModalClose} />
+        </Modal>
+      )}
       <Modal
         title={t("Create a collection")}
         onRequestClose={handleCreateCollectionModalClose}
