@@ -134,19 +134,21 @@ function ImportExport() {
       )}
       {file && !isImportable && (
         <ImportPreview>
-          <Trans>
-            Sorry, the file <strong>{{ fileName: file.name }}</strong> is
-            missing valid collections or documents.
-          </Trans>
+          <Trans
+            defaults="Sorry, the file <em>{{ fileName }}</em> is missing valid collections or documents."
+            values={{ fileName: file.name }}
+            components={{ em: <strong /> }}
+          />
         </ImportPreview>
       )}
       {file && importDetails && isImportable ? (
         <>
           <ImportPreview as="div">
-            <Trans>
-              <strong>{{ fileName: file.name }}</strong> looks good, the
-              following collections and their documents will be imported:
-            </Trans>
+            <Trans
+              defaults="<em>{{ fileName }}</em> looks good, the following collections and their documents will be imported:"
+              values={{ fileName: file.name }}
+              components={{ em: <strong /> }}
+            />
             <List>
               {importDetails
                 .filter((detail) => detail.type === "collection")
@@ -175,12 +177,11 @@ function ImportExport() {
 
       <h1>{t("Export")}</h1>
       <HelpText>
-        <Trans>
-          A full export might take some time, consider exporting a single
-          document or collection if possible. We’ll put together a zip of all
-          your documents in Markdown format and email it to{" "}
-          <strong>{{ userEmail: user.email }}</strong>.
-        </Trans>
+        <Trans
+          defaults="A full export might take some time, consider exporting a single document or collection if possible. We’ll put together a zip of all your documents in Markdown format and email it to <em>{{ userEmail }}</em>."
+          values={{ userEmail: user.email }}
+          components={{ em: <strong /> }}
+        />
       </HelpText>
       <Button
         type="submit"
