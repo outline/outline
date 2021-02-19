@@ -1,5 +1,4 @@
 // @flow
-import invariant from "invariant";
 import { concat, filter, last } from "lodash";
 import { computed, action } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
@@ -89,18 +88,11 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
-  import = async (file: File) => {
-    const formData = new FormData();
-    formData.append("type", "outline");
-    formData.append("file", file);
-
-    const res = await client.post("/collections.import", formData);
-    invariant(res && res.data, "Data should be available");
-
-    this.addPolicies(res.policies);
-    res.data.collections.forEach(this.add);
-
-    return res.data;
+  import = async (attachmentId: string) => {
+    await client.post("/collections.import", {
+      type: "outline",
+      attachmentId,
+    });
   };
 
   async update(params: Object): Promise<Collection> {

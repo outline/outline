@@ -1,8 +1,10 @@
 // @flow
 import fs from "fs";
+import os from "os";
+import File from "formidable/lib/file";
 import Router from "koa-router";
 import collectionImporter from "../commands/collectionImporter";
-import { ValidationError, InvalidRequestError } from "../errors";
+import { ValidationError } from "../errors";
 import { exportCollections } from "../logistics";
 import auth from "../middlewares/authentication";
 import {
@@ -13,6 +15,7 @@ import {
   Event,
   User,
   Group,
+  Attachment,
 } from "../models";
 import policy from "../policies";
 import {
@@ -100,22 +103,26 @@ router.post("collections.info", auth(), async (ctx) => {
 });
 
 router.post("collections.import", auth(), async (ctx) => {
-  const { type } = ctx.body;
+  const { type, attachmentId } = ctx.body;
   ctx.assertIn(type, ["outline"], "type must be one of 'outline'");
-
-  if (!ctx.is("multipart/form-data")) {
-    throw new InvalidRequestError("Request type must be multipart/form-data");
-  }
-
-  const file: any = Object.values(ctx.request.files)[0];
-  ctx.assertPresent(file, "file is required");
-
-  if (file.type !== "application/zip") {
-    throw new InvalidRequestError("File type must be a zip");
-  }
+  ctx.assertUuid(attachmentId, "attachmentId is required");
 
   const user = ctx.state.user;
   authorize(user, "import", Collection);
+
+  const attachment = await Attachment.findByPk(attachmentId);
+  authorize(user, "read", attachment);
+
+  const buffer = await attachment.buffer;
+  const tmpDir = os.tmpdir();
+  const tmpFilePath = `${tmpDir}/upload-${attachmentId}`;
+
+  await fs.promises.writeFile(tmpFilePath, buffer);
+  const file = new File({
+    name: attachment.name,
+    type: attachment.type,
+    path: tmpFilePath,
+  });
 
   const { documents, attachments, collections } = await collectionImporter({
     file,

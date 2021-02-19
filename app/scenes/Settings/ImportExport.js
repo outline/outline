@@ -1,4 +1,5 @@
 // @flow
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import { CollectionIcon } from "outline-icons";
 import * as React from "react";
@@ -14,6 +15,7 @@ import PageTitle from "components/PageTitle";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
+import { uploadFile } from "utils/uploadFile";
 
 function ImportExport() {
   const { t } = useTranslation();
@@ -23,7 +25,7 @@ function ImportExport() {
   const { showToast } = ui;
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
-  const [importedDetails, setImported] = React.useState(false);
+  const [isImported, setImported] = React.useState(false);
   const [isExporting, setExporting] = React.useState(false);
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
@@ -34,11 +36,13 @@ function ImportExport() {
       setImporting(true);
 
       try {
-        const { documentCount, collectionCount } = await collections.import(
-          file
-        );
-        showToast(t("Import completed"));
-        setImported({ documentCount, collectionCount });
+        invariant(file, "File must exist to upload");
+        const attachment = await uploadFile(file, {
+          name: file.name,
+        });
+        await collections.import(attachment.id);
+        showToast(t("Import started"));
+        setImported(true);
       } catch (err) {
         showToast(err.message);
       } finally {
@@ -121,14 +125,11 @@ function ImportExport() {
           accept="application/zip"
         />
       </VisuallyHidden>
-      {importedDetails && (
+      {isImported && (
         <Notice>
-          <Trans
-            count={importedDetails.documentCount}
-            i18nKey="importSuccessful"
-          >
-            Import successful, {{ count: importedDetails.documentCount }}{" "}
-            documents were imported to your knowledge base.
+          <Trans>
+            Your file has been uploaded and the import is being processed, you
+            can safely leave this page.
           </Trans>
         </Notice>
       )}

@@ -9,7 +9,7 @@ import { values, keys } from "lodash";
 import uuid from "uuid";
 import { parseOutlineExport } from "../../shared/utils/zip";
 import { FileImportError } from "../errors";
-import { Attachment, Document, Collection, User } from "../models";
+import { Attachment, Event, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
@@ -66,11 +66,20 @@ export default async function collectionImporter({
       // there is also a "Name (Imported)" but this is a case not worth dealing
       // with right now
       if (!isCreated) {
+        const name = `${item.name} (Imported)`;
         collection = await Collection.create({
           teamId: user.teamId,
           creatorId: user.id,
-          name: `${item.name} (Imported)`,
+          name,
           private: false,
+        });
+        await Event.create({
+          name: "collections.create",
+          collectionId: collection.id,
+          teamId: collection.teamId,
+          actorId: user.id,
+          data: { name },
+          ip,
         });
       }
 

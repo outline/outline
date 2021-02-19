@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/node";
 import JSZip from "jszip";
 import tmp from "tmp";
 import { Attachment, Collection, Document } from "../models";
-import { getImageByKey } from "./s3";
+import { getFileByKey } from "./s3";
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
@@ -38,7 +38,7 @@ async function addToArchive(zip, documents) {
 
 async function addImageToArchive(zip, key) {
   try {
-    const img = await getImageByKey(key);
+    const img = await getFileByKey(key);
     zip.file(key, img, { createFolders: true });
   } catch (err) {
     if (process.env.SENTRY_DSN) {

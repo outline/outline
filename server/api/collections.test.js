@@ -111,7 +111,7 @@ describe("#collections.list", () => {
 });
 
 describe("#collections.import", () => {
-  it("should error if no file is passed", async () => {
+  it("should error if no attachmentId is passed", async () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.import", {
       body: {
