@@ -114,7 +114,7 @@ function SettingsSidebar() {
               <SidebarLink
                 to="/settings/import-export"
                 icon={<DocumentIcon color="currentColor" />}
-                label={t("Import / Export")}
+                label={`${t("Import")} / ${t("Export")}`}
               />
             )}
           </Section>

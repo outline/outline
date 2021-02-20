@@ -108,7 +108,7 @@ function ImportExport() {
 
   return (
     <CenteredContent>
-      <PageTitle title={t("Import / Export")} />
+      <PageTitle title={`${t("Import")} / ${t("Export")}`} />
       <h1>{t("Import")}</h1>
       <HelpText>
         <Trans>
