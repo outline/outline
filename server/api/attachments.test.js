@@ -153,6 +153,31 @@ describe("#attachments.redirect", () => {
     expect(res.status).toEqual(302);
   });
 
+  it("should return a redirect for an attachment belonging to a trashed document user has access to", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      deletedAt: new Date(),
+    });
+    const attachment = await buildAttachment({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/attachments.redirect", {
+      body: { token: user.getJwtToken(), id: attachment.id },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+  });
+
   it("should always return a redirect for a public attachment", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
