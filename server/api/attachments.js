@@ -139,6 +139,7 @@ router.post("attachments.redirect", auth(), async (ctx) => {
     if (attachment.documentId) {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
+        paranoid: false,
       });
       authorize(user, "read", document);
     }
