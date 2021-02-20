@@ -31,8 +31,12 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
           ) : (
             t("Never signed in")
           )}
-          {user.isInvited && <Badge>{t("Invited")}</Badge>}
-          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
+          {user.isInvited && <Badge spaced>{t("Invited")}</Badge>}
+          {user.isAdmin && (
+            <Badge spaced primary={user.isAdmin}>
+              {t("Admin")}
+            </Badge>
+          )}
         </>
       }
       actions={

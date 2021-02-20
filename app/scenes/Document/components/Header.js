@@ -133,7 +133,7 @@ function DocumentHeader({
         title={
           <>
             {document.title}{" "}
-            {document.isArchived && <Badge>{t("Archived")}</Badge>}
+            {document.isArchived && <Badge spaced>{t("Archived")}</Badge>}
           </>
         }
         actions={

@@ -58,8 +58,12 @@ class UserListItem extends React.Component<Props> {
             ) : (
               "Invited"
             )}
-            {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
-            {user.isSuspended && <Badge>Suspended</Badge>}
+            {user.isAdmin && (
+              <Badge spaced primary={user.isAdmin}>
+                Admin
+              </Badge>
+            )}
+            {user.isSuspended && <Badge spaced>Suspended</Badge>}
           </>
         }
         actions={showMenu ? <UserMenu user={user} /> : undefined}

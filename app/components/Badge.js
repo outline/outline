@@ -2,7 +2,7 @@
 import styled from "styled-components";
 
 const Badge = styled.span`
-  margin-left: 10px;
+  margin-left: ${(props) => (props.spaced ? "10px" : "")};
   padding: 2px 6px 3px;
   background-color: ${({ yellow, primary, theme }) =>
     yellow ? theme.yellow : primary ? theme.primary : theme.textTertiary};

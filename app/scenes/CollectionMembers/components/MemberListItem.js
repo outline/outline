@@ -52,8 +52,12 @@ const MemberListItem = ({
           ) : (
             t("Never signed in")
           )}
-          {user.isInvited && <Badge>{t("Invited")}</Badge>}
-          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
+          {user.isInvited && <Badge spaced>{t("Invited")}</Badge>}
+          {user.isAdmin && (
+            <Badge spaced primary={user.isAdmin}>
+              {t("Admin")}
+            </Badge>
+          )}
         </>
       }
       image={<Avatar src={user.avatarUrl} size={40} />}

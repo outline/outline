@@ -74,7 +74,9 @@ function DocumentListItem(props: Props) {
         <Heading>
           <Title text={document.titleWithDefault} highlight={highlight} />
           {document.isNew && document.createdBy.id !== currentUser.id && (
-            <Badge yellow>{t("New")}</Badge>
+            <Badge spaced yellow>
+              {t("New")}
+            </Badge>
           )}
           {canStar && (
             <StarPositioner>
@@ -87,11 +89,13 @@ function DocumentListItem(props: Props) {
               delay={500}
               placement="top"
             >
-              <Badge>{t("Draft")}</Badge>
+              <Badge spaced>{t("Draft")}</Badge>
             </Tooltip>
           )}
           {document.isTemplate && showTemplate && (
-            <Badge primary>{t("Template")}</Badge>
+            <Badge spaced primary>
+              {t("Template")}
+            </Badge>
           )}
         </Heading>
 

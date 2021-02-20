@@ -28,8 +28,12 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
           ) : (
             "Never signed in"
           )}
-          {user.isInvited && <Badge>Invited</Badge>}
-          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
+          {user.isInvited && <Badge spaced>Invited</Badge>}
+          {user.isAdmin && (
+            <Badge spaced primary={user.isAdmin}>
+              Admin
+            </Badge>
+          )}
         </>
       }
       image={<Avatar src={user.avatarUrl} size={40} />}

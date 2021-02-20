@@ -67,6 +67,12 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  updatedSinceTimestamp(since: string): Document[] {
+    return this.recentlyUpdated.filter(
+      (document) => document.updatedAt > since
+    );
+  }
+
   createdByUser(userId: string): Document[] {
     return orderBy(
       filter(this.all, (d) => d.createdBy.id === userId),
