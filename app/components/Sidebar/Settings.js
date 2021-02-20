@@ -112,9 +112,9 @@ function SettingsSidebar() {
             />
             {can.export && (
               <SidebarLink
-                to="/settings/export"
+                to="/settings/import-export"
                 icon={<DocumentIcon color="currentColor" />}
-                label={t("Export Data")}
+                label={`${t("Import")} / ${t("Export")}`}
               />
             )}
           </Section>

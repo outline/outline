@@ -12,6 +12,7 @@ import {
   Event,
   User,
   Group,
+  Attachment,
 } from "../models";
 import policy from "../policies";
 import {
@@ -95,6 +96,31 @@ router.post("collections.info", auth(), async (ctx) => {
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
+  };
+});
+
+router.post("collections.import", auth(), async (ctx) => {
+  const { type, attachmentId } = ctx.body;
+  ctx.assertIn(type, ["outline"], "type must be one of 'outline'");
+  ctx.assertUuid(attachmentId, "attachmentId is required");
+
+  const user = ctx.state.user;
+  authorize(user, "import", Collection);
+
+  const attachment = await Attachment.findByPk(attachmentId);
+  authorize(user, "read", attachment);
+
+  await Event.create({
+    name: "collections.import",
+    modelId: attachmentId,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { type },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
   };
 });
 

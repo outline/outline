@@ -27,6 +27,9 @@ export default class Notifications {
   }
 
   async documentUpdated(event: DocumentEvent) {
+    // never send notifications when batch importing documents
+    if (event.data && event.data.source === "import") return;
+
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
 

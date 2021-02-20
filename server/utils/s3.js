@@ -46,7 +46,8 @@ export const makeCredential = () => {
 export const makePolicy = (
   credential: string,
   longDate: string,
-  acl: string
+  acl: string,
+  contentType: string = "image"
 ) => {
   const tomorrow = addHours(new Date(), 24);
   const policy = {
@@ -55,7 +56,7 @@ export const makePolicy = (
       ["starts-with", "$key", ""],
       { acl },
       ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
-      ["starts-with", "$Content-Type", "image"],
+      ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
       { "x-amz-algorithm": "AWS4-HMAC-SHA256" },
       { "x-amz-credential": credential },
@@ -177,7 +178,7 @@ export const getSignedImageUrl = async (key: string) => {
     : s3.getSignedUrl("getObject", params);
 };
 
-export const getImageByKey = async (key: string) => {
+export const getFileByKey = async (key: string) => {
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
