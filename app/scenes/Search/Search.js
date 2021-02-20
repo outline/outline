@@ -37,6 +37,7 @@ import NewDocumentMenu from "menus/NewDocumentMenu";
 import { type LocationWithState } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
+import { decodeURIComponentSafe } from "utils/urls";
 
 type Props = {
   history: RouterHistory,
@@ -55,7 +56,7 @@ class Search extends React.Component<Props> {
   lastParams: Object;
 
   @observable
-  query: string = decodeURIComponent(this.props.match.params.term || "");
+  query: string = decodeURIComponentSafe(this.props.match.params.term || "");
   @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
@@ -116,7 +117,7 @@ class Search extends React.Component<Props> {
   };
 
   handleTermChange = () => {
-    const query = decodeURIComponent(this.props.match.params.term || "");
+    const query = decodeURIComponentSafe(this.props.match.params.term || "");
     this.query = query ? query : "";
     this.offset = 0;
     this.allowLoadMore = true;
