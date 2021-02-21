@@ -94,6 +94,11 @@ const Title = styled(Flex)`
   ${breakpoint("tablet")`	
     flex-grow: 1;
   `};
+
+  @media (display-mode: standalone) {
+    overflow: hidden;
+    flex-grow: 0 !important;
+  }
 `;
 
 const Actions = styled(Flex)`
