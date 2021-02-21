@@ -22,7 +22,7 @@ export default class Notifications {
         return this.documentUpdated(event);
       case "collections.create":
         return this.collectionCreated(event);
-      default:
+      default: //TODO pick up revisions create!
     }
   }
 
@@ -95,6 +95,8 @@ export default class Notifications {
         );
         return;
       }
+
+      // TODO: calculate the diff in document revision and send it through to the mailer
 
       mailer.documentNotification({
         to: setting.user.email,

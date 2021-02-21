@@ -5,6 +5,7 @@ import auth from "../middlewares/authentication";
 import { Document, Revision } from "../models";
 import policy from "../policies";
 import { presentRevision } from "../presenters";
+import { revisionDiffExample } from "../utils/revisionDiff";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -54,6 +55,14 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+  };
+});
+
+// TODO: dev harness for revision diffs
+router.post("revisions.diff_example", auth(), pagination(), async (ctx) => {
+  const diff = await revisionDiffExample();
+  ctx.body = {
+    data: { diff },
   };
 });
 

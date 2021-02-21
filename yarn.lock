@@ -8512,6 +8512,11 @@ node-forge@^0.9.0:
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.9.2.tgz#b35a44c28889b2ea55cabf8c79e3563f9676190a"
   integrity sha512-naKSScof4Wn+aoHU6HBsifh92Zeicm1GDQKd1vp3Y/kOi8ub0DozCa9KpvYNCXslFHYRmLNiqRopGdTGwNLpNw==
 
+node-htmldiff@^0.9.3:
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/node-htmldiff/-/node-htmldiff-0.9.3.tgz#020704e381597e5e449a4708996edf23eebb7fcc"
+  integrity sha1-AgcE44FZfl5EmkcImW7fI+67f8w=
+
 node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
