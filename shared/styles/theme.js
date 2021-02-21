@@ -125,6 +125,7 @@ export const light = {
 
   link: colors.primary,
   text: colors.almostBlack,
+  cursor: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
   placeholder: "#a2b2c3",
@@ -182,6 +183,7 @@ export const dark = {
 
   link: "#137FFB",
   text: colors.almostWhite,
+  cursor: colors.almostWhite,
   textSecondary: lighten(0.1, colors.slate),
   textTertiary: colors.slate,
   placeholder: colors.slateDark,
