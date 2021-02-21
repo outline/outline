@@ -89,7 +89,6 @@ function CollectionDescription({ collection }: Props) {
           {collection.hasDescription || isEditing || isDirty ? (
             <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
               <Editor
-                id={collection.id}
                 key={key}
                 defaultValue={collection.description || ""}
                 onChange={handleChange}
