@@ -31,7 +31,7 @@ export default createGlobalStyle`
     font-size: 16px;
     line-height: 1.5;
     color: ${(props) => props.theme.text};
-
+    overscroll-behavior-y: none;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
