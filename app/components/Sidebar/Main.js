@@ -12,6 +12,8 @@ import {
   SettingsIcon,
 } from "outline-icons";
 import * as React from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import CollectionNew from "scenes/CollectionNew";
@@ -29,6 +31,7 @@ import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
 
 function MainSidebar() {
+  const ref = React.useRef();
   const { t } = useTranslation();
   const { policies, auth, documents } = useStores();
   const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
@@ -69,124 +72,135 @@ function MainSidebar() {
   const can = policies.abilities(team.id);
 
   return (
-    <Sidebar>
-      <AccountMenu>
-        {(props) => (
-          <TeamButton
-            {...props}
-            subheading={user.name}
-            teamName={team.name}
-            logoUrl={team.avatarUrl}
-            showDisclosure
-          />
-        )}
-      </AccountMenu>
-      <Flex auto column>
-        <Scrollable shadow>
-          <Section>
-            <SidebarLink
-              to="/home"
-              icon={<HomeIcon color="currentColor" />}
-              exact={false}
-              label={t("Home")}
-            />
-            <SidebarLink
-              to={{
-                pathname: "/search",
-                state: { fromMenu: true },
-              }}
-              icon={<SearchIcon color="currentColor" />}
-              label={t("Search")}
-              exact={false}
-            />
-            <SidebarLink
-              to="/starred"
-              icon={<StarredIcon color="currentColor" />}
-              exact={false}
-              label={t("Starred")}
-            />
-            <SidebarLink
-              to="/templates"
-              icon={<ShapesIcon color="currentColor" />}
-              exact={false}
-              label={t("Templates")}
-              active={documents.active ? documents.active.template : undefined}
-            />
-            <SidebarLink
-              to="/drafts"
-              icon={<EditIcon color="currentColor" />}
-              label={
-                <Drafts align="center">
-                  {t("Drafts")}
-                  <Bubble count={documents.totalDrafts} />
-                </Drafts>
-              }
-              active={
-                documents.active
-                  ? !documents.active.publishedAt &&
-                    !documents.active.isDeleted &&
-                    !documents.active.isTemplate
-                  : undefined
-              }
-            />
-          </Section>
-          <Section>
-            <Collections onCreateCollection={handleCreateCollectionModalOpen} />
-          </Section>
-        </Scrollable>
-        <Secondary>
-          <Section>
-            <SidebarLink
-              to="/archive"
-              icon={<ArchiveIcon color="currentColor" />}
-              exact={false}
-              label={t("Archive")}
-              active={
-                documents.active
-                  ? documents.active.isArchived && !documents.active.isDeleted
-                  : undefined
-              }
-            />
-            <SidebarLink
-              to="/trash"
-              icon={<TrashIcon color="currentColor" />}
-              exact={false}
-              label={t("Trash")}
-              active={documents.active ? documents.active.isDeleted : undefined}
-            />
-            <SidebarLink
-              to="/settings"
-              icon={<SettingsIcon color="currentColor" />}
-              exact={false}
-              label={t("Settings")}
-            />
-            {can.invite && (
-              <SidebarLink
-                to="/settings/people"
-                onClick={handleInviteModalOpen}
-                icon={<PlusIcon color="currentColor" />}
-                label={`${t("Invite people")}…`}
-              />
-            )}
-          </Section>
-        </Secondary>
-      </Flex>
-      {can.invite && (
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={handleInviteModalClose}
-          isOpen={inviteModalOpen}
-        >
-          <Invite onSubmit={handleInviteModalClose} />
-        </Modal>
-      )}
-      <Modal
-        title={t("Create a collection")}
-        onRequestClose={handleCreateCollectionModalClose}
-        isOpen={createCollectionModalOpen}
+    <Sidebar ref={ref}>
+      <DndProvider
+        backend={HTML5Backend}
+        options={{ rootElement: ref.current }}
       >
-        <CollectionNew onSubmit={handleCreateCollectionModalClose} />
-      </Modal>
+        <AccountMenu>
+          {(props) => (
+            <TeamButton
+              {...props}
+              subheading={user.name}
+              teamName={team.name}
+              logoUrl={team.avatarUrl}
+              showDisclosure
+            />
+          )}
+        </AccountMenu>
+        <Flex auto column>
+          <Scrollable shadow>
+            <Section>
+              <SidebarLink
+                to="/home"
+                icon={<HomeIcon color="currentColor" />}
+                exact={false}
+                label={t("Home")}
+              />
+              <SidebarLink
+                to={{
+                  pathname: "/search",
+                  state: { fromMenu: true },
+                }}
+                icon={<SearchIcon color="currentColor" />}
+                label={t("Search")}
+                exact={false}
+              />
+              <SidebarLink
+                to="/starred"
+                icon={<StarredIcon color="currentColor" />}
+                exact={false}
+                label={t("Starred")}
+              />
+              <SidebarLink
+                to="/templates"
+                icon={<ShapesIcon color="currentColor" />}
+                exact={false}
+                label={t("Templates")}
+                active={
+                  documents.active ? documents.active.template : undefined
+                }
+              />
+              <SidebarLink
+                to="/drafts"
+                icon={<EditIcon color="currentColor" />}
+                label={
+                  <Drafts align="center">
+                    {t("Drafts")}
+                    <Bubble count={documents.totalDrafts} />
+                  </Drafts>
+                }
+                active={
+                  documents.active
+                    ? !documents.active.publishedAt &&
+                      !documents.active.isDeleted &&
+                      !documents.active.isTemplate
+                    : undefined
+                }
+              />
+            </Section>
+            <Section>
+              <Collections
+                onCreateCollection={handleCreateCollectionModalOpen}
+              />
+            </Section>
+          </Scrollable>
+          <Secondary>
+            <Section>
+              <SidebarLink
+                to="/archive"
+                icon={<ArchiveIcon color="currentColor" />}
+                exact={false}
+                label={t("Archive")}
+                active={
+                  documents.active
+                    ? documents.active.isArchived && !documents.active.isDeleted
+                    : undefined
+                }
+              />
+              <SidebarLink
+                to="/trash"
+                icon={<TrashIcon color="currentColor" />}
+                exact={false}
+                label={t("Trash")}
+                active={
+                  documents.active ? documents.active.isDeleted : undefined
+                }
+              />
+              <SidebarLink
+                to="/settings"
+                icon={<SettingsIcon color="currentColor" />}
+                exact={false}
+                label={t("Settings")}
+              />
+              {can.invite && (
+                <SidebarLink
+                  to="/settings/people"
+                  onClick={handleInviteModalOpen}
+                  icon={<PlusIcon color="currentColor" />}
+                  label={`${t("Invite people")}…`}
+                />
+              )}
+            </Section>
+          </Secondary>
+        </Flex>
+        {can.invite && (
+          <Modal
+            title={t("Invite people")}
+            onRequestClose={handleInviteModalClose}
+            isOpen={inviteModalOpen}
+          >
+            <Invite onSubmit={handleInviteModalClose} />
+          </Modal>
+        )}
+        <Modal
+          title={t("Create a collection")}
+          onRequestClose={handleCreateCollectionModalClose}
+          isOpen={createCollectionModalOpen}
+        >
+          <CollectionNew onSubmit={handleCreateCollectionModalClose} />
+        </Modal>
+      </DndProvider>
     </Sidebar>
   );
 }

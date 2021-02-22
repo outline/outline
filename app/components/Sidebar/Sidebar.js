@@ -16,190 +16,193 @@ import useStores from "hooks/useStores";
 let firstRender = true;
 let ANIMATION_MS = 250;
 
-type Props = {
+type Props = {|
   children: React.Node,
-};
+|};
 
-function Sidebar({ children }: Props) {
-  const [isCollapsing, setCollapsing] = React.useState(false);
-  const theme = useTheme();
-  const { t } = useTranslation();
-  const { ui } = useStores();
-  const location = useLocation();
-  const previousLocation = usePrevious(location);
+const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
+  ({ children }: Props, ref) => {
+    const [isCollapsing, setCollapsing] = React.useState(false);
+    const theme = useTheme();
+    const { t } = useTranslation();
+    const { ui } = useStores();
+    const location = useLocation();
+    const previousLocation = usePrevious(location);
 
-  const width = ui.sidebarWidth;
-  const collapsed = ui.isEditing || ui.sidebarCollapsed;
-  const maxWidth = theme.sidebarMaxWidth;
-  const minWidth = theme.sidebarMinWidth + 16; // padding
-  const setWidth = ui.setSidebarWidth;
+    const width = ui.sidebarWidth;
+    const collapsed = ui.isEditing || ui.sidebarCollapsed;
+    const maxWidth = theme.sidebarMaxWidth;
+    const minWidth = theme.sidebarMinWidth + 16; // padding
+    const setWidth = ui.setSidebarWidth;
 
-  const [offset, setOffset] = React.useState(0);
-  const [isAnimating, setAnimating] = React.useState(false);
-  const [isResizing, setResizing] = React.useState(false);
-  const isSmallerThanMinimum = width < minWidth;
+    const [offset, setOffset] = React.useState(0);
+    const [isAnimating, setAnimating] = React.useState(false);
+    const [isResizing, setResizing] = React.useState(false);
+    const isSmallerThanMinimum = width < minWidth;
 
-  const handleDrag = React.useCallback(
-    (event: MouseEvent) => {
-      // suppresses text selection
-      event.preventDefault();
+    const handleDrag = React.useCallback(
+      (event: MouseEvent) => {
+        // suppresses text selection
+        event.preventDefault();
 
-      // this is simple because the sidebar is always against the left edge
-      const width = Math.min(event.pageX - offset, maxWidth);
-      const isSmallerThanCollapsePoint = width < minWidth / 2;
-
-      if (isSmallerThanCollapsePoint) {
-        setWidth(theme.sidebarCollapsedWidth);
-      } else {
-        setWidth(width);
-      }
-    },
-    [theme, offset, minWidth, maxWidth, setWidth]
-  );
-
-  const handleStopDrag = React.useCallback(
-    (event: MouseEvent) => {
-      setResizing(false);
-
-      if (document.activeElement) {
-        document.activeElement.blur();
-      }
-
-      if (isSmallerThanMinimum) {
+        // this is simple because the sidebar is always against the left edge
+        const width = Math.min(event.pageX - offset, maxWidth);
         const isSmallerThanCollapsePoint = width < minWidth / 2;
 
         if (isSmallerThanCollapsePoint) {
-          setAnimating(false);
-          setCollapsing(true);
-          ui.collapseSidebar();
+          setWidth(theme.sidebarCollapsedWidth);
         } else {
-          setWidth(minWidth);
-          setAnimating(true);
+          setWidth(width);
         }
-      } else {
-        setWidth(width);
+      },
+      [theme, offset, minWidth, maxWidth, setWidth]
+    );
+
+    const handleStopDrag = React.useCallback(
+      (event: MouseEvent) => {
+        setResizing(false);
+
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+
+        if (isSmallerThanMinimum) {
+          const isSmallerThanCollapsePoint = width < minWidth / 2;
+
+          if (isSmallerThanCollapsePoint) {
+            setAnimating(false);
+            setCollapsing(true);
+            ui.collapseSidebar();
+          } else {
+            setWidth(minWidth);
+            setAnimating(true);
+          }
+        } else {
+          setWidth(width);
+        }
+      },
+      [ui, isSmallerThanMinimum, minWidth, width, setWidth]
+    );
+
+    const handleMouseDown = React.useCallback(
+      (event: MouseEvent) => {
+        setOffset(event.pageX - width);
+        setResizing(true);
+        setAnimating(false);
+      },
+      [width]
+    );
+
+    React.useEffect(() => {
+      if (isAnimating) {
+        setTimeout(() => setAnimating(false), ANIMATION_MS);
       }
-    },
-    [ui, isSmallerThanMinimum, minWidth, width, setWidth]
-  );
+    }, [isAnimating]);
 
-  const handleMouseDown = React.useCallback(
-    (event: MouseEvent) => {
-      setOffset(event.pageX - width);
-      setResizing(true);
-      setAnimating(false);
-    },
-    [width]
-  );
+    React.useEffect(() => {
+      if (isCollapsing) {
+        setTimeout(() => {
+          setWidth(minWidth);
+          setCollapsing(false);
+        }, ANIMATION_MS);
+      }
+    }, [setWidth, minWidth, isCollapsing]);
 
-  React.useEffect(() => {
-    if (isAnimating) {
-      setTimeout(() => setAnimating(false), ANIMATION_MS);
-    }
-  }, [isAnimating]);
+    React.useEffect(() => {
+      if (isResizing) {
+        document.addEventListener("mousemove", handleDrag);
+        document.addEventListener("mouseup", handleStopDrag);
+      }
 
-  React.useEffect(() => {
-    if (isCollapsing) {
-      setTimeout(() => {
-        setWidth(minWidth);
-        setCollapsing(false);
-      }, ANIMATION_MS);
-    }
-  }, [setWidth, minWidth, isCollapsing]);
+      return () => {
+        document.removeEventListener("mousemove", handleDrag);
+        document.removeEventListener("mouseup", handleStopDrag);
+      };
+    }, [isResizing, handleDrag, handleStopDrag]);
 
-  React.useEffect(() => {
-    if (isResizing) {
-      document.addEventListener("mousemove", handleDrag);
-      document.addEventListener("mouseup", handleStopDrag);
-    }
+    const handleReset = React.useCallback(() => {
+      ui.setSidebarWidth(theme.sidebarWidth);
+    }, [ui, theme.sidebarWidth]);
 
-    return () => {
-      document.removeEventListener("mousemove", handleDrag);
-      document.removeEventListener("mouseup", handleStopDrag);
-    };
-  }, [isResizing, handleDrag, handleStopDrag]);
+    React.useEffect(() => {
+      ui.setSidebarResizing(isResizing);
+    }, [ui, isResizing]);
 
-  const handleReset = React.useCallback(() => {
-    ui.setSidebarWidth(theme.sidebarWidth);
-  }, [ui, theme.sidebarWidth]);
+    React.useEffect(() => {
+      if (location !== previousLocation) {
+        ui.hideMobileSidebar();
+      }
+    }, [ui, location, previousLocation]);
 
-  React.useEffect(() => {
-    ui.setSidebarResizing(isResizing);
-  }, [ui, isResizing]);
+    const style = React.useMemo(
+      () => ({
+        width: `${width}px`,
+      }),
+      [width]
+    );
 
-  React.useEffect(() => {
-    if (location !== previousLocation) {
-      ui.hideMobileSidebar();
-    }
-  }, [ui, location, previousLocation]);
+    const toggleStyle = React.useMemo(
+      () => ({
+        right: "auto",
+        marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
+      }),
+      [width, theme.sidebarCollapsedWidth, collapsed]
+    );
 
-  const style = React.useMemo(
-    () => ({
-      width: `${width}px`,
-    }),
-    [width]
-  );
-
-  const toggleStyle = React.useMemo(
-    () => ({
-      right: "auto",
-      marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
-    }),
-    [width, theme.sidebarCollapsedWidth, collapsed]
-  );
-
-  const content = (
-    <>
-      <Container
-        style={style}
-        $sidebarWidth={ui.sidebarWidth}
-        $isCollapsing={isCollapsing}
-        $isAnimating={isAnimating}
-        $isSmallerThanMinimum={isSmallerThanMinimum}
-        $mobileSidebarVisible={ui.mobileSidebarVisible}
-        $collapsed={collapsed}
-        column
-      >
-        {ui.mobileSidebarVisible && (
-          <Portal>
-            <Fade>
-              <Background onClick={ui.toggleMobileSidebar} />
-            </Fade>
-          </Portal>
-        )}
-        {children}
-        <ResizeBorder
-          onMouseDown={handleMouseDown}
-          onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
-          $isResizing={isResizing}
-        />
-        {ui.sidebarCollapsed && !ui.isEditing && (
+    const content = (
+      <>
+        <Container
+          ref={ref}
+          style={style}
+          $sidebarWidth={ui.sidebarWidth}
+          $isCollapsing={isCollapsing}
+          $isAnimating={isAnimating}
+          $isSmallerThanMinimum={isSmallerThanMinimum}
+          $mobileSidebarVisible={ui.mobileSidebarVisible}
+          $collapsed={collapsed}
+          column
+        >
+          {ui.mobileSidebarVisible && (
+            <Portal>
+              <Fade>
+                <Background onClick={ui.toggleMobileSidebar} />
+              </Fade>
+            </Portal>
+          )}
+          {children}
+          <ResizeBorder
+            onMouseDown={handleMouseDown}
+            onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+            $isResizing={isResizing}
+          />
+          {ui.sidebarCollapsed && !ui.isEditing && (
+            <Toggle
+              onClick={ui.toggleCollapsedSidebar}
+              direction={"right"}
+              aria-label={t("Expand")}
+            />
+          )}
+        </Container>
+        {!ui.isEditing && (
           <Toggle
+            style={toggleStyle}
             onClick={ui.toggleCollapsedSidebar}
-            direction={"right"}
-            aria-label={t("Expand")}
+            direction={ui.sidebarCollapsed ? "right" : "left"}
+            aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
           />
         )}
-      </Container>
-      {!ui.isEditing && (
-        <Toggle
-          style={toggleStyle}
-          onClick={ui.toggleCollapsedSidebar}
-          direction={ui.sidebarCollapsed ? "right" : "left"}
-          aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
-        />
-      )}
-    </>
-  );
+      </>
+    );
 
-  // Fade in the sidebar on first render after page load
-  if (firstRender) {
-    firstRender = false;
-    return <Fade>{content}</Fade>;
+    // Fade in the sidebar on first render after page load
+    if (firstRender) {
+      firstRender = false;
+      return <Fade>{content}</Fade>;
+    }
+
+    return content;
   }
-
-  return content;
-}
+);
 
 const Background = styled.a`
   position: fixed;
