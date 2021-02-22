@@ -39,7 +39,7 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
-function DocumentListItem(props: Props) {
+const DocumentListItem = React.forwardRef((props: Props, ref) => {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -69,6 +69,7 @@ function DocumentListItem(props: Props) {
         pathname: document.url,
         state: { title: document.titleWithDefault },
       }}
+      ref={ref}
     >
       <Content>
         <Heading>
@@ -136,7 +137,7 @@ function DocumentListItem(props: Props) {
       </Actions>
     </DocumentLink>
   );
-}
+});
 
 const Content = styled.div`
   flex-grow: 1;
