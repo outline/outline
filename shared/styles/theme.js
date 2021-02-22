@@ -114,7 +114,7 @@ export const base = {
     toasts: 5000,
     loadingIndicatorBar: 6000,
     popover: 9000,
-    pwaSeparator: 10000,
+    titleBarDivider: 10000,
   },
 };
 
@@ -139,6 +139,7 @@ export const light = {
   menuShadow:
     "0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08)",
   divider: colors.slateLight,
+  titleBarDivider: colors.slateLight,
   inputBorder: colors.slateLight,
   inputBorderFocused: colors.slate,
 
@@ -198,6 +199,7 @@ export const dark = {
   menuShadow:
     "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 0 1px rgba(255,255,255,.2)",
   divider: darken(0.2, colors.slate),
+  titleBarDivider: darken(0.4, colors.slate),
   inputBorder: colors.slateDark,
   inputBorderFocused: colors.slate,
 

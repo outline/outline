@@ -47,8 +47,8 @@ export default createGlobalStyle`
       left: 0;
       right: 0;
       height: 1px;
-      background: ${(props) => props.theme.divider};
-      z-index: ${(props) => props.theme.depths.pwaSeparator};
+      background: ${(props) => props.theme.titleBarDivider};
+      z-index: ${(props) => props.theme.depths.titleBarDivider};
     }
   }
 
