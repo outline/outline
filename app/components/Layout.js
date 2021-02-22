@@ -1,17 +1,13 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import { withTranslation, type TFunction } from "react-i18next";
-import keydown from "react-keydown";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useTranslation } from "react-i18next";
 import { Switch, Route, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import AuthStore from "stores/AuthStore";
-import DocumentsStore from "stores/DocumentsStore";
-import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
@@ -24,6 +20,7 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
+import useStores from "hooks/useStores";
 import { meta } from "utils/keyboard";
 import {
   homeUrl,
@@ -32,126 +29,114 @@ import {
 } from "utils/routeHelpers";
 
 type Props = {
-  documents: DocumentsStore,
   children?: ?React.Node,
   actions?: ?React.Node,
   title?: ?React.Node,
-  auth: AuthStore,
-  ui: UiStore,
   notifications?: React.Node,
-  i18n: Object,
-  t: TFunction,
 };
 
-@observer
-class Layout extends React.Component<Props> {
-  scrollable: ?HTMLDivElement;
-  @observable redirectTo: ?string;
-  @observable keyboardShortcutsOpen: boolean = false;
+function Layout({ children, actions, title, notifications }: Props) {
+  const [redirectTo, setRedirectTo] = React.useState(undefined);
+  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
+    false
+  );
 
-  componentDidUpdate() {
-    if (this.redirectTo) {
-      this.redirectTo = undefined;
+  React.useEffect(() => {
+    if (redirectTo) {
+      setRedirectTo(undefined);
     }
-  }
+  }, [redirectTo]);
 
-  @keydown(`${meta}+.`)
-  handleToggleSidebar() {
-    this.props.ui.toggleCollapsedSidebar();
-  }
+  const { auth, ui } = useStores();
+  const { t } = useTranslation();
 
-  @keydown("shift+/")
-  handleOpenKeyboardShortcuts() {
-    this.keyboardShortcutsOpen = true;
-  }
+  useHotkeys(`${meta}+.`, () => {
+    ui.toggleCollapsedSidebar();
+  });
 
-  handleCloseKeyboardShortcuts = () => {
-    this.keyboardShortcutsOpen = false;
-  };
+  useHotkeys("shift+/", () => {
+    setKeyboardShortcutsOpen(true);
+  });
 
-  @keydown(["t", "/", `${meta}+k`])
-  goToSearch(ev: SyntheticEvent<>) {
+  const handleCloseKeyboardShortcuts = React.useCallback(() => {
+    setKeyboardShortcutsOpen(false);
+  }, []);
+
+  useHotkeys("t", "/", `${meta}+k`, (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.redirectTo = searchUrl();
-  }
+  });
 
-  @keydown("d")
-  goToDashboard() {
+  useHotkeys("d", () => {
     this.redirectTo = homeUrl();
-  }
+  });
 
-  render() {
-    const { auth, t, ui } = this.props;
-    const { user, team } = auth;
-    const showSidebar = auth.authenticated && user && team;
-    const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
+  const { user, team } = auth;
+  const showSidebar = auth.authenticated && user && team;
+  const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
 
-    if (auth.isSuspended) return <ErrorSuspended />;
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+  if (auth.isSuspended) return <ErrorSuspended />;
+  if (redirectTo) return <Redirect to={redirectTo} push />;
 
-    return (
-      <Container column auto>
-        <Helmet>
-          <title>{team && team.name ? team.name : "Outline"}</title>
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
-          />
-        </Helmet>
-        <SkipNavLink />
-        <Analytics />
+  return (
+    <Container column auto>
+      <Helmet>
+        <title>{team && team.name ? team.name : "Outline"}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Helmet>
+      <SkipNavLink />
+      <Analytics />
 
-        {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
-        {this.props.notifications}
+      {ui.progressBarVisible && <LoadingIndicatorBar />}
+      {notifications}
 
-        <MobileMenuButton
-          onClick={ui.toggleMobileSidebar}
-          icon={<MenuIcon />}
-          iconColor="currentColor"
-          neutral
-        />
+      <MobileMenuButton
+        onClick={ui.toggleMobileSidebar}
+        icon={<MenuIcon />}
+        iconColor="currentColor"
+        neutral
+      />
 
-        <Container auto>
-          {showSidebar && (
-            <Switch>
-              <Route path="/settings" component={SettingsSidebar} />
-              <Route component={Sidebar} />
-            </Switch>
-          )}
-
-          <SkipNavContent />
-          <Content
-            auto
-            justify="center"
-            $isResizing={ui.sidebarIsResizing}
-            $sidebarCollapsed={sidebarCollapsed}
-            style={
-              sidebarCollapsed
-                ? undefined
-                : { marginLeft: `${ui.sidebarWidth}px` }
-            }
-          >
-            {this.props.children}
-          </Content>
-
+      <Container auto>
+        {showSidebar && (
           <Switch>
-            <Route
-              path={`/doc/${slug}/history/:revisionId?`}
-              component={DocumentHistory}
-            />
+            <Route path="/settings" component={SettingsSidebar} />
+            <Route component={Sidebar} />
           </Switch>
-        </Container>
-        <Modal
-          isOpen={this.keyboardShortcutsOpen}
-          onRequestClose={this.handleCloseKeyboardShortcuts}
-          title={t("Keyboard shortcuts")}
+        )}
+
+        <SkipNavContent />
+        <Content
+          auto
+          justify="center"
+          $isResizing={ui.sidebarIsResizing}
+          $sidebarCollapsed={sidebarCollapsed}
+          style={
+            sidebarCollapsed
+              ? undefined
+              : { marginLeft: `${ui.sidebarWidth}px` }
+          }
         >
-          <KeyboardShortcuts />
-        </Modal>
+          {children}
+        </Content>
+
+        <Switch>
+          <Route
+            path={`/doc/${slug}/history/:revisionId?`}
+            component={DocumentHistory}
+          />
+        </Switch>
       </Container>
-    );
-  }
+      <Modal
+        isOpen={keyboardShortcutsOpen}
+        onRequestClose={handleCloseKeyboardShortcuts}
+        title={t("Keyboard shortcuts")}
+      >
+        <KeyboardShortcuts />
+      </Modal>
+    </Container>
+  );
 }
 
 const Container = styled(Flex)`
@@ -197,6 +182,4 @@ const Content = styled(Flex)`
   `};
 `;
 
-export default withTranslation()<Layout>(
-  inject("auth", "ui", "documents")(Layout)
-);
+export default observer(Layout);

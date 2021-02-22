@@ -1,89 +1,85 @@
 // @flow
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
-import keydown from "react-keydown";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useTranslation } from "react-i18next";
+import styled, { useTheme } from "styled-components";
 import Input from "./Input";
-import { type Theme } from "types";
+import useStores from "hooks/useStores";
 import { meta } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
-  history: RouterHistory,
-  theme: Theme,
   source: string,
   placeholder?: string,
   label?: string,
   labelHidden?: boolean,
   collectionId?: string,
-  t: TFunction,
 };
 
-@observer
-class InputSearch extends React.Component<Props> {
-  input: ?Input;
-  @observable focused: boolean = false;
+function InputSearch(props: Props) {
+  let input: ?Input;
+  const { history } = useStores();
+  const { t } = useTranslation();
+  const theme = useTheme();
 
-  @keydown(`${meta}+f`)
-  focus(ev: SyntheticEvent<>) {
+  const {
+    source,
+    placeholder = `${t("Search")}…`,
+    label,
+    labelHidden,
+    collectionId,
+  } = props;
+  const [focused, setFocused] = React.useState(false);
+
+  useHotkeys(`${meta}+f`, (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-
-    if (this.input) {
-      this.input.focus();
+    if (input) {
+      input.focus();
     }
-  }
+  });
 
-  handleSearchInput = (ev: SyntheticInputEvent<>) => {
+  const handleSearchInput = (ev: SyntheticInputEvent<>) => {
     ev.preventDefault();
-    this.props.history.push(
+    history.push(
       searchUrl(ev.target.value, {
-        collectionId: this.props.collectionId,
-        ref: this.props.source,
+        collectionId: collectionId,
+        ref: source,
       })
     );
   };
 
-  handleFocus = () => {
-    this.focused = true;
-  };
+  const handleFocus = React.useCallback(() => {
+    setFocused(true);
+  }, []);
 
-  handleBlur = () => {
-    this.focused = false;
-  };
+  const handleBlur = React.useCallback(() => {
+    setFocused(false);
+  }, []);
 
-  render() {
-    const { t } = this.props;
-    const { theme, placeholder = `${t("Search")}…` } = this.props;
-
-    return (
-      <InputMaxWidth
-        ref={(ref) => (this.input = ref)}
-        type="search"
-        placeholder={placeholder}
-        onInput={this.handleSearchInput}
-        icon={
-          <SearchIcon
-            color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
-          />
-        }
-        label={this.props.label}
-        labelHidden={this.props.labelHidden}
-        onFocus={this.handleFocus}
-        onBlur={this.handleBlur}
-        margin={0}
-      />
-    );
-  }
+  return (
+    <InputMaxWidth
+      ref={(ref) => (input = ref)}
+      type="search"
+      placeholder={placeholder}
+      onInput={handleSearchInput}
+      icon={
+        <SearchIcon
+          color={focused ? theme.inputBorderFocused : theme.inputBorder}
+        />
+      }
+      label={label}
+      labelHidden={labelHidden}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      margin={0}
+    />
+  );
 }
 
 const InputMaxWidth = styled(Input)`
   max-width: 30vw;
 `;
 
-export default withTranslation()<InputSearch>(
-  withTheme(withRouter(InputSearch))
-);
+export default observer(InputSearch);
