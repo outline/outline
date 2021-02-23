@@ -5,7 +5,7 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, useHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import ErrorSuspended from "scenes/ErrorSuspended";
@@ -36,17 +36,10 @@ type Props = {
 };
 
 function Layout({ children, actions, title, notifications }: Props) {
-  const [redirectTo, setRedirectTo] = React.useState(undefined);
+  const history = useHistory();
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
     false
   );
-
-  React.useEffect(() => {
-    if (redirectTo) {
-      setRedirectTo(undefined);
-    }
-  }, [redirectTo]);
-
   const { auth, ui } = useStores();
   const { t } = useTranslation();
 
@@ -65,11 +58,11 @@ function Layout({ children, actions, title, notifications }: Props) {
   useHotkeys("t", "/", `${meta}+k`, (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
-    this.redirectTo = searchUrl();
+    history.push(searchUrl());
   });
 
   useHotkeys("d", () => {
-    this.redirectTo = homeUrl();
+    history.push(homeUrl());
   });
 
   const { user, team } = auth;
@@ -77,7 +70,6 @@ function Layout({ children, actions, title, notifications }: Props) {
   const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
 
   if (auth.isSuspended) return <ErrorSuspended />;
-  if (redirectTo) return <Redirect to={redirectTo} push />;
 
   return (
     <Container column auto>

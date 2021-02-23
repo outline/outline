@@ -4,9 +4,9 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Input from "./Input";
-import useStores from "hooks/useStores";
 import { meta } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
@@ -19,8 +19,8 @@ type Props = {
 };
 
 function InputSearch(props: Props) {
-  let input: ?Input;
-  const { history } = useStores();
+  const input = React.useRef<Input>(null);
+  const history = useHistory();
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -36,19 +36,22 @@ function InputSearch(props: Props) {
   useHotkeys(`${meta}+f`, (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     if (input) {
-      input.focus();
+      input.current.focus();
     }
   });
 
-  const handleSearchInput = (ev: SyntheticInputEvent<>) => {
-    ev.preventDefault();
-    history.push(
-      searchUrl(ev.target.value, {
-        collectionId: collectionId,
-        ref: source,
-      })
-    );
-  };
+  const handleSearchInput = React.useCallback(
+    (ev: SyntheticInputEvent<>) => {
+      ev.preventDefault();
+      history.push(
+        searchUrl(ev.target.value, {
+          collectionId: collectionId,
+          ref: source,
+        })
+      );
+    },
+    [collectionId, history, source]
+  );
 
   const handleFocus = React.useCallback(() => {
     setFocused(true);
@@ -60,7 +63,7 @@ function InputSearch(props: Props) {
 
   return (
     <InputMaxWidth
-      ref={(ref) => (input = ref)}
+      ref={input}
       type="search"
       placeholder={placeholder}
       onInput={handleSearchInput}

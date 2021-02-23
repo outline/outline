@@ -20,7 +20,7 @@ type Props = {
 const Collections = ({ onCreateCollection }: Props) => {
   const { collections, ui, policies, documents } = useStores();
   const { t } = useTranslation();
-  const isPreloaded: boolean = !!collections.orderedData.length;
+  const [isPreloaded] = React.useState(!!collections.orderedData.length);
   const history = useHistory();
 
   React.useEffect(() => {
