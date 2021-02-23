@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Image from "components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import Asciinema from "./Asciinema";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -61,6 +62,13 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "Asciinema",
+    keywords: "spreadsheet",
+    icon: () => <Img src="/images/asciinema.png" />,
+    component: Asciinema,
+    matcher: matcher(Asciinema),
   },
   {
     title: "Cawemo",
