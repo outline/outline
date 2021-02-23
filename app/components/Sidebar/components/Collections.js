@@ -35,7 +35,7 @@ class Collections extends React.Component<Props> {
   componentDidMount() {
     const { collections } = this.props;
 
-    if (!collections.isFetching && !collections.isLoaded) {
+    if (!collections.isLoaded) {
       collections.fetchPage({ limit: 100 });
     }
   }
@@ -75,6 +75,8 @@ class Collections extends React.Component<Props> {
         />
       </>
     );
+
+    console.log(collections.isLoaded);
 
     return (
       <Flex column>
