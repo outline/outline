@@ -28,7 +28,7 @@ class Asciinema extends React.Component<Props> {
     }
 
     const asciinemaLink = `https://asciinema.org/a/${id}.js`;
-    const asciinemaScript = `<script type="text/javascript" id="asciicast-${id}" src="${asciinemaLink} async"></script>`;
+    const asciinemaScript = `<script type="text/javascript" id="asciicast-${id}" src="${asciinemaLink}" async></script>`;
     const iframeHtml = `<html><head><base target="_parent"></head><body>${asciinemaScript}</body></html>`;
 
     doc.open();
