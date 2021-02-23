@@ -2,7 +2,7 @@
 import fs from "fs";
 import Router from "koa-router";
 import { ValidationError } from "../errors";
-import { exportCollections } from "../logistics";
+import { exportCollections } from "../exporter";
 import auth from "../middlewares/authentication";
 import {
   Collection,
