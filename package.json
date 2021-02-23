@@ -141,7 +141,7 @@
     "react-avatar-editor": "^10.3.0",
     "react-color": "^2.17.3",
     "react-dnd": "^13.0.0",
-    "react-dnd-html5-backend": "^12.1.0",
+    "react-dnd-html5-backend": "12.1.0",
     "react-dom": "^16.8.6",
     "react-dropzone": "^11.2.4",
     "react-helmet": "^5.2.0",

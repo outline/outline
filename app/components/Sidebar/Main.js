@@ -66,7 +66,7 @@ function MainSidebar() {
   }, []);
 
   const [dndArea, setDndArea] = React.useState();
-  const html5options = React.useMemo(() => ({ rootElement: dndArea }), [
+  const html5Options = React.useMemo(() => ({ rootElement: dndArea }), [
     dndArea,
   ]);
 
@@ -139,7 +139,7 @@ function MainSidebar() {
           </Section>
           <Section>
             {dndArea && (
-              <DndProvider backend={HTML5Backend} options={html5options}>
+              <DndProvider backend={HTML5Backend} options={html5Options}>
                 <Collections
                   onCreateCollection={handleCreateCollectionModalOpen}
                 />

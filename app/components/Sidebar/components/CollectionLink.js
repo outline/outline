@@ -46,7 +46,7 @@ function CollectionLink({
   const can = policies.abilities(collection.id);
 
   // Drop to re-parent
-  const [{ isOver, canDrop }, drop] = useDrop({
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: "document",
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
@@ -60,10 +60,10 @@ function CollectionLink({
       isOver: !!monitor.isOver({ shallow: true }),
       canDrop: monitor.canDrop(),
     }),
-  });
+  }));
 
   // Drop to reorder
-  const [{ isOverReorder }, dropToReorder] = useDrop({
+  const [{ isOverReorder }, dropToReorder] = useDrop(() => ({
     accept: "document",
     drop: async (item, monitor) => {
       if (!collection) return;
@@ -72,7 +72,7 @@ function CollectionLink({
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
     }),
-  });
+  }));
 
   return (
     <>

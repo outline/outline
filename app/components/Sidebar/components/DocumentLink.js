@@ -122,7 +122,7 @@ function DocumentLink({
   const manualSort = collection?.sort.field === "index";
 
   // Draggable
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag] = useDrag(() => ({
     item: { type: "document", ...node, depth, active: isActiveDocument },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -130,7 +130,7 @@ function DocumentLink({
     canDrag: (monitor) => {
       return policies.abilities(node.id).move;
     },
-  });
+  }));
 
   const hoverExpanding = React.useRef(null);
 
@@ -144,44 +144,46 @@ function DocumentLink({
   }, []);
 
   // Drop to re-parent
-  const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
-    accept: "document",
-    drop: async (item, monitor) => {
-      if (monitor.didDrop()) return;
-      if (!collection) return;
-      documents.move(item.id, collection.id, node.id);
-    },
+  const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop(
+    () => ({
+      accept: "document",
+      drop: async (item, monitor) => {
+        if (monitor.didDrop()) return;
+        if (!collection) return;
+        documents.move(item.id, collection.id, node.id);
+      },
 
-    canDrop: (item, monitor) =>
-      pathToNode && !pathToNode.includes(monitor.getItem().id),
+      canDrop: (item, monitor) =>
+        pathToNode && !pathToNode.includes(monitor.getItem().id),
 
-    hover: (item, monitor) => {
-      // Enables expansion of document children when hovering over the document
-      // for more than half a second.
-      if (
-        hasChildDocuments &&
-        monitor.canDrop() &&
-        monitor.isOver({ shallow: true })
-      ) {
-        if (!hoverExpanding.current) {
-          hoverExpanding.current = setTimeout(() => {
-            hoverExpanding.current = null;
-            if (monitor.isOver({ shallow: true })) {
-              setExpanded(true);
-            }
-          }, 500);
+      hover: (item, monitor) => {
+        // Enables expansion of document children when hovering over the document
+        // for more than half a second.
+        if (
+          hasChildDocuments &&
+          monitor.canDrop() &&
+          monitor.isOver({ shallow: true })
+        ) {
+          if (!hoverExpanding.current) {
+            hoverExpanding.current = setTimeout(() => {
+              hoverExpanding.current = null;
+              if (monitor.isOver({ shallow: true })) {
+                setExpanded(true);
+              }
+            }, 500);
+          }
         }
-      }
-    },
+      },
 
-    collect: (monitor) => ({
-      isOverReparent: !!monitor.isOver({ shallow: true }),
-      canDropToReparent: monitor.canDrop(),
-    }),
-  });
+      collect: (monitor) => ({
+        isOverReparent: !!monitor.isOver({ shallow: true }),
+        canDropToReparent: monitor.canDrop(),
+      }),
+    })
+  );
 
   // Drop to reorder
-  const [{ isOverReorder }, dropToReorder] = useDrop({
+  const [{ isOverReorder }, dropToReorder] = useDrop(() => ({
     accept: "document",
     drop: async (item, monitor) => {
       if (!collection) return;
@@ -197,7 +199,7 @@ function DocumentLink({
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
     }),
-  });
+  }));
 
   return (
     <>
