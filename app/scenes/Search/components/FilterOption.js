@@ -34,7 +34,9 @@ const FilterOption = ({ label, note, onSelect, active, ...rest }: Props) => {
 };
 
 const Description = styled(HelpText)`
+  margin-top: 2px;
   margin-bottom: 0;
+  line-height: 1.2em;
 `;
 
 const Checkmark = styled(CheckmarkIcon)`
