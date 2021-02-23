@@ -47,7 +47,7 @@ class Asciinema extends React.Component<Props> {
         type="text/html"
         frameBorder="0"
         width="100%"
-        height="200px"
+        height="460px"
         id={`asciicast-${id}`}
         title={`Asciinema (${id})`}
       />

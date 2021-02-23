@@ -29,6 +29,7 @@ const scriptSrc = [
   "'unsafe-inline'",
   "'unsafe-eval'",
   "gist.github.com",
+  "asciinema.org",
 ];
 
 if (env.GOOGLE_ANALYTICS_ID) {
