@@ -76,8 +76,6 @@ class Collections extends React.Component<Props> {
       </>
     );
 
-    console.log(collections.isLoaded);
-
     return (
       <Flex column>
         <Header>{t("Collections")}</Header>
