@@ -1,24 +1,19 @@
 // @flow
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { debounce, isEqual } from "lodash";
-import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { withTranslation, Trans, type TFunction } from "react-i18next";
-import keydown from "react-keydown";
-import { withRouter, Link } from "react-router-dom";
-import type { RouterHistory, Match } from "react-router-dom";
+import { useHotkeys } from "react-hotkeys-hook";
+import { Trans, useTranslation } from "react-i18next";
+import { Link, useLocation, useRouteMatch, useHistory } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
-import DocumentsStore from "stores/DocumentsStore";
-import UsersStore from "stores/UsersStore";
-
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import DocumentListItem from "components/DocumentListItem";
@@ -33,6 +28,7 @@ import DateFilter from "./components/DateFilter";
 import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
+import useStores from "hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 import { type LocationWithState } from "types";
 import { metaDisplay } from "utils/keyboard";
@@ -40,342 +36,344 @@ import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 import { decodeURIComponentSafe } from "utils/urls";
 
 type Props = {
-  history: RouterHistory,
-  match: Match,
-  location: LocationWithState,
-  documents: DocumentsStore,
-  users: UsersStore,
   notFound: ?boolean,
-  t: TFunction,
 };
 
-@observer
-class Search extends React.Component<Props> {
-  firstDocument: ?React.Component<any>;
-  lastQuery: string = "";
-  lastParams: Object;
+function Search({ notFound }: Props) {
+  const { documents } = useStores();
+  const location = useLocation<LocationWithState>();
+  const history = useHistory();
+  const match = useRouteMatch();
 
-  @observable
-  query: string = decodeURIComponentSafe(this.props.match.params.term || "");
-  @observable params: URLSearchParams = new URLSearchParams();
-  @observable offset: number = 0;
-  @observable allowLoadMore: boolean = true;
-  @observable isLoading: boolean = false;
-  @observable pinToTop: boolean = !!this.props.match.params.term;
+  const { t } = useTranslation();
 
-  componentDidMount() {
-    this.handleTermChange();
+  let firstDocument = React.useRef<React.Component<any>>(null);
+  const lastQuery = React.useRef("");
+  const lastParams = React.useRef<Object>({});
 
-    if (this.props.location.search) {
-      this.handleQueryChange();
-    }
-  }
+  const [query, setQuery] = React.useState<string>(
+    decodeURIComponentSafe(match.params.term || "")
+  );
+  const [params, setParams] = React.useState<URLSearchParams>(
+    new URLSearchParams()
+  );
+  const [offset, setOffset] = React.useState(0);
+  const [allowLoadMore, setAllowLoadMore] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [pinToTop, setPinToTop] = React.useState(!!match.params.term);
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.location.search !== this.props.location.search) {
-      this.handleQueryChange();
-    }
-    if (prevProps.match.params.term !== this.props.match.params.term) {
-      this.handleTermChange();
-    }
-  }
+  const locationSearchRef = React.useRef(location.search);
+  const matchParamsTermRef = React.useRef(match.params.term);
 
-  @keydown("esc")
-  goBack() {
-    this.props.history.goBack();
-  }
+  const [results, setResults] = React.useState([]);
+  const [showEmpty] = React.useState(
+    !isLoading && query && results.length === 0
+  );
+  const [showShortcutTip] = React.useState(
+    !pinToTop && location.state && location.state.fromMenu
+  );
 
-  handleKeyDown = (ev: SyntheticKeyboardEvent<>) => {
-    if (ev.key === "Enter") {
-      this.fetchResults();
-      return;
-    }
-
-    if (ev.key === "Escape") {
-      ev.preventDefault();
-      return this.goBack();
-    }
-
-    if (ev.key === "ArrowDown") {
-      ev.preventDefault();
-      if (this.firstDocument) {
-        const element = ReactDOM.findDOMNode(this.firstDocument);
-        if (element instanceof HTMLElement) element.focus();
-      }
-    }
-  };
-
-  handleQueryChange = () => {
-    this.params = new URLSearchParams(this.props.location.search);
-    this.offset = 0;
-    this.allowLoadMore = true;
-
-    // To prevent "no results" showing before debounce kicks in
-    this.isLoading = true;
-
-    this.fetchResultsDebounced();
-  };
-
-  handleTermChange = () => {
-    const query = decodeURIComponentSafe(this.props.match.params.term || "");
-    this.query = query ? query : "";
-    this.offset = 0;
-    this.allowLoadMore = true;
-
-    // To prevent "no results" showing before debounce kicks in
-    this.isLoading = !!this.query;
-
-    this.fetchResultsDebounced();
-  };
-
-  handleFilterChange = (search: {
-    collectionId?: ?string,
-    userId?: ?string,
-    dateFilter?: ?string,
-    includeArchived?: ?string,
-  }) => {
-    this.props.history.replace({
-      pathname: this.props.location.pathname,
-      search: queryString.stringify({
-        ...queryString.parse(this.props.location.search),
-        ...search,
-      }),
-    });
-  };
-
-  handleNewDoc = () => {
-    if (this.collectionId) {
-      this.props.history.push(newDocumentUrl(this.collectionId));
-    }
-  };
-
-  get includeArchived() {
-    return this.params.get("includeArchived") === "true";
-  }
-
-  get collectionId() {
-    const id = this.params.get("collectionId");
+  const collectionId = React.useCallback(() => {
+    const id = params.get("collectionId");
     return id ? id : undefined;
-  }
+  }, [params]);
 
-  get userId() {
-    const id = this.params.get("userId");
+  const dateFilter = React.useCallback(() => {
+    const id = params.get("dateFilter");
     return id ? id : undefined;
-  }
+  }, [params]);
 
-  get dateFilter() {
-    const id = this.params.get("dateFilter");
+  const userId = React.useCallback(() => {
+    const id = params.get("userId");
     return id ? id : undefined;
-  }
+  }, [params]);
 
-  get isFiltered() {
-    return (
-      this.dateFilter ||
-      this.userId ||
-      this.collectionId ||
-      this.includeArchived
-    );
-  }
+  const includeArchived = React.useCallback(() => {
+    return params.get("includeArchived") === "true";
+  }, [params]);
 
-  get title() {
-    const query = this.query;
-    const title = this.props.t("Search");
-    if (query) return `${query} – ${title}`;
-    return title;
-  }
-
-  @action
-  loadMoreResults = async () => {
-    // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isLoading) return;
-
-    // Fetch more results
-    await this.fetchResults();
-  };
-
-  @action
-  fetchResults = async () => {
-    if (this.query) {
+  const fetchResults = React.useCallback(async () => {
+    if (query) {
       const params = {
-        offset: this.offset,
+        offset: offset,
         limit: DEFAULT_PAGINATION_LIMIT,
-        dateFilter: this.dateFilter,
-        includeArchived: this.includeArchived,
+        dateFilter: dateFilter(),
+        includeArchived: includeArchived(),
         includeDrafts: true,
-        collectionId: this.collectionId,
-        userId: this.userId,
+        collectionId: collectionId(),
+        userId: userId(),
       };
 
       // we just requested this thing – no need to try again
-      if (this.lastQuery === this.query && isEqual(params, this.lastParams)) {
-        this.isLoading = false;
+      if (lastQuery === query && isEqual(params, lastParams)) {
+        setIsLoading(false);
         return;
       }
 
-      this.isLoading = true;
-      this.lastQuery = this.query;
-      this.lastParams = params;
+      setIsLoading(true);
+      lastQuery.current = query;
+      lastParams.current = params;
 
       try {
-        const results = await this.props.documents.search(this.query, params);
+        setResults(await documents.search(query, params));
 
-        this.pinToTop = true;
+        setPinToTop(true);
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
-          this.allowLoadMore = false;
+          setAllowLoadMore(false);
         } else {
-          this.offset += DEFAULT_PAGINATION_LIMIT;
+          setOffset((preOffset) => preOffset + DEFAULT_PAGINATION_LIMIT);
         }
       } catch (err) {
-        this.lastQuery = "";
+        lastParams.current = "";
         throw err;
       } finally {
-        this.isLoading = false;
+        setIsLoading(false);
       }
     } else {
-      this.pinToTop = false;
-      this.lastQuery = this.query;
+      setPinToTop(false);
+      lastQuery.current = query;
     }
-  };
+  }, [
+    collectionId,
+    dateFilter,
+    userId,
+    documents,
+    includeArchived,
+    offset,
+    query,
+    results.length,
+  ]);
 
-  fetchResultsDebounced = debounce(this.fetchResults, 500, {
+  const fetchResultsDebounced = debounce(fetchResults, 500, {
     leading: false,
     trailing: true,
   });
 
-  updateLocation = (query: string) => {
-    this.props.history.replace({
-      pathname: searchUrl(query),
-      search: this.props.location.search,
-    });
+  const handleQueryChange = React.useCallback(() => {
+    setParams(new URLSearchParams(location.search));
+    setOffset(0);
+    setAllowLoadMore(true);
+
+    // To prevent "no results" showing before debounce kicks in
+    setIsLoading(true);
+
+    fetchResultsDebounced();
+  }, [location.search, fetchResultsDebounced]);
+
+  const handleTermChange = React.useCallback(() => {
+    const query = decodeURIComponentSafe(match.params.term || "");
+    setQuery(query ? query : "");
+    setOffset(0);
+    setAllowLoadMore(true);
+
+    // To prevent "no results" showing before debounce kicks in
+    setIsLoading(!!query);
+
+    fetchResultsDebounced();
+  }, [match.params.term, fetchResultsDebounced]);
+
+  React.useEffect(() => {
+    if (locationSearchRef.current !== location.search) {
+      handleQueryChange();
+      locationSearchRef.current = location.search;
+    }
+  }, [handleQueryChange, location.search, locationSearchRef]);
+
+  React.useEffect(() => {
+    if (matchParamsTermRef.current !== match.params.term) {
+      handleTermChange();
+      matchParamsTermRef.current = match.params.term;
+    }
+  }, [handleTermChange, match.params.term]);
+
+  useHotkeys("esc", () => {
+    history.goBack();
+  });
+
+  const handleKeyDown = React.useCallback(
+    async (ev: SyntheticKeyboardEvent<>) => {
+      if (ev.key === "Enter") {
+        await fetchResults();
+        return;
+      }
+
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        return history.goBack();
+      }
+
+      if (ev.key === "ArrowDown") {
+        ev.preventDefault();
+        if (firstDocument.current) {
+          const element = ReactDOM.findDOMNode(firstDocument);
+          if (element instanceof HTMLElement) element.focus();
+        }
+      }
+    },
+    [fetchResults, history]
+  );
+
+  const handleFilterChange = React.useCallback(
+    (search: {
+      collectionId?: ?string,
+      userId?: ?string,
+      dateFilter?: ?string,
+      includeArchived?: ?string,
+    }) => {
+      history.replace({
+        pathname: location.pathname,
+        search: queryString.stringify({
+          ...queryString.parse(location.search),
+          ...search,
+        }),
+      });
+    },
+    [location.pathname, location.search, history]
+  );
+
+  const handleNewDoc = React.useCallback(() => {
+    if (collectionId()) {
+      history.push(newDocumentUrl(collectionId));
+    }
+  }, [collectionId, history]);
+
+  // const isFiltered = React.useCallback(() => {
+  //   return dateFilter() || userId() || collectionId() || includeArchived();
+  // }, [collectionId, dateFilter, userId, includeArchived]);
+
+  const title = React.useCallback(() => {
+    const title = t("Search");
+    if (query) return `${query} – ${title}`;
+    return title;
+  }, [query, t]);
+
+  const loadMoreResults = React.useCallback(async () => {
+    // Don't paginate if there aren't more results or we’re in the middle of fetching
+    if (!allowLoadMore || isLoading) return;
+
+    // Fetch more results
+    await fetchResults();
+  }, [fetchResults, allowLoadMore, isLoading]);
+
+  const updateLocation = React.useCallback(
+    (query: string) => {
+      history.replace({
+        pathname: searchUrl(query),
+        search: location.search,
+      });
+    },
+    [location.search, history]
+  );
+
+  const setFirstDocumentRef = (ref: any) => {
+    firstDocument.current = ref;
   };
 
-  setFirstDocumentRef = (ref: any) => {
-    this.firstDocument = ref;
-  };
-
-  render() {
-    const { documents, notFound, location, t } = this.props;
-    const results = documents.searchResults(this.query);
-    const showEmpty = !this.isLoading && this.query && results.length === 0;
-    const showShortcutTip =
-      !this.pinToTop && location.state && location.state.fromMenu;
-
-    return (
-      <Container auto>
-        <PageTitle title={this.title} />
-        {this.isLoading && <LoadingIndicator />}
-        {notFound && (
-          <div>
-            <h1>{t("Not Found")}</h1>
-            <Empty>
-              {t("We were unable to find the page you’re looking for.")}
-            </Empty>
-          </div>
+  return (
+    <Container auto>
+      <PageTitle title={title()} />
+      {isLoading && <LoadingIndicator />}
+      {notFound && (
+        <div>
+          <h1>{t("Not Found")}</h1>
+          <Empty>
+            {t("We were unable to find the page you’re looking for.")}
+          </Empty>
+        </div>
+      )}
+      <ResultsWrapper pinToTop={pinToTop} column auto>
+        <SearchField
+          placeholder={`${t("Search")}…`}
+          onKeyDown={handleKeyDown}
+          onChange={updateLocation}
+          defaultValue={query}
+        />
+        {showShortcutTip && (
+          <Fade>
+            <HelpText small>
+              <Trans
+                defaults="Use the <em>{{ meta }}+K</em> shortcut to search from anywhere in your knowledge base"
+                values={{ meta: metaDisplay }}
+                components={{ em: <strong /> }}
+              />
+            </HelpText>
+          </Fade>
         )}
-        <ResultsWrapper pinToTop={this.pinToTop} column auto>
-          <SearchField
-            placeholder={`${t("Search")}…`}
-            onKeyDown={this.handleKeyDown}
-            onChange={this.updateLocation}
-            defaultValue={this.query}
-          />
-          {showShortcutTip && (
-            <Fade>
-              <HelpText small>
-                <Trans
-                  defaults="Use the <em>{{ meta }}+K</em> shortcut to search from anywhere in your knowledge base"
-                  values={{ meta: metaDisplay }}
-                  components={{ em: <strong /> }}
-                />
+        {pinToTop && (
+          <Filters>
+            <StatusFilter
+              includeArchived={includeArchived()}
+              onSelect={(includeArchived) =>
+                handleFilterChange({ includeArchived })
+              }
+            />
+            <CollectionFilter
+              collectionId={collectionId()}
+              onSelect={(collectionId) => handleFilterChange({ collectionId })}
+            />
+            <UserFilter
+              userId={userId()}
+              onSelect={(userId) => handleFilterChange({ userId })}
+            />
+            <DateFilter
+              dateFilter={dateFilter()}
+              onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
+            />
+          </Filters>
+        )}
+        {showEmpty && (
+          <Fade>
+            <Centered column>
+              <HelpText>
+                <Trans>
+                  No documents found for your search filters. <br />
+                  Create a new document?
+                </Trans>
               </HelpText>
-            </Fade>
-          )}
-          {this.pinToTop && (
-            <Filters>
-              <StatusFilter
-                includeArchived={this.includeArchived}
-                onSelect={(includeArchived) =>
-                  this.handleFilterChange({ includeArchived })
-                }
-              />
-              <CollectionFilter
-                collectionId={this.collectionId}
-                onSelect={(collectionId) =>
-                  this.handleFilterChange({ collectionId })
-                }
-              />
-              <UserFilter
-                userId={this.userId}
-                onSelect={(userId) => this.handleFilterChange({ userId })}
-              />
-              <DateFilter
-                dateFilter={this.dateFilter}
-                onSelect={(dateFilter) =>
-                  this.handleFilterChange({ dateFilter })
-                }
-              />
-            </Filters>
-          )}
-          {showEmpty && (
-            <Fade>
-              <Centered column>
-                <HelpText>
-                  <Trans>
-                    No documents found for your search filters. <br />
-                    Create a new document?
-                  </Trans>
-                </HelpText>
-                <Wrapper>
-                  {this.collectionId ? (
-                    <Button
-                      onClick={this.handleNewDoc}
-                      icon={<PlusIcon />}
-                      primary
-                    >
-                      {t("New doc")}
-                    </Button>
-                  ) : (
-                    <NewDocumentMenu />
-                  )}
-                  &nbsp;&nbsp;
-                  <Button as={Link} to="/search" neutral>
-                    {t("Clear filters")}
+              <Wrapper>
+                {collectionId() ? (
+                  <Button onClick={handleNewDoc} icon={<PlusIcon />} primary>
+                    {t("New doc")}
                   </Button>
-                </Wrapper>
-              </Centered>
-            </Fade>
-          )}
-          <ResultList column visible={this.pinToTop}>
-            <StyledArrowKeyNavigation
-              mode={ArrowKeyNavigation.mode.VERTICAL}
-              defaultActiveChildIndex={0}
-            >
-              {results.map((result, index) => {
-                const document = documents.data.get(result.document.id);
-                if (!document) return null;
+                ) : (
+                  <NewDocumentMenu />
+                )}
+                &nbsp;&nbsp;
+                <Button as={Link} to="/search" neutral>
+                  {t("Clear filters")}
+                </Button>
+              </Wrapper>
+            </Centered>
+          </Fade>
+        )}
+        <ResultList column visible={pinToTop}>
+          <StyledArrowKeyNavigation
+            mode={ArrowKeyNavigation.mode.VERTICAL}
+            defaultActiveChildIndex={0}
+          >
+            {results.map((result, index) => {
+              const document = documents.data.get(result.document.id);
+              if (!document) return null;
 
-                return (
-                  <DocumentListItem
-                    ref={(ref) => index === 0 && this.setFirstDocumentRef(ref)}
-                    key={document.id}
-                    document={document}
-                    highlight={this.query}
-                    context={result.context}
-                    showCollection
-                    showTemplate
-                  />
-                );
-              })}
-            </StyledArrowKeyNavigation>
-            {this.allowLoadMore && (
-              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-            )}
-          </ResultList>
-        </ResultsWrapper>
-      </Container>
-    );
-  }
+              return (
+                <DocumentListItem
+                  ref={(ref) => index === 0 && setFirstDocumentRef(ref)}
+                  key={document.id}
+                  document={document}
+                  highlight={query}
+                  context={result.context}
+                  showCollection
+                  showTemplate
+                />
+              );
+            })}
+          </StyledArrowKeyNavigation>
+          {allowLoadMore && <Waypoint key={offset} onEnter={loadMoreResults} />}
+        </ResultList>
+      </ResultsWrapper>
+    </Container>
+  );
 }
 
 const Wrapper = styled(Flex)`
@@ -434,6 +432,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()<Search>(
-  withRouter(inject("documents")(Search))
-);
+export default observer(Search);
