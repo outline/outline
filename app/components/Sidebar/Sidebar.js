@@ -13,7 +13,6 @@ import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
-let firstRender = true;
 let ANIMATION_MS = 250;
 
 type Props = {|
@@ -149,7 +148,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
       [width, theme.sidebarCollapsedWidth, collapsed]
     );
 
-    const content = (
+    return (
       <>
         <Container
           ref={ref}
@@ -193,14 +192,6 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
         )}
       </>
     );
-
-    // Fade in the sidebar on first render after page load
-    if (firstRender) {
-      firstRender = false;
-      return <Fade>{content}</Fade>;
-    }
-
-    return content;
   }
 );
 

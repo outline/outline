@@ -10703,17 +10703,17 @@ react-color@^2.17.3:
     reactcss "^1.2.0"
     tinycolor2 "^1.4.1"
 
-react-dnd-html5-backend@12.1.0:
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/react-dnd-html5-backend/-/react-dnd-html5-backend-12.1.0.tgz#3476e7524a1725d2527e3ed4ec0b448cb06d6307"
-  integrity sha512-4ZFj90YDzdxJaGIgiWm4M2ozt+yK1rEQDtWFLfeij4MXuUgM23ygr+DY0jDf0r2U3NOMW0SQM4K9Q5EERaXIwg==
+react-dnd-html5-backend@^12.1.1:
+  version "12.1.1"
+  resolved "https://registry.yarnpkg.com/react-dnd-html5-backend/-/react-dnd-html5-backend-12.1.1.tgz#73aa9043f5a2da5b192503593d620d30c0bd7348"
+  integrity sha512-cQZgfuSGQEwHdvdoPtfUOvcrS8rye/V0hU046LjY/BLSgcrdjtQVviE2d/81QQaeJpvK00JizctsZqVY7IvHgA==
   dependencies:
     dnd-core "12.0.1"
 
-react-dnd@^13.0.0:
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/react-dnd/-/react-dnd-13.0.0.tgz#f30a72de4c3d70fb79f62d2590599516d3197264"
-  integrity sha512-Ou8Za/ZW9pn5RCkR3/5ptPxipyCq8ATR9lE0nwcVqO4WmTWOOV+IFwbikQdvKf03AGkMmvKgSkNE6htPjme4Vw==
+react-dnd@^13.1.1:
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/react-dnd/-/react-dnd-13.1.1.tgz#ea6d3f15cccf542a3ebfb978c097b2e3b1d1c962"
+  integrity sha512-oxQW8846omV1l3Pm2zY/atvNxryx+blW1rxnSmoGvFMgmxXpOHulaXrlXgxRH+OLRvLt2cfVTSxZ4ykbzBypaw==
   dependencies:
     "@react-dnd/invariant" "^2.0.0"
     "@react-dnd/shallowequal" "^2.0.0"
