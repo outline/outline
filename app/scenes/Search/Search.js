@@ -62,49 +62,29 @@ function Search({ notFound }: Props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [pinToTop, setPinToTop] = React.useState(!!match.params.term);
 
-  const locationSearchRef = React.useRef(location.search);
-  const matchParamsTermRef = React.useRef(match.params.term);
+  const collectionId = params.get("collectionId") || undefined;
+  const dateFilter = params.get("dateFilter") || undefined;
+  const userId = params.get("userId") || undefined;
+  const includeArchived = params.get("includeArchived") === "true";
 
-  const [results, setResults] = React.useState([]);
-  const [showEmpty] = React.useState(
-    !isLoading && query && results.length === 0
-  );
-  const [showShortcutTip] = React.useState(
-    !pinToTop && location.state && location.state.fromMenu
-  );
-
-  const collectionId = React.useCallback(() => {
-    const id = params.get("collectionId");
-    return id ? id : undefined;
-  }, [params]);
-
-  const dateFilter = React.useCallback(() => {
-    const id = params.get("dateFilter");
-    return id ? id : undefined;
-  }, [params]);
-
-  const userId = React.useCallback(() => {
-    const id = params.get("userId");
-    return id ? id : undefined;
-  }, [params]);
-
-  const includeArchived = React.useCallback(() => {
-    return params.get("includeArchived") === "true";
-  }, [params]);
+  const results = documents.searchResults(query);
+  const showEmpty = !isLoading && query && results.length === 0;
+  const showShortcutTip =
+    !pinToTop && location.state && location.state.fromMenu;
 
   const fetchResults = React.useCallback(async () => {
     if (query) {
       const params = {
         offset: offset,
         limit: DEFAULT_PAGINATION_LIMIT,
-        dateFilter: dateFilter(),
-        includeArchived: includeArchived(),
+        dateFilter: dateFilter,
+        includeArchived: includeArchived,
         includeDrafts: true,
-        collectionId: collectionId(),
-        userId: userId(),
+        collectionId: collectionId,
+        userId: userId,
       };
 
-      // we just requested this thing – no need to try again
+      // we just request  ed this thing – no need to try again
       if (lastQuery === query && isEqual(params, lastParams)) {
         setIsLoading(false);
         return;
@@ -115,8 +95,7 @@ function Search({ notFound }: Props) {
       lastParams.current = params;
 
       try {
-        setResults(await documents.search(query, params));
-
+        const results = await documents.search(query, params);
         setPinToTop(true);
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
@@ -142,13 +121,16 @@ function Search({ notFound }: Props) {
     includeArchived,
     offset,
     query,
-    results.length,
   ]);
 
-  const fetchResultsDebounced = debounce(fetchResults, 500, {
-    leading: false,
-    trailing: true,
-  });
+  const fetchResultsDebounced = React.useCallback(
+    () =>
+      debounce(fetchResults, 500, {
+        leading: false,
+        trailing: true,
+      }),
+    [fetchResults]
+  );
 
   const handleQueryChange = React.useCallback(() => {
     setParams(new URLSearchParams(location.search));
@@ -174,18 +156,12 @@ function Search({ notFound }: Props) {
   }, [match.params.term, fetchResultsDebounced]);
 
   React.useEffect(() => {
-    if (locationSearchRef.current !== location.search) {
-      handleQueryChange();
-      locationSearchRef.current = location.search;
-    }
-  }, [handleQueryChange, location.search, locationSearchRef]);
+    handleQueryChange();
+  }, [handleQueryChange]);
 
   React.useEffect(() => {
-    if (matchParamsTermRef.current !== match.params.term) {
-      handleTermChange();
-      matchParamsTermRef.current = match.params.term;
-    }
-  }, [handleTermChange, match.params.term]);
+    handleTermChange();
+  }, [handleTermChange]);
 
   useHotkeys("esc", () => {
     history.goBack();
@@ -233,20 +209,12 @@ function Search({ notFound }: Props) {
   );
 
   const handleNewDoc = React.useCallback(() => {
-    if (collectionId()) {
+    if (collectionId) {
       history.push(newDocumentUrl(collectionId));
     }
   }, [collectionId, history]);
 
-  // const isFiltered = React.useCallback(() => {
-  //   return dateFilter() || userId() || collectionId() || includeArchived();
-  // }, [collectionId, dateFilter, userId, includeArchived]);
-
-  const title = React.useCallback(() => {
-    const title = t("Search");
-    if (query) return `${query} – ${title}`;
-    return title;
-  }, [query, t]);
+  const title = query ? `${query} – ${t("Search")}` : t("Search");
 
   const loadMoreResults = React.useCallback(async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
@@ -272,7 +240,7 @@ function Search({ notFound }: Props) {
 
   return (
     <Container auto>
-      <PageTitle title={title()} />
+      <PageTitle title={title} />
       {isLoading && <LoadingIndicator />}
       {notFound && (
         <div>
@@ -303,21 +271,21 @@ function Search({ notFound }: Props) {
         {pinToTop && (
           <Filters>
             <StatusFilter
-              includeArchived={includeArchived()}
+              includeArchived={includeArchived}
               onSelect={(includeArchived) =>
                 handleFilterChange({ includeArchived })
               }
             />
             <CollectionFilter
-              collectionId={collectionId()}
+              collectionId={collectionId}
               onSelect={(collectionId) => handleFilterChange({ collectionId })}
             />
             <UserFilter
-              userId={userId()}
+              userId={userId}
               onSelect={(userId) => handleFilterChange({ userId })}
             />
             <DateFilter
-              dateFilter={dateFilter()}
+              dateFilter={dateFilter}
               onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
             />
           </Filters>
@@ -332,7 +300,7 @@ function Search({ notFound }: Props) {
                 </Trans>
               </HelpText>
               <Wrapper>
-                {collectionId() ? (
+                {collectionId ? (
                   <Button onClick={handleNewDoc} icon={<PlusIcon />} primary>
                     {t("New doc")}
                   </Button>
