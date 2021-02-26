@@ -147,7 +147,6 @@
     "react-helmet": "^5.2.0",
     "react-hotkeys-hook": "^3.1.0",
     "react-i18next": "^11.7.3",
-    "react-keydown": "^1.7.3",
     "react-modal": "^3.1.2",
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.2.0",
