@@ -1,17 +1,12 @@
 // @flow
 import { debounce } from "lodash";
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { InputIcon } from "outline-icons";
 import * as React from "react";
-import keydown from "react-keydown";
-import { Prompt, Route, withRouter } from "react-router-dom";
-import type { RouterHistory, Match } from "react-router-dom";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useHistory, useRouteMatch, Route, Prompt } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
 import Branding from "components/Branding";
@@ -30,7 +25,8 @@ import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
-import { type LocationWithState, type Theme } from "types";
+import useStores from "hooks/useStores";
+import { type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import { meta } from "utils/keyboard";
@@ -54,9 +50,6 @@ Are you sure you want to discard them?
 `;
 
 type Props = {
-  match: Match,
-  history: RouterHistory,
-  location: LocationWithState,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -64,147 +57,174 @@ type Props = {
   onCreateLink: (title: string) => Promise<string>,
   onSearchLink: (term: string) => any,
   theme: Theme,
-  auth: AuthStore,
-  ui: UiStore,
 };
 
-@observer
-class DocumentScene extends React.Component<Props> {
-  @observable editor = React.createRef();
-  @observable isUploading: boolean = false;
-  @observable isSaving: boolean = false;
-  @observable isPublishing: boolean = false;
-  @observable isDirty: boolean = false;
-  @observable isEmpty: boolean = true;
-  @observable moveModalOpen: boolean = false;
-  @observable lastRevision: number = this.props.document.revision;
-  @observable title: string = this.props.document.title;
-  getEditorText: () => string = () => this.props.document.text;
+function DocumentScene({
+  document,
+  revision,
+  abilities,
+  readOnly,
+  onCreateLink,
+  onSearchLink,
+  theme,
+}: Props) {
+  const match = useRouteMatch();
+  const history = useHistory();
 
-  componentDidUpdate(prevProps) {
-    const { auth, document } = this.props;
+  const { auth, ui } = useStores();
+  const editor = React.useRef();
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isPublishing, setIsPublishing] = React.useState(false);
+  const [isDirty, setIsDirty] = React.useState(false);
+  const [isEmpty, setIsEmpty] = React.useState(true);
 
-    if (prevProps.readOnly && !this.props.readOnly) {
-      this.updateIsDirty();
+  const [lastRevision, setLastRevision] = React.useState(document.revision);
+  const [title, setTitle] = React.useState(document.title);
+
+  const [editorText, setEditorText] = React.useState(document.text);
+
+  const team = auth.team;
+  const isShare = !!match.params.shareId;
+
+  const value = revision ? revision.text : document.text;
+  const injectTemplate = document.injectTemplate;
+  const disableEmbeds =
+    (team && team.documentEmbeds === false) || document.embedsDisabled;
+
+  const headings = editor.current ? editor.current.getHeadings() : [];
+  const showContents =
+    (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+
+  const updateIsDirty = React.useCallback(() => {
+    const trimmedEditorText = editorText.trim();
+    const titleChanged = title !== document.title;
+    const bodyChanged = editorText !== document.text.trim();
+
+    // a single hash is a doc with just an empty title
+    setIsEmpty((!trimmedEditorText || trimmedEditorText === "#") && !title);
+    setIsDirty(bodyChanged || titleChanged);
+  }, [document.text, document.title, editorText, title]);
+
+  React.useEffect(() => {
+    if (!readOnly) {
+      updateIsDirty();
     }
+    if (readOnly) {
+      setLastRevision(document.revision);
 
-    if (this.props.readOnly) {
-      this.lastRevision = document.revision;
-
-      if (document.title !== this.title) {
-        this.title = document.title;
+      if (document.title !== title) {
+        setTitle(document.title);
       }
-    } else if (prevProps.document.revision !== this.lastRevision) {
+    } else {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
-        this.props.ui.showToast(
-          `Document updated by ${document.updatedBy.name}`,
-          {
-            timeout: 30 * 1000,
-            type: "warning",
-            action: {
-              text: "Reload",
-              onClick: () => {
-                window.location.href = documentUrl(document);
-              },
+        ui.showToast(`Document updated by ${document.updatedBy.name}`, {
+          timeout: 30 * 1000,
+          type: "warning",
+          action: {
+            text: "Reload",
+            onClick: () => {
+              window.location.href = documentUrl(document);
             },
-          }
-        );
+          },
+        });
       }
     }
 
     if (document.injectTemplate) {
       document.injectTemplate = false;
-      this.title = document.title;
-      this.isDirty = true;
+      setTitle(document.title);
+      setIsDirty(true);
     }
-  }
+  }, [
+    document.revision,
+    auth.user,
+    document,
+    readOnly,
+    title,
+    ui,
+    updateIsDirty,
+  ]);
 
-  @keydown("m")
-  goToMove(ev) {
-    if (!this.props.readOnly) return;
-
+  const goToMove = (ev) => {
+    if (!readOnly) return;
     ev.preventDefault();
-    const { document, abilities } = this.props;
 
     if (abilities.move) {
-      this.props.history.push(documentMoveUrl(document));
+      history.push(documentMoveUrl(document));
     }
-  }
+  };
 
-  @keydown("e")
-  goToEdit(ev) {
-    if (!this.props.readOnly) return;
+  const goToEdit = (ev) => {
+    if (!readOnly) return;
 
     ev.preventDefault();
-    const { document, abilities } = this.props;
 
     if (abilities.update) {
-      this.props.history.push(editDocumentUrl(document));
+      history.push(editDocumentUrl(document));
     }
-  }
+  };
 
-  @keydown("esc")
-  goBack(ev) {
-    if (this.props.readOnly) return;
-
-    ev.preventDefault();
-    this.props.history.goBack();
-  }
-
-  @keydown("h")
-  goToHistory(ev) {
-    if (!this.props.readOnly) return;
+  const goBack = (ev) => {
+    if (readOnly) return;
 
     ev.preventDefault();
-    const { document, revision } = this.props;
+    history.goBack();
+  };
+
+  const goToHistory = (ev) => {
+    if (!readOnly) return;
+
+    ev.preventDefault();
 
     if (revision) {
-      this.props.history.push(document.url);
+      history.push(document.url);
     } else {
-      this.props.history.push(documentHistoryUrl(document));
+      history.push(documentHistoryUrl(document));
     }
-  }
+  };
 
-  @keydown(`${meta}+shift+p`)
-  onPublish(ev) {
+  const onPublish = async (ev) => {
     ev.preventDefault();
-    const { document } = this.props;
     if (document.publishedAt) return;
-    this.onSave({ publish: true, done: true });
-  }
+    await onSave({ publish: true, done: true });
+  };
 
-  @keydown(`${meta}+ctrl+h`)
-  onToggleTableOfContents(ev) {
-    if (!this.props.readOnly) return;
+  const onToggleTableOfContents = (ev) => {
+    if (!readOnly) return;
 
     ev.preventDefault();
-    const { ui } = this.props;
 
     if (ui.tocVisible) {
       ui.hideTableOfContents();
     } else {
       ui.showTableOfContents();
     }
-  }
+  };
 
-  handleCloseMoveModal = () => (this.moveModalOpen = false);
-  handleOpenMoveModal = () => (this.moveModalOpen = true);
+  useHotkeys("m", goToMove);
+  useHotkeys("e", goToEdit);
 
-  onSave = async (
+  useHotkeys("esc", goBack);
+
+  useHotkeys("h", goToHistory);
+
+  useHotkeys(`${meta}+shift+p`, onPublish);
+
+  useHotkeys(`${meta}+ctrl+h`, onToggleTableOfContents);
+
+  const onSave = async (
     options: {
       done?: boolean,
       publish?: boolean,
       autosave?: boolean,
     } = {}
   ) => {
-    const { document } = this.props;
-
     // prevent saves when we are already saving
     if (document.isSaving) return;
 
     // get the latest version of the editor text value
-    const text = this.getEditorText ? this.getEditorText() : document.text;
-    const title = this.title;
+    const text = editorText ? editorText : document.text;
 
     // prevent save before anything has been written (single hash is empty doc)
     if (text.trim() === "" && title.trim === "") return;
@@ -221,242 +241,209 @@ class DocumentScene extends React.Component<Props> {
     document.text = text;
 
     let isNew = !document.id;
-    this.isSaving = true;
-    this.isPublishing = !!options.publish;
+    setIsSaving(true);
+    setIsPublishing(!!options.publish);
 
     try {
       const savedDocument = await document.save({
         ...options,
-        lastRevision: this.lastRevision,
+        lastRevision: lastRevision,
       });
-      this.isDirty = false;
-      this.lastRevision = savedDocument.revision;
+      setIsDirty(false);
+      setLastRevision(savedDocument.revision);
 
       if (options.done) {
-        this.props.history.push(savedDocument.url);
-        this.props.ui.setActiveDocument(savedDocument);
+        history.push(savedDocument.url);
+        ui.setActiveDocument(savedDocument);
       } else if (isNew) {
-        this.props.history.push(editDocumentUrl(savedDocument));
-        this.props.ui.setActiveDocument(savedDocument);
+        history.push(editDocumentUrl(savedDocument));
+        ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      ui.showToast(err.message, { type: "error" });
     } finally {
-      this.isSaving = false;
-      this.isPublishing = false;
+      setIsSaving(false);
+      setIsPublishing(false);
     }
   };
 
-  autosave = debounce(() => {
-    this.onSave({ done: false, autosave: true });
+  const autosave = debounce(async () => {
+    await onSave({ done: false, autosave: true });
   }, AUTOSAVE_DELAY);
 
-  updateIsDirty = () => {
-    const { document } = this.props;
-    const editorText = this.getEditorText().trim();
-    const titleChanged = this.title !== document.title;
-    const bodyChanged = editorText !== document.text.trim();
+  const updateIsDirtyDebounced = debounce(updateIsDirty, IS_DIRTY_DELAY);
 
-    // a single hash is a doc with just an empty title
-    this.isEmpty = (!editorText || editorText === "#") && !this.title;
-    this.isDirty = bodyChanged || titleChanged;
+  const onImageUploadStart = () => {
+    setIsUploading(true);
   };
 
-  updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
-
-  onImageUploadStart = () => {
-    this.isUploading = true;
+  const onImageUploadStop = () => {
+    setIsUploading(false);
   };
 
-  onImageUploadStop = () => {
-    this.isUploading = false;
-  };
-
-  onChange = (getEditorText) => {
-    this.getEditorText = getEditorText;
+  const onChange = async (getEditorText) => {
+    setEditorText(getEditorText);
 
     // document change while read only is presumed to be a checkbox edit,
     // in that case we don't delay in saving for a better user experience.
-    if (this.props.readOnly) {
-      this.updateIsDirty();
-      this.onSave({ done: false, autosave: true });
+    if (readOnly) {
+      updateIsDirty();
+      await onSave({ done: false, autosave: true });
     } else {
-      this.updateIsDirtyDebounced();
-      this.autosave();
+      updateIsDirtyDebounced();
+      await autosave();
     }
   };
 
-  onChangeTitle = (event) => {
-    this.title = event.target.value;
-    this.updateIsDirtyDebounced();
-    this.autosave();
+  const onChangeTitle = async (event) => {
+    setTitle(event.target.value);
+    updateIsDirtyDebounced();
+    await autosave();
   };
 
-  goBack = () => {
+  const goBackForDocumentMove = () => {
     let url;
-    if (this.props.document.url) {
-      url = this.props.document.url;
-    } else if (this.props.match.params.id) {
-      url = collectionUrl(this.props.match.params.id);
+    if (document.url) {
+      url = document.url;
+    } else if (match.params.id) {
+      url = collectionUrl(match.params.id);
     }
     if (url) {
-      this.props.history.push(url);
+      history.push(url);
     }
   };
 
-  render() {
-    const {
-      document,
-      revision,
-      readOnly,
-      abilities,
-      auth,
-      ui,
-      match,
-    } = this.props;
-    const team = auth.team;
-    const isShare = !!match.params.shareId;
+  return (
+    <ErrorBoundary>
+      <Background
+        key={revision ? revision.id : document.id}
+        isShare={isShare}
+        column
+        auto
+      >
+        <Route
+          path={`${match.url}/move`}
+          component={() => (
+            <DocumentMove
+              document={document}
+              onRequestClose={goBackForDocumentMove}
+            />
+          )}
+        />
+        <PageTitle
+          title={document.titleWithDefault.replace(document.emoji, "")}
+          favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
+        />
+        {(isUploading || isSaving) && <LoadingIndicator />}
 
-    const value = revision ? revision.text : document.text;
-    const injectTemplate = document.injectTemplate;
-    const disableEmbeds =
-      (team && team.documentEmbeds === false) || document.embedsDisabled;
-
-    const headings = this.editor.current
-      ? this.editor.current.getHeadings()
-      : [];
-    const showContents =
-      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
-
-    return (
-      <ErrorBoundary>
-        <Background
-          key={revision ? revision.id : document.id}
-          isShare={isShare}
-          column
-          auto
-        >
-          <Route
-            path={`${match.url}/move`}
-            component={() => (
-              <DocumentMove document={document} onRequestClose={this.goBack} />
-            )}
-          />
-          <PageTitle
-            title={document.titleWithDefault.replace(document.emoji, "")}
-            favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
-          />
-          {(this.isUploading || this.isSaving) && <LoadingIndicator />}
-
-          <Container justify="center" column auto>
-            {!readOnly && (
-              <>
-                <Prompt
-                  when={this.isDirty && !this.isUploading}
-                  message={DISCARD_CHANGES}
-                />
-                <Prompt
-                  when={this.isUploading && !this.isDirty}
-                  message={UPLOADING_WARNING}
-                />
-              </>
-            )}
-            {!isShare && (
-              <Header
-                document={document}
-                isRevision={!!revision}
-                isDraft={document.isDraft}
-                isEditing={!readOnly}
-                isSaving={this.isSaving}
-                isPublishing={this.isPublishing}
-                publishingIsDisabled={
-                  document.isSaving || this.isPublishing || this.isEmpty
-                }
-                savingIsDisabled={document.isSaving || this.isEmpty}
-                goBack={this.goBack}
-                onSave={this.onSave}
+        <Container justify="center" column auto>
+          {!readOnly && (
+            <>
+              <Prompt
+                when={isDirty && !isUploading}
+                message={DISCARD_CHANGES}
               />
+              <Prompt
+                when={isUploading && !isDirty}
+                message={UPLOADING_WARNING}
+              />
+            </>
+          )}
+          {!isShare && (
+            <Header
+              document={document}
+              isRevision={!!revision}
+              isDraft={document.isDraft}
+              isEditing={!readOnly}
+              isSaving={isSaving}
+              isPublishing={isPublishing}
+              publishingIsDisabled={
+                document.isSaving || isPublishing || isEmpty
+              }
+              savingIsDisabled={document.isSaving || isEmpty}
+              goBack={goBack}
+              onSave={onSave}
+            />
+          )}
+          <MaxWidth
+            archived={document.isArchived}
+            showContents={showContents}
+            column
+            auto
+          >
+            {document.isTemplate && !readOnly && (
+              <Notice muted>
+                You’re editing a template. Highlight some text and use the{" "}
+                <PlaceholderIcon color="currentColor" /> control to add
+                placeholders that can be filled out when creating new documents
+                from this template.
+              </Notice>
             )}
-            <MaxWidth
-              archived={document.isArchived}
-              showContents={showContents}
-              column
-              auto
-            >
-              {document.isTemplate && !readOnly && (
-                <Notice muted>
-                  You’re editing a template. Highlight some text and use the{" "}
-                  <PlaceholderIcon color="currentColor" /> control to add
-                  placeholders that can be filled out when creating new
-                  documents from this template.
-                </Notice>
-              )}
-              {document.archivedAt && !document.deletedAt && (
-                <Notice muted>
-                  Archived by {document.updatedBy.name}{" "}
-                  <Time dateTime={document.archivedAt} /> ago
-                </Notice>
-              )}
-              {document.deletedAt && (
-                <Notice muted>
-                  Deleted by {document.updatedBy.name}{" "}
-                  <Time dateTime={document.deletedAt} /> ago
-                  {document.permanentlyDeletedAt && (
-                    <>
-                      <br />
-                      This {document.noun} will be permanently deleted in{" "}
-                      <Time dateTime={document.permanentlyDeletedAt} /> unless
-                      restored.
-                    </>
-                  )}
-                </Notice>
-              )}
-              <React.Suspense fallback={<LoadingPlaceholder />}>
-                <Flex auto={!readOnly}>
-                  {showContents && <Contents headings={headings} />}
-                  <Editor
-                    id={document.id}
-                    innerRef={this.editor}
-                    isShare={isShare}
-                    isDraft={document.isDraft}
-                    template={document.isTemplate}
-                    key={[injectTemplate, disableEmbeds].join("-")}
-                    title={revision ? revision.title : this.title}
-                    document={document}
-                    value={readOnly ? value : undefined}
-                    defaultValue={value}
-                    disableEmbeds={disableEmbeds}
-                    onImageUploadStart={this.onImageUploadStart}
-                    onImageUploadStop={this.onImageUploadStop}
-                    onSearchLink={this.props.onSearchLink}
-                    onCreateLink={this.props.onCreateLink}
-                    onChangeTitle={this.onChangeTitle}
-                    onChange={this.onChange}
-                    onSave={this.onSave}
-                    onPublish={this.onPublish}
-                    onCancel={this.goBack}
-                    readOnly={readOnly}
-                    readOnlyWriteCheckboxes={readOnly && abilities.update}
-                    ui={this.props.ui}
-                  />
-                </Flex>
-                {!isShare && !revision && (
+            {document.archivedAt && !document.deletedAt && (
+              <Notice muted>
+                Archived by {document.updatedBy.name}{" "}
+                <Time dateTime={document.archivedAt} /> ago
+              </Notice>
+            )}
+            {document.deletedAt && (
+              <Notice muted>
+                Deleted by {document.updatedBy.name}{" "}
+                <Time dateTime={document.deletedAt} /> ago
+                {document.permanentlyDeletedAt && (
                   <>
-                    <MarkAsViewed document={document} />
-                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                      <References document={document} />
-                    </ReferencesWrapper>
+                    <br />
+                    This {document.noun} will be permanently deleted in{" "}
+                    <Time dateTime={document.permanentlyDeletedAt} /> unless
+                    restored.
                   </>
                 )}
-              </React.Suspense>
-            </MaxWidth>
-          </Container>
-        </Background>
-        {isShare && !isCustomDomain() && <Branding />}
-        {!isShare && <KeyboardShortcutsButton />}
-      </ErrorBoundary>
-    );
-  }
+              </Notice>
+            )}
+            <React.Suspense fallback={<LoadingPlaceholder />}>
+              <Flex auto={!readOnly}>
+                {showContents && <Contents headings={headings} />}
+                <Editor
+                  id={document.id}
+                  innerRef={editor}
+                  isShare={isShare}
+                  isDraft={document.isDraft}
+                  template={document.isTemplate}
+                  key={[injectTemplate, disableEmbeds].join("-")}
+                  title={revision ? revision.title : title}
+                  document={document}
+                  value={readOnly ? value : undefined}
+                  defaultValue={value}
+                  disableEmbeds={disableEmbeds}
+                  onImageUploadStart={onImageUploadStart}
+                  onImageUploadStop={onImageUploadStop}
+                  onSearchLink={onSearchLink}
+                  onCreateLink={onCreateLink}
+                  onChangeTitle={onChangeTitle}
+                  onChange={onChange}
+                  onSave={onSave}
+                  onPublish={onPublish}
+                  onCancel={goBack}
+                  readOnly={readOnly}
+                  readOnlyWriteCheckboxes={readOnly && abilities.update}
+                  ui={ui}
+                />
+              </Flex>
+              {!isShare && !revision && (
+                <>
+                  <MarkAsViewed document={document} />
+                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                    <References document={document} />
+                  </ReferencesWrapper>
+                </>
+              )}
+            </React.Suspense>
+          </MaxWidth>
+        </Container>
+      </Background>
+      {isShare && !isCustomDomain() && <Branding />}
+      {!isShare && <KeyboardShortcutsButton />}
+    </ErrorBoundary>
+  );
 }
 
 const PlaceholderIcon = styled(InputIcon)`
@@ -496,6 +483,4 @@ const MaxWidth = styled(Flex)`
   `};
 `;
 
-export default withRouter(
-  inject("ui", "auth", "policies", "revisions")(DocumentScene)
-);
+export default observer(DocumentScene);
