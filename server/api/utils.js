@@ -3,19 +3,88 @@ import subDays from "date-fns/sub_days";
 import debug from "debug";
 import Router from "koa-router";
 import { AuthenticationError } from "../errors";
-import { Document, Attachment } from "../models";
+import {
+  Document,
+  Team,
+  User,
+  AuthenticationProvider,
+  UserAuthenticationProvider,
+  Attachment,
+} from "../models";
 import { Op, sequelize } from "../sequelize";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 
 const router = new Router();
 const log = debug("utils");
 
-router.post("utils.gc", async (ctx) => {
-  const { token, limit = 500 } = ctx.body;
+function authMiddleware(ctx, next: () => Promise<*>) {
+  const { token } = ctx.body;
 
   if (process.env.UTILS_SECRET !== token) {
     throw new AuthenticationError("Invalid secret token");
   }
+
+  return next();
+}
+
+router.post("utils.migrateAuthentication", authMiddleware, async (ctx) => {
+  log("Migrating authentication data…");
+  let page = 0;
+  let limit = 1000;
+
+  // TODO: Batch 1000+
+  const users = await User.findAll({
+    limit,
+    offset: page * limit,
+    paranoid: false,
+    where: {
+      serviceId: {
+        [Op.ne]: "email",
+      },
+    },
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+        paranoid: false,
+      },
+    ],
+  });
+
+  for (const user of users) {
+    for (const service of ["slack", "google"]) {
+      const serviceId = user.team[`${service}Id`];
+      if (!serviceId) {
+        continue;
+      }
+
+      const [
+        authenticationProvider,
+      ] = await AuthenticationProvider.findOrCreate({
+        where: {
+          name: service,
+          serviceId,
+          teamId: user.teamId,
+        },
+      });
+
+      await UserAuthenticationProvider.create({
+        authenticationProviderId: authenticationProvider.id,
+        serviceId: user.serviceId,
+        teamId: user.teamId,
+        userId: user.id,
+      });
+    }
+  }
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post("utils.gc", authMiddleware, async (ctx) => {
+  const { limit = 500 } = ctx.body;
 
   log(`Permanently destroying upto ${limit} documents older than 30 days…`);
 

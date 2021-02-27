@@ -14,6 +14,7 @@ module.exports = {
       },
       serviceId: {
         type: Sequelize.STRING,
+        unique: true,
         allowNull: false,
       },
       teamId: {
@@ -51,6 +52,7 @@ module.exports = {
       },
       serviceId: {
         type: Sequelize.STRING,
+        unique: true,
         allowNull: false,
       },
       createdAt: {
@@ -61,6 +63,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("authentication_providers");
+    await queryInterface.dropTable("user_authentication_providers");
+    await queryInterface.dropTable("authentication_providers");
   }
 };
