@@ -50,12 +50,28 @@ module.exports = {
           model: "authentication_providers"
         }
       },
+      accessToken: {
+        type: Sequelize.BLOB,
+        allowNull: true,
+      },
+      refreshToken: {
+        type: Sequelize.BLOB,
+        allowNull: true,
+      },
+      scopes: {
+        type: Sequelize.ARRAY(Sequelize.STRING),
+        allowNull: true,
+      },
       serviceId: {
         type: Sequelize.STRING,
         unique: true,
         allowNull: false,
       },
       createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
       },

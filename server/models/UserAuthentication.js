@@ -1,23 +1,20 @@
 // @flow
-import { DataTypes, sequelize } from "../sequelize";
+import { DataTypes, sequelize, encryptedFields } from "../sequelize";
 
-const UserAuthentication = sequelize.define(
-  "user_authentications",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    serviceId: {
-      type: DataTypes.STRING,
-    },
+const UserAuthentication = sequelize.define("user_authentications", {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
   },
-  {
-    timestamps: true,
-    updatedAt: false,
-  }
-);
+  scopes: DataTypes.ARRAY(DataTypes.STRING),
+  accessToken: encryptedFields().vault("accessToken"),
+  refreshToken: encryptedFields().vault("refreshToken"),
+  serviceId: {
+    type: DataTypes.STRING,
+    unique: true,
+  },
+});
 
 UserAuthentication.associate = (models) => {
   UserAuthentication.belongsTo(models.AuthenticationProvider);
