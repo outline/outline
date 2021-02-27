@@ -8,7 +8,7 @@ import {
   Team,
   User,
   AuthenticationProvider,
-  UserAuthenticationProvider,
+  UserAuthentication,
   Attachment,
 } from "../models";
 import { Op, sequelize } from "../sequelize";
@@ -31,9 +31,9 @@ router.post("utils.migrateAuthentication", authMiddleware, async (ctx) => {
   let { page = 0, limit = 1000 } = ctx.body;
   const cache = {};
 
-  log("Migrating authentication data…");
-
   const process = async (page: number) => {
+    log(`Migrating authentication data… page ${page}`);
+
     const users = await User.findAll({
       limit,
       offset: page * limit,
@@ -77,7 +77,7 @@ router.post("utils.migrateAuthentication", authMiddleware, async (ctx) => {
         }
 
         try {
-          await UserAuthenticationProvider.create({
+          await UserAuthentication.create({
             authenticationProviderId,
             serviceId: user.serviceId,
             teamId: user.teamId,

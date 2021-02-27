@@ -30,7 +30,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.createTable("user_authentication_providers", {
+    await queryInterface.createTable("user_authentications", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -63,7 +63,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("user_authentication_providers");
+    await queryInterface.dropTable("user_authentications");
     await queryInterface.dropTable("authentication_providers");
   }
 };

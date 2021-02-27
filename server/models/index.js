@@ -20,7 +20,7 @@ import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
-import UserAuthenticationProvider from "./UserAuthenticationProvider";
+import UserAuthentication from "./UserAuthentication";
 import View from "./View";
 
 const models = {
@@ -45,7 +45,7 @@ const models = {
   Star,
   Team,
   User,
-  UserAuthenticationProvider,
+  UserAuthentication,
   View,
 };
 
@@ -78,6 +78,6 @@ export {
   Star,
   Team,
   User,
-  UserAuthenticationProvider,
+  UserAuthentication,
   View,
 };
