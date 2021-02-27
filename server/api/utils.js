@@ -28,55 +28,74 @@ function authMiddleware(ctx, next: () => Promise<*>) {
 }
 
 router.post("utils.migrateAuthentication", authMiddleware, async (ctx) => {
+  let { page = 0, limit = 1000 } = ctx.body;
+  const cache = {};
+
   log("Migrating authentication data…");
-  let page = 0;
-  let limit = 1000;
 
-  // TODO: Batch 1000+
-  const users = await User.findAll({
-    limit,
-    offset: page * limit,
-    paranoid: false,
-    where: {
-      serviceId: {
-        [Op.ne]: "email",
-      },
-    },
-    include: [
-      {
-        model: Team,
-        as: "team",
-        required: true,
-        paranoid: false,
-      },
-    ],
-  });
-
-  for (const user of users) {
-    for (const service of ["slack", "google"]) {
-      const serviceId = user.team[`${service}Id`];
-      if (!serviceId) {
-        continue;
-      }
-
-      const [
-        authenticationProvider,
-      ] = await AuthenticationProvider.findOrCreate({
-        where: {
-          name: service,
-          serviceId,
-          teamId: user.teamId,
+  const process = async (page: number) => {
+    const users = await User.findAll({
+      limit,
+      offset: page * limit,
+      paranoid: false,
+      where: {
+        serviceId: {
+          [Op.ne]: "email",
         },
-      });
+      },
+      include: [
+        {
+          model: Team,
+          as: "team",
+          required: true,
+          paranoid: false,
+        },
+      ],
+    });
 
-      await UserAuthenticationProvider.create({
-        authenticationProviderId: authenticationProvider.id,
-        serviceId: user.serviceId,
-        teamId: user.teamId,
-        userId: user.id,
-      });
+    for (const user of users) {
+      for (const service of ["slack", "google"]) {
+        const serviceId = user.team[`${service}Id`];
+        if (!serviceId) {
+          continue;
+        }
+
+        let authenticationProviderId = cache[serviceId];
+        if (!authenticationProviderId) {
+          const [
+            authenticationProvider,
+          ] = await AuthenticationProvider.findOrCreate({
+            where: {
+              name: service,
+              serviceId,
+              teamId: user.teamId,
+            },
+          });
+
+          cache[serviceId] = authenticationProviderId =
+            authenticationProvider.id;
+        }
+
+        try {
+          await UserAuthenticationProvider.create({
+            authenticationProviderId,
+            serviceId: user.serviceId,
+            teamId: user.teamId,
+            userId: user.id,
+          });
+        } catch (err) {
+          console.log(
+            `serviceId ${user.serviceId} exists, for user ${user.id}`
+          );
+          continue;
+        }
+      }
     }
-  }
+
+    return users.length === limit ? process(page + 1) : undefined;
+  };
+
+  await process(page);
 
   ctx.body = {
     success: true,
