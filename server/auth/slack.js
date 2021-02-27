@@ -4,6 +4,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
+import teamCreator from "../commands/teamCreator";
 import auth from "../middlewares/authentication";
 import { Authentication, Collection, Integration, User, Team } from "../models";
 import * as Slack from "../slack";
@@ -43,13 +44,13 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
 
   let team, isFirstUser;
   try {
-    [team, isFirstUser] = await Team.findOrCreate({
-      where: {
-        slackId: data.team.id,
-      },
-      defaults: {
-        name: data.team.name,
-        avatarUrl: data.team.image_88,
+    [team, isFirstUser] = await teamCreator({
+      name: data.team.name,
+      domain: data.team.domain,
+      avatarUrl: data.team.image_88,
+      authenticationProvider: {
+        name: "slack",
+        serviceId: data.team.id,
       },
     });
   } catch (err) {
@@ -101,7 +102,6 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
 
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(data.team.domain);
     }
 
     // set cookies on response and redirect to team subdomain

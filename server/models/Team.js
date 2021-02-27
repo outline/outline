@@ -122,13 +122,13 @@ const uploadAvatar = async (model) => {
   }
 };
 
-Team.prototype.provisionSubdomain = async function (subdomain) {
+Team.prototype.provisionSubdomain = async function (subdomain, options = {}) {
   if (this.subdomain) return this.subdomain;
 
   let append = 0;
   while (true) {
     try {
-      await this.update({ subdomain });
+      await this.update({ subdomain }, options);
       break;
     } catch (err) {
       // subdomain was invalid or already used, try again
