@@ -81,9 +81,7 @@ export default async function userCreator({
       await invite.createAuthentication(authentication, { transaction });
       await transaction.commit();
     } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
+      await transaction.rollback();
       throw err;
     }
 
@@ -91,19 +89,27 @@ export default async function userCreator({
   }
 
   // No auth, no user – this is an entirely new sign in.
-  const user = await User.create(
-    {
-      name,
-      email,
-      isAdmin,
-      teamId,
-      avatarUrl,
-      authentications: [authentication],
-    },
-    {
-      include: "authentications",
-    }
-  );
+  let transaction = await sequelize.transaction();
 
-  return [user, true];
+  try {
+    const user = await User.create(
+      {
+        name,
+        email,
+        isAdmin,
+        teamId,
+        avatarUrl,
+        authentications: [authentication],
+      },
+      {
+        include: "authentications",
+        transaction,
+      }
+    );
+    await transaction.commit();
+    return [user, true];
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
+  }
 }

@@ -39,10 +39,8 @@ export default async function teamCreator({
   }
 
   // This team has never been seen before, time to create all the new stuff
-  let transaction;
+  let transaction = await sequelize.transaction();
   try {
-    transaction = await sequelize.transaction();
-
     let team = await Team.create(
       {
         name,
@@ -60,9 +58,7 @@ export default async function teamCreator({
 
     return [team, true];
   } catch (err) {
-    if (transaction) {
-      await transaction.rollback();
-    }
+    await transaction.rollback();
     throw err;
   }
 }
