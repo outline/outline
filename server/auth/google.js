@@ -1,5 +1,4 @@
 // @flow
-import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import invariant from "invariant";
 import Router from "koa-router";
@@ -55,29 +54,19 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
     return;
   }
 
-  const googleId = profile.data.hd;
+  const domain = profile.data.hd;
   const subdomain = profile.data.hd.split(".")[0];
   const teamName = capitalize(subdomain);
-
-  // attempt to get logo from Clearbit API. If one doesn't exist then
-  // fall back to using tiley to generate a placeholder logo
-  const hash = crypto.createHash("sha256");
-  hash.update(googleId);
-  const hashedGoogleId = hash.digest("hex");
-  const cbUrl = `https://logo.clearbit.com/${profile.data.hd}`;
-  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedGoogleId}/${teamName[0]}.png`;
-  const cbResponse = await fetch(cbUrl);
-  const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
 
   let team, isFirstUser;
   try {
     [team, isFirstUser] = await teamCreator({
       name: teamName,
+      domain,
       subdomain,
-      avatarUrl,
       authenticationProvider: {
         name: "google",
-        serviceId: googleId,
+        serviceId: domain,
       },
     });
   } catch (err) {
