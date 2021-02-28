@@ -47,7 +47,7 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
   try {
     [team, isFirstUser] = await teamCreator({
       name: data.team.name,
-      domain: data.team.domain,
+      subdomain: data.team.domain,
       avatarUrl: data.team.image_230,
       authenticationProvider: {
         name: "slack",

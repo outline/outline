@@ -4,18 +4,16 @@ import { sequelize } from "../sequelize";
 
 export default async function teamCreator({
   name,
-  domain,
+  subdomain,
   avatarUrl,
   authenticationProvider,
 }: {|
   name: string,
-  domain: string,
+  subdomain: string,
   avatarUrl: string,
   authenticationProvider: {|
     name: string,
     serviceId: string,
-    accessToken?: string,
-    refreshToken?: string,
   |},
 |}): Promise<[Team, boolean]> {
   let team = await Team.findOne({
@@ -57,7 +55,7 @@ export default async function teamCreator({
       }
     );
 
-    await team.provisionSubdomain(domain, { transaction });
+    await team.provisionSubdomain(subdomain, { transaction });
     await transaction.commit();
 
     return [team, true];

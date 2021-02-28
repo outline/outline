@@ -5,10 +5,10 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import Sequelize from "sequelize";
+import teamCreator from "../commands/teamCreator";
+import userCreator from "../commands/userCreator";
 import auth from "../middlewares/authentication";
-import { User, Team } from "../models";
-
-const Op = Sequelize.Op;
+import { User } from "../models";
 
 const router = new Router();
 const client = new OAuth2Client(
@@ -56,8 +56,8 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
   }
 
   const googleId = profile.data.hd;
-  const hostname = profile.data.hd.split(".")[0];
-  const teamName = capitalize(hostname);
+  const subdomain = profile.data.hd.split(".")[0];
+  const teamName = capitalize(subdomain);
 
   // attempt to get logo from Clearbit API. If one doesn't exist then
   // fall back to using tiley to generate a placeholder logo
@@ -71,65 +71,44 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
 
   let team, isFirstUser;
   try {
-    [team, isFirstUser] = await Team.findOrCreate({
-      where: {
-        googleId,
-      },
-      defaults: {
-        name: teamName,
-        avatarUrl,
+    [team, isFirstUser] = await teamCreator({
+      name: teamName,
+      subdomain,
+      avatarUrl,
+      authenticationProvider: {
+        name: "google",
+        serviceId: googleId,
       },
     });
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
-      ctx.redirect(`/?notice=auth-error`);
+      ctx.redirect(`/?notice=auth-error&error=team-exists`);
       return;
     }
   }
   invariant(team, "Team must exist");
 
+  const authenticationProvider = team.authenticationProviders[0];
+  invariant(authenticationProvider, "Team authenticationProvider must exist");
+
   try {
-    const [user, isFirstSignin] = await User.findOrCreate({
-      where: {
-        [Op.or]: [
-          {
-            service: "google",
-            serviceId: profile.data.id,
-          },
-          {
-            service: { [Op.eq]: null },
-            email: profile.data.email,
-          },
-        ],
-        teamId: team.id,
-      },
-      defaults: {
-        service: "google",
+    const [user, isFirstSignin] = await userCreator({
+      name: profile.data.name,
+      email: profile.data.email,
+      isAdmin: isFirstUser,
+      avatarUrl: profile.data.picture,
+      teamId: team.id,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
         serviceId: profile.data.id,
-        name: profile.data.name,
-        email: profile.data.email,
-        isAdmin: isFirstUser,
-        avatarUrl: profile.data.picture,
+        accessToken: response.tokens.access_token,
+        refreshToken: response.tokens.refresh_token,
+        scopes: response.tokens.scope.split(" "),
       },
     });
 
-    // update the user with fresh details if they just accepted an invite
-    if (!user.serviceId || !user.service) {
-      await user.update({
-        service: "google",
-        serviceId: profile.data.id,
-        avatarUrl: profile.data.picture,
-      });
-    }
-
-    // update email address if it's changed in Google
-    if (!isFirstSignin && profile.data.email !== user.email) {
-      await user.update({ email: profile.data.email });
-    }
-
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(hostname);
     }
 
     // set cookies on response and redirect to team subdomain
