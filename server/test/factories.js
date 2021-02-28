@@ -12,6 +12,7 @@ import {
   Attachment,
   Authentication,
   Integration,
+  AuthenticationProvider,
 } from "../models";
 
 let count = 0;
@@ -35,11 +36,22 @@ export async function buildShare(overrides: Object = {}) {
 export function buildTeam(overrides: Object = {}) {
   count++;
 
-  return Team.create({
-    name: `Team ${count}`,
-    slackId: uuid.v4(),
-    ...overrides,
-  });
+  return Team.create(
+    {
+      name: `Team ${count}`,
+      slackId: uuid.v4(),
+      authenticationProviders: [
+        {
+          name: "slack",
+          serviceId: uuid.v4(),
+        },
+      ],
+      ...overrides,
+    },
+    {
+      include: "authenticationProviders",
+    }
+  );
 }
 
 export function buildEvent(overrides: Object = {}) {
@@ -58,14 +70,45 @@ export async function buildUser(overrides: Object = {}) {
     overrides.teamId = team.id;
   }
 
+  const authenticationProvider = await AuthenticationProvider.findOne({
+    where: {
+      teamId: overrides.teamId,
+    },
+  });
+
+  return User.create(
+    {
+      email: `user${count}@example.com`,
+      username: `user${count}`,
+      name: `User ${count}`,
+      createdAt: new Date("2018-01-01T00:00:00.000Z"),
+      lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+      authentications: [
+        {
+          authenticationProviderId: authenticationProvider.id,
+          serviceId: uuid.v4(),
+        },
+      ],
+      ...overrides,
+    },
+    {
+      include: "authentications",
+    }
+  );
+}
+
+export async function buildInvite(overrides: Object = {}) {
+  count++;
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
   return User.create({
     email: `user${count}@example.com`,
-    username: `user${count}`,
     name: `User ${count}`,
-    service: "slack",
-    serviceId: uuid.v4(),
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
-    lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
     ...overrides,
   });
 }

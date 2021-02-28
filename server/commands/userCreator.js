@@ -1,5 +1,6 @@
 // @flow
 import { User, UserAuthentication } from "../models";
+import { sequelize } from "../sequelize";
 
 export default async function userCreator({
   name,
@@ -11,8 +12,8 @@ export default async function userCreator({
 }: {|
   name: string,
   email: string,
-  isAdmin: boolean,
-  avatarUrl: string,
+  isAdmin?: boolean,
+  avatarUrl?: string,
   teamId: string,
   authentication: {|
     authenticationProviderId: string,
@@ -67,15 +68,24 @@ export default async function userCreator({
   // We have an existing invite for his user, so we need to update it with our
   // new details and link up the authentication method
   if (invite && !invite.authentications.length) {
-    await invite.update(
-      {
-        avatarUrl,
-        authentications: [authentication],
-      },
-      {
-        include: "authentications",
+    let transaction = await sequelize.transaction();
+
+    try {
+      await invite.update(
+        {
+          name,
+          avatarUrl,
+        },
+        { transaction }
+      );
+      await invite.createAuthentication(authentication, { transaction });
+      await transaction.commit();
+    } catch (err) {
+      if (transaction) {
+        await transaction.rollback();
       }
-    );
+      throw err;
+    }
 
     return [invite, false];
   }
