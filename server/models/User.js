@@ -79,7 +79,7 @@ User.associate = (models) => {
   });
   User.hasMany(models.Document, { as: "documents" });
   User.hasMany(models.View, { as: "views" });
-  User.hasMany(models.UserAuthentication, { as: "authentication" });
+  User.hasMany(models.UserAuthentication, { as: "authentications" });
   User.belongsTo(models.Team);
 };
 

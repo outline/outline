@@ -7,32 +7,31 @@ export default async function teamCreator({
   domain,
   avatarUrl,
   authenticationProvider,
-}: {
+}: {|
   name: string,
   domain: string,
   avatarUrl: string,
-  authenticationProvider: {
-    serviceId: string,
+  authenticationProvider: {|
     name: string,
+    serviceId: string,
     accessToken?: string,
     refreshToken?: string,
-  },
-}): Promise<[Team, boolean]> {
-  const provider = await AuthenticationProvider.findOne({
-    where: authenticationProvider,
+  |},
+|}): Promise<[Team, boolean]> {
+  let team = await Team.findOne({
     include: [
       {
-        model: Team,
-        as: "team",
+        where: authenticationProvider,
+        model: AuthenticationProvider,
+        as: "authenticationProviders",
+        required: true,
       },
     ],
   });
 
   // Someone has signed in with this authentication provider before, we just
   // want to update the details instead of creating a new record
-  if (provider) {
-    const { team } = provider;
-
+  if (team && team.authenticationProviders.length > 0) {
     await team.update({
       name,
       avatarUrl,
@@ -46,14 +45,14 @@ export default async function teamCreator({
   try {
     transaction = await sequelize.transaction();
 
-    const team = await Team.create(
+    let team = await Team.create(
       {
         name,
         avatarUrl,
-        authenticationProvider,
+        authenticationProviders: [authenticationProvider],
       },
       {
-        include: "authenticationProvider",
+        include: "authenticationProviders",
         transaction,
       }
     );

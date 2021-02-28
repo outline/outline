@@ -96,7 +96,9 @@ Team.associate = (models) => {
   Team.hasMany(models.Collection, { as: "collections" });
   Team.hasMany(models.Document, { as: "documents" });
   Team.hasMany(models.User, { as: "users" });
-  Team.hasMany(models.AuthenticationProvider, { as: "authenticationProvider" });
+  Team.hasMany(models.AuthenticationProvider, {
+    as: "authenticationProviders",
+  });
 };
 
 const uploadAvatar = async (model) => {
