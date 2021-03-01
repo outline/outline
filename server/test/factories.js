@@ -62,8 +62,6 @@ export function buildEvent(overrides: Object = {}) {
 }
 
 export async function buildUser(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -75,10 +73,11 @@ export async function buildUser(overrides: Object = {}) {
     },
   });
 
+  count++;
+
   return User.create(
     {
       email: `user${count}@example.com`,
-      username: `user${count}`,
       name: `User ${count}`,
       createdAt: new Date("2018-01-01T00:00:00.000Z"),
       lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
@@ -236,7 +235,7 @@ export async function buildAttachment(overrides: Object = {}) {
   }
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
 

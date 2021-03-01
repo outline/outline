@@ -58,7 +58,6 @@ const seed = async () => {
     {
       id: "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
       email: "user1@example.com",
-      username: "user1",
       name: "User 1",
       teamId: team.id,
       createdAt: new Date("2018-01-02T00:00:00.000Z"),
