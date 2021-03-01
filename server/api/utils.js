@@ -54,32 +54,32 @@ router.post("utils.migrateAuthentication", authMiddleware, async (ctx) => {
     });
 
     for (const user of users) {
-      for (const service of ["slack", "google"]) {
-        const serviceId = user.team[`${service}Id`];
-        if (!serviceId) {
+      for (const provider of ["slack", "google"]) {
+        const providerId = user.team[`${provider}Id`];
+        if (!providerId) {
           continue;
         }
 
-        let authenticationProviderId = cache[serviceId];
+        let authenticationProviderId = cache[providerId];
         if (!authenticationProviderId) {
           const [
             authenticationProvider,
           ] = await AuthenticationProvider.findOrCreate({
             where: {
-              name: service,
-              serviceId,
+              name: provider,
+              providerId,
               teamId: user.teamId,
             },
           });
 
-          cache[serviceId] = authenticationProviderId =
+          cache[providerId] = authenticationProviderId =
             authenticationProvider.id;
         }
 
         try {
           await UserAuthentication.create({
             authenticationProviderId,
-            serviceId: user.serviceId,
+            providerId: user.serviceId,
             teamId: user.teamId,
             userId: user.id,
           });

@@ -19,12 +19,11 @@ export function flushdb() {
 const seed = async () => {
   const team = await Team.create(
     {
-      id: "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
       name: "Team",
       authenticationProviders: [
         {
           name: "slack",
-          serviceId: uuid.v4(),
+          providerId: uuid.v4(),
         },
       ],
     },
@@ -37,7 +36,6 @@ const seed = async () => {
 
   const admin = await User.create(
     {
-      id: "fa952cff-fa64-4d42-a6ea-6955c9689046",
       email: "admin@example.com",
       username: "admin",
       name: "Admin User",
@@ -47,7 +45,7 @@ const seed = async () => {
       authentications: [
         {
           authenticationProviderId: authenticationProvider.id,
-          serviceId: uuid.v4(),
+          providerId: uuid.v4(),
         },
       ],
     },
@@ -67,7 +65,7 @@ const seed = async () => {
       authentications: [
         {
           authenticationProviderId: authenticationProvider.id,
-          serviceId: uuid.v4(),
+          providerId: uuid.v4(),
         },
       ],
     },
@@ -77,7 +75,6 @@ const seed = async () => {
   );
 
   const collection = await Collection.create({
-    id: "26fde1d4-0050-428f-9f0b-0bf77f8bdf62",
     name: "Collection",
     urlId: "collection",
     teamId: team.id,

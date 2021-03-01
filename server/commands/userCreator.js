@@ -17,17 +17,17 @@ export default async function userCreator({
   teamId: string,
   authentication: {|
     authenticationProviderId: string,
-    serviceId: string,
+    providerId: string,
     scopes: string[],
     accessToken?: string,
     refreshToken?: string,
   |},
 |}): Promise<[User, boolean]> {
-  const { authenticationProviderId, serviceId, ...rest } = authentication;
+  const { authenticationProviderId, providerId, ...rest } = authentication;
   const auth = await UserAuthentication.findOne({
     where: {
       authenticationProviderId,
-      serviceId,
+      providerId,
     },
     include: [
       {

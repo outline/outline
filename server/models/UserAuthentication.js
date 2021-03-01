@@ -10,7 +10,7 @@ const UserAuthentication = sequelize.define("user_authentications", {
   scopes: DataTypes.ARRAY(DataTypes.STRING),
   accessToken: encryptedFields().vault("accessToken"),
   refreshToken: encryptedFields().vault("refreshToken"),
-  serviceId: {
+  providerId: {
     type: DataTypes.STRING,
     unique: true,
   },

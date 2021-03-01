@@ -66,7 +66,7 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       subdomain,
       authenticationProvider: {
         name: "google",
-        serviceId: domain,
+        providerId: domain,
       },
     });
   } catch (err) {
@@ -89,7 +89,7 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       teamId: team.id,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        serviceId: profile.data.id,
+        providerId: profile.data.id,
         accessToken: response.tokens.access_token,
         refreshToken: response.tokens.refresh_token,
         scopes: response.tokens.scope.split(" "),

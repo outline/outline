@@ -12,7 +12,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      serviceId: {
+      providerId: {
         type: Sequelize.STRING,
         unique: true,
         allowNull: false,
@@ -62,7 +62,7 @@ module.exports = {
         type: Sequelize.ARRAY(Sequelize.STRING),
         allowNull: true,
       },
-      serviceId: {
+      providerId: {
         type: Sequelize.STRING,
         unique: true,
         allowNull: false,

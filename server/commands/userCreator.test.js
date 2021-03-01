@@ -20,7 +20,7 @@ describe("userCreator", () => {
       teamId: existing.teamId,
       authentication: {
         authenticationProviderId: authentication.authenticationProviderId,
-        serviceId: authentication.serviceId,
+        providerId: authentication.providerId,
         accessToken: "123",
         scopes: ["read"],
       },
@@ -46,7 +46,7 @@ describe("userCreator", () => {
       teamId: team.id,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        serviceId: "fake-service-id",
+        providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
@@ -74,7 +74,7 @@ describe("userCreator", () => {
       teamId: invite.teamId,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        serviceId: "fake-service-id",
+        providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },

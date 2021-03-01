@@ -29,7 +29,7 @@ const AuthenticationProvider = sequelize.define(
         isIn: [authProviders],
       },
     },
-    serviceId: {
+    providerId: {
       type: DataTypes.STRING,
     },
   },

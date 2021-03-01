@@ -12,7 +12,7 @@ describe("teamCreator", () => {
       subdomain: "example",
       authenticationProvider: {
         name: "google",
-        serviceId: "example.com",
+        providerId: "example.com",
       },
     });
 
@@ -28,7 +28,7 @@ describe("teamCreator", () => {
   it("should update exising team", async () => {
     const authenticationProvider = {
       name: "google",
-      serviceId: "example.com",
+      providerId: "example.com",
     };
 
     const existing = await buildTeam({

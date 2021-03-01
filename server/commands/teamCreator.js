@@ -16,7 +16,7 @@ export default async function teamCreator({
   avatarUrl?: string,
   authenticationProvider: {|
     name: string,
-    serviceId: string,
+    providerId: string,
   |},
 |}): Promise<[Team, boolean]> {
   let team = await Team.findOne({

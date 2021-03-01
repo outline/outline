@@ -51,7 +51,7 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       avatarUrl: data.team.image_230,
       authenticationProvider: {
         name: "slack",
-        serviceId: data.team.id,
+        providerId: data.team.id,
       },
     });
   } catch (err) {
@@ -75,7 +75,7 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       teamId: team.id,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        serviceId: data.user.id,
+        providerId: data.user.id,
         accessToken: data.access_token,
         scopes: data.scope.split(","),
       },

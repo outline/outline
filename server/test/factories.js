@@ -43,7 +43,7 @@ export function buildTeam(overrides: Object = {}) {
       authenticationProviders: [
         {
           name: "slack",
-          serviceId: uuid.v4(),
+          providerId: uuid.v4(),
         },
       ],
       ...overrides,
@@ -86,7 +86,7 @@ export async function buildUser(overrides: Object = {}) {
       authentications: [
         {
           authenticationProviderId: authenticationProvider.id,
-          serviceId: uuid.v4(),
+          providerId: uuid.v4(),
         },
       ],
       ...overrides,
