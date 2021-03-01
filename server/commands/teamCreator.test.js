@@ -19,7 +19,7 @@ describe("teamCreator", () => {
     const authenticationProvider = team.authenticationProviders[0];
 
     expect(authenticationProvider.name).toEqual("google");
-    expect(authenticationProvider.serviceId).toEqual("example.com");
+    expect(authenticationProvider.providerId).toEqual("example.com");
     expect(team.name).toEqual("Test team");
     expect(team.subdomain).toEqual("example");
     expect(isNew).toEqual(true);
@@ -32,6 +32,7 @@ describe("teamCreator", () => {
     };
 
     const existing = await buildTeam({
+      subdomain: "example",
       authenticationProviders: [authenticationProvider],
     });
 
