@@ -62,12 +62,12 @@ export default async function teamCreator({
       }
     );
 
-    await team.provisionSubdomain(subdomain, { transaction });
     await transaction.commit();
-
-    return [team, true];
   } catch (err) {
     await transaction.rollback();
     throw err;
   }
+
+  await team.provisionSubdomain(subdomain);
+  return [team, true];
 }

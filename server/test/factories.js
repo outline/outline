@@ -96,12 +96,12 @@ export async function buildUser(overrides: Object = {}) {
 }
 
 export async function buildInvite(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
+
+  count++;
 
   return User.create({
     email: `user${count}@example.com`,
@@ -139,8 +139,6 @@ export async function buildIntegration(overrides: Object = {}) {
 }
 
 export async function buildCollection(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -150,6 +148,8 @@ export async function buildCollection(overrides: Object = {}) {
     const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
+
+  count++;
 
   return Collection.create({
     name: `Test Collection ${count}`,
@@ -160,8 +160,6 @@ export async function buildCollection(overrides: Object = {}) {
 }
 
 export async function buildGroup(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -171,6 +169,8 @@ export async function buildGroup(overrides: Object = {}) {
     const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
+
+  count++;
 
   return Group.create({
     name: `Test Group ${count}`,
@@ -180,8 +180,6 @@ export async function buildGroup(overrides: Object = {}) {
 }
 
 export async function buildGroupUser(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -192,6 +190,8 @@ export async function buildGroupUser(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
+  count++;
+
   return GroupUser.create({
     createdById: overrides.userId,
     ...overrides,
@@ -199,8 +199,6 @@ export async function buildGroupUser(overrides: Object = {}) {
 }
 
 export async function buildDocument(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -216,6 +214,8 @@ export async function buildDocument(overrides: Object = {}) {
     overrides.collectionId = collection.id;
   }
 
+  count++;
+
   return Document.create({
     title: `Document ${count}`,
     text: "This is the text in an example document",
@@ -227,8 +227,6 @@ export async function buildDocument(overrides: Object = {}) {
 }
 
 export async function buildAttachment(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -248,6 +246,8 @@ export async function buildAttachment(overrides: Object = {}) {
     const document = await buildDocument(overrides);
     overrides.documentId = document.id;
   }
+
+  count++;
 
   return Attachment.create({
     key: `uploads/key/to/file ${count}.png`,
