@@ -49,8 +49,9 @@ export default async function teamCreator({
 
   // This team has never been seen before, time to create all the new stuff
   let transaction = await sequelize.transaction();
+
   try {
-    let team = await Team.create(
+    team = await Team.create(
       {
         name,
         avatarUrl,
