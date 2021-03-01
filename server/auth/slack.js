@@ -99,6 +99,7 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
+        console.error(err);
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 

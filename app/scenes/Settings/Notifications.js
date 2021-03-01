@@ -97,8 +97,7 @@ class Notifications extends React.Component<Props> {
 
         <HelpText>
           Manage when and where you receive email notifications from Outline.
-          Your email address can be updated in the SSO provider you use to
-          signin.
+          Your email address can be updated in your SSO provider.
         </HelpText>
 
         <Input

@@ -106,7 +106,6 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
         where: {
-          service: "email",
           email: profile.data.email,
           teamId: team.id,
         },
@@ -115,6 +114,7 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
+        console.error(err);
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 
