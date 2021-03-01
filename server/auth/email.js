@@ -19,7 +19,7 @@ router.post("email", async (ctx) => {
 
   ctx.assertEmail(email, "email is required");
 
-  const user = await User.findOne({
+  const user = await User.scope("withAuthentications").findOne({
     where: { email: email.toLowerCase() },
   });
 
@@ -31,11 +31,11 @@ router.post("email", async (ctx) => {
     }
 
     // If the user matches an email address associated with an SSO
-    // signin then just forward them directly to that service's
-    // login page
-    if (user.service && user.service !== "email") {
+    // provider then just forward them directly to that sign-in page
+    if (user.authentications.length) {
+      const auth = user.authentications[0];
       ctx.body = {
-        redirect: `${team.url}/auth/${user.service}`,
+        redirect: `${team.url}/auth/${auth.name}`,
       };
       return;
     }
@@ -87,11 +87,7 @@ router.get("email.callback", auth({ required: false }), async (ctx) => {
       throw new AuthorizationError();
     }
 
-    if (!user.service) {
-      user.service = "email";
-      user.lastActiveAt = new Date();
-      await user.save();
-    }
+    await user.update({ lastActiveAt: new Date() });
 
     // set cookies on response and redirect to team subdomain
     ctx.signIn(user, team, "email", false);
