@@ -41,6 +41,7 @@ const AuthenticationProvider = sequelize.define(
 
 AuthenticationProvider.associate = (models) => {
   AuthenticationProvider.belongsTo(models.Team);
+  AuthenticationProvider.hasMany(models.UserAuthentication);
 };
 
 export default AuthenticationProvider;

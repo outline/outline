@@ -76,6 +76,9 @@ module.exports = {
         allowNull: false,
       },
     });
+
+    await queryInterface.addIndex("authentication_providers", ["providerId"]);
+    await queryInterface.addIndex("user_authentications", ["providerId"]);
   },
 
   down: async (queryInterface, Sequelize) => {

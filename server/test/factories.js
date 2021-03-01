@@ -39,7 +39,6 @@ export function buildTeam(overrides: Object = {}) {
   return Team.create(
     {
       name: `Team ${count}`,
-      slackId: uuid.v4(),
       authenticationProviders: [
         {
           name: "slack",
