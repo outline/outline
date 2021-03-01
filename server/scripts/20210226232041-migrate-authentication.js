@@ -14,7 +14,7 @@ const cache = {};
 let page = 0;
 let limit = 1000;
 
-async function main() {
+export default async function main(exit = false) {
   const work = async (page: number) => {
     log(`Migrating authentication data… page ${page}`);
 
@@ -80,7 +80,13 @@ async function main() {
   };
 
   await work(page);
-  process.exit(0);
+
+  if (exit) {
+    process.exit(0);
+  }
 }
 
-main();
+// In the test suite we import the script rather than run via node CLI
+if (process.env.NODE_ENV !== "test") {
+  main(true);
+}
