@@ -99,6 +99,11 @@ Team.associate = (models) => {
   Team.hasMany(models.AuthenticationProvider, {
     as: "authenticationProviders",
   });
+  Team.addScope("withAuthenticationProviders", {
+    include: [
+      { model: models.AuthenticationProvider, as: "authenticationProviders" },
+    ],
+  });
 };
 
 const uploadAvatar = async (model) => {
