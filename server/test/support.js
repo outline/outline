@@ -16,7 +16,7 @@ export function flushdb() {
   return sequelize.query(query);
 }
 
-const seed = async () => {
+export const seed = async () => {
   const team = await Team.create(
     {
       name: "Team",
@@ -101,5 +101,3 @@ const seed = async () => {
     team,
   };
 };
-
-export { seed, sequelize };

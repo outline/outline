@@ -1,7 +1,10 @@
 // @flow
+import debug from "debug";
 import { Team, AuthenticationProvider } from "../models";
 import { sequelize } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
+
+const log = debug("server");
 
 export default async function teamCreator({
   name,
@@ -69,6 +72,11 @@ export default async function teamCreator({
     throw err;
   }
 
-  await team.provisionSubdomain(subdomain);
+  try {
+    await team.provisionSubdomain(subdomain);
+  } catch (err) {
+    log(`Provisioning subdomain failed: ${err.message}`);
+  }
+
   return [team, true];
 }
