@@ -73,6 +73,7 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       isAdmin: isFirstUser,
       avatarUrl: data.user.image_192,
       teamId: team.id,
+      ip: ctx.request.ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
         providerId: data.user.id,

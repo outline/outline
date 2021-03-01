@@ -1,5 +1,5 @@
 // @flow
-import { User, UserAuthentication } from "../models";
+import { Event, User, UserAuthentication } from "../models";
 import { sequelize } from "../sequelize";
 
 export default async function userCreator({
@@ -9,12 +9,14 @@ export default async function userCreator({
   avatarUrl,
   teamId,
   authentication,
+  ip,
 }: {|
   name: string,
   email: string,
   isAdmin?: boolean,
   avatarUrl?: string,
   teamId: string,
+  ip: string,
   authentication: {|
     authenticationProviderId: string,
     providerId: string,
@@ -103,6 +105,21 @@ export default async function userCreator({
       },
       {
         include: "authentications",
+        transaction,
+      }
+    );
+    await Event.create(
+      {
+        name: "users.create",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        data: {
+          name: user.name,
+        },
+        ip,
+      },
+      {
         transaction,
       }
     );

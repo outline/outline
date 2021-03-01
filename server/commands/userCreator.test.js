@@ -7,6 +7,8 @@ import userCreator from "./userCreator";
 beforeEach(() => flushdb());
 
 describe("userCreator", () => {
+  const ip = "127.0.0.1";
+
   it("should update exising user and authentication", async () => {
     const existing = await buildUser();
     const authentications = await existing.getAuthentications();
@@ -18,6 +20,7 @@ describe("userCreator", () => {
       email: newEmail,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
+      ip,
       authentication: {
         authenticationProviderId: authentication.authenticationProviderId,
         providerId: authentication.providerId,
@@ -44,6 +47,7 @@ describe("userCreator", () => {
       name: "Test Name",
       email: "test@example.com",
       teamId: team.id,
+      ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
@@ -72,6 +76,7 @@ describe("userCreator", () => {
       name: invite.name,
       email: invite.email,
       teamId: invite.teamId,
+      ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",

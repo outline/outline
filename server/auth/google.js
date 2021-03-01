@@ -87,6 +87,7 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       isAdmin: isFirstUser,
       avatarUrl: profile.data.picture,
       teamId: team.id,
+      ip: ctx.request.ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
         providerId: profile.data.id,
