@@ -10,12 +10,11 @@ import {
 import { Op } from "../sequelize";
 
 const log = debug("script");
+const cache = {};
+let page = 0;
+let limit = 1000;
 
 async function main() {
-  let page = 0;
-  let limit = 1000;
-  const cache = {};
-
   const work = async (page: number) => {
     log(`Migrating authentication data… page ${page}`);
 
