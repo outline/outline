@@ -10,6 +10,7 @@ describe("teamCreator", () => {
     const [team, isNew] = await teamCreator({
       name: "Test team",
       subdomain: "example",
+      avatarUrl: "http://example.com/logo.png",
       authenticationProvider: {
         name: "google",
         providerId: "example.com",
@@ -33,6 +34,7 @@ describe("teamCreator", () => {
 
     const existing = await buildTeam({
       subdomain: "example",
+      avatarUrl: "http://example.com/logo.png",
       authenticationProviders: [authenticationProvider],
     });
 
