@@ -3,6 +3,14 @@ import { buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import teamCreator from "./teamCreator";
 
+jest.mock("aws-sdk", () => {
+  const mS3 = { putObject: jest.fn().mockReturnThis(), promise: jest.fn() };
+  return {
+    S3: jest.fn(() => mS3),
+    Endpoint: jest.fn(),
+  };
+});
+
 beforeEach(() => flushdb());
 
 describe("teamCreator", () => {
@@ -34,7 +42,6 @@ describe("teamCreator", () => {
 
     const existing = await buildTeam({
       subdomain: "example",
-      avatarUrl: "http://example.com/logo.png",
       authenticationProviders: [authenticationProvider],
     });
 
