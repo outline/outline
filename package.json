@@ -153,7 +153,7 @@
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-waypoint": "^9.0.2",
     "react-window": "^1.8.6",
-    "reakit": "^1.3.4",
+    "reakit": "^1.3.6",
     "rich-markdown-editor": "^11.3.2",
     "semver": "^7.3.2",
     "sequelize": "^6.3.4",
