@@ -15,7 +15,7 @@ import {
   AuthenticationProvider,
 } from "../models";
 
-let count = 0;
+let count = 1;
 
 export async function buildShare(overrides: Object = {}) {
   if (!overrides.teamId) {
