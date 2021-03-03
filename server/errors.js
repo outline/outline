@@ -57,3 +57,9 @@ export function FileImportError(
 ) {
   return httpErrors(400, message, { id: "import_error" });
 }
+
+export function EmailAuthenticationRequiredError(
+  message: string = "User must authenticate with email"
+) {
+  return httpErrors(400, message, { id: "email_auth_required" });
+}

@@ -1,114 +1,79 @@
 // @flow
-import addHours from "date-fns/add_hours";
-import invariant from "invariant";
 import Router from "koa-router";
-import Sequelize from "sequelize";
-import { slackAuth } from "../../shared/utils/routeHelpers";
-import teamCreator from "../commands/teamCreator";
-import userCreator from "../commands/userCreator";
+import passport from "passport";
+import { Strategy as SlackStrategy } from "passport-slack";
+import accountProvisioner from "../commands/accountProvisioner";
+import env from "../env";
 import auth from "../middlewares/authentication";
-import { Authentication, Collection, Integration, User, Team } from "../models";
+import { Authentication, Collection, Integration, Team } from "../models";
 import * as Slack from "../slack";
-import { getCookieDomain } from "../utils/domains";
 
 const router = new Router();
+const providerName = "slack";
 
-// start the oauth process and redirect user to Slack
-router.get("slack", async (ctx) => {
-  const state = Math.random().toString(36).substring(7);
+const scope = [
+  "identity.email",
+  "identity.basic",
+  "identity.avatar",
+  "identity.team",
+];
 
-  ctx.cookies.set("state", state, {
-    httpOnly: false,
-    expires: addHours(new Date(), 1),
-    domain: getCookieDomain(ctx.request.hostname),
-  });
-  ctx.redirect(slackAuth(state));
-});
-
-// signin callback from Slack
-router.get("slack.callback", auth({ required: false }), async (ctx) => {
-  const { code, error, state } = ctx.request.query;
-  ctx.assertPresent(code || error, "code is required");
-  ctx.assertPresent(state, "state is required");
-
-  if (state !== ctx.cookies.get("state")) {
-    ctx.redirect("/?notice=auth-error&error=state_mismatch");
-    return;
-  }
-  if (error) {
-    ctx.redirect(`/?notice=auth-error&error=${error}`);
-    return;
-  }
-
-  const data = await Slack.oauthAccess(code);
-
-  let team;
-  let isFirstUser = false;
-  try {
-    [team, isFirstUser] = await teamCreator({
-      name: data.team.name,
-      subdomain: data.team.domain,
-      avatarUrl: data.team.image_230,
-      authenticationProvider: {
-        name: "slack",
-        providerId: data.team.id,
-      },
-    });
-  } catch (err) {
-    if (err instanceof Sequelize.UniqueConstraintError) {
-      ctx.redirect(`/?notice=auth-error&error=team-exists`);
-      return;
-    }
-    throw err;
-  }
-  invariant(team, "Team must exist");
-
-  const authenticationProvider = team.authenticationProviders[0];
-  invariant(authenticationProvider, "Team authenticationProvider must exist");
-
-  try {
-    const [user, isFirstSignin] = await userCreator({
-      name: data.user.name,
-      email: data.user.email,
-      isAdmin: isFirstUser,
-      avatarUrl: data.user.image_192,
-      teamId: team.id,
-      ip: ctx.request.ip,
-      authentication: {
-        authenticationProviderId: authenticationProvider.id,
-        providerId: data.user.id,
-        accessToken: data.access_token,
-        scopes: data.scope.split(","),
-      },
-    });
-
-    if (isFirstUser) {
-      await team.provisionFirstCollection(user.id);
-    }
-
-    // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "slack", isFirstSignin);
-  } catch (err) {
-    if (err instanceof Sequelize.UniqueConstraintError) {
-      const exists = await User.findOne({
-        where: {
-          email: data.user.email,
-          teamId: team.id,
-        },
-      });
-
-      if (exists) {
-        ctx.redirect(`${team.url}?notice=email-auth-required`);
-      } else {
-        console.error(err);
-        ctx.redirect(`${team.url}?notice=auth-error`);
+passport.use(
+  new SlackStrategy(
+    {
+      clientID: process.env.SLACK_KEY,
+      clientSecret: process.env.SLACK_SECRET,
+      callbackURL: `${env.URL}/auth/slack.callback`,
+      passReqToCallback: true,
+      scope,
+    },
+    async function (req, accessToken, refreshToken, profile, done) {
+      try {
+        const result = await accountProvisioner({
+          // see: https://github.com/rkusa/koa-passport/pull/157
+          ip: "127.0.0.1",
+          team: {
+            name: profile.team.name,
+            subdomain: profile.team.domain,
+            avatarUrl: profile.team.image_230,
+          },
+          authenticationProvider: {
+            name: providerName,
+            providerId: profile.team.id,
+          },
+          user: {
+            name: profile.user.name,
+            email: profile.user.email,
+            avatarUrl: profile.user.image_192,
+          },
+          authentication: {
+            providerId: profile.user.id,
+            accessToken,
+            refreshToken,
+            scopes: scope,
+          },
+        });
+        return done(null, result.user, result);
+      } catch (err) {
+        return done(err, null);
       }
-
-      return;
     }
+  )
+);
 
-    throw err;
-  }
+router.get("slack", passport.authenticate(providerName));
+
+router.get("slack.callback", auth({ required: false }), async (ctx, next) => {
+  await passport.authorize(
+    providerName,
+    { session: false },
+    (err, profile, result) => {
+      if (err) {
+        throw err;
+      }
+      ctx.signIn(result.user, result.team, providerName, result.isFirstSignin);
+    }
+  )(ctx, next);
 });
 
 router.get("slack.commands", auth({ required: false }), async (ctx) => {
