@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { CloseIcon, BackIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import ReactModal from "react-modal";
 import styled, { createGlobalStyle } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -65,6 +66,7 @@ const Modal = ({
   onRequestClose,
   ...rest
 }: Props) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -84,7 +86,7 @@ const Modal = ({
         </Content>
         <Back onClick={onRequestClose}>
           <BackIcon size={32} color="currentColor" />
-          <Text>Back</Text>
+          <Text>{t("Back")}</Text>
         </Back>
         <Close onClick={onRequestClose}>
           <CloseIcon size={32} color="currentColor" />

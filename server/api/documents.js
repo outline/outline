@@ -2,6 +2,7 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { subtractDate } from "../../shared/utils/date";
+import documentCreator from "../commands/documentCreator";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
 import {
@@ -865,30 +866,6 @@ router.post("documents.unstar", auth(), async (ctx) => {
   };
 });
 
-router.post("documents.create", auth(), createDocumentFromContext);
-router.post("documents.import", auth(), async (ctx) => {
-  if (!ctx.is("multipart/form-data")) {
-    throw new InvalidRequestError("Request type must be multipart/form-data");
-  }
-
-  const file: any = Object.values(ctx.request.files)[0];
-  ctx.assertPresent(file, "file is required");
-
-  const user = ctx.state.user;
-  authorize(user, "create", Document);
-
-  const { text, title } = await documentImporter({
-    user,
-    file,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body.text = text;
-  ctx.body.title = title;
-
-  await createDocumentFromContext(ctx);
-});
-
 router.post("documents.templatize", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
@@ -1170,8 +1147,73 @@ router.post("documents.unpublish", auth(), async (ctx) => {
   };
 });
 
-// TODO: update to actual `ctx` type
-export async function createDocumentFromContext(ctx: any) {
+router.post("documents.import", auth(), async (ctx) => {
+  const { publish, collectionId, parentDocumentId, index } = ctx.body;
+
+  if (!ctx.is("multipart/form-data")) {
+    throw new InvalidRequestError("Request type must be multipart/form-data");
+  }
+
+  const file: any = Object.values(ctx.request.files)[0];
+  ctx.assertPresent(file, "file is required");
+
+  ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
+  }
+
+  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+
+  const user = ctx.state.user;
+  authorize(user, "create", Document);
+
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findOne({
+    where: {
+      id: collectionId,
+      teamId: user.teamId,
+    },
+  });
+  authorize(user, "publish", collection);
+
+  let parentDocument;
+  if (parentDocumentId) {
+    parentDocument = await Document.findOne({
+      where: {
+        id: parentDocumentId,
+        collectionId: collection.id,
+      },
+    });
+    authorize(user, "read", parentDocument, { collection });
+  }
+
+  const { text, title } = await documentImporter({
+    user,
+    file,
+    ip: ctx.request.ip,
+  });
+
+  const document = await documentCreator({
+    source: "import",
+    title,
+    text,
+    publish,
+    collectionId,
+    parentDocumentId,
+    index,
+    user,
+    ip: ctx.request.ip,
+  });
+  document.collection = collection;
+
+  return (ctx.body = {
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
+  });
+});
+
+router.post("documents.create", auth(), async (ctx) => {
   const {
     title = "",
     text = "",
@@ -1221,49 +1263,18 @@ export async function createDocumentFromContext(ctx: any) {
     authorize(user, "read", templateDocument);
   }
 
-  let document = await Document.create({
+  const document = await documentCreator({
+    title,
+    text,
+    publish,
+    collectionId,
     parentDocumentId,
-    editorVersion,
-    collectionId: collection.id,
-    teamId: user.teamId,
-    userId: user.id,
-    lastModifiedById: user.id,
-    createdById: user.id,
+    templateDocument,
     template,
-    templateId: templateDocument ? templateDocument.id : undefined,
-    title: templateDocument ? templateDocument.title : title,
-    text: templateDocument ? templateDocument.text : text,
-  });
-
-  await Event.create({
-    name: "documents.create",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: { title: document.title, templateId },
+    index,
+    user,
+    editorVersion,
     ip: ctx.request.ip,
-  });
-
-  if (publish) {
-    await document.publish(user.id);
-
-    await Event.create({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: { title: document.title },
-      ip: ctx.request.ip,
-    });
-  }
-
-  // reload to get all of the data needed to present (user, collection etc)
-  // we need to specify publishedAt to bypass default scope that only returns
-  // published documents
-  document = await Document.findOne({
-    where: { id: document.id, publishedAt: document.publishedAt },
   });
   document.collection = collection;
 
@@ -1271,6 +1282,6 @@ export async function createDocumentFromContext(ctx: any) {
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   });
-}
+});
 
 export default router;

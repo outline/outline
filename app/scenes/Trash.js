@@ -20,7 +20,7 @@ function Trash() {
       <PaginatedDocumentList
         documents={documents.deleted}
         fetch={documents.fetchDeleted}
-        heading={<Subheading>{t("Documents")}</Subheading>}
+        heading={<Subheading sticky>{t("Documents")}</Subheading>}
         empty={<Empty>{t("Trash is empty at the moment.")}</Empty>}
         showCollection
         showTemplate

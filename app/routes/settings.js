@@ -3,8 +3,8 @@ import * as React from "react";
 import { Switch } from "react-router-dom";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
-import Export from "scenes/Settings/Export";
 import Groups from "scenes/Settings/Groups";
+import ImportExport from "scenes/Settings/ImportExport";
 import Notifications from "scenes/Settings/Notifications";
 import People from "scenes/Settings/People";
 import Security from "scenes/Settings/Security";
@@ -28,7 +28,7 @@ export default function SettingsRoutes() {
       <Route exact path="/settings/notifications" component={Notifications} />
       <Route exact path="/settings/integrations/slack" component={Slack} />
       <Route exact path="/settings/integrations/zapier" component={Zapier} />
-      <Route exact path="/settings/export" component={Export} />
+      <Route exact path="/settings/import-export" component={ImportExport} />
     </Switch>
   );
 }

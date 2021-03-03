@@ -96,7 +96,7 @@ class Drafts extends React.Component<Props> {
         }
       >
         <Heading>{t("Drafts")}</Heading>
-        <Subheading>
+        <Subheading sticky>
           {t("Documents")}
           <Filters>
             <CollectionFilter

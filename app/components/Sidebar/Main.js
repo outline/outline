@@ -81,103 +81,101 @@ function MainSidebar() {
           />
         )}
       </AccountMenu>
-      <Flex auto column>
-        <Scrollable shadow>
-          <Section>
+      <Scrollable flex topShadow>
+        <Section>
+          <SidebarLink
+            to="/home"
+            icon={<HomeIcon color="currentColor" />}
+            exact={false}
+            label={t("Home")}
+          />
+          <SidebarLink
+            to={{
+              pathname: "/search",
+              state: { fromMenu: true },
+            }}
+            icon={<SearchIcon color="currentColor" />}
+            label={t("Search")}
+            exact={false}
+          />
+          <SidebarLink
+            to="/starred"
+            icon={<StarredIcon color="currentColor" />}
+            exact={false}
+            label={t("Starred")}
+          />
+          <SidebarLink
+            to="/templates"
+            icon={<ShapesIcon color="currentColor" />}
+            exact={false}
+            label={t("Templates")}
+            active={documents.active ? documents.active.template : undefined}
+          />
+          <SidebarLink
+            to="/drafts"
+            icon={<EditIcon color="currentColor" />}
+            label={
+              <Drafts align="center">
+                {t("Drafts")}
+                <Bubble count={documents.totalDrafts} />
+              </Drafts>
+            }
+            active={
+              documents.active
+                ? !documents.active.publishedAt &&
+                  !documents.active.isDeleted &&
+                  !documents.active.isTemplate
+                : undefined
+            }
+          />
+        </Section>
+        <Section auto>
+          <Collections onCreateCollection={handleCreateCollectionModalOpen} />
+        </Section>
+        <Section>
+          <SidebarLink
+            to="/archive"
+            icon={<ArchiveIcon color="currentColor" />}
+            exact={false}
+            label={t("Archive")}
+            active={
+              documents.active
+                ? documents.active.isArchived && !documents.active.isDeleted
+                : undefined
+            }
+          />
+          <SidebarLink
+            to="/trash"
+            icon={<TrashIcon color="currentColor" />}
+            exact={false}
+            label={t("Trash")}
+            active={documents.active ? documents.active.isDeleted : undefined}
+          />
+          <SidebarLink
+            to="/settings"
+            icon={<SettingsIcon color="currentColor" />}
+            exact={false}
+            label={t("Settings")}
+          />
+          {can.invite && (
             <SidebarLink
-              to="/home"
-              icon={<HomeIcon color="currentColor" />}
-              exact={false}
-              label={t("Home")}
+              to="/settings/people"
+              onClick={handleInviteModalOpen}
+              icon={<PlusIcon color="currentColor" />}
+              label={`${t("Invite people")}…`}
             />
-            <SidebarLink
-              to={{
-                pathname: "/search",
-                state: { fromMenu: true },
-              }}
-              icon={<SearchIcon color="currentColor" />}
-              label={t("Search")}
-              exact={false}
-            />
-            <SidebarLink
-              to="/starred"
-              icon={<StarredIcon color="currentColor" />}
-              exact={false}
-              label={t("Starred")}
-            />
-            <SidebarLink
-              to="/templates"
-              icon={<ShapesIcon color="currentColor" />}
-              exact={false}
-              label={t("Templates")}
-              active={documents.active ? documents.active.template : undefined}
-            />
-            <SidebarLink
-              to="/drafts"
-              icon={<EditIcon color="currentColor" />}
-              label={
-                <Drafts align="center">
-                  {t("Drafts")}
-                  <Bubble count={documents.totalDrafts} />
-                </Drafts>
-              }
-              active={
-                documents.active
-                  ? !documents.active.publishedAt &&
-                    !documents.active.isDeleted &&
-                    !documents.active.isTemplate
-                  : undefined
-              }
-            />
-          </Section>
-          <Section>
-            <Collections onCreateCollection={handleCreateCollectionModalOpen} />
-          </Section>
-        </Scrollable>
-        <Secondary>
-          <Section>
-            <SidebarLink
-              to="/archive"
-              icon={<ArchiveIcon color="currentColor" />}
-              exact={false}
-              label={t("Archive")}
-              active={
-                documents.active
-                  ? documents.active.isArchived && !documents.active.isDeleted
-                  : undefined
-              }
-            />
-            <SidebarLink
-              to="/trash"
-              icon={<TrashIcon color="currentColor" />}
-              exact={false}
-              label={t("Trash")}
-              active={documents.active ? documents.active.isDeleted : undefined}
-            />
-            <SidebarLink
-              to="/settings"
-              icon={<SettingsIcon color="currentColor" />}
-              exact={false}
-              label={t("Settings")}
-            />
-            {can.invite && (
-              <SidebarLink
-                to="/settings/people"
-                onClick={handleInviteModalOpen}
-                icon={<PlusIcon color="currentColor" />}
-                label={`${t("Invite people")}…`}
-              />
-            )}
-          </Section>
-        </Secondary>
-      </Flex>
-      <Modal
-        title={t("Invite people")}
-        onRequestClose={handleInviteModalClose}
-        isOpen={inviteModalOpen}
-      >
-        <Invite onSubmit={handleInviteModalClose} />
-      </Modal>
+          )}
+        </Section>
+      </Scrollable>
+      {can.invite && (
+        <Modal
+          title={t("Invite people")}
+          onRequestClose={handleInviteModalClose}
+          isOpen={inviteModalOpen}
+        >
+          <Invite onSubmit={handleInviteModalClose} />
+        </Modal>
+      )}
       <Modal
         title={t("Create a collection")}
         onRequestClose={handleCreateCollectionModalClose}
@@ -188,11 +186,6 @@ function MainSidebar() {
     </Sidebar>
   );
 }
-
-const Secondary = styled.div`
-  overflow-x: hidden;
-  flex-shrink: 0;
-`;
 
 const Drafts = styled(Flex)`
   height: 24px;

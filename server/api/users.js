@@ -195,8 +195,9 @@ router.post("users.invite", auth(), async (ctx) => {
   const { invites } = ctx.body;
   ctx.assertPresent(invites, "invites is required");
 
-  const user = ctx.state.user;
-  authorize(user, "invite", User);
+  const { user } = ctx.state;
+  const team = await Team.findByPk(user.teamId);
+  authorize(user, "invite", team);
 
   const response = await userInviter({ user, invites, ip: ctx.request.ip });
 

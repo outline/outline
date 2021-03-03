@@ -29,6 +29,12 @@ export default function PageTheme() {
         ui.resolvedTheme === "dark" ? "black-translucent" : "default"
       );
     }
+
+    // user-agent controls and scrollbars
+    const csElement = document.querySelector('meta[name="color-scheme"]');
+    if (csElement) {
+      csElement.setAttribute("content", ui.resolvedTheme);
+    }
   }, [theme, ui.resolvedTheme]);
 
   return null;

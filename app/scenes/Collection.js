@@ -258,7 +258,7 @@ class CollectionScene extends React.Component<Props> {
 
             {hasPinnedDocuments && (
               <>
-                <Subheading>
+                <Subheading sticky>
                   <TinyPinIcon size={18} /> {t("Pinned")}
                 </Subheading>
                 <DocumentList documents={pinnedDocuments} showPin />

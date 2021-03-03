@@ -127,7 +127,7 @@ please refer to the [architecture document](ARCHITECTURE.md) first for a high le
 Outline uses [debug](https://www.npmjs.com/package/debug). To enable debugging output, the following categories are available:
 
 ```
-DEBUG=sql,cache,presenters,events,logistics,emails,mailer
+DEBUG=sql,cache,presenters,events,importer,exporter,emails,mailer
 ```
 
 ## Tests

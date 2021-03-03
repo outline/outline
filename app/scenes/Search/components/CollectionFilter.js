@@ -1,39 +1,44 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import CollectionsStore from "stores/CollectionsStore";
+import { useTranslation } from "react-i18next";
 import FilterOptions from "./FilterOptions";
+import useStores from "hooks/useStores";
 
-const defaultOption = {
-  key: "",
-  label: "Any collection",
-};
-
-type Props = {
-  collections: CollectionsStore,
+type Props = {|
   collectionId: ?string,
   onSelect: (key: ?string) => void,
-};
+|};
 
-@observer
-class CollectionFilter extends React.Component<Props> {
-  render() {
-    const { onSelect, collectionId, collections } = this.props;
+function CollectionFilter(props: Props) {
+  const { t } = useTranslation();
+  const { collections } = useStores();
+  const { onSelect, collectionId } = props;
+
+  const options = React.useMemo(() => {
     const collectionOptions = collections.orderedData.map((user) => ({
       key: user.id,
       label: user.name,
     }));
 
-    return (
-      <FilterOptions
-        options={[defaultOption, ...collectionOptions]}
-        activeKey={collectionId}
-        onSelect={onSelect}
-        defaultLabel="Any collection"
-        selectedPrefix="Collection:"
-      />
-    );
-  }
+    return [
+      {
+        key: "",
+        label: t("Any collection"),
+      },
+      ...collectionOptions,
+    ];
+  }, [collections.orderedData, t]);
+
+  return (
+    <FilterOptions
+      options={options}
+      activeKey={collectionId}
+      onSelect={onSelect}
+      defaultLabel={t("Any collection")}
+      selectedPrefix={`${t("Collection")}:`}
+    />
+  );
 }
 
-export default inject("collections")(CollectionFilter);
+export default observer(CollectionFilter);

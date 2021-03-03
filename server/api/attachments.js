@@ -38,7 +38,7 @@ router.post("attachments.create", auth(), async (ctx) => {
   const key = `${bucket}/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
   const longDate = format(new Date(), "YYYYMMDDTHHmmss\\Z");
-  const policy = makePolicy(credential, longDate, acl);
+  const policy = makePolicy(credential, longDate, acl, contentType);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
 
@@ -85,6 +85,7 @@ router.post("attachments.create", auth(), async (ctx) => {
         documentId,
         contentType,
         name,
+        id: attachment.id,
         url: attachment.redirectUrl,
         size,
       },
@@ -138,6 +139,7 @@ router.post("attachments.redirect", auth(), async (ctx) => {
     if (attachment.documentId) {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
+        paranoid: false,
       });
       authorize(user, "read", document);
     }

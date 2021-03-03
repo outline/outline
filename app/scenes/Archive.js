@@ -26,7 +26,7 @@ function Archive(props: Props) {
       <PaginatedDocumentList
         documents={documents.archived}
         fetch={documents.fetchArchived}
-        heading={<Subheading>{t("Documents")}</Subheading>}
+        heading={<Subheading sticky>{t("Documents")}</Subheading>}
         empty={
           <Empty>{t("The document archive is empty at the moment.")}</Empty>
         }

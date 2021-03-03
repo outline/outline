@@ -1,7 +1,6 @@
 // @flow
 import { concat, filter, last } from "lodash";
 import { computed, action } from "mobx";
-
 import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
@@ -89,6 +88,13 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
+  import = async (attachmentId: string) => {
+    await client.post("/collections.import", {
+      type: "outline",
+      attachmentId,
+    });
+  };
+
   async update(params: Object): Promise<Collection> {
     const result = await super.update(params);
 
@@ -116,12 +122,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
     if (path) return path.title;
   }
 
-  delete(collection: Collection) {
-    super.delete(collection);
+  delete = async (collection: Collection) => {
+    await super.delete(collection);
 
     this.rootStore.documents.fetchRecentlyUpdated();
     this.rootStore.documents.fetchRecentlyViewed();
-  }
+  };
 
   export = () => {
     return client.post("/collections.export_all");

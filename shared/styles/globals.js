@@ -31,7 +31,7 @@ export default createGlobalStyle`
     font-size: 16px;
     line-height: 1.5;
     color: ${(props) => props.theme.text};
-
+    overscroll-behavior-y: none;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -47,8 +47,8 @@ export default createGlobalStyle`
       left: 0;
       right: 0;
       height: 1px;
-      background: ${(props) => props.theme.divider};
-      z-index: ${(props) => props.theme.depths.pwaSeparator};
+      background: ${(props) => props.theme.titleBarDivider};
+      z-index: ${(props) => props.theme.depths.titleBarDivider};
     }
   }
 
