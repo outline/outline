@@ -1,4 +1,5 @@
 // @flow
+import invariant from "invariant";
 import { concat, filter, last } from "lodash";
 import { computed, action } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
@@ -34,7 +35,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get orderedData(): Collection[] {
     return filter(
-      naturalSort(Array.from(this.data.values()), "name"),
+      naturalSort(Array.from(this.data.values()), "index"),
       (d) => !d.deletedAt
     );
   }
@@ -93,6 +94,16 @@ export default class CollectionsStore extends BaseStore<Collection> {
       type: "outline",
       attachmentId,
     });
+  };
+
+  @action
+  move = async (collectionId: string, index: string) => {
+    const res = await client.post("/collections.move", {
+      id: collectionId,
+      index,
+    });
+    invariant(res && res.success, "Collection could not be moved");
+    this.addPolicies(res.policies);
   };
 
   async update(params: Object): Promise<Collection> {
