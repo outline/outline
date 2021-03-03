@@ -577,7 +577,10 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
   );
 
   if (nullIndexCollection !== -1) {
-    await collectionIndexing(ctx.state.user.teamId);
+    const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
+    collections.forEach((collection) => {
+      collection.index = indexedCollections[collection.id];
+    });
   }
 
   ctx.body = {
@@ -617,4 +620,31 @@ router.post("collections.delete", auth(), async (ctx) => {
   };
 });
 
+router.post("collections.move", auth(), async (ctx) => {
+  const { index, id } = ctx.body;
+  ctx.assertPresent(index, "index is required");
+  ctx.assertUuid(id, "id must be a uuid");
+
+  const user = ctx.state.user;
+  const collection = await Collection.findByPk(id);
+  authorize(user, "move", collection);
+
+  collection.index = index;
+
+  await collection.save();
+
+  await Event.create({
+    name: "collections.move",
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+    data: { name: collection.name },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
+    policies: presentPolicies(user, [collection]),
+  };
+});
 export default router;

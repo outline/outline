@@ -13,26 +13,18 @@ export default async function collectionIndexing(teamId: string) {
 
   // a set to store the index value of collections.
   const indexSet = new Set();
-  // if there is index collision or collection with null index, we can return early
-  let nonull = true;
 
   // make the index null, if there is index collision
   sortableCollections = sortableCollections.map((collection) => {
     if (collection[1] === null) {
-      nonull = false;
       return collection;
     } else if (indexSet.has(collection[1])) {
       collection[1] = null;
-      nonull = false;
       return collection;
     }
     indexSet.add(collection[1]);
     return collection;
   });
-
-  if (nonull) {
-    return;
-  }
 
   //sort the collection in ASC and such that null values are the end
   sortableCollections.sort((a, b) => {
@@ -50,10 +42,17 @@ export default async function collectionIndexing(teamId: string) {
   let previousCollectionIndex = null;
   for (const collection of sortableCollections) {
     if (collection[1] === null) {
-      const index = fractionalIndex(previousCollectionIndex, collection[1]);
+      const index = fractionalIndex(collection[1], previousCollectionIndex);
       collection[0].index = index;
       await collection[0].save();
     }
     previousCollectionIndex = collection[0].index;
   }
+
+  const indexedCollections = {};
+  sortableCollections.forEach((collection) => {
+    indexedCollections[collection[0].id] = collection[0].index;
+  });
+
+  return indexedCollections;
 }
