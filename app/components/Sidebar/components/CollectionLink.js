@@ -1,4 +1,5 @@
 // @flow
+import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag } from "react-dnd";
@@ -22,6 +23,7 @@ type Props = {|
   canUpdate: boolean,
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
+  belowCollectionIndex: string,
 |};
 
 function CollectionLink({
@@ -30,6 +32,7 @@ function CollectionLink({
   prefetchDocument,
   canUpdate,
   ui,
+  belowCollectionIndex,
 }: Props) {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -40,7 +43,7 @@ function CollectionLink({
     [collection]
   );
 
-  const { documents, policies } = useStores();
+  const { documents, policies, collections } = useStores();
   const expanded = collection.id === ui.activeCollectionId;
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
@@ -78,7 +81,10 @@ function CollectionLink({
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
-      console.log("move collection");
+      collections.move(
+        item.id,
+        fractionalIndex(collection.index, belowCollectionIndex)
+      );
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
@@ -87,13 +93,16 @@ function CollectionLink({
 
   // Drag to reorder Collection
   const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
-    item: { type: "collection", activeCollectionId: ui.activeCollectionId },
+    item: {
+      type: "collection",
+      activeCollectionId: ui.activeCollectionId,
+      id: collection.id,
+    },
     collect: (monitor) => ({
       isCollectionDragging: monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      //policies to allow admin
-      return true;
+      return policies.abilities(collection.id).move;
     },
     begin: (monitor) => {
       ui.activeCollectionId = "";

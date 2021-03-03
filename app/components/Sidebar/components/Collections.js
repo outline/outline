@@ -1,4 +1,5 @@
 // @flow
+import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -12,7 +13,6 @@ import CollectionsLoading from "./CollectionsLoading";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
-
 type Props = {
   onCreateCollection: () => void,
 };
@@ -21,6 +21,8 @@ function Collections({ onCreateCollection }: Props) {
   const { ui, policies, documents, collections } = useStores();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
+  const orderedCollections = collections.orderedData;
+
   React.useEffect(() => {
     if (!collections.isFetching && !collections.isLoaded) {
       collections.fetchPage({ limit: 100 });
@@ -30,14 +32,15 @@ function Collections({ onCreateCollection }: Props) {
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
-      //documents.move()
-      console.log("move collection");
+      collections.move(
+        item.id,
+        fractionalIndex(null, orderedCollections[0].index)
+      );
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
     }),
   });
-
   const content = (
     <>
       <DropCursor
@@ -45,7 +48,7 @@ function Collections({ onCreateCollection }: Props) {
         innerRef={dropToReorderCollection}
         from="collections"
       />
-      {collections.orderedData.map((collection) => (
+      {orderedCollections.map((collection, index) => (
         <CollectionLink
           key={collection.id}
           collection={collection}
@@ -53,6 +56,11 @@ function Collections({ onCreateCollection }: Props) {
           prefetchDocument={documents.prefetchDocument}
           canUpdate={policies.abilities(collection.id).update}
           ui={ui}
+          belowCollectionIndex={
+            orderedCollections[index + 1]
+              ? orderedCollections[index + 1].index
+              : null
+          }
         />
       ))}
       <SidebarLink
