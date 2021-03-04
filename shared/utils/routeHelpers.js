@@ -8,8 +8,8 @@ export function slackAuth(
     "identity.avatar",
     "identity.team",
   ],
-  clientId: string = process.env.SLACK_KEY,
-  redirectUri: string = `${process.env.URL}/auth/slack.callback`
+  clientId: string = process.env.GATSBY_SLACK_KEY,
+  redirectUri: string = `${process.env.BACKEND_URL}/auth/slack.callback`
 ): string {
   const baseUrl = "https://slack.com/oauth/authorize";
   const params = {
@@ -51,7 +51,7 @@ export function changelog(): string {
 }
 
 export function signin(service: string = "slack"): string {
-  return `${process.env.URL}/auth/${service}`;
+  return `${process.env.BACKEND_URL}/auth/${service}`;
 }
 
 export function settings(): string {

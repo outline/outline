@@ -1,105 +1,124 @@
 {
-  "parser": "babel-eslint",
-  "extends": [
-    "react-app",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:flowtype/recommended",
-    "plugin:react-hooks/recommended"
-  ],
-  "plugins": [
-    "prettier",
-    "flowtype"
-  ],
+  "parserOptions": {
+    "ecmaVersion": 10
+  },
   "rules": {
-    "eqeqeq": 2,
-    "no-unused-vars": 2,
-    "no-mixed-operators": "off",
-    "import/order": [
-      "error",
-      {
-        "alphabetize": {
-          "order": "asc"
-        },
-        "pathGroups": [
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "indent": ["error", "tab"]
+  },
+  "overrides": [
+    {
+      "files": ["outline/**/*.js", "shared/**/*.js"],
+      "parser": "@babel/eslint-parser",
+      "parserOptions": {
+        "requireConfigFile": false
+      },
+      "extends": [
+        "react-app",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:flowtype/recommended",
+        "plugin:react-hooks/recommended"
+      ],
+      "plugins": [
+        "prettier",
+        "flowtype"
+      ],
+      "rules": {
+        "eqeqeq": 2,
+        "no-unused-vars": 2,
+        "no-mixed-operators": "off",
+        "indent": ["error", 2],
+        "quotes": ["error", "double"],
+        "import/order": [
+          "error",
           {
-            "pattern": "shared/**",
-            "group": "external",
-            "position": "after"
-          },
+            "alphabetize": {
+              "order": "asc"
+            },
+            "pathGroups": [
+              {
+                "pattern": "shared/**",
+                "group": "external",
+                "position": "after"
+              },
+              {
+                "pattern": "stores",
+                "group": "external",
+                "position": "after"
+              },
+              {
+                "pattern": "stores/**",
+                "group": "external",
+                "position": "after"
+              },
+              {
+                "pattern": "models/**",
+                "group": "external",
+                "position": "after"
+              },
+              {
+                "pattern": "scenes/**",
+                "group": "external",
+                "position": "after"
+              },
+              {
+                "pattern": "components/**",
+                "group": "external",
+                "position": "after"
+              }
+            ]
+          }
+        ],
+        "flowtype/require-valid-file-annotation": [
+          2,
+          "always",
           {
-            "pattern": "stores",
-            "group": "external",
-            "position": "after"
-          },
+            "annotationStyle": "line"
+          }
+        ],
+        "flowtype/space-after-type-colon": [
+          2,
+          "always"
+        ],
+        "flowtype/space-before-type-colon": [
+          2,
+          "never"
+        ],
+        "prettier/prettier": [
+          "error",
           {
-            "pattern": "stores/**",
-            "group": "external",
-            "position": "after"
-          },
-          {
-            "pattern": "models/**",
-            "group": "external",
-            "position": "after"
-          },
-          {
-            "pattern": "scenes/**",
-            "group": "external",
-            "position": "after"
-          },
-          {
-            "pattern": "components/**",
-            "group": "external",
-            "position": "after"
+            "printWidth": 80,
+            "trailingComma": "es5"
           }
         ]
+      },
+      "settings": {
+        "react": {
+          "createClass": "createReactClass",
+          "pragma": "React",
+          "version": "detect"
+        },
+        "import/resolver": {
+          "node": {
+            "shared": "outline-shared",
+            "paths": [
+              "outline",
+              "."
+            ]
+          }
+        },
+        "flowtype": {
+          "onlyFilesWithFlowAnnotation": false
+        }
+      },
+      "env": {
+        "jest": true
+      },
+      "globals": {
+        "EDITOR_VERSION": true
       }
-    ],
-    "flowtype/require-valid-file-annotation": [
-      2,
-      "always",
-      {
-        "annotationStyle": "line"
-      }
-    ],
-    "flowtype/space-after-type-colon": [
-      2,
-      "always"
-    ],
-    "flowtype/space-before-type-colon": [
-      2,
-      "never"
-    ],
-    "prettier/prettier": [
-      "error",
-      {
-        "printWidth": 80,
-        "trailingComma": "es5"
-      }
-    ]
-  },
-  "settings": {
-    "react": {
-      "createClass": "createReactClass",
-      "pragma": "React",
-      "version": "detect"
-    },
-    "import/resolver": {
-      "node": {
-        "paths": [
-          "app",
-          "."
-        ]
-      }
-    },
-    "flowtype": {
-      "onlyFilesWithFlowAnnotation": false
     }
-  },
-  "env": {
-    "jest": true
-  },
-  "globals": {
-    "EDITOR_VERSION": true
-  }
+  ]
 }

@@ -1,6 +1,5 @@
 [include]
-.*/app/.*
-.*/server/.*
+.*/outline/.*
 .*/shared/.*
 
 [ignore]
@@ -12,6 +11,9 @@
 .*/node_modules/fbjs/.*
 .*/node_modules/config-chain/.*
 .*/server/scripts/.*
+.*/src/pages/.*
+gatsby-config.js
+gatsby-node.js
 *.test.js
 
 [libs]

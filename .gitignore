@@ -4,8 +4,12 @@ node_modules/*
 server/scripts
 .env
 .log
+.cache/
 npm-debug.log
 stats.json
 .DS_Store
 fakes3/*
-.idea
+.idea/
+.env.development
+.env.production
+public/

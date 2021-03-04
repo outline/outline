@@ -1,29 +1,20 @@
 {
   "presets": [
-    "@babel/preset-react",
-    "@babel/preset-flow",
-    [
-      "@babel/preset-env",
-      {
-        "corejs": {
-          "version": "2",
-          "proposals": true
-        },
-        "useBuiltIns": "usage"
-      }
-    ]
+	"@babel/preset-react",
+	"@babel/preset-flow",
+	[
+	  "babel-preset-gatsby",
+	  {
+		"targets": {
+		  "browsers": [">0.25%", "not dead"]
+		}
+	  }
+	]
   ],
   "plugins": [
-    "lodash",
-    "styled-components",
-    [
-      "@babel/plugin-proposal-decorators",
-      {
-        "legacy": true
-      }
-    ],
-    "@babel/plugin-transform-destructuring",
-    "@babel/plugin-transform-regenerator",
-    "transform-class-properties"
+	["@babel/plugin-proposal-decorators", { "legacy": true }],
+	"@babel/plugin-transform-destructuring",
+	"@babel/plugin-transform-regenerator",
+	"transform-class-properties"
   ]
 }

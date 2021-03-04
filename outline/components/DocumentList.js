@@ -1,0 +1,26 @@
+// @flow
+import * as React from "react";
+import Document from "models/Document";
+import DocumentListItem from "components/DocumentListItem";
+
+type Props = {|
+  documents: Document[],
+  limit?: number,
+  showCollection?: boolean,
+  showPublished?: boolean,
+  showPin?: boolean,
+  showDraft?: boolean,
+  showTemplate?: boolean,
+|};
+
+export default function DocumentList({ limit, documents, ...rest }: Props) {
+  const items = limit ? documents.splice(0, limit) : documents;
+
+  return (
+    <>
+      {items.map((document) => (
+        <DocumentListItem key={document.id} document={document} {...rest} />
+      ))}
+    </>
+  );
+}
