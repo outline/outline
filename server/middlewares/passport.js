@@ -1,6 +1,5 @@
 // @flow
 import passport from "passport";
-import { EmailAuthenticationRequiredError } from "../errors";
 import { User, Team } from "../models";
 
 export default function createMiddleware(providerName: string) {
@@ -18,19 +17,20 @@ export default function createMiddleware(providerName: string) {
           isFirstUser: boolean,
         }
       ) => {
-        if (err instanceof EmailAuthenticationRequiredError) {
-          ctx.redirect(`${err.redirectUrl}?notice=email-auth-required`);
-          return;
-        }
-
         if (err) {
-          ctx.redirect(`${err.redirectUrl}?notice=auth-error`);
-          return;
+          if (err.id) {
+            const notice = err.id.replace(/_/g, "-");
+            return ctx.redirect(`${err.redirectUrl || "/"}?notice=${notice}`);
+          }
+
+          if (process.env.NODE_ENV === "development") {
+            throw err;
+          }
+          return ctx.redirect(`/?notice=auth-error`);
         }
 
         if (result.user.isSuspended) {
-          ctx.redirect("/?notice=suspended");
-          return;
+          return ctx.redirect("/?notice=suspended");
         }
 
         ctx.signIn(

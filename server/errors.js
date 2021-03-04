@@ -69,3 +69,15 @@ export function EmailAuthenticationRequiredError(
 ) {
   return httpErrors(400, message, { redirectUrl, id: "email_auth_required" });
 }
+
+export function GoogleWorkspaceRequiredError(
+  message: string = "Google Workspace is required to authenticate"
+) {
+  return httpErrors(400, message, { id: "google_hd" });
+}
+
+export function GoogleWorkspaceInvalidError(
+  message: string = "Google Workspace is invalid"
+) {
+  return httpErrors(400, message, { id: "hd_not_allowed" });
+}

@@ -1,129 +1,89 @@
 // @flow
-import { OAuth2Client } from "google-auth-library";
-import invariant from "invariant";
 import Router from "koa-router";
 import { capitalize } from "lodash";
-import Sequelize from "sequelize";
-import teamCreator from "../commands/teamCreator";
-import userCreator from "../commands/userCreator";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import accountProvisioner from "../commands/accountProvisioner";
+import env from "../env";
+import {
+  GoogleWorkspaceRequiredError,
+  GoogleWorkspaceInvalidError,
+} from "../errors";
 import auth from "../middlewares/authentication";
-import { User } from "../models";
+import passportMiddleware from "../middlewares/passport";
 
 const router = new Router();
-const client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.URL}/auth/google.callback`
-);
+const providerName = "google";
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
+const allowedDomains = allowedDomainsEnv ? allowedDomainsEnv.split(",") : [];
 
-// start the oauth process and redirect user to Google
-router.get("google", async (ctx) => {
-  // Generate the url that will be used for the consent dialog.
-  const authorizeUrl = client.generateAuthUrl({
-    access_type: "offline",
-    scope: [
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email",
-    ],
-    prompt: "select_account consent",
-  });
-  ctx.redirect(authorizeUrl);
-});
+const scopes = [
+  "https://www.googleapis.com/auth/userinfo.profile",
+  "https://www.googleapis.com/auth/userinfo.email",
+];
 
-// signin callback from Google
-router.get("google.callback", auth({ required: false }), async (ctx) => {
-  const { code } = ctx.request.query;
-  ctx.assertPresent(code, "code is required");
-  const response = await client.getToken(code);
-  client.setCredentials(response.tokens);
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: `${env.URL}/auth/google.callback`,
+      prompt: "select_account consent",
+      passReqToCallback: true,
+      scope: scopes,
+    },
+    async function (req, accessToken, refreshToken, profile, done) {
+      const domain = profile._json.hd;
 
-  const profile = await client.request({
-    url: "https://www.googleapis.com/oauth2/v1/userinfo",
-  });
-
-  if (!profile.data.hd) {
-    ctx.redirect("/?notice=google-hd");
-    return;
-  }
-
-  // allow all domains by default if the env is not set
-  const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(",");
-  if (allowedDomains && !allowedDomains.includes(profile.data.hd)) {
-    ctx.redirect("/?notice=hd-not-allowed");
-    return;
-  }
-
-  const domain = profile.data.hd;
-  const subdomain = profile.data.hd.split(".")[0];
-  const teamName = capitalize(subdomain);
-
-  let team, isFirstUser;
-  try {
-    [team, isFirstUser] = await teamCreator({
-      name: teamName,
-      domain,
-      subdomain,
-      authenticationProvider: {
-        name: "google",
-        providerId: domain,
-      },
-    });
-  } catch (err) {
-    if (err instanceof Sequelize.UniqueConstraintError) {
-      ctx.redirect(`/?notice=auth-error&error=team-exists`);
-      return;
-    }
-  }
-  invariant(team, "Team must exist");
-
-  const authenticationProvider = team.authenticationProviders[0];
-  invariant(authenticationProvider, "Team authenticationProvider must exist");
-
-  try {
-    const [user, isFirstSignin] = await userCreator({
-      name: profile.data.name,
-      email: profile.data.email,
-      isAdmin: isFirstUser,
-      avatarUrl: profile.data.picture,
-      teamId: team.id,
-      ip: ctx.request.ip,
-      authentication: {
-        authenticationProviderId: authenticationProvider.id,
-        providerId: profile.data.id,
-        accessToken: response.tokens.access_token,
-        refreshToken: response.tokens.refresh_token,
-        scopes: response.tokens.scope.split(" "),
-      },
-    });
-
-    if (isFirstUser) {
-      await team.provisionFirstCollection(user.id);
-    }
-
-    // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "google", isFirstSignin);
-  } catch (err) {
-    if (err instanceof Sequelize.UniqueConstraintError) {
-      const exists = await User.findOne({
-        where: {
-          email: profile.data.email,
-          teamId: team.id,
-        },
-      });
-
-      if (exists) {
-        ctx.redirect(`${team.url}?notice=email-auth-required`);
-      } else {
-        console.error(err);
-        ctx.redirect(`${team.url}?notice=auth-error`);
+      if (!domain) {
+        return done(new GoogleWorkspaceRequiredError(), null);
       }
 
-      return;
-    }
+      if (allowedDomains.length && !allowedDomains.includes(domain)) {
+        return done(new GoogleWorkspaceInvalidError(), null);
+      }
 
-    throw err;
-  }
-});
+      const subdomain = domain.split(".")[0];
+      const teamName = capitalize(subdomain);
+
+      try {
+        const result = await accountProvisioner({
+          ip: req.ip,
+          team: {
+            name: teamName,
+            domain,
+            subdomain,
+          },
+          user: {
+            name: profile.displayName,
+            email: profile.email,
+            avatarUrl: profile.picture,
+          },
+          authenticationProvider: {
+            name: providerName,
+            providerId: domain,
+          },
+          authentication: {
+            providerId: profile.id,
+            accessToken,
+            refreshToken,
+            scopes,
+          },
+        });
+        return done(null, result.user, result);
+      } catch (err) {
+        return done(err, null);
+      }
+    }
+  )
+);
+
+router.get("google", passport.authenticate(providerName));
+
+router.get(
+  "google.callback",
+  auth({ required: false }),
+  passportMiddleware(providerName)
+);
 
 export default router;
