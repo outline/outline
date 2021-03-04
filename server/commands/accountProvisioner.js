@@ -93,9 +93,12 @@ export default async function accountProvisioner({
       });
 
       if (exists) {
-        throw new EmailAuthenticationRequiredError();
+        throw new EmailAuthenticationRequiredError(
+          "Email authentication required",
+          team.url
+        );
       } else {
-        throw new AuthenticationError(err.message);
+        throw new AuthenticationError(err.message, team.url);
       }
     }
 

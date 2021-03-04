@@ -1,10 +1,15 @@
 // @flow
 import httpErrors from "http-errors";
+import env from "./env";
 
 export function AuthenticationError(
-  message: string = "Invalid authentication"
+  message: string = "Invalid authentication",
+  redirectUrl: string = env.URL
 ) {
-  return httpErrors(401, message, { id: "authentication_required" });
+  return httpErrors(401, message, {
+    redirectUrl,
+    id: "authentication_required",
+  });
 }
 
 export function AuthorizationError(
@@ -59,7 +64,8 @@ export function FileImportError(
 }
 
 export function EmailAuthenticationRequiredError(
-  message: string = "User must authenticate with email"
+  message: string = "User must authenticate with email",
+  redirectUrl: string = env.URL
 ) {
-  return httpErrors(400, message, { id: "email_auth_required" });
+  return httpErrors(400, message, { redirectUrl, id: "email_auth_required" });
 }

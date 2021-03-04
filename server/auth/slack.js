@@ -5,6 +5,7 @@ import { Strategy as SlackStrategy } from "passport-slack";
 import accountProvisioner from "../commands/accountProvisioner";
 import env from "../env";
 import auth from "../middlewares/authentication";
+import passportMiddleware from "../middlewares/passport";
 import { Authentication, Collection, Integration, Team } from "../models";
 import * as Slack from "../slack";
 
@@ -62,18 +63,11 @@ passport.use(
 
 router.get("slack", passport.authenticate(providerName));
 
-router.get("slack.callback", auth({ required: false }), async (ctx, next) => {
-  await passport.authorize(
-    providerName,
-    { session: false },
-    (err, profile, result) => {
-      if (err) {
-        throw err;
-      }
-      ctx.signIn(result.user, result.team, providerName, result.isFirstSignin);
-    }
-  )(ctx, next);
-});
+router.get(
+  "slack.callback",
+  auth({ required: false }),
+  passportMiddleware(providerName)
+);
 
 router.get("slack.commands", auth({ required: false }), async (ctx) => {
   const { code, state, error } = ctx.request.query;
