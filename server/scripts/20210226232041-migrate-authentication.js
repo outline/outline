@@ -9,7 +9,7 @@ import {
 } from "../models";
 import { Op } from "../sequelize";
 
-const log = debug("script");
+const log = debug("server");
 const cache = {};
 let page = 0;
 let limit = 1000;
@@ -82,6 +82,7 @@ export default async function main(exit = false) {
   await work(page);
 
   if (exit) {
+    log("Migration complete");
     process.exit(0);
   }
 }
