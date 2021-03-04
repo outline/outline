@@ -10,7 +10,7 @@ export async function checkMigrations() {
   const providers = await AuthenticationProvider.count();
 
   if (teams && !providers) {
-    console.log(`
+    console.error(`
 This version of Outline cannot start until a data migration is complete.
 Backup your database, run the database migrations and the following script:
 
