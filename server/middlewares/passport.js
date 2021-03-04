@@ -1,14 +1,23 @@
 // @flow
 import passport from "passport";
 import { EmailAuthenticationRequiredError } from "../errors";
-import type { ContextWithState } from "../types";
+import { User, Team } from "../models";
 
 export default function createMiddleware(providerName: string) {
-  return function passportMiddleware(ctx: ContextWithState) {
+  return function passportMiddleware(ctx) {
     return passport.authorize(
       providerName,
       { session: false },
-      (err, profile, result) => {
+      (
+        err,
+        _,
+        result: {
+          user: User,
+          team: Team,
+          isFirstSignin: boolean,
+          isFirstUser: boolean,
+        }
+      ) => {
         if (err instanceof EmailAuthenticationRequiredError) {
           ctx.redirect(`${err.redirectUrl}?notice=email-auth-required`);
           return;

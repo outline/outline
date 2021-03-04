@@ -20,9 +20,7 @@ export default async function accountProvisioner({
   user: {|
     name: string,
     email: string,
-    isAdmin?: boolean,
     avatarUrl?: string,
-    teamId: string,
   |},
   team: {|
     name: string,
@@ -63,7 +61,7 @@ export default async function accountProvisioner({
     const [user, isFirstSignin] = await userCreator({
       name: userParams.name,
       email: userParams.email,
-      isAdmin: userParams.isAdmin,
+      isAdmin: isFirstUser,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
       ip,
