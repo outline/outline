@@ -1,9 +1,10 @@
 // @flow
 import passport from "passport";
 import { User, Team } from "../models";
+import type { ContextWithAuthMiddleware } from "../types";
 
 export default function createMiddleware(providerName: string) {
-  return function passportMiddleware(ctx) {
+  return function passportMiddleware(ctx: ContextWithAuthMiddleware) {
     return passport.authorize(
       providerName,
       { session: false },
