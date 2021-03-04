@@ -1,8 +1,8 @@
 // @flow
+import passport from "@outlinewiki/koa-passport";
 import addMonths from "date-fns/add_months";
 import Koa from "koa";
 import bodyParser from "koa-body";
-import passport from "koa-passport";
 import Router from "koa-router";
 import { AuthenticationError } from "../errors";
 import auth from "../middlewares/authentication";

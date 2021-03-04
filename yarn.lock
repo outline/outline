@@ -1698,6 +1698,13 @@
   dependencies:
     "@types/node" ">= 8"
 
+"@outlinewiki/koa-passport@^4.1.4":
+  version "4.1.4"
+  resolved "https://registry.yarnpkg.com/@outlinewiki/koa-passport/-/koa-passport-4.1.4.tgz#f7536b81860b28065227c0521e9c9fddb532968a"
+  integrity sha512-CgBAGLQU52rMy3WqsW/VSChSVJkMg4iT7P0ITvPigOedvmd0HNDuAmuOf2IBKsv2vpe4qYoVb7uBFjah7dA31A==
+  dependencies:
+    passport "^0.4.0"
+
 "@popperjs/core@^2.5.4":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.6.0.tgz#f022195afdfc942e088ee2101285a1d31c7d727f"
@@ -8152,13 +8159,6 @@ koa-onerror@^4.0.0:
   dependencies:
     escape-html "^1.0.3"
     stream-wormhole "^1.1.0"
-
-koa-passport@^4.1.3:
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/koa-passport/-/koa-passport-4.1.3.tgz#6e8eaa48290457af1539bcbed3c52d9defc029c9"
-  integrity sha512-QqKrHfp4jNfqkKThGkVb2WQtlVOSRYk5CC69Z17cmOpZ4760l8CdyJ+Bs2CfQc9BHizz557mczjPkSlVkpuluw==
-  dependencies:
-    passport "^0.4.0"
 
 koa-router@7.0.1:
   version "7.0.1"

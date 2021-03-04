@@ -11,7 +11,7 @@ import * as Slack from "../slack";
 const router = new Router();
 const providerName = "slack";
 
-const scope = [
+const scopes = [
   "identity.email",
   "identity.basic",
   "identity.avatar",
@@ -25,32 +25,31 @@ passport.use(
       clientSecret: process.env.SLACK_SECRET,
       callbackURL: `${env.URL}/auth/slack.callback`,
       passReqToCallback: true,
-      scope,
+      scope: scopes,
     },
     async function (req, accessToken, refreshToken, profile, done) {
       try {
         const result = await accountProvisioner({
-          // see: https://github.com/rkusa/koa-passport/pull/157
-          ip: "127.0.0.1",
+          ip: req.ip,
           team: {
             name: profile.team.name,
             subdomain: profile.team.domain,
             avatarUrl: profile.team.image_230,
-          },
-          authenticationProvider: {
-            name: providerName,
-            providerId: profile.team.id,
           },
           user: {
             name: profile.user.name,
             email: profile.user.email,
             avatarUrl: profile.user.image_192,
           },
+          authenticationProvider: {
+            name: providerName,
+            providerId: profile.team.id,
+          },
           authentication: {
             providerId: profile.user.id,
             accessToken,
             refreshToken,
-            scopes: scope,
+            scopes,
           },
         });
         return done(null, result.user, result);
