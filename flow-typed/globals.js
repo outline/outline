@@ -1,5 +1,6 @@
 // @flow
 declare var process: {
+  exit: (code?: number) => void,
   env: {
     [string]: string,
   },

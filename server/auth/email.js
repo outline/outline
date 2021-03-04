@@ -1,6 +1,7 @@
 // @flow
 import subMinutes from "date-fns/sub_minutes";
 import Router from "koa-router";
+import { find } from "lodash";
 import { AuthorizationError } from "../errors";
 import mailer from "../mailer";
 import auth from "../middlewares/authentication";
@@ -24,7 +25,9 @@ router.post("email", async (ctx) => {
   });
 
   if (user) {
-    const team = await Team.findByPk(user.teamId);
+    const team = await Team.scope("withAuthenticationProviders").findByPk(
+      user.teamId
+    );
     if (!team) {
       ctx.redirect(`/?notice=auth-error`);
       return;
@@ -33,9 +36,11 @@ router.post("email", async (ctx) => {
     // If the user matches an email address associated with an SSO
     // provider then just forward them directly to that sign-in page
     if (user.authentications.length) {
-      const auth = user.authentications[0];
+      const authProvider = find(team.authenticationProviders, {
+        id: user.authentications[0].authenticationProviderId,
+      });
       ctx.body = {
-        redirect: `${team.url}/auth/${auth.name}`,
+        redirect: `${team.url}/auth/${authProvider.name}`,
       };
       return;
     }
