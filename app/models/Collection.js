@@ -67,6 +67,11 @@ export default class Collection extends BaseModel {
     travelDocuments(this.documents);
   }
 
+  @action
+  updateIndex(index: string) {
+    this.index = index;
+  }
+
   getDocumentChildren(documentId: string): NavigationNode[] {
     let result = [];
     const traveler = (nodes) => {

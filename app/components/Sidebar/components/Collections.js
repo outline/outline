@@ -22,7 +22,6 @@ function Collections({ onCreateCollection }: Props) {
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
-
   React.useEffect(() => {
     if (!collections.isFetching && !collections.isLoaded) {
       collections.fetchPage({ limit: 100 });
@@ -36,6 +35,9 @@ function Collections({ onCreateCollection }: Props) {
         item.id,
         fractionalIndex(null, orderedCollections[0].index)
       );
+    },
+    canDrop: (item, monitor) => {
+      return item.id !== orderedCollections[0].id;
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
@@ -56,11 +58,7 @@ function Collections({ onCreateCollection }: Props) {
           prefetchDocument={documents.prefetchDocument}
           canUpdate={policies.abilities(collection.id).update}
           ui={ui}
-          belowCollectionIndex={
-            orderedCollections[index + 1]
-              ? orderedCollections[index + 1].index
-              : null
-          }
+          belowCollection={orderedCollections[index + 1]}
         />
       ))}
       <SidebarLink

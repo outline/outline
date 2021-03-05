@@ -23,7 +23,7 @@ type Props = {|
   canUpdate: boolean,
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
-  belowCollectionIndex: string,
+  belowCollection: Collection | undefined,
 |};
 
 function CollectionLink({
@@ -32,7 +32,7 @@ function CollectionLink({
   prefetchDocument,
   canUpdate,
   ui,
-  belowCollectionIndex,
+  belowCollection,
 }: Props) {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -47,6 +47,7 @@ function CollectionLink({
   const expanded = collection.id === ui.activeCollectionId;
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
+  const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
   // Drop to re-parent
   const [{ isOver, canDrop }, drop] = useDrop({
@@ -86,6 +87,12 @@ function CollectionLink({
         fractionalIndex(collection.index, belowCollectionIndex)
       );
     },
+    canDrop: (item, monitor) => {
+      return (
+        collection.id !== item.id &&
+        (!belowCollection || item.id !== belowCollection.id)
+      );
+    },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
     }),
@@ -102,7 +109,7 @@ function CollectionLink({
       isCollectionDragging: monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      return policies.abilities(collection.id).move;
+      return can.move;
     },
     begin: (monitor) => {
       ui.activeCollectionId = "";
