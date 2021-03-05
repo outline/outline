@@ -130,6 +130,38 @@ describe("#collections.import", () => {
   });
 });
 
+describe("#collections.move", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/collections.move");
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should require authorization", async () => {
+    const user = await buildUser();
+    const { collection } = await seed();
+
+    const res = await server.post("/api/collections.move", {
+      body: { token: user.getJwtToken(), id: collection.id, index: "P" },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return success", async () => {
+    const { admin, collection } = await seed();
+    const res = await server.post("/api/collections.move", {
+      body: { token: admin.getJwtToken(), id: collection.id, index: "P" },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+  });
+});
+
 describe("#collections.export", () => {
   it("should now allow export of private collection not a member", async () => {
     const { user } = await seed();
