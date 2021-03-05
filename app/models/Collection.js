@@ -17,6 +17,7 @@ export default class Collection extends BaseModel {
   color: string;
   private: boolean;
   sharing: boolean;
+  index: string;
   documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;
@@ -122,6 +123,7 @@ export default class Collection extends BaseModel {
       "icon",
       "private",
       "sort",
+      "index",
     ]);
   };
 

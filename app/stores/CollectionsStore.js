@@ -1,8 +1,8 @@
 // @flow
+import fractionalIndex from "fractional-index";
 import invariant from "invariant";
-import { concat, filter, last } from "lodash";
+import { concat, last } from "lodash";
 import { computed, action } from "mobx";
-import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
@@ -46,6 +46,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
       }
       return a.index < b.index ? -1 : 1;
     });
+  }
+
+  @computed
+  get indexForNew(): string {
+    const collections = this.orderedData;
+    return fractionalIndex(collections[collections.length - 1].index, null);
   }
 
   @computed

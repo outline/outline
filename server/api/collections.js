@@ -39,6 +39,7 @@ router.post("collections.create", auth(), async (ctx) => {
     sharing,
     icon,
     sort = Collection.DEFAULT_SORT,
+    index,
   } = ctx.body;
   const isPrivate = ctx.body.private;
   ctx.assertPresent(name, "name is required");
@@ -60,6 +61,7 @@ router.post("collections.create", auth(), async (ctx) => {
     private: isPrivate,
     sharing,
     sort,
+    index,
   });
 
   await Event.create({
