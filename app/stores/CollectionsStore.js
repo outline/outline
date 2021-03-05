@@ -34,12 +34,18 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   @computed
   get orderedData(): Collection[] {
-    return filter(
-      naturalSort(Array.from(this.data.values()), "index", {
-        caseSensitive: true,
-      }),
-      (d) => !d.deletedAt
+    let collections = Array.from(this.data.values());
+
+    collections = collections.filter((collection) =>
+      collection.deletedAt ? false : true
     );
+
+    return collections.sort((a, b) => {
+      if (a.index === b.index) {
+        return 0;
+      }
+      return a.index < b.index ? -1 : 1;
+    });
   }
 
   @computed
