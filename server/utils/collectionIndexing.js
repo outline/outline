@@ -42,7 +42,7 @@ export default async function collectionIndexing(teamId: string) {
   let previousCollectionIndex = null;
   for (const collection of sortableCollections) {
     if (collection[1] === null) {
-      const index = fractionalIndex(collection[1], previousCollectionIndex);
+      const index = fractionalIndex(previousCollectionIndex, collection[1]);
       collection[0].index = index;
       await collection[0].save();
     }

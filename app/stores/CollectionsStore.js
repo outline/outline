@@ -35,7 +35,9 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get orderedData(): Collection[] {
     return filter(
-      naturalSort(Array.from(this.data.values()), "index"),
+      naturalSort(Array.from(this.data.values()), "index", {
+        caseSensitive: true,
+      }),
       (d) => !d.deletedAt
     );
   }
