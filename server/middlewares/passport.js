@@ -20,6 +20,7 @@ export default function createMiddleware(providerName: string) {
       ) => {
         if (err) {
           if (err.id) {
+            console.error(err);
             const notice = err.id.replace(/_/g, "-");
             return ctx.redirect(`${err.redirectUrl || "/"}?notice=${notice}`);
           }

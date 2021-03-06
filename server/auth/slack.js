@@ -1,13 +1,14 @@
 // @flow
 import Router from "koa-router";
 import passport from "passport";
-import { Strategy as SlackStrategy } from "passport-slack";
+import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import accountProvisioner from "../commands/accountProvisioner";
 import env from "../env";
 import auth from "../middlewares/authentication";
 import passportMiddleware from "../middlewares/passport";
 import { Authentication, Collection, Integration, Team } from "../models";
 import * as Slack from "../slack";
+import { StateStore } from "../utils/passport";
 
 const router = new Router();
 const providerName = "slack";
@@ -21,48 +22,57 @@ const scopes = [
   "identity.team",
 ];
 
+export const config = {
+  name: "Slack",
+  enabled: !!SLACK_CLIENT_ID,
+};
+
 if (SLACK_CLIENT_ID) {
-  passport.use(
-    new SlackStrategy(
-      {
-        clientID: SLACK_CLIENT_ID,
-        clientSecret: SLACK_CLIENT_SECRET,
-        callbackURL: `${env.URL}/auth/slack.callback`,
-        passReqToCallback: true,
-        scope: scopes,
-      },
-      async function (req, accessToken, refreshToken, profile, done) {
-        try {
-          const result = await accountProvisioner({
-            ip: req.ip,
-            team: {
-              name: profile.team.name,
-              subdomain: profile.team.domain,
-              avatarUrl: profile.team.image_230,
-            },
-            user: {
-              name: profile.user.name,
-              email: profile.user.email,
-              avatarUrl: profile.user.image_192,
-            },
-            authenticationProvider: {
-              name: providerName,
-              providerId: profile.team.id,
-            },
-            authentication: {
-              providerId: profile.user.id,
-              accessToken,
-              refreshToken,
-              scopes,
-            },
-          });
-          return done(null, result.user, result);
-        } catch (err) {
-          return done(err, null);
-        }
+  const strategy = new SlackStrategy(
+    {
+      clientID: SLACK_CLIENT_ID,
+      clientSecret: SLACK_CLIENT_SECRET,
+      callbackURL: `${env.URL}/auth/slack.callback`,
+      passReqToCallback: true,
+      store: new StateStore(),
+      scope: scopes,
+    },
+    async function (req, accessToken, refreshToken, profile, done) {
+      try {
+        const result = await accountProvisioner({
+          ip: req.ip,
+          team: {
+            name: profile.team.name,
+            subdomain: profile.team.domain,
+            avatarUrl: profile.team.image_230,
+          },
+          user: {
+            name: profile.user.name,
+            email: profile.user.email,
+            avatarUrl: profile.user.image_192,
+          },
+          authenticationProvider: {
+            name: providerName,
+            providerId: profile.team.id,
+          },
+          authentication: {
+            providerId: profile.user.id,
+            accessToken,
+            refreshToken,
+            scopes,
+          },
+        });
+        return done(null, result.user, result);
+      } catch (err) {
+        return done(err, null);
       }
-    )
+    }
   );
+
+  // For some reason the author made the strategy name capatilised, I don't know
+  // why but we need everything lowercase so we just monkey-patch it here.
+  strategy.name = providerName;
+  passport.use(strategy);
 
   router.get("slack", passport.authenticate(providerName));
 

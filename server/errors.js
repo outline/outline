@@ -63,6 +63,12 @@ export function FileImportError(
   return httpErrors(400, message, { id: "import_error" });
 }
 
+export function OAuthStateMismatchError(
+  message: string = "State returned in OAuth flow did not match"
+) {
+  return httpErrors(400, message, { id: "state_mismatch" });
+}
+
 export function EmailAuthenticationRequiredError(
   message: string = "User must authenticate with email",
   redirectUrl: string = env.URL

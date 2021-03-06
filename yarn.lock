@@ -9861,7 +9861,7 @@ passport-google-oauth2@^0.2.0:
   dependencies:
     passport-oauth2 "^1.1.2"
 
-passport-oauth2@^1.1.2:
+passport-oauth2@^1.1.2, passport-oauth2@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/passport-oauth2/-/passport-oauth2-1.5.0.tgz#64babbb54ac46a4dcab35e7f266ed5294e3c4108"
   integrity sha512-kqBt6vR/5VlCK8iCx1/KpY42kQ+NEHZwsSyt4Y6STiNjU+wWICG1i8ucc1FapXDGO15C5O5VZz7+7vRzrDPXXQ==
@@ -9872,22 +9872,13 @@ passport-oauth2@^1.1.2:
     uid2 "0.0.x"
     utils-merge "1.x.x"
 
-passport-oauth@~0.1.1:
-  version "0.1.15"
-  resolved "https://registry.yarnpkg.com/passport-oauth/-/passport-oauth-0.1.15.tgz#fb74e0afe84614bfa256c5fc716cc56bbfc8cec0"
-  integrity sha1-+3Tgr+hGFL+iVsX8cWzFa7/IzsA=
+passport-slack-oauth2@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/passport-slack-oauth2/-/passport-slack-oauth2-1.1.0.tgz#4a153b3d0d5a9e1a5041b61599d2b41a4b9486f1"
+  integrity sha512-rd0V5lWhtNMTmDWuIIk1eXj+ANgP74fD9h28XEp6AtgtQgWPa577qfeM9YLkl7oUNn8gIQeghsvtW6ziWt52dQ==
   dependencies:
-    oauth "0.9.x"
-    passport "~0.1.1"
-    pkginfo "0.2.x"
-
-passport-slack@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/passport-slack/-/passport-slack-0.0.7.tgz#167eb80f0ab622d2156e7cae7055e16d0b1890d0"
-  integrity sha1-Fn64Dwq2ItIVbnyucFXhbQsYkNA=
-  dependencies:
-    passport-oauth "~0.1.1"
-    pkginfo "0.2.x"
+    passport-oauth2 "^1.5.0"
+    pkginfo "^0.4.1"
 
 passport-strategy@1.x.x:
   version "1.0.0"
@@ -9901,14 +9892,6 @@ passport@^0.4.0, passport@^0.4.1:
   dependencies:
     passport-strategy "1.x.x"
     pause "0.0.1"
-
-passport@~0.1.1:
-  version "0.1.18"
-  resolved "https://registry.yarnpkg.com/passport/-/passport-0.1.18.tgz#c8264479dcb6414cadbb66752d12b37e0b6525a1"
-  integrity sha1-yCZEedy2QUytu2Z1LRKzfgtlJaE=
-  dependencies:
-    pause "0.0.1"
-    pkginfo "0.2.x"
 
 passthrough-counter@^1.0.0:
   version "1.0.0"
@@ -10130,10 +10113,10 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-pkginfo@0.2.x:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/pkginfo/-/pkginfo-0.2.3.tgz#7239c42a5ef6c30b8f328439d9b9ff71042490f8"
-  integrity sha1-cjnEKl72wwuPMoQ52bn/cQQkkPg=
+pkginfo@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/pkginfo/-/pkginfo-0.4.1.tgz#b5418ef0439de5425fc4995042dced14fb2a84ff"
+  integrity sha1-tUGO8EOd5UJfxJlQQtztFPsqhP8=
 
 pngjs@^3.0.0, pngjs@^3.3.3:
   version "3.4.0"

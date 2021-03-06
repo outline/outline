@@ -1,57 +1,43 @@
 // @flow
+import path from "path";
 import Router from "koa-router";
-import { reject } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
 import { signin } from "../../shared/utils/routeHelpers";
 import auth from "../middlewares/authentication";
 import { Team } from "../models";
 import { presentUser, presentTeam, presentPolicies } from "../presenters";
 import { isCustomDomain } from "../utils/domains";
+import { requireDirectory } from "../utils/fs";
 
 const router = new Router();
-
 let services = [];
 
-if (process.env.GOOGLE_CLIENT_ID) {
-  services.push({
-    id: "google",
-    name: "Google",
-    authUrl: signin("google"),
-  });
-}
-
-if (process.env.SLACK_KEY) {
-  services.push({
-    id: "slack",
-    name: "Slack",
-    authUrl: signin("slack"),
-  });
-}
-
-services.push({
-  id: "email",
-  name: "Email",
-  authUrl: "",
-});
+requireDirectory(path.join(__dirname, "..", "auth")).forEach(
+  ([{ config }, id]) => {
+    if (config && config.enabled) {
+      services.push({
+        id,
+        name: config.name,
+        authUrl: signin(id),
+      });
+    }
+  }
+);
 
 function filterServices(team) {
-  let output = services;
-
   const providerNames = team
     ? team.authenticationProviders.map((provider) => provider.name)
     : [];
 
-  if (team && !providerNames.includes("google")) {
-    output = reject(output, (service) => service.id === "google");
-  }
-  if (team && !providerNames.includes("slack")) {
-    output = reject(output, (service) => service.id === "slack");
-  }
-  if (!team || !team.guestSignin) {
-    output = reject(output, (service) => service.id === "email");
-  }
+  return services.filter((service) => {
+    // guest sign-in is an exception as it does not have an authentication
+    // provider using passport, instead it exists as a boolean option on the team
+    if (service.id === "email") {
+      return team && team.guestSignin;
+    }
 
-  return output;
+    return providerNames.includes(service.id);
+  });
 }
 
 router.post("auth.config", async (ctx) => {

@@ -2,10 +2,9 @@
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import AuthLogo from "components/AuthLogo";
 import ButtonLarge from "components/ButtonLarge";
-import GoogleLogo from "components/GoogleLogo";
 import InputLarge from "components/InputLarge";
-import SlackLogo from "components/SlackLogo";
 import { client } from "utils/ApiClient";
 
 type Props = {
@@ -22,7 +21,7 @@ type State = {
   email: string,
 };
 
-class Service extends React.Component<Props, State> {
+class Provider extends React.Component<Props, State> {
   state = {
     showEmailSignin: false,
     isSubmitting: false,
@@ -98,22 +97,13 @@ class Service extends React.Component<Props, State> {
       );
     }
 
-    const icon =
-      id === "slack" ? (
-        <Logo>
-          <SlackLogo size={16} />
-        </Logo>
-      ) : id === "google" ? (
-        <Logo>
-          <GoogleLogo size={16} />
-        </Logo>
-      ) : undefined;
+    const icon = <AuthLogo providerName={id} />;
 
     return (
       <Wrapper key={id}>
         <ButtonLarge
           onClick={() => (window.location.href = authUrl)}
-          icon={icon}
+          icon={icon ? <Logo>{icon}</Logo> : null}
           fullwidth
         >
           {isCreate ? "Sign up" : "Continue"} with {name}
@@ -142,4 +132,4 @@ const Form = styled.form`
   justify-content: space-between;
 `;
 
-export default Service;
+export default Provider;

@@ -1,6 +1,7 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
 import addMonths from "date-fns/add_months";
+import debug from "debug";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
@@ -8,18 +9,25 @@ import { AuthenticationError } from "../errors";
 import auth from "../middlewares/authentication";
 import validation from "../middlewares/validation";
 import { Team } from "../models";
+import { requireDirectory } from "../utils/fs";
 
-import email from "./email";
-import google from "./google";
-import slack from "./slack";
-
+const log = debug("server");
 const app = new Koa();
 const router = new Router();
 
 router.use(passport.initialize());
-router.use("/", slack.routes());
-router.use("/", google.routes());
-router.use("/", email.routes());
+
+// dynamically load available authentication providers
+requireDirectory(__dirname).forEach(([{ default: provider, config }]) => {
+  if (provider && provider.routes) {
+    if (!config) {
+      throw new Error("Auth providers must export a 'config' object");
+    }
+
+    router.use("/", provider.routes());
+    log(`loaded ${config.name} auth provider`);
+  }
+});
 
 router.get("/redirect", auth(), async (ctx) => {
   const user = ctx.state.user;

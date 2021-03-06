@@ -11,6 +11,7 @@ import {
 } from "../errors";
 import auth from "../middlewares/authentication";
 import passportMiddleware from "../middlewares/passport";
+import { StateStore } from "../utils/passport";
 
 const router = new Router();
 const providerName = "google";
@@ -24,6 +25,11 @@ const scopes = [
   "https://www.googleapis.com/auth/userinfo.email",
 ];
 
+export const config = {
+  name: "Google",
+  enabled: !!GOOGLE_CLIENT_ID,
+};
+
 if (GOOGLE_CLIENT_ID) {
   passport.use(
     new GoogleStrategy(
@@ -33,6 +39,7 @@ if (GOOGLE_CLIENT_ID) {
         callbackURL: `${env.URL}/auth/google.callback`,
         prompt: "select_account consent",
         passReqToCallback: true,
+        store: new StateStore(),
         scope: scopes,
       },
       async function (req, accessToken, refreshToken, profile, done) {
