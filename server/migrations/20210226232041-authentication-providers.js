@@ -77,6 +77,7 @@ module.exports = {
       },
     });
 
+    await queryInterface.removeColumn("users", "slackAccessToken")
     await queryInterface.addIndex("authentication_providers", ["providerId"]);
     await queryInterface.addIndex("user_authentications", ["providerId"]);
   },
@@ -84,5 +85,9 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("user_authentications");
     await queryInterface.dropTable("authentication_providers");
+    await queryInterface.addColumn("users", "slackAccessToken", {
+      type: 'bytea',
+      allowNull: true,
+    });
   }
 };
