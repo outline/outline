@@ -22,6 +22,7 @@ export default async function main(exit = false) {
       limit,
       offset: page * limit,
       paranoid: false,
+      order: [["createdAt", "ASC"]],
       where: {
         serviceId: {
           [Op.ne]: "email",
@@ -38,8 +39,6 @@ export default async function main(exit = false) {
     });
 
     for (const user of users) {
-      // Slack user id's always start with 'U' thankfully, this makes the
-      // migration easier when a team has both slackId and googleId linked
       const provider = user.service;
       const providerId = user.team[`${provider}Id`];
       if (!providerId) {
