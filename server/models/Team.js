@@ -10,6 +10,7 @@ import {
 } from "../../shared/utils/domains";
 import { ValidationError } from "../errors";
 import { DataTypes, sequelize, Op } from "../sequelize";
+import { generateAvatarUrl } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 
 import Collection from "./Collection";
@@ -66,7 +67,6 @@ const Team = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
-    slackData: DataTypes.JSONB,
   },
   {
     paranoid: true,
@@ -85,7 +85,11 @@ const Team = sequelize.define(
       },
       logoUrl() {
         return (
-          this.avatarUrl || (this.slackData ? this.slackData.image_88 : null)
+          this.avatarUrl ||
+          generateAvatarUrl({
+            id: this.id,
+            name: this.name,
+          })
         );
       },
     },
