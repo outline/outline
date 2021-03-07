@@ -8,6 +8,7 @@ export function requireDirectory<T>(dirName: string): [T, string][] {
     .filter(
       (file) =>
         file.indexOf(".") !== 0 &&
+        file.endsWith(".js") &&
         file !== path.basename(__filename) &&
         !file.includes(".test")
     )
