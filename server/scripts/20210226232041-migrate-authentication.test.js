@@ -43,14 +43,77 @@ describe("#work", () => {
   it("should create authentication record for deleted users", async () => {
     const team = await Team.create({
       name: `Test`,
-      googleId: "T456",
+      googleId: "domain.com",
     });
     const user = await User.create({
       email: `test1@example.com`,
       name: `Test`,
-      serviceId: "U456",
+      service: "google",
+      serviceId: "123456789",
       teamId: team.id,
       deletedAt: new Date(),
+    });
+
+    await script();
+
+    const authProvider = await AuthenticationProvider.findOne({
+      where: {
+        providerId: "domain.com",
+      },
+    });
+
+    const auth = await UserAuthentication.findOne({
+      where: {
+        providerId: "123456789",
+      },
+    });
+    expect(authProvider.name).toEqual("google");
+    expect(auth.userId).toEqual(user.id);
+  });
+
+  it("should create authentication record for suspended users", async () => {
+    const team = await Team.create({
+      name: `Test`,
+      googleId: "example.com",
+    });
+    const user = await User.create({
+      email: `test1@example.com`,
+      name: `Test`,
+      service: "google",
+      serviceId: "123456789",
+      teamId: team.id,
+      suspendedAt: new Date(),
+    });
+
+    await script();
+
+    const authProvider = await AuthenticationProvider.findOne({
+      where: {
+        providerId: "example.com",
+      },
+    });
+
+    const auth = await UserAuthentication.findOne({
+      where: {
+        providerId: "123456789",
+      },
+    });
+    expect(authProvider.name).toEqual("google");
+    expect(auth.userId).toEqual(user.id);
+  });
+
+  it("should create correct authentication record when team has both slackId and googleId", async () => {
+    const team = await Team.create({
+      name: `Test`,
+      slackId: "T456",
+      googleId: "example.com",
+    });
+    const user = await User.create({
+      email: `test1@example.com`,
+      name: `Test`,
+      service: "slack",
+      serviceId: "U456",
+      teamId: team.id,
     });
 
     await script();
@@ -66,7 +129,7 @@ describe("#work", () => {
         providerId: "U456",
       },
     });
-    expect(authProvider.name).toEqual("google");
+    expect(authProvider.name).toEqual("slack");
     expect(auth.userId).toEqual(user.id);
   });
 

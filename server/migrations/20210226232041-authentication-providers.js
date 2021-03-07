@@ -79,6 +79,7 @@ module.exports = {
 
     await queryInterface.removeColumn("teams", "slackData");
     await queryInterface.removeColumn("users", "slackData");
+    await queryInterface.removeColumn("users", "slackAccessToken")
     await queryInterface.addIndex("authentication_providers", ["providerId"]);
     await queryInterface.addIndex("user_authentications", ["providerId"]);
   },
@@ -92,6 +93,10 @@ module.exports = {
     });
     await queryInterface.addColumn("users", "slackData", {
       type: 'JSONB',
+      allowNull: true,
+    });
+    await queryInterface.addColumn("users", "slackAccessToken", {
+      type: 'bytea',
       allowNull: true,
     });
   }
