@@ -4,6 +4,14 @@ import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import accountProvisioner from "./accountProvisioner";
 
+jest.mock("aws-sdk", () => {
+  const mS3 = { putObject: jest.fn().mockReturnThis(), promise: jest.fn() };
+  return {
+    S3: jest.fn(() => mS3),
+    Endpoint: jest.fn(),
+  };
+});
+
 beforeEach(() => flushdb());
 
 describe("accountProvisioner", () => {
