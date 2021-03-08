@@ -6,6 +6,12 @@ import { generateAvatarUrl } from "../utils/avatars";
 
 const log = debug("server");
 
+type TeamCreatorResult = {|
+  team: Team,
+  authenticationProvider: AuthenticationProvider,
+  isNew: boolean,
+|};
+
 export default async function teamCreator({
   name,
   domain,
@@ -21,11 +27,7 @@ export default async function teamCreator({
     name: string,
     providerId: string,
   |},
-|}): Promise<{
-  team: Team,
-  authenticationProvider: AuthenticationProvider,
-  isNew: boolean,
-}> {
+|}): Promise<TeamCreatorResult> {
   const authP = await AuthenticationProvider.findOne({
     where: authenticationProvider,
     include: [
