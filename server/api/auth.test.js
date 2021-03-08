@@ -43,9 +43,6 @@ describe("#auth.info", () => {
 });
 
 describe("#auth.config", () => {
-  process.env.GOOGLE_CLIENT_ID = "123";
-  process.env.SLACK_KEY = "123";
-
   it("should return available SSO providers", async () => {
     const res = await server.post("/api/auth.config");
     const body = await res.json();
