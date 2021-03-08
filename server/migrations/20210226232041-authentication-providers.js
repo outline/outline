@@ -17,6 +17,11 @@ module.exports = {
         unique: true,
         allowNull: false,
       },
+      enabled: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,

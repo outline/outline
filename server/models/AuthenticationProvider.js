@@ -29,6 +29,10 @@ const AuthenticationProvider = sequelize.define(
         isIn: [authProviders],
       },
     },
+    enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
     providerId: {
       type: DataTypes.STRING,
     },
