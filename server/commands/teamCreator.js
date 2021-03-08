@@ -9,7 +9,7 @@ const log = debug("server");
 type TeamCreatorResult = {|
   team: Team,
   authenticationProvider: AuthenticationProvider,
-  isNew: boolean,
+  isNewTeam: boolean,
 |};
 
 export default async function teamCreator({
@@ -45,7 +45,7 @@ export default async function teamCreator({
     return {
       authenticationProvider: authP,
       team: authP.team,
-      isNew: false,
+      isNewTeam: false,
     };
   }
 
@@ -90,6 +90,6 @@ export default async function teamCreator({
   return {
     team,
     authenticationProvider: team.authenticationProviders[0],
-    isNew: true,
+    isNewTeam: true,
   };
 }

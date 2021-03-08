@@ -63,13 +63,13 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
   }
 
   invariant(result, "Team creator result must exist");
-  const { authenticationProvider, team, isNew } = result;
+  const { authenticationProvider, team, isNewTeam } = result;
 
   try {
     const result = await userCreator({
       name: data.user.name,
       email: data.user.email,
-      isAdmin: isNew,
+      isAdmin: isNewTeam,
       avatarUrl: data.user.image_192,
       teamId: team.id,
       ip: ctx.request.ip,
@@ -81,14 +81,14 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       },
     });
 
-    const { user, isFirstSignin } = result;
+    const { user, isNewUser } = result;
 
-    if (isNew) {
+    if (isNewTeam) {
       await team.provisionFirstCollection(user.id);
     }
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "slack", isFirstSignin);
+    ctx.signIn(user, team, "slack", isNewUser);
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({

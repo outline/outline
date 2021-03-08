@@ -25,13 +25,13 @@ describe("teamCreator", () => {
       },
     });
 
-    const { team, authenticationProvider, isNew } = result;
+    const { team, authenticationProvider, isNewTeam } = result;
 
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("example.com");
     expect(team.name).toEqual("Test team");
     expect(team.subdomain).toEqual("example");
-    expect(isNew).toEqual(true);
+    expect(isNewTeam).toEqual(true);
   });
 
   it("should return exising team", async () => {
@@ -51,11 +51,11 @@ describe("teamCreator", () => {
       authenticationProvider,
     });
 
-    const { team, isNew } = result;
+    const { team, isNewTeam } = result;
 
     expect(team.id).toEqual(existing.id);
     expect(team.name).toEqual(existing.name);
     expect(team.subdomain).toEqual("example");
-    expect(isNew).toEqual(false);
+    expect(isNewTeam).toEqual(false);
   });
 });

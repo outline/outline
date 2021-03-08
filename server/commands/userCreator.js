@@ -7,7 +7,7 @@ const Op = Sequelize.Op;
 
 type UserCreatorResult = {|
   user: User,
-  isFirstSignin: boolean,
+  isNewUser: boolean,
   authentication: UserAuthentication,
 |};
 
@@ -56,7 +56,7 @@ export default async function userCreator({
     await user.update({ email });
     await auth.update(rest);
 
-    return { user, authentication: auth, isFirstSignin: false };
+    return { user, authentication: auth, isNewUser: false };
   }
 
   // A `user` record might exist in the form of an invite even if there is no
@@ -101,7 +101,7 @@ export default async function userCreator({
       throw err;
     }
 
-    return { user: invite, authentication: auth, isFirstSignin: false };
+    return { user: invite, authentication: auth, isNewUser: false };
   }
 
   // No auth, no user – this is an entirely new sign in.
@@ -141,7 +141,7 @@ export default async function userCreator({
     return {
       user,
       authentication: user.authentications[0],
-      isFirstSignin: true,
+      isNewUser: true,
     };
   } catch (err) {
     await transaction.rollback();

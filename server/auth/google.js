@@ -78,13 +78,13 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
   }
 
   invariant(result, "Team creator result must exist");
-  const { team, isNew, authenticationProvider } = result;
+  const { team, isNewTeam, authenticationProvider } = result;
 
   try {
     const result = await userCreator({
       name: profile.data.name,
       email: profile.data.email,
-      isAdmin: isNew,
+      isAdmin: isNewTeam,
       avatarUrl: profile.data.picture,
       teamId: team.id,
       ip: ctx.request.ip,
@@ -97,14 +97,14 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       },
     });
 
-    const { user, isFirstSignin } = result;
+    const { user, isNewUser } = result;
 
-    if (isNew) {
+    if (isNewTeam) {
       await team.provisionFirstCollection(user.id);
     }
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "google", isFirstSignin);
+    ctx.signIn(user, team, "google", isNewUser);
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({

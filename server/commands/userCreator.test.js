@@ -28,13 +28,13 @@ describe("userCreator", () => {
       },
     });
 
-    const { user, authentication, isFirstSignin } = result;
+    const { user, authentication, isNewUser } = result;
 
     expect(authentication.accessToken).toEqual("123");
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
-    expect(isFirstSignin).toEqual(false);
+    expect(isNewUser).toEqual(false);
   });
 
   it("should create a new user", async () => {
@@ -55,13 +55,13 @@ describe("userCreator", () => {
       },
     });
 
-    const { user, authentication, isFirstSignin } = result;
+    const { user, authentication, isNewUser } = result;
 
     expect(authentication.accessToken).toEqual("123");
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual("test@example.com");
-    expect(isFirstSignin).toEqual(true);
+    expect(isNewUser).toEqual(true);
   });
 
   it("should create a user from an invited user", async () => {
@@ -83,12 +83,12 @@ describe("userCreator", () => {
       },
     });
 
-    const { user, authentication, isFirstSignin } = result;
+    const { user, authentication, isNewUser } = result;
 
     expect(authentication.accessToken).toEqual("123");
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual(invite.email);
-    expect(isFirstSignin).toEqual(false);
+    expect(isNewUser).toEqual(false);
   });
 });
