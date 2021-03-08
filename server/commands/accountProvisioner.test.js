@@ -1,5 +1,5 @@
 // @flow
-import { UserAuthentication } from "../models";
+import { Collection, UserAuthentication } from "../models";
 import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import accountProvisioner from "./accountProvisioner";
@@ -51,6 +51,9 @@ describe("accountProvisioner", () => {
     expect(user.email).toEqual("jenny@example.com");
     expect(isNewUser).toEqual(true);
     expect(isNewTeam).toEqual(true);
+
+    const collectionCount = await Collection.count();
+    expect(collectionCount).toEqual(1);
   });
 
   it("should update exising user and authentication", async () => {
@@ -90,6 +93,9 @@ describe("accountProvisioner", () => {
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
+
+    const collectionCount = await Collection.count();
+    expect(collectionCount).toEqual(0);
   });
 
   it("should create a new user in an existing team", async () => {
@@ -128,5 +134,8 @@ describe("accountProvisioner", () => {
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual("jenny@example.com");
     expect(isNewUser).toEqual(true);
+
+    const collectionCount = await Collection.count();
+    expect(collectionCount).toEqual(0);
   });
 });

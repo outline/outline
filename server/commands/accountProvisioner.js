@@ -80,7 +80,7 @@ export default async function accountProvisioner({
 
     const { isNewUser, user } = result;
 
-    if (isNewUser) {
+    if (isNewTeam) {
       await team.provisionFirstCollection(user.id);
     }
 
