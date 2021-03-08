@@ -36,7 +36,7 @@ function filterServices(team) {
       return team && team.guestSignin;
     }
 
-    return providerNames.includes(service.id);
+    return !team || providerNames.includes(service.id);
   });
 }
 

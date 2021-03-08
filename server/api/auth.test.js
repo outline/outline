@@ -41,3 +41,129 @@ describe("#auth.info", () => {
     expect(res.status).toEqual(401);
   });
 });
+
+describe("#auth.config", () => {
+  process.env.GOOGLE_CLIENT_ID = "123";
+  process.env.SLACK_KEY = "123";
+
+  it("should return available SSO providers", async () => {
+    const res = await server.post("/api/auth.config");
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.services.length).toBe(2);
+    expect(body.data.services[0].name).toBe("Google");
+    expect(body.data.services[1].name).toBe("Slack");
+  });
+
+  it("should return available providers for team subdomain", async () => {
+    process.env.URL = "http://localoutline.com";
+
+    await buildTeam({
+      guestSignin: false,
+      subdomain: "example",
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: "123",
+        },
+      ],
+    });
+    const res = await server.post("/api/auth.config", {
+      headers: { host: `example.localoutline.com` },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.services.length).toBe(1);
+    expect(body.data.services[0].name).toBe("Slack");
+  });
+
+  it("should return available providers for team custom domain", async () => {
+    await buildTeam({
+      guestSignin: false,
+      domain: "docs.mycompany.com",
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: "123",
+        },
+      ],
+    });
+    const res = await server.post("/api/auth.config", {
+      headers: { host: "docs.mycompany.com" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.services.length).toBe(1);
+    expect(body.data.services[0].name).toBe("Slack");
+  });
+
+  it("should return email provider for team when guest signin enabled", async () => {
+    process.env.URL = "http://localoutline.com";
+
+    await buildTeam({
+      guestSignin: true,
+      subdomain: "example",
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: "123",
+        },
+      ],
+    });
+    const res = await server.post("/api/auth.config", {
+      headers: { host: "example.localoutline.com" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.services.length).toBe(2);
+    expect(body.data.services[0].name).toBe("Email");
+    expect(body.data.services[1].name).toBe("Slack");
+  });
+
+  describe("self hosted", () => {
+    it("should return available providers for team", async () => {
+      process.env.DEPLOYMENT = "";
+
+      await buildTeam({
+        guestSignin: false,
+        authenticationProviders: [
+          {
+            name: "slack",
+            providerId: "123",
+          },
+        ],
+      });
+      const res = await server.post("/api/auth.config");
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.services.length).toBe(1);
+      expect(body.data.services[0].name).toBe("Slack");
+    });
+
+    it("should return email provider for team when guest signin enabled", async () => {
+      process.env.DEPLOYMENT = "";
+
+      await buildTeam({
+        guestSignin: true,
+        authenticationProviders: [
+          {
+            name: "slack",
+            providerId: "123",
+          },
+        ],
+      });
+      const res = await server.post("/api/auth.config");
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.services.length).toBe(2);
+      expect(body.data.services[0].name).toBe("Email");
+      expect(body.data.services[1].name).toBe("Slack");
+    });
+  });
+});
