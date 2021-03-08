@@ -578,17 +578,7 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     (collection) => collection.index === null
   );
 
-  const indexSet = new Set();
-
-  const repeatedIndex = collections.some((collection) => {
-    if (indexSet.has(collection.index)) {
-      return true;
-    }
-    indexSet.add(collection.index);
-    return false;
-  });
-
-  if (nullIndexCollection !== -1 || repeatedIndex) {
+  if (nullIndexCollection !== -1) {
     const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
     collections.forEach((collection) => {
       collection.index = indexedCollections[collection.id];
