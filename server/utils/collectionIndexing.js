@@ -1,6 +1,7 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import { Collection } from "../models";
+
 export default async function collectionIndexing(teamId: string) {
   const collections = await Collection.findAll({
     where: { teamId, deletedAt: null }, //no point in maintaining index of deleted collections.
@@ -40,6 +41,7 @@ export default async function collectionIndexing(teamId: string) {
 
   //for each collection with null index, use previous collection index to create new index
   let previousCollectionIndex = null;
+
   for (const collection of sortableCollections) {
     if (collection[1] === null) {
       const index = fractionalIndex(previousCollectionIndex, collection[1]);

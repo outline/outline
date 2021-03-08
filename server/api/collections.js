@@ -641,9 +641,7 @@ router.post("collections.move", auth(), async (ctx) => {
   const collection = await Collection.findByPk(id);
   authorize(user, "move", collection);
 
-  collection.index = index;
-
-  await collection.save();
+  await collection.update({ index });
 
   await Event.create({
     name: "collections.move",
@@ -656,7 +654,6 @@ router.post("collections.move", auth(), async (ctx) => {
 
   ctx.body = {
     success: true,
-    policies: presentPolicies(user, [collection]),
   };
 });
 export default router;

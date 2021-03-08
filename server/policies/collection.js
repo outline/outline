@@ -14,9 +14,10 @@ allow(User, "import", Collection, (actor) => {
   throw new AdminRequiredError();
 });
 
-allow(User, "move", Collection, (actor, collection) => {
+allow(User, "move", Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) return false;
   if (collection.deletedAt) return false;
-  if (actor.isAdmin) return true;
+  if (user.isAdmin) return true;
   throw new AdminRequiredError();
 });
 

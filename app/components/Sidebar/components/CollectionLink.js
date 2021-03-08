@@ -112,7 +112,9 @@ function CollectionLink({
       return can.move;
     },
     begin: (monitor) => {
-      ui.activeCollectionId = "";
+      setTimeout(() => {
+        ui.clearActiveCollection();
+      }, 0);
     },
     end: (monitor) => {
       ui.activeCollectionId = monitor.activeCollectionId;
@@ -196,7 +198,7 @@ function CollectionLink({
 
 const Draggable = styled("div")`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
 `;
 
 const SidebarLinkWithPadding = styled(SidebarLink)`

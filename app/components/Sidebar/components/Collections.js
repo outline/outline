@@ -22,6 +22,7 @@ function Collections({ onCreateCollection }: Props) {
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
+
   React.useEffect(() => {
     if (!collections.isFetching && !collections.isLoaded) {
       collections.fetchPage({ limit: 100 });
