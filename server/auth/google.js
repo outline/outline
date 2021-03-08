@@ -1,4 +1,5 @@
 // @flow
+import * as Sentry from "@sentry/node";
 import { OAuth2Client } from "google-auth-library";
 import invariant from "invariant";
 import Router from "koa-router";
@@ -58,9 +59,9 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
   const subdomain = profile.data.hd.split(".")[0];
   const teamName = capitalize(subdomain);
 
-  let team, isFirstUser;
+  let result;
   try {
-    [team, isFirstUser] = await teamCreator({
+    result = await teamCreator({
       name: teamName,
       domain,
       subdomain,
@@ -75,16 +76,15 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       return;
     }
   }
-  invariant(team, "Team must exist");
 
-  const authenticationProvider = team.authenticationProviders[0];
-  invariant(authenticationProvider, "Team authenticationProvider must exist");
+  invariant(result, "Team creator result must exist");
+  const { team, isNew, authenticationProvider } = result;
 
   try {
-    const [user, isFirstSignin] = await userCreator({
+    const result = await userCreator({
       name: profile.data.name,
       email: profile.data.email,
-      isAdmin: isFirstUser,
+      isAdmin: isNew,
       avatarUrl: profile.data.picture,
       teamId: team.id,
       ip: ctx.request.ip,
@@ -97,7 +97,9 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       },
     });
 
-    if (isFirstUser) {
+    const { user, isFirstSignin } = result;
+
+    if (isNew) {
       await team.provisionFirstCollection(user.id);
     }
 
@@ -115,7 +117,11 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
-        console.error(err);
+        if (process.env.SENTRY_DSN) {
+          Sentry.captureException(err);
+        } else {
+          console.error(err);
+        }
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 

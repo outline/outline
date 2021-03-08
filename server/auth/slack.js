@@ -1,4 +1,5 @@
 // @flow
+import * as Sentry from "@sentry/node";
 import addHours from "date-fns/add_hours";
 import invariant from "invariant";
 import Router from "koa-router";
@@ -42,10 +43,9 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
 
   const data = await Slack.oauthAccess(code);
 
-  let team;
-  let isFirstUser = false;
+  let result;
   try {
-    [team, isFirstUser] = await teamCreator({
+    result = await teamCreator({
       name: data.team.name,
       subdomain: data.team.domain,
       avatarUrl: data.team.image_230,
@@ -61,16 +61,15 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
     }
     throw err;
   }
-  invariant(team, "Team must exist");
 
-  const authenticationProvider = team.authenticationProviders[0];
-  invariant(authenticationProvider, "Team authenticationProvider must exist");
+  invariant(result, "Team creator result must exist");
+  const { authenticationProvider, team, isNew } = result;
 
   try {
-    const [user, isFirstSignin] = await userCreator({
+    const result = await userCreator({
       name: data.user.name,
       email: data.user.email,
-      isAdmin: isFirstUser,
+      isAdmin: isNew,
       avatarUrl: data.user.image_192,
       teamId: team.id,
       ip: ctx.request.ip,
@@ -82,7 +81,9 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       },
     });
 
-    if (isFirstUser) {
+    const { user, isFirstSignin } = result;
+
+    if (isNew) {
       await team.provisionFirstCollection(user.id);
     }
 
@@ -100,7 +101,11 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
-        console.error(err);
+        if (process.env.SENTRY_DSN) {
+          Sentry.captureException(err);
+        } else {
+          console.error(err);
+        }
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 

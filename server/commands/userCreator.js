@@ -24,7 +24,7 @@ export default async function userCreator({
     accessToken?: string,
     refreshToken?: string,
   |},
-|}): Promise<[User, boolean]> {
+|}): Promise<{ user: User, isFirstSignin: boolean }> {
   const { authenticationProviderId, providerId, ...rest } = authentication;
   const auth = await UserAuthentication.findOne({
     where: {
@@ -47,7 +47,7 @@ export default async function userCreator({
     await user.update({ email });
     await auth.update(rest);
 
-    return [user, false];
+    return { user, isFirstSignin: false };
   }
 
   // A `user` record might exist in the form of an invite even if there is no
@@ -87,7 +87,7 @@ export default async function userCreator({
       throw err;
     }
 
-    return [invite, false];
+    return { user: invite, isFirstSignin: false };
   }
 
   // No auth, no user – this is an entirely new sign in.
@@ -124,7 +124,7 @@ export default async function userCreator({
       }
     );
     await transaction.commit();
-    return [user, true];
+    return { user, isFirstSignin: true };
   } catch (err) {
     await transaction.rollback();
     throw err;
