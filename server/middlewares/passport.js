@@ -1,6 +1,6 @@
 // @flow
 import passport from "passport";
-import { User, Team } from "../models";
+import type { AccountProvisionerResult } from "../commands/accountProvisioner";
 import type { ContextWithAuthMiddleware } from "../types";
 
 export default function createMiddleware(providerName: string) {
@@ -8,16 +8,7 @@ export default function createMiddleware(providerName: string) {
     return passport.authorize(
       providerName,
       { session: false },
-      (
-        err,
-        _,
-        result: {
-          user: User,
-          team: Team,
-          isFirstSignin: boolean,
-          isFirstUser: boolean,
-        }
-      ) => {
+      (err, _, result: AccountProvisionerResult) => {
         if (err) {
           if (err.id) {
             console.error(err);
@@ -35,12 +26,7 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        ctx.signIn(
-          result.user,
-          result.team,
-          providerName,
-          result.isFirstSignin
-        );
+        ctx.signIn(result.user, result.team, providerName, result.isNewUser);
       }
     )(ctx);
   };

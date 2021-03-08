@@ -15,7 +15,7 @@ beforeEach(() => flushdb());
 
 describe("teamCreator", () => {
   it("should create team and authentication provider", async () => {
-    const [team, isNew] = await teamCreator({
+    const result = await teamCreator({
       name: "Test team",
       subdomain: "example",
       avatarUrl: "http://example.com/logo.png",
@@ -25,16 +25,16 @@ describe("teamCreator", () => {
       },
     });
 
-    const authenticationProvider = team.authenticationProviders[0];
+    const { team, authenticationProvider, isNewTeam } = result;
 
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("example.com");
     expect(team.name).toEqual("Test team");
     expect(team.subdomain).toEqual("example");
-    expect(isNew).toEqual(true);
+    expect(isNewTeam).toEqual(true);
   });
 
-  it("should update exising team", async () => {
+  it("should return exising team", async () => {
     const authenticationProvider = {
       name: "google",
       providerId: "example.com",
@@ -45,15 +45,17 @@ describe("teamCreator", () => {
       authenticationProviders: [authenticationProvider],
     });
 
-    const [team, isNew] = await teamCreator({
+    const result = await teamCreator({
       name: "Updated name",
       subdomain: "example",
       authenticationProvider,
     });
 
+    const { team, isNewTeam } = result;
+
     expect(team.id).toEqual(existing.id);
-    expect(team.name).toEqual("Updated name");
+    expect(team.name).toEqual(existing.name);
     expect(team.subdomain).toEqual("example");
-    expect(isNew).toEqual(false);
+    expect(isNewTeam).toEqual(false);
   });
 });

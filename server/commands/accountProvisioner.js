@@ -5,17 +5,11 @@ import {
   AuthenticationError,
   EmailAuthenticationRequiredError,
 } from "../errors";
-import { User } from "../models";
+import { Team, User } from "../models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
 
-export default async function accountProvisioner({
-  ip,
-  user: userParams,
-  team: teamParams,
-  authenticationProvider,
-  authentication,
-}: {|
+type Props = {|
   ip: string,
   user: {|
     name: string,
@@ -38,48 +32,63 @@ export default async function accountProvisioner({
     accessToken?: string,
     refreshToken?: string,
   |},
-|}) {
-  let team;
-  let isFirstUser = false;
+|};
+
+export type AccountProvisionerResult = {|
+  user: User,
+  team: Team,
+  isNewTeam: boolean,
+  isNewUser: boolean,
+|};
+
+export default async function accountProvisioner({
+  ip,
+  user: userParams,
+  team: teamParams,
+  authenticationProvider: authenticationProviderParams,
+  authentication: authenticationParams,
+}: Props): Promise<AccountProvisionerResult> {
+  let result;
   try {
-    [team, isFirstUser] = await teamCreator({
+    result = await teamCreator({
       name: teamParams.name,
       domain: teamParams.domain,
       subdomain: teamParams.subdomain,
       avatarUrl: teamParams.avatarUrl,
-      authenticationProvider,
+      authenticationProvider: authenticationProviderParams,
     });
   } catch (err) {
     throw new AuthenticationError(err.message);
   }
-  invariant(team, "Team must exist");
 
-  const authP = team.authenticationProviders[0];
-  invariant(authP, "Team authenticationProvider must exist");
+  invariant(result, "Team creator result must exist");
+  const { authenticationProvider, team, isNewTeam } = result;
 
   try {
-    const [user, isFirstSignin] = await userCreator({
+    const result = await userCreator({
       name: userParams.name,
       email: userParams.email,
-      isAdmin: isFirstUser,
+      isAdmin: isNewTeam,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
       ip,
       authentication: {
-        ...authentication,
-        authenticationProviderId: authP.id,
+        ...authenticationParams,
+        authenticationProviderId: authenticationProvider.id,
       },
     });
 
-    if (isFirstUser) {
+    const { isNewUser, user } = result;
+
+    if (isNewUser) {
       await team.provisionFirstCollection(user.id);
     }
 
     return {
       user,
       team,
-      isFirstUser,
-      isFirstSignin,
+      isNewUser,
+      isNewTeam,
     };
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {

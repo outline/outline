@@ -1,6 +1,15 @@
 // @flow
+import Sequelize from "sequelize";
 import { Event, User, UserAuthentication } from "../models";
 import { sequelize } from "../sequelize";
+
+const Op = Sequelize.Op;
+
+type UserCreatorResult = {|
+  user: User,
+  isNewUser: boolean,
+  authentication: UserAuthentication,
+|};
 
 export default async function userCreator({
   name,
@@ -24,7 +33,7 @@ export default async function userCreator({
     accessToken?: string,
     refreshToken?: string,
   |},
-|}): Promise<[User, boolean]> {
+|}): Promise<UserCreatorResult> {
   const { authenticationProviderId, providerId, ...rest } = authentication;
   const auth = await UserAuthentication.findOne({
     where: {
@@ -47,7 +56,7 @@ export default async function userCreator({
     await user.update({ email });
     await auth.update(rest);
 
-    return [user, false];
+    return { user, authentication: auth, isNewUser: false };
   }
 
   // A `user` record might exist in the form of an invite even if there is no
@@ -57,6 +66,9 @@ export default async function userCreator({
     where: {
       email,
       teamId,
+      lastActiveAt: {
+        [Op.eq]: null,
+      },
     },
     include: [
       {
@@ -71,7 +83,7 @@ export default async function userCreator({
   // new details and link up the authentication method
   if (invite && !invite.authentications.length) {
     let transaction = await sequelize.transaction();
-
+    let auth;
     try {
       await invite.update(
         {
@@ -80,14 +92,16 @@ export default async function userCreator({
         },
         { transaction }
       );
-      await invite.createAuthentication(authentication, { transaction });
+      auth = await invite.createAuthentication(authentication, {
+        transaction,
+      });
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();
       throw err;
     }
 
-    return [invite, false];
+    return { user: invite, authentication: auth, isNewUser: false };
   }
 
   // No auth, no user – this is an entirely new sign in.
@@ -124,7 +138,11 @@ export default async function userCreator({
       }
     );
     await transaction.commit();
-    return [user, true];
+    return {
+      user,
+      authentication: user.authentications[0],
+      isNewUser: true,
+    };
   } catch (err) {
     await transaction.rollback();
     throw err;

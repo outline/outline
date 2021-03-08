@@ -18,30 +18,28 @@ describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
   it("should create a new user and team", async () => {
-    const { user, team, isFirstUser, isFirstSignin } = await accountProvisioner(
-      {
-        ip,
-        user: {
-          name: "Jenny Tester",
-          email: "jenny@example.com",
-          avatarUrl: "https://example.com/avatar.png",
-        },
-        team: {
-          name: "New team",
-          avatarUrl: "https://example.com/avatar.png",
-          subdomain: "example",
-        },
-        authenticationProvider: {
-          name: "google",
-          providerId: "example.com",
-        },
-        authentication: {
-          providerId: "123456789",
-          accessToken: "123",
-          scopes: ["read"],
-        },
-      }
-    );
+    const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
+      ip,
+      user: {
+        name: "Jenny Tester",
+        email: "jenny@example.com",
+        avatarUrl: "https://example.com/avatar.png",
+      },
+      team: {
+        name: "New team",
+        avatarUrl: "https://example.com/avatar.png",
+        subdomain: "example",
+      },
+      authenticationProvider: {
+        name: "google",
+        providerId: "example.com",
+      },
+      authentication: {
+        providerId: "123456789",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
 
     const authentications = await user.getAuthentications();
     const auth = authentications[0];
@@ -51,8 +49,8 @@ describe("accountProvisioner", () => {
     expect(auth.scopes[0]).toEqual("read");
     expect(team.name).toEqual("New team");
     expect(user.email).toEqual("jenny@example.com");
-    expect(isFirstSignin).toEqual(true);
-    expect(isFirstUser).toEqual(true);
+    expect(isNewUser).toEqual(true);
+    expect(isNewTeam).toEqual(true);
   });
 
   it("should update exising user and authentication", async () => {
@@ -99,7 +97,7 @@ describe("accountProvisioner", () => {
     const authenticationProviders = await team.getAuthenticationProviders();
     const authenticationProvider = authenticationProviders[0];
 
-    const { user, isFirstSignin } = await accountProvisioner({
+    const { user, isNewUser } = await accountProvisioner({
       ip,
       user: {
         name: "Jenny Tester",
@@ -129,6 +127,6 @@ describe("accountProvisioner", () => {
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual("jenny@example.com");
-    expect(isFirstSignin).toEqual(true);
+    expect(isNewUser).toEqual(true);
   });
 });

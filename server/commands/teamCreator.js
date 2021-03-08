@@ -6,6 +6,12 @@ import { generateAvatarUrl } from "../utils/avatars";
 
 const log = debug("server");
 
+type TeamCreatorResult = {|
+  team: Team,
+  authenticationProvider: AuthenticationProvider,
+  isNewTeam: boolean,
+|};
+
 export default async function teamCreator({
   name,
   domain,
@@ -21,23 +27,26 @@ export default async function teamCreator({
     name: string,
     providerId: string,
   |},
-|}): Promise<[Team, boolean]> {
-  let team = await Team.findOne({
+|}): Promise<TeamCreatorResult> {
+  const authP = await AuthenticationProvider.findOne({
+    where: authenticationProvider,
     include: [
       {
-        where: authenticationProvider,
-        model: AuthenticationProvider,
-        as: "authenticationProviders",
+        model: Team,
+        as: "team",
         required: true,
       },
     ],
   });
 
-  // Someone has signed in with this authentication provider before, we just
-  // want to update the details instead of creating a new record
-  if (team && team.authenticationProviders.length > 0) {
-    await team.update({ name });
-    return [team, false];
+  // This authentication provider already exists which means we have a team and
+  // there is nothing left to do but return the existing credentials
+  if (authP) {
+    return {
+      authenticationProvider: authP,
+      team: authP.team,
+      isNewTeam: false,
+    };
   }
 
   // If the service did not provide a logo/avatar then we attempt to generate
@@ -52,7 +61,7 @@ export default async function teamCreator({
 
   // This team has never been seen before, time to create all the new stuff
   let transaction = await sequelize.transaction();
-
+  let team;
   try {
     team = await Team.create(
       {
@@ -78,5 +87,9 @@ export default async function teamCreator({
     log(`Provisioning subdomain failed: ${err.message}`);
   }
 
-  return [team, true];
+  return {
+    team,
+    authenticationProvider: team.authenticationProviders[0],
+    isNewTeam: true,
+  };
 }
