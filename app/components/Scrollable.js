@@ -8,9 +8,10 @@ type Props = {|
   shadow?: boolean,
   topShadow?: boolean,
   bottomShadow?: boolean,
+  flex?: boolean,
 |};
 
-function Scrollable({ shadow, topShadow, bottomShadow, ...rest }: Props) {
+function Scrollable({ shadow, topShadow, bottomShadow, flex, ...rest }: Props) {
   const ref = React.useRef<?HTMLDivElement>();
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
@@ -42,6 +43,7 @@ function Scrollable({ shadow, topShadow, bottomShadow, ...rest }: Props) {
     <Wrapper
       ref={ref}
       onScroll={updateShadows}
+      $flex={flex}
       $topShadowVisible={topShadowVisible}
       $bottomShadowVisible={bottomShadowVisible}
       {...rest}
@@ -50,6 +52,8 @@ function Scrollable({ shadow, topShadow, bottomShadow, ...rest }: Props) {
 }
 
 const Wrapper = styled.div`
+  display: ${(props) => (props.$flex ? "flex" : "block")};
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;

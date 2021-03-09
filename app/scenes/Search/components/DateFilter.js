@@ -1,27 +1,33 @@
 // @flow
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import FilterOptions from "./FilterOptions";
 
-const options = [
-  { key: "", label: "Any time" },
-  { key: "day", label: "Past day" },
-  { key: "week", label: "Past week" },
-  { key: "month", label: "Past month" },
-  { key: "year", label: "Past year" },
-];
-
-type Props = {
+type Props = {|
   dateFilter: ?string,
   onSelect: (key: ?string) => void,
-};
+|};
 
 const DateFilter = ({ dateFilter, onSelect }: Props) => {
+  const { t } = useTranslation();
+
+  const options = React.useMemo(
+    () => [
+      { key: "", label: t("Any time") },
+      { key: "day", label: t("Past day") },
+      { key: "week", label: t("Past week") },
+      { key: "month", label: t("Past month") },
+      { key: "year", label: t("Past year") },
+    ],
+    [t]
+  );
+
   return (
     <FilterOptions
       options={options}
       activeKey={dateFilter}
       onSelect={onSelect}
-      defaultLabel="Any time"
+      defaultLabel={t("Any time")}
     />
   );
 };

@@ -369,6 +369,10 @@ export default class Websockets {
             method: ["withMembership", event.userId],
           }).findByPk(collectionGroup.collectionId);
 
+          if (!collection) {
+            continue;
+          }
+
           const hasMemberships =
             collection.memberships.length > 0 ||
             collection.collectionGroupMemberships.length > 0;
