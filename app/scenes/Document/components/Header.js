@@ -138,9 +138,9 @@ function DocumentHeader({
         }
         actions={
           <>
-            {isSaving && !isPublishing && (
+            {!isPublishing && (
               <Action>
-                <Status>{t("Saving")}…</Status>
+                <Status isSaving={isSaving}>{t("Saving")}…</Status>
               </Action>
             )}
             &nbsp;
@@ -301,6 +301,7 @@ function DocumentHeader({
 
 const Status = styled.div`
   color: ${(props) => props.theme.slate};
+  visibility: ${(props) => (props.isSaving ? "visible" : "hidden")};
 `;
 
 export default observer(DocumentHeader);
