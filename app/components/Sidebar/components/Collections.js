@@ -37,7 +37,7 @@ const Collections = ({ onCreateCollection }: Props) => {
     if (!can.update) return;
 
     history.push(newDocumentUrl(activeCollectionId));
-  });
+  }, [ui.activeCollectionId]);
 
   const content = (
     <>
