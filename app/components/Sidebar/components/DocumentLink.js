@@ -182,7 +182,7 @@ function DocumentLink({
   });
 
   // Drop to reorder
-  const [{ isOverReorder }, dropToReorder] = useDrop(() => ({
+  const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: (item, monitor) => {
       if (!collection) return;
@@ -198,7 +198,7 @@ function DocumentLink({
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
     }),
-  }));
+  });
 
   return (
     <>

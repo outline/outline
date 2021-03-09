@@ -63,7 +63,7 @@ function CollectionLink({
   });
 
   // Drop to reorder
-  const [{ isOverReorder }, dropToReorder] = useDrop(() => ({
+  const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
       if (!collection) return;
@@ -72,7 +72,7 @@ function CollectionLink({
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
     }),
-  }));
+  });
 
   return (
     <>

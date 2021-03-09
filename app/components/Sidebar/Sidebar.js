@@ -14,6 +14,7 @@ import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
 let ANIMATION_MS = 250;
+let isFirstRender = true;
 
 type Props = {|
   children: React.Node,
@@ -129,6 +130,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
 
     React.useEffect(() => {
       if (location !== previousLocation) {
+        isFirstRender = false;
         ui.hideMobileSidebar();
       }
     }, [ui, location, previousLocation]);
@@ -148,6 +150,31 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
       [width, theme.sidebarCollapsedWidth, collapsed]
     );
 
+    const content = (
+      <>
+        {ui.mobileSidebarVisible && (
+          <Portal>
+            <Fade>
+              <Background onClick={ui.toggleMobileSidebar} />
+            </Fade>
+          </Portal>
+        )}
+        {children}
+        <ResizeBorder
+          onMouseDown={handleMouseDown}
+          onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+          $isResizing={isResizing}
+        />
+        {ui.sidebarCollapsed && !ui.isEditing && (
+          <Toggle
+            onClick={ui.toggleCollapsedSidebar}
+            direction={"right"}
+            aria-label={t("Expand")}
+          />
+        )}
+      </>
+    );
+
     return (
       <>
         <Container
@@ -161,26 +188,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
           $collapsed={collapsed}
           column
         >
-          {ui.mobileSidebarVisible && (
-            <Portal>
-              <Fade>
-                <Background onClick={ui.toggleMobileSidebar} />
-              </Fade>
-            </Portal>
-          )}
-          {children}
-          <ResizeBorder
-            onMouseDown={handleMouseDown}
-            onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
-            $isResizing={isResizing}
-          />
-          {ui.sidebarCollapsed && !ui.isEditing && (
-            <Toggle
-              onClick={ui.toggleCollapsedSidebar}
-              direction={"right"}
-              aria-label={t("Expand")}
-            />
-          )}
+          {isFirstRender ? <Fade>{content}</Fade> : content}
         </Container>
         {!ui.isEditing && (
           <Toggle
