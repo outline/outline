@@ -29,15 +29,19 @@ const Collections = ({ onCreateCollection }: Props) => {
     }
   }, [collections]);
 
-  useHotkeys("n", () => {
-    const { activeCollectionId } = ui;
-    if (!activeCollectionId) return;
+  useHotkeys(
+    "n",
+    () => {
+      const { activeCollectionId } = ui;
+      if (!activeCollectionId) return;
 
-    const can = policies.abilities(activeCollectionId);
-    if (!can.update) return;
+      const can = policies.abilities(activeCollectionId);
+      if (!can.update) return;
 
-    history.push(newDocumentUrl(activeCollectionId));
-  }, [ui.activeCollectionId]);
+      history.push(newDocumentUrl(activeCollectionId));
+    },
+    [ui.activeCollectionId]
+  );
 
   const content = (
     <>
