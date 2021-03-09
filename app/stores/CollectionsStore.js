@@ -42,7 +42,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
     return collections.sort((a, b) => {
       if (a.index === b.index) {
-        return 0;
+        return a.updatedAt > b.updatedAt ? -1 : 1;
       }
       return a.index < b.index ? -1 : 1;
     });

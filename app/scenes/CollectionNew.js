@@ -38,7 +38,6 @@ class CollectionNew extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isSaving = true;
-    const { collections } = this.props;
     const collection = new Collection(
       {
         name: this.name,
@@ -46,7 +45,6 @@ class CollectionNew extends React.Component<Props> {
         icon: this.icon,
         color: this.color,
         private: this.private,
-        index: collections.indexForNew,
       },
       this.props.collections
     );

@@ -1,5 +1,6 @@
 // @flow
 import fs from "fs";
+import fractionalIndex from "fractional-index";
 import Router from "koa-router";
 import { ValidationError } from "../errors";
 import { exportCollections } from "../exporter";
@@ -25,6 +26,7 @@ import {
 } from "../presenters";
 import { Op } from "../sequelize";
 import collectionIndexing from "../utils/collectionIndexing";
+import removeIndexCollisions from "../utils/removeIndexCollisions";
 import { archiveCollection, archiveCollections } from "../utils/zip";
 import pagination from "./middlewares/pagination";
 
@@ -39,8 +41,9 @@ router.post("collections.create", auth(), async (ctx) => {
     sharing,
     icon,
     sort = Collection.DEFAULT_SORT,
-    index,
   } = ctx.body;
+
+  let { index } = ctx.body;
   const isPrivate = ctx.body.private;
   ctx.assertPresent(name, "name is required");
 
@@ -50,6 +53,29 @@ router.post("collections.create", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   authorize(user, "create", Collection);
+
+  const collections = await Collection.findAll({
+    where: { teamId: user.teamId, deletedAt: null },
+    attributes: ["id", "index", "updatedAt"],
+  });
+
+  if (index) {
+    const allowedASCII = new RegExp(/^[\x21-\x7E]+$/);
+    if (!allowedASCII.test(index)) {
+      throw new ValidationError(
+        "Index characters must be between x21 to x7E ASCII"
+      );
+    }
+  } else {
+    collections.sort((a, b) => {
+      if (a.index === b.index) {
+        return a.updatedAt > b.updatedAt ? -1 : 1;
+      }
+      return a.index < b.index ? -1 : 1;
+    });
+
+    index = fractionalIndex(collections[collections.length - 1].index, null);
+  }
 
   let collection = await Collection.create({
     name,
@@ -63,6 +89,8 @@ router.post("collections.create", auth(), async (ctx) => {
     sort,
     index,
   });
+
+  removeIndexCollisions(user.teamId, index, collections);
 
   await Event.create({
     name: "collections.create",
@@ -632,6 +660,8 @@ router.post("collections.move", auth(), async (ctx) => {
   authorize(user, "move", collection);
 
   await collection.update({ index });
+
+  removeIndexCollisions(user.teamId);
 
   await Event.create({
     name: "collections.move",
