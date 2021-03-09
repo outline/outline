@@ -1,14 +1,14 @@
 // @flow
-import crypto from "crypto";
+import * as Sentry from "@sentry/node";
 import { OAuth2Client } from "google-auth-library";
 import invariant from "invariant";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import Sequelize from "sequelize";
+import teamCreator from "../commands/teamCreator";
+import userCreator from "../commands/userCreator";
 import auth from "../middlewares/authentication";
-import { User, Team } from "../models";
-
-const Op = Sequelize.Op;
+import { User } from "../models";
 
 const router = new Router();
 const client = new OAuth2Client(
@@ -55,90 +55,60 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
     return;
   }
 
-  const googleId = profile.data.hd;
-  const hostname = profile.data.hd.split(".")[0];
-  const teamName = capitalize(hostname);
+  const domain = profile.data.hd;
+  const subdomain = profile.data.hd.split(".")[0];
+  const teamName = capitalize(subdomain);
 
-  // attempt to get logo from Clearbit API. If one doesn't exist then
-  // fall back to using tiley to generate a placeholder logo
-  const hash = crypto.createHash("sha256");
-  hash.update(googleId);
-  const hashedGoogleId = hash.digest("hex");
-  const cbUrl = `https://logo.clearbit.com/${profile.data.hd}`;
-  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedGoogleId}/${teamName[0]}.png`;
-  const cbResponse = await fetch(cbUrl);
-  const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
-
-  let team, isFirstUser;
+  let result;
   try {
-    [team, isFirstUser] = await Team.findOrCreate({
-      where: {
-        googleId,
-      },
-      defaults: {
-        name: teamName,
-        avatarUrl,
+    result = await teamCreator({
+      name: teamName,
+      domain,
+      subdomain,
+      authenticationProvider: {
+        name: "google",
+        providerId: domain,
       },
     });
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
-      ctx.redirect(`/?notice=auth-error`);
+      ctx.redirect(`/?notice=auth-error&error=team-exists`);
       return;
     }
   }
-  invariant(team, "Team must exist");
+
+  invariant(result, "Team creator result must exist");
+  const { team, isNewTeam, authenticationProvider } = result;
 
   try {
-    const [user, isFirstSignin] = await User.findOrCreate({
-      where: {
-        [Op.or]: [
-          {
-            service: "google",
-            serviceId: profile.data.id,
-          },
-          {
-            service: { [Op.eq]: null },
-            email: profile.data.email,
-          },
-        ],
-        teamId: team.id,
-      },
-      defaults: {
-        service: "google",
-        serviceId: profile.data.id,
-        name: profile.data.name,
-        email: profile.data.email,
-        isAdmin: isFirstUser,
-        avatarUrl: profile.data.picture,
+    const result = await userCreator({
+      name: profile.data.name,
+      email: profile.data.email,
+      isAdmin: isNewTeam,
+      avatarUrl: profile.data.picture,
+      teamId: team.id,
+      ip: ctx.request.ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: profile.data.id,
+        accessToken: response.tokens.access_token,
+        refreshToken: response.tokens.refresh_token,
+        scopes: response.tokens.scope.split(" "),
       },
     });
 
-    // update the user with fresh details if they just accepted an invite
-    if (!user.serviceId || !user.service) {
-      await user.update({
-        service: "google",
-        serviceId: profile.data.id,
-        avatarUrl: profile.data.picture,
-      });
-    }
+    const { user, isNewUser } = result;
 
-    // update email address if it's changed in Google
-    if (!isFirstSignin && profile.data.email !== user.email) {
-      await user.update({ email: profile.data.email });
-    }
-
-    if (isFirstUser) {
+    if (isNewTeam) {
       await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(hostname);
     }
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "google", isFirstSignin);
+    ctx.signIn(user, team, "google", isNewUser);
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
         where: {
-          service: "email",
           email: profile.data.email,
           teamId: team.id,
         },
@@ -147,6 +117,11 @@ router.get("google.callback", auth({ required: false }), async (ctx) => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
+        if (process.env.SENTRY_DSN) {
+          Sentry.captureException(err);
+        } else {
+          console.error(err);
+        }
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 

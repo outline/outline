@@ -3,6 +3,8 @@ import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { AuthenticationError, InvalidRequestError } from "../errors";
 import {
+  UserAuthentication,
+  AuthenticationProvider,
   Authentication,
   Document,
   User,
@@ -25,7 +27,14 @@ router.post("hooks.unfurl", async (ctx) => {
   }
 
   const user = await User.findOne({
-    where: { service: "slack", serviceId: event.user },
+    include: [
+      {
+        where: { providerId: event.user },
+        model: UserAuthentication,
+        as: "authentications",
+        required: true,
+      },
+    ],
   });
   if (!user) return;
 
@@ -70,11 +79,21 @@ router.post("hooks.interactive", async (ctx) => {
     throw new AuthenticationError("Invalid verification token");
   }
 
-  const team = await Team.findOne({
-    where: { slackId: data.team.id },
+  const authProvider = await AuthenticationProvider.findOne({
+    where: {
+      name: "slack",
+      providerId: data.team.id,
+    },
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
   });
 
-  if (!team) {
+  if (!authProvider) {
     ctx.body = {
       text:
         "Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.",
@@ -83,6 +102,8 @@ router.post("hooks.interactive", async (ctx) => {
     };
     return;
   }
+
+  const { team } = authProvider;
 
   // we find the document based on the users teamId to ensure access
   const document = await Document.findOne({
@@ -131,20 +152,41 @@ router.post("hooks.slack", async (ctx) => {
     return;
   }
 
-  let user;
+  let user, team;
 
   // attempt to find the corresponding team for this request based on the team_id
-  let team = await Team.findOne({
-    where: { slackId: team_id },
-  });
-  if (team) {
-    user = await User.findOne({
-      where: {
-        teamId: team.id,
-        service: "slack",
-        serviceId: user_id,
+  team = await Team.findOne({
+    include: [
+      {
+        where: {
+          name: "slack",
+          providerId: team_id,
+        },
+        as: "authenticationProviders",
+        model: AuthenticationProvider,
+        required: true,
       },
+    ],
+  });
+
+  if (team) {
+    const authentication = await UserAuthentication.findOne({
+      where: {
+        providerId: user_id,
+      },
+      include: [
+        {
+          where: { teamId: team.id },
+          model: User,
+          as: "user",
+          required: true,
+        },
+      ],
     });
+
+    if (authentication) {
+      user = authentication.user;
+    }
   } else {
     // If we couldn't find a team it's still possible that the request is from
     // a team that authenticated with a different service, but connected Slack

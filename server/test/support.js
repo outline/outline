@@ -1,4 +1,5 @@
 // @flow
+import uuid from "uuid";
 import { User, Document, Collection, Team } from "../models";
 import { sequelize } from "../sequelize";
 
@@ -15,49 +16,64 @@ export function flushdb() {
   return sequelize.query(query);
 }
 
-const seed = async () => {
-  const team = await Team.create({
-    id: "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-    name: "Team",
-    slackId: "T2399UF2P",
-    slackData: {
-      id: "T2399UF2P",
+export const seed = async () => {
+  const team = await Team.create(
+    {
+      name: "Team",
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: uuid.v4(),
+        },
+      ],
     },
-  });
+    {
+      include: "authenticationProviders",
+    }
+  );
 
-  const admin = await User.create({
-    id: "fa952cff-fa64-4d42-a6ea-6955c9689046",
-    email: "admin@example.com",
-    username: "admin",
-    name: "Admin User",
-    teamId: team.id,
-    isAdmin: true,
-    service: "slack",
-    serviceId: "U2399UF1P",
-    slackData: {
-      id: "U2399UF1P",
-      image_192: "http://example.com/avatar.png",
-    },
-    createdAt: new Date("2018-01-01T00:00:00.000Z"),
-  });
+  const authenticationProvider = team.authenticationProviders[0];
 
-  const user = await User.create({
-    id: "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    email: "user1@example.com",
-    username: "user1",
-    name: "User 1",
-    teamId: team.id,
-    service: "slack",
-    serviceId: "U2399UF2P",
-    slackData: {
-      id: "U2399UF2P",
-      image_192: "http://example.com/avatar.png",
+  const admin = await User.create(
+    {
+      email: "admin@example.com",
+      username: "admin",
+      name: "Admin User",
+      teamId: team.id,
+      isAdmin: true,
+      createdAt: new Date("2018-01-01T00:00:00.000Z"),
+      authentications: [
+        {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: uuid.v4(),
+        },
+      ],
     },
-    createdAt: new Date("2018-01-02T00:00:00.000Z"),
-  });
+    {
+      include: "authentications",
+    }
+  );
+
+  const user = await User.create(
+    {
+      id: "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      email: "user1@example.com",
+      name: "User 1",
+      teamId: team.id,
+      createdAt: new Date("2018-01-02T00:00:00.000Z"),
+      authentications: [
+        {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: uuid.v4(),
+        },
+      ],
+    },
+    {
+      include: "authentications",
+    }
+  );
 
   const collection = await Collection.create({
-    id: "26fde1d4-0050-428f-9f0b-0bf77f8bdf62",
     name: "Collection",
     urlId: "collection",
     teamId: team.id,
@@ -85,5 +101,3 @@ const seed = async () => {
     team,
   };
 };
-
-export { seed, sequelize };

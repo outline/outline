@@ -2,6 +2,7 @@
 import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import Authentication from "./Authentication";
+import AuthenticationProvider from "./AuthenticationProvider";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import CollectionGroup from "./CollectionGroup";
@@ -19,12 +20,14 @@ import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
+import UserAuthentication from "./UserAuthentication";
 import View from "./View";
 
 const models = {
   ApiKey,
   Attachment,
   Authentication,
+  AuthenticationProvider,
   Backlink,
   Collection,
   CollectionGroup,
@@ -42,6 +45,7 @@ const models = {
   Star,
   Team,
   User,
+  UserAuthentication,
   View,
 };
 
@@ -56,6 +60,7 @@ export {
   ApiKey,
   Attachment,
   Authentication,
+  AuthenticationProvider,
   Backlink,
   Collection,
   CollectionGroup,
@@ -73,5 +78,6 @@ export {
   Star,
   Team,
   User,
+  UserAuthentication,
   View,
 };

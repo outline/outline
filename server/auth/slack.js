@@ -1,15 +1,17 @@
 // @flow
+import * as Sentry from "@sentry/node";
 import addHours from "date-fns/add_hours";
 import invariant from "invariant";
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
+import teamCreator from "../commands/teamCreator";
+import userCreator from "../commands/userCreator";
 import auth from "../middlewares/authentication";
 import { Authentication, Collection, Integration, User, Team } from "../models";
 import * as Slack from "../slack";
 import { getCookieDomain } from "../utils/domains";
 
-const Op = Sequelize.Op;
 const router = new Router();
 
 // start the oauth process and redirect user to Slack
@@ -41,76 +43,56 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
 
   const data = await Slack.oauthAccess(code);
 
-  let team, isFirstUser;
+  let result;
   try {
-    [team, isFirstUser] = await Team.findOrCreate({
-      where: {
-        slackId: data.team.id,
-      },
-      defaults: {
-        name: data.team.name,
-        avatarUrl: data.team.image_88,
+    result = await teamCreator({
+      name: data.team.name,
+      subdomain: data.team.domain,
+      avatarUrl: data.team.image_230,
+      authenticationProvider: {
+        name: "slack",
+        providerId: data.team.id,
       },
     });
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
-      ctx.redirect(`/?notice=auth-error`);
+      ctx.redirect(`/?notice=auth-error&error=team-exists`);
       return;
     }
+    throw err;
   }
-  invariant(team, "Team must exist");
+
+  invariant(result, "Team creator result must exist");
+  const { authenticationProvider, team, isNewTeam } = result;
 
   try {
-    const [user, isFirstSignin] = await User.findOrCreate({
-      where: {
-        [Op.or]: [
-          {
-            service: "slack",
-            serviceId: data.user.id,
-          },
-          {
-            service: { [Op.eq]: null },
-            email: data.user.email,
-          },
-        ],
-        teamId: team.id,
-      },
-      defaults: {
-        service: "slack",
-        serviceId: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        isAdmin: isFirstUser,
-        avatarUrl: data.user.image_192,
+    const result = await userCreator({
+      name: data.user.name,
+      email: data.user.email,
+      isAdmin: isNewTeam,
+      avatarUrl: data.user.image_192,
+      teamId: team.id,
+      ip: ctx.request.ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: data.user.id,
+        accessToken: data.access_token,
+        scopes: data.scope.split(","),
       },
     });
 
-    // update the user with fresh details if they just accepted an invite
-    if (!user.serviceId || !user.service) {
-      await user.update({
-        service: "slack",
-        serviceId: data.user.id,
-        avatarUrl: data.user.image_192,
-      });
-    }
+    const { user, isNewUser } = result;
 
-    // update email address if it's changed in Slack
-    if (!isFirstSignin && data.user.email !== user.email) {
-      await user.update({ email: data.user.email });
-    }
-
-    if (isFirstUser) {
+    if (isNewTeam) {
       await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(data.team.domain);
     }
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "slack", isFirstSignin);
+    ctx.signIn(user, team, "slack", isNewUser);
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
         where: {
-          service: "email",
           email: data.user.email,
           teamId: team.id,
         },
@@ -119,6 +101,11 @@ router.get("slack.callback", auth({ required: false }), async (ctx) => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
+        if (process.env.SENTRY_DSN) {
+          Sentry.captureException(err);
+        } else {
+          console.error(err);
+        }
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 
