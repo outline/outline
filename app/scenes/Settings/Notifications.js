@@ -44,7 +44,7 @@ const options = [
     event: "emails.onboarding",
     title: "Getting started",
     description:
-      "Tips on getting started with Outline`s features and functionality",
+      "Tips on getting started with OPEN`s Software Wiki features and functionality",
   },
   {
     event: "emails.features",

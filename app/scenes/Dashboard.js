@@ -29,7 +29,11 @@ class Dashboard extends React.Component<Props> {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
-        <h1>Home</h1>
+        <h1>Home - Welcome! 👋</h1>
+        <h3>User documentation knowledge base for the shared OPEN software ecosystem.</h3>
+        <h4>This is a collaborative space where all member organisation staff are encouraged to add to, and update the shared software user documentation.</h4>
+        <br/>
+        <b>Here you can see the latest activity on the wiki:</b>
         <Tabs>
           <Tab to="/home" exact>
             Recently updated

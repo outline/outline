@@ -6,7 +6,7 @@ type Props = {
   notice?: string,
 };
 
-export default function AuthNotices({ notice }: Props) {
+export default function AuthNotices({ notice, provider }: Props) {
   return (
     <React.Fragment>
       {notice === "guest-success" && (
@@ -39,10 +39,16 @@ export default function AuthNotices({ notice }: Props) {
           try again in a few minutes.
         </Notice>
       )}
-      {notice === "auth-error" && (
+      {notice === "auth-error" && provider === "slack" && (
         <Notice>
           Authentication failed - we were unable to sign you in at this time.
-          Please try again.
+          Please try again using the <b>'open-wide'</b> slack workspace.
+        </Notice>
+      )}
+      {notice === "auth-error" && provider === "google" && (
+        <Notice>
+          Authentication failed - we were unable to sign you in at this time.
+          Please ensure you are signing in with <b>validated OPEN organisation</b> email address.
         </Notice>
       )}
       {notice === "expired-token" && (

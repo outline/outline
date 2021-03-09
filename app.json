@@ -142,6 +142,10 @@
     "TEAM_LOGO": {
       "description": "A logo that will be displayed on the signed out home page",
       "required": false
-    }
+    },
+    "SINGLE_TEAM_STRATEGY": {
+      "description": "Boolean value of weather to accumulate all users to a single team",
+      "required": false
+    },
   }
 }

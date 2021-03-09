@@ -11,6 +11,7 @@ import Branding from "../../shared/components/Branding";
 import { githubUrl } from "../../shared/utils/routeHelpers";
 
 type Props = {
+  provider?: "google" | "slack",
   notice?: "google-hd" | "auth-error" | "hd-not-allowed",
   lastSignedIn: string,
   googleSigninEnabled: boolean,
@@ -21,23 +22,31 @@ function Home(props: Props) {
   return (
     <span>
       <Helmet>
-        <title>Outline - Team wiki & knowledge base</title>
+        <title>OPEN Digital Wiki</title>
       </Helmet>
       <Grid>
         <Hero id="signin">
-          <AuthNotices notice={props.notice} />
-          {process.env.TEAM_LOGO && <Logo src={process.env.TEAM_LOGO} />}
-          <h1>Our team’s knowledge base</h1>
+          <AuthNotices notice={props.notice} provider={props.provider} />
+          <h1>
+            {process.env.TEAM_LOGO && <Logo src={process.env.TEAM_LOGO} />}
+            <span> </span>
+            OPEN Digital Wiki
+          </h1>
           <HeroText>
-            Team wiki, documentation, meeting notes, playbooks, onboarding, work
-            logs, brainstorming, & more…
+            Collaboratively generated and maintained user documentation of our shared digital tools
           </HeroText>
           <p>
             <SigninButtons {...props} />
           </p>
+          <hr/>
+          <HeroText>
+            <small>
+              For information relating to campaigns and tactics please visit <br/>
+              <a href={'https://thecampaignslibrary.com/'} target={'_blank'}>The Campaigns Library</a>
+            </small>
+          </HeroText>
         </Hero>
       </Grid>
-      <Branding href={githubUrl()} />
     </span>
   );
 }

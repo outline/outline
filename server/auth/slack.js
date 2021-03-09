@@ -17,6 +17,8 @@ import * as Slack from "../slack";
 
 const Op = Sequelize.Op;
 const router = new Router();
+const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
+const singleTeamStrategyEnv = process.env.SINGLE_TEAM_STRATEGY || false;
 
 // start the oauth process and redirect user to Slack
 router.get("slack", async ctx => {
@@ -49,15 +51,38 @@ router.get("slack.callback", auth({ required: false }), async ctx => {
 
   const data = await Slack.oauthAccess(code);
 
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      slackId: data.team.id,
-    },
-    defaults: {
-      name: data.team.name,
-      avatarUrl: data.team.image_88,
-    },
-  });
+  // allow all domains by default if the env is not set
+  const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(",");
+  const userEmailHd = data.user.email ? data.user.email.split("@")[1] : null
+
+  if (allowedDomains && !allowedDomains.includes(userEmailHd)) {
+    ctx.redirect("/?notice=hd-not-allowed");
+    return;
+  }
+
+  let team;
+  let isFirstUser;
+  if (singleTeamStrategyEnv) {
+    team = await Team.findOne({
+      order: [
+        ['createdAt', 'ASC'],
+      ]
+    });
+    if (team) {
+      isFirstUser = false
+    }
+  }
+  if (!team) {
+    let [team, isFirstUser] = await Team.findOrCreate({
+      where: {
+        slackId: data.team.id,
+      },
+      defaults: {
+        name: data.team.name,
+        avatarUrl: data.team.image_88,
+      },
+    });
+  }
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({
@@ -68,7 +93,6 @@ router.get("slack.callback", auth({ required: false }), async ctx => {
             serviceId: data.user.id,
           },
           {
-            service: { [Op.eq]: null },
             email: data.user.email,
           },
         ],
@@ -132,7 +156,7 @@ router.get("slack.callback", auth({ required: false }), async ctx => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
-        ctx.redirect(`${team.url}?notice=auth-error`);
+        ctx.redirect(`${team.url}?notice=auth-error&provider=slack`);
       }
 
       return;

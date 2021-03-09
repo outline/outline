@@ -15,6 +15,7 @@ export function slackAuth(
     client_id: process.env.SLACK_KEY,
     scope: scopes ? scopes.join(" ") : "",
     redirect_uri: redirectUri,
+    team_id: process.env.SLACK_TEAM_ID,
     state,
   };
 

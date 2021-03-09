@@ -106,6 +106,7 @@ router.get("/", async ctx => {
     ctx,
     <Home
       notice={ctx.request.query.notice}
+      provider={ctx.request.query.provider}
       lastSignedIn={lastSignedIn}
       googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
       slackSigninEnabled={!!process.env.SLACK_KEY}

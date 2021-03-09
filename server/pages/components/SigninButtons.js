@@ -35,7 +35,7 @@ const SigninButtons = ({
         <Column column>
           <Button href={signin("slack")}>
             <SlackLogo />
-            <Spacer>Sign In with Slack</Spacer>
+            <Spacer>Sign In with Open Network Slack</Spacer>
           </Button>
           <LastLogin>
             {lastSignedIn === "slack" && "You signed in with Slack previously"}
@@ -46,7 +46,7 @@ const SigninButtons = ({
         <Column column>
           <Button href={signin("google")}>
             <GoogleLogo />
-            <Spacer>Sign In with Google</Spacer>
+            <Spacer>Sign In With Your Organisation's Email Through Google</Spacer>
           </Button>
           <LastLogin>
             {lastSignedIn === "google" &&

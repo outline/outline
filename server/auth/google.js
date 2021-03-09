@@ -16,6 +16,7 @@ const client = new OAuth2Client(
   `${process.env.URL}/auth/google.callback`
 );
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
+const singleTeamStrategyEnv = process.env.SINGLE_TEAM_STRATEGY || false;
 
 // start the oauth process and redirect user to Google
 router.get("google", async ctx => {
@@ -70,15 +71,29 @@ router.get("google.callback", auth({ required: false }), async ctx => {
   const cbResponse = await fetch(cbUrl);
   const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
 
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      googleId,
-    },
-    defaults: {
-      name: teamName,
-      avatarUrl,
-    },
-  });
+  let team;
+  let isFirstUser;
+  if (singleTeamStrategyEnv) {
+    team = await Team.findOne({
+      order: [
+        ['createdAt', 'ASC'],
+      ]
+    });
+    if (team) {
+      isFirstUser = false
+    }
+  }
+  if (team) {
+    let [team, isFirstUser] = await Team.findOrCreate({
+      where: {
+        googleId,
+      },
+      defaults: {
+        name: teamName,
+        avatarUrl,
+      },
+    });  
+  }
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({
@@ -89,7 +104,6 @@ router.get("google.callback", auth({ required: false }), async ctx => {
             serviceId: profile.data.id,
           },
           {
-            service: { [Op.eq]: null },
             email: profile.data.email,
           },
         ],
@@ -153,7 +167,7 @@ router.get("google.callback", auth({ required: false }), async ctx => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
-        ctx.redirect(`${team.url}?notice=auth-error`);
+        ctx.redirect(`${team.url}?notice=auth-error&provider=google`);
       }
 
       return;
