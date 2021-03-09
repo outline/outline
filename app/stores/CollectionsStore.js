@@ -1,5 +1,4 @@
 // @flow
-import fractionalIndex from "fractional-index";
 import invariant from "invariant";
 import { concat, last } from "lodash";
 import { computed, action } from "mobx";
