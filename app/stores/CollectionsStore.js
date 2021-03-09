@@ -49,12 +49,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @computed
-  get indexForNew(): string {
-    const collections = this.orderedData;
-    return fractionalIndex(collections[collections.length - 1].index, null);
-  }
-
-  @computed
   get public(): Collection[] {
     return this.orderedData.filter((collection) => !collection.private);
   }
