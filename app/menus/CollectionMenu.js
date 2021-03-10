@@ -160,9 +160,7 @@ function CollectionMenu({
             },
             {
               type: "separator",
-            },
-            {
-              type: "separator",
+              visible: !!(collection && can.delete),
             },
             {
               title: `${t("Delete")}…`,
