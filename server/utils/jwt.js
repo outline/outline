@@ -69,7 +69,15 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
     }
   }
 
-  const user = await User.findByPk(payload.id);
+  const user = await User.findByPk(payload.id, {
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
+  });
 
   // if user has signed in at all since the token was created then
   // it's no longer valid, they'll need a new one.

@@ -60,11 +60,12 @@ const User = sequelize.define(
           return original;
         }
 
+        const initial = this.name ? this.name[0] : "?";
         const hash = crypto
           .createHash("md5")
           .update(this.email || "")
           .digest("hex");
-        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png`;
       },
     },
   }
