@@ -9,11 +9,11 @@ import env from "env";
 type Props = {
   scopes?: string[],
   redirectUri: string,
-  state: string,
+  state?: string,
   label?: string,
 };
 
-function SlackButton({ state, scopes, redirectUri, label }: Props) {
+function SlackButton({ state = "", scopes, redirectUri, label }: Props) {
   const handleClick = () =>
     (window.location.href = slackAuth(
       state,

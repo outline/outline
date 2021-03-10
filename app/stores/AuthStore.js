@@ -174,7 +174,7 @@ export default class AuthStore {
 
       runInAction("AuthStore#updateUser", () => {
         this.addPolicies(res.policies);
-        this.user = res.data;
+        this.user = new User(res.data);
       });
     } finally {
       this.isSaving = false;

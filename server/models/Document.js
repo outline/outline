@@ -95,6 +95,8 @@ const Document = sequelize.define(
     },
     getterMethods: {
       url: function () {
+        if (!this.title) return `/doc/untitled-${this.urlId}`;
+
         const slugifiedTitle = slugify(this.title);
         return `/doc/${slugifiedTitle}-${this.urlId}`;
       },

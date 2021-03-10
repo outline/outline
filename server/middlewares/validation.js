@@ -48,6 +48,12 @@ export default function validation() {
       }
     };
 
+    ctx.assertValueInArray = (value, values, message) => {
+      if (!values.includes(value)) {
+        throw new ValidationError(message);
+      }
+    };
+
     return next();
   };
 }
