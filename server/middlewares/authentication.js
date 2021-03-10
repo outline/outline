@@ -102,31 +102,18 @@ export default function auth(options?: { required?: boolean } = {}) {
       // update the database when the user last signed in
       user.updateSignedIn(ctx.request.ip);
 
-      if (isFirstSignin) {
-        Event.create({
-          name: "users.create",
-          actorId: user.id,
-          userId: user.id,
-          teamId: team.id,
-          data: {
-            name: user.name,
-            service,
-          },
-          ip: ctx.request.ip,
-        });
-      } else {
-        Event.create({
-          name: "users.signin",
-          actorId: user.id,
-          userId: user.id,
-          teamId: team.id,
-          data: {
-            name: user.name,
-            service,
-          },
-          ip: ctx.request.ip,
-        });
-      }
+      // don't await event creation for a faster sign-in
+      Event.create({
+        name: "users.signin",
+        actorId: user.id,
+        userId: user.id,
+        teamId: team.id,
+        data: {
+          name: user.name,
+          service,
+        },
+        ip: ctx.request.ip,
+      });
 
       const domain = getCookieDomain(ctx.request.hostname);
       const expires = addMonths(new Date(), 3);

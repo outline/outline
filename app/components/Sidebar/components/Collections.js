@@ -24,7 +24,7 @@ function Collections({ onCreateCollection }: Props) {
   const orderedCollections = collections.orderedData;
 
   React.useEffect(() => {
-    if (!collections.isFetching && !collections.isLoaded) {
+    if (!collections.isLoaded) {
       collections.fetchPage({ limit: 100 });
     }
   });

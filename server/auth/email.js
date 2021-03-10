@@ -1,6 +1,7 @@
 // @flow
 import subMinutes from "date-fns/sub_minutes";
 import Router from "koa-router";
+import { find } from "lodash";
 import { AuthorizationError } from "../errors";
 import mailer from "../mailer";
 import auth from "../middlewares/authentication";
@@ -19,23 +20,27 @@ router.post("email", async (ctx) => {
 
   ctx.assertEmail(email, "email is required");
 
-  const user = await User.findOne({
+  const user = await User.scope("withAuthentications").findOne({
     where: { email: email.toLowerCase() },
   });
 
   if (user) {
-    const team = await Team.findByPk(user.teamId);
+    const team = await Team.scope("withAuthenticationProviders").findByPk(
+      user.teamId
+    );
     if (!team) {
       ctx.redirect(`/?notice=auth-error`);
       return;
     }
 
     // If the user matches an email address associated with an SSO
-    // signin then just forward them directly to that service's
-    // login page
-    if (user.service && user.service !== "email") {
+    // provider then just forward them directly to that sign-in page
+    if (user.authentications.length) {
+      const authProvider = find(team.authenticationProviders, {
+        id: user.authentications[0].authenticationProviderId,
+      });
       ctx.body = {
-        redirect: `${team.url}/auth/${user.service}`,
+        redirect: `${team.url}/auth/${authProvider.name}`,
       };
       return;
     }
@@ -87,11 +92,7 @@ router.get("email.callback", auth({ required: false }), async (ctx) => {
       throw new AuthorizationError();
     }
 
-    if (!user.service) {
-      user.service = "email";
-      user.lastActiveAt = new Date();
-      await user.save();
-    }
+    await user.update({ lastActiveAt: new Date() });
 
     // set cookies on response and redirect to team subdomain
     ctx.signIn(user, team, "email", false);

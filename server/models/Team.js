@@ -96,6 +96,14 @@ Team.associate = (models) => {
   Team.hasMany(models.Collection, { as: "collections" });
   Team.hasMany(models.Document, { as: "documents" });
   Team.hasMany(models.User, { as: "users" });
+  Team.hasMany(models.AuthenticationProvider, {
+    as: "authenticationProviders",
+  });
+  Team.addScope("withAuthenticationProviders", {
+    include: [
+      { model: models.AuthenticationProvider, as: "authenticationProviders" },
+    ],
+  });
 };
 
 const uploadAvatar = async (model) => {
@@ -121,13 +129,13 @@ const uploadAvatar = async (model) => {
   }
 };
 
-Team.prototype.provisionSubdomain = async function (subdomain) {
+Team.prototype.provisionSubdomain = async function (subdomain, options = {}) {
   if (this.subdomain) return this.subdomain;
 
   let append = 0;
   while (true) {
     try {
-      await this.update({ subdomain });
+      await this.update({ subdomain }, options);
       break;
     } catch (err) {
       // subdomain was invalid or already used, try again

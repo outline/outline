@@ -37,10 +37,14 @@ services.push({
 function filterServices(team) {
   let output = services;
 
-  if (team && !team.googleId) {
+  const providerNames = team
+    ? team.authenticationProviders.map((provider) => provider.name)
+    : [];
+
+  if (team && !providerNames.includes("google")) {
     output = reject(output, (service) => service.id === "google");
   }
-  if (team && !team.slackId) {
+  if (team && !providerNames.includes("slack")) {
     output = reject(output, (service) => service.id === "slack");
   }
   if (!team || !team.guestSignin) {
@@ -55,7 +59,7 @@ router.post("auth.config", async (ctx) => {
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (process.env.DEPLOYMENT !== "hosted") {
-    const teams = await Team.findAll();
+    const teams = await Team.scope("withAuthenticationProviders").findAll();
 
     if (teams.length === 1) {
       const team = teams[0];
@@ -70,7 +74,7 @@ router.post("auth.config", async (ctx) => {
   }
 
   if (isCustomDomain(ctx.request.hostname)) {
-    const team = await Team.findOne({
+    const team = await Team.scope("withAuthenticationProviders").findOne({
       where: { domain: ctx.request.hostname },
     });
 
@@ -95,7 +99,7 @@ router.post("auth.config", async (ctx) => {
   ) {
     const domain = parseDomain(ctx.request.hostname);
     const subdomain = domain ? domain.subdomain : undefined;
-    const team = await Team.findOne({
+    const team = await Team.scope("withAuthenticationProviders").findOne({
       where: { subdomain },
     });
 

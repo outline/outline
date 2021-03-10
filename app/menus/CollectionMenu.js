@@ -162,9 +162,6 @@ function CollectionMenu({
               type: "separator",
             },
             {
-              type: "separator",
-            },
-            {
               title: `${t("Delete")}…`,
               visible: !!(collection && can.delete),
               onClick: () => setShowCollectionDelete(true),

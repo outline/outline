@@ -8,6 +8,7 @@ import { Document, Collection, View } from "./models";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
+import { checkMigrations } from "./utils/startup";
 
 const server = http.createServer(app.callback());
 let io;
@@ -191,7 +192,10 @@ server.on("listening", () => {
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
-server.listen(process.env.PORT || "3000");
+(async () => {
+  await checkMigrations();
+  server.listen(process.env.PORT || "3000");
+})();
 
 export const socketio = io;
 

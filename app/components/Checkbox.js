@@ -6,7 +6,7 @@ import HelpText from "components/HelpText";
 
 export type Props = {|
   checked?: boolean,
-  label?: string,
+  label?: React.Node,
   labelHidden?: boolean,
   className?: string,
   name?: string,
@@ -26,6 +26,7 @@ const LabelText = styled.span`
 const Wrapper = styled.div`
   padding-bottom: 8px;
   ${(props) => (props.small ? "font-size: 14px" : "")};
+  width: 100%;
 `;
 
 const Label = styled.label`

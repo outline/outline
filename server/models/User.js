@@ -60,11 +60,12 @@ const User = sequelize.define(
           return original;
         }
 
+        const initial = this.name ? this.name[0] : "?";
         const hash = crypto
           .createHash("md5")
           .update(this.email || "")
           .digest("hex");
-        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png`;
       },
     },
   }
@@ -79,7 +80,12 @@ User.associate = (models) => {
   });
   User.hasMany(models.Document, { as: "documents" });
   User.hasMany(models.View, { as: "views" });
+  User.hasMany(models.UserAuthentication, { as: "authentications" });
   User.belongsTo(models.Team);
+
+  User.addScope("withAuthentications", {
+    include: [{ model: models.UserAuthentication, as: "authentications" }],
+  });
 };
 
 // Instance methods
@@ -151,10 +157,6 @@ User.prototype.getTransferToken = function () {
 // Returns a temporary token that is only used for logging in from an email
 // It can only be used to sign in once and has a medium length expiry
 User.prototype.getEmailSigninToken = function () {
-  if (this.service && this.service !== "email") {
-    throw new Error("Cannot generate email signin token for OAuth user");
-  }
-
   return JWT.sign(
     { id: this.id, createdAt: new Date().toISOString(), type: "email-signin" },
     this.jwtSecret

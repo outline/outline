@@ -1,7 +1,6 @@
 dist
 build
 node_modules/*
-server/scripts
 .env
 .log
 npm-debug.log
