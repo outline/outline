@@ -17,6 +17,11 @@ module.exports = {
         unique: true,
         allowNull: false,
       },
+      enabled: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -77,8 +82,6 @@ module.exports = {
       },
     });
 
-    await queryInterface.removeColumn("teams", "slackData");
-    await queryInterface.removeColumn("users", "slackData");
     await queryInterface.removeColumn("users", "slackAccessToken")
     await queryInterface.addIndex("authentication_providers", ["providerId"]);
     await queryInterface.addIndex("user_authentications", ["providerId"]);
@@ -87,14 +90,6 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("user_authentications");
     await queryInterface.dropTable("authentication_providers");
-    await queryInterface.addColumn("teams", "slackData", {
-      type: 'JSONB',
-      allowNull: true,
-    });
-    await queryInterface.addColumn("users", "slackData", {
-      type: 'JSONB',
-      allowNull: true,
-    });
     await queryInterface.addColumn("users", "slackAccessToken", {
       type: 'bytea',
       allowNull: true,

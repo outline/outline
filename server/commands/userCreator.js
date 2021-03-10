@@ -115,6 +115,7 @@ export default async function userCreator({
         isAdmin,
         teamId,
         avatarUrl,
+        service: null,
         authentications: [authentication],
       },
       {

@@ -123,7 +123,8 @@ function DocumentLink({
 
   // Draggable
   const [{ isDragging }, drag] = useDrag({
-    item: { type: "document", ...node, depth, active: isActiveDocument },
+    type: "document",
+    item: () => ({ ...node, depth, active: isActiveDocument }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -146,7 +147,7 @@ function DocumentLink({
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
+    drop: (item, monitor) => {
       if (monitor.didDrop()) return;
       if (!collection) return;
       documents.move(item.id, collection.id, node.id);
@@ -183,7 +184,7 @@ function DocumentLink({
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
+    drop: (item, monitor) => {
       if (!collection) return;
       if (item.id === node.id) return;
 

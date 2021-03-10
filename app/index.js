@@ -3,8 +3,6 @@ import "focus-visible";
 import { createBrowserHistory } from "history";
 import { Provider } from "mobx-react";
 import * as React from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { render } from "react-dom";
 import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
@@ -47,17 +45,15 @@ if (element) {
     <Provider {...stores}>
       <Theme>
         <ErrorBoundary>
-          <DndProvider backend={HTML5Backend}>
-            <Router history={history}>
-              <>
-                <PageTheme />
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </>
-            </Router>
-          </DndProvider>
+          <Router history={history}>
+            <>
+              <PageTheme />
+              <ScrollToTop>
+                <Routes />
+              </ScrollToTop>
+              <Toasts />
+            </>
+          </Router>
         </ErrorBoundary>
       </Theme>
     </Provider>,
