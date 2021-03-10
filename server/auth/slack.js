@@ -1,6 +1,6 @@
 // @flow
+import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
-import passport from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import accountProvisioner from "../commands/accountProvisioner";
 import env from "../env";

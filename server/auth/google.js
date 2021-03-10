@@ -1,7 +1,7 @@
 // @flow
+import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import { capitalize } from "lodash";
-import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import accountProvisioner from "../commands/accountProvisioner";
 import env from "../env";
@@ -43,20 +43,20 @@ if (GOOGLE_CLIENT_ID) {
         scope: scopes,
       },
       async function (req, accessToken, refreshToken, profile, done) {
-        const domain = profile._json.hd;
-
-        if (!domain) {
-          return done(new GoogleWorkspaceRequiredError(), null);
-        }
-
-        if (allowedDomains.length && !allowedDomains.includes(domain)) {
-          return done(new GoogleWorkspaceInvalidError(), null);
-        }
-
-        const subdomain = domain.split(".")[0];
-        const teamName = capitalize(subdomain);
-
         try {
+          const domain = profile._json.hd;
+
+          if (!domain) {
+            throw new GoogleWorkspaceRequiredError();
+          }
+
+          if (allowedDomains.length && !allowedDomains.includes(domain)) {
+            throw new GoogleWorkspaceInvalidError();
+          }
+
+          const subdomain = domain.split(".")[0];
+          const teamName = capitalize(subdomain);
+
           const result = await accountProvisioner({
             ip: req.ip,
             team: {

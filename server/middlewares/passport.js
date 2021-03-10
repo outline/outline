@@ -1,5 +1,5 @@
 // @flow
-import passport from "passport";
+import passport from "@outlinewiki/koa-passport";
 import type { AccountProvisionerResult } from "../commands/accountProvisioner";
 import type { ContextWithAuthMiddleware } from "../types";
 
