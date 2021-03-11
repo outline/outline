@@ -26,18 +26,20 @@ requireDirectory(path.join(__dirname, "..", "auth")).forEach(
 );
 
 function filterProviders(team) {
-  return providers.filter((provider) => {
-    // guest sign-in is an exception as it does not have an authentication
-    // provider using passport, instead it exists as a boolean option on the team
-    if (provider.id === "email") {
-      return team && team.guestSignin;
-    }
+  return providers
+    .sort((provider) => (provider.id === "email" ? 1 : -1))
+    .filter((provider) => {
+      // guest sign-in is an exception as it does not have an authentication
+      // provider using passport, instead it exists as a boolean option on the team
+      if (provider.id === "email") {
+        return team && team.guestSignin;
+      }
 
-    return (
-      !team ||
-      find(team.authenticationProviders, { name: provider.id, enabled: true })
-    );
-  });
+      return (
+        !team ||
+        find(team.authenticationProviders, { name: provider.id, enabled: true })
+      );
+    });
 }
 
 router.post("auth.config", async (ctx) => {

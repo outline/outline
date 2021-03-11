@@ -49,8 +49,8 @@ describe("#auth.config", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.providers.length).toBe(2);
-    expect(body.data.providers[0].name).toBe("Google");
-    expect(body.data.providers[1].name).toBe("Slack");
+    expect(body.data.providers[0].name).toBe("Slack");
+    expect(body.data.providers[1].name).toBe("Google");
   });
 
   it("should return available providers for team subdomain", async () => {
@@ -117,8 +117,8 @@ describe("#auth.config", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.providers.length).toBe(2);
-    expect(body.data.providers[0].name).toBe("Email");
-    expect(body.data.providers[1].name).toBe("Slack");
+    expect(body.data.providers[0].name).toBe("Slack");
+    expect(body.data.providers[1].name).toBe("Email");
   });
 
   it("should not return provider when disabled", async () => {
@@ -182,8 +182,8 @@ describe("#auth.config", () => {
 
       expect(res.status).toEqual(200);
       expect(body.data.providers.length).toBe(2);
-      expect(body.data.providers[0].name).toBe("Email");
-      expect(body.data.providers[1].name).toBe("Slack");
+      expect(body.data.providers[0].name).toBe("Slack");
+      expect(body.data.providers[1].name).toBe("Email");
     });
   });
 });
