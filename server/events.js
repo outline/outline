@@ -135,6 +135,14 @@ export type CollectionEvent =
       actorId: string,
       data: { name: string, groupId: string },
       ip: string,
+    }
+  | {
+      name: "collections.move",
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: { previousIndex: string, currentIndex: string },
+      ip: string,
     };
 
 export type GroupEvent =

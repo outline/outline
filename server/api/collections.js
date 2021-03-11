@@ -658,6 +658,8 @@ router.post("collections.move", auth(), async (ctx) => {
   const collection = await Collection.findByPk(id);
   authorize(user, "move", collection);
 
+  const previousIndex = collection.index;
+
   await collection.update({ index });
 
   removeIndexCollisions(user.teamId);
@@ -667,7 +669,7 @@ router.post("collections.move", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { name: collection.name },
+    data: { previousIndex, currentIndex: collection.index },
     ip: ctx.request.ip,
   });
 
