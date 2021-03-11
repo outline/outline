@@ -34,7 +34,7 @@ Interested in more documentation on the API routes? Check out the [API documenta
 server
 ├── api               - All API routes are contained within here
 │   └── middlewares   - Koa middlewares specific to the API
-├── auth              - OAuth routes for Slack and Google, plus email authentication routes
+├── auth              - Authentication providers, in the form of passport.js strategies
 ├── commands          - We are gradually moving to the command pattern for new write logic
 ├── config            - Database configuration
 ├── emails            - Transactional email templates
