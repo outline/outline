@@ -121,6 +121,29 @@ describe("#auth.config", () => {
     expect(body.data.services[1].name).toBe("Slack");
   });
 
+  it("should not return provider when disabled", async () => {
+    process.env.URL = "http://localoutline.com";
+
+    await buildTeam({
+      guestSignin: false,
+      subdomain: "example",
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: "123",
+          enabled: false,
+        },
+      ],
+    });
+    const res = await server.post("/api/auth.config", {
+      headers: { host: "example.localoutline.com" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.services.length).toBe(0);
+  });
+
   describe("self hosted", () => {
     it("should return available providers for team", async () => {
       process.env.DEPLOYMENT = "";

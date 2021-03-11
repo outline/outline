@@ -1,6 +1,7 @@
 // @flow
 import path from "path";
 import Router from "koa-router";
+import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
 import { signin } from "../../shared/utils/routeHelpers";
 import auth from "../middlewares/authentication";
@@ -25,10 +26,6 @@ requireDirectory(path.join(__dirname, "..", "auth")).forEach(
 );
 
 function filterServices(team) {
-  const providerNames = team
-    ? team.authenticationProviders.map((provider) => provider.name)
-    : [];
-
   return services.filter((service) => {
     // guest sign-in is an exception as it does not have an authentication
     // provider using passport, instead it exists as a boolean option on the team
@@ -36,7 +33,10 @@ function filterServices(team) {
       return team && team.guestSignin;
     }
 
-    return !team || providerNames.includes(service.id);
+    return (
+      !team ||
+      find(team.authenticationProviders, { name: service.id, enabled: true })
+    );
   });
 }
 
