@@ -11,7 +11,7 @@ export default async function removeIndexCollisions(
   if (!collections) {
     collections = await Collection.findAll({
       where: { teamId, deletedAt: null },
-      attributes: ["id", "index", "updatedAt", "name"],
+      attributes: ["id", "index", "updatedAt"],
       order: [
         sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],

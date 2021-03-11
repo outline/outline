@@ -57,8 +57,9 @@ router.post("collections.create", auth(), async (ctx) => {
 
   const collections = await Collection.findAll({
     where: { teamId: user.teamId, deletedAt: null },
-    attributes: ["id", "index", "updatedAt", "name"],
+    attributes: ["id", "index", "updatedAt"],
     order: [
+      //using LC_COLLATE:"C" because we need byte order to drive the sorting
       sequelize.literal('"collection"."index" collate "C"'),
       ["updatedAt", "DESC"],
     ],
