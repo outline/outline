@@ -1,26 +1,23 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import { Collection } from "../models";
+import { sequelize } from "../sequelize";
 
 export default async function removeIndexCollisions(
   teamId: string,
   index?: string,
   collections?: Collection[]
 ) {
-  collections = collections
-    ? collections
-    : await Collection.findAll({
-        where: { teamId, deletedAt: null }, //no point in maintaining index of deleted collections.
-        attributes: ["id", "index", "updatedAt"],
-      });
-
-  // use updatedAt because in case of index collision we need to have a predictable order
-  collections.sort((a, b) => {
-    if (a.index === b.index) {
-      return a.updatedAt > b.updatedAt ? -1 : 1;
-    }
-    return a.index < b.index ? -1 : 1;
-  });
+  if (!collections) {
+    collections = await Collection.findAll({
+      where: { teamId, deletedAt: null },
+      attributes: ["id", "index", "updatedAt", "name"],
+      order: [
+        sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+    });
+  }
 
   collections = collections.map((collection) => {
     return [collection, collection.index];
@@ -46,12 +43,12 @@ export default async function removeIndexCollisions(
     return collection;
   });
 
-  let indexArray = Array.from(indexSet);
-  indexArray.sort();
-
   if (!collision) {
     return;
   }
+
+  let indexArray = Array.from(indexSet);
+  indexArray.sort();
 
   for (const [i, collection] of collections.entries()) {
     if (collection[1] === null) {

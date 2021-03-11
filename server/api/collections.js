@@ -24,7 +24,8 @@ import {
   presentGroup,
   presentCollectionGroupMembership,
 } from "../presenters";
-import { Op } from "../sequelize";
+import { Op, sequelize } from "../sequelize";
+
 import collectionIndexing from "../utils/collectionIndexing";
 import removeIndexCollisions from "../utils/removeIndexCollisions";
 import { archiveCollection, archiveCollections } from "../utils/zip";
@@ -56,7 +57,11 @@ router.post("collections.create", auth(), async (ctx) => {
 
   const collections = await Collection.findAll({
     where: { teamId: user.teamId, deletedAt: null },
-    attributes: ["id", "index", "updatedAt"],
+    attributes: ["id", "index", "updatedAt", "name"],
+    order: [
+      sequelize.literal('"collection"."index" collate "C"'),
+      ["updatedAt", "DESC"],
+    ],
   });
 
   if (index) {
@@ -67,14 +72,7 @@ router.post("collections.create", auth(), async (ctx) => {
       );
     }
   } else {
-    collections.sort((a, b) => {
-      if (a.index === b.index) {
-        return a.updatedAt > b.updatedAt ? -1 : 1;
-      }
-      return a.index < b.index ? -1 : 1;
-    });
-
-    index = fractionalIndex(collections[collections.length - 1].index, null);
+    index = fractionalIndex(null, collections[0].index);
   }
 
   let collection = await Collection.create({
