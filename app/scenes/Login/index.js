@@ -50,10 +50,10 @@ function Login({ location }: Props) {
     return null;
   }
 
-  const hasMultipleProviders = config.services.length > 1;
+  const hasMultipleProviders = config.providers.length > 1;
   const defaultProvider = find(
-    config.services,
-    (service) => service.id === auth.lastSignedIn && !isCreate
+    config.providers,
+    (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
 
   const header =
@@ -129,17 +129,17 @@ function Login({ location }: Props) {
           </React.Fragment>
         )}
 
-        {config.services.map((service) => {
-          if (defaultProvider && service.id === defaultProvider.id) {
+        {config.providers.map((provider) => {
+          if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }
 
           return (
             <Provider
-              key={service.id}
+              key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
-              {...service}
+              {...provider}
             />
           );
         })}

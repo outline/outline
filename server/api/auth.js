@@ -11,12 +11,12 @@ import { isCustomDomain } from "../utils/domains";
 import { requireDirectory } from "../utils/fs";
 
 const router = new Router();
-let services = [];
+let providers = [];
 
 requireDirectory(path.join(__dirname, "..", "auth")).forEach(
   ([{ config }, id]) => {
     if (config && config.enabled) {
-      services.push({
+      providers.push({
         id,
         name: config.name,
         authUrl: signin(id),
@@ -25,17 +25,17 @@ requireDirectory(path.join(__dirname, "..", "auth")).forEach(
   }
 );
 
-function filterServices(team) {
-  return services.filter((service) => {
+function filterProviders(team) {
+  return providers.filter((provider) => {
     // guest sign-in is an exception as it does not have an authentication
     // provider using passport, instead it exists as a boolean option on the team
-    if (service.id === "email") {
+    if (provider.id === "email") {
       return team && team.guestSignin;
     }
 
     return (
       !team ||
-      find(team.authenticationProviders, { name: service.id, enabled: true })
+      find(team.authenticationProviders, { name: provider.id, enabled: true })
     );
   });
 }
@@ -52,7 +52,7 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -69,7 +69,7 @@ router.post("auth.config", async (ctx) => {
         data: {
           name: team.name,
           hostname: ctx.request.hostname,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -94,7 +94,7 @@ router.post("auth.config", async (ctx) => {
         data: {
           name: team.name,
           hostname: ctx.request.hostname,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -104,7 +104,7 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      services: filterServices(),
+      providers: filterProviders(),
     },
   };
 });
