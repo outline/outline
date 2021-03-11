@@ -87,3 +87,13 @@ export function GoogleWorkspaceInvalidError(
 ) {
   return httpErrors(400, message, { id: "hd_not_allowed" });
 }
+
+export function AuthenticationProviderDisabledError(
+  message: string = "Authentication method has been disabled by an admin",
+  redirectUrl: string = env.URL
+) {
+  return httpErrors(400, message, {
+    redirectUrl,
+    id: "authentication_provider_disabled",
+  });
+}

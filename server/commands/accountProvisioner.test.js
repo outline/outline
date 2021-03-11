@@ -98,6 +98,47 @@ describe("accountProvisioner", () => {
     expect(collectionCount).toEqual(0);
   });
 
+  it("should throw an error when authentication provider is disabled", async () => {
+    const existingTeam = await buildTeam();
+    const providers = await existingTeam.getAuthenticationProviders();
+    const authenticationProvider = providers[0];
+    await authenticationProvider.update({ enabled: false });
+
+    const existing = await buildUser({ teamId: existingTeam.id });
+    const authentications = await existing.getAuthentications();
+    const authentication = authentications[0];
+    let error;
+
+    try {
+      await accountProvisioner({
+        ip,
+        user: {
+          name: existing.name,
+          email: existing.email,
+          avatarUrl: existing.avatarUrl,
+        },
+        team: {
+          name: existingTeam.name,
+          avatarUrl: existingTeam.avatarUrl,
+          subdomain: "example",
+        },
+        authenticationProvider: {
+          name: authenticationProvider.name,
+          providerId: authenticationProvider.providerId,
+        },
+        authentication: {
+          providerId: authentication.providerId,
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeTruthy();
+  });
+
   it("should create a new user in an existing team", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();

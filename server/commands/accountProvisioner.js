@@ -4,6 +4,7 @@ import Sequelize from "sequelize";
 import {
   AuthenticationError,
   EmailAuthenticationRequiredError,
+  AuthenticationProviderDisabledError,
 } from "../errors";
 import { Team, User } from "../models";
 import teamCreator from "./teamCreator";
@@ -63,6 +64,10 @@ export default async function accountProvisioner({
 
   invariant(result, "Team creator result must exist");
   const { authenticationProvider, team, isNewTeam } = result;
+
+  if (!authenticationProvider.enabled) {
+    throw new AuthenticationProviderDisabledError();
+  }
 
   try {
     const result = await userCreator({
