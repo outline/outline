@@ -100,8 +100,8 @@ function CollectionLink({
 
   // Drag to reorder Collection
   const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
+    type: "collection",
     item: {
-      type: "collection",
       activeCollectionId: ui.activeCollectionId,
       id: collection.id,
     },
