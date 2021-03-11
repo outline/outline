@@ -48,9 +48,9 @@ describe("#auth.config", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.services.length).toBe(2);
-    expect(body.data.services[0].name).toBe("Google");
-    expect(body.data.services[1].name).toBe("Slack");
+    expect(body.data.providers.length).toBe(2);
+    expect(body.data.providers[0].name).toBe("Google");
+    expect(body.data.providers[1].name).toBe("Slack");
   });
 
   it("should return available providers for team subdomain", async () => {
@@ -72,8 +72,8 @@ describe("#auth.config", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.services.length).toBe(1);
-    expect(body.data.services[0].name).toBe("Slack");
+    expect(body.data.providers.length).toBe(1);
+    expect(body.data.providers[0].name).toBe("Slack");
   });
 
   it("should return available providers for team custom domain", async () => {
@@ -93,8 +93,8 @@ describe("#auth.config", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.services.length).toBe(1);
-    expect(body.data.services[0].name).toBe("Slack");
+    expect(body.data.providers.length).toBe(1);
+    expect(body.data.providers[0].name).toBe("Slack");
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
@@ -116,9 +116,9 @@ describe("#auth.config", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.services.length).toBe(2);
-    expect(body.data.services[0].name).toBe("Email");
-    expect(body.data.services[1].name).toBe("Slack");
+    expect(body.data.providers.length).toBe(2);
+    expect(body.data.providers[0].name).toBe("Email");
+    expect(body.data.providers[1].name).toBe("Slack");
   });
 
   it("should not return provider when disabled", async () => {
@@ -141,7 +141,7 @@ describe("#auth.config", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.services.length).toBe(0);
+    expect(body.data.providers.length).toBe(0);
   });
 
   describe("self hosted", () => {
@@ -161,8 +161,8 @@ describe("#auth.config", () => {
       const body = await res.json();
 
       expect(res.status).toEqual(200);
-      expect(body.data.services.length).toBe(1);
-      expect(body.data.services[0].name).toBe("Slack");
+      expect(body.data.providers.length).toBe(1);
+      expect(body.data.providers[0].name).toBe("Slack");
     });
 
     it("should return email provider for team when guest signin enabled", async () => {
@@ -181,9 +181,9 @@ describe("#auth.config", () => {
       const body = await res.json();
 
       expect(res.status).toEqual(200);
-      expect(body.data.services.length).toBe(2);
-      expect(body.data.services[0].name).toBe("Email");
-      expect(body.data.services[1].name).toBe("Slack");
+      expect(body.data.providers.length).toBe(2);
+      expect(body.data.providers[0].name).toBe("Email");
+      expect(body.data.providers[1].name).toBe("Slack");
     });
   });
 });
