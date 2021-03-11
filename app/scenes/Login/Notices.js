@@ -35,7 +35,7 @@ export default function Notices({ notice }: Props) {
       )}
       {notice === "auth-error" && (
         <NoticeAlert>
-          Authentication failed - we were unable to sign you in at this time.
+          Authentication failed – we were unable to sign you in at this time.
           Please try again.
         </NoticeAlert>
       )}
@@ -49,6 +49,12 @@ export default function Notices({ notice }: Props) {
         <NoticeAlert>
           Your Outline account has been suspended. To re-activate your account,
           please contact a team admin.
+        </NoticeAlert>
+      )}
+      {notice === "authentication-provider-disabled" && (
+        <NoticeAlert>
+          Authentication failed – this login method was disabled by a team
+          admin.
         </NoticeAlert>
       )}
     </>

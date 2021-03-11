@@ -15,7 +15,7 @@ import OutlineLogo from "components/OutlineLogo";
 import PageTitle from "components/PageTitle";
 import TeamLogo from "components/TeamLogo";
 import Notices from "./Notices";
-import Service from "./Service";
+import Provider from "./Provider";
 import env from "env";
 import useStores from "hooks/useStores";
 
@@ -41,8 +41,6 @@ function Login({ location }: Props) {
     auth.fetchConfig();
   }, [auth]);
 
-  console.log(config);
-
   if (auth.authenticated) {
     return <Redirect to="/home" />;
   }
@@ -52,10 +50,10 @@ function Login({ location }: Props) {
     return null;
   }
 
-  const hasMultipleServices = config.services.length > 1;
-  const defaultService = find(
-    config.services,
-    (service) => service.id === auth.lastSignedIn && !isCreate
+  const hasMultipleProviders = config.providers.length > 1;
+  const defaultProvider = find(
+    config.providers,
+    (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
 
   const header =
@@ -113,33 +111,35 @@ function Login({ location }: Props) {
 
         <Notices notice={getQueryVariable("notice")} />
 
-        {defaultService && (
-          <React.Fragment key={defaultService.id}>
-            <Service
+        {defaultProvider && (
+          <React.Fragment key={defaultProvider.id}>
+            <Provider
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
-              {...defaultService}
+              {...defaultProvider}
             />
-            {hasMultipleServices && (
+            {hasMultipleProviders && (
               <>
-                <Note>You signed in with {defaultService.name} last time.</Note>
+                <Note>
+                  You signed in with {defaultProvider.name} last time.
+                </Note>
                 <Or />
               </>
             )}
           </React.Fragment>
         )}
 
-        {config.services.map((service) => {
-          if (defaultService && service.id === defaultService.id) {
+        {config.providers.map((provider) => {
+          if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }
 
           return (
-            <Service
-              key={service.id}
+            <Provider
+              key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
-              {...service}
+              {...provider}
             />
           );
         })}

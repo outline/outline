@@ -1,57 +1,45 @@
 // @flow
+import path from "path";
 import Router from "koa-router";
-import { reject } from "lodash";
+import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
 import { signin } from "../../shared/utils/routeHelpers";
 import auth from "../middlewares/authentication";
 import { Team } from "../models";
 import { presentUser, presentTeam, presentPolicies } from "../presenters";
 import { isCustomDomain } from "../utils/domains";
+import { requireDirectory } from "../utils/fs";
 
 const router = new Router();
+let providers = [];
 
-let services = [];
-
-if (process.env.GOOGLE_CLIENT_ID) {
-  services.push({
-    id: "google",
-    name: "Google",
-    authUrl: signin("google"),
-  });
-}
-
-if (process.env.SLACK_KEY) {
-  services.push({
-    id: "slack",
-    name: "Slack",
-    authUrl: signin("slack"),
-  });
-}
-
-services.push({
-  id: "email",
-  name: "Email",
-  authUrl: "",
-});
-
-function filterServices(team) {
-  let output = services;
-
-  const providerNames = team
-    ? team.authenticationProviders.map((provider) => provider.name)
-    : [];
-
-  if (team && !providerNames.includes("google")) {
-    output = reject(output, (service) => service.id === "google");
+requireDirectory(path.join(__dirname, "..", "auth")).forEach(
+  ([{ config }, id]) => {
+    if (config && config.enabled) {
+      providers.push({
+        id,
+        name: config.name,
+        authUrl: signin(id),
+      });
+    }
   }
-  if (team && !providerNames.includes("slack")) {
-    output = reject(output, (service) => service.id === "slack");
-  }
-  if (!team || !team.guestSignin) {
-    output = reject(output, (service) => service.id === "email");
-  }
+);
 
-  return output;
+function filterProviders(team) {
+  return providers
+    .sort((provider) => (provider.id === "email" ? 1 : -1))
+    .filter((provider) => {
+      // guest sign-in is an exception as it does not have an authentication
+      // provider using passport, instead it exists as a boolean option on the team
+      if (provider.id === "email") {
+        return team && team.guestSignin;
+      }
+
+      return (
+        !team ||
+        find(team.authenticationProviders, { name: provider.id, enabled: true })
+      );
+    });
 }
 
 router.post("auth.config", async (ctx) => {
@@ -66,7 +54,7 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -83,7 +71,7 @@ router.post("auth.config", async (ctx) => {
         data: {
           name: team.name,
           hostname: ctx.request.hostname,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -108,7 +96,7 @@ router.post("auth.config", async (ctx) => {
         data: {
           name: team.name,
           hostname: ctx.request.hostname,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -118,7 +106,7 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      services: filterServices(),
+      providers: filterProviders(),
     },
   };
 });

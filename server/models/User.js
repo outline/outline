@@ -8,10 +8,9 @@ import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
-
-const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
 
 const User = sequelize.define(
   "user",
@@ -28,7 +27,6 @@ const User = sequelize.define(
     isAdmin: DataTypes.BOOLEAN,
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
-    slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields().vault("jwtSecret"),
     lastActiveAt: DataTypes.DATE,
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
@@ -210,7 +208,6 @@ const removeIdentifyingInfo = async (model, options) => {
   model.avatarUrl = "";
   model.serviceId = null;
   model.username = null;
-  model.slackData = null;
   model.lastActiveIp = null;
   model.lastSignedInIp = null;
 

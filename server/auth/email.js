@@ -12,6 +12,11 @@ import { getUserForEmailSigninToken } from "../utils/jwt";
 
 const router = new Router();
 
+export const config = {
+  name: "Email",
+  enabled: true,
+};
+
 router.use(methodOverride());
 router.use(validation());
 

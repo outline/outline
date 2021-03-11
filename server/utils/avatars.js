@@ -2,6 +2,8 @@
 import crypto from "crypto";
 import fetch from "isomorphic-fetch";
 
+export const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
+
 export async function generateAvatarUrl({
   id,
   domain,
@@ -27,6 +29,6 @@ export async function generateAvatarUrl({
     }
   }
 
-  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedId}/${name[0]}.png`;
+  const tileyUrl = `${DEFAULT_AVATAR_HOST}/avatar/${hashedId}/${name[0]}.png`;
   return cbUrl && cbResponse && cbResponse.status === 200 ? cbUrl : tileyUrl;
 }
