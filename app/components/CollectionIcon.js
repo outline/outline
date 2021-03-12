@@ -1,5 +1,5 @@
 // @flow
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { CollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
