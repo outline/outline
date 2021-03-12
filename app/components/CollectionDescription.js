@@ -150,7 +150,7 @@ const MaxHeight = styled.div`
   position: relative;
   max-height: 25vh;
   overflow: hidden;
-  margin: -8px;
+  margin: -12px -8px -8px;
   padding: 8px;
 
   &[data-editing="true"],
