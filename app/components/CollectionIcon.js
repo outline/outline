@@ -1,20 +1,21 @@
 // @flow
-import { inject, observer } from "mobx-react";
-import { PrivateCollectionIcon, CollectionIcon } from "outline-icons";
+import { observer } from "mobx-react";
+import { CollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
-import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import { icons } from "components/IconPicker";
+import useStores from "hooks/useStores";
 
 type Props = {
   collection: Collection,
   expanded?: boolean,
   size?: number,
-  ui: UiStore,
 };
 
-function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
+function ResolvedCollectionIcon({ collection, expanded, size }: Props) {
+  const { ui } = useStores();
+
   // If the chosen icon color is very dark then we invert it in dark mode
   // otherwise it will be impossible to see against the dark background.
   const color =
@@ -33,13 +34,7 @@ function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
     }
   }
 
-  if (collection.private) {
-    return (
-      <PrivateCollectionIcon color={color} expanded={expanded} size={size} />
-    );
-  }
-
   return <CollectionIcon color={color} expanded={expanded} size={size} />;
 }
 
-export default inject("ui")(observer(ResolvedCollectionIcon));
+export default observer(ResolvedCollectionIcon);
