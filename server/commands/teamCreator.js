@@ -71,9 +71,7 @@ export default async function teamCreator({
     }
 
     if (teamCount >= 1) {
-      throw new MaximumTeamsError(
-        "The team you attempted to login with does not exist on this installation."
-      );
+      throw new MaximumTeamsError();
     }
   }
 

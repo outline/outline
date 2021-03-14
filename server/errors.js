@@ -72,7 +72,7 @@ export function OAuthStateMismatchError(
 export function MaximumTeamsError(
   message: string = "The maximum number of teams has been reached"
 ) {
-  return httpErrors(400, message, { id: "max_teams" });
+  return httpErrors(400, message, { id: "maximum_teams" });
 }
 
 export function EmailAuthenticationRequiredError(
