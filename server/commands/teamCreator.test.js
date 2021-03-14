@@ -55,6 +55,31 @@ describe("teamCreator", () => {
     expect(error).toBeTruthy();
   });
 
+  it("should return existing team when within allowed domains", async () => {
+    const existing = await buildTeam();
+
+    const result = await teamCreator({
+      name: "Updated name",
+      subdomain: "example",
+      domain: "allowed-domain.com",
+      authenticationProvider: {
+        name: "google",
+        providerId: "allowed-domain.com",
+      },
+    });
+
+    const { team, authenticationProvider, isNewTeam } = result;
+
+    expect(team.id).toEqual(existing.id);
+    expect(team.name).toEqual(existing.name);
+    expect(authenticationProvider.name).toEqual("google");
+    expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
+    expect(isNewTeam).toEqual(false);
+
+    const providers = await team.getAuthenticationProviders();
+    expect(providers.length).toEqual(2);
+  });
+
   it("should return exising team", async () => {
     const authenticationProvider = {
       name: "google",

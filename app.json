@@ -55,7 +55,7 @@
       "description": "",
       "required": false
     },
-    "GOOGLE_ALLOWED_DOMAINS": {
+    "ALLOWED_DOMAINS": {
       "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default",
       "required": false
     },
