@@ -25,6 +25,11 @@ const User = sequelize.define(
     name: DataTypes.STRING,
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
     isAdmin: DataTypes.BOOLEAN,
+    isViewer: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     jwtSecret: encryptedFields().vault("jwtSecret"),
