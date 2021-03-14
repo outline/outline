@@ -279,6 +279,7 @@ User.getCounts = async function (teamId: string) {
     SELECT 
       COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
       COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
+      COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",
       COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
       COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
       COUNT(*) as count
@@ -297,6 +298,7 @@ User.getCounts = async function (teamId: string) {
   return {
     active: parseInt(counts.activeCount),
     admins: parseInt(counts.adminCount),
+    viewers: parseInt(counts.viewerCount),
     all: parseInt(counts.count),
     invited: parseInt(counts.invitedCount),
     suspended: parseInt(counts.suspendedCount),

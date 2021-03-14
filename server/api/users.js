@@ -2,6 +2,7 @@
 import Router from "koa-router";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
+import { ValidationError } from "../errors";
 import auth from "../middlewares/authentication";
 import { Event, User, Team } from "../models";
 import policy from "../policies";
@@ -125,13 +126,24 @@ router.post("users.promote", auth(), async (ctx) => {
 router.post("users.demote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
+  let { to } = ctx.body;
+
   ctx.assertPresent(userId, "id is required");
+
+  if (userId === ctx.state.user.id) {
+    throw new ValidationError("Unable to demote the current user");
+  }
+
+  const possibleTos = ["member", "viewer"];
+  if (possibleTos.findIndex((possibleTo) => possibleTo === to) === -1) {
+    to = "member";
+  }
 
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, "demote", user);
 
   const team = await Team.findByPk(teamId);
-  await team.removeAdmin(user);
+  await team.demoteUser(user, to);
 
   await Event.create({
     name: "users.demote",

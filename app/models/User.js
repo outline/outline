@@ -8,6 +8,7 @@ class User extends BaseModel {
   name: string;
   email: string;
   isAdmin: boolean;
+  isViewer: boolean;
   lastActiveAt: string;
   isSuspended: boolean;
   createdAt: string;

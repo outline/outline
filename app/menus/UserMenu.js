@@ -36,7 +36,7 @@ function UserMenu({ user }: Props) {
     [users, user, t]
   );
 
-  const handleDemote = React.useCallback(
+  const handleMember = React.useCallback(
     (ev: SyntheticEvent<>) => {
       ev.preventDefault();
       if (
@@ -48,7 +48,27 @@ function UserMenu({ user }: Props) {
       ) {
         return;
       }
-      users.demote(user);
+      users.demote(user, "member");
+    },
+    [users, user, t]
+  );
+
+  const handleViewer = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      if (
+        !window.confirm(
+          t(
+            "Are you sure you want to make {{ userName }} a viewer? A viewer can only modify their profile",
+            {
+              userName: user.name,
+            }
+          )
+        )
+      ) {
+        return;
+      }
+      users.demote(user, "viewer");
     },
     [users, user, t]
   );
@@ -97,8 +117,17 @@ function UserMenu({ user }: Props) {
               title: t("Make {{ userName }} a member…", {
                 userName: user.name,
               }),
-              onClick: handleDemote,
-              visible: user.isAdmin,
+              onClick: handleMember,
+              visible: user.isAdmin || user.isViewer,
+            },
+            {
+              title: t("Make {{ userName }} a viewer...", {
+                userName: user.name,
+              }),
+              onClick: handleViewer,
+              visible:
+                user.isAdmin ||
+                (!user.isAdmin && !user.isViewer && !user.isSuspended),
             },
             {
               title: t("Make {{ userName }} an admin…", {

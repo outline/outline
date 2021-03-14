@@ -14,6 +14,7 @@ export default class UsersStore extends BaseStore<User> {
     all: number,
     invited: number,
     suspended: number,
+    viewers: number,
   } = {};
 
   constructor(rootStore: RootStore) {
@@ -24,7 +25,7 @@ export default class UsersStore extends BaseStore<User> {
   get active(): User[] {
     return filter(
       this.orderedData,
-      (user) => !user.isSuspended && user.lastActiveAt
+      (user) => !user.isSuspended && !user.isViewer && user.lastActiveAt
     );
   }
 
@@ -49,6 +50,11 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @computed
+  get viewers(): User[] {
+    return filter(this.orderedData, (user) => user.isViewer);
+  }
+
+  @computed
   get all(): User[] {
     return filter(this.orderedData, (user) => user.lastActiveAt);
   }
@@ -65,9 +71,17 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
-  demote = (user: User) => {
-    this.counts.admins -= 1;
-    return this.actionOnUser("demote", user);
+  demote = (user: User, to: string) => {
+    if (user.isAdmin) {
+      this.counts.admins -= 1;
+    }
+
+    if (to === "member" && user.isViewer) {
+      this.counts.viewers -= 1;
+    } else if (to === "viewer") {
+      this.counts.viewers += 1;
+    }
+    return this.actionOnUser("demote", user, to);
   };
 
   @action
@@ -117,6 +131,9 @@ export default class UsersStore extends BaseStore<User> {
     }
     if (user.isSuspended) {
       this.counts.suspended -= 1;
+    }
+    if (user.isViewer) {
+      this.counts.viewers -= 1;
     }
     this.counts.all -= 1;
   }
@@ -179,9 +196,10 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  actionOnUser = async (action: string, user: User) => {
+  actionOnUser = async (action: string, user: User, to?: string) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,
+      to,
     });
     invariant(res && res.data, "Data should be available");
 

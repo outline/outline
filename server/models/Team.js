@@ -191,10 +191,10 @@ Team.prototype.provisionFirstCollection = async function (userId) {
 };
 
 Team.prototype.addAdmin = async function (user: User) {
-  return user.update({ isAdmin: true });
+  return user.update({ isAdmin: true, isViewer: false });
 };
 
-Team.prototype.removeAdmin = async function (user: User) {
+Team.prototype.demoteUser = async function (user: User, to: string) {
   const res = await User.findAndCountAll({
     where: {
       teamId: this.id,
@@ -206,7 +206,11 @@ Team.prototype.removeAdmin = async function (user: User) {
     limit: 1,
   });
   if (res.count >= 1) {
-    return user.update({ isAdmin: false });
+    if (to === "member") {
+      return user.update({ isAdmin: false, isViewer: false });
+    } else if (to === "viewer") {
+      return user.update({ isAdmin: false, isViewer: true });
+    }
   } else {
     throw new ValidationError("At least one admin is required");
   }
