@@ -89,14 +89,14 @@ router.post("collections.create", auth(), async (ctx) => {
     index,
   });
 
-  removeIndexCollisions(user.teamId, index, collections);
+  const collectionsIdWithIndex = await removeIndexCollisions(user.teamId);
 
   await Event.create({
     name: "collections.create",
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { name },
+    data: { name, collectionsIdWithIndex },
     ip: ctx.request.ip,
   });
 
@@ -658,18 +658,22 @@ router.post("collections.move", auth(), async (ctx) => {
   const collection = await Collection.findByPk(id);
   authorize(user, "move", collection);
 
-  const previousIndex = collection.index;
-
   await collection.update({ index });
 
-  removeIndexCollisions(user.teamId);
+  let collectionsIdWithIndex = await removeIndexCollisions(user.teamId);
+
+  if (!collectionsIdWithIndex) {
+    collectionsIdWithIndex = [[id, index]];
+  } else {
+    collectionsIdWithIndex.push([id, index]);
+  }
 
   await Event.create({
     name: "collections.move",
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { previousIndex, currentIndex: collection.index },
+    data: { collectionsIdWithIndex: collectionsIdWithIndex },
     ip: ctx.request.ip,
   });
 

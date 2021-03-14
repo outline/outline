@@ -170,6 +170,18 @@ export default class Websockets {
               },
             ],
           });
+
+        if (event.data.collectionsIdWithIndex) {
+          event.data.collectionsIdWithIndex.forEach((collectionIdWithIndex) => {
+            socketio
+              .to(`collection-${collectionIdWithIndex[0]}`)
+              .emit("collections.index_update", {
+                collectionId: collectionIdWithIndex[0],
+                index: collectionIdWithIndex[1],
+              });
+          });
+        }
+
         return socketio
           .to(
             collection.private
@@ -196,6 +208,20 @@ export default class Websockets {
             },
           ],
         });
+      }
+
+      case "collections.move": {
+        if (event.data.collectionsIdWithIndex) {
+          event.data.collectionsIdWithIndex.forEach((collectionIdWithIndex) => {
+            socketio
+              .to(`collection-${collectionIdWithIndex[0]}`)
+              .emit("collections.index_update", {
+                collectionId: collectionIdWithIndex[0],
+                index: collectionIdWithIndex[1],
+              });
+          });
+        }
+        return;
       }
       case "collections.add_user": {
         // the user being added isn't yet in the websocket channel for the collection

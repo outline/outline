@@ -57,6 +57,7 @@ Event.add = (event) => {
 Event.ACTIVITY_EVENTS = [
   "collections.create",
   "collections.delete",
+  "collections.move",
   "documents.publish",
   "documents.archive",
   "documents.unarchive",

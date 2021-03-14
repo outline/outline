@@ -3,6 +3,13 @@ import fractionalIndex from "fractional-index";
 import { Collection } from "../models";
 import { sequelize } from "../sequelize";
 
+/**
+ *
+ * @param teamId The team id whose collections has to be fetched
+ * @param index All collections with given index value are given new index value
+ * @param collections If collections is passed, this is used to form collections array and no db query is made
+ * @returns An array of collided collections or undefined.If array, rach array element is an array of collection id and its new index [id,newIndex]
+ */
 export default async function removeIndexCollisions(
   teamId: string,
   index?: string,
@@ -50,6 +57,7 @@ export default async function removeIndexCollisions(
   let indexArray = Array.from(indexSet);
   indexArray.sort();
 
+  const collectionsIdWithIndex = [];
   for (const [i, collection] of collections.entries()) {
     if (collection[1] === null) {
       const previousCollectionIndex = i - 1 < 0 ? null : indexArray[i - 1];
@@ -61,6 +69,8 @@ export default async function removeIndexCollisions(
       );
       indexArray.splice(i, 0, newIndex);
       await collection[0].update({ index: newIndex });
+      collectionsIdWithIndex.push([collection[0].id, newIndex]);
     }
   }
+  return collectionsIdWithIndex;
 }

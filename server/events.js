@@ -141,7 +141,7 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
-      data: { previousIndex: string, currentIndex: string },
+      data: { collectionsIdWithIndex: [[string, string]] },
       ip: string,
     };
 
