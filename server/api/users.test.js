@@ -264,6 +264,40 @@ describe("#users.demote", () => {
     expect(body).toMatchSnapshot();
   });
 
+  it("should demote an admin to viewer", async () => {
+    const { admin, user } = await seed();
+    await user.update({ isAdmin: true }); // Make another admin
+
+    const res = await server.post("/api/users.demote", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        to: "viewer",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should demote an admin to member", async () => {
+    const { admin, user } = await seed();
+    await user.update({ isAdmin: true }); // Make another admin
+
+    const res = await server.post("/api/users.demote", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        to: "member",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
   it("should not demote admins if only one available", async () => {
     const admin = await buildUser({ isAdmin: true });
 
