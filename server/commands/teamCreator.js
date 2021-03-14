@@ -1,5 +1,6 @@
 // @flow
 import debug from "debug";
+import { MaximumTeamsError } from "../errors";
 import { Team, AuthenticationProvider } from "../models";
 import { sequelize } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
@@ -62,6 +63,16 @@ export default async function teamCreator({
   // This team has never been seen before, time to create all the new stuff
   let transaction = await sequelize.transaction();
   let team;
+
+  if (process.env.DEPLOYMENT !== "hosted") {
+    const teams = await Team.count();
+    if (teams >= 1) {
+      throw new MaximumTeamsError(
+        "The team you attempted to login with does not exist on this installation."
+      );
+    }
+  }
+
   try {
     team = await Team.create(
       {
