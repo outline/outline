@@ -34,6 +34,27 @@ describe("teamCreator", () => {
     expect(isNewTeam).toEqual(true);
   });
 
+  it("should now allow creating multiple teams in installation", async () => {
+    await buildTeam();
+    let error;
+
+    try {
+      await teamCreator({
+        name: "Test team",
+        subdomain: "example",
+        avatarUrl: "http://example.com/logo.png",
+        authenticationProvider: {
+          name: "google",
+          providerId: "example.com",
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeTruthy();
+  });
+
   it("should return exising team", async () => {
     const authenticationProvider = {
       name: "google",
