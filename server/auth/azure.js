@@ -18,7 +18,7 @@ const AZURE_CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET;
 const scopes = [];
 
 export const config = {
-  name: "Office 365",
+  name: "Microsoft",
   enabled: !!AZURE_CLIENT_ID,
 };
 
