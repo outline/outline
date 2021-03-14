@@ -8,6 +8,7 @@ const { allow } = policy;
 allow(User, "read", Team, (user, team) => team && user.teamId === team.id);
 
 allow(User, "share", Team, (user, team) => {
+  if (user.isViewer) return false;
   if (!team || user.teamId !== team.id) return false;
   return team.sharing;
 });
@@ -29,6 +30,7 @@ allow(User, "group", Team, (user) => {
 });
 
 allow(User, ["update", "export"], Team, (user, team) => {
+  if (user.isViewer) return false;
   if (!team || user.teamId !== team.id) return false;
   if (user.isAdmin) return true;
   throw new AdminRequiredError();

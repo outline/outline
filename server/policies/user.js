@@ -13,6 +13,7 @@ allow(
 );
 
 allow(User, "invite", User, (actor) => {
+  if (actor.isViewer) return false;
   return true;
 });
 

@@ -5,7 +5,7 @@ import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, "create", Integration);
+allow(User, "create", Integration, (user) => !user.isViewer);
 
 allow(
   User,
@@ -15,6 +15,7 @@ allow(
 );
 
 allow(User, ["update", "delete"], Integration, (user, integration) => {
+  if (user.isViewer) return false;
   if (!integration || user.teamId !== integration.teamId) return false;
   if (user.isAdmin) return true;
   throw new AdminRequiredError();

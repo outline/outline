@@ -7,7 +7,7 @@ import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, "create", Collection);
+allow(User, "create", Collection, (user) => !user.isViewer);
 
 allow(User, "import", Collection, (actor) => {
   if (actor.isAdmin) return true;
@@ -37,6 +37,7 @@ allow(User, ["read", "export"], Collection, (user, collection) => {
 });
 
 allow(User, "share", Collection, (user, collection) => {
+  if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
   if (!collection.sharing) return false;
 
@@ -60,6 +61,7 @@ allow(User, "share", Collection, (user, collection) => {
 });
 
 allow(User, ["publish", "update"], Collection, (user, collection) => {
+  if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
 
   if (collection.private) {
@@ -82,6 +84,7 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
 });
 
 allow(User, "delete", Collection, (user, collection) => {
+  if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
 
   if (collection.private) {

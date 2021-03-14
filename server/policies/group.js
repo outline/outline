@@ -6,11 +6,13 @@ import policy from "./policy";
 const { allow } = policy;
 
 allow(User, ["create"], Group, (actor) => {
+  if (actor.isViewer) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });
 
 allow(User, ["update", "delete"], Group, (actor, group) => {
+  if (actor.isViewer) return false;
   if (!group || actor.teamId !== group.teamId) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
