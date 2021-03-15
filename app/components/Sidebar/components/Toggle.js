@@ -28,7 +28,7 @@ export const ToggleButton = styled.button`
   transition: opacity 100ms ease-in-out;
   transform: translateY(-50%)
     scaleX(${(props) => (props.$direction === "left" ? 1 : -1)});
-  position: absolute;
+  position: fixed;
   top: 50vh;
   padding: 8px;
   border: 0;
