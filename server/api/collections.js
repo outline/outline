@@ -89,7 +89,11 @@ router.post("collections.create", auth(), async (ctx) => {
     index,
   });
 
-  const collectionsIdWithIndex = await removeIndexCollisions(user.teamId);
+  const collectionsIdWithIndex = await removeIndexCollisions(
+    user.teamId,
+    index,
+    collections
+  );
 
   await Event.create({
     name: "collections.create",
