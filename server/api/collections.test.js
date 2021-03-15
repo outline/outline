@@ -160,6 +160,44 @@ describe("#collections.move", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
   });
+
+  it("if index collision occurs, should updated index of other collections", async () => {
+    const { user, admin, collection } = await seed();
+    const createdCollectionResponse = await server.post(
+      "/api/collections.create",
+      {
+        body: {
+          token: user.getJwtToken(),
+          name: "Test",
+          sharing: false,
+          index: "Q",
+        },
+      }
+    );
+
+    const createdCollection = await createdCollectionResponse.json();
+    const movedCollectionRes = await server.post("/api/collections.move", {
+      body: { token: admin.getJwtToken(), id: collection.id, index: "Q" },
+    });
+
+    const movedCollection = await movedCollectionRes.json();
+
+    expect(movedCollectionRes.status).toEqual(200);
+    expect(movedCollection.success).toBe(true);
+
+    const updatedCreatedCollectionResponse = await server.post(
+      "/api/collections.info",
+      {
+        body: { token: admin.getJwtToken(), id: createdCollection.data.id },
+      }
+    );
+
+    const updateCreatedCollection = await updatedCreatedCollectionResponse.json();
+
+    expect(updateCreatedCollection.data.index).not.toEqual("Q");
+    expect(updateCreatedCollection.data.index).toEqual("h");
+    expect(updateCreatedCollection.data.index > "Q").toBeTruthy();
+  });
 });
 
 describe("#collections.export", () => {
