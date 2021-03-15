@@ -132,7 +132,6 @@ function CollectionLink({
         >
           <DropToImport collectionId={collection.id}>
             <SidebarLinkWithPadding
-              key={collection.id}
               to={collection.url}
               icon={
                 <CollectionIcon collection={collection} expanded={expanded} />
