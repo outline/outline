@@ -78,7 +78,7 @@ function CollectionLink({
     }),
   });
 
-  //Drop to reorder Collection
+  // Drop to reorder Collection
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
