@@ -59,7 +59,7 @@ router.post("collections.create", auth(), async (ctx) => {
     where: { teamId: user.teamId, deletedAt: null },
     attributes: ["id", "index", "updatedAt"],
     order: [
-      //using LC_COLLATE:"C" because we need byte order to drive the sorting
+      // using LC_COLLATE:"C" because we need byte order to drive the sorting
       sequelize.literal('"collection"."index" collate "C"'),
       ["updatedAt", "DESC"],
     ],

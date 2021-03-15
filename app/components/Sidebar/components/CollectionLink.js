@@ -78,7 +78,7 @@ function CollectionLink({
     }),
   });
 
-  //Drop to reorder Collection
+  // Drop to reorder Collection
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
@@ -130,9 +130,8 @@ function CollectionLink({
           $isDragging={isCollectionDragging}
           $isMoving={isCollectionDragging}
         >
-          <DropToImport key={collection.id} collectionId={collection.id}>
+          <DropToImport collectionId={collection.id}>
             <SidebarLinkWithPadding
-              key={collection.id}
               to={collection.url}
               icon={
                 <CollectionIcon collection={collection} expanded={expanded} />

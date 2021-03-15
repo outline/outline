@@ -44,6 +44,7 @@ function Collections({ onCreateCollection }: Props) {
       isCollectionDropping: monitor.isOver(),
     }),
   });
+
   const content = (
     <>
       <DropCursor
