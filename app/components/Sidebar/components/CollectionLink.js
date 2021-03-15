@@ -130,7 +130,7 @@ function CollectionLink({
           $isDragging={isCollectionDragging}
           $isMoving={isCollectionDragging}
         >
-          <DropToImport key={collection.id} collectionId={collection.id}>
+          <DropToImport collectionId={collection.id}>
             <SidebarLinkWithPadding
               key={collection.id}
               to={collection.url}
