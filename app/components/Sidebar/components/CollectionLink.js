@@ -24,6 +24,8 @@ type Props = {|
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
   belowCollection: Collection | undefined,
+  isAnyCollectionDragging: boolean,
+  setIsAnyCollectionDragging: () => void,
 |};
 
 function CollectionLink({
@@ -33,6 +35,8 @@ function CollectionLink({
   canUpdate,
   ui,
   belowCollection,
+  isAnyCollectionDragging,
+  setIsAnyCollectionDragging,
 }: Props) {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -44,7 +48,19 @@ function CollectionLink({
   );
 
   const { documents, policies, collections } = useStores();
-  const expanded = collection.id === ui.activeCollectionId;
+
+  const [expanded, setExpanded] = React.useState(
+    collection.id === ui.activeCollectionId
+  );
+
+  React.useEffect(() => {
+    if (isAnyCollectionDragging) {
+      setExpanded(false);
+    } else {
+      setExpanded(collection.id === ui.activeCollectionId);
+    }
+  }, [isAnyCollectionDragging, collection.id, ui.activeCollectionId]);
+
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
@@ -101,9 +117,11 @@ function CollectionLink({
   // Drag to reorder Collection
   const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
     type: "collection",
-    item: {
-      activeCollectionId: ui.activeCollectionId,
-      id: collection.id,
+    item: () => {
+      setIsAnyCollectionDragging(true);
+      return {
+        id: collection.id,
+      };
     },
     collect: (monitor) => ({
       isCollectionDragging: monitor.isDragging(),
@@ -111,13 +129,8 @@ function CollectionLink({
     canDrag: (monitor) => {
       return can.move;
     },
-    begin: (monitor) => {
-      setTimeout(() => {
-        ui.clearActiveCollection();
-      }, 0);
-    },
     end: (monitor) => {
-      ui.activeCollectionId = monitor.activeCollectionId;
+      setIsAnyCollectionDragging(false);
     },
   });
 
@@ -170,7 +183,7 @@ function CollectionLink({
         {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        {!expanded && (
+        {isAnyCollectionDragging && (
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}
