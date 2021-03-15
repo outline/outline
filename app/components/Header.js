@@ -46,7 +46,7 @@ function Header({ breadcrumb, title, actions }: Props) {
         <div />
       )}
       {actions && (
-        <Actions align="flex-end" justify="flex-end">
+        <Actions align="center" justify="flex-end">
           {actions}
         </Actions>
       )}
@@ -70,7 +70,6 @@ const Breadcrumbs = styled("div")`
 const Actions = styled(Flex)`
   flex-grow: 1;
   flex-basis: 0;
-  justify-content: flex-end;
   min-width: auto;
   padding-left: 8px;
 `;
