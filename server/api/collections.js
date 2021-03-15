@@ -58,6 +58,7 @@ router.post("collections.create", auth(), async (ctx) => {
   const collections = await Collection.findAll({
     where: { teamId: user.teamId, deletedAt: null },
     attributes: ["id", "index", "updatedAt"],
+    limit: 1,
     order: [
       // using LC_COLLATE:"C" because we need byte order to drive the sorting
       sequelize.literal('"collection"."index" collate "C"'),
@@ -76,6 +77,11 @@ router.post("collections.create", auth(), async (ctx) => {
     index = fractionalIndex(null, collections[0].index);
   }
 
+  // before creating a collection we check if a collection with same index exists
+  const collectionWithSameIndex = await Collection.findOne({
+    where: { index, teamId: user.teamId, deletedAt: null },
+  });
+
   let collection = await Collection.create({
     name,
     description,
@@ -89,11 +95,11 @@ router.post("collections.create", auth(), async (ctx) => {
     index,
   });
 
-  const collectionsIdWithIndex = await removeIndexCollisions(
-    user.teamId,
-    index,
-    collections
-  );
+  let collectionsIdWithIndex;
+
+  if (collectionWithSameIndex instanceof Collection) {
+    collectionsIdWithIndex = await removeIndexCollisions(user.teamId);
+  }
 
   await Event.create({
     name: "collections.create",
