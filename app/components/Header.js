@@ -36,12 +36,7 @@ function Header({ breadcrumb, title, actions }: Props) {
   }, []);
 
   return (
-    <Wrapper
-      align="center"
-      justify="center"
-      isCompact={isScrolled}
-      shrink={false}
-    >
+    <Wrapper align="center" isCompact={isScrolled} shrink={false}>
       {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}
       {isScrolled ? (
         <Title align="center" justify="flex-start" onClick={handleClickTitle}>
@@ -64,6 +59,12 @@ const Breadcrumbs = styled("div")`
   flex-basis: 0;
   align-items: center;
   padding-right: 8px;
+
+  /* Don't show breadcrumbs on mobile */
+  display: none;
+  ${breakpoint("tablet")`	
+  display: flex;
+`};
 `;
 
 const Actions = styled(Flex)`
@@ -88,8 +89,10 @@ const Wrapper = styled(Flex)`
     display: none;
   }
 
+  justify-content: flex-start;
   ${breakpoint("tablet")`
     padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
+    justify-content: "center";
   `};
 `;
 

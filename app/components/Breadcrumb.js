@@ -125,7 +125,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
-    <Wrapper justify="flex-start" align="center">
+    <Flex justify="flex-start" align="center">
       <Icon document={document} />
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />
@@ -146,21 +146,13 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
         </>
       )}
       {children}
-    </Wrapper>
+    </Flex>
   );
 };
 
 export const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   fill: ${(props) => props.theme.divider};
-`;
-
-const Wrapper = styled(Flex)`
-  display: none;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-  `};
 `;
 
 const SmallPadlockIcon = styled(PadlockIcon)`
