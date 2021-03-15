@@ -6,25 +6,17 @@ import { sequelize } from "../sequelize";
 /**
  *
  * @param teamId The team id whose collections has to be fetched
- * @param index All collections with given index value are given new index value
- * @param collections If collections is passed, this is used to form collections array and no db query is made
- * @returns An array of collided collections or undefined.If array, rach array element is an array of collection id and its new index [id,newIndex]
+ * @returns An array or undefined. If array, each array element is an array of collided collection id and its new index [id,newIndex]
  */
-export default async function removeIndexCollisions(
-  teamId: string,
-  index?: string,
-  collections?: Collection[]
-) {
-  if (!collections) {
-    collections = await Collection.findAll({
-      where: { teamId, deletedAt: null },
-      attributes: ["id", "index", "updatedAt"],
-      order: [
-        sequelize.literal('"collection"."index" collate "C"'),
-        ["updatedAt", "DESC"],
-      ],
-    });
-  }
+export default async function removeIndexCollisions(teamId: string) {
+  let collections = await Collection.findAll({
+    where: { teamId, deletedAt: null },
+    attributes: ["id", "index", "updatedAt"],
+    order: [
+      sequelize.literal('"collection"."index" collate "C"'),
+      ["updatedAt", "DESC"],
+    ],
+  });
 
   collections = collections.map((collection) => {
     return [collection, collection.index];
@@ -32,10 +24,6 @@ export default async function removeIndexCollisions(
 
   // a set to store the index value of collections.
   const indexSet = new Set();
-
-  if (index) {
-    indexSet.add(index);
-  }
 
   let collision = false;
 
