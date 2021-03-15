@@ -12,7 +12,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
@@ -85,7 +84,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const { t } = useTranslation();
 
   if (!collections.isLoaded) {
-    return <Wrapper />;
+    return;
   }
 
   let collection = collections.get(document.collectionId);

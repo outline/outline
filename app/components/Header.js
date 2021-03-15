@@ -108,7 +108,7 @@ const Title = styled("div")`
   /* on mobile, there's always a floating menu button in the top left 
     add some padding here to offset
   */
-  padding-left: 36px;
+  padding-left: 40px;
   ${breakpoint("tablet")`	
     padding-left: 0;
   `};
