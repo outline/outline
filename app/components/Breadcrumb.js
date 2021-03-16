@@ -12,7 +12,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
@@ -85,7 +84,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const { t } = useTranslation();
 
   if (!collections.isLoaded) {
-    return <Wrapper />;
+    return;
   }
 
   let collection = collections.get(document.collectionId);
@@ -125,7 +124,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
-    <Wrapper justify="flex-start" align="center">
+    <Flex justify="flex-start" align="center">
       <Icon document={document} />
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />
@@ -146,21 +145,13 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
         </>
       )}
       {children}
-    </Wrapper>
+    </Flex>
   );
 };
 
 export const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   fill: ${(props) => props.theme.divider};
-`;
-
-const Wrapper = styled(Flex)`
-  display: none;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-  `};
 `;
 
 const SmallPadlockIcon = styled(PadlockIcon)`

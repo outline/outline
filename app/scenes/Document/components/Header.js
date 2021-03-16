@@ -138,12 +138,7 @@ function DocumentHeader({
         }
         actions={
           <>
-            {!isPublishing && (
-              <Action>
-                <Status isSaving={isSaving}>{t("Saving")}…</Status>
-              </Action>
-            )}
-            &nbsp;
+            {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
             <Fade>
               <Collaborators
                 document={document}
@@ -299,9 +294,10 @@ function DocumentHeader({
   );
 }
 
-const Status = styled.div`
+const Status = styled(Action)`
+  padding-left: 0;
+  padding-right: 4px;
   color: ${(props) => props.theme.slate};
-  visibility: ${(props) => (props.isSaving ? "visible" : "hidden")};
 `;
 
 export default observer(DocumentHeader);
