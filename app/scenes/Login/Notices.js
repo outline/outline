@@ -17,7 +17,7 @@ export default function Notices({ notice }: Props) {
       )}
       {notice === "maximum-teams" && (
         <NoticeAlert>
-          The team you authenticated with is not allowed on this installation.
+          The team you authenticated with is not authorized on this installation.
           Try another?
         </NoticeAlert>
       )}
