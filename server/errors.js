@@ -76,6 +76,12 @@ export function EmailAuthenticationRequiredError(
   return httpErrors(400, message, { redirectUrl, id: "email_auth_required" });
 }
 
+export function MicrosoftGraphError(
+  message: string = "Microsoft Graph API did not return required fields"
+) {
+  return httpErrors(400, message, { id: "graph_error" });
+}
+
 export function GoogleWorkspaceRequiredError(
   message: string = "Google Workspace is required to authenticate"
 ) {
