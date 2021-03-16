@@ -93,8 +93,6 @@ class Layout extends React.Component<Props> {
 
   @keydown("n")
   goToNewDocument() {
-    if (this.props.ui.editMode) return;
-
     const { activeCollectionId } = this.props.ui;
     if (!activeCollectionId) return;
 

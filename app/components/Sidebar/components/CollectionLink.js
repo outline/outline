@@ -23,9 +23,9 @@ type Props = {|
   canUpdate: boolean,
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
-  belowCollection: Collection | undefined,
+  belowCollection: Collection | void,
   isAnyCollectionDragging: boolean,
-  setIsAnyCollectionDragging: () => void,
+  setIsAnyCollectionDragging: (dragging: boolean) => void,
 |};
 
 function CollectionLink({
