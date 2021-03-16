@@ -22,7 +22,7 @@ function Collections({ onCreateCollection }: Props) {
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
-  const [isAnyCollectionDragging, setIsAnyCollectionDragging] = React.useState(
+  const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
     false
   );
 
@@ -63,8 +63,8 @@ function Collections({ onCreateCollection }: Props) {
           prefetchDocument={documents.prefetchDocument}
           canUpdate={policies.abilities(collection.id).update}
           ui={ui}
-          isAnyCollectionDragging={isAnyCollectionDragging}
-          setIsAnyCollectionDragging={setIsAnyCollectionDragging}
+          isDraggingAnyCollection={isDraggingAnyCollection}
+          onChangeDragging={setIsDraggingAnyCollection}
           belowCollection={orderedCollections[index + 1]}
         />
       ))}

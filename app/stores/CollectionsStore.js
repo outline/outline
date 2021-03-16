@@ -110,8 +110,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
       index,
     });
     invariant(res && res.success, "Collection could not be moved");
+
     const collection = this.get(collectionId);
-    collection.updateIndex(index);
+
+    if (collection) {
+      collection.updateIndex(index);
+    }
   };
 
   async update(params: Object): Promise<Collection> {

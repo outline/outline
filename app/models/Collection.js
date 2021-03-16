@@ -19,8 +19,8 @@ export default class Collection extends BaseModel {
   sharing: boolean;
   index: string;
   documents: NavigationNode[];
-  createdAt: ?string;
-  updatedAt: ?string;
+  createdAt: string;
+  updatedAt: string;
   deletedAt: ?string;
   sort: { field: string, direction: "asc" | "desc" };
   url: string;

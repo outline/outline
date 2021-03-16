@@ -272,7 +272,7 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("collections.index_update", (event) => {
+    this.socket.on("collections.update_index", (event) => {
       const collection = collections.get(event.collectionId);
       if (collection) {
         collection.updateIndex(event.index);

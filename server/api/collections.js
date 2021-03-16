@@ -95,10 +95,10 @@ router.post("collections.create", auth(), async (ctx) => {
     index,
   });
 
-  let collectionsIdWithIndex;
+  let collectionIdsWithIndex;
 
-  if (collectionWithSameIndex instanceof Collection) {
-    collectionsIdWithIndex = await removeIndexCollisions(user.teamId);
+  if (collectionWithSameIndex) {
+    collectionIdsWithIndex = await removeIndexCollisions(user.teamId);
   }
 
   await Event.create({
@@ -106,7 +106,7 @@ router.post("collections.create", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { name, collectionsIdWithIndex },
+    data: { name, collectionIdsWithIndex },
     ip: ctx.request.ip,
   });
 
@@ -670,12 +670,12 @@ router.post("collections.move", auth(), async (ctx) => {
 
   await collection.update({ index });
 
-  let collectionsIdWithIndex = await removeIndexCollisions(user.teamId);
+  let collectionIdsWithIndex = await removeIndexCollisions(user.teamId);
 
-  if (!collectionsIdWithIndex) {
-    collectionsIdWithIndex = [[id, index]];
+  if (!collectionIdsWithIndex) {
+    collectionIdsWithIndex = [[id, index]];
   } else {
-    collectionsIdWithIndex.push([id, index]);
+    collectionIdsWithIndex.push([id, index]);
   }
 
   await Event.create({
@@ -683,7 +683,7 @@ router.post("collections.move", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { collectionsIdWithIndex: collectionsIdWithIndex },
+    data: { collectionIdsWithIndex: collectionIdsWithIndex },
     ip: ctx.request.ip,
   });
 

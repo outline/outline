@@ -171,11 +171,11 @@ export default class Websockets {
             ],
           });
 
-        if (event.data.collectionsIdWithIndex) {
-          event.data.collectionsIdWithIndex.forEach((collectionIdWithIndex) => {
+        if (event.data.collectionIdsWithIndex) {
+          event.data.collectionIdsWithIndex.forEach((collectionIdWithIndex) => {
             socketio
               .to(`collection-${collectionIdWithIndex[0]}`)
-              .emit("collections.index_update", {
+              .emit("collections.update_index", {
                 collectionId: collectionIdWithIndex[0],
                 index: collectionIdWithIndex[1],
               });
@@ -211,11 +211,11 @@ export default class Websockets {
       }
 
       case "collections.move": {
-        if (event.data.collectionsIdWithIndex) {
-          event.data.collectionsIdWithIndex.forEach((collectionIdWithIndex) => {
+        if (event.data.collectionIdsWithIndex) {
+          event.data.collectionIdsWithIndex.forEach((collectionIdWithIndex) => {
             socketio
               .to(`collection-${collectionIdWithIndex[0]}`)
-              .emit("collections.index_update", {
+              .emit("collections.update_index", {
                 collectionId: collectionIdWithIndex[0],
                 index: collectionIdWithIndex[1],
               });

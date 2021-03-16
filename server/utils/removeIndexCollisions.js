@@ -45,7 +45,7 @@ export default async function removeIndexCollisions(teamId: string) {
   let indexArray = Array.from(indexSet);
   indexArray.sort();
 
-  const collectionsIdWithIndex = [];
+  const collectionIdsWithIndex = [];
   for (const [i, collection] of collections.entries()) {
     if (collection[1] === null) {
       const previousCollectionIndex = i - 1 < 0 ? null : indexArray[i - 1];
@@ -57,8 +57,8 @@ export default async function removeIndexCollisions(teamId: string) {
       );
       indexArray.splice(i, 0, newIndex);
       await collection[0].update({ index: newIndex });
-      collectionsIdWithIndex.push([collection[0].id, newIndex]);
+      collectionIdsWithIndex.push([collection[0].id, newIndex]);
     }
   }
-  return collectionsIdWithIndex;
+  return collectionIdsWithIndex;
 }
