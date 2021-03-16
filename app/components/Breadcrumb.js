@@ -169,10 +169,13 @@ const SmallPadlockIcon = styled(PadlockIcon)`
 `;
 
 const SmallSlash = styled(GoToIcon)`
-  width: 15px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
   flex-shrink: 0;
-  opacity: 0.25;
+
+  fill: ${(props) => props.theme.slate};
+  opacity: 0.5;
 `;
 
 const Crumb = styled(Link)`
