@@ -14,12 +14,12 @@ describe("#authenticationProviders.list", () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
 
-    const res = await server.post("/api/auth.info", {
+    const res = await server.post("/api/authenticationProviders.list", {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.user.name).toBe(user.name);
+    expect(body.data.authenticationProviders.length).toBe(3);
   });
 });

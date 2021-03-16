@@ -1,19 +1,6 @@
 // @flow
-import fs from "fs";
-import path from "path";
+import providers from "../auth/providers";
 import { DataTypes, sequelize } from "../sequelize";
-
-// Each authentication provider must have a definition under server/auth, the
-// name of the file will be used as reference in the db, one less thing to config
-const authProviders = fs
-  .readdirSync(path.resolve(__dirname, "..", "auth"))
-  .filter(
-    (file) =>
-      file.indexOf(".") !== 0 &&
-      !file.includes(".test") &&
-      !file.includes("index.js")
-  )
-  .map((fileName) => fileName.replace(".js", ""));
 
 const AuthenticationProvider = sequelize.define(
   "authentication_providers",
@@ -26,7 +13,7 @@ const AuthenticationProvider = sequelize.define(
     name: {
       type: DataTypes.STRING,
       validate: {
-        isIn: [authProviders],
+        isIn: [providers.map((p) => p.id)],
       },
     },
     enabled: {
