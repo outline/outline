@@ -77,11 +77,6 @@ router.post("collections.create", auth(), async (ctx) => {
     index = fractionalIndex(null, collections[0].index);
   }
 
-  // before creating a collection we check if a collection with same index exists
-  const collectionWithSameIndex = await Collection.findOne({
-    where: { index, teamId: user.teamId, deletedAt: null },
-  });
-
   let collection = await Collection.create({
     name,
     description,
@@ -95,11 +90,10 @@ router.post("collections.create", auth(), async (ctx) => {
     index,
   });
 
-  let collectionIdsWithIndex;
-
-  if (collectionWithSameIndex) {
-    collectionIdsWithIndex = await removeIndexCollisions(user.teamId);
-  }
+  const collectionIdsWithIndex = await removeIndexCollisions(
+    user.teamId,
+    index
+  );
 
   await Event.create({
     name: "collections.create",
@@ -670,7 +664,7 @@ router.post("collections.move", auth(), async (ctx) => {
 
   await collection.update({ index });
 
-  let collectionIdsWithIndex = await removeIndexCollisions(user.teamId);
+  let collectionIdsWithIndex = await removeIndexCollisions(user.teamId, index);
 
   if (!collectionIdsWithIndex) {
     collectionIdsWithIndex = [[id, index]];

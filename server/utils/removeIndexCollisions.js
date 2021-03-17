@@ -1,17 +1,41 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import { Collection } from "../models";
-import { sequelize } from "../sequelize";
+import { sequelize, Op } from "../sequelize";
 
 /**
  *
  * @param teamId The team id whose collections has to be fetched
+ * @param index the index for which collision has to be checked
  * @returns An array or undefined. If array, each array element is an array of collided collection id and its new index [id,newIndex]
  */
-export default async function removeIndexCollisions(teamId: string) {
+export default async function removeIndexCollisions(
+  teamId: string,
+  index: string
+) {
   let collections = await Collection.findAll({
-    where: { teamId, deletedAt: null },
-    attributes: ["id", "index", "updatedAt"],
+    where: { teamId, deletedAt: null, index },
+    attributes: ["id", "index"],
+    order: [
+      sequelize.literal('"collection"."index" collate "C"'),
+      ["updatedAt", "DESC"],
+    ],
+  });
+
+  if (collections.length < 1) {
+    return;
+  }
+
+  let nextCollection = await Collection.findAll({
+    where: {
+      teamId,
+      deletedAt: null,
+      index: {
+        [Op.gt]: index,
+      },
+    },
+    attributes: ["id", "index"],
+    limit: 1,
     order: [
       sequelize.literal('"collection"."index" collate "C"'),
       ["updatedAt", "DESC"],
@@ -22,15 +46,16 @@ export default async function removeIndexCollisions(teamId: string) {
     return [collection, collection.index];
   });
 
+  if (nextCollection.length) {
+    collections.push([nextCollection[0], nextCollection[0].index]);
+  }
+
   // a set to store the index value of collections.
   const indexSet = new Set();
-
-  let collision = false;
 
   // make the index null, if there is index collision
   collections = collections.map((collection) => {
     if (indexSet.has(collection[1])) {
-      collision = true;
       collection[1] = null;
       return collection;
     }
@@ -38,12 +63,7 @@ export default async function removeIndexCollisions(teamId: string) {
     return collection;
   });
 
-  if (!collision) {
-    return;
-  }
-
   let indexArray = Array.from(indexSet);
-  indexArray.sort();
 
   const collectionIdsWithIndex = [];
   for (const [i, collection] of collections.entries()) {
@@ -60,5 +80,6 @@ export default async function removeIndexCollisions(teamId: string) {
       collectionIdsWithIndex.push([collection[0].id, newIndex]);
     }
   }
+
   return collectionIdsWithIndex;
 }
