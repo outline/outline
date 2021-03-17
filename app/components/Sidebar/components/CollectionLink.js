@@ -31,7 +31,6 @@ function CollectionLink({
   activeDocument,
   prefetchDocument,
   canUpdate,
-  ui,
   belowCollection,
   isDraggingAnyCollection,
   onChangeDragging,
@@ -45,7 +44,7 @@ function CollectionLink({
     [collection]
   );
 
-  const { documents, policies, collections } = useStores();
+  const { ui, documents, policies, collections } = useStores();
 
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
