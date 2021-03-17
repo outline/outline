@@ -26,7 +26,7 @@ export default async function removeIndexCollisions(
     return;
   }
 
-  let nextCollection = await Collection.findAll({
+  const nextCollection = await Collection.findAll({
     where: {
       teamId,
       deletedAt: null,
@@ -66,6 +66,7 @@ export default async function removeIndexCollisions(
   let indexArray = Array.from(indexSet);
 
   const collectionIdsWithIndex = [];
+
   for (const [i, collection] of collections.entries()) {
     if (collection[1] === null) {
       const previousCollectionIndex = i - 1 < 0 ? null : indexArray[i - 1];
