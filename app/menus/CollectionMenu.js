@@ -85,6 +85,12 @@ function CollectionMenu({
     async (ev: SyntheticEvent<>) => {
       const files = getDataTransferFiles(ev);
 
+      // Because this is the onChange handler it's possible for the change to be
+      // from previously selecting a file to not selecting a file – aka empty
+      if (!files.length) {
+        return;
+      }
+
       try {
         const file = files[0];
         const document = await documents.import(file, null, collection.id, {
