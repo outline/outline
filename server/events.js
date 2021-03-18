@@ -118,7 +118,7 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
-      data: { name: string, collectionIdsWithIndex?: [[string, string]] },
+      data: { name: string },
       ip: string,
     }
   | {
@@ -142,7 +142,7 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
-      data: { collectionIdsWithIndex: [[string, string]] },
+      data: { index: string },
       ip: string,
     };
 

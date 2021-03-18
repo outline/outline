@@ -27,7 +27,7 @@ import {
 import { Op, sequelize } from "../sequelize";
 
 import collectionIndexing from "../utils/collectionIndexing";
-import removeIndexCollisions from "../utils/removeIndexCollisions";
+import removeIndexCollision from "../utils/removeIndexCollision";
 import { archiveCollection, archiveCollections } from "../utils/zip";
 import pagination from "./middlewares/pagination";
 
@@ -77,6 +77,8 @@ router.post("collections.create", auth(), async (ctx) => {
     index = fractionalIndex(null, collections[0].index);
   }
 
+  index = await removeIndexCollision(user.teamId, index);
+
   let collection = await Collection.create({
     name,
     description,
@@ -90,17 +92,12 @@ router.post("collections.create", auth(), async (ctx) => {
     index,
   });
 
-  const collectionIdsWithIndex = await removeIndexCollisions(
-    user.teamId,
-    index
-  );
-
   await Event.create({
     name: "collections.create",
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { name, collectionIdsWithIndex },
+    data: { name },
     ip: ctx.request.ip,
   });
 
@@ -654,35 +651,33 @@ router.post("collections.delete", auth(), async (ctx) => {
 });
 
 router.post("collections.move", auth(), async (ctx) => {
-  const { index, id } = ctx.body;
+  const id = ctx.body.id;
+  let index = ctx.body.index;
+
   ctx.assertPresent(index, "index is required");
   ctx.assertUuid(id, "id must be a uuid");
 
   const user = ctx.state.user;
   const collection = await Collection.findByPk(id);
+
   authorize(user, "move", collection);
 
+  index = await removeIndexCollision(user.teamId, index);
+
   await collection.update({ index });
-
-  let collectionIdsWithIndex = await removeIndexCollisions(user.teamId, index);
-
-  if (!collectionIdsWithIndex) {
-    collectionIdsWithIndex = [[id, index]];
-  } else {
-    collectionIdsWithIndex.push([id, index]);
-  }
 
   await Event.create({
     name: "collections.move",
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
-    data: { collectionIdsWithIndex: collectionIdsWithIndex },
+    data: { index },
     ip: ctx.request.ip,
   });
 
   ctx.body = {
     success: true,
+    data: { index },
   };
 });
 export default router;

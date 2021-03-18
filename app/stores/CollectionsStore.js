@@ -114,7 +114,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
     const collection = this.get(collectionId);
 
     if (collection) {
-      collection.updateIndex(index);
+      collection.updateIndex(res.data.index);
     }
   };
 

@@ -171,17 +171,6 @@ export default class Websockets {
             ],
           });
 
-        if (event.data.collectionIdsWithIndex) {
-          event.data.collectionIdsWithIndex.forEach((collectionIdWithIndex) => {
-            socketio
-              .to(`collection-${collectionIdWithIndex[0]}`)
-              .emit("collections.update_index", {
-                collectionId: collectionIdWithIndex[0],
-                index: collectionIdWithIndex[1],
-              });
-          });
-        }
-
         return socketio
           .to(
             collection.private
@@ -211,18 +200,14 @@ export default class Websockets {
       }
 
       case "collections.move": {
-        if (event.data.collectionIdsWithIndex) {
-          event.data.collectionIdsWithIndex.forEach((collectionIdWithIndex) => {
-            socketio
-              .to(`collection-${collectionIdWithIndex[0]}`)
-              .emit("collections.update_index", {
-                collectionId: collectionIdWithIndex[0],
-                index: collectionIdWithIndex[1],
-              });
+        return socketio
+          .to(`collection-${event.collectionId}`)
+          .emit("collections.update_index", {
+            collectionId: event.collectionId,
+            index: event.data.index,
           });
-        }
-        return;
       }
+
       case "collections.add_user": {
         // the user being added isn't yet in the websocket channel for the collection
         // so they need to be notified separately
