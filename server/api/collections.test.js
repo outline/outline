@@ -175,7 +175,7 @@ describe("#collections.move", () => {
       }
     );
 
-    const createdCollection = await createdCollectionResponse.json();
+    await createdCollectionResponse.json();
     const movedCollectionRes = await server.post("/api/collections.move", {
       body: { token: admin.getJwtToken(), id: collection.id, index: "Q" },
     });
@@ -184,19 +184,8 @@ describe("#collections.move", () => {
 
     expect(movedCollectionRes.status).toEqual(200);
     expect(movedCollection.success).toBe(true);
-
-    const updatedCreatedCollectionResponse = await server.post(
-      "/api/collections.info",
-      {
-        body: { token: admin.getJwtToken(), id: createdCollection.data.id },
-      }
-    );
-
-    const updateCreatedCollection = await updatedCreatedCollectionResponse.json();
-
-    expect(updateCreatedCollection.data.index).not.toEqual("Q");
-    expect(updateCreatedCollection.data.index).toEqual("h");
-    expect(updateCreatedCollection.data.index > "Q").toBeTruthy();
+    expect(movedCollection.data.index).toEqual("h");
+    expect(movedCollection.data.index > "Q").toBeTruthy();
   });
 
   it("if index collision with an extra collection, should updated index of other collection", async () => {
@@ -237,7 +226,7 @@ describe("#collections.move", () => {
       }
     );
 
-    const createdCollectionA = await createdCollectionAResponse.json();
+    await createdCollectionAResponse.json();
     await createdCollectionBResponse.json();
     const createdCollectionC = await createdCollectionCResponse.json();
 
@@ -256,19 +245,9 @@ describe("#collections.move", () => {
 
     expect(movedCollectionCResponse.status).toEqual(200);
     expect(movedCollectionC.success).toBe(true);
-
-    const updatedCollectionAResponse = await server.post(
-      "/api/collections.info",
-      {
-        body: { token: admin.getJwtToken(), id: createdCollectionA.data.id },
-      }
-    );
-
-    const updatedCollectionA = await updatedCollectionAResponse.json();
-
-    expect(updatedCollectionA.data.index).toEqual("aP");
-    expect(updatedCollectionA.data.index > "a").toBeTruthy();
-    expect(updatedCollectionA.data.index < "b").toBeTruthy();
+    expect(movedCollectionC.data.index).toEqual("aP");
+    expect(movedCollectionC.data.index > "a").toBeTruthy();
+    expect(movedCollectionC.data.index < "b").toBeTruthy();
   });
 });
 
@@ -1066,7 +1045,7 @@ describe("#collections.create", () => {
   });
 
   it("if index collision, should updated index of other collection", async () => {
-    const { user, admin } = await seed();
+    const { user } = await seed();
     const createdCollectionAResponse = await server.post(
       "/api/collections.create",
       {
@@ -1078,7 +1057,7 @@ describe("#collections.create", () => {
         },
       }
     );
-    const createdCollectionA = await createdCollectionAResponse.json();
+    await createdCollectionAResponse.json();
 
     const createCollectionResponse = await server.post(
       "/api/collections.create",
@@ -1095,23 +1074,12 @@ describe("#collections.create", () => {
     const createdCollection = await createCollectionResponse.json();
 
     expect(createCollectionResponse.status).toEqual(200);
-    expect(createdCollection.data.index).toEqual("a");
-
-    const updatedCollectionAResponse = await server.post(
-      "/api/collections.info",
-      {
-        body: { token: admin.getJwtToken(), id: createdCollectionA.data.id },
-      }
-    );
-
-    const updatedCollectionA = await updatedCollectionAResponse.json();
-
-    expect(updatedCollectionA.data.index).toEqual("p");
-    expect(updatedCollectionA.data.index > "a").toBeTruthy();
+    expect(createdCollection.data.index).toEqual("p");
+    expect(createdCollection.data.index > "a").toBeTruthy();
   });
 
   it("if index collision with an extra collection, should updated index of other collection", async () => {
-    const { user, admin } = await seed();
+    const { user } = await seed();
     const createdCollectionAResponse = await server.post(
       "/api/collections.create",
       {
@@ -1136,7 +1104,7 @@ describe("#collections.create", () => {
       }
     );
 
-    const createdCollectionA = await createdCollectionAResponse.json();
+    await createdCollectionAResponse.json();
     await createdCollectionBResponse.json();
 
     const createCollectionResponse = await server.post(
@@ -1154,20 +1122,9 @@ describe("#collections.create", () => {
     const createdCollection = await createCollectionResponse.json();
 
     expect(createCollectionResponse.status).toEqual(200);
-    expect(createdCollection.data.index).toEqual("a");
-
-    const updatedCollectionAResponse = await server.post(
-      "/api/collections.info",
-      {
-        body: { token: admin.getJwtToken(), id: createdCollectionA.data.id },
-      }
-    );
-
-    const updatedCollectionA = await updatedCollectionAResponse.json();
-
-    expect(updatedCollectionA.data.index).toEqual("aP");
-    expect(updatedCollectionA.data.index > "a").toBeTruthy();
-    expect(updatedCollectionA.data.index < "b").toBeTruthy();
+    expect(createdCollection.data.index).toEqual("aP");
+    expect(createdCollection.data.index > "a").toBeTruthy();
+    expect(createdCollection.data.index < "b").toBeTruthy();
   });
 });
 
