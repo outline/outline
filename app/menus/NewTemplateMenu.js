@@ -17,7 +17,12 @@ import { newDocumentUrl } from "utils/routeHelpers";
 function NewTemplateMenu() {
   const menu = useMenuState();
   const { t } = useTranslation();
-  const { collections, policies } = useStores();
+  const { collections, policies, auth } = useStores();
+  const user = auth.user;
+
+  if (user.isViewer) {
+    return;
+  }
 
   return (
     <>

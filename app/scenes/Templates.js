@@ -19,10 +19,11 @@ type Props = {
 };
 
 function Templates(props: Props) {
-  const { documents } = useStores();
+  const { documents, auth } = useStores();
   const { t } = useTranslation();
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const { sort } = props.match.params;
+  const user = auth.user;
 
   return (
     <Scene
@@ -48,9 +49,11 @@ function Templates(props: Props) {
         }
         empty={
           <Empty>
-            {t(
-              "There are no templates just yet. You can create templates to help your team create consistent and accurate documentation."
-            )}
+            {t("There are no templates just yet.")}
+            {!user.isViewer &&
+              t(
+                "You can create templates to help your team create consistent and accurate documentation."
+              )}
           </Empty>
         }
         fetch={fetchTemplates}

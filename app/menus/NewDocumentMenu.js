@@ -18,8 +18,13 @@ import { newDocumentUrl } from "utils/routeHelpers";
 function NewDocumentMenu() {
   const menu = useMenuState();
   const { t } = useTranslation();
-  const { collections, policies } = useStores();
+  const { collections, policies, auth } = useStores();
   const singleCollection = collections.orderedData.length === 1;
+  const user = auth.user;
+
+  if (user.isViewer) {
+    return;
+  }
 
   if (singleCollection) {
     return (

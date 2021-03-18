@@ -44,6 +44,7 @@ type Props = {
   match: Match,
   location: LocationWithState,
   documents: DocumentsStore,
+  auth: AuthStore,
   users: UsersStore,
   notFound: ?boolean,
   t: TFunction,
@@ -255,11 +256,12 @@ class Search extends React.Component<Props> {
   };
 
   render() {
-    const { documents, notFound, location, t } = this.props;
+    const { documents, notFound, location, t, auth } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
+    const user = auth.user;
 
     return (
       <Container auto>
@@ -323,11 +325,11 @@ class Search extends React.Component<Props> {
                 <HelpText>
                   <Trans>
                     No documents found for your search filters. <br />
-                    Create a new document?
                   </Trans>
+                  {!user.isViewer && <Trans>Create a new document?</Trans>}
                 </HelpText>
                 <Wrapper>
-                  {this.collectionId ? (
+                  {this.collectionId && !user.isViewer ? (
                     <Button
                       onClick={this.handleNewDoc}
                       icon={<PlusIcon />}
@@ -435,5 +437,5 @@ const Filters = styled(Flex)`
 `;
 
 export default withTranslation()<Search>(
-  withRouter(inject("documents")(Search))
+  withRouter(inject("documents", "auth")(Search))
 );

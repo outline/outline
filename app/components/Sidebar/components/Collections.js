@@ -21,6 +21,7 @@ import { newDocumentUrl } from "utils/routeHelpers";
 type Props = {
   history: RouterHistory,
   policies: PoliciesStore,
+  auth: AuthStore,
   collections: CollectionsStore,
   documents: DocumentsStore,
   onCreateCollection: () => void,
@@ -52,7 +53,8 @@ class Collections extends React.Component<Props> {
   }
 
   render() {
-    const { collections, ui, policies, documents, t } = this.props;
+    const { collections, ui, policies, documents, t, auth } = this.props;
+    const user = auth.user;
 
     const content = (
       <>
@@ -66,13 +68,15 @@ class Collections extends React.Component<Props> {
             ui={ui}
           />
         ))}
-        <SidebarLink
-          to="/collections"
-          onClick={this.props.onCreateCollection}
-          icon={<PlusIcon color="currentColor" />}
-          label={`${t("New collection")}…`}
-          exact
-        />
+        {!user.isViewer && (
+          <SidebarLink
+            to="/collections"
+            onClick={this.props.onCreateCollection}
+            icon={<PlusIcon color="currentColor" />}
+            label={`${t("New collection")}…`}
+            exact
+          />
+        )}
       </>
     );
 
@@ -94,5 +98,11 @@ class Collections extends React.Component<Props> {
 }
 
 export default withTranslation()<Collections>(
-  inject("collections", "ui", "documents", "policies")(withRouter(Collections))
+  inject(
+    "collections",
+    "ui",
+    "documents",
+    "policies",
+    "auth"
+  )(withRouter(Collections))
 );

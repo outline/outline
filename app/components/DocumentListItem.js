@@ -16,6 +16,7 @@ import Highlight from "components/Highlight";
 import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
 import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { newDocumentUrl } from "utils/routeHelpers";
 
@@ -41,6 +42,7 @@ function replaceResultMarks(tag: string) {
 
 function DocumentListItem(props: Props) {
   const { t } = useTranslation();
+  const { auth } = useStores();
   const currentUser = useCurrentUser();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const {
@@ -60,6 +62,7 @@ function DocumentListItem(props: Props) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
+  const user = auth.user;
 
   return (
     <DocumentLink
@@ -111,21 +114,24 @@ function DocumentListItem(props: Props) {
         />
       </Content>
       <Actions>
-        {document.isTemplate && !document.isArchived && !document.isDeleted && (
-          <>
-            <Button
-              as={Link}
-              to={newDocumentUrl(document.collectionId, {
-                templateId: document.id,
-              })}
-              icon={<PlusIcon />}
-              neutral
-            >
-              {t("New doc")}
-            </Button>
-            &nbsp;
-          </>
-        )}
+        {document.isTemplate &&
+          !document.isArchived &&
+          !document.isDeleted &&
+          !user.isViewer && (
+            <>
+              <Button
+                as={Link}
+                to={newDocumentUrl(document.collectionId, {
+                  templateId: document.id,
+                })}
+                icon={<PlusIcon />}
+                neutral
+              >
+                {t("New doc")}
+              </Button>
+              &nbsp;
+            </>
+          )}
         <DocumentMenu
           document={document}
           showPin={showPin}

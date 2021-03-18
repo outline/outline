@@ -37,8 +37,9 @@ function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const { policies } = useStores();
+  const { policies, auth } = useStores();
   const can = policies.abilities(team.id);
+  const user = auth.user;
 
   const returnToDashboard = React.useCallback(() => {
     history.push("/home");
@@ -71,11 +72,13 @@ function SettingsSidebar() {
               icon={<EmailIcon color="currentColor" />}
               label={t("Notifications")}
             />
-            <SidebarLink
-              to="/settings/tokens"
-              icon={<CodeIcon color="currentColor" />}
-              label={t("API Tokens")}
-            />
+            {!user.isViewer && (
+              <SidebarLink
+                to="/settings/tokens"
+                icon={<CodeIcon color="currentColor" />}
+                label={t("API Tokens")}
+              />
+            )}
           </Section>
           <Section>
             <Header>{t("Team")}</Header>

@@ -42,6 +42,7 @@ import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 type Props = {
   ui: UiStore,
   documents: DocumentsStore,
+  auth: AuthStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
   match: Match,
@@ -127,37 +128,36 @@ class CollectionScene extends React.Component<Props> {
 
     return (
       <>
+        <Action>
+          <InputSearch
+            source="collection"
+            placeholder={`${t("Search in collection")}…`}
+            label={`${t("Search in collection")}…`}
+            labelHidden
+            collectionId={match.params.id}
+          />
+        </Action>
         {can.update && (
-          <>
-            <Action>
-              <InputSearch
-                source="collection"
-                placeholder={`${t("Search in collection")}…`}
-                label={`${t("Search in collection")}…`}
-                labelHidden
-                collectionId={match.params.id}
-              />
-            </Action>
-            <Action>
-              <Tooltip
-                tooltip={t("New document")}
-                shortcut="n"
-                delay={500}
-                placement="bottom"
+          <Action>
+            <Tooltip
+              tooltip={t("New document")}
+              shortcut="n"
+              delay={500}
+              placement="bottom"
+            >
+              <Button
+                as={Link}
+                to={this.collection ? newDocumentUrl(this.collection.id) : ""}
+                disabled={!this.collection}
+                icon={<PlusIcon />}
               >
-                <Button
-                  as={Link}
-                  to={this.collection ? newDocumentUrl(this.collection.id) : ""}
-                  disabled={!this.collection}
-                  icon={<PlusIcon />}
-                >
-                  {t("New doc")}
-                </Button>
-              </Tooltip>
-            </Action>
-            <Separator />
-          </>
+                {t("New doc")}
+              </Button>
+            </Tooltip>
+          </Action>
         )}
+        <Separator />
+
         <Action>
           <CollectionMenu
             collection={this.collection}
@@ -179,7 +179,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   render() {
-    const { documents, t } = this.props;
+    const { documents, t, auth } = this.props;
 
     if (!this.isFetching && !this.collection) return <Search notFound />;
 
@@ -189,6 +189,7 @@ class CollectionScene extends React.Component<Props> {
     const collection = this.collection;
     const collectionName = collection ? collection.name : "";
     const hasPinnedDocuments = !!pinnedDocuments.length;
+    const user = auth.user;
 
     return collection ? (
       <Scene
@@ -212,14 +213,18 @@ class CollectionScene extends React.Component<Props> {
                 components={{ em: <strong /> }}
               />
               <br />
-              <Trans>Get started by creating a new one!</Trans>
+              {!user.isViewer && (
+                <Trans>Get started by creating a new one!</Trans>
+              )}
             </HelpText>
             <Empty>
-              <Link to={newDocumentUrl(collection.id)}>
-                <Button icon={<NewDocumentIcon color="currentColor" />}>
-                  {t("Create a document")}
-                </Button>
-              </Link>
+              {!user.isViewer && (
+                <Link to={newDocumentUrl(collection.id)}>
+                  <Button icon={<NewDocumentIcon color="currentColor" />}>
+                    {t("Create a document")}
+                  </Button>
+                </Link>
+              )}
               &nbsp;&nbsp;
               {collection.private && (
                 <Button onClick={this.onPermissions} neutral>
@@ -388,5 +393,5 @@ const Empty = styled(Flex)`
 `;
 
 export default withTranslation()<CollectionScene>(
-  inject("collections", "policies", "documents", "ui")(CollectionScene)
+  inject("collections", "policies", "documents", "ui", "auth")(CollectionScene)
 );
