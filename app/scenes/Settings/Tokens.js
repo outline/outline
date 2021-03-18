@@ -14,6 +14,7 @@ import TokenListItem from "./components/TokenListItem";
 
 type Props = {
   apiKeys: ApiKeysStore,
+  ui: UiStore,
 };
 
 @observer
@@ -29,9 +30,13 @@ class Tokens extends React.Component<Props> {
   };
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    await this.props.apiKeys.create({ name: this.name });
-    this.name = "";
+    try {
+      ev.preventDefault();
+      await this.props.apiKeys.create({ name: this.name });
+      this.name = "";
+    } catch (error) {
+      this.props.ui.showToast(error.message, { type: "error" });
+    }
   };
 
   render() {
@@ -82,4 +87,4 @@ class Tokens extends React.Component<Props> {
   }
 }
 
-export default inject("apiKeys")(Tokens);
+export default inject("apiKeys", "ui")(Tokens);
