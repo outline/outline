@@ -115,11 +115,9 @@ class People extends React.Component<Props> {
               {t("Suspended")} <Bubble count={counts.suspended} />
             </Tab>
           )}
-          {can.update && (
-            <Tab to="/settings/people/viewers" exact>
-              {t("Viewers")} <Bubble count={counts.viewers} />
-            </Tab>
-          )}
+          <Tab to="/settings/people/viewers" exact>
+            {t("Viewers")} <Bubble count={counts.viewers} />
+          </Tab>
           <Tab to="/settings/people/all" exact>
             {t("Everyone")} <Bubble count={counts.all - counts.invited} />
           </Tab>
