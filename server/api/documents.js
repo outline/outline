@@ -1047,7 +1047,7 @@ router.post("documents.move", auth(), async (ctx) => {
     authorize(user, "update", parent);
   }
 
-  const { documents, collections } = await documentMover({
+  const { documents, collections, collectionChanged } = await documentMover({
     user,
     document,
     collectionId,
@@ -1065,7 +1065,7 @@ router.post("documents.move", auth(), async (ctx) => {
         collections.map((collection) => presentCollection(collection))
       ),
     },
-    policies: presentPolicies(user, documents),
+    policies: collectionChanged ? presentPolicies(user, documents) : [],
   };
 });
 
