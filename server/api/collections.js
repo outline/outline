@@ -74,7 +74,10 @@ router.post("collections.create", auth(), async (ctx) => {
       );
     }
   } else {
-    index = fractionalIndex(null, collections[0].index);
+    index = fractionalIndex(
+      null,
+      collections.length ? collections[0].index : null
+    );
   }
 
   index = await removeIndexCollision(user.teamId, index);

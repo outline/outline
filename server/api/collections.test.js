@@ -1002,7 +1002,7 @@ describe("#collections.create", () => {
   });
 
   it("should create collection", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/collections.create", {
       body: { token: user.getJwtToken(), name: "Test" },
     });
