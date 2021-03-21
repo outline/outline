@@ -1165,7 +1165,7 @@ router.post("documents.import", auth(), async (ctx) => {
   if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
 
   const user = ctx.state.user;
-  authorize(user, "create", Document);
+  authorize(user, "createDocument", user.team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -1234,7 +1234,7 @@ router.post("documents.create", auth(), async (ctx) => {
   if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
 
   const user = ctx.state.user;
-  authorize(user, "create", Document);
+  authorize(user, "createDocument", user.team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],

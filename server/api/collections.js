@@ -53,7 +53,7 @@ router.post("collections.create", auth(), async (ctx) => {
   }
 
   const user = ctx.state.user;
-  authorize(user, "create", Collection);
+  authorize(user, "createCollection", user.team);
 
   const collections = await Collection.findAll({
     where: { teamId: user.teamId, deletedAt: null },
@@ -139,7 +139,7 @@ router.post("collections.import", auth(), async (ctx) => {
   ctx.assertUuid(attachmentId, "attachmentId is required");
 
   const user = ctx.state.user;
-  authorize(user, "import", Collection);
+  authorize(user, "importCollection", user.team);
 
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);

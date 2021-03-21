@@ -1,6 +1,6 @@
 // @flow
 import { AdminRequiredError } from "../errors";
-import { User } from "../models";
+import { User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;
@@ -12,8 +12,10 @@ allow(
   (actor, user) => user && user.teamId === actor.teamId
 );
 
-allow(User, "invite", User, (actor) => {
-  return true;
+allow(User, "inviteUser", Team, (actor, team) => {
+  if (!team || actor.teamId !== team.id) return false;
+  if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
 });
 
 allow(User, "update", User, (actor, user) => {
