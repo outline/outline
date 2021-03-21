@@ -4,17 +4,15 @@ import Router from "koa-router";
 import { Strategy as GithubStrategy } from "passport-github2";
 import accountProvisioner from "../commands/accountProvisioner";
 import env from "../env";
+import * as Github from "../github";
 import auth from "../middlewares/authentication";
 import passportMiddleware from "../middlewares/passport";
 import {
   Authentication,
   Collection,
   Integration,
-  User,
-  Event,
   Team,
 } from "../models";
-import * as Github from "../github";
 import { StateStore } from "../utils/passport";
 
 const router = new Router();

@@ -3,7 +3,6 @@ import querystring from "querystring";
 import fetch from "isomorphic-fetch";
 import { InvalidRequestError } from "./errors";
 
-const GITHUB_MAIN_URL = "https://github.com";
 const GITHUB_API_URL = "https://api.github.com";
 
 export async function post(endpoint: string, body: Object) {
