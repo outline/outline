@@ -31,13 +31,22 @@ allow(User, "delete", User, (actor, user) => {
   throw new AdminRequiredError();
 });
 
-allow(
-  User,
-  ["promote", "demote", "activate", "suspend"],
-  User,
-  (actor, user) => {
-    if (!user || user.teamId !== actor.teamId) return false;
-    if (actor.isAdmin) return true;
-    throw new AdminRequiredError();
-  }
-);
+allow(User, ["activate", "suspend"], User, (actor, user) => {
+  if (!user || user.teamId !== actor.teamId) return false;
+  if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
+});
+
+allow(User, "promote", User, (actor, user) => {
+  if (!user || user.teamId !== actor.teamId) return false;
+  if (user.isAdmin || user.isSuspended) return false;
+  if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
+});
+
+allow(User, "demote", User, (actor, user) => {
+  if (!user || user.teamId !== actor.teamId) return false;
+  if (!user.isAdmin || user.isSuspended) return false;
+  if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
+});
