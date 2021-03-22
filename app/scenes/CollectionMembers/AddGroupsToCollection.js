@@ -45,7 +45,7 @@ class AddGroupsToCollection extends React.Component<Props> {
     this.newGroupModalOpen = false;
   };
 
-  handleFilter = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+  handleFilter = (ev: SyntheticInputEvent<>) => {
     this.query = ev.target.value;
     this.debouncedFetch();
   };

@@ -43,7 +43,7 @@ class AddPeopleToCollection extends React.Component<Props> {
     this.inviteModalOpen = false;
   };
 
-  handleFilter = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+  handleFilter = (ev: SyntheticInputEvent<>) => {
     this.query = ev.target.value;
     this.debouncedFetch();
   };
