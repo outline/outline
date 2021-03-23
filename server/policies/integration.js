@@ -1,11 +1,15 @@
 // @flow
 import { AdminRequiredError } from "../errors";
-import { Integration, User } from "../models";
+import { Integration, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, "create", Integration);
+allow(User, "createIntegration", Team, (actor, team) => {
+  if (!team || actor.teamId !== team.id) return false;
+  if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
+});
 
 allow(
   User,
