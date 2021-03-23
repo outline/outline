@@ -45,9 +45,9 @@ export default async function documentMover({
       const [
         documentJson,
         fromIndex,
-      ] = await collection.removeDocumentInStructure(document, {
+      ] = (await collection.removeDocumentInStructure(document, {
         save: false,
-      });
+      })) || [undefined, index];
 
       // if we're reordering from within the same parent
       // the original and destination collection are the same,
