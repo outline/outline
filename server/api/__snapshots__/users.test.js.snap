@@ -14,6 +14,20 @@ Object {
     "name": "User 1",
   },
   "ok": true,
+  "policies": Array [
+    Object {
+      "abilities": Object {
+        "activate": true,
+        "delete": true,
+        "demote": false,
+        "promote": true,
+        "read": true,
+        "suspend": true,
+        "update": false,
+      },
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    },
+  ],
   "status": 200,
 }
 `;
@@ -50,6 +64,20 @@ Object {
     "name": "User 1",
   },
   "ok": true,
+  "policies": Array [
+    Object {
+      "abilities": Object {
+        "activate": true,
+        "delete": true,
+        "demote": false,
+        "promote": true,
+        "read": true,
+        "suspend": true,
+        "update": false,
+      },
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    },
+  ],
   "status": 200,
 }
 `;
@@ -86,6 +114,20 @@ Object {
     "name": "User 1",
   },
   "ok": true,
+  "policies": Array [
+    Object {
+      "abilities": Object {
+        "activate": true,
+        "delete": true,
+        "demote": true,
+        "promote": false,
+        "read": true,
+        "suspend": true,
+        "update": false,
+      },
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    },
+  ],
   "status": 200,
 }
 `;
@@ -131,6 +173,20 @@ Object {
     "name": "User 1",
   },
   "ok": true,
+  "policies": Array [
+    Object {
+      "abilities": Object {
+        "activate": true,
+        "delete": true,
+        "demote": false,
+        "promote": false,
+        "read": true,
+        "suspend": true,
+        "update": false,
+      },
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    },
+  ],
   "status": 200,
 }
 `;

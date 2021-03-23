@@ -1,11 +1,14 @@
 // @flow
 import invariant from "invariant";
-import { Document, Revision, User } from "../models";
+import { Document, Revision, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow, cannot } = policy;
 
-allow(User, "create", Document);
+allow(User, "createDocument", Team, (user, team) => {
+  if (!team || user.teamId !== team.id) return false;
+  return true;
+});
 
 allow(User, ["read", "download"], Document, (user, document) => {
   // existence of collection option is not required here to account for share tokens

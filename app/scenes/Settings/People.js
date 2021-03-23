@@ -87,7 +87,7 @@ class People extends React.Component<Props> {
             {team.signinMethods} but haven’t signed in yet.
           </Trans>
         </HelpText>
-        {can.invite && (
+        {can.inviteUser && (
           <Button
             type="button"
             data-on="click"
@@ -116,7 +116,7 @@ class People extends React.Component<Props> {
           <Tab to="/settings/people/all" exact>
             {t("Everyone")} <Bubble count={counts.all - counts.invited} />
           </Tab>
-          {can.invite && (
+          {can.inviteUser && (
             <>
               <Separator />
               <Tab to="/settings/people/invited" exact>
@@ -137,7 +137,7 @@ class People extends React.Component<Props> {
             />
           )}
         />
-        {can.invite && (
+        {can.inviteUser && (
           <Modal
             title={t("Invite people")}
             onRequestClose={this.handleInviteModalClose}
