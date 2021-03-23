@@ -31,6 +31,7 @@ import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
+  isShare: boolean,
   isDraft: boolean,
   isEditing: boolean,
   isRevision: boolean,
@@ -48,6 +49,7 @@ type Props = {|
 
 function DocumentHeader({
   document,
+  isShare,
   isEditing,
   isDraft,
   isPublishing,
@@ -91,6 +93,55 @@ function DocumentHeader({
   const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
   const canEdit = can.update && !isEditing;
 
+  const toc = (
+    <Tooltip
+      tooltip={ui.tocVisible ? t("Hide contents") : t("Show contents")}
+      shortcut={`ctrl+${metaDisplay}+h`}
+      delay={250}
+      placement="bottom"
+    >
+      <Button
+        onClick={
+          ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents
+        }
+        icon={<TableOfContentsIcon />}
+        iconColor="currentColor"
+        borderOnHover
+        neutral
+      />
+    </Tooltip>
+  );
+
+  const editAction = (
+    <Action>
+      <Tooltip
+        tooltip={t("Edit {{noun}}", { noun: document.noun })}
+        shortcut="e"
+        delay={500}
+        placement="bottom"
+      >
+        <Button
+          as={Link}
+          icon={<EditIcon />}
+          to={editDocumentUrl(document)}
+          neutral
+        >
+          {t("Edit")}
+        </Button>
+      </Tooltip>
+    </Action>
+  );
+
+  if (isShare) {
+    return (
+      <Header
+        title={document.title}
+        breadcrumb={toc}
+        actions={canEdit ? editAction : <div />}
+      />
+    );
+  }
+
   return (
     <>
       <Modal
@@ -106,26 +157,7 @@ function DocumentHeader({
             {!isEditing && (
               <>
                 <Slash />
-                <Tooltip
-                  tooltip={
-                    ui.tocVisible ? t("Hide contents") : t("Show contents")
-                  }
-                  shortcut={`ctrl+${metaDisplay}+h`}
-                  delay={250}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={
-                      ui.tocVisible
-                        ? ui.hideTableOfContents
-                        : ui.showTableOfContents
-                    }
-                    icon={<TableOfContentsIcon />}
-                    iconColor="currentColor"
-                    borderOnHover
-                    neutral
-                  />
-                </Tooltip>
+                {toc}
               </>
             )}
           </Breadcrumb>
@@ -196,25 +228,7 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && (
-              <Action>
-                <Tooltip
-                  tooltip={t("Edit {{noun}}", { noun: document.noun })}
-                  shortcut="e"
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    as={Link}
-                    icon={<EditIcon />}
-                    to={editDocumentUrl(document)}
-                    neutral
-                  >
-                    {t("Edit")}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
+            {canEdit && editAction}
             {canEdit && can.createChildDocument && (
               <Action>
                 <NewChildDocumentMenu

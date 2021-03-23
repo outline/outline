@@ -9,7 +9,6 @@ import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
@@ -325,8 +324,7 @@ class DocumentScene extends React.Component<Props> {
     const headings = this.editor.current
       ? this.editor.current.getHeadings()
       : [];
-    const showContents =
-      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+    const showContents = ui.tocVisible && readOnly;
 
     return (
       <ErrorBoundary>
@@ -361,22 +359,21 @@ class DocumentScene extends React.Component<Props> {
                 />
               </>
             )}
-            {!isShare && (
-              <Header
-                document={document}
-                isRevision={!!revision}
-                isDraft={document.isDraft}
-                isEditing={!readOnly}
-                isSaving={this.isSaving}
-                isPublishing={this.isPublishing}
-                publishingIsDisabled={
-                  document.isSaving || this.isPublishing || this.isEmpty
-                }
-                savingIsDisabled={document.isSaving || this.isEmpty}
-                goBack={this.goBack}
-                onSave={this.onSave}
-              />
-            )}
+            <Header
+              document={document}
+              isShare={isShare}
+              isRevision={!!revision}
+              isDraft={document.isDraft}
+              isEditing={!readOnly}
+              isSaving={this.isSaving}
+              isPublishing={this.isPublishing}
+              publishingIsDisabled={
+                document.isSaving || this.isPublishing || this.isEmpty
+              }
+              savingIsDisabled={document.isSaving || this.isEmpty}
+              goBack={this.goBack}
+              onSave={this.onSave}
+            />
             <MaxWidth
               archived={document.isArchived}
               showContents={showContents}
