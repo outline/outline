@@ -4,6 +4,7 @@ import app from "../app";
 import { Attachment } from "../models";
 import {
   buildUser,
+  buildAdmin,
   buildCollection,
   buildAttachment,
   buildDocument,
@@ -62,7 +63,7 @@ describe("#attachments.delete", () => {
   });
 
   it("should allow deleting an attachment without a document if admin", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const attachment = await buildAttachment({
       teamId: user.teamId,
     });
@@ -79,7 +80,7 @@ describe("#attachments.delete", () => {
   });
 
   it("should not allow deleting an attachment in another team", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const attachment = await buildAttachment();
 
     attachment.documentId = null;

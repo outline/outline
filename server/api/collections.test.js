@@ -4,6 +4,7 @@ import app from "../app";
 import { Document, CollectionUser, CollectionGroup } from "../models";
 import {
   buildUser,
+  buildAdmin,
   buildGroup,
   buildCollection,
   buildDocument,
@@ -428,7 +429,7 @@ describe("#collections.add_user", () => {
 
 describe("#collections.add_group", () => {
   it("should add group to collection", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,
@@ -491,7 +492,7 @@ describe("#collections.add_group", () => {
 
 describe("#collections.remove_group", () => {
   it("should remove group from collection", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,
