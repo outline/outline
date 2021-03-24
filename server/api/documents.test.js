@@ -176,6 +176,7 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("should return draft document from shareId with token", async () => {
