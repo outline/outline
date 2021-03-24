@@ -26,6 +26,8 @@ router.post("attachments.create", auth(), async (ctx) => {
   ctx.assertPresent(size, "size is required");
 
   const { user } = ctx.state;
+  authorize(user, "createAttachment", user.team);
+
   const s3Key = uuid.v4();
   const acl =
     ctx.body.public === undefined

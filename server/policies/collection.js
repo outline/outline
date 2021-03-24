@@ -2,15 +2,26 @@
 import invariant from "invariant";
 import { concat, some } from "lodash";
 import { AdminRequiredError } from "../errors";
-import { Collection, User } from "../models";
+import { Collection, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, "create", Collection, (user) => !user.isViewer);
+allow(User, "createCollection", Team, (user, team) => {
+  if (!team || user.isViewer || user.teamId !== team.id) return false;
+  return true;
+});
 
-allow(User, "import", Collection, (actor) => {
+allow(User, "importCollection", Team, (actor, team) => {
+  if (!team || actor.teamId !== team.id) return false;
   if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
+});
+
+allow(User, "move", Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) return false;
+  if (collection.deletedAt) return false;
+  if (user.isAdmin) return true;
   throw new AdminRequiredError();
 });
 

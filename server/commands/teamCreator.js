@@ -1,11 +1,12 @@
 // @flow
 import debug from "debug";
+import { MaximumTeamsError } from "../errors";
 import { Team, AuthenticationProvider } from "../models";
 import { sequelize } from "../sequelize";
+import { getAllowedDomains } from "../utils/authentication";
 import { generateAvatarUrl } from "../utils/avatars";
 
 const log = debug("server");
-
 type TeamCreatorResult = {|
   team: Team,
   authenticationProvider: AuthenticationProvider,
@@ -28,7 +29,7 @@ export default async function teamCreator({
     providerId: string,
   |},
 |}): Promise<TeamCreatorResult> {
-  const authP = await AuthenticationProvider.findOne({
+  let authP = await AuthenticationProvider.findOne({
     where: authenticationProvider,
     include: [
       {
@@ -49,6 +50,31 @@ export default async function teamCreator({
     };
   }
 
+  // This team has never been seen before, if self hosted the logic is different
+  // to the multi-tenant version, we want to restrict to a single team that MAY
+  // have multiple authentication providers
+  if (process.env.DEPLOYMENT !== "hosted") {
+    const teamCount = await Team.count();
+
+    // If the self-hosted installation has a single team and the domain for the
+    // new team matches one in the allowed domains env variable then assign the
+    // authentication provider to the existing team
+    if (teamCount === 1 && domain && getAllowedDomains().includes(domain)) {
+      const team = await Team.findOne();
+      authP = await team.createAuthenticationProvider(authenticationProvider);
+
+      return {
+        authenticationProvider: authP,
+        team,
+        isNewTeam: false,
+      };
+    }
+
+    if (teamCount >= 1) {
+      throw new MaximumTeamsError();
+    }
+  }
+
   // If the service did not provide a logo/avatar then we attempt to generate
   // one via ClearBit, or fallback to colored initials in worst case scenario
   if (!avatarUrl) {
@@ -59,9 +85,9 @@ export default async function teamCreator({
     });
   }
 
-  // This team has never been seen before, time to create all the new stuff
   let transaction = await sequelize.transaction();
   let team;
+
   try {
     team = await Team.create(
       {

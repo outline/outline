@@ -175,7 +175,7 @@ function MainSidebar() {
                 exact={false}
                 label={t("Settings")}
               />
-              {can.invite && (
+              {can.inviteUser && (
                 <SidebarLink
                   to="/settings/people"
                   onClick={handleInviteModalOpen}
@@ -185,7 +185,7 @@ function MainSidebar() {
               )}
             </Section>
           </Scrollable>
-          {can.invite && (
+          {can.inviteUser && (
             <Modal
               title={t("Invite people")}
               onRequestClose={handleInviteModalClose}

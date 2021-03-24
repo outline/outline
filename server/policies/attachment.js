@@ -1,10 +1,13 @@
 // @flow
-import { Attachment, User } from "../models";
+import { Attachment, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, "create", Attachment, (user) => !user.isViewer);
+allow(User, "createAttachment", Team, (user, team) => {
+  if (!team || user.isViewer || user.teamId !== team.id) return false;
+  return true;
+});
 
 allow(User, "read", Attachment, (actor, attachment) => {
   if (!attachment || attachment.teamId !== actor.teamId) return false;

@@ -11,13 +11,23 @@ it("should set subdomain if available", async () => {
   expect(team.subdomain).toEqual("testy");
 });
 
-it("should set subdomain with append if unavailable", async () => {
+it("should set subdomain append if unavailable", async () => {
   await buildTeam({ subdomain: "myteam" });
 
   const team = await buildTeam();
   const subdomain = await team.provisionSubdomain("myteam");
   expect(subdomain).toEqual("myteam1");
   expect(team.subdomain).toEqual("myteam1");
+});
+
+it("should increment subdomain append if unavailable", async () => {
+  await buildTeam({ subdomain: "myteam" });
+  await buildTeam({ subdomain: "myteam1" });
+
+  const team = await buildTeam();
+  const subdomain = await team.provisionSubdomain("myteam");
+  expect(subdomain).toEqual("myteam2");
+  expect(team.subdomain).toEqual("myteam2");
 });
 
 it("should do nothing if subdomain already set", async () => {

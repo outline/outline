@@ -1,5 +1,5 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
-import { buildDocument, buildCollection } from "../test/factories";
+// @flow
+import { buildDocument, buildCollection, buildUser } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 import documentMover from "./documentMover";
 
@@ -10,6 +10,23 @@ describe("documentMover", () => {
 
   it("should move within a collection", async () => {
     const { document, user, collection } = await seed();
+
+    const response = await documentMover({
+      user,
+      document,
+      collectionId: collection.id,
+      ip,
+    });
+
+    expect(response.collections.length).toEqual(1);
+    expect(response.documents.length).toEqual(1);
+  });
+
+  it("should not error when not in source collection documentStructure", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const document = await buildDocument({ collectionId: collection.id });
+    await document.archive();
 
     const response = await documentMover({
       user,
@@ -48,6 +65,7 @@ describe("documentMover", () => {
     );
     expect(response.collections.length).toEqual(1);
     expect(response.documents.length).toEqual(1);
+    expect(response.documents[0].collection.id).toEqual(collection.id);
   });
 
   it("should move with children to another collection", async () => {
@@ -89,5 +107,7 @@ describe("documentMover", () => {
     );
     expect(response.collections.length).toEqual(2);
     expect(response.documents.length).toEqual(2);
+    expect(response.documents[0].collection.id).toEqual(newCollection.id);
+    expect(response.documents[1].collection.id).toEqual(newCollection.id);
   });
 });

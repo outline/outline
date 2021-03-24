@@ -14,9 +14,10 @@ type Props = {|
 |};
 
 function UserMenu({ user }: Props) {
-  const { users } = useStores();
+  const { users, policies } = useStores();
   const { t } = useTranslation();
   const menu = useMenuState({ modal: true });
+  const can = policies.abilities(user.id);
 
   const handlePromote = React.useCallback(
     (ev: SyntheticEvent<>) => {
@@ -118,23 +119,21 @@ function UserMenu({ user }: Props) {
                 userName: user.name,
               }),
               onClick: handleMember,
-              visible: user.isAdmin || user.isViewer,
+              visible: can.demote,
             },
             {
               title: t("Make {{ userName }} a viewer...", {
                 userName: user.name,
               }),
               onClick: handleViewer,
-              visible:
-                user.isAdmin ||
-                (!user.isAdmin && !user.isViewer && !user.isSuspended),
+              visible: can.demote,
             },
             {
               title: t("Make {{ userName }} an admin…", {
                 userName: user.name,
               }),
               onClick: handlePromote,
-              visible: !user.isAdmin && !user.isSuspended,
+              visible: can.promote,
             },
             {
               type: "separator",

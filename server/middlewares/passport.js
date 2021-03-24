@@ -10,8 +10,9 @@ export default function createMiddleware(providerName: string) {
       { session: false },
       (err, _, result: AccountProvisionerResult) => {
         if (err) {
+          console.error(err);
+
           if (err.id) {
-            console.error(err);
             const notice = err.id.replace(/_/g, "-");
             return ctx.redirect(`${err.redirectUrl || "/"}?notice=${notice}`);
           }

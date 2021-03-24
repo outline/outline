@@ -17,9 +17,10 @@ export default class Collection extends BaseModel {
   color: string;
   private: boolean;
   sharing: boolean;
+  index: string;
   documents: NavigationNode[];
-  createdAt: ?string;
-  updatedAt: ?string;
+  createdAt: string;
+  updatedAt: string;
   deletedAt: ?string;
   sort: { field: string, direction: "asc" | "desc" };
   url: string;
@@ -65,6 +66,11 @@ export default class Collection extends BaseModel {
       });
 
     travelDocuments(this.documents);
+  }
+
+  @action
+  updateIndex(index: string) {
+    this.index = index;
   }
 
   getDocumentChildren(documentId: string): NavigationNode[] {
@@ -117,6 +123,7 @@ export default class Collection extends BaseModel {
       "icon",
       "private",
       "sort",
+      "index",
     ]);
   };
 

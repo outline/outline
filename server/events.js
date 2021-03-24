@@ -118,6 +118,7 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
+      data: { name: string },
       ip: string,
     }
   | {
@@ -134,6 +135,14 @@ export type CollectionEvent =
       teamId: string,
       actorId: string,
       data: { name: string, groupId: string },
+      ip: string,
+    }
+  | {
+      name: "collections.move",
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: { index: string },
       ip: string,
     };
 

@@ -60,7 +60,7 @@ class CollectionNew extends React.Component<Props> {
     }
   };
 
-  handleNameChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+  handleNameChange = (ev: SyntheticInputEvent<>) => {
     this.name = ev.target.value;
 
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
