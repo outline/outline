@@ -13,40 +13,40 @@ allow(
 );
 
 allow(User, "inviteUser", Team, (actor, team) => {
-  if (!team || actor.isViewer || actor.teamId !== team.id) return false;
+  if (!team || actor.teamId !== team.id) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });
 
 allow(User, "update", User, (actor, user) => {
-  if (!user || actor.isViewer || user.teamId !== actor.teamId) return false;
+  if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
   throw new AdminRequiredError();
 });
 
 allow(User, "delete", User, (actor, user) => {
-  if (!user || actor.isViewer || user.teamId !== actor.teamId) return false;
+  if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
   if (actor.isAdmin && !user.lastActiveAt) return true;
   throw new AdminRequiredError();
 });
 
 allow(User, ["activate", "suspend"], User, (actor, user) => {
-  if (!user || actor.isViewer || user.teamId !== actor.teamId) return false;
+  if (!user || user.teamId !== actor.teamId) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });
 
 allow(User, "promote", User, (actor, user) => {
-  if (!user || actor.isViewer || user.teamId !== actor.teamId) return false;
+  if (!user || user.teamId !== actor.teamId) return false;
   if (user.isAdmin || user.isSuspended) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });
 
 allow(User, "demote", User, (actor, user) => {
-  if (!user || actor.isViewer || user.teamId !== actor.teamId) return false;
-  if (!user.isAdmin || user.isSuspended) return false;
+  if (!user || user.teamId !== actor.teamId) return false;
+  if (user.isSuspended) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });
