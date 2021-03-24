@@ -20,7 +20,7 @@ Object {
       "abilities": Object {
         "activate": true,
         "delete": true,
-        "demote": false,
+        "demote": true,
         "promote": true,
         "read": true,
         "suspend": true,
