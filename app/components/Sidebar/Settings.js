@@ -37,9 +37,8 @@ function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const { policies, auth } = useStores();
+  const { policies } = useStores();
   const can = policies.abilities(team.id);
-  const user = auth.user;
 
   const returnToDashboard = React.useCallback(() => {
     history.push("/home");
