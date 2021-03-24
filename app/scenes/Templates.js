@@ -19,11 +19,11 @@ type Props = {
 };
 
 function Templates(props: Props) {
-  const { documents, auth } = useStores();
+  const { documents, auth, policies } = useStores();
   const { t } = useTranslation();
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const { sort } = props.match.params;
-  const user = auth.user;
+  const can = policies.abilities(auth.team.id);
 
   return (
     <Scene
@@ -50,7 +50,7 @@ function Templates(props: Props) {
         empty={
           <Empty>
             {t("There are no templates just yet.")}
-            {!user.isViewer &&
+            {can.createDocument &&
               t(
                 "You can create templates to help your team create consistent and accurate documentation."
               )}

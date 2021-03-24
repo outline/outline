@@ -126,7 +126,7 @@ function UserMenu({ user }: Props) {
                 userName: user.name,
               }),
               onClick: handleViewer,
-              visible: can.demote,
+              visible: can.demote && !user.isViewer,
             },
             {
               title: t("Make {{ userName }} an admin…", {

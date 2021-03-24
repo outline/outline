@@ -72,7 +72,7 @@ function SettingsSidebar() {
               icon={<EmailIcon color="currentColor" />}
               label={t("Notifications")}
             />
-            {!user.isViewer && (
+            {can.createApiKey && (
               <SidebarLink
                 to="/settings/tokens"
                 icon={<CodeIcon color="currentColor" />}

@@ -18,9 +18,9 @@ function NewTemplateMenu() {
   const menu = useMenuState();
   const { t } = useTranslation();
   const { collections, policies, auth } = useStores();
-  const user = auth.user;
+  const can = policies.abilities(auth.team.id);
 
-  if (user.isViewer) {
+  if (!can.createDocument) {
     return;
   }
 

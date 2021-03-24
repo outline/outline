@@ -123,7 +123,7 @@ function MainSidebar() {
                   documents.active ? documents.active.template : undefined
                 }
               />
-              {!user.isViewer && (
+              {can.createDocument && (
                 <SidebarLink
                   to="/drafts"
                   icon={<EditIcon color="currentColor" />}

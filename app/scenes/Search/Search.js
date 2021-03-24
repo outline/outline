@@ -256,12 +256,12 @@ class Search extends React.Component<Props> {
   };
 
   render() {
-    const { documents, notFound, location, t, auth } = this.props;
+    const { documents, notFound, location, t, auth, policies } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
-    const user = auth.user;
+    const can = policies.abilities(auth.team.id);
 
     return (
       <Container auto>
@@ -326,10 +326,10 @@ class Search extends React.Component<Props> {
                   <Trans>
                     No documents found for your search filters. <br />
                   </Trans>
-                  {!user.isViewer && <Trans>Create a new document?</Trans>}
+                  {can.createDocument && <Trans>Create a new document?</Trans>}
                 </HelpText>
                 <Wrapper>
-                  {this.collectionId && !user.isViewer ? (
+                  {this.collectionId && can.createDocument ? (
                     <Button
                       onClick={this.handleNewDoc}
                       icon={<PlusIcon />}

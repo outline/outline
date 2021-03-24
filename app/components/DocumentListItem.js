@@ -42,7 +42,7 @@ function replaceResultMarks(tag: string) {
 
 function DocumentListItem(props: Props) {
   const { t } = useTranslation();
-  const { auth } = useStores();
+  const { policies } = useStores();
   const currentUser = useCurrentUser();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const {
@@ -62,7 +62,7 @@ function DocumentListItem(props: Props) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const user = auth.user;
+  const can = policies.abilities(document.id);
 
   return (
     <DocumentLink
@@ -117,7 +117,7 @@ function DocumentListItem(props: Props) {
         {document.isTemplate &&
           !document.isArchived &&
           !document.isDeleted &&
-          !user.isViewer && (
+          can.createDocument && (
             <>
               <Button
                 as={Link}

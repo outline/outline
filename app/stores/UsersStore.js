@@ -67,6 +67,7 @@ export default class UsersStore extends BaseStore<User> {
   @action
   promote = (user: User) => {
     this.counts.admins += 1;
+    if (user.isViewer) this.counts.viewers -= 1;
     return this.actionOnUser("promote", user);
   };
 

@@ -179,7 +179,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   render() {
-    const { documents, t, auth } = this.props;
+    const { documents, t, auth, policies } = this.props;
 
     if (!this.isFetching && !this.collection) return <Search notFound />;
 
@@ -189,7 +189,8 @@ class CollectionScene extends React.Component<Props> {
     const collection = this.collection;
     const collectionName = collection ? collection.name : "";
     const hasPinnedDocuments = !!pinnedDocuments.length;
-    const user = auth.user;
+
+    const can = policies.abilities(auth.team.id);
 
     return collection ? (
       <Scene
@@ -213,12 +214,12 @@ class CollectionScene extends React.Component<Props> {
                 components={{ em: <strong /> }}
               />
               <br />
-              {!user.isViewer && (
+              {can.createDocument && (
                 <Trans>Get started by creating a new one!</Trans>
               )}
             </HelpText>
             <Empty>
-              {!user.isViewer && (
+              {can.createDocument && (
                 <Link to={newDocumentUrl(collection.id)}>
                   <Button icon={<NewDocumentIcon color="currentColor" />}>
                     {t("Create a document")}

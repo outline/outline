@@ -142,6 +142,7 @@ router.post("users.demote", auth(), async (ctx) => {
   }
 
   const user = await User.findByPk(userId);
+
   authorize(actor, "demote", user);
 
   const team = await Team.findByPk(teamId);

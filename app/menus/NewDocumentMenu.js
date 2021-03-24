@@ -20,9 +20,9 @@ function NewDocumentMenu() {
   const { t } = useTranslation();
   const { collections, policies, auth } = useStores();
   const singleCollection = collections.orderedData.length === 1;
-  const user = auth.user;
+  const can = policies.abilities(auth.team.id);
 
-  if (user.isViewer) {
+  if (!can.createDocument) {
     return;
   }
 
