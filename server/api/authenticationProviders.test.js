@@ -1,7 +1,8 @@
 // @flow
 import TestServer from "fetch-test-server";
+import uuid from "uuid";
 import app from "../app";
-import { buildUser, buildTeam } from "../test/factories";
+import { buildUser, buildAdmin, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -52,6 +53,76 @@ describe("#authenticationProviders.info", () => {
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+});
+
+describe("#authenticationProviders.update", () => {
+  it("should not allow admins to disable when last authentication provider", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const authenticationProviders = await team.getAuthenticationProviders();
+
+    const res = await server.post("/api/authenticationProviders.update", {
+      body: {
+        id: authenticationProviders[0].id,
+        isEnabled: false,
+        token: user.getJwtToken(),
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow admins to disable", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    await team.createAuthenticationProvider({
+      name: "google",
+      providerId: uuid.v4(),
+    });
+    const authenticationProviders = await team.getAuthenticationProviders();
+
+    const res = await server.post("/api/authenticationProviders.update", {
+      body: {
+        id: authenticationProviders[0].id,
+        isEnabled: false,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBe("slack");
+    expect(body.data.isEnabled).toBe(false);
+    expect(body.data.isConnected).toBe(true);
+  });
+
+  it("should require authorization", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const authenticationProviders = await team.getAuthenticationProviders();
+
+    const res = await server.post("/api/authenticationProviders.update", {
+      body: {
+        id: authenticationProviders[0].id,
+        isEnabled: false,
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const team = await buildTeam();
+    const authenticationProviders = await team.getAuthenticationProviders();
+
+    const res = await server.post("/api/authenticationProviders.update", {
+      body: {
+        id: authenticationProviders[0].id,
+        isEnabled: false,
       },
     });
     expect(res.status).toEqual(401);

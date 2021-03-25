@@ -1,6 +1,7 @@
 // @flow
 import providers from "../auth/providers";
-import { DataTypes, sequelize } from "../sequelize";
+import { ValidationError } from "../errors";
+import { DataTypes, Op, sequelize } from "../sequelize";
 
 const AuthenticationProvider = sequelize.define(
   "authentication_providers",
@@ -33,6 +34,31 @@ const AuthenticationProvider = sequelize.define(
 AuthenticationProvider.associate = (models) => {
   AuthenticationProvider.belongsTo(models.Team);
   AuthenticationProvider.hasMany(models.UserAuthentication);
+};
+
+AuthenticationProvider.prototype.disable = async function () {
+  const res = await AuthenticationProvider.findAndCountAll({
+    where: {
+      teamId: this.teamId,
+      enabled: true,
+      id: {
+        [Op.ne]: this.id,
+      },
+    },
+    limit: 1,
+  });
+
+  if (res.count >= 1) {
+    return this.update({ enabled: false });
+  } else {
+    throw new ValidationError(
+      "At least one authentication provider is required"
+    );
+  }
+};
+
+AuthenticationProvider.prototype.enable = async function () {
+  return this.update({ enabled: true });
 };
 
 export default AuthenticationProvider;
