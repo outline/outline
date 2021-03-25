@@ -277,12 +277,12 @@ describe("#shares.info", () => {
     expect(body.data.published).toBe(true);
   });
 
-  it("should not find share for different user", async () => {
+  it("should find share created by another user", async () => {
     const { admin, document } = await seed();
     const user = await buildUser({
       teamId: admin.teamId,
     });
-    await buildShare({
+    const share = await buildShare({
       documentId: document.id,
       teamId: admin.teamId,
       userId: admin.id,
@@ -290,7 +290,11 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(204);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+    expect(body.data.published).toBe(true);
   });
 
   it("should not find revoked share", async () => {
@@ -353,6 +357,23 @@ describe("#shares.info", () => {
 });
 
 describe("#shares.update", () => {
+  it("should allow user to update a share", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/shares.update", {
+      body: { token: user.getJwtToken(), id: share.id, published: true },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+    expect(body.data.published).toBe(true);
+  });
+
   it("should allow author to update a share", async () => {
     const { user, document } = await seed();
     const share = await buildShare({

@@ -54,7 +54,12 @@ function DocumentMenu({
 }: Props) {
   const team = useCurrentTeam();
   const { policies, collections, ui, documents } = useStores();
-  const menu = useMenuState({ modal });
+  const menu = useMenuState({
+    modal,
+    unstable_preventOverflow: true,
+    unstable_fixed: true,
+    unstable_flip: true,
+  });
   const history = useHistory();
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);
