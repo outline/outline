@@ -3,6 +3,7 @@ import { Attachment, Team, User, Collection, Document, Group } from "../models";
 import policy from "./policy";
 import "./apiKey";
 import "./attachment";
+import "./authenticationProvider";
 import "./collection";
 import "./document";
 import "./integration";
