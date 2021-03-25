@@ -17,7 +17,9 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
   const teamAuthenticationProviders = await team.getAuthenticationProviders();
   const otherAuthenticationProviders = allAuthenticationProviders.filter(
     (p) =>
-      !teamAuthenticationProviders.find((t) => t.name === p.id) && p.enabled
+      !teamAuthenticationProviders.find((t) => t.name === p.id) &&
+      p.enabled &&
+      p.id !== "email"
   );
 
   ctx.body = {
@@ -25,7 +27,7 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
       authenticationProviders: [
         ...teamAuthenticationProviders.map(presentAuthenticationProvider),
         ...otherAuthenticationProviders.map((p) => ({
-          name: p.name,
+          name: p.id,
           isEnabled: false,
           isConnected: false,
         })),
