@@ -22,7 +22,7 @@ function Collections({ onCreateCollection }: Props) {
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
-  const user = auth.user;
+  const can = policies.abilities(auth.team.id);
   const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
     false
   );
@@ -69,7 +69,7 @@ function Collections({ onCreateCollection }: Props) {
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      {user.createCollection && (
+      {can.createCollection && (
         <SidebarLink
           to="/collections"
           onClick={onCreateCollection}

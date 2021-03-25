@@ -17,6 +17,7 @@ import breakpoint from "styled-components-breakpoint";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
 import UsersStore from "stores/UsersStore";
 
 import Button from "components/Button";
@@ -46,6 +47,7 @@ type Props = {
   documents: DocumentsStore,
   auth: AuthStore,
   users: UsersStore,
+  policies: PoliciesStore,
   notFound: ?boolean,
   t: TFunction,
 };
@@ -437,5 +439,5 @@ const Filters = styled(Flex)`
 `;
 
 export default withTranslation()<Search>(
-  withRouter(inject("documents", "auth")(Search))
+  withRouter(inject("documents", "auth", "policies")(Search))
 );
