@@ -21,6 +21,10 @@ const Collection = sequelize.define(
     description: DataTypes.STRING,
     icon: DataTypes.STRING,
     color: DataTypes.STRING,
+    index: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+    },
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
     documentStructure: DataTypes.JSONB,

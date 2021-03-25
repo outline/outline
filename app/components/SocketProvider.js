@@ -272,6 +272,13 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("collections.update_index", (event) => {
+      const collection = collections.get(event.collectionId);
+      if (collection) {
+        collection.updateIndex(event.index);
+      }
+    });
+
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
     this.socket.on("join", (event) => {

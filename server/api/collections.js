@@ -1,5 +1,6 @@
 // @flow
 import fs from "fs";
+import fractionalIndex from "fractional-index";
 import Router from "koa-router";
 import { ValidationError } from "../errors";
 import { exportCollections } from "../exporter";
@@ -23,7 +24,10 @@ import {
   presentGroup,
   presentCollectionGroupMembership,
 } from "../presenters";
-import { Op } from "../sequelize";
+import { Op, sequelize } from "../sequelize";
+
+import collectionIndexing from "../utils/collectionIndexing";
+import removeIndexCollision from "../utils/removeIndexCollision";
 import { archiveCollection, archiveCollections } from "../utils/zip";
 import pagination from "./middlewares/pagination";
 
@@ -39,6 +43,8 @@ router.post("collections.create", auth(), async (ctx) => {
     icon,
     sort = Collection.DEFAULT_SORT,
   } = ctx.body;
+
+  let { index } = ctx.body;
   const isPrivate = ctx.body.private;
   ctx.assertPresent(name, "name is required");
 
@@ -47,7 +53,34 @@ router.post("collections.create", auth(), async (ctx) => {
   }
 
   const user = ctx.state.user;
-  authorize(user, "create", Collection);
+  authorize(user, "createCollection", user.team);
+
+  const collections = await Collection.findAll({
+    where: { teamId: user.teamId, deletedAt: null },
+    attributes: ["id", "index", "updatedAt"],
+    limit: 1,
+    order: [
+      // using LC_COLLATE:"C" because we need byte order to drive the sorting
+      sequelize.literal('"collection"."index" collate "C"'),
+      ["updatedAt", "DESC"],
+    ],
+  });
+
+  if (index) {
+    const allowedASCII = new RegExp(/^[\x21-\x7E]+$/);
+    if (!allowedASCII.test(index)) {
+      throw new ValidationError(
+        "Index characters must be between x21 to x7E ASCII"
+      );
+    }
+  } else {
+    index = fractionalIndex(
+      null,
+      collections.length ? collections[0].index : null
+    );
+  }
+
+  index = await removeIndexCollision(user.teamId, index);
 
   let collection = await Collection.create({
     name,
@@ -59,6 +92,7 @@ router.post("collections.create", auth(), async (ctx) => {
     private: isPrivate,
     sharing,
     sort,
+    index,
   });
 
   await Event.create({
@@ -105,7 +139,7 @@ router.post("collections.import", auth(), async (ctx) => {
   ctx.assertUuid(attachmentId, "attachmentId is required");
 
   const user = ctx.state.user;
-  authorize(user, "import", Collection);
+  authorize(user, "importCollection", user.team);
 
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);
@@ -571,6 +605,17 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
+  const nullIndexCollection = collections.findIndex(
+    (collection) => collection.index === null
+  );
+
+  if (nullIndexCollection !== -1) {
+    const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
+    collections.forEach((collection) => {
+      collection.index = indexedCollections[collection.id];
+    });
+  }
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: collections.map(presentCollection),
@@ -608,4 +653,34 @@ router.post("collections.delete", auth(), async (ctx) => {
   };
 });
 
+router.post("collections.move", auth(), async (ctx) => {
+  const id = ctx.body.id;
+  let index = ctx.body.index;
+
+  ctx.assertPresent(index, "index is required");
+  ctx.assertUuid(id, "id must be a uuid");
+
+  const user = ctx.state.user;
+  const collection = await Collection.findByPk(id);
+
+  authorize(user, "move", collection);
+
+  index = await removeIndexCollision(user.teamId, index);
+
+  await collection.update({ index });
+
+  await Event.create({
+    name: "collections.move",
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+    data: { index },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
+    data: { index },
+  };
+});
 export default router;

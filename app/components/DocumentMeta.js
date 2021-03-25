@@ -18,6 +18,11 @@ const Container = styled(Flex)`
   min-width: 0;
 `;
 
+const Viewed = styled.span`
+  text-overflow: ellipsis;
+  overflow: hidden;
+`;
+
 const Modified = styled.span`
   color: ${(props) => props.theme.textTertiary};
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
@@ -112,16 +117,16 @@ function DocumentMeta({
     }
     if (!lastViewedAt) {
       return (
-        <>
+        <Viewed>
           •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
-        </>
+        </Viewed>
       );
     }
 
     return (
-      <span>
+      <Viewed>
         •&nbsp;{t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
-      </span>
+      </Viewed>
     );
   };
 

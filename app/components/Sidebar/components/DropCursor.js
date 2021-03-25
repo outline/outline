@@ -7,12 +7,14 @@ function DropCursor({
   isActiveDrop,
   innerRef,
   theme,
+  from,
 }: {
   isActiveDrop: boolean,
   innerRef: React.Ref<any>,
   theme: Theme,
+  from: string,
 }) {
-  return <Cursor isOver={isActiveDrop} ref={innerRef} />;
+  return <Cursor isOver={isActiveDrop} ref={innerRef} from={from} />;
 }
 
 // transparent hover zone with a thin visible band vertically centered
@@ -25,7 +27,7 @@ const Cursor = styled("div")`
 
   width: 100%;
   height: 14px;
-  bottom: -7px;
+  ${(props) => (props.from === "collections" ? "top: 15px;" : "bottom: -7px;")}
   background: transparent;
 
   ::after {

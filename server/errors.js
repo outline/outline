@@ -69,6 +69,12 @@ export function OAuthStateMismatchError(
   return httpErrors(400, message, { id: "state_mismatch" });
 }
 
+export function MaximumTeamsError(
+  message: string = "The maximum number of teams has been reached"
+) {
+  return httpErrors(400, message, { id: "maximum_teams" });
+}
+
 export function EmailAuthenticationRequiredError(
   message: string = "User must authenticate with email",
   redirectUrl: string = env.URL

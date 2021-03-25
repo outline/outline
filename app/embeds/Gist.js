@@ -15,13 +15,23 @@ type Props = {|
 
 class Gist extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
+  ref = React.createRef<HTMLIFrameElement>();
 
   get id() {
     const gistUrl = new URL(this.props.attrs.href);
     return gistUrl.pathname.split("/")[2];
   }
 
-  updateIframeContent = (iframe: ?HTMLIFrameElement) => {
+  componentDidMount() {
+    this.updateIframeContent();
+  }
+
+  componentDidUpdate() {
+    this.updateIframeContent();
+  }
+
+  updateIframeContent = () => {
+    const iframe = this.ref.current;
     if (!iframe) return;
     const id = this.id;
 
@@ -39,6 +49,8 @@ class Gist extends React.Component<Props> {
       "<style>*{ font-size:12px; } body { margin: 0; } .gist .blob-wrapper.data { max-height:150px; overflow:auto; }</style>";
     const iframeHtml = `<html><head><base target="_parent">${styles}</head><body>${gistScript}</body></html>`;
 
+    if (!doc) return;
+
     doc.open();
     doc.writeln(iframeHtml);
     doc.close();
@@ -50,13 +62,14 @@ class Gist extends React.Component<Props> {
     return (
       <iframe
         className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
-        ref={this.updateIframeContent}
+        ref={this.ref}
         type="text/html"
         frameBorder="0"
         width="100%"
         height="200px"
         id={`gist-${id}`}
         title={`Github Gist (${id})`}
+        onLoad={this.updateIframeContent}
       />
     );
   }

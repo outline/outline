@@ -2,7 +2,7 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 import { Event } from "../models";
-import { buildUser, buildGroup } from "../test/factories";
+import { buildUser, buildAdmin, buildGroup } from "../test/factories";
 import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -13,7 +13,7 @@ afterAll(() => server.close());
 describe("#groups.create", () => {
   it("should create a group", async () => {
     const name = "hello I am a group";
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
 
     const res = await server.post("/api/groups.create", {
       body: { token: user.getJwtToken(), name },
@@ -49,7 +49,7 @@ describe("#groups.update", () => {
 
   it("should require authorization", async () => {
     const group = await buildGroup();
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
 
     const res = await server.post("/api/groups.update", {
       body: { token: user.getJwtToken(), id: group.id, name: "Test" },
@@ -61,7 +61,7 @@ describe("#groups.update", () => {
     let user, group;
 
     beforeEach(async () => {
-      user = await buildUser({ isAdmin: true });
+      user = await buildAdmin();
       group = await buildGroup({ teamId: user.teamId });
     });
 
@@ -175,7 +175,7 @@ describe("#groups.list", () => {
 
 describe("#groups.info", () => {
   it("should return group if admin", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const group = await buildGroup({ teamId: user.teamId });
 
     const res = await server.post("/api/groups.info", {
@@ -255,7 +255,7 @@ describe("#groups.delete", () => {
 
   it("should require authorization", async () => {
     const group = await buildGroup();
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
 
     const res = await server.post("/api/groups.delete", {
       body: { token: user.getJwtToken(), id: group.id },
@@ -264,7 +264,7 @@ describe("#groups.delete", () => {
   });
 
   it("allows admin to delete a group", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const group = await buildGroup({ teamId: user.teamId });
 
     const res = await server.post("/api/groups.delete", {
@@ -344,7 +344,7 @@ describe("#groups.memberships", () => {
 
 describe("#groups.add_user", () => {
   it("should add user to group", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const group = await buildGroup({
       teamId: user.teamId,
     });
@@ -368,7 +368,7 @@ describe("#groups.add_user", () => {
   });
 
   it("should require user in team", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const group = await buildGroup({
       teamId: user.teamId,
     });
@@ -412,7 +412,7 @@ describe("#groups.add_user", () => {
 
 describe("#groups.remove_user", () => {
   it("should remove user from group", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const group = await buildGroup({
       teamId: user.teamId,
     });
@@ -448,7 +448,7 @@ describe("#groups.remove_user", () => {
   });
 
   it("should require user in team", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const group = await buildGroup({
       teamId: user.teamId,
     });

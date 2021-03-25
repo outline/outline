@@ -5,7 +5,7 @@ import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
 import { Event, User, Team } from "../models";
 import policy from "../policies";
-import { presentUser } from "../presenters";
+import { presentUser, presentPolicies } from "../presenters";
 import { Op } from "../sequelize";
 import pagination from "./middlewares/pagination";
 
@@ -52,6 +52,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     data: users.map((listUser) =>
       presentUser(listUser, { includeDetails: user.isAdmin })
     ),
+    policies: presentPolicies(user, users),
   };
 });
 
@@ -67,8 +68,11 @@ router.post("users.count", auth(), async (ctx) => {
 });
 
 router.post("users.info", auth(), async (ctx) => {
+  const { user } = ctx.state;
+
   ctx.body = {
-    data: presentUser(ctx.state.user),
+    data: presentUser(user),
+    policies: presentPolicies(user, [user]),
   };
 });
 
@@ -100,17 +104,18 @@ router.post("users.update", auth(), async (ctx) => {
 router.post("users.promote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
+  const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
   const user = await User.findByPk(userId);
-  authorize(ctx.state.user, "promote", user);
+  authorize(actor, "promote", user);
 
   const team = await Team.findByPk(teamId);
   await team.addAdmin(user);
 
   await Event.create({
     name: "users.promote",
-    actorId: ctx.state.user.id,
+    actorId: actor.id,
     userId,
     teamId,
     data: { name: user.name },
@@ -119,23 +124,25 @@ router.post("users.promote", auth(), async (ctx) => {
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
+    policies: presentPolicies(actor, [user]),
   };
 });
 
 router.post("users.demote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
+  const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
   const user = await User.findByPk(userId);
-  authorize(ctx.state.user, "demote", user);
+  authorize(actor, "demote", user);
 
   const team = await Team.findByPk(teamId);
   await team.removeAdmin(user);
 
   await Event.create({
     name: "users.demote",
-    actorId: ctx.state.user.id,
+    actorId: actor.id,
     userId,
     teamId,
     data: { name: user.name },
@@ -144,42 +151,45 @@ router.post("users.demote", auth(), async (ctx) => {
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
+    policies: presentPolicies(actor, [user]),
   };
 });
 
 router.post("users.suspend", auth(), async (ctx) => {
   const userId = ctx.body.id;
+  const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
   const user = await User.findByPk(userId);
-  authorize(ctx.state.user, "suspend", user);
+  authorize(actor, "suspend", user);
 
   await userSuspender({
     user,
-    actorId: ctx.state.user.id,
+    actorId: actor.id,
     ip: ctx.request.ip,
   });
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
+    policies: presentPolicies(actor, [user]),
   };
 });
 
 router.post("users.activate", auth(), async (ctx) => {
-  const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
+  const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
   const user = await User.findByPk(userId);
-  authorize(ctx.state.user, "activate", user);
+  authorize(actor, "activate", user);
 
   const team = await Team.findByPk(teamId);
-  await team.activateUser(user, admin);
+  await team.activateUser(user, actor);
 
   await Event.create({
     name: "users.activate",
-    actorId: ctx.state.user.id,
+    actorId: actor.id,
     userId,
     teamId,
     data: { name: user.name },
@@ -188,6 +198,7 @@ router.post("users.activate", auth(), async (ctx) => {
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
+    policies: presentPolicies(actor, [user]),
   };
 });
 

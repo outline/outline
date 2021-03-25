@@ -1,5 +1,5 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
-import { buildUser } from "../test/factories";
+// @flow
+import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import { serialize } from "./index";
 
@@ -10,4 +10,12 @@ it("should serialize policy", async () => {
   const response = serialize(user, user);
   expect(response.update).toEqual(true);
   expect(response.delete).toEqual(true);
+});
+
+it("should serialize domain policies on Team", async () => {
+  const team = await buildTeam();
+  const user = await buildUser({ teamId: team.id });
+  const response = serialize(user, team);
+  expect(response.createDocument).toEqual(true);
+  expect(response.inviteUser).toEqual(false);
 });

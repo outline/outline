@@ -83,6 +83,7 @@ const Wrapper = styled(Flex)`
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
   backdrop-filter: blur(20px);
+  min-height: 56px;
 
   @media print {
     display: none;

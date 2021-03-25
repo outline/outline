@@ -57,6 +57,7 @@ Event.add = (event) => {
 Event.ACTIVITY_EVENTS = [
   "collections.create",
   "collections.delete",
+  "collections.move",
   "documents.publish",
   "documents.archive",
   "documents.unarchive",
@@ -73,6 +74,7 @@ Event.AUDIT_EVENTS = [
   "api_keys.delete",
   "collections.create",
   "collections.update",
+  "collections.move",
   "collections.add_user",
   "collections.remove_user",
   "collections.add_group",

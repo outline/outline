@@ -28,6 +28,7 @@ export default function present(collection: Collection) {
     description: collection.description,
     sort: collection.sort,
     icon: collection.icon,
+    index: collection.index,
     color: collection.color || "#4E5C6E",
     private: collection.private,
     sharing: collection.sharing,
