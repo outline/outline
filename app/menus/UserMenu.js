@@ -60,7 +60,7 @@ function UserMenu({ user }: Props) {
       if (
         !window.confirm(
           t(
-            "Are you sure you want to make {{ userName }} a viewer? A viewer can only modify their profile",
+            "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content",
             {
               userName: user.name,
             }
