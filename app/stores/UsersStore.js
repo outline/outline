@@ -25,7 +25,7 @@ export default class UsersStore extends BaseStore<User> {
   get active(): User[] {
     return filter(
       this.orderedData,
-      (user) => !user.isSuspended && !user.isViewer && user.lastActiveAt
+      (user) => !user.isSuspended && user.lastActiveAt
     );
   }
 
