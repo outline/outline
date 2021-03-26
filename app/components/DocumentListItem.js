@@ -62,7 +62,7 @@ function DocumentListItem(props: Props) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const can = policies.abilities(document.id);
+  const can = policies.abilities(currentUser.teamId);
 
   return (
     <DocumentLink
