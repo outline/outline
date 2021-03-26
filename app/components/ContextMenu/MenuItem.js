@@ -13,6 +13,7 @@ type Props = {|
   href?: string,
   target?: "_blank",
   as?: string | React.ComponentType<*>,
+  hide?: () => void,
 |};
 
 const MenuItem = ({
@@ -21,16 +22,34 @@ const MenuItem = ({
   selected,
   disabled,
   as,
+  hide,
   ...rest
 }: Props) => {
+  const handleClick = React.useCallback(
+    (ev) => {
+      if (onClick) {
+        onClick(ev);
+      }
+      if (hide) {
+        hide();
+      }
+    },
+    [hide, onClick]
+  );
+
   return (
     <BaseMenuItem
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      hide={hide}
       {...rest}
     >
       {(props) => (
-        <MenuAnchor as={onClick ? "button" : as} {...props}>
+        <MenuAnchor
+          {...props}
+          as={onClick ? "button" : as}
+          onClick={handleClick}
+        >
           {selected !== undefined && (
             <>
               {selected ? <CheckmarkIcon /> : <Spacer />}
