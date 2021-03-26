@@ -34,7 +34,8 @@ Interested in more documentation on the API routes? Check out the [API documenta
 server
 ├── api               - All API routes are contained within here
 │   └── middlewares   - Koa middlewares specific to the API
-├── auth              - Authentication providers, in the form of passport.js strategies
+├── auth              - Authentication logic
+│   └── providers     - Authentication providers export passport.js strategies and config
 ├── commands          - We are gradually moving to the command pattern for new write logic
 ├── config            - Database configuration
 ├── emails            - Transactional email templates
