@@ -136,10 +136,7 @@ router.post("users.demote", auth(), async (ctx) => {
   const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
-  const possibleTos = ["member", "viewer"];
-  if (possibleTos.findIndex((possibleTo) => possibleTo === to) === -1) {
-    to = "member";
-  }
+  to = to === "member" ? "member" : "viewer";
 
   const user = await User.findByPk(userId);
 
