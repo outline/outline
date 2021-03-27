@@ -135,12 +135,13 @@ class CollectionNew extends React.Component<Props> {
         <InputSelectPermission
           value={this.permission}
           onChange={this.handlePermissionChange}
+          short
         />
         <HelpText>
           <Trans>
-            This is the default level of access, you will be able to give
-            specific users more permissions. You will also get view and edit
-            permissions automatically.
+            This is the default level of access given to team members, you can
+            give specific users or groups more access once the collection is
+            created.
           </Trans>
         </HelpText>
         {teamSharingEnabled && (

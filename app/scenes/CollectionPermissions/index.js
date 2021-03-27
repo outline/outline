@@ -89,7 +89,7 @@ function CollectionPermissions({ collection, onEdit }: Props) {
           groupId: group.id,
         });
         ui.showToast(
-          t(`{{ groupName }} was removed from the collection`, {
+          t(`The {{ groupName }} group was removed from the collection`, {
             groupName: group.name,
           }),
           {
@@ -246,6 +246,7 @@ function CollectionPermissions({ collection, onEdit }: Props) {
 
 const PermissionExplainer = styled(HelpText)`
   margin-top: -8px;
+  margin-bottom: 24px;
 `;
 
 const Actions = styled.div`

@@ -255,7 +255,7 @@ class CollectionScene extends React.Component<Props> {
               {!collection.permission && (
                 <Tooltip
                   tooltip={t(
-                    "This collection is only visible to people given access"
+                    "This collection is only visible to those given access"
                   )}
                   placement="bottom"
                 >
