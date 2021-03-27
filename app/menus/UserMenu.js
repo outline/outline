@@ -115,14 +115,14 @@ function UserMenu({ user }: Props) {
           {...menu}
           items={[
             {
-              title: t("Make {{ userName }} a member…", {
+              title: t("Make {{ userName }} a member", {
                 userName: user.name,
               }),
               onClick: handleMember,
               visible: can.demote,
             },
             {
-              title: t("Make {{ userName }} a viewer...", {
+              title: t("Make {{ userName }} a viewer", {
                 userName: user.name,
               }),
               onClick: handleViewer,
