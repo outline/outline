@@ -222,7 +222,7 @@ class CollectionScene extends React.Component<Props> {
               </Link>
               &nbsp;&nbsp;
               <Button onClick={this.onPermissions} neutral>
-                {t("Permissions")}…
+                {t("Manage permissions")}…
               </Button>
             </Empty>
             <Modal

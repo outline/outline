@@ -178,7 +178,7 @@ describe("#searchForTeam", () => {
   test("should not return search results from private collections", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
       teamId: team.id,
     });
     await buildDocument({

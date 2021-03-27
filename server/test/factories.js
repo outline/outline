@@ -159,6 +159,7 @@ export async function buildCollection(overrides: Object = {}) {
     name: `Test Collection ${count}`,
     description: "Test collection description",
     createdById: overrides.userId,
+    permission: "read_write",
     ...overrides,
   });
 }

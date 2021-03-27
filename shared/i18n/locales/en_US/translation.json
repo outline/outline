@@ -199,7 +199,7 @@
   "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.": "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.",
   "Get started by creating a new one!": "Get started by creating a new one!",
   "Create a document": "Create a document",
-  "Collection members": "Collection members",
+  "Manage permissions": "Manage permissions",
   "This collection is only visible to people given access": "This collection is only visible to people given access",
   "Private": "Private",
   "Pinned": "Pinned",

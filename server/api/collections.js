@@ -89,7 +89,7 @@ router.post("collections.create", auth(), async (ctx) => {
     color,
     teamId: user.teamId,
     createdById: user.id,
-    permission,
+    permission: permission ? permission : null,
     sharing,
     sort,
     index,

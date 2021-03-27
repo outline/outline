@@ -225,7 +225,7 @@ Team.prototype.activateUser = async function (user: User, admin: User) {
 
 Team.prototype.collectionIds = async function (paranoid: boolean = true) {
   let models = await Collection.findAll({
-    attributes: ["id", "permission"],
+    attributes: ["id"],
     where: {
       teamId: this.id,
       permission: {
