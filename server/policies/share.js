@@ -5,7 +5,11 @@ import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, ["read", "update"], Share, (user, share) => {
+allow(User, "read", Share, (user, share) => {
+  return user.teamId === share.teamId;
+});
+
+allow(User, "update", Share, (user, share) => {
   if (user.isViewer) return false;
   return user.teamId === share.teamId;
 });
