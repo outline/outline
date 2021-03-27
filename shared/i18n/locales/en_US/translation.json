@@ -185,7 +185,7 @@
   "By {{ author }}": "By {{ author }}",
   "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.": "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
   "Are you sure you want to make {{ userName }} a member?": "Are you sure you want to make {{ userName }} a member?",
-  "Are you sure you want to make {{ userName }} a viewer? A viewer can only modify their profile": "Are you sure you want to make {{ userName }} a viewer? A viewer can only modify their profile",
+  "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content": "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content",
   "Are you sure you want to suspend this account? Suspended users will be prevented from logging in.": "Are you sure you want to suspend this account? Suspended users will be prevented from logging in.",
   "User options": "User options",
   "Make {{ userName }} a member…": "Make {{ userName }} a member…",
