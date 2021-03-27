@@ -34,8 +34,8 @@ const MemberListItem = ({
 
   const PERMISSIONS = React.useMemo(
     () => [
-      { label: t("Read only"), value: "read" },
-      { label: t("Read & Edit"), value: "read_write" },
+      { label: t("View only"), value: "read" },
+      { label: t("View and edit"), value: "read_write" },
     ],
     [t]
   );
@@ -67,8 +67,7 @@ const MemberListItem = ({
               onChange={(ev) => onUpdate(ev.target.value)}
               labelHidden
             />
-          )}
-          &nbsp;&nbsp;
+          )}{" "}
           {canEdit && onRemove && <MemberMenu onRemove={onRemove} />}
           {canEdit && onAdd && (
             <Button onClick={onAdd} neutral>
@@ -84,6 +83,7 @@ const MemberListItem = ({
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;
+  border-color: transparent;
 `;
 
 export default MemberListItem;

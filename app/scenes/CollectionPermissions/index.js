@@ -1,245 +1,255 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
-import GroupsStore from "stores/GroupsStore";
-import MembershipsStore from "stores/MembershipsStore";
-import UiStore from "stores/UiStore";
-import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
-import Empty from "components/Empty";
+import Divider from "components/Divider";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
+import InputSelectPermission from "components/InputSelectPermission";
+import Labeled from "components/Labeled";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
-import Subheading from "components/Subheading";
 import AddGroupsToCollection from "./AddGroupsToCollection";
 import AddPeopleToCollection from "./AddPeopleToCollection";
 import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
 import MemberListItem from "./components/MemberListItem";
+import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 
-type Props = {
-  ui: UiStore,
-  auth: AuthStore,
+type Props = {|
   collection: Collection,
-  users: UsersStore,
-  memberships: MembershipsStore,
-  collectionGroupMemberships: CollectionGroupMembershipsStore,
-  groups: GroupsStore,
   onEdit: () => void,
-};
+|};
 
-@observer
-class CollectionMembers extends React.Component<Props> {
-  @observable addGroupModalOpen: boolean = false;
-  @observable addMemberModalOpen: boolean = false;
+function CollectionPermissions({ collection, onEdit }: Props) {
+  const { t } = useTranslation();
+  const user = useCurrentUser();
+  const {
+    ui,
+    memberships,
+    collectionGroupMemberships,
+    users,
+    groups,
+  } = useStores();
+  const [addGroupModalOpen, setAddGroupModalOpen] = React.useState(false);
+  const [addMemberModalOpen, setAddMemberModalOpen] = React.useState(false);
 
-  handleAddGroupModalOpen = () => {
-    this.addGroupModalOpen = true;
-  };
-
-  handleAddGroupModalClose = () => {
-    this.addGroupModalOpen = false;
-  };
-
-  handleAddMemberModalOpen = () => {
-    this.addMemberModalOpen = true;
-  };
-
-  handleAddMemberModalClose = () => {
-    this.addMemberModalOpen = false;
-  };
-
-  handleRemoveUser = (user) => {
-    try {
-      this.props.memberships.delete({
-        collectionId: this.props.collection.id,
-        userId: user.id,
-      });
-      this.props.ui.showToast(`${user.name} was removed from the collection`, {
-        type: "success",
-      });
-    } catch (err) {
-      this.props.ui.showToast("Could not remove user", { type: "error" });
-    }
-  };
-
-  handleUpdateUser = (user, permission) => {
-    try {
-      this.props.memberships.create({
-        collectionId: this.props.collection.id,
-        userId: user.id,
-        permission,
-      });
-      this.props.ui.showToast(`${user.name} permissions were updated`, {
-        type: "success",
-      });
-    } catch (err) {
-      this.props.ui.showToast("Could not update user", { type: "error" });
-    }
-  };
-
-  handleRemoveGroup = (group) => {
-    try {
-      this.props.collectionGroupMemberships.delete({
-        collectionId: this.props.collection.id,
-        groupId: group.id,
-      });
-      this.props.ui.showToast(`${group.name} was removed from the collection`, {
-        type: "success",
-      });
-    } catch (err) {
-      this.props.ui.showToast("Could not remove group", { type: "error" });
-    }
-  };
-
-  handleUpdateGroup = (group, permission) => {
-    try {
-      this.props.collectionGroupMemberships.create({
-        collectionId: this.props.collection.id,
-        groupId: group.id,
-        permission,
-      });
-      this.props.ui.showToast(`${group.name} permissions were updated`, {
-        type: "success",
-      });
-    } catch (err) {
-      this.props.ui.showToast("Could not update user", { type: "error" });
-    }
-  };
-
-  render() {
-    const {
-      collection,
-      users,
-      groups,
-      memberships,
-      collectionGroupMemberships,
-      auth,
-    } = this.props;
-    const { user } = auth;
-    if (!user) return null;
-
-    const key = memberships.orderedData
-      .map((m) => m.permission)
-      .concat(collection.permission)
-      .join("-");
-
-    return (
-      <Flex column>
-        <>
-          <HelpText>
-            Choose which groups and team members have access to view and edit
-            documents in the <strong>{collection.name}</strong> collection.
-          </HelpText>
-          <span>
-            <Button
-              type="button"
-              onClick={this.handleAddGroupModalOpen}
-              icon={<PlusIcon />}
-              neutral
-            >
-              Add groups
-            </Button>
-          </span>
-        </>
-
-        <GroupsWrap>
-          <Subheading>Groups</Subheading>
-          <PaginatedList
-            key={key}
-            items={groups.inCollection(collection.id)}
-            fetch={collectionGroupMemberships.fetchPage}
-            options={{ id: collection.id }}
-            empty={<Empty>This collection has no groups.</Empty>}
-            renderItem={(group) => (
-              <CollectionGroupMemberListItem
-                key={group.id}
-                group={group}
-                collectionGroupMembership={collectionGroupMemberships.get(
-                  `${group.id}-${collection.id}`
-                )}
-                onRemove={() => this.handleRemoveGroup(group)}
-                onUpdate={(permission) =>
-                  this.handleUpdateGroup(group, permission)
-                }
-              />
-            )}
-          />
-          <Modal
-            title={`Add groups to ${collection.name}`}
-            onRequestClose={this.handleAddGroupModalClose}
-            isOpen={this.addGroupModalOpen}
-          >
-            <AddGroupsToCollection
-              collection={collection}
-              onSubmit={this.handleAddGroupModalClose}
-            />
-          </Modal>
-        </GroupsWrap>
-        <>
-          <span>
-            <Button
-              type="button"
-              onClick={this.handleAddMemberModalOpen}
-              icon={<PlusIcon />}
-              neutral
-            >
-              Add individual members
-            </Button>
-          </span>
-
-          <Subheading>Individual Members</Subheading>
-        </>
-        <PaginatedList
-          key={key}
-          items={
-            collection.permission
-              ? users.inCollection(collection.id)
-              : users.active
+  const handleRemoveUser = React.useCallback(
+    (user) => {
+      try {
+        memberships.delete({
+          collectionId: collection.id,
+          userId: user.id,
+        });
+        ui.showToast(
+          t(`{{ userName }} was removed from the collection`, {
+            userName: user.name,
+          }),
+          {
+            type: "success",
           }
-          fetch={memberships.fetchPage}
-          options={{ id: collection.id }}
-          renderItem={(item) => (
-            <MemberListItem
-              key={item.id}
-              user={item}
-              membership={memberships.get(`${item.id}-${collection.id}`)}
-              canEdit={item.id !== user.id}
-              onRemove={() => this.handleRemoveUser(item)}
-              onUpdate={(permission) => this.handleUpdateUser(item, permission)}
-            />
-          )}
-        />
-        <Modal
-          title={`Add people to ${collection.name}`}
-          onRequestClose={this.handleAddMemberModalClose}
-          isOpen={this.addMemberModalOpen}
-        >
-          <AddPeopleToCollection
-            collection={collection}
-            onSubmit={this.handleAddMemberModalClose}
+        );
+      } catch (err) {
+        ui.showToast(t("Could not remove user"), { type: "error" });
+      }
+    },
+    [memberships, ui, collection, t]
+  );
+
+  const handleUpdateUser = React.useCallback(
+    (user, permission) => {
+      try {
+        memberships.create({
+          collectionId: collection.id,
+          userId: user.id,
+          permission,
+        });
+        ui.showToast(
+          t(`{{ userName }} permissions were updated`, { userName: user.name }),
+          {
+            type: "success",
+          }
+        );
+      } catch (err) {
+        ui.showToast(t("Could not update user"), { type: "error" });
+      }
+    },
+    [memberships, ui, collection, t]
+  );
+
+  const handleRemoveGroup = React.useCallback(
+    (group) => {
+      try {
+        collectionGroupMemberships.delete({
+          collectionId: collection.id,
+          groupId: group.id,
+        });
+        ui.showToast(
+          t(`{{ groupName }} was removed from the collection`, {
+            groupName: group.name,
+          }),
+          {
+            type: "success",
+          }
+        );
+      } catch (err) {
+        ui.showToast(t("Could not remove group"), { type: "error" });
+      }
+    },
+    [collectionGroupMemberships, ui, collection, t]
+  );
+
+  const handleUpdateGroup = React.useCallback(
+    (group, permission) => {
+      try {
+        collectionGroupMemberships.create({
+          collectionId: collection.id,
+          groupId: group.id,
+          permission,
+        });
+        ui.showToast(
+          t(`{{ groupName }} permissions were updated`, {
+            groupName: group.name,
+          }),
+          {
+            type: "success",
+          }
+        );
+      } catch (err) {
+        ui.showToast(t("Could not update user"), { type: "error" });
+      }
+    },
+    [collectionGroupMemberships, ui, collection, t]
+  );
+
+  const fetchOptions = React.useMemo(() => ({ id: collection.id }), [
+    collection.id,
+  ]);
+
+  const collectionName = collection.name;
+  const collectionGroups = groups.inCollection(collection.id);
+
+  return (
+    <Flex column>
+      <InputSelectPermission
+        onChange={(ev) => collection.save({ permission: ev.target.value })}
+        value={collection.permission || ""}
+        short
+      />
+      <PermissionExplainer>
+        {!collection.permission && (
+          <Trans
+            defaults="Team members do not have access to the <em>{{ collectionName }}</em> collection by default."
+            values={{ collectionName }}
+            components={{ em: <strong /> }}
           />
-        </Modal>
-      </Flex>
-    );
-  }
+        )}
+        {collection.permission === "read" && (
+          <Trans
+            defaults="Team members can view documents in the <em>{{ collectionName }}</em> collection by default."
+            values={{ collectionName }}
+            components={{ em: <strong /> }}
+          />
+        )}
+        {collection.permission === "read_write" && (
+          <Trans
+            defaults="Team members can view and edit documents in the <em>{{ collectionName }}</em> collection by
+          default."
+            values={{ collectionName }}
+            components={{ em: <strong /> }}
+          />
+        )}
+      </PermissionExplainer>
+      <Labeled label={t("Additional access")}>
+        <Actions>
+          <Button
+            type="button"
+            onClick={() => setAddGroupModalOpen(true)}
+            icon={<PlusIcon />}
+            neutral
+          >
+            {t("Add groups")}
+          </Button>{" "}
+          <Button
+            type="button"
+            onClick={() => setAddMemberModalOpen(true)}
+            icon={<PlusIcon />}
+            neutral
+          >
+            {t("Add individual members")}
+          </Button>
+        </Actions>
+      </Labeled>
+      <PaginatedList
+        items={collectionGroups}
+        fetch={collectionGroupMemberships.fetchPage}
+        options={fetchOptions}
+        renderItem={(group) => (
+          <CollectionGroupMemberListItem
+            key={group.id}
+            group={group}
+            collectionGroupMembership={collectionGroupMemberships.get(
+              `${group.id}-${collection.id}`
+            )}
+            onRemove={() => handleRemoveGroup(group)}
+            onUpdate={(permission) => handleUpdateGroup(group, permission)}
+          />
+        )}
+      />
+      {collectionGroups.length ? <Divider /> : null}
+      <PaginatedList
+        items={users.inCollection(collection.id)}
+        fetch={memberships.fetchPage}
+        options={fetchOptions}
+        renderItem={(item) => (
+          <MemberListItem
+            key={item.id}
+            user={item}
+            membership={memberships.get(`${item.id}-${collection.id}`)}
+            canEdit={item.id !== user.id}
+            onRemove={() => handleRemoveUser(item)}
+            onUpdate={(permission) => handleUpdateUser(item, permission)}
+          />
+        )}
+      />
+      <Modal
+        title={t(`Add groups to {{ collectionName }}`, {
+          collectionName: collection.name,
+        })}
+        onRequestClose={() => setAddGroupModalOpen(false)}
+        isOpen={addGroupModalOpen}
+      >
+        <AddGroupsToCollection
+          collection={collection}
+          onSubmit={() => setAddGroupModalOpen(false)}
+        />
+      </Modal>
+      <Modal
+        title={t(`Add people to {{ collectionName }}`, {
+          collectionName: collection.name,
+        })}
+        onRequestClose={() => setAddMemberModalOpen(false)}
+        isOpen={addMemberModalOpen}
+      >
+        <AddPeopleToCollection
+          collection={collection}
+          onSubmit={() => setAddMemberModalOpen(false)}
+        />
+      </Modal>
+    </Flex>
+  );
 }
 
-const GroupsWrap = styled.div`
-  margin-bottom: 50px;
+const PermissionExplainer = styled(HelpText)`
+  margin-top: -8px;
 `;
 
-export default inject(
-  "auth",
-  "users",
-  "memberships",
-  "collectionGroupMemberships",
-  "groups",
-  "ui"
-)(CollectionMembers);
+const Actions = styled.div`
+  margin-bottom: 12px;
+`;
+
+export default observer(CollectionPermissions);

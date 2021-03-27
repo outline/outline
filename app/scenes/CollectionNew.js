@@ -14,7 +14,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
-import InputSelect from "components/InputSelect";
+import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 
 type Props = {
@@ -132,13 +132,7 @@ class CollectionNew extends React.Component<Props> {
             icon={this.icon}
           />
         </Flex>
-        <InputSelect
-          label={t("Permission")}
-          options={[
-            { label: t("Everyone can view and edit"), value: "read_write" },
-            { label: t("Everyone can view"), value: "read" },
-            { label: t("No one can view"), value: "" },
-          ]}
+        <InputSelectPermission
           value={this.permission}
           onChange={this.handlePermissionChange}
         />

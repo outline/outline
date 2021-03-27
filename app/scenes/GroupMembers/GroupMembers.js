@@ -74,7 +74,7 @@ class GroupMembers extends React.Component<Props> {
             <HelpText>
               Add and remove team members in the <strong>{group.name}</strong>{" "}
               group. Adding people to the group will give them access to any
-              collections this group has been given access to.
+              collections this group has been added to.
             </HelpText>
             <span>
               <Button

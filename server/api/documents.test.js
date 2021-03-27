@@ -1953,6 +1953,23 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("does not allow editing in read-only collection", async () => {
+    const { user, document, collection } = await seed();
+    collection.permission = "read";
+    await collection.save();
+
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: "Changed text",
+        lastRevision: document.revision,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should append document with text", async () => {
     const { user, document } = await seed();
 
