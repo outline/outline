@@ -14,6 +14,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
+import InputSelect from "components/InputSelect";
 import Switch from "components/Switch";
 
 type Props = {
@@ -31,7 +32,7 @@ class CollectionNew extends React.Component<Props> {
   @observable icon: string = "";
   @observable color: string = "#4E5C6E";
   @observable sharing: boolean = true;
-  @observable private: boolean = false;
+  @observable permission: string = "read_write";
   @observable isSaving: boolean;
   hasOpenedIconPicker: boolean = false;
 
@@ -44,7 +45,7 @@ class CollectionNew extends React.Component<Props> {
         sharing: this.sharing,
         icon: this.icon,
         color: this.color,
-        private: this.private,
+        permission: this.permission,
       },
       this.props.collections
     );
@@ -87,8 +88,8 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handlePrivateChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
-    this.private = ev.target.checked;
+  handlePermissionChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+    this.permission = ev.target.value;
   };
 
   handleSharingChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
@@ -131,15 +132,21 @@ class CollectionNew extends React.Component<Props> {
             icon={this.icon}
           />
         </Flex>
-        <Switch
-          id="private"
-          label={t("Private collection")}
-          onChange={this.handlePrivateChange}
-          checked={this.private}
+        <InputSelect
+          label={t("Permission")}
+          options={[
+            { label: t("Everyone can view and edit"), value: "read_write" },
+            { label: t("Everyone can view"), value: "read" },
+            { label: t("No one can view"), value: "" },
+          ]}
+          value={this.permission}
+          onChange={this.handlePermissionChange}
         />
         <HelpText>
           <Trans>
-            A private collection will only be visible to invited team members.
+            This is the default level of access, you will be able to give
+            specific users more permissions. You will also get view and edit
+            permissions automatically.
           </Trans>
         </HelpText>
         {teamSharingEnabled && (

@@ -13,7 +13,7 @@ import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import CollectionEdit from "scenes/CollectionEdit";
-import CollectionMembers from "scenes/CollectionMembers";
+import CollectionPermissions from "scenes/CollectionPermissions";
 import Search from "scenes/Search";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
@@ -221,18 +221,16 @@ class CollectionScene extends React.Component<Props> {
                 </Button>
               </Link>
               &nbsp;&nbsp;
-              {collection.private && (
-                <Button onClick={this.onPermissions} neutral>
-                  {t("Manage members")}…
-                </Button>
-              )}
+              <Button onClick={this.onPermissions} neutral>
+                {t("Permissions")}…
+              </Button>
             </Empty>
             <Modal
-              title={t("Collection members")}
+              title={t("Collection permissions")}
               onRequestClose={this.handlePermissionsModalClose}
               isOpen={this.permissionsModalOpen}
             >
-              <CollectionMembers
+              <CollectionPermissions
                 collection={this.collection}
                 onSubmit={this.handlePermissionsModalClose}
                 onEdit={this.handleEditModalOpen}
@@ -254,7 +252,7 @@ class CollectionScene extends React.Component<Props> {
             <Heading>
               <CollectionIcon collection={collection} size={40} expanded />{" "}
               {collection.name}{" "}
-              {collection.private && (
+              {!collection.permission && (
                 <Tooltip
                   tooltip={t(
                     "This collection is only visible to people given access"

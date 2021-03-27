@@ -12,7 +12,6 @@ import UiStore from "stores/UiStore";
 import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
-import ButtonLink from "components/ButtonLink";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -128,112 +127,90 @@ class CollectionMembers extends React.Component<Props> {
 
     const key = memberships.orderedData
       .map((m) => m.permission)
-      .concat(collection.private)
+      .concat(collection.permission)
       .join("-");
 
     return (
       <Flex column>
-        {collection.private ? (
-          <>
-            <HelpText>
-              Choose which groups and team members have access to view and edit
-              documents in the private <strong>{collection.name}</strong>{" "}
-              collection. You can make this collection visible to the entire
-              team by{" "}
-              <ButtonLink onClick={this.props.onEdit}>
-                changing the visibility
-              </ButtonLink>
-              .
-            </HelpText>
-            <span>
-              <Button
-                type="button"
-                onClick={this.handleAddGroupModalOpen}
-                icon={<PlusIcon />}
-                neutral
-              >
-                Add groups
-              </Button>
-            </span>
-          </>
-        ) : (
+        <>
           <HelpText>
-            The <strong>{collection.name}</strong> collection is accessible by
-            everyone on the team. If you want to limit who can view the
-            collection,{" "}
-            <ButtonLink onClick={this.props.onEdit}>make it private</ButtonLink>
-            .
+            Choose which groups and team members have access to view and edit
+            documents in the <strong>{collection.name}</strong> collection.
           </HelpText>
-        )}
-
-        {collection.private && (
-          <GroupsWrap>
-            <Subheading>Groups</Subheading>
-            <PaginatedList
-              key={key}
-              items={groups.inCollection(collection.id)}
-              fetch={collectionGroupMemberships.fetchPage}
-              options={collection.private ? { id: collection.id } : undefined}
-              empty={<Empty>This collection has no groups.</Empty>}
-              renderItem={(group) => (
-                <CollectionGroupMemberListItem
-                  key={group.id}
-                  group={group}
-                  collectionGroupMembership={collectionGroupMemberships.get(
-                    `${group.id}-${collection.id}`
-                  )}
-                  onRemove={() => this.handleRemoveGroup(group)}
-                  onUpdate={(permission) =>
-                    this.handleUpdateGroup(group, permission)
-                  }
-                />
-              )}
-            />
-            <Modal
-              title={`Add groups to ${collection.name}`}
-              onRequestClose={this.handleAddGroupModalClose}
-              isOpen={this.addGroupModalOpen}
+          <span>
+            <Button
+              type="button"
+              onClick={this.handleAddGroupModalOpen}
+              icon={<PlusIcon />}
+              neutral
             >
-              <AddGroupsToCollection
-                collection={collection}
-                onSubmit={this.handleAddGroupModalClose}
-              />
-            </Modal>
-          </GroupsWrap>
-        )}
-        {collection.private ? (
-          <>
-            <span>
-              <Button
-                type="button"
-                onClick={this.handleAddMemberModalOpen}
-                icon={<PlusIcon />}
-                neutral
-              >
-                Add individual members
-              </Button>
-            </span>
+              Add groups
+            </Button>
+          </span>
+        </>
 
-            <Subheading>Individual Members</Subheading>
-          </>
-        ) : (
-          <Subheading>Members</Subheading>
-        )}
+        <GroupsWrap>
+          <Subheading>Groups</Subheading>
+          <PaginatedList
+            key={key}
+            items={groups.inCollection(collection.id)}
+            fetch={collectionGroupMemberships.fetchPage}
+            options={{ id: collection.id }}
+            empty={<Empty>This collection has no groups.</Empty>}
+            renderItem={(group) => (
+              <CollectionGroupMemberListItem
+                key={group.id}
+                group={group}
+                collectionGroupMembership={collectionGroupMemberships.get(
+                  `${group.id}-${collection.id}`
+                )}
+                onRemove={() => this.handleRemoveGroup(group)}
+                onUpdate={(permission) =>
+                  this.handleUpdateGroup(group, permission)
+                }
+              />
+            )}
+          />
+          <Modal
+            title={`Add groups to ${collection.name}`}
+            onRequestClose={this.handleAddGroupModalClose}
+            isOpen={this.addGroupModalOpen}
+          >
+            <AddGroupsToCollection
+              collection={collection}
+              onSubmit={this.handleAddGroupModalClose}
+            />
+          </Modal>
+        </GroupsWrap>
+        <>
+          <span>
+            <Button
+              type="button"
+              onClick={this.handleAddMemberModalOpen}
+              icon={<PlusIcon />}
+              neutral
+            >
+              Add individual members
+            </Button>
+          </span>
+
+          <Subheading>Individual Members</Subheading>
+        </>
         <PaginatedList
           key={key}
           items={
-            collection.private
+            collection.permission
               ? users.inCollection(collection.id)
               : users.active
           }
-          fetch={collection.private ? memberships.fetchPage : users.fetchPage}
-          options={collection.private ? { id: collection.id } : undefined}
+          fetch={memberships.fetchPage}
+          options={{ id: collection.id }}
           renderItem={(item) => (
             <MemberListItem
               key={item.id}
               user={item}
               membership={memberships.get(`${item.id}-${collection.id}`)}
-              canEdit={collection.private && item.id !== user.id}
+              canEdit={item.id !== user.id}
               onRemove={() => this.handleRemoveUser(item)}
               onUpdate={(permission) => this.handleUpdateUser(item, permission)}
             />
