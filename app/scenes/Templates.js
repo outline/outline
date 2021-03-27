@@ -11,6 +11,7 @@ import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import NewTemplateMenu from "menus/NewTemplateMenu";
 
@@ -19,11 +20,12 @@ type Props = {
 };
 
 function Templates(props: Props) {
-  const { documents, auth, policies } = useStores();
+  const { documents, policies } = useStores();
   const { t } = useTranslation();
+  const team = useCurrentTeam();
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const { sort } = props.match.params;
-  const can = policies.abilities(auth.team.id);
+  const can = policies.abilities(team.id);
 
   return (
     <Scene
