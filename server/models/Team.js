@@ -8,14 +8,12 @@ import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from "../../shared/utils/domains";
-import { ValidationError } from "../errors";
-import { DataTypes, sequelize, Op } from "../sequelize";
+import { DataTypes, sequelize } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 
 import Collection from "./Collection";
 import Document from "./Document";
-import User from "./User";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -192,39 +190,6 @@ Team.prototype.provisionFirstCollection = async function (userId) {
     });
     await document.publish(collection.createdById);
   }
-};
-
-Team.prototype.addAdmin = async function (user: User) {
-  return user.update({ isAdmin: true, isViewer: false });
-};
-
-Team.prototype.demoteUser = async function (user: User, to: string) {
-  const res = await User.findAndCountAll({
-    where: {
-      teamId: this.id,
-      isAdmin: true,
-      id: {
-        [Op.ne]: user.id,
-      },
-    },
-    limit: 1,
-  });
-  if (res.count >= 1) {
-    if (to === "member") {
-      return user.update({ isAdmin: false, isViewer: false });
-    } else if (to === "viewer") {
-      return user.update({ isAdmin: false, isViewer: true });
-    }
-  } else {
-    throw new ValidationError("At least one admin is required");
-  }
-};
-
-Team.prototype.activateUser = async function (user: User, admin: User) {
-  return user.update({
-    suspendedById: null,
-    suspendedAt: null,
-  });
 };
 
 Team.prototype.collectionIds = async function (paranoid: boolean = true) {

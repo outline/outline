@@ -110,8 +110,7 @@ router.post("users.promote", auth(), async (ctx) => {
   const user = await User.findByPk(userId);
   authorize(actor, "promote", user);
 
-  const team = await Team.findByPk(teamId);
-  await team.addAdmin(user);
+  await user.makeAdmin();
 
   await Event.create({
     name: "users.promote",
@@ -142,8 +141,7 @@ router.post("users.demote", auth(), async (ctx) => {
 
   authorize(actor, "demote", user);
 
-  const team = await Team.findByPk(teamId);
-  await team.demoteUser(user, to);
+  await user.demote(teamId, to);
 
   await Event.create({
     name: "users.demote",
@@ -189,8 +187,7 @@ router.post("users.activate", auth(), async (ctx) => {
   const user = await User.findByPk(userId);
   authorize(actor, "activate", user);
 
-  const team = await Team.findByPk(teamId);
-  await team.activateUser(user, actor);
+  await user.activate();
 
   await Event.create({
     name: "users.activate",

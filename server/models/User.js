@@ -7,7 +7,7 @@ import uuid from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
-import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
@@ -303,6 +303,40 @@ User.getCounts = async function (teamId: string) {
     invited: parseInt(counts.invitedCount),
     suspended: parseInt(counts.suspendedCount),
   };
+};
+
+User.prototype.demote = async function (teamId: string, to: string) {
+  const res = await User.findAndCountAll({
+    where: {
+      teamId,
+      isAdmin: true,
+      id: {
+        [Op.ne]: this.id,
+      },
+    },
+    limit: 1,
+  });
+
+  if (res.count >= 1) {
+    if (to === "member") {
+      return this.update({ isAdmin: false, isViewer: false });
+    } else if (to === "viewer") {
+      return this.update({ isAdmin: false, isViewer: true });
+    }
+  } else {
+    throw new ValidationError("At least one admin is required");
+  }
+};
+
+User.prototype.makeAdmin = async function () {
+  return this.update({ isAdmin: true, isViewer: false });
+};
+
+User.prototype.activate = async function () {
+  return this.update({
+    suspendedById: null,
+    suspendedAt: null,
+  });
 };
 
 export default User;
