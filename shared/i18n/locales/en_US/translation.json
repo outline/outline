@@ -251,6 +251,8 @@
   "The {{ groupName }} group was removed from the collection": "The {{ groupName }} group was removed from the collection",
   "Could not remove group": "Could not remove group",
   "{{ groupName }} permissions were updated": "{{ groupName }} permissions were updated",
+  "Default access permissions were updated": "Default access permissions were updated",
+  "Could not update permissions": "Could not update permissions",
   "Team members do not have access to the <em>{{ collectionName }}</em> collection by default.": "Team members do not have access to the <em>{{ collectionName }}</em> collection by default.",
   "Team members can view documents in the <em>{{ collectionName }}</em> collection by default.": "Team members can view documents in the <em>{{ collectionName }}</em> collection by default.",
   "Team members can view and edit documents in the <em>{{ collectionName }}</em> collection by\n          default.": "Team members can view and edit documents in the <em>{{ collectionName }}</em> collection by\n          default.",
