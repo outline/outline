@@ -39,9 +39,9 @@ function CollectionPermissions({ collection, onEdit }: Props) {
   const [addMemberModalOpen, setAddMemberModalOpen] = React.useState(false);
 
   const handleRemoveUser = React.useCallback(
-    (user) => {
+    async (user) => {
       try {
-        memberships.delete({
+        await memberships.delete({
           collectionId: collection.id,
           userId: user.id,
         });
@@ -61,9 +61,9 @@ function CollectionPermissions({ collection, onEdit }: Props) {
   );
 
   const handleUpdateUser = React.useCallback(
-    (user, permission) => {
+    async (user, permission) => {
       try {
-        memberships.create({
+        await memberships.create({
           collectionId: collection.id,
           userId: user.id,
           permission,
@@ -82,9 +82,9 @@ function CollectionPermissions({ collection, onEdit }: Props) {
   );
 
   const handleRemoveGroup = React.useCallback(
-    (group) => {
+    async (group) => {
       try {
-        collectionGroupMemberships.delete({
+        await collectionGroupMemberships.delete({
           collectionId: collection.id,
           groupId: group.id,
         });
@@ -104,9 +104,9 @@ function CollectionPermissions({ collection, onEdit }: Props) {
   );
 
   const handleUpdateGroup = React.useCallback(
-    (group, permission) => {
+    async (group, permission) => {
       try {
-        collectionGroupMemberships.create({
+        await collectionGroupMemberships.create({
           collectionId: collection.id,
           groupId: group.id,
           permission,
@@ -126,6 +126,20 @@ function CollectionPermissions({ collection, onEdit }: Props) {
     [collectionGroupMemberships, ui, collection, t]
   );
 
+  const handleChangePermission = React.useCallback(
+    async (ev) => {
+      try {
+        await collection.save({ permission: ev.target.value });
+        ui.showToast(t("Default access permissions were updated"), {
+          type: "success",
+        });
+      } catch (err) {
+        ui.showToast(t("Could not update permissions"), { type: "error" });
+      }
+    },
+    [collection, ui, t]
+  );
+
   const fetchOptions = React.useMemo(() => ({ id: collection.id }), [
     collection.id,
   ]);
@@ -136,7 +150,7 @@ function CollectionPermissions({ collection, onEdit }: Props) {
   return (
     <Flex column>
       <InputSelectPermission
-        onChange={(ev) => collection.save({ permission: ev.target.value })}
+        onChange={handleChangePermission}
         value={collection.permission || ""}
         short
       />
@@ -184,6 +198,7 @@ function CollectionPermissions({ collection, onEdit }: Props) {
           </Button>
         </Actions>
       </Labeled>
+      <Divider />
       <PaginatedList
         items={collectionGroups}
         fetch={collectionGroupMemberships.fetchPage}

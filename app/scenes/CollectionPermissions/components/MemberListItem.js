@@ -17,9 +17,9 @@ type Props = {
   user: User,
   membership?: ?Membership,
   canEdit: boolean,
-  onAdd?: () => void,
-  onRemove?: () => void,
-  onUpdate?: (permission: string) => void,
+  onAdd?: () => any,
+  onRemove?: () => any,
+  onUpdate?: (permission: string) => any,
 };
 
 const MemberListItem = ({

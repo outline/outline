@@ -11,8 +11,8 @@ import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 type Props = {|
   group: Group,
   collectionGroupMembership: ?CollectionGroupMembership,
-  onUpdate: (permission: string) => void,
-  onRemove: () => void,
+  onUpdate: (permission: string) => any,
+  onRemove: () => any,
 |};
 
 const CollectionGroupMemberListItem = ({
