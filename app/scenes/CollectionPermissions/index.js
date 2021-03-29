@@ -146,6 +146,8 @@ function CollectionPermissions({ collection, onEdit }: Props) {
 
   const collectionName = collection.name;
   const collectionGroups = groups.inCollection(collection.id);
+  const collectionUsers = users.inCollection(collection.id);
+  const isEmpty = !collectionGroups.length && !collectionUsers.length;
 
   return (
     <Flex column>
@@ -194,11 +196,18 @@ function CollectionPermissions({ collection, onEdit }: Props) {
             icon={<PlusIcon />}
             neutral
           >
-            {t("Add individual members")}
+            {t("Add people")}
           </Button>
         </Actions>
       </Labeled>
       <Divider />
+      {isEmpty && (
+        <Empty>
+          <Trans>
+            Add specific access for individual groups and team members
+          </Trans>
+        </Empty>
+      )}
       <PaginatedList
         items={collectionGroups}
         fetch={collectionGroupMemberships.fetchPage}
@@ -217,7 +226,7 @@ function CollectionPermissions({ collection, onEdit }: Props) {
       />
       {collectionGroups.length ? <Divider /> : null}
       <PaginatedList
-        items={users.inCollection(collection.id)}
+        items={collectionUsers}
         fetch={memberships.fetchPage}
         options={fetchOptions}
         renderItem={(item) => (
@@ -258,6 +267,10 @@ function CollectionPermissions({ collection, onEdit }: Props) {
     </Flex>
   );
 }
+
+const Empty = styled(HelpText)`
+  margin-top: 8px;
+`;
 
 const PermissionExplainer = styled(HelpText)`
   margin-top: -8px;
