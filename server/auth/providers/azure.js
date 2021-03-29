@@ -96,7 +96,7 @@ const strategy = new AzureStrategy(
         },
         user: {
           name: profile.name,
-          email: profile.email,
+          email,
           avatarUrl: profile.picture,
         },
         authenticationProvider: {
