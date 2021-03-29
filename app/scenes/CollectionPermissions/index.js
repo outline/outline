@@ -159,7 +159,7 @@ function CollectionPermissions({ collection, onEdit }: Props) {
       <PermissionExplainer>
         {!collection.permission && (
           <Trans
-            defaults="Team members do not have access to the <em>{{ collectionName }}</em> collection by default."
+            defaults="The <em>{{ collectionName }}</em> collection is private. Team members have no access to it by default."
             values={{ collectionName }}
             components={{ em: <strong /> }}
           />

@@ -253,7 +253,7 @@
   "{{ groupName }} permissions were updated": "{{ groupName }} permissions were updated",
   "Default access permissions were updated": "Default access permissions were updated",
   "Could not update permissions": "Could not update permissions",
-  "Team members do not have access to the <em>{{ collectionName }}</em> collection by default.": "Team members do not have access to the <em>{{ collectionName }}</em> collection by default.",
+  "The <em>{{ collectionName }}</em> collection is private. Team members have no access to it by default.": "The <em>{{ collectionName }}</em> collection is private. Team members have no access to it by default.",
   "Team members can view documents in the <em>{{ collectionName }}</em> collection by default.": "Team members can view documents in the <em>{{ collectionName }}</em> collection by default.",
   "Team members can view and edit documents in the <em>{{ collectionName }}</em> collection by\n          default.": "Team members can view and edit documents in the <em>{{ collectionName }}</em> collection by\n          default.",
   "Additional access": "Additional access",
