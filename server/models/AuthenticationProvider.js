@@ -1,19 +1,7 @@
 // @flow
-import fs from "fs";
-import path from "path";
-import { DataTypes, sequelize } from "../sequelize";
-
-// Each authentication provider must have a definition under server/auth, the
-// name of the file will be used as reference in the db, one less thing to config
-const authProviders = fs
-  .readdirSync(path.resolve(__dirname, "..", "auth"))
-  .filter(
-    (file) =>
-      file.indexOf(".") !== 0 &&
-      !file.includes(".test") &&
-      !file.includes("index.js")
-  )
-  .map((fileName) => fileName.replace(".js", ""));
+import providers from "../auth/providers";
+import { ValidationError } from "../errors";
+import { DataTypes, Op, sequelize } from "../sequelize";
 
 const AuthenticationProvider = sequelize.define(
   "authentication_providers",
@@ -26,7 +14,7 @@ const AuthenticationProvider = sequelize.define(
     name: {
       type: DataTypes.STRING,
       validate: {
-        isIn: [authProviders],
+        isIn: [providers.map((p) => p.id)],
       },
     },
     enabled: {
@@ -46,6 +34,31 @@ const AuthenticationProvider = sequelize.define(
 AuthenticationProvider.associate = (models) => {
   AuthenticationProvider.belongsTo(models.Team);
   AuthenticationProvider.hasMany(models.UserAuthentication);
+};
+
+AuthenticationProvider.prototype.disable = async function () {
+  const res = await AuthenticationProvider.findAndCountAll({
+    where: {
+      teamId: this.teamId,
+      enabled: true,
+      id: {
+        [Op.ne]: this.id,
+      },
+    },
+    limit: 1,
+  });
+
+  if (res.count >= 1) {
+    return this.update({ enabled: false });
+  } else {
+    throw new ValidationError(
+      "At least one authentication provider is required"
+    );
+  }
+};
+
+AuthenticationProvider.prototype.enable = async function () {
+  return this.update({ enabled: true });
 };
 
 export default AuthenticationProvider;

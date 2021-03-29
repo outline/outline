@@ -19,6 +19,7 @@ import MenuItem, { MenuAnchor } from "components/ContextMenu/MenuItem";
 import Separator from "components/ContextMenu/Separator";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
+import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -74,11 +75,18 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
-  const { auth } = useStores();
+  const { auth, ui } = useStores();
+  const previousTheme = usePrevious(ui.theme);
   const { t } = useTranslation();
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
     false
   );
+
+  React.useEffect(() => {
+    if (ui.theme !== previousTheme) {
+      menu.hide();
+    }
+  }, [menu, ui.theme, previousTheme]);
 
   return (
     <>

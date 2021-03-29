@@ -1,7 +1,7 @@
 // @flow
-import { concat, filter, last } from "lodash";
+import invariant from "invariant";
+import { concat, last } from "lodash";
 import { computed, action } from "mobx";
-import naturalSort from "shared/utils/naturalSort";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
@@ -33,10 +33,18 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   @computed
   get orderedData(): Collection[] {
-    return filter(
-      naturalSort(Array.from(this.data.values()), "name"),
-      (d) => !d.deletedAt
+    let collections = Array.from(this.data.values());
+
+    collections = collections.filter((collection) =>
+      collection.deletedAt ? false : true
     );
+
+    return collections.sort((a, b) => {
+      if (a.index === b.index) {
+        return a.updatedAt > b.updatedAt ? -1 : 1;
+      }
+      return a.index < b.index ? -1 : 1;
+    });
   }
 
   @computed
@@ -93,6 +101,21 @@ export default class CollectionsStore extends BaseStore<Collection> {
       type: "outline",
       attachmentId,
     });
+  };
+
+  @action
+  move = async (collectionId: string, index: string) => {
+    const res = await client.post("/collections.move", {
+      id: collectionId,
+      index,
+    });
+    invariant(res && res.success, "Collection could not be moved");
+
+    const collection = this.get(collectionId);
+
+    if (collection) {
+      collection.updateIndex(res.data.index);
+    }
   };
 
   async update(params: Object): Promise<Collection> {

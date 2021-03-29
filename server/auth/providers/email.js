@@ -2,13 +2,13 @@
 import subMinutes from "date-fns/sub_minutes";
 import Router from "koa-router";
 import { find } from "lodash";
-import { AuthorizationError } from "../errors";
-import mailer from "../mailer";
-import auth from "../middlewares/authentication";
-import methodOverride from "../middlewares/methodOverride";
-import validation from "../middlewares/validation";
-import { User, Team } from "../models";
-import { getUserForEmailSigninToken } from "../utils/jwt";
+import { AuthorizationError } from "../../errors";
+import mailer from "../../mailer";
+import auth from "../../middlewares/authentication";
+import methodOverride from "../../middlewares/methodOverride";
+import validation from "../../middlewares/validation";
+import { User, Team } from "../../models";
+import { getUserForEmailSigninToken } from "../../utils/jwt";
 
 const router = new Router();
 

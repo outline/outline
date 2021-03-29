@@ -59,7 +59,8 @@ type Props = {|
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
-  justify-self: flex-end;
+  position: absolute;
+  right: 8px;
 `;
 
 const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {

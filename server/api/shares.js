@@ -25,7 +25,7 @@ router.post("shares.info", auth(), async (ctx) => {
         }
       : {
           documentId,
-          userId: user.id,
+          teamId: user.teamId,
           revokedAt: { [Op.eq]: null },
         },
   });
@@ -134,9 +134,11 @@ router.post("shares.create", auth(), async (ctx) => {
   const [share, isCreated] = await Share.findOrCreate({
     where: {
       documentId,
-      userId: user.id,
       teamId: user.teamId,
       revokedAt: null,
+    },
+    defaults: {
+      userId: user.id,
     },
   });
 

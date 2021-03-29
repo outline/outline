@@ -66,7 +66,7 @@ class Groups extends React.Component<Props> {
           Groups can be used to organize and manage the people on your team.
         </HelpText>
 
-        {can.group && (
+        {can.createGroup && (
           <Button
             type="button"
             onClick={this.handleNewGroupModalOpen}

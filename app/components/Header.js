@@ -36,74 +36,91 @@ function Header({ breadcrumb, title, actions }: Props) {
   }, []);
 
   return (
-    <Wrapper
-      align="center"
-      justify="space-between"
-      isCompact={isScrolled}
-      shrink={false}
-    >
-      {breadcrumb}
+    <Wrapper align="center" isCompact={isScrolled} shrink={false}>
+      {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}
       {isScrolled ? (
-        <Title
-          align="center"
-          justify={breadcrumb ? "center" : "flex-start"}
-          onClick={handleClickTitle}
-        >
-          <Fade>
-            <Flex align="center">{title}</Flex>
-          </Fade>
+        <Title align="center" justify="flex-start" onClick={handleClickTitle}>
+          <Fade>{title}</Fade>
         </Title>
       ) : (
         <div />
       )}
-      {actions && <Actions>{actions}</Actions>}
+      {actions && (
+        <Actions align="center" justify="flex-end">
+          {actions}
+        </Actions>
+      )}
     </Wrapper>
   );
 }
 
+const Breadcrumbs = styled("div")`
+  flex-grow: 1;
+  flex-basis: 0;
+  align-items: center;
+  padding-right: 8px;
+
+  /* Don't show breadcrumbs on mobile */
+  display: none;
+  ${breakpoint("tablet")`	
+  display: flex;
+`};
+`;
+
+const Actions = styled(Flex)`
+  flex-grow: 1;
+  flex-basis: 0;
+  min-width: auto;
+  padding-left: 8px;
+`;
+
 const Wrapper = styled(Flex)`
   position: sticky;
   top: 0;
-  right: 0;
-  left: 0;
   z-index: 2;
   background: ${(props) => transparentize(0.2, props.theme.background)};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
   backdrop-filter: blur(20px);
+  min-height: 56px;
 
   @media print {
     display: none;
   }
 
+  justify-content: flex-start;
   ${breakpoint("tablet")`
     padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
+    justify-content: "center";
   `};
 `;
 
-const Title = styled(Flex)`
+const Title = styled("div")`
   font-size: 16px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
-  width: 0;
+  min-width: 0;
 
+  /* on mobile, there's always a floating menu button in the top left 
+    add some padding here to offset
+  */
+  padding-left: 40px;
   ${breakpoint("tablet")`	
-    flex-grow: 1;
+    padding-left: 0;
   `};
+
+  svg {
+    vertical-align: bottom;
+  }
 
   @media (display-mode: standalone) {
     overflow: hidden;
     flex-grow: 0 !important;
   }
-`;
-
-const Actions = styled(Flex)`
-  align-self: flex-end;
-  height: 32px;
 `;
 
 export default observer(Header);

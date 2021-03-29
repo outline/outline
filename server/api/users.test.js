@@ -2,7 +2,7 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 
-import { buildTeam, buildUser } from "../test/factories";
+import { buildTeam, buildAdmin, buildUser } from "../test/factories";
 
 import { flushdb, seed } from "../test/support";
 
@@ -107,7 +107,7 @@ describe("#users.info", () => {
 
 describe("#users.invite", () => {
   it("should return sent invites", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const res = await server.post("/api/users.invite", {
       body: {
         token: user.getJwtToken(),
@@ -146,7 +146,7 @@ describe("#users.delete", () => {
   });
 
   it("should allow deleting last admin if only user", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const res = await server.post("/api/users.delete", {
       body: { token: user.getJwtToken(), confirmation: true },
     });
@@ -154,7 +154,7 @@ describe("#users.delete", () => {
   });
 
   it("should not allow deleting last admin if many users", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     await buildUser({ teamId: user.teamId, isAdmin: false });
 
     const res = await server.post("/api/users.delete", {
@@ -172,7 +172,7 @@ describe("#users.delete", () => {
   });
 
   it("should allow deleting pending user account with admin", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const pending = await buildUser({
       teamId: user.teamId,
       lastActiveAt: null,
@@ -184,7 +184,7 @@ describe("#users.delete", () => {
   });
 
   it("should not allow deleting another user account", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const user2 = await buildUser({ teamId: user.teamId });
     const res = await server.post("/api/users.delete", {
       body: { token: user.getJwtToken(), id: user2.id, confirmation: true },
@@ -265,7 +265,7 @@ describe("#users.demote", () => {
   });
 
   it("should not demote admins if only one available", async () => {
-    const admin = await buildUser({ isAdmin: true });
+    const admin = await buildAdmin();
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -308,7 +308,7 @@ describe("#users.suspend", () => {
   });
 
   it("should not allow suspending the user themselves", async () => {
-    const admin = await buildUser({ isAdmin: true });
+    const admin = await buildAdmin();
     const res = await server.post("/api/users.suspend", {
       body: {
         token: admin.getJwtToken(),

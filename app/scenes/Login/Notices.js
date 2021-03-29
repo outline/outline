@@ -15,6 +15,12 @@ export default function Notices({ notice }: Props) {
           signing in with your Google Workspace account.
         </NoticeAlert>
       )}
+      {notice === "maximum-teams" && (
+        <NoticeAlert>
+          The team you authenticated with is not authorized on this
+          installation. Try another?
+        </NoticeAlert>
+      )}
       {notice === "hd-not-allowed" && (
         <NoticeAlert>
           Sorry, your Google apps domain is not allowed. Please try again with

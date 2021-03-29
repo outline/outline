@@ -2,7 +2,7 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
-import { Event, Team, User, Collection } from "../models";
+import { Event, User, Collection } from "../models";
 import policy from "../policies";
 import { presentEvent } from "../presenters";
 import pagination from "./middlewares/pagination";
@@ -60,7 +60,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   }
 
   if (auditLog) {
-    authorize(user, "auditLog", Team);
+    authorize(user, "manage", user.team);
     where.name = Event.AUDIT_EVENTS;
   }
 

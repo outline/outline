@@ -3,7 +3,7 @@ import randomstring from "randomstring";
 import { DataTypes, sequelize } from "../sequelize";
 
 const ApiKey = sequelize.define(
-  "apiKeys",
+  "apiKey",
   {
     id: {
       type: DataTypes.UUID,
@@ -12,17 +12,8 @@ const ApiKey = sequelize.define(
     },
     name: DataTypes.STRING,
     secret: { type: DataTypes.STRING, unique: true },
-    // TODO: remove this, as it's redundant with associate below
-    userId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: "users",
-      },
-    },
   },
   {
-    tableName: "apiKeys",
     paranoid: true,
     hooks: {
       beforeValidate: (key) => {

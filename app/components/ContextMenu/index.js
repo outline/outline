@@ -37,7 +37,7 @@ export default function ContextMenu({
   }, [onOpen, onClose, previousVisible, rest.visible]);
 
   return (
-    <Menu {...rest}>
+    <Menu hideOnClickOutside preventBodyScroll {...rest}>
       {(props) => (
         <Position {...props}>
           <Background>

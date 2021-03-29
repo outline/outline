@@ -95,6 +95,10 @@ export async function buildUser(overrides: Object = {}) {
   );
 }
 
+export async function buildAdmin(overrides: Object = {}) {
+  return buildUser({ ...overrides, isAdmin: true });
+}
+
 export async function buildInvite(overrides: Object = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();

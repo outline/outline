@@ -483,7 +483,14 @@ async function loadDocument({ id, shareId, user }) {
       throw new InvalidRequestError("Document could not be found for shareId");
     }
 
-    document = share.document;
+    if (user) {
+      document = await Document.findByPk(share.documentId, {
+        userId: user.id,
+        paranoid: false,
+      });
+    } else {
+      document = share.document;
+    }
 
     if (!share.published) {
       authorize(user, "read", document);
@@ -1047,7 +1054,7 @@ router.post("documents.move", auth(), async (ctx) => {
     authorize(user, "update", parent);
   }
 
-  const { documents, collections } = await documentMover({
+  const { documents, collections, collectionChanged } = await documentMover({
     user,
     document,
     collectionId,
@@ -1065,7 +1072,7 @@ router.post("documents.move", auth(), async (ctx) => {
         collections.map((collection) => presentCollection(collection))
       ),
     },
-    policies: presentPolicies(user, documents),
+    policies: collectionChanged ? presentPolicies(user, documents) : [],
   };
 });
 
@@ -1165,7 +1172,7 @@ router.post("documents.import", auth(), async (ctx) => {
   if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
 
   const user = ctx.state.user;
-  authorize(user, "create", Document);
+  authorize(user, "createDocument", user.team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -1234,7 +1241,7 @@ router.post("documents.create", auth(), async (ctx) => {
   if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
 
   const user = ctx.state.user;
-  authorize(user, "create", Document);
+  authorize(user, "createDocument", user.team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
