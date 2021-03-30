@@ -30,69 +30,71 @@ export const config = {
   enabled: !!GOOGLE_CLIENT_ID,
 };
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: `${env.URL}/auth/google.callback`,
-      prompt: "select_account consent",
-      passReqToCallback: true,
-      store: new StateStore(),
-      scope: scopes,
-    },
-    async function (req, accessToken, refreshToken, profile, done) {
-      try {
-        const domain = profile._json.hd;
+if (GOOGLE_CLIENT_ID) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: `${env.URL}/auth/google.callback`,
+        prompt: "select_account consent",
+        passReqToCallback: true,
+        store: new StateStore(),
+        scope: scopes,
+      },
+      async function (req, accessToken, refreshToken, profile, done) {
+        try {
+          const domain = profile._json.hd;
 
-        if (!domain) {
-          throw new GoogleWorkspaceRequiredError();
+          if (!domain) {
+            throw new GoogleWorkspaceRequiredError();
+          }
+
+          if (allowedDomains.length && !allowedDomains.includes(domain)) {
+            throw new GoogleWorkspaceInvalidError();
+          }
+
+          const subdomain = domain.split(".")[0];
+          const teamName = capitalize(subdomain);
+
+          const result = await accountProvisioner({
+            ip: req.ip,
+            team: {
+              name: teamName,
+              domain,
+              subdomain,
+            },
+            user: {
+              name: profile.displayName,
+              email: profile.email,
+              avatarUrl: profile.picture,
+            },
+            authenticationProvider: {
+              name: providerName,
+              providerId: domain,
+            },
+            authentication: {
+              providerId: profile.id,
+              accessToken,
+              refreshToken,
+              scopes,
+            },
+          });
+          return done(null, result.user, result);
+        } catch (err) {
+          return done(err, null);
         }
-
-        if (allowedDomains.length && !allowedDomains.includes(domain)) {
-          throw new GoogleWorkspaceInvalidError();
-        }
-
-        const subdomain = domain.split(".")[0];
-        const teamName = capitalize(subdomain);
-
-        const result = await accountProvisioner({
-          ip: req.ip,
-          team: {
-            name: teamName,
-            domain,
-            subdomain,
-          },
-          user: {
-            name: profile.displayName,
-            email: profile.email,
-            avatarUrl: profile.picture,
-          },
-          authenticationProvider: {
-            name: providerName,
-            providerId: domain,
-          },
-          authentication: {
-            providerId: profile.id,
-            accessToken,
-            refreshToken,
-            scopes,
-          },
-        });
-        return done(null, result.user, result);
-      } catch (err) {
-        return done(err, null);
       }
-    }
-  )
-);
+    )
+  );
 
-router.get("google", passport.authenticate(providerName));
+  router.get("google", passport.authenticate(providerName));
 
-router.get(
-  "google.callback",
-  auth({ required: false }),
-  passportMiddleware(providerName)
-);
+  router.get(
+    "google.callback",
+    auth({ required: false }),
+    passportMiddleware(providerName)
+  );
+}
 
 export default router;
