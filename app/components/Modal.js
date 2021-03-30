@@ -12,6 +12,7 @@ import Flex from "components/Flex";
 import NudeButton from "components/NudeButton";
 import Scrollable from "components/Scrollable";
 import usePrevious from "hooks/usePrevious";
+import useUnmount from "hooks/useUnmount";
 
 let openModals = 0;
 
@@ -44,6 +45,12 @@ const Modal = ({
       dialog.hide();
     }
   }, [dialog, wasOpen, isOpen]);
+
+  useUnmount(() => {
+    if (isOpen) {
+      openModals--;
+    }
+  });
 
   if (!isOpen) return null;
 
@@ -94,9 +101,7 @@ const Backdrop = styled.div`
   background-color: ${(props) =>
     transparentize(0.25, props.theme.background)} !important;
   z-index: ${(props) => props.theme.depths.modalOverlay};
-
-  perspective: 800px;
-  transition: opacity 250ms ease-in-out;
+  transition: opacity 50ms ease-in-out;
   opacity: 0;
 
   &[data-enter] {
