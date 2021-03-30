@@ -14,7 +14,6 @@ import Document from "models/Document";
 import Flex from "components/Flex";
 import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
-import Modal from "components/Modal";
 import PathToDocument from "components/PathToDocument";
 
 type Props = {|
@@ -124,55 +123,55 @@ class DocumentMove extends React.Component<Props> {
   };
 
   render() {
-    const { document, collections, onRequestClose } = this.props;
+    const { document, collections } = this.props;
     const data = this.results;
 
-    return (
-      <Modal isOpen onRequestClose={onRequestClose} title="Move document">
-        {document && collections.isLoaded && (
-          <Flex column>
-            <Section>
-              <Labeled label="Current location">
-                {this.renderPathToCurrentDocument()}
-              </Labeled>
-            </Section>
+    if (!document || !collections.isLoaded) {
+      return null;
+    }
 
-            <Section column>
-              <Labeled label="Choose a new location" />
-              <NewLocation>
-                <InputWrapper>
-                  <Input
-                    type="search"
-                    placeholder="Search collections & documents…"
-                    onChange={this.handleFilter}
-                    required
-                    autoFocus
-                  />
-                </InputWrapper>
-                <Results>
-                  <AutoSizer>
-                    {({ width, height }) => (
-                      <Flex role="listbox" column>
-                        <List
-                          key={data.length}
-                          width={width}
-                          height={height}
-                          itemData={data}
-                          itemCount={data.length}
-                          itemSize={40}
-                          itemKey={(index, data) => data[index].id}
-                        >
-                          {this.row}
-                        </List>
-                      </Flex>
-                    )}
-                  </AutoSizer>
-                </Results>
-              </NewLocation>
-            </Section>
-          </Flex>
-        )}
-      </Modal>
+    return (
+      <Flex column>
+        <Section>
+          <Labeled label="Current location">
+            {this.renderPathToCurrentDocument()}
+          </Labeled>
+        </Section>
+
+        <Section column>
+          <Labeled label="Choose a new location" />
+          <NewLocation>
+            <InputWrapper>
+              <Input
+                type="search"
+                placeholder="Search collections & documents…"
+                onChange={this.handleFilter}
+                required
+                autoFocus
+              />
+            </InputWrapper>
+            <Results>
+              <AutoSizer>
+                {({ width, height }) => (
+                  <Flex role="listbox" column>
+                    <List
+                      key={data.length}
+                      width={width}
+                      height={height}
+                      itemData={data}
+                      itemCount={data.length}
+                      itemSize={40}
+                      itemKey={(index, data) => data[index].id}
+                    >
+                      {this.row}
+                    </List>
+                  </Flex>
+                )}
+              </AutoSizer>
+            </Results>
+          </NewLocation>
+        </Section>
+      </Flex>
     );
   }
 }
