@@ -183,11 +183,7 @@ function CollectionMenu({
             onRequestClose={() => setShowCollectionPermissions(false)}
             isOpen={showCollectionPermissions}
           >
-            <CollectionPermissions
-              collection={collection}
-              onSubmit={() => setShowCollectionPermissions(false)}
-              onEdit={() => setShowCollectionEdit(true)}
-            />
+            <CollectionPermissions collection={collection} />
           </Modal>
           <Modal
             title={t("Edit collection")}

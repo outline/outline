@@ -22,10 +22,9 @@ import useStores from "hooks/useStores";
 
 type Props = {|
   collection: Collection,
-  onEdit: () => void,
 |};
 
-function CollectionPermissions({ collection, onEdit }: Props) {
+function CollectionPermissions({ collection }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const {

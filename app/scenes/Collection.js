@@ -12,7 +12,6 @@ import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
-import CollectionEdit from "scenes/CollectionEdit";
 import CollectionPermissions from "scenes/CollectionPermissions";
 import Search from "scenes/Search";
 import { Action, Separator } from "components/Actions";
@@ -53,7 +52,6 @@ class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
-  @observable editModalOpen: boolean = false;
 
   componentDidMount() {
     const { id } = this.props.match.params;
@@ -111,14 +109,6 @@ class CollectionScene extends React.Component<Props> {
 
   handlePermissionsModalClose = () => {
     this.permissionsModalOpen = false;
-  };
-
-  handleEditModalOpen = () => {
-    this.editModalOpen = true;
-  };
-
-  handleEditModalClose = () => {
-    this.editModalOpen = false;
   };
 
   renderActions() {
@@ -230,21 +220,7 @@ class CollectionScene extends React.Component<Props> {
               onRequestClose={this.handlePermissionsModalClose}
               isOpen={this.permissionsModalOpen}
             >
-              <CollectionPermissions
-                collection={this.collection}
-                onSubmit={this.handlePermissionsModalClose}
-                onEdit={this.handleEditModalOpen}
-              />
-            </Modal>
-            <Modal
-              title={t("Edit collection")}
-              onRequestClose={this.handleEditModalClose}
-              isOpen={this.editModalOpen}
-            >
-              <CollectionEdit
-                collection={this.collection}
-                onSubmit={this.handleEditModalClose}
-              />
+              <CollectionPermissions collection={this.collection} />
             </Modal>
           </Centered>
         ) : (
