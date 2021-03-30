@@ -85,7 +85,7 @@ export const MenuAnchor = styled.a`
   user-select: none;
 
   svg:not(:last-child) {
-    margin-right: 8px;
+    margin-right: 4px;
   }
 
   svg {
