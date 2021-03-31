@@ -163,6 +163,7 @@
   "History": "時間旅行",
   "Download": "ダウンロード",
   "Print": "プリント",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "{{ documentName }}を削除します。",
   "Share document": "共有文書",
   "Edit group": "Edit group",
