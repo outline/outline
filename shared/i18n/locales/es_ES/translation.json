@@ -163,6 +163,7 @@
   "History": "Historial",
   "Download": "Descargar",
   "Print": "Imprimir",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "Eliminar {{ documentName }}",
   "Share document": "Compartir documento",
   "Edit group": "Editar grupo",
