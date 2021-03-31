@@ -110,7 +110,7 @@ router.post("users.promote", auth(), async (ctx) => {
   const user = await User.findByPk(userId);
   authorize(actor, "promote", user);
 
-  await user.makeAdmin();
+  await user.promote();
 
   await Event.create({
     name: "users.promote",

@@ -328,7 +328,7 @@ User.prototype.demote = async function (teamId: string, to: string) {
   }
 };
 
-User.prototype.makeAdmin = async function () {
+User.prototype.promote = async function () {
   return this.update({ isAdmin: true, isViewer: false });
 };
 
