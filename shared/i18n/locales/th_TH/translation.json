@@ -163,6 +163,7 @@
   "History": "History",
   "Download": "Download",
   "Print": "Print",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "Delete {{ documentName }}",
   "Share document": "Share document",
   "Edit group": "Edit group",
