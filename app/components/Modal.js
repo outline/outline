@@ -4,15 +4,17 @@ import { CloseIcon, BackIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import ReactModal from "react-modal";
-import styled, { createGlobalStyle } from "styled-components";
+import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { fadeAndScaleIn } from "shared/styles/animations";
 import Flex from "components/Flex";
 import NudeButton from "components/NudeButton";
 import Scrollable from "components/Scrollable";
+import usePrevious from "hooks/usePrevious";
+import useUnmount from "hooks/useUnmount";
 
-ReactModal.setAppElement("#root");
+let openModals = 0;
 
 type Props = {|
   children?: React.Node,
@@ -21,44 +23,6 @@ type Props = {|
   onRequestClose: () => void,
 |};
 
-const GlobalStyles = createGlobalStyle`
-  .ReactModal__Overlay {
-    background-color: ${(props) =>
-      transparentize(0.25, props.theme.background)} !important;
-    z-index: ${(props) => props.theme.depths.modalOverlay};
-  }
-
-  ${breakpoint("tablet")`
-    .ReactModalPortal + .ReactModalPortal,
-    .ReactModalPortal + [data-react-modal-body-trap] + .ReactModalPortal {
-      .ReactModal__Overlay {
-        margin-left: 12px;
-        box-shadow: 0 -2px 10px ${(props) => props.theme.shadow};
-        border-radius: 8px 0 0 8px;
-        overflow: hidden;
-      }
-    }
-
-    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal,
-    .ReactModalPortal + .ReactModalPortal + [data-react-modal-body-trap] + .ReactModalPortal {
-      .ReactModal__Overlay {
-        margin-left: 24px;
-      }
-    }
-
-    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + .ReactModalPortal,
-    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + [data-react-modal-body-trap] + .ReactModalPortal {
-      .ReactModal__Overlay {
-        margin-left: 36px;
-      }
-    }
-  `};
-
-  .ReactModal__Body--open {
-    overflow: hidden;
-  }
-`;
-
 const Modal = ({
   children,
   isOpen,
@@ -66,35 +30,111 @@ const Modal = ({
   onRequestClose,
   ...rest
 }: Props) => {
+  const dialog = useDialogState({ animated: 250 });
+  const [depth, setDepth] = React.useState(0);
+  const wasOpen = usePrevious(isOpen);
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    if (!wasOpen && isOpen) {
+      setDepth(openModals++);
+      dialog.show();
+    }
+    if (wasOpen && !isOpen) {
+      setDepth(openModals--);
+      dialog.hide();
+    }
+  }, [dialog, wasOpen, isOpen]);
+
+  useUnmount(() => {
+    if (isOpen) {
+      openModals--;
+    }
+  });
+
   if (!isOpen) return null;
 
   return (
-    <>
-      <GlobalStyles />
-      <StyledModal
-        contentLabel={title}
-        onRequestClose={onRequestClose}
-        isOpen={isOpen}
-        {...rest}
-      >
-        <Content>
-          <Centered onClick={(ev) => ev.stopPropagation()} column>
-            {title && <h1>{title}</h1>}
-            {children}
-          </Centered>
-        </Content>
-        <Back onClick={onRequestClose}>
-          <BackIcon size={32} color="currentColor" />
-          <Text>{t("Back")}</Text>
-        </Back>
-        <Close onClick={onRequestClose}>
-          <CloseIcon size={32} color="currentColor" />
-        </Close>
-      </StyledModal>
-    </>
+    <DialogBackdrop {...dialog}>
+      {(props) => (
+        <Backdrop {...props}>
+          <Dialog
+            {...dialog}
+            aria-label={title}
+            preventBodyScrollhideOnEsc
+            hide={onRequestClose}
+          >
+            {(props) => (
+              <Scene
+                $nested={!!depth}
+                style={{ marginLeft: `${depth * 12}px` }}
+                {...props}
+              >
+                <Content>
+                  <Centered onClick={(ev) => ev.stopPropagation()} column>
+                    {title && <h1>{title}</h1>}
+                    {children}
+                  </Centered>
+                </Content>
+                <Back onClick={onRequestClose}>
+                  <BackIcon size={32} color="currentColor" />
+                  <Text>{t("Back")}</Text>
+                </Back>
+                <Close onClick={onRequestClose}>
+                  <CloseIcon size={32} color="currentColor" />
+                </Close>
+              </Scene>
+            )}
+          </Dialog>
+        </Backdrop>
+      )}
+    </DialogBackdrop>
   );
 };
+
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: ${(props) =>
+    transparentize(0.25, props.theme.background)} !important;
+  z-index: ${(props) => props.theme.depths.modalOverlay};
+  transition: opacity 50ms ease-in-out;
+  opacity: 0;
+
+  &[data-enter] {
+    opacity: 1;
+  }
+`;
+
+const Scene = styled.div`
+  animation: ${fadeAndScaleIn} 250ms ease;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: ${(props) => props.theme.depths.modal};
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
+  outline: none;
+
+  ${breakpoint("tablet")`
+  ${(props) =>
+    props.$nested &&
+    `
+      box-shadow: 0 -2px 10px ${props.theme.shadow};
+      border-radius: 8px 0 0 8px;
+      overflow: hidden;
+  `}
+`}
+`;
 
 const Content = styled(Scrollable)`
   width: 100%;
@@ -110,23 +150,6 @@ const Centered = styled(Flex)`
   max-width: 100%;
   position: relative;
   margin: 0 auto;
-`;
-
-const StyledModal = styled(ReactModal)`
-  animation: ${fadeAndScaleIn} 250ms ease;
-
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  z-index: ${(props) => props.theme.depths.modal};
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
-  outline: none;
 `;
 
 const Text = styled.span`
