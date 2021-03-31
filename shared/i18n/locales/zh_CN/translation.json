@@ -163,6 +163,7 @@
   "History": "历史记录",
   "Download": "下载",
   "Print": "打印",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "删除 {{ documentName }}",
   "Share document": "共享文档",
   "Edit group": "编辑群组",
