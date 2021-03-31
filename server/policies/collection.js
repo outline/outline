@@ -28,7 +28,7 @@ allow(User, "move", Collection, (user, collection) => {
 allow(User, ["read", "export"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
 
-  if (collection.private) {
+  if (!collection.permission) {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
@@ -51,7 +51,7 @@ allow(User, "share", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
   if (!collection.sharing) return false;
 
-  if (collection.private) {
+  if (collection.permission !== "read_write") {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
@@ -73,7 +73,7 @@ allow(User, "share", Collection, (user, collection) => {
 allow(User, ["publish", "update"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
 
-  if (collection.private) {
+  if (collection.permission !== "read_write") {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
@@ -95,7 +95,7 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
 allow(User, "delete", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
 
-  if (collection.private) {
+  if (collection.permission !== "read_write") {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"

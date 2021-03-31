@@ -27,7 +27,7 @@ describe("#views.list", () => {
 
   it("should return views for a document in read-only collection", async () => {
     const { user, document, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
@@ -84,7 +84,7 @@ describe("#views.create", () => {
 
   it("should allow creating a view record for document in read-only collection", async () => {
     const { user, document, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({

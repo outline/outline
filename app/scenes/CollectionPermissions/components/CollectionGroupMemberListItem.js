@@ -8,14 +8,14 @@ import GroupListItem from "components/GroupListItem";
 import InputSelect from "components/InputSelect";
 import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 
-type Props = {
+type Props = {|
   group: Group,
   collectionGroupMembership: ?CollectionGroupMembership,
-  onUpdate: (permission: string) => void,
-  onRemove: () => void,
-};
+  onUpdate: (permission: string) => any,
+  onRemove: () => any,
+|};
 
-const MemberListItem = ({
+const CollectionGroupMemberListItem = ({
   group,
   collectionGroupMembership,
   onUpdate,
@@ -25,8 +25,8 @@ const MemberListItem = ({
 
   const PERMISSIONS = React.useMemo(
     () => [
-      { label: t("Read only"), value: "read" },
-      { label: t("Read & Edit"), value: "read_write" },
+      { label: t("View only"), value: "read" },
+      { label: t("View and edit"), value: "read_write" },
     ],
     [t]
   );
@@ -36,6 +36,7 @@ const MemberListItem = ({
       group={group}
       onRemove={onRemove}
       onUpdate={onUpdate}
+      showAvatar
       renderActions={({ openMembersModal }) => (
         <>
           <Select
@@ -48,13 +49,11 @@ const MemberListItem = ({
             }
             onChange={(ev) => onUpdate(ev.target.value)}
             labelHidden
+          />{" "}
+          <CollectionGroupMemberMenu
+            onMembers={openMembersModal}
+            onRemove={onRemove}
           />
-          <ButtonWrap>
-            <CollectionGroupMemberMenu
-              onMembers={openMembersModal}
-              onRemove={onRemove}
-            />
-          </ButtonWrap>
         </>
       )}
     />
@@ -64,10 +63,7 @@ const MemberListItem = ({
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;
+  border-color: transparent;
 `;
 
-const ButtonWrap = styled.div`
-  margin-left: 6px;
-`;
-
-export default MemberListItem;
+export default CollectionGroupMemberListItem;

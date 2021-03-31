@@ -115,7 +115,7 @@ describe("#shares.list", () => {
       userId: admin.id,
     });
 
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/shares.list", {
@@ -151,7 +151,7 @@ describe("#shares.create", () => {
 
   it("should not allow creating a share record with read-only permissions", async () => {
     const { user, document, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
 
     await collection.save();
 

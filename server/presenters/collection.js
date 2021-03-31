@@ -30,7 +30,7 @@ export default function present(collection: Collection) {
     icon: collection.icon,
     index: collection.index,
     color: collection.color || "#4E5C6E",
-    private: collection.private,
+    permission: collection.permission,
     sharing: collection.sharing,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,

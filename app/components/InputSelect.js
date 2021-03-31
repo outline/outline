@@ -27,7 +27,7 @@ const Wrapper = styled.label`
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-type Option = { label: string, value: string };
+export type Option = { label: string, value: string };
 
 export type Props = {
   value?: string,

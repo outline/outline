@@ -58,7 +58,7 @@ export default async function collectionImporter({
         },
         defaults: {
           createdById: user.id,
-          private: false,
+          permission: "read_write",
         },
       });
 
@@ -71,7 +71,7 @@ export default async function collectionImporter({
           teamId: user.teamId,
           createdById: user.id,
           name,
-          private: false,
+          permission: "read_write",
         });
         await Event.create({
           name: "collections.create",

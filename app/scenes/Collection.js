@@ -12,8 +12,7 @@ import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
-import CollectionEdit from "scenes/CollectionEdit";
-import CollectionMembers from "scenes/CollectionMembers";
+import CollectionPermissions from "scenes/CollectionPermissions";
 import Search from "scenes/Search";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
@@ -53,7 +52,6 @@ class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
-  @observable editModalOpen: boolean = false;
 
   componentDidMount() {
     const { id } = this.props.match.params;
@@ -111,14 +109,6 @@ class CollectionScene extends React.Component<Props> {
 
   handlePermissionsModalClose = () => {
     this.permissionsModalOpen = false;
-  };
-
-  handleEditModalOpen = () => {
-    this.editModalOpen = true;
-  };
-
-  handleEditModalClose = () => {
-    this.editModalOpen = false;
   };
 
   renderActions() {
@@ -221,32 +211,16 @@ class CollectionScene extends React.Component<Props> {
                 </Button>
               </Link>
               &nbsp;&nbsp;
-              {collection.private && (
-                <Button onClick={this.onPermissions} neutral>
-                  {t("Manage members")}…
-                </Button>
-              )}
+              <Button onClick={this.onPermissions} neutral>
+                {t("Manage permissions")}…
+              </Button>
             </Empty>
             <Modal
-              title={t("Collection members")}
+              title={t("Collection permissions")}
               onRequestClose={this.handlePermissionsModalClose}
               isOpen={this.permissionsModalOpen}
             >
-              <CollectionMembers
-                collection={this.collection}
-                onSubmit={this.handlePermissionsModalClose}
-                onEdit={this.handleEditModalOpen}
-              />
-            </Modal>
-            <Modal
-              title={t("Edit collection")}
-              onRequestClose={this.handleEditModalClose}
-              isOpen={this.editModalOpen}
-            >
-              <CollectionEdit
-                collection={this.collection}
-                onSubmit={this.handleEditModalClose}
-              />
+              <CollectionPermissions collection={this.collection} />
             </Modal>
           </Centered>
         ) : (
@@ -254,10 +228,10 @@ class CollectionScene extends React.Component<Props> {
             <Heading>
               <CollectionIcon collection={collection} size={40} expanded />{" "}
               {collection.name}{" "}
-              {collection.private && (
+              {!collection.permission && (
                 <Tooltip
                   tooltip={t(
-                    "This collection is only visible to people given access"
+                    "This collection is only visible to those given access"
                   )}
                   placement="bottom"
                 >

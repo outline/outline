@@ -1,6 +1,7 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "shared/constants";
@@ -17,7 +18,8 @@ type Props = {
   group: Group,
   groupMemberships: GroupMembershipsStore,
   membership?: CollectionGroupMembership,
-  showFacepile: boolean,
+  showFacepile?: boolean,
+  showAvatar?: boolean,
   renderActions: ({ openMembersModal: () => void }) => React.Node,
 };
 
@@ -48,6 +50,11 @@ class GroupListItem extends React.Component<Props> {
     return (
       <>
         <ListItem
+          image={
+            <Image>
+              <GroupIcon size={28} />
+            </Image>
+          }
           title={
             <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
           }
@@ -83,6 +90,15 @@ class GroupListItem extends React.Component<Props> {
     );
   }
 }
+
+const Image = styled(Flex)`
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: ${(props) => props.theme.secondaryBackground};
+  border-radius: 20px;
+`;
 
 const Title = styled.span`
   &:hover {
