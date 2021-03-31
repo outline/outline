@@ -163,6 +163,7 @@
   "History": "히스토리",
   "Download": "다운로드",
   "Print": "인쇄",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "{{ documentName }} 삭제",
   "Share document": "문서 공유하기",
   "Edit group": "그룹 수정",
