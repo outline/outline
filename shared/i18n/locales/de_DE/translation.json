@@ -163,6 +163,7 @@
   "History": "Verlauf",
   "Download": "Herunterladen",
   "Print": "Drucken",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "{{ documentName }} löschen",
   "Share document": "Dokument teilen",
   "Edit group": "Gruppe bearbeiten",
