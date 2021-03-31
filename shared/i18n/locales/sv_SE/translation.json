@@ -163,6 +163,7 @@
   "History": "Historik",
   "Download": "Ladda ned",
   "Print": "Skriv ut",
+  "Move {{ documentName }}": "Move {{ documentName }}",
   "Delete {{ documentName }}": "Delete {{ documentName }}",
   "Share document": "Dela dokument",
   "Edit group": "Edit group",
