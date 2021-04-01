@@ -257,6 +257,28 @@ describe("#shares.info", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toBe(share.id);
+    expect(body.data.createdBy.id).toBe(user.id);
+  });
+
+  it("should allow reading share creaded by deleted user", async () => {
+    const { user, document } = await seed();
+    const author = await buildUser({ teamId: user.teamId });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: author.teamId,
+      userId: author.id,
+    });
+
+    await author.destroy();
+
+    const res = await server.post("/api/shares.info", {
+      body: { token: user.getJwtToken(), id: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+    expect(body.data.createdBy.id).toBe(author.id);
   });
 
   it("should allow reading share by documentId", async () => {
