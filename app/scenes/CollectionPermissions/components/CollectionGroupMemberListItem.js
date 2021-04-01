@@ -49,7 +49,8 @@ const CollectionGroupMemberListItem = ({
             }
             onChange={(ev) => onUpdate(ev.target.value)}
             labelHidden
-          />{" "}
+          />
+          <Spacer />
           <CollectionGroupMemberMenu
             onMembers={openMembersModal}
             onRemove={onRemove}
@@ -60,10 +61,18 @@ const CollectionGroupMemberListItem = ({
   );
 };
 
+const Spacer = styled.div`
+  width: 8px;
+`;
+
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;
+
+  select {
+    margin: 0;
+  }
 `;
 
 export default CollectionGroupMemberListItem;

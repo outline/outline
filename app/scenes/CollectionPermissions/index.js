@@ -225,6 +225,7 @@ function CollectionPermissions({ collection }: Props) {
       />
       {collectionGroups.length ? <Divider /> : null}
       <PaginatedList
+        key={`collection-users-${collection.permission || "none"}`}
         items={collectionUsers}
         fetch={memberships.fetchPage}
         options={fetchOptions}

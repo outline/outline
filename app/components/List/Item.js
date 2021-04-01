@@ -27,7 +27,7 @@ const ListItem = ({ image, title, subtitle, actions }: Props) => {
 
 const Wrapper = styled.li`
   display: flex;
-  padding: 8px 0;
+  padding: 10px 0;
   margin: 0;
   border-bottom: 1px solid ${(props) => props.theme.divider};
 
@@ -38,17 +38,17 @@ const Wrapper = styled.li`
 
 const Image = styled(Flex)`
   padding: 0 8px 0 0;
-  max-height: 40px;
+  max-height: 32px;
   align-items: center;
   user-select: none;
   flex-shrink: 0;
-  align-self: flex-start;
+  align-self: center;
 `;
 
 const Heading = styled.p`
   font-size: 16px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.1;
   margin: 0;
 `;
 

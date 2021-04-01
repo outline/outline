@@ -56,23 +56,29 @@ const MemberListItem = ({
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
-      image={<Avatar src={user.avatarUrl} size={40} />}
+      image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
         <Flex align="center">
-          {canEdit && onUpdate && (
+          {onUpdate && (
             <Select
               label={t("Permissions")}
               options={PERMISSIONS}
               value={membership ? membership.permission : undefined}
               onChange={(ev) => onUpdate(ev.target.value)}
+              disabled={!canEdit}
               labelHidden
             />
-          )}{" "}
-          {canEdit && onRemove && <MemberMenu onRemove={onRemove} />}
-          {canEdit && onAdd && (
-            <Button onClick={onAdd} neutral>
-              {t("Add")}
-            </Button>
+          )}
+          {canEdit && (
+            <>
+              <Spacer />
+              {onRemove && <MemberMenu onRemove={onRemove} />}
+              {onAdd && (
+                <Button onClick={onAdd} neutral>
+                  {t("Add")}
+                </Button>
+              )}
+            </>
           )}
         </Flex>
       }
@@ -80,10 +86,18 @@ const MemberListItem = ({
   );
 };
 
+const Spacer = styled.div`
+  width: 8px;
+`;
+
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;
+
+  select {
+    margin: 0;
+  }
 `;
 
 export default MemberListItem;

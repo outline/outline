@@ -52,7 +52,7 @@ class GroupListItem extends React.Component<Props> {
         <ListItem
           image={
             <Image>
-              <GroupIcon size={28} />
+              <GroupIcon size={24} />
             </Image>
           }
           title={
@@ -94,10 +94,10 @@ class GroupListItem extends React.Component<Props> {
 const Image = styled(Flex)`
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   background: ${(props) => props.theme.secondaryBackground};
-  border-radius: 20px;
+  border-radius: 32px;
 `;
 
 const Title = styled.span`
