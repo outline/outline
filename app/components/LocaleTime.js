@@ -14,6 +14,7 @@ const locales = {
   ko: require(`date-fns/locale/ko`),
   pt: require(`date-fns/locale/pt`),
   zh: require(`date-fns/locale/zh_cn`),
+  ru: require(`date-fns/locale/ru`),
 };
 
 let callbacks = [];

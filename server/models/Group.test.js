@@ -15,11 +15,11 @@ describe("afterDestroy hook", () => {
     const user2 = await buildUser({ teamId });
 
     const collection1 = await buildCollection({
-      private: true,
+      permission: null,
       teamId,
     });
     const collection2 = await buildCollection({
-      private: true,
+      permission: null,
       teamId,
     });
 

@@ -4,6 +4,7 @@ import app from "../app";
 import { Attachment } from "../models";
 import {
   buildUser,
+  buildAdmin,
   buildCollection,
   buildAttachment,
   buildDocument,
@@ -62,7 +63,7 @@ describe("#attachments.delete", () => {
   });
 
   it("should allow deleting an attachment without a document if admin", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const attachment = await buildAttachment({
       teamId: user.teamId,
     });
@@ -79,7 +80,7 @@ describe("#attachments.delete", () => {
   });
 
   it("should not allow deleting an attachment in another team", async () => {
-    const user = await buildUser({ isAdmin: true });
+    const user = await buildAdmin();
     const attachment = await buildAttachment();
 
     attachment.documentId = null;
@@ -111,7 +112,7 @@ describe("#attachments.delete", () => {
   it("should not allow deleting an attachment belonging to a document user does not have access to", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: collection.teamId,
@@ -183,7 +184,7 @@ describe("#attachments.redirect", () => {
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: user.teamId,
@@ -207,7 +208,7 @@ describe("#attachments.redirect", () => {
   it("should not return a redirect for a private attachment belonging to a document user does not have access to", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: collection.teamId,

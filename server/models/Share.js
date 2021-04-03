@@ -37,7 +37,7 @@ Share.associate = (models) => {
   });
   Share.addScope("defaultScope", {
     include: [
-      { association: "user" },
+      { association: "user", paranoid: false },
       { association: "document" },
       { association: "team" },
     ],

@@ -6,7 +6,7 @@
 <p align="center">
   <i>An open, extensible, wiki for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
   <br/>
-  <img src="https://www.getoutline.com/images/screenshot@2x.png" alt="Outline" width="800" />
+  <img width="1640" alt="screenshot" src="https://user-images.githubusercontent.com/380914/110356468-26374600-7fef-11eb-9f6a-f2cc2c8c6590.png">
 </p>
 <p align="center">
   <a href="https://circleci.com/gh/outline/outline" rel="nofollow"><img src="https://circleci.com/gh/outline/outline.svg?style=shield&amp;circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a"></a>
@@ -44,10 +44,10 @@ For a manual self-hosted production installation these are the recommended steps
 1. Using the [.env.sample](.env.sample) as a reference, set the required variables in your production environment. You can export the environment variables directly, or create a `.env` file and pass it to the docker image like so:
 
    `docker run --env-file=.env outlinewiki/outline`
-1. Setup the database with `yarn sequelize:migrate`. Production assumes an SSL connection to the database by default, if
-Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`, for example:
+1. Setup the database with `yarn db:migrate`. Production assumes an SSL connection to the database by default, if
+Postgres is on the same machine and is not SSL you can migrate with `yarn db:migrate --env=production-ssl-disabled`, for example:
 
-   `docker run --rm outlinewiki/outline yarn sequelize:migrate`
+   `docker run --rm outlinewiki/outline yarn db:migrate`
 1. Start the container:
 
    `docker run outlinewiki/outline`
@@ -68,7 +68,7 @@ Alternatively a community member maintains a script to deploy Outline on Google 
 If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
 
 ```shell
-docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
+docker run --rm outlinewiki/outline:latest yarn db:migrate
 ```
 
 #### Git
@@ -127,7 +127,7 @@ please refer to the [architecture document](ARCHITECTURE.md) first for a high le
 Outline uses [debug](https://www.npmjs.com/package/debug). To enable debugging output, the following categories are available:
 
 ```
-DEBUG=sql,cache,presenters,events,logistics,emails,mailer
+DEBUG=sql,cache,presenters,events,importer,exporter,emails,mailer
 ```
 
 ## Tests

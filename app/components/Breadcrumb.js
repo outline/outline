@@ -4,7 +4,6 @@ import {
   ArchiveIcon,
   EditIcon,
   GoToIcon,
-  PadlockIcon,
   ShapesIcon,
   TrashIcon,
 } from "outline-icons";
@@ -12,7 +11,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
@@ -85,7 +83,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const { t } = useTranslation();
 
   if (!collections.isLoaded) {
-    return <Wrapper />;
+    return;
   }
 
   let collection = collections.get(document.collectionId);
@@ -104,11 +102,6 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   if (onlyText === true) {
     return (
       <>
-        {collection.private && (
-          <>
-            <SmallPadlockIcon color="currentColor" size={16} />{" "}
-          </>
-        )}
         {collection.name}
         {path.map((n) => (
           <React.Fragment key={n.id}>
@@ -125,7 +118,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
-    <Wrapper justify="flex-start" align="center">
+    <Flex justify="flex-start" align="center">
       <Icon document={document} />
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />
@@ -146,7 +139,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
         </>
       )}
       {children}
-    </Wrapper>
+    </Flex>
   );
 };
 
@@ -155,24 +148,14 @@ export const Slash = styled(GoToIcon)`
   fill: ${(props) => props.theme.divider};
 `;
 
-const Wrapper = styled(Flex)`
-  display: none;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-  `};
-`;
-
-const SmallPadlockIcon = styled(PadlockIcon)`
-  display: inline-block;
-  vertical-align: sub;
-`;
-
 const SmallSlash = styled(GoToIcon)`
-  width: 15px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
   flex-shrink: 0;
-  opacity: 0.25;
+
+  fill: ${(props) => props.theme.slate};
+  opacity: 0.5;
 `;
 
 const Crumb = styled(Link)`

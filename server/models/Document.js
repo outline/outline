@@ -95,6 +95,8 @@ const Document = sequelize.define(
     },
     getterMethods: {
       url: function () {
+        if (!this.title) return `/doc/untitled-${this.urlId}`;
+
         const slugifiedTitle = slugify(this.title);
         return `/doc/${slugifiedTitle}-${this.urlId}`;
       },
@@ -578,8 +580,10 @@ Document.prototype.archiveWithChildren = async function (userId, options) {
 Document.prototype.publish = async function (userId: string, options) {
   if (this.publishedAt) return this.save(options);
 
-  const collection = await Collection.findByPk(this.collectionId);
-  await collection.addDocumentToStructure(this, 0);
+  if (!this.template) {
+    const collection = await Collection.findByPk(this.collectionId);
+    await collection.addDocumentToStructure(this, 0);
+  }
 
   this.lastModifiedById = userId;
   this.publishedAt = new Date();
@@ -636,8 +640,10 @@ Document.prototype.unarchive = async function (userId: string) {
     if (!parent) this.parentDocumentId = undefined;
   }
 
-  await collection.addDocumentToStructure(this);
-  this.collection = collection;
+  if (!this.template) {
+    await collection.addDocumentToStructure(this);
+    this.collection = collection;
+  }
 
   if (this.deletedAt) {
     await this.restore();

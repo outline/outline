@@ -14,7 +14,7 @@ import { getCookieDomain } from "utils/domains";
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 
-type Service = {|
+type Provider = {|
   id: string,
   name: string,
   authUrl: string,
@@ -23,7 +23,7 @@ type Service = {|
 type Config = {|
   name?: string,
   hostname?: string,
-  services: Service[],
+  providers: Provider[],
 |};
 
 export default class AuthStore {
@@ -174,7 +174,7 @@ export default class AuthStore {
 
       runInAction("AuthStore#updateUser", () => {
         this.addPolicies(res.policies);
-        this.user = res.data;
+        this.user = new User(res.data);
       });
     } finally {
       this.isSaving = false;

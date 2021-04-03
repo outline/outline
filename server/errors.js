@@ -1,10 +1,15 @@
 // @flow
 import httpErrors from "http-errors";
+import env from "./env";
 
 export function AuthenticationError(
-  message: string = "Invalid authentication"
+  message: string = "Invalid authentication",
+  redirectUrl: string = env.URL
 ) {
-  return httpErrors(401, message, { id: "authentication_required" });
+  return httpErrors(401, message, {
+    redirectUrl,
+    id: "authentication_required",
+  });
 }
 
 export function AuthorizationError(
@@ -56,4 +61,45 @@ export function FileImportError(
   message: string = "The file could not be imported"
 ) {
   return httpErrors(400, message, { id: "import_error" });
+}
+
+export function OAuthStateMismatchError(
+  message: string = "State returned in OAuth flow did not match"
+) {
+  return httpErrors(400, message, { id: "state_mismatch" });
+}
+
+export function MaximumTeamsError(
+  message: string = "The maximum number of teams has been reached"
+) {
+  return httpErrors(400, message, { id: "maximum_teams" });
+}
+
+export function EmailAuthenticationRequiredError(
+  message: string = "User must authenticate with email",
+  redirectUrl: string = env.URL
+) {
+  return httpErrors(400, message, { redirectUrl, id: "email_auth_required" });
+}
+
+export function GoogleWorkspaceRequiredError(
+  message: string = "Google Workspace is required to authenticate"
+) {
+  return httpErrors(400, message, { id: "google_hd" });
+}
+
+export function GoogleWorkspaceInvalidError(
+  message: string = "Google Workspace is invalid"
+) {
+  return httpErrors(400, message, { id: "hd_not_allowed" });
+}
+
+export function AuthenticationProviderDisabledError(
+  message: string = "Authentication method has been disabled by an admin",
+  redirectUrl: string = env.URL
+) {
+  return httpErrors(400, message, {
+    redirectUrl,
+    id: "authentication_provider_disabled",
+  });
 }

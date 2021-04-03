@@ -14,6 +14,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
+import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 
 type Props = {
@@ -31,7 +32,7 @@ class CollectionNew extends React.Component<Props> {
   @observable icon: string = "";
   @observable color: string = "#4E5C6E";
   @observable sharing: boolean = true;
-  @observable private: boolean = false;
+  @observable permission: string = "read_write";
   @observable isSaving: boolean;
   hasOpenedIconPicker: boolean = false;
 
@@ -44,7 +45,7 @@ class CollectionNew extends React.Component<Props> {
         sharing: this.sharing,
         icon: this.icon,
         color: this.color,
-        private: this.private,
+        permission: this.permission,
       },
       this.props.collections
     );
@@ -60,7 +61,7 @@ class CollectionNew extends React.Component<Props> {
     }
   };
 
-  handleNameChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+  handleNameChange = (ev: SyntheticInputEvent<>) => {
     this.name = ev.target.value;
 
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -87,8 +88,8 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handlePrivateChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
-    this.private = ev.target.checked;
+  handlePermissionChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+    this.permission = ev.target.value;
   };
 
   handleSharingChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
@@ -131,15 +132,16 @@ class CollectionNew extends React.Component<Props> {
             icon={this.icon}
           />
         </Flex>
-        <Switch
-          id="private"
-          label={t("Private collection")}
-          onChange={this.handlePrivateChange}
-          checked={this.private}
+        <InputSelectPermission
+          value={this.permission}
+          onChange={this.handlePermissionChange}
+          short
         />
         <HelpText>
           <Trans>
-            A private collection will only be visible to invited team members.
+            This is the default level of access given to team members, you can
+            give specific users or groups more access once the collection is
+            created.
           </Trans>
         </HelpText>
         {teamSharingEnabled && (

@@ -50,7 +50,7 @@ describe("#documents.info", () => {
   it("should not return published document in collection not a member of", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
       teamId: user.teamId,
     });
     const document = await buildDocument({ collectionId: collection.id });
@@ -176,6 +176,7 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("should return draft document from shareId with token", async () => {
@@ -208,7 +209,7 @@ describe("#documents.info", () => {
       userId: user.id,
     });
 
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/documents.info", {
@@ -281,7 +282,7 @@ describe("#documents.export", () => {
   it("should not return published document in collection not a member of", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
       teamId: user.teamId,
     });
     const document = await buildDocument({ collectionId: collection.id });
@@ -399,7 +400,7 @@ describe("#documents.export", () => {
       userId: user.id,
     });
 
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/documents.export", {
@@ -500,7 +501,7 @@ describe("#documents.list", () => {
 
   it("should not return documents in private collections not a member of", async () => {
     const { user, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/documents.list", {
@@ -572,7 +573,7 @@ describe("#documents.list", () => {
 
   it("should allow filtering to private collection", async () => {
     const { user, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
@@ -646,7 +647,7 @@ describe("#documents.pinned", () => {
 
   it("should return pinned documents in private collections member of", async () => {
     const { user, collection, document } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     document.pinnedById = user.id;
@@ -671,7 +672,7 @@ describe("#documents.pinned", () => {
 
   it("should not return pinned documents in private collections not a member of", async () => {
     const collection = await buildCollection({
-      private: true,
+      permission: null,
     });
 
     const user = await buildUser({ teamId: collection.teamId });
@@ -709,7 +710,7 @@ describe("#documents.drafts", () => {
     document.publishedAt = null;
     await document.save();
 
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/documents.drafts", {
@@ -995,7 +996,7 @@ describe("#documents.search", () => {
 
   it("should return documents for a specific private collection", async () => {
     const { user, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
@@ -1060,7 +1061,7 @@ describe("#documents.search", () => {
 
   it("should not return documents in private collections not a member of", async () => {
     const { user } = await seed();
-    const collection = await buildCollection({ private: true });
+    const collection = await buildCollection({ permission: null });
 
     await buildDocument({
       title: "search term",
@@ -1157,7 +1158,7 @@ describe("#documents.archived", () => {
 
   it("should not return documents in private collections not a member of", async () => {
     const { user } = await seed();
-    const collection = await buildCollection({ private: true });
+    const collection = await buildCollection({ permission: null });
 
     const document = await buildDocument({
       teamId: user.teamId,
@@ -1223,7 +1224,7 @@ describe("#documents.viewed", () => {
   it("should not return recently viewed documents in collection not a member of", async () => {
     const { user, document, collection } = await seed();
     await View.increment({ documentId: document.id, userId: user.id });
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/documents.viewed", {
@@ -1325,6 +1326,7 @@ describe("#documents.move", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    expect(body.policies[0].abilities.move).toEqual(true);
   });
 
   it("should not allow moving the document to a collection the user cannot access", async () => {
@@ -1439,6 +1441,28 @@ describe("#documents.restore", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toEqual(null);
+  });
+
+  it("should not add restored templates to collection structure", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const template = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+      template: true,
+    });
+    await template.archive(user.id);
+
+    const res = await server.post("/api/documents.restore", {
+      body: { token: user.getJwtToken(), id: template.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).toEqual(null);
+
+    await collection.reload();
+    expect(collection.documentStructure).toEqual(null);
   });
 
   it("should restore archived when previous parent is archived", async () => {
@@ -1748,12 +1772,43 @@ describe("#documents.update", () => {
     expect(body.data.text).toBe("Updated text");
   });
 
+  it("should not add template to collection structure when publishing", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const template = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+      template: true,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+        title: "Updated title",
+        text: "Updated text",
+        lastRevision: template.revision,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe("Updated title");
+    expect(body.data.text).toBe("Updated text");
+    expect(body.data.publishedAt).toBeTruthy();
+
+    await collection.reload();
+    expect(collection.documentStructure).toBe(null);
+  });
+
   it("should allow publishing document in private collection", async () => {
     const { user, collection, document } = await seed();
     document.publishedAt = null;
     await document.save();
 
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
@@ -1848,7 +1903,7 @@ describe("#documents.update", () => {
 
   it("allows editing by read-write collection user", async () => {
     const { admin, document, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
@@ -1876,7 +1931,7 @@ describe("#documents.update", () => {
 
   it("does not allow editing by read-only collection user", async () => {
     const { user, document, collection } = await seed();
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
@@ -1885,6 +1940,23 @@ describe("#documents.update", () => {
       createdById: user.id,
       permission: "read",
     });
+
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: "Changed text",
+        lastRevision: document.revision,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("does not allow editing in read-only collection", async () => {
+    const { user, document, collection } = await seed();
+    collection.permission = "read";
+    await collection.save();
 
     const res = await server.post("/api/documents.update", {
       body: {

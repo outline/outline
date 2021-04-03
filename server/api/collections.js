@@ -1,8 +1,9 @@
 // @flow
 import fs from "fs";
+import fractionalIndex from "fractional-index";
 import Router from "koa-router";
 import { ValidationError } from "../errors";
-import { exportCollections } from "../logistics";
+import { exportCollections } from "../exporter";
 import auth from "../middlewares/authentication";
 import {
   Collection,
@@ -23,7 +24,10 @@ import {
   presentGroup,
   presentCollectionGroupMembership,
 } from "../presenters";
-import { Op } from "../sequelize";
+import { Op, sequelize } from "../sequelize";
+
+import collectionIndexing from "../utils/collectionIndexing";
+import removeIndexCollision from "../utils/removeIndexCollision";
 import { archiveCollection, archiveCollections } from "../utils/zip";
 import pagination from "./middlewares/pagination";
 
@@ -35,11 +39,13 @@ router.post("collections.create", auth(), async (ctx) => {
     name,
     color,
     description,
+    permission,
     sharing,
     icon,
     sort = Collection.DEFAULT_SORT,
   } = ctx.body;
-  const isPrivate = ctx.body.private;
+
+  let { index } = ctx.body;
   ctx.assertPresent(name, "name is required");
 
   if (color) {
@@ -47,7 +53,34 @@ router.post("collections.create", auth(), async (ctx) => {
   }
 
   const user = ctx.state.user;
-  authorize(user, "create", Collection);
+  authorize(user, "createCollection", user.team);
+
+  const collections = await Collection.findAll({
+    where: { teamId: user.teamId, deletedAt: null },
+    attributes: ["id", "index", "updatedAt"],
+    limit: 1,
+    order: [
+      // using LC_COLLATE:"C" because we need byte order to drive the sorting
+      sequelize.literal('"collection"."index" collate "C"'),
+      ["updatedAt", "DESC"],
+    ],
+  });
+
+  if (index) {
+    const allowedASCII = new RegExp(/^[\x21-\x7E]+$/);
+    if (!allowedASCII.test(index)) {
+      throw new ValidationError(
+        "Index characters must be between x21 to x7E ASCII"
+      );
+    }
+  } else {
+    index = fractionalIndex(
+      null,
+      collections.length ? collections[0].index : null
+    );
+  }
+
+  index = await removeIndexCollision(user.teamId, index);
 
   let collection = await Collection.create({
     name,
@@ -56,9 +89,10 @@ router.post("collections.create", auth(), async (ctx) => {
     color,
     teamId: user.teamId,
     createdById: user.id,
-    private: isPrivate,
+    permission: permission ? permission : null,
     sharing,
     sort,
+    index,
   });
 
   await Event.create({
@@ -71,11 +105,9 @@ router.post("collections.create", auth(), async (ctx) => {
   });
 
   // we must reload the collection to get memberships for policy presenter
-  if (isPrivate) {
-    collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collection.id);
-  }
+  collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findByPk(collection.id);
 
   ctx.body = {
     data: presentCollection(collection),
@@ -105,7 +137,7 @@ router.post("collections.import", auth(), async (ctx) => {
   ctx.assertUuid(attachmentId, "attachmentId is required");
 
   const user = ctx.state.user;
-  authorize(user, "import", Collection);
+  authorize(user, "importCollection", user.team);
 
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);
@@ -480,8 +512,16 @@ router.post("collections.export_all", auth(), async (ctx) => {
 });
 
 router.post("collections.update", auth(), async (ctx) => {
-  let { id, name, description, icon, color, sort, sharing } = ctx.body;
-  const isPrivate = ctx.body.private;
+  let {
+    id,
+    name,
+    description,
+    icon,
+    permission,
+    color,
+    sort,
+    sharing,
+  } = ctx.body;
 
   if (color) {
     ctx.assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
@@ -494,9 +534,9 @@ router.post("collections.update", auth(), async (ctx) => {
 
   authorize(user, "update", collection);
 
-  // we're making this collection private right now, ensure that the current
+  // we're making this collection have no default access, ensure that the current
   // user has a read-write membership so that at least they can edit it
-  if (isPrivate && !collection.private) {
+  if (permission !== "read_write" && collection.permission === "read_write") {
     await CollectionUser.findOrCreate({
       where: {
         collectionId: collection.id,
@@ -509,7 +549,7 @@ router.post("collections.update", auth(), async (ctx) => {
     });
   }
 
-  const isPrivacyChanged = isPrivate !== collection.private;
+  const permissionChanged = permission !== collection.permission;
 
   if (name !== undefined) {
     collection.name = name;
@@ -523,8 +563,8 @@ router.post("collections.update", auth(), async (ctx) => {
   if (color !== undefined) {
     collection.color = color;
   }
-  if (isPrivate !== undefined) {
-    collection.private = isPrivate;
+  if (permission !== undefined) {
+    collection.permission = permission ? permission : null;
   }
   if (sharing !== undefined) {
     collection.sharing = sharing;
@@ -546,7 +586,7 @@ router.post("collections.update", auth(), async (ctx) => {
 
   // must reload to update collection membership for correct policy calculation
   // if the privacy level has changed. Otherwise skip this query for speed.
-  if (isPrivacyChanged) {
+  if (permissionChanged) {
     await collection.reload();
   }
 
@@ -570,6 +610,17 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
+  const nullIndexCollection = collections.findIndex(
+    (collection) => collection.index === null
+  );
+
+  if (nullIndexCollection !== -1) {
+    const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
+    collections.forEach((collection) => {
+      collection.index = indexedCollections[collection.id];
+    });
+  }
 
   ctx.body = {
     pagination: ctx.state.pagination,
@@ -608,4 +659,34 @@ router.post("collections.delete", auth(), async (ctx) => {
   };
 });
 
+router.post("collections.move", auth(), async (ctx) => {
+  const id = ctx.body.id;
+  let index = ctx.body.index;
+
+  ctx.assertPresent(index, "index is required");
+  ctx.assertUuid(id, "id must be a uuid");
+
+  const user = ctx.state.user;
+  const collection = await Collection.findByPk(id);
+
+  authorize(user, "move", collection);
+
+  index = await removeIndexCollision(user.teamId, index);
+
+  await collection.update({ index });
+
+  await Event.create({
+    name: "collections.move",
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+    data: { index },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
+    data: { index },
+  };
+});
 export default router;

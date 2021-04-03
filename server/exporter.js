@@ -4,8 +4,8 @@ import mailer from "./mailer";
 import { Collection, Team } from "./models";
 import { createQueue } from "./utils/queue";
 
-const log = debug("logistics");
-const logisticsQueue = createQueue("logistics");
+const log = debug("exporter");
+const exporterQueue = createQueue("exporter");
 const queueOptions = {
   attempts: 2,
   removeOnComplete: true,
@@ -38,7 +38,7 @@ async function exportAndEmailCollections(teamId: string, email: string) {
   });
 }
 
-logisticsQueue.process(async (job) => {
+exporterQueue.process(async (job) => {
   log("Process", job.data);
 
   switch (job.data.type) {
@@ -49,7 +49,7 @@ logisticsQueue.process(async (job) => {
 });
 
 export const exportCollections = (teamId: string, email: string) => {
-  logisticsQueue.add(
+  exporterQueue.add(
     {
       type: "export-collections",
       teamId,

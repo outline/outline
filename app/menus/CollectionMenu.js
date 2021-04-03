@@ -9,7 +9,7 @@ import Collection from "models/Collection";
 import CollectionDelete from "scenes/CollectionDelete";
 import CollectionEdit from "scenes/CollectionEdit";
 import CollectionExport from "scenes/CollectionExport";
-import CollectionMembers from "scenes/CollectionMembers";
+import CollectionPermissions from "scenes/CollectionPermissions";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
@@ -42,9 +42,10 @@ function CollectionMenu({
   const history = useHistory();
 
   const file = React.useRef<?HTMLInputElement>();
-  const [showCollectionMembers, setShowCollectionMembers] = React.useState(
-    false
-  );
+  const [
+    showCollectionPermissions,
+    setShowCollectionPermissions,
+  ] = React.useState(false);
   const [showCollectionEdit, setShowCollectionEdit] = React.useState(false);
   const [showCollectionDelete, setShowCollectionDelete] = React.useState(false);
   const [showCollectionExport, setShowCollectionExport] = React.useState(false);
@@ -84,6 +85,12 @@ function CollectionMenu({
   const handleFilePicked = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       const files = getDataTransferFiles(ev);
+
+      // Because this is the onChange handler it's possible for the change to be
+      // from previously selecting a file to not selecting a file – aka empty
+      if (!files.length) {
+        return;
+      }
 
       try {
         const file = files[0];
@@ -149,17 +156,14 @@ function CollectionMenu({
               onClick: () => setShowCollectionEdit(true),
             },
             {
-              title: `${t("Members")}…`,
+              title: `${t("Permissions")}…`,
               visible: can.update,
-              onClick: () => setShowCollectionMembers(true),
+              onClick: () => setShowCollectionPermissions(true),
             },
             {
               title: `${t("Export")}…`,
               visible: !!(collection && can.export),
               onClick: () => setShowCollectionExport(true),
-            },
-            {
-              type: "separator",
             },
             {
               type: "separator",
@@ -175,15 +179,11 @@ function CollectionMenu({
       {renderModals && (
         <>
           <Modal
-            title={t("Collection members")}
-            onRequestClose={() => setShowCollectionMembers(false)}
-            isOpen={showCollectionMembers}
+            title={t("Collection permissions")}
+            onRequestClose={() => setShowCollectionPermissions(false)}
+            isOpen={showCollectionPermissions}
           >
-            <CollectionMembers
-              collection={collection}
-              onSubmit={() => setShowCollectionMembers(false)}
-              onEdit={() => setShowCollectionEdit(true)}
-            />
+            <CollectionPermissions collection={collection} />
           </Modal>
           <Modal
             title={t("Edit collection")}

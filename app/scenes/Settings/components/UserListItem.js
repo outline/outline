@@ -38,7 +38,7 @@ class UserListItem extends React.Component<Props> {
           <>
             <Avatar
               src={user.avatarUrl}
-              size={40}
+              size={32}
               onClick={this.handleOpenProfile}
             />
             <UserProfile

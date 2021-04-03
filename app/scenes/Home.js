@@ -1,12 +1,10 @@
 // @flow
-import { sample } from "lodash";
 import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import { Action } from "components/Actions";
-import Badge from "components/Badge";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import InputSearch from "components/InputSearch";
@@ -18,21 +16,6 @@ import PaginatedDocumentList from "../components/PaginatedDocumentList";
 import useStickyState from "../hooks/useStickyState";
 import useStores from "../hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
-
-function useTip() {
-  const { t } = useTranslation();
-  const tips = [
-    t("Use the CMD+K keyboard shortcut to jump to search"),
-    t("Use the CMD+. keyboard shortcut to toggle the sidebar"),
-    t("Type ? to see a list of keyboard shortcuts"),
-    t("You can drag and drop to reorder and move docs in the sidebar"),
-    t("Use templates for a shared starting point for new docs"),
-    t("Archive docs that are out of date, you can still search them"),
-  ];
-
-  const ref = React.useRef(sample(tips));
-  return ref.current;
-}
 
 function useWelcomeMessage() {
   const { t } = useTranslation();
@@ -48,7 +31,6 @@ function useWelcomeMessage() {
 }
 
 function Home() {
-  const tipOfTheDay = useTip();
   const [previousSession] = useStickyState<string>("", "previous-session");
   const welcomeMessage = useWelcomeMessage();
   const { documents, ui, auth } = useStores();
@@ -81,7 +63,7 @@ function Home() {
       }
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
-      <Heading>{welcomeMessage}!</Heading>
+      <Heading>{welcomeMessage},</Heading>
       <HelpText style={{ marginTop: -12 }}>
         {recent.length ? (
           <Trans
@@ -91,9 +73,7 @@ function Home() {
             values={{ count: recent.length > 10 ? "10+" : recent.length }}
           />
         ) : (
-          <>
-            <Badge yellow>Tip</Badge> {tipOfTheDay}
-          </>
+          t("Here’s an overview of what’s been happening recently…")
         )}
       </HelpText>
       <Tabs>

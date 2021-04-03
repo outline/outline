@@ -65,6 +65,7 @@ export default [
   {
     title: "Cawemo",
     keywords: "bpmn process",
+    defaultHidden: true,
     icon: () => <Img src="/images/cawemo.png" />,
     component: Cawemo,
     matcher: matcher(Cawemo),
@@ -72,6 +73,7 @@ export default [
   {
     title: "ClickUp",
     keywords: "project",
+    defaultHidden: true,
     icon: () => <Img src="/images/clickup.png" />,
     component: ClickUp,
     matcher: matcher(ClickUp),
@@ -141,6 +143,7 @@ export default [
   {
     title: "InVision",
     keywords: "design prototype",
+    defaultHidden: true,
     icon: () => <Img src="/images/invision.png" />,
     component: InVision,
     matcher: matcher(InVision),
@@ -183,6 +186,7 @@ export default [
   {
     title: "Mode",
     keywords: "analytics",
+    defaultHidden: true,
     icon: () => <Img src="/images/mode-analytics.png" />,
     component: ModeAnalytics,
     matcher: matcher(ModeAnalytics),

@@ -9,22 +9,22 @@ import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
+import DocumentMove from "scenes/DocumentMove";
 import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
+import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
-import DocumentMove from "./DocumentMove";
 import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
@@ -76,7 +76,6 @@ class DocumentScene extends React.Component<Props> {
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
-  @observable moveModalOpen: boolean = false;
   @observable lastRevision: number = this.props.document.revision;
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
@@ -186,9 +185,6 @@ class DocumentScene extends React.Component<Props> {
       ui.showTableOfContents();
     }
   }
-
-  handleCloseMoveModal = () => (this.moveModalOpen = false);
-  handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSave = async (
     options: {
@@ -325,8 +321,7 @@ class DocumentScene extends React.Component<Props> {
     const headings = this.editor.current
       ? this.editor.current.getHeadings()
       : [];
-    const showContents =
-      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+    const showContents = ui.tocVisible && readOnly;
 
     return (
       <ErrorBoundary>
@@ -339,7 +334,16 @@ class DocumentScene extends React.Component<Props> {
           <Route
             path={`${match.url}/move`}
             component={() => (
-              <DocumentMove document={document} onRequestClose={this.goBack} />
+              <Modal
+                title={`Move ${document.noun}`}
+                onRequestClose={this.goBack}
+                isOpen
+              >
+                <DocumentMove
+                  document={document}
+                  onRequestClose={this.goBack}
+                />
+              </Modal>
             )}
           />
           <PageTitle
@@ -361,22 +365,21 @@ class DocumentScene extends React.Component<Props> {
                 />
               </>
             )}
-            {!isShare && (
-              <Header
-                document={document}
-                isRevision={!!revision}
-                isDraft={document.isDraft}
-                isEditing={!readOnly}
-                isSaving={this.isSaving}
-                isPublishing={this.isPublishing}
-                publishingIsDisabled={
-                  document.isSaving || this.isPublishing || this.isEmpty
-                }
-                savingIsDisabled={document.isSaving || this.isEmpty}
-                goBack={this.goBack}
-                onSave={this.onSave}
-              />
-            )}
+            <Header
+              document={document}
+              isShare={isShare}
+              isRevision={!!revision}
+              isDraft={document.isDraft}
+              isEditing={!readOnly}
+              isSaving={this.isSaving}
+              isPublishing={this.isPublishing}
+              publishingIsDisabled={
+                document.isSaving || this.isPublishing || this.isEmpty
+              }
+              savingIsDisabled={document.isSaving || this.isEmpty}
+              goBack={this.goBack}
+              onSave={this.onSave}
+            />
             <MaxWidth
               archived={document.isArchived}
               showContents={showContents}
@@ -452,7 +455,9 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Background>
-        {isShare && !isCustomDomain() && <Branding />}
+        {isShare && !isCustomDomain() && (
+          <Branding href="//www.getoutline.com?ref=sharelink" />
+        )}
         {!isShare && <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );

@@ -12,9 +12,10 @@ import {
   Attachment,
   Authentication,
   Integration,
+  AuthenticationProvider,
 } from "../models";
 
-let count = 0;
+let count = 1;
 
 export async function buildShare(overrides: Object = {}) {
   if (!overrides.teamId) {
@@ -35,11 +36,21 @@ export async function buildShare(overrides: Object = {}) {
 export function buildTeam(overrides: Object = {}) {
   count++;
 
-  return Team.create({
-    name: `Team ${count}`,
-    slackId: uuid.v4(),
-    ...overrides,
-  });
+  return Team.create(
+    {
+      name: `Team ${count}`,
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: uuid.v4(),
+        },
+      ],
+      ...overrides,
+    },
+    {
+      include: "authenticationProviders",
+    }
+  );
 }
 
 export function buildEvent(overrides: Object = {}) {
@@ -51,21 +62,55 @@ export function buildEvent(overrides: Object = {}) {
 }
 
 export async function buildUser(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
+  const authenticationProvider = await AuthenticationProvider.findOne({
+    where: {
+      teamId: overrides.teamId,
+    },
+  });
+
+  count++;
+
+  return User.create(
+    {
+      email: `user${count}@example.com`,
+      name: `User ${count}`,
+      createdAt: new Date("2018-01-01T00:00:00.000Z"),
+      lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+      authentications: [
+        {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: uuid.v4(),
+        },
+      ],
+      ...overrides,
+    },
+    {
+      include: "authentications",
+    }
+  );
+}
+
+export async function buildAdmin(overrides: Object = {}) {
+  return buildUser({ ...overrides, isAdmin: true });
+}
+
+export async function buildInvite(overrides: Object = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  count++;
+
   return User.create({
     email: `user${count}@example.com`,
-    username: `user${count}`,
     name: `User ${count}`,
-    service: "slack",
-    serviceId: uuid.v4(),
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
-    lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
     ...overrides,
   });
 }
@@ -98,8 +143,6 @@ export async function buildIntegration(overrides: Object = {}) {
 }
 
 export async function buildCollection(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -109,18 +152,19 @@ export async function buildCollection(overrides: Object = {}) {
     const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
+
+  count++;
 
   return Collection.create({
     name: `Test Collection ${count}`,
     description: "Test collection description",
     createdById: overrides.userId,
+    permission: "read_write",
     ...overrides,
   });
 }
 
 export async function buildGroup(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -130,6 +174,8 @@ export async function buildGroup(overrides: Object = {}) {
     const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
+
+  count++;
 
   return Group.create({
     name: `Test Group ${count}`,
@@ -139,8 +185,6 @@ export async function buildGroup(overrides: Object = {}) {
 }
 
 export async function buildGroupUser(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -151,6 +195,8 @@ export async function buildGroupUser(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
+  count++;
+
   return GroupUser.create({
     createdById: overrides.userId,
     ...overrides,
@@ -158,8 +204,6 @@ export async function buildGroupUser(overrides: Object = {}) {
 }
 
 export async function buildDocument(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -174,6 +218,8 @@ export async function buildDocument(overrides: Object = {}) {
     const collection = await buildCollection(overrides);
     overrides.collectionId = collection.id;
   }
+
+  count++;
 
   return Document.create({
     title: `Document ${count}`,
@@ -186,15 +232,13 @@ export async function buildDocument(overrides: Object = {}) {
 }
 
 export async function buildAttachment(overrides: Object = {}) {
-  count++;
-
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
 
@@ -207,6 +251,8 @@ export async function buildAttachment(overrides: Object = {}) {
     const document = await buildDocument(overrides);
     overrides.documentId = document.id;
   }
+
+  count++;
 
   return Attachment.create({
     key: `uploads/key/to/file ${count}.png`,

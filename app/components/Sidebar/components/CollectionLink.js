@@ -1,9 +1,9 @@
 // @flow
+import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop } from "react-dnd";
+import { useDrop, useDrag } from "react-dnd";
 import styled from "styled-components";
-import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
@@ -18,10 +18,12 @@ import CollectionSortMenu from "menus/CollectionSortMenu";
 
 type Props = {|
   collection: Collection,
-  ui: UiStore,
   canUpdate: boolean,
   activeDocument: ?Document,
   prefetchDocument: (id: string) => Promise<void>,
+  belowCollection: Collection | void,
+  isDraggingAnyCollection: boolean,
+  onChangeDragging: (dragging: boolean) => void,
 |};
 
 function CollectionLink({
@@ -29,7 +31,9 @@ function CollectionLink({
   activeDocument,
   prefetchDocument,
   canUpdate,
-  ui,
+  belowCollection,
+  isDraggingAnyCollection,
+  onChangeDragging,
 }: Props) {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -40,10 +44,23 @@ function CollectionLink({
     [collection]
   );
 
-  const { documents, policies } = useStores();
-  const expanded = collection.id === ui.activeCollectionId;
+  const { ui, documents, policies, collections } = useStores();
+
+  const [expanded, setExpanded] = React.useState(
+    collection.id === ui.activeCollectionId
+  );
+
+  React.useEffect(() => {
+    if (isDraggingAnyCollection) {
+      setExpanded(false);
+    } else {
+      setExpanded(collection.id === ui.activeCollectionId);
+    }
+  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId]);
+
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
+  const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
   // Drop to re-parent
   const [{ isOver, canDrop }, drop] = useDrop({
@@ -74,48 +91,100 @@ function CollectionLink({
     }),
   });
 
+  // Drop to reorder Collection
+  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
+    accept: "collection",
+    drop: async (item, monitor) => {
+      collections.move(
+        item.id,
+        fractionalIndex(collection.index, belowCollectionIndex)
+      );
+    },
+    canDrop: (item, monitor) => {
+      return (
+        collection.id !== item.id &&
+        (!belowCollection || item.id !== belowCollection.id)
+      );
+    },
+    collect: (monitor) => ({
+      isCollectionDropping: monitor.isOver(),
+    }),
+  });
+
+  // Drag to reorder Collection
+  const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
+    type: "collection",
+    item: () => {
+      onChangeDragging(true);
+      return {
+        id: collection.id,
+      };
+    },
+    collect: (monitor) => ({
+      isCollectionDragging: monitor.isDragging(),
+    }),
+    canDrag: (monitor) => {
+      return can.move;
+    },
+    end: (monitor) => {
+      onChangeDragging(false);
+    },
+  });
+
   return (
     <>
       <div ref={drop} style={{ position: "relative" }}>
-        <DropToImport key={collection.id} collectionId={collection.id}>
-          <SidebarLinkWithPadding
-            key={collection.id}
-            to={collection.url}
-            icon={
-              <CollectionIcon collection={collection} expanded={expanded} />
-            }
-            iconColor={collection.color}
-            expanded={expanded}
-            showActions={menuOpen || expanded}
-            isActiveDrop={isOver && canDrop}
-            label={
-              <EditableTitle
-                title={collection.name}
-                onSubmit={handleTitleChange}
-                canUpdate={canUpdate}
-              />
-            }
-            exact={false}
-            menu={
-              <>
-                {can.update && (
-                  <CollectionSortMenuWithMargin
+        <Draggable
+          key={collection.id}
+          ref={dragToReorderCollection}
+          $isDragging={isCollectionDragging}
+          $isMoving={isCollectionDragging}
+        >
+          <DropToImport collectionId={collection.id}>
+            <SidebarLinkWithPadding
+              to={collection.url}
+              icon={
+                <CollectionIcon collection={collection} expanded={expanded} />
+              }
+              iconColor={collection.color}
+              expanded={expanded}
+              showActions={menuOpen || expanded}
+              isActiveDrop={isOver && canDrop}
+              label={
+                <EditableTitle
+                  title={collection.name}
+                  onSubmit={handleTitleChange}
+                  canUpdate={canUpdate}
+                />
+              }
+              exact={false}
+              menu={
+                <>
+                  {can.update && (
+                    <CollectionSortMenuWithMargin
+                      collection={collection}
+                      onOpen={() => setMenuOpen(true)}
+                      onClose={() => setMenuOpen(false)}
+                    />
+                  )}
+                  <CollectionMenu
                     collection={collection}
                     onOpen={() => setMenuOpen(true)}
                     onClose={() => setMenuOpen(false)}
                   />
-                )}
-                <CollectionMenu
-                  collection={collection}
-                  onOpen={() => setMenuOpen(true)}
-                  onClose={() => setMenuOpen(false)}
-                />
-              </>
-            }
-          />
-        </DropToImport>
+                </>
+              }
+            />
+          </DropToImport>
+        </Draggable>
         {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+        )}
+        {isDraggingAnyCollection && (
+          <DropCursor
+            isActiveDrop={isCollectionDropping}
+            innerRef={dropToReorderCollection}
+          />
         )}
       </div>
 
@@ -135,6 +204,11 @@ function CollectionLink({
     </>
   );
 }
+
+const Draggable = styled("div")`
+  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
+`;
 
 const SidebarLinkWithPadding = styled(SidebarLink)`
   padding-right: 60px;

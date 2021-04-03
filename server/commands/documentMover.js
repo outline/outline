@@ -18,8 +18,8 @@ export default async function documentMover({
   ip: string,
 }) {
   let transaction;
-  const result = { collections: [], documents: [] };
   const collectionChanged = collectionId !== document.collectionId;
+  const result = { collections: [], documents: [], collectionChanged };
 
   if (document.template) {
     if (!collectionChanged) {
@@ -45,9 +45,9 @@ export default async function documentMover({
       const [
         documentJson,
         fromIndex,
-      ] = await collection.removeDocumentInStructure(document, {
+      ] = (await collection.removeDocumentInStructure(document, {
         save: false,
-      });
+      })) || [undefined, index];
 
       // if we're reordering from within the same parent
       // the original and destination collection are the same,
@@ -72,7 +72,9 @@ export default async function documentMover({
       document.updatedBy = user;
 
       const newCollection: Collection = collectionChanged
-        ? await Collection.findByPk(collectionId, { transaction })
+        ? await Collection.scope({
+            method: ["withMembership", user.id],
+          }).findByPk(collectionId, { transaction })
         : collection;
       await newCollection.addDocumentToStructure(document, toIndex, {
         documentJson,
@@ -104,6 +106,8 @@ export default async function documentMover({
       }
 
       await document.save({ transaction });
+
+      document.collection = newCollection;
       result.documents.push(document);
 
       await transaction.commit();

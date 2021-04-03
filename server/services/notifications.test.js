@@ -64,7 +64,7 @@ describe("documents.publish", () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: user.teamId,

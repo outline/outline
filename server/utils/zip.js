@@ -9,6 +9,9 @@ import { getFileByKey } from "./s3";
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
+    if (!document) {
+      continue;
+    }
     let text = document.toMarkdown();
 
     const attachments = await Attachment.findAll({

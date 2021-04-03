@@ -18,6 +18,12 @@ export default function validation() {
       }
     };
 
+    ctx.assertSort = (value, model, message = "Invalid sort parameter") => {
+      if (!Object.keys(model.rawAttributes).includes(value)) {
+        throw new ValidationError(message);
+      }
+    };
+
     ctx.assertNotEmpty = (value, message) => {
       if (value === "") {
         throw new ValidationError(message);
@@ -44,6 +50,12 @@ export default function validation() {
 
     ctx.assertHexColor = (value, message) => {
       if (!validateColorHex(value)) {
+        throw new ValidationError(message);
+      }
+    };
+
+    ctx.assertValueInArray = (value, values, message) => {
+      if (!values.includes(value)) {
         throw new ValidationError(message);
       }
     };

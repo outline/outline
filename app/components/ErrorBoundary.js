@@ -107,7 +107,7 @@ class ErrorBoundary extends React.Component<Props> {
 }
 
 const Pre = styled.pre`
-  background: ${(props) => props.theme.smoke};
+  background: ${(props) => props.theme.secondaryBackground};
   padding: 16px;
   border-radius: 4px;
   font-size: 12px;

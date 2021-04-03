@@ -37,7 +37,7 @@ export default function ContextMenu({
   }, [onOpen, onClose, previousVisible, rest.visible]);
 
   return (
-    <Menu {...rest}>
+    <Menu hideOnClickOutside preventBodyScroll {...rest}>
       {(props) => (
         <Position {...props}>
           <Background>
@@ -60,8 +60,8 @@ const Background = styled.div`
   background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
   border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
-  border-radius: 2px;
-  padding: 0.5em 0;
+  border-radius: 6px;
+  padding: 6px 0;
   min-width: 180px;
   overflow: hidden;
   overflow-y: auto;

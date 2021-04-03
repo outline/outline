@@ -6,15 +6,21 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation, type TFunction } from "react-i18next";
 import keydown from "react-keydown";
-import { Switch, Route, Redirect } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  Redirect,
+  withRouter,
+  type RouterHistory,
+} from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import Analytics from "components/Analytics";
 import Button from "components/Button";
 import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
@@ -29,6 +35,7 @@ import {
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
+  newDocumentUrl,
 } from "utils/routeHelpers";
 
 type Props = {
@@ -38,6 +45,8 @@ type Props = {
   title?: ?React.Node,
   auth: AuthStore,
   ui: UiStore,
+  history: RouterHistory,
+  policies: PoliciesStore,
   notifications?: React.Node,
   i18n: Object,
   t: TFunction,
@@ -81,6 +90,17 @@ class Layout extends React.Component<Props> {
     this.redirectTo = homeUrl();
   }
 
+  @keydown("n")
+  goToNewDocument() {
+    const { activeCollectionId } = this.props.ui;
+    if (!activeCollectionId) return;
+
+    const can = this.props.policies.abilities(activeCollectionId);
+    if (!can.update) return;
+
+    this.props.history.push(newDocumentUrl(activeCollectionId));
+  }
+
   render() {
     const { auth, t, ui } = this.props;
     const { user, team } = auth;
@@ -100,7 +120,6 @@ class Layout extends React.Component<Props> {
           />
         </Helmet>
         <SkipNavLink />
-        <Analytics />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}
@@ -198,5 +217,5 @@ const Content = styled(Flex)`
 `;
 
 export default withTranslation()<Layout>(
-  inject("auth", "ui", "documents")(Layout)
+  inject("auth", "ui", "documents", "policies")(withRouter(Layout))
 );

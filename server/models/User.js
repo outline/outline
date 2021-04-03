@@ -8,10 +8,9 @@ import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
-
-const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
 
 const User = sequelize.define(
   "user",
@@ -28,7 +27,6 @@ const User = sequelize.define(
     isAdmin: DataTypes.BOOLEAN,
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
-    slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields().vault("jwtSecret"),
     lastActiveAt: DataTypes.DATE,
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
@@ -60,11 +58,12 @@ const User = sequelize.define(
           return original;
         }
 
+        const initial = this.name ? this.name[0] : "?";
         const hash = crypto
           .createHash("md5")
           .update(this.email || "")
           .digest("hex");
-        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png`;
       },
     },
   }
@@ -79,7 +78,12 @@ User.associate = (models) => {
   });
   User.hasMany(models.Document, { as: "documents" });
   User.hasMany(models.View, { as: "views" });
+  User.hasMany(models.UserAuthentication, { as: "authentications" });
   User.belongsTo(models.Team);
+
+  User.addScope("withAuthentications", {
+    include: [{ model: models.UserAuthentication, as: "authentications" }],
+  });
 };
 
 // Instance methods
@@ -87,7 +91,7 @@ User.prototype.collectionIds = async function (options = {}) {
   const collectionStubs = await Collection.scope({
     method: ["withMembership", this.id],
   }).findAll({
-    attributes: ["id", "private"],
+    attributes: ["id", "permission"],
     where: { teamId: this.teamId },
     paranoid: true,
     ...options,
@@ -96,7 +100,8 @@ User.prototype.collectionIds = async function (options = {}) {
   return collectionStubs
     .filter(
       (c) =>
-        !c.private ||
+        c.permission === "read" ||
+        c.permission === "read_write" ||
         c.memberships.length > 0 ||
         c.collectionGroupMemberships.length > 0
     )
@@ -151,10 +156,6 @@ User.prototype.getTransferToken = function () {
 // Returns a temporary token that is only used for logging in from an email
 // It can only be used to sign in once and has a medium length expiry
 User.prototype.getEmailSigninToken = function () {
-  if (this.service && this.service !== "email") {
-    throw new Error("Cannot generate email signin token for OAuth user");
-  }
-
   return JWT.sign(
     { id: this.id, createdAt: new Date().toISOString(), type: "email-signin" },
     this.jwtSecret
@@ -208,7 +209,6 @@ const removeIdentifyingInfo = async (model, options) => {
   model.avatarUrl = "";
   model.serviceId = null;
   model.username = null;
-  model.slackData = null;
   model.lastActiveIp = null;
   model.lastSignedInIp = null;
 

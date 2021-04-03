@@ -249,14 +249,12 @@ describe("#membershipUserIds", () => {
     const users = await Promise.all(
       Array(6)
         .fill()
-        .map(() => {
-          return buildUser({ teamId });
-        })
+        .map(() => buildUser({ teamId }))
     );
 
     const collection = await buildCollection({
       userId: users[0].id,
-      private: true,
+      permission: null,
       teamId,
     });
 

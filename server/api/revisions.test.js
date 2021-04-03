@@ -66,7 +66,7 @@ describe("#revisions.list", () => {
     const { user, document, collection } = await seed();
     await Revision.createFromDocument(document);
 
-    collection.private = true;
+    collection.permission = null;
     await collection.save();
 
     const res = await server.post("/api/revisions.list", {

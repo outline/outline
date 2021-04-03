@@ -27,7 +27,7 @@ import { createQueue } from "./utils/queue";
 
 const log = debug("emails");
 const useTestEmailService =
-  process.env.NODE_ENV !== "production" && !process.env.SMTP_USERNAME;
+  process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
 
 type Emails = "welcome" | "export";
 

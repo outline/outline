@@ -1,10 +1,13 @@
 // @flow
-import { ApiKey, User } from "../models";
+import { ApiKey, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;
 
-allow(User, "create", ApiKey);
+allow(User, "createApiKey", Team, (user, team) => {
+  if (!team || user.teamId !== team.id) return false;
+  return true;
+});
 
 allow(
   User,

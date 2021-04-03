@@ -36,7 +36,7 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
           )}
         </>
       }
-      image={<Avatar src={user.avatarUrl} size={40} />}
+      image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
         <Flex align="center">
           {onRemove && <GroupMemberMenu onRemove={onRemove} />}

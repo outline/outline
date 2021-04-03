@@ -89,7 +89,6 @@ function CollectionDescription({ collection }: Props) {
           {collection.hasDescription || isEditing || isDirty ? (
             <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
               <Editor
-                id={collection.id}
                 key={key}
                 defaultValue={collection.description || ""}
                 onChange={handleChange}
@@ -151,7 +150,7 @@ const MaxHeight = styled.div`
   position: relative;
   max-height: 25vh;
   overflow: hidden;
-  margin: -16px -8px -8px;
+  margin: -12px -8px -8px;
   padding: 8px;
 
   &[data-editing="true"],

@@ -29,6 +29,11 @@ export default class Analytics extends React.Component<Props> {
     script.src = "https://www.google-analytics.com/analytics.js";
     script.async = true;
 
+    // Track PWA install event
+    window.addEventListener("appinstalled", () => {
+      ga("send", "event", "pwa", "install");
+    });
+
     if (document.body) {
       document.body.appendChild(script);
     }
