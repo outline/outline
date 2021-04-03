@@ -106,7 +106,7 @@ class Provider extends React.Component<Props, State> {
           icon={icon ? <Logo>{icon}</Logo> : null}
           fullwidth
         >
-          {isCreate ? "Sign up" : "Continue"} with {name}
+          Continue with {name}
         </ButtonLarge>
       </Wrapper>
     );
