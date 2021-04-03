@@ -100,7 +100,10 @@ router.get("email.callback", auth({ required: false }), async (ctx) => {
     await user.update({ lastActiveAt: new Date() });
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "email", false);
+    ctx.signIn(user, team, "email", {
+      isNewUser: false,
+      isNewTeam: false,
+    });
   } catch (err) {
     ctx.redirect(`${process.env.URL}?notice=expired-token`);
   }

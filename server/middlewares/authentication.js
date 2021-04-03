@@ -94,7 +94,12 @@ export default function auth(options?: { required?: boolean } = {}) {
       ctx.state.user = user;
     }
 
-    ctx.signIn = (user: User, team: Team, service, isFirstSignin = false) => {
+    ctx.signIn = (
+      user: User,
+      team: Team,
+      service,
+      options: { isNewUser: boolean, isNewTeam: boolean }
+    ) => {
       if (user.isSuspended) {
         return ctx.redirect("/?notice=suspended");
       }
@@ -157,7 +162,11 @@ export default function auth(options?: { required?: boolean } = {}) {
           httpOnly: false,
           expires,
         });
-        ctx.redirect(`${team.url}/home${isFirstSignin ? "?welcome" : ""}`);
+        ctx.redirect(
+          `${team.url}/home${
+            options.isNewTeam ? "?newTeam" : options.isNewUser ? "?newUser" : ""
+          }`
+        );
       }
     };
 
