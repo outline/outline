@@ -27,7 +27,10 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        ctx.signIn(result.user, result.team, providerName, result.isNewUser);
+        ctx.signIn(result.user, result.team, providerName, {
+          isNewUser: result.isNewUser,
+          isNewTeam: result.isNewTeam,
+        });
       }
     )(ctx);
   };

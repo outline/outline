@@ -4,23 +4,36 @@ import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
+import styled from "styled-components";
 import { Action } from "components/Actions";
 import Heading from "components/Heading";
+import HelpText from "components/HelpText";
 import InputSearch from "components/InputSearch";
 import LanguagePrompt from "components/LanguagePrompt";
 import Scene from "components/Scene";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
-import useStores from "../hooks/useStores";
+import useCurrentUser from "hooks/useCurrentUser";
+import useQuery from "hooks/useQuery";
+import useStores from "hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, ui, auth } = useStores();
+  const query = useQuery();
+  const user = useCurrentUser();
+  const { documents, ui } = useStores();
   const { t } = useTranslation();
+  const userId = user.id;
 
-  if (!auth.user || !auth.team) return null;
-  const user = auth.user.id;
+  // see authentication middleware for where these query params are defined:
+  // https://github.com/outline/outline/blob/ed2a42ac279e0ae23abcf846b621cf6bcf03e75f/server/middlewares/authentication.js#L165
+  const teamOnboarding = query.get("newTeam") !== null;
+  const userOnboarding = !teamOnboarding && query.get("newUser") !== null;
+  const onboarding = teamOnboarding || userOnboarding;
+  const showLanguagePrompt = !onboarding && !ui.languagePromptDismissed;
+
+  console.log({ showLanguagePrompt, teamOnboarding, userOnboarding });
 
   return (
     <Scene
@@ -41,8 +54,38 @@ function Home() {
         </>
       }
     >
-      {!ui.languagePromptDismissed && <LanguagePrompt />}
-      <Heading>{t("Home")}</Heading>
+      {showLanguagePrompt && <LanguagePrompt />}
+      {teamOnboarding && (
+        <>
+          <Heading>
+            <span role="img" aria-label="Hello">
+              👋
+            </span>
+            &nbsp;{t("Welcome")},
+          </Heading>
+          <Onboarding>
+            Check out the example documents we created for you below and then
+            create a new collection of your own in the left sidebar to get
+            started…
+          </Onboarding>
+        </>
+      )}
+      {userOnboarding && (
+        <>
+          <Heading>
+            <span role="img" aria-label="Hello">
+              👋
+            </span>
+            &nbsp;{t("Welcome")},
+          </Heading>
+          <Onboarding>
+            Outline is a place for your team to easily store and find knowledge.
+            Start in the left sidebar to explore what other team members have
+            created so far…
+          </Onboarding>
+        </>
+      )}
+      {!onboarding && <Heading>{t("Home")}</Heading>}
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently updated")}
@@ -64,9 +107,9 @@ function Home() {
         <Route path="/home/created">
           <PaginatedDocumentList
             key="created"
-            documents={documents.createdByUser(user)}
+            documents={documents.createdByUser(userId)}
             fetch={documents.fetchOwned}
-            options={{ user }}
+            options={{ userId }}
             showCollection
           />
         </Route>
@@ -81,5 +124,10 @@ function Home() {
     </Scene>
   );
 }
+
+const Onboarding = styled(HelpText)`
+  margin-top: -12px;
+  margin-bottom: 24px;
+`;
 
 export default observer(Home);

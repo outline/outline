@@ -17,6 +17,9 @@ export type ContextWithAuthMiddleware = {|
     user: User,
     team: Team,
     providerName: string,
-    isFirstSignin: boolean
+    options: {
+      isNewUser: boolean,
+      isNewTeam: boolean,
+    }
   ) => void,
 |};
