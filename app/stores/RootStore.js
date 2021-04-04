@@ -1,6 +1,7 @@
 // @flow
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
+import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
 import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
@@ -18,6 +19,7 @@ import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 
 export default class RootStore {
+  authenticationProviders: AuthenticationProvidersStore;
   apiKeys: ApiKeysStore;
   auth: AuthStore;
   collections: CollectionsStore;
@@ -37,6 +39,7 @@ export default class RootStore {
   views: ViewsStore;
 
   constructor() {
+    this.authenticationProviders = new AuthenticationProvidersStore(this);
     this.apiKeys = new ApiKeysStore(this);
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
@@ -57,6 +60,7 @@ export default class RootStore {
   }
 
   logout() {
+    this.authenticationProviders.clear();
     this.apiKeys.clear();
     // this.auth omitted for reasons...
     this.collections.clear();

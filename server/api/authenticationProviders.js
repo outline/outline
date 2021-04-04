@@ -69,16 +69,14 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
   );
 
   ctx.body = {
-    data: {
-      authenticationProviders: [
-        ...teamAuthenticationProviders.map(presentAuthenticationProvider),
-        ...otherAuthenticationProviders.map((p) => ({
-          name: p.id,
-          isEnabled: false,
-          isConnected: false,
-        })),
-      ],
-    },
+    data: [
+      ...teamAuthenticationProviders.map(presentAuthenticationProvider),
+      ...otherAuthenticationProviders.map((p) => ({
+        name: p.id,
+        isEnabled: false,
+        isConnected: false,
+      })),
+    ],
   };
 });
 

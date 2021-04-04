@@ -7,6 +7,7 @@ export default function present(
   return {
     id: authenticationProvider.id,
     name: authenticationProvider.name,
+    providerId: authenticationProvider.providerId,
     createdAt: authenticationProvider.createdAt,
     isEnabled: authenticationProvider.enabled,
     isConnected: true,
