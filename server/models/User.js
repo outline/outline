@@ -5,6 +5,7 @@ import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
 import uuid from "uuid";
 import { languages } from "../../shared/i18n";
+import Rank from "../../shared/utils/rankEnum";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
@@ -318,9 +319,9 @@ User.prototype.demote = async function (teamId: string, to: string) {
   });
 
   if (res.count >= 1) {
-    if (to === "member") {
+    if (to === Rank.MEMBER) {
       return this.update({ isAdmin: false, isViewer: false });
-    } else if (to === "viewer") {
+    } else if (to === Rank.VIEWER) {
       return this.update({ isAdmin: false, isViewer: true });
     }
   } else {

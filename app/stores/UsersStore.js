@@ -3,6 +3,8 @@ import invariant from "invariant";
 import { filter, orderBy } from "lodash";
 import { observable, computed, action, runInAction } from "mobx";
 import User from "models/User";
+import Rank from "../../shared/utils/rankEnum";
+import getUserRank from "../utils/getUserRank";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
@@ -66,35 +68,46 @@ export default class UsersStore extends BaseStore<User> {
 
   @action
   promote = (user: User) => {
-    this.counts.admins += 1;
-    if (user.isViewer) this.counts.viewers -= 1;
-    return this.actionOnUser("promote", user);
+    try {
+      this.updateCounts(Rank.ADMIN, getUserRank(user));
+      this.actionOnUser("promote", user);
+    } catch {
+      this.updateCounts(getUserRank(user), Rank.ADMIN);
+    }
   };
 
   @action
   demote = (user: User, to: string) => {
-    if (user.isAdmin) {
-      this.counts.admins -= 1;
+    try {
+      this.updateCounts(to, getUserRank(user));
+      this.actionOnUser("demote", user, to);
+    } catch {
+      this.updateCounts(getUserRank(user), to);
     }
-
-    if (to === "member" && user.isViewer) {
-      this.counts.viewers -= 1;
-    } else if (to === "viewer") {
-      this.counts.viewers += 1;
-    }
-    return this.actionOnUser("demote", user, to);
   };
 
   @action
   suspend = (user: User) => {
-    this.counts.suspended += 1;
-    return this.actionOnUser("suspend", user);
+    try {
+      this.counts.suspended += 1;
+      this.counts.active -= 1;
+      this.actionOnUser("suspend", user);
+    } catch {
+      this.counts.suspended -= 1;
+      this.counts.active += 1;
+    }
   };
 
   @action
   activate = (user: User) => {
-    this.counts.suspended -= 1;
-    return this.actionOnUser("activate", user);
+    try {
+      this.counts.suspended -= 1;
+      this.counts.active += 1;
+      this.actionOnUser("activate", user);
+    } catch {
+      this.counts.suspended += 1;
+      this.counts.active -= 1;
+    }
   };
 
   @action
@@ -138,6 +151,30 @@ export default class UsersStore extends BaseStore<User> {
     }
     this.counts.all -= 1;
   }
+
+  @action
+  updateCounts = (to: string, from: string) => {
+    if (to === Rank.ADMIN) {
+      this.counts.admins += 1;
+      if (from === Rank.VIEWER) {
+        this.counts.viewers -= 1;
+      }
+    }
+    if (to === Rank.VIEWER) {
+      this.counts.viewers += 1;
+      if (from === Rank.ADMIN) {
+        this.counts.admins -= 1;
+      }
+    }
+    if (to === Rank.MEMBER) {
+      if (from === Rank.VIEWER) {
+        this.counts.viewers -= 1;
+      }
+      if (from === Rank.ADMIN) {
+        this.counts.admins -= 1;
+      }
+    }
+  };
 
   notInCollection = (collectionId: string, query: string = "") => {
     const memberships = filter(
