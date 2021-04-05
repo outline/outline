@@ -25,6 +25,7 @@ type Props = {|
   isShare: boolean,
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
+  children: React.Node,
 |};
 
 @observer
@@ -97,6 +98,7 @@ class DocumentEditor extends React.Component<Props> {
       isShare,
       readOnly,
       innerRef,
+      children,
       ...rest
     } = this.props;
 
@@ -151,6 +153,7 @@ class DocumentEditor extends React.Component<Props> {
             onClose={this.handleLinkInactive}
           />
         )}
+        {children}
       </Flex>
     );
   }

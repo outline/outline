@@ -441,16 +441,17 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
-                  />
+                  >
+                    {!isShare && !revision && (
+                      <>
+                        <MarkAsViewed document={document} />
+                        <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                          <References document={document} />
+                        </ReferencesWrapper>
+                      </>
+                    )}
+                  </Editor>
                 </Flex>
-                {!isShare && !revision && (
-                  <>
-                    <MarkAsViewed document={document} />
-                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                      <References document={document} />
-                    </ReferencesWrapper>
-                  </>
-                )}
               </React.Suspense>
             </MaxWidth>
           </Container>
