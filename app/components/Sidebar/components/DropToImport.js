@@ -2,12 +2,11 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import Dropzone from "react-dropzone";
+import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import LoadingIndicator from "components/LoadingIndicator";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
-
-const EMPTY_OBJECT = {};
 
 type Props = {|
   children: React.Node,
@@ -18,11 +17,19 @@ type Props = {|
 |};
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
-  const { documents } = useStores();
+  const { t } = useTranslation();
+  const { ui, documents } = useStores();
   const { handleFiles, isImporting } = useImportDocument(
     collectionId,
     documentId
   );
+
+  const handleRejection = React.useCallback(() => {
+    ui.showToast(
+      t("Document not supported – try Markdown, Plain text, HTML, or Word"),
+      { type: "error" }
+    );
+  }, [t, ui]);
 
   if (disabled) {
     return children;
@@ -32,7 +39,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     <Dropzone
       accept={documents.importFileTypes.join(", ")}
       onDropAccepted={handleFiles}
-      style={EMPTY_OBJECT}
+      onDropRejected={handleRejection}
       noClick
       multiple
     >
