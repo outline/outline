@@ -15,6 +15,7 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
+import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -263,7 +264,7 @@ class Search extends React.Component<Props> {
     const showEmpty = !this.isLoading && this.query && results.length === 0;
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
-    const can = policies.abilities(auth.team.id);
+    const can = policies.abilities(auth.team?.id ? auth.team.id : "");
 
     return (
       <Container auto>

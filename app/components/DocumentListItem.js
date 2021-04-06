@@ -15,6 +15,7 @@ import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
@@ -44,6 +45,7 @@ function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const currentUser = useCurrentUser();
+  const currentTeam = useCurrentTeam();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const {
     document,
@@ -62,7 +64,7 @@ function DocumentListItem(props: Props) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const can = policies.abilities(currentUser.teamId);
+  const can = policies.abilities(currentTeam.id);
 
   return (
     <DocumentLink

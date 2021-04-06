@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import ApiKeysStore from "stores/ApiKeysStore";
+import UiStore from "stores/UiStore";
 
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";

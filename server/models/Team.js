@@ -8,7 +8,7 @@ import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from "../../shared/utils/domains";
-import { DataTypes, sequelize } from "../sequelize";
+import { DataTypes, sequelize, Op } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 
