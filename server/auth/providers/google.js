@@ -3,16 +3,16 @@ import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
-import accountProvisioner from "../commands/accountProvisioner";
-import env from "../env";
+import accountProvisioner from "../../commands/accountProvisioner";
+import env from "../../env";
 import {
   GoogleWorkspaceRequiredError,
   GoogleWorkspaceInvalidError,
-} from "../errors";
-import auth from "../middlewares/authentication";
-import passportMiddleware from "../middlewares/passport";
-import { getAllowedDomains } from "../utils/authentication";
-import { StateStore } from "../utils/passport";
+} from "../../errors";
+import auth from "../../middlewares/authentication";
+import passportMiddleware from "../../middlewares/passport";
+import { getAllowedDomains } from "../../utils/authentication";
+import { StateStore } from "../../utils/passport";
 
 const router = new Router();
 const providerName = "google";

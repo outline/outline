@@ -96,7 +96,7 @@ User.prototype.collectionIds = async function (options = {}) {
   const collectionStubs = await Collection.scope({
     method: ["withMembership", this.id],
   }).findAll({
-    attributes: ["id", "private"],
+    attributes: ["id", "permission"],
     where: { teamId: this.teamId },
     paranoid: true,
     ...options,
@@ -105,7 +105,8 @@ User.prototype.collectionIds = async function (options = {}) {
   return collectionStubs
     .filter(
       (c) =>
-        !c.private ||
+        c.permission === "read" ||
+        c.permission === "read_write" ||
         c.memberships.length > 0 ||
         c.collectionGroupMemberships.length > 0
     )
@@ -242,13 +243,7 @@ User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(async (user) => {
   const team = await Team.findByPk(user.teamId);
-
-  // From Slack support:
-  // If you wish to contact users at an email address obtained through Slack,
-  // you need them to opt-in through a clear and separate process.
-  if (user.service && user.service !== "slack") {
-    sendEmail("welcome", user.email, { teamUrl: team.url });
-  }
+  sendEmail("welcome", user.email, { teamUrl: team.url });
 });
 
 // By default when a user signs up we subscribe them to email notifications
@@ -268,6 +263,14 @@ User.afterCreate(async (user, options) => {
         userId: user.id,
         teamId: user.teamId,
         event: "emails.onboarding",
+      },
+      transaction: options.transaction,
+    }),
+    NotificationSetting.findOrCreate({
+      where: {
+        userId: user.id,
+        teamId: user.teamId,
+        event: "emails.features",
       },
       transaction: options.transaction,
     }),

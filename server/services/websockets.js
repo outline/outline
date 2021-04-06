@@ -157,9 +157,9 @@ export default class Websockets {
 
         socketio
           .to(
-            collection.private
-              ? `collection-${collection.id}`
-              : `team-${collection.teamId}`
+            collection.permission
+              ? `team-${collection.teamId}`
+              : `collection-${collection.id}`
           )
           .emit("entities", {
             event: event.name,
@@ -173,9 +173,9 @@ export default class Websockets {
 
         return socketio
           .to(
-            collection.private
-              ? `collection-${collection.id}`
-              : `team-${collection.teamId}`
+            collection.permission
+              ? `team-${collection.teamId}`
+              : `collection-${collection.id}`
           )
           .emit("join", {
             event: event.name,

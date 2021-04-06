@@ -21,7 +21,6 @@ import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import Analytics from "components/Analytics";
 import Button from "components/Button";
 import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
@@ -121,7 +120,6 @@ class Layout extends React.Component<Props> {
           />
         </Helmet>
         <SkipNavLink />
-        <Analytics />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}

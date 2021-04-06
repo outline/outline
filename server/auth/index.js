@@ -9,7 +9,7 @@ import { AuthenticationError } from "../errors";
 import auth from "../middlewares/authentication";
 import validation from "../middlewares/validation";
 import { Team } from "../models";
-import { requireDirectory } from "../utils/fs";
+import providers from "./providers";
 
 const log = debug("server");
 const app = new Koa();
@@ -17,15 +17,11 @@ const router = new Router();
 
 router.use(passport.initialize());
 
-// dynamically load available authentication providers
-requireDirectory(__dirname).forEach(([{ default: provider, config }]) => {
-  if (provider && provider.routes) {
-    if (!config) {
-      throw new Error("Auth providers must export a 'config' object");
-    }
-
-    router.use("/", provider.routes());
-    log(`loaded ${config.name} auth provider`);
+// dynamically load available authentication provider routes
+providers.forEach((provider) => {
+  if (provider.enabled) {
+    router.use("/", provider.router.routes());
+    log(`loaded ${provider.name} auth provider`);
   }
 });
 

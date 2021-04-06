@@ -13,9 +13,15 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  const { sort = "createdAt", query, includeSuspended = false } = ctx.body;
-  let direction = ctx.body.direction;
+  let {
+    sort = "createdAt",
+    query,
+    direction,
+    includeSuspended = false,
+  } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  ctx.assertSort(sort, User);
+
   const user = ctx.state.user;
 
   let where = {

@@ -22,6 +22,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     auditLog = false,
   } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  ctx.assertSort(sort, Event);
 
   let where = {
     name: Event.ACTIVITY_EVENTS,

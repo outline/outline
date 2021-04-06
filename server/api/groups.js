@@ -18,9 +18,10 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("groups.list", auth(), pagination(), async (ctx) => {
-  const { sort = "updatedAt" } = ctx.body;
-  let direction = ctx.body.direction;
+  let { sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  ctx.assertSort(sort, Group);
+
   const user = ctx.state.user;
 
   let groups = await Group.findAll({

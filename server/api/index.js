@@ -10,6 +10,7 @@ import validation from "../middlewares/validation";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
+import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
 import documents from "./documents";
 import events from "./events";
@@ -45,6 +46,7 @@ api.use(editor());
 
 // routes
 router.use("/", auth.routes());
+router.use("/", authenticationProviders.routes());
 router.use("/", events.routes());
 router.use("/", users.routes());
 router.use("/", collections.routes());

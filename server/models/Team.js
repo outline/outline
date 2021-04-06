@@ -194,10 +194,16 @@ Team.prototype.provisionFirstCollection = async function (userId) {
 
 Team.prototype.collectionIds = async function (paranoid: boolean = true) {
   let models = await Collection.findAll({
-    attributes: ["id", "private"],
-    where: { teamId: this.id, private: false },
+    attributes: ["id"],
+    where: {
+      teamId: this.id,
+      permission: {
+        [Op.ne]: null,
+      },
+    },
     paranoid,
   });
+
   return models.map((c) => c.id);
 };
 

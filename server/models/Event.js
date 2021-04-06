@@ -72,6 +72,7 @@ Event.ACTIVITY_EVENTS = [
 Event.AUDIT_EVENTS = [
   "api_keys.create",
   "api_keys.delete",
+  "authenticationProviders.update",
   "collections.create",
   "collections.update",
   "collections.move",

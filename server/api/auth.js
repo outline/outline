@@ -1,29 +1,14 @@
 // @flow
-import path from "path";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
-import { signin } from "../../shared/utils/routeHelpers";
+import providers from "../auth/providers";
 import auth from "../middlewares/authentication";
 import { Team } from "../models";
 import { presentUser, presentTeam, presentPolicies } from "../presenters";
 import { isCustomDomain } from "../utils/domains";
-import { requireDirectory } from "../utils/fs";
 
 const router = new Router();
-let providers = [];
-
-requireDirectory(path.join(__dirname, "..", "auth")).forEach(
-  ([{ config }, id]) => {
-    if (config && config.enabled) {
-      providers.push({
-        id,
-        name: config.name,
-        authUrl: signin(id),
-      });
-    }
-  }
-);
 
 function filterProviders(team) {
   return providers
@@ -39,7 +24,12 @@ function filterProviders(team) {
         !team ||
         find(team.authenticationProviders, { name: provider.id, enabled: true })
       );
-    });
+    })
+    .map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      authUrl: provider.authUrl,
+    }));
 }
 
 router.post("auth.config", async (ctx) => {

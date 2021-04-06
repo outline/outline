@@ -254,7 +254,7 @@ describe("#membershipUserIds", () => {
 
     const collection = await buildCollection({
       userId: users[0].id,
-      private: true,
+      permission: null,
       teamId,
     });
 

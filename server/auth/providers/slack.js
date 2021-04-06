@@ -2,13 +2,13 @@
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
-import accountProvisioner from "../commands/accountProvisioner";
-import env from "../env";
-import auth from "../middlewares/authentication";
-import passportMiddleware from "../middlewares/passport";
-import { Authentication, Collection, Integration, Team } from "../models";
-import * as Slack from "../slack";
-import { StateStore } from "../utils/passport";
+import accountProvisioner from "../../commands/accountProvisioner";
+import env from "../../env";
+import auth from "../../middlewares/authentication";
+import passportMiddleware from "../../middlewares/passport";
+import { Authentication, Collection, Integration, Team } from "../../models";
+import * as Slack from "../../slack";
+import { StateStore } from "../../utils/passport";
 
 const router = new Router();
 const providerName = "slack";

@@ -78,6 +78,7 @@ export const seed = async () => {
     urlId: "collection",
     teamId: team.id,
     createdById: user.id,
+    permission: "read_write",
   });
 
   const document = await Document.create({
