@@ -10,13 +10,3 @@ export type ContextWithState = {|
     authType: "app" | "api",
   },
 |};
-
-export type ContextWithAuthMiddleware = {|
-  ...$Exact<ContextWithState>,
-  signIn: (
-    user: User,
-    team: Team,
-    providerName: string,
-    isFirstSignin: boolean
-  ) => void,
-|};

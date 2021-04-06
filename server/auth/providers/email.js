@@ -5,9 +5,9 @@ import { find } from "lodash";
 import { AuthorizationError } from "../../errors";
 import mailer from "../../mailer";
 import methodOverride from "../../middlewares/methodOverride";
-import signin from "../../middlewares/signin";
 import validation from "../../middlewares/validation";
 import { User, Team } from "../../models";
+import { signIn } from "../../utils/authentication";
 import { getUserForEmailSigninToken } from "../../utils/jwt";
 
 const router = new Router();
@@ -84,7 +84,7 @@ router.post("email", async (ctx) => {
   };
 });
 
-router.get("email.callback", signin(), async (ctx) => {
+router.get("email.callback", async (ctx) => {
   const { token } = ctx.request.query;
 
   ctx.assertPresent(token, "token is required");
@@ -101,7 +101,7 @@ router.get("email.callback", signin(), async (ctx) => {
     await user.update({ lastActiveAt: new Date() });
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, user.team, "email", false);
+    signIn(ctx, user, user.team, "email", false);
   } catch (err) {
     ctx.redirect(`/?notice=expired-token`);
   }

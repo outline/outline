@@ -10,7 +10,6 @@ import {
   GoogleWorkspaceInvalidError,
 } from "../../errors";
 import passportMiddleware from "../../middlewares/passport";
-import signin from "../../middlewares/signin";
 import { getAllowedDomains } from "../../utils/authentication";
 import { StateStore } from "../../utils/passport";
 
@@ -90,7 +89,7 @@ if (GOOGLE_CLIENT_ID) {
 
   router.get("google", passport.authenticate(providerName));
 
-  router.get("google.callback", signin(), passportMiddleware(providerName));
+  router.get("google.callback", passportMiddleware(providerName));
 }
 
 export default router;
