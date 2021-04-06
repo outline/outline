@@ -5,7 +5,6 @@ import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
 import uuid from "uuid";
 import { languages } from "../../shared/i18n";
-import type { Rank } from "../../shared/utils/rank";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
