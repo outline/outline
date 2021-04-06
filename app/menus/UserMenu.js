@@ -7,7 +7,7 @@ import User from "models/User";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
-import Rank from "../../shared/utils/rankEnum";
+import Rank from "../../shared/utils/ranks";
 import getUserRank from "../utils/getUserRank";
 import useStores from "hooks/useStores";
 

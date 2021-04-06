@@ -1,6 +1,6 @@
 // @flow
-export default Object.freeze({
+export default {
   ADMIN: "Admin",
   VIEWER: "Viewer",
   MEMBER: "Member",
-});
+};

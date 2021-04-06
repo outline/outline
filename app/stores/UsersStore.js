@@ -3,7 +3,7 @@ import invariant from "invariant";
 import { filter, orderBy } from "lodash";
 import { observable, computed, action, runInAction } from "mobx";
 import User from "models/User";
-import Rank from "../../shared/utils/rankEnum";
+import Rank from "../../shared/utils/ranks";
 import getUserRank from "../utils/getUserRank";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";

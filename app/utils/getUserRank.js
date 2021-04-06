@@ -1,6 +1,6 @@
 // @flow
 import User from "models/User";
-import Rank from "../../shared/utils/rankEnum";
+import Rank from "../../shared/utils/ranks";
 
 export default function getUserRank(user: User) {
   if (user.isAdmin) {

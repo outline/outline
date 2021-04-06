@@ -1,6 +1,6 @@
 // @flow
 import Router from "koa-router";
-import Rank from "../../shared/utils/rankEnum";
+import Rank from "../../shared/utils/ranks";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
