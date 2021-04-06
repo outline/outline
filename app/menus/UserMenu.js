@@ -7,8 +7,6 @@ import User from "models/User";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
-import Rank from "../../shared/utils/ranks";
-import getUserRank from "../utils/getUserRank";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -51,7 +49,7 @@ function UserMenu({ user }: Props) {
       ) {
         return;
       }
-      users.demote(user, Rank.MEMBER);
+      users.demote(user, "Member");
     },
     [users, user, t]
   );
@@ -71,7 +69,7 @@ function UserMenu({ user }: Props) {
       ) {
         return;
       }
-      users.demote(user, Rank.VIEWER);
+      users.demote(user, "Viewer");
     },
     [users, user, t]
   );
@@ -121,21 +119,21 @@ function UserMenu({ user }: Props) {
                 userName: user.name,
               }),
               onClick: handleMember,
-              visible: can.demote && getUserRank(user) !== Rank.MEMBER,
+              visible: can.demote && user.rank !== "Member",
             },
             {
               title: t("Make {{ userName }} a viewer", {
                 userName: user.name,
               }),
               onClick: handleViewer,
-              visible: can.demote && getUserRank(user) !== Rank.VIEWER,
+              visible: can.demote && user.rank !== "Viewer",
             },
             {
               title: t("Make {{ userName }} an admin…", {
                 userName: user.name,
               }),
               onClick: handlePromote,
-              visible: can.promote && getUserRank(user) !== Rank.ADMIN,
+              visible: can.promote && user.rank !== "Admin",
             },
             {
               type: "separator",

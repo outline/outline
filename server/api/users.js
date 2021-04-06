@@ -1,6 +1,5 @@
 // @flow
 import Router from "koa-router";
-import Rank from "../../shared/utils/ranks";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
@@ -136,7 +135,7 @@ router.post("users.demote", auth(), async (ctx) => {
   const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
-  to = to === Rank.VIEWER ? Rank.VIEWER : Rank.MEMBER;
+  to = to === "Viewer" ? "Viewer" : "Member";
 
   const user = await User.findByPk(userId);
 

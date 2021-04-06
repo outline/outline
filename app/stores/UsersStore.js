@@ -3,8 +3,7 @@ import invariant from "invariant";
 import { filter, orderBy } from "lodash";
 import { observable, computed, action, runInAction } from "mobx";
 import User from "models/User";
-import Rank from "../../shared/utils/ranks";
-import getUserRank from "../utils/getUserRank";
+import type { Rank } from "../../shared/utils/rank";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
@@ -67,31 +66,31 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @action
-  promote = (user: User) => {
+  promote = async (user: User) => {
     try {
-      this.updateCounts(Rank.ADMIN, getUserRank(user));
-      this.actionOnUser("promote", user);
+      this.updateCounts("Admin", user.rank);
+      await this.actionOnUser("promote", user);
     } catch {
-      this.updateCounts(getUserRank(user), Rank.ADMIN);
+      this.updateCounts(user.rank, "Admin");
     }
   };
 
   @action
-  demote = (user: User, to: string) => {
+  demote = async (user: User, to: Rank) => {
     try {
-      this.updateCounts(to, getUserRank(user));
-      this.actionOnUser("demote", user, to);
+      this.updateCounts(to, user.rank);
+      await this.actionOnUser("demote", user, to);
     } catch {
-      this.updateCounts(getUserRank(user), to);
+      this.updateCounts(user.rank, to);
     }
   };
 
   @action
-  suspend = (user: User) => {
+  suspend = async (user: User) => {
     try {
       this.counts.suspended += 1;
       this.counts.active -= 1;
-      this.actionOnUser("suspend", user);
+      await this.actionOnUser("suspend", user);
     } catch {
       this.counts.suspended -= 1;
       this.counts.active += 1;
@@ -99,11 +98,11 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
-  activate = (user: User) => {
+  activate = async (user: User) => {
     try {
       this.counts.suspended -= 1;
       this.counts.active += 1;
-      this.actionOnUser("activate", user);
+      await this.actionOnUser("activate", user);
     } catch {
       this.counts.suspended += 1;
       this.counts.active -= 1;
@@ -153,24 +152,24 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @action
-  updateCounts = (to: string, from: string) => {
-    if (to === Rank.ADMIN) {
+  updateCounts = (to: Rank, from: Rank) => {
+    if (to === "Admin") {
       this.counts.admins += 1;
-      if (from === Rank.VIEWER) {
+      if (from === "Viewer") {
         this.counts.viewers -= 1;
       }
     }
-    if (to === Rank.VIEWER) {
+    if (to === "Viewer") {
       this.counts.viewers += 1;
-      if (from === Rank.ADMIN) {
+      if (from === "Admin") {
         this.counts.admins -= 1;
       }
     }
-    if (to === Rank.MEMBER) {
-      if (from === Rank.VIEWER) {
+    if (to === "Member") {
+      if (from === "Viewer") {
         this.counts.viewers -= 1;
       }
-      if (from === Rank.ADMIN) {
+      if (from === "Admin") {
         this.counts.admins -= 1;
       }
     }
@@ -234,7 +233,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  actionOnUser = async (action: string, user: User, to?: string) => {
+  actionOnUser = async (action: string, user: User, to?: Rank) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,
       to,

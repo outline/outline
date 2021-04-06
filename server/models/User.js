@@ -5,7 +5,7 @@ import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
 import uuid from "uuid";
 import { languages } from "../../shared/i18n";
-import Rank from "../../shared/utils/ranks";
+import type { Rank } from "../../shared/utils/rank";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
@@ -306,7 +306,10 @@ User.getCounts = async function (teamId: string) {
   };
 };
 
-User.prototype.demote = async function (teamId: string, to: string) {
+User.prototype.demote = async function (
+  teamId: string,
+  to: "Member" | "Viewer"
+) {
   const res = await User.findAndCountAll({
     where: {
       teamId,
@@ -319,9 +322,9 @@ User.prototype.demote = async function (teamId: string, to: string) {
   });
 
   if (res.count >= 1) {
-    if (to === Rank.MEMBER) {
+    if (to === "Member") {
       return this.update({ isAdmin: false, isViewer: false });
-    } else if (to === Rank.VIEWER) {
+    } else if (to === "Viewer") {
       return this.update({ isAdmin: false, isViewer: true });
     }
   } else {

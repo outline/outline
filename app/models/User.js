@@ -1,5 +1,6 @@
 // @flow
 import { computed } from "mobx";
+import type { Rank } from "../../shared/utils/rank";
 import BaseModel from "./BaseModel";
 
 class User extends BaseModel {
@@ -17,6 +18,17 @@ class User extends BaseModel {
   @computed
   get isInvited(): boolean {
     return !this.lastActiveAt;
+  }
+
+  @computed
+  get rank(): Rank {
+    if (this.isAdmin) {
+      return "Admin";
+    } else if (this.isViewer) {
+      return "Viewer";
+    } else {
+      return "Member";
+    }
   }
 }
 
