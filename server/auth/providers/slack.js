@@ -6,6 +6,7 @@ import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
 import auth from "../../middlewares/authentication";
 import passportMiddleware from "../../middlewares/passport";
+import signin from "../../middlewares/signin";
 import { Authentication, Collection, Integration, Team } from "../../models";
 import * as Slack from "../../slack";
 import { StateStore } from "../../utils/passport";
@@ -76,11 +77,7 @@ if (SLACK_CLIENT_ID) {
 
   router.get("slack", passport.authenticate(providerName));
 
-  router.get(
-    "slack.callback",
-    auth({ required: false }),
-    passportMiddleware(providerName)
-  );
+  router.get("slack.callback", signin(), passportMiddleware(providerName));
 
   router.get("slack.commands", auth({ required: false }), async (ctx) => {
     const { code, state, error } = ctx.request.query;

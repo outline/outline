@@ -9,8 +9,8 @@ import {
   GoogleWorkspaceRequiredError,
   GoogleWorkspaceInvalidError,
 } from "../../errors";
-import auth from "../../middlewares/authentication";
 import passportMiddleware from "../../middlewares/passport";
+import signin from "../../middlewares/signin";
 import { getAllowedDomains } from "../../utils/authentication";
 import { StateStore } from "../../utils/passport";
 
@@ -90,11 +90,7 @@ if (GOOGLE_CLIENT_ID) {
 
   router.get("google", passport.authenticate(providerName));
 
-  router.get(
-    "google.callback",
-    auth({ required: false }),
-    passportMiddleware(providerName)
-  );
+  router.get("google.callback", signin(), passportMiddleware(providerName));
 }
 
 export default router;
