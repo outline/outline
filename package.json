@@ -24,6 +24,10 @@
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
+  "funding": {
+    "type": "GitHub Sponsors ❤",
+    "url": "https://github.com/sponsors/outline"
+  },
   "jest": {
     "testURL": "http://localhost",
     "verbose": false,

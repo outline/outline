@@ -2,6 +2,7 @@
 require("dotenv").config({ silent: true });
 
 const errors = [];
+const boxen = require("boxen");
 const chalk = require("chalk");
 
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
@@ -90,6 +91,25 @@ if (errors.length) {
   errors.map((text) => console.log(`  - ${text}`));
   console.log("\n");
   process.exit(1);
+}
+
+if (process.env.NODE_ENV === "production") {
+  console.log(
+    boxen(
+      `
+Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
+`,
+      { padding: 1, margin: 1, borderStyle: "double", borderColor: "green" }
+    )
+  );
+} else if (process.env.NODE_ENV === "development") {
+  console.log(
+    chalk.yellow(
+      `\nRunning Outline in development mode. To run Outline in production mode set the ${chalk.bold(
+        "NODE_ENV"
+      )} env variable to "production"\n`
+    )
+  );
 }
 
 require("./main");
