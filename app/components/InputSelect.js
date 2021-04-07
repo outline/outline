@@ -12,7 +12,7 @@ const Select = styled.select`
   padding: 4px 0;
   margin: 0 12px;
   outline: none;
-  background: none;
+  background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text};
   height: 30px;
 
