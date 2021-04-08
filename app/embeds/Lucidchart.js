@@ -1,22 +1,22 @@
 // @flow
 import * as React from "react";
 import Frame from "./components/Frame";
-
-const URL_REGEX = /^https?:\/\/(www\.|app\.)?lucidchart.com\/documents\/(embeddedchart|view)\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\/.*)?$/;
-
 type Props = {|
   attrs: {|
     href: string,
-    matches: string[],
+    matches: Object,
   |},
 |};
 
 export default class Lucidchart extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [
+    /^https?:\/\/(www\.|app\.)?lucidchart.com\/documents\/(embeddedchart|view)\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\/.*)?$/,
+    /^https?:\/\/(www\.|app\.)?lucid.app\/lucidchart\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/(embeddedchart|view)(?:\/.*)?$/,
+  ];
 
   render() {
     const { matches } = this.props.attrs;
-    const chartId = matches[3];
+    const { chartId } = matches.groups;
 
     return (
       <Frame
