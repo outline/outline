@@ -2,8 +2,8 @@
 import invariant from "invariant";
 import { filter, orderBy } from "lodash";
 import { observable, computed, action, runInAction } from "mobx";
+import type { Rank } from "shared/types";
 import User from "models/User";
-import type { Rank } from "../../shared/utils/rank";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";

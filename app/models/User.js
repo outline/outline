@@ -1,6 +1,6 @@
 // @flow
 import { computed } from "mobx";
-import type { Rank } from "../../shared/utils/rank";
+import type { Rank } from "shared/types";
 import BaseModel from "./BaseModel";
 
 class User extends BaseModel {
