@@ -6,7 +6,6 @@ import { Strategy as AzureStrategy } from "passport-azure-ad-oauth2";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
 import { MicrosoftGraphError } from "../../errors";
-import auth from "../../middlewares/authentication";
 import passportMiddleware from "../../middlewares/passport";
 import { StateStore } from "../../utils/passport";
 
@@ -123,11 +122,7 @@ if (AZURE_CLIENT_ID) {
 
   router.get("azure", passport.authenticate(providerName));
 
-  router.get(
-    "azure.callback",
-    auth({ required: false }),
-    passportMiddleware(providerName)
-  );
+  router.get("azure.callback", passportMiddleware(providerName));
 }
 
 export default router;
