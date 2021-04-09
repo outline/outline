@@ -76,11 +76,7 @@ if (SLACK_CLIENT_ID) {
 
   router.get("slack", passport.authenticate(providerName));
 
-  router.get(
-    "slack.callback",
-    auth({ required: false }),
-    passportMiddleware(providerName)
-  );
+  router.get("slack.callback", passportMiddleware(providerName));
 
   router.get("slack.commands", auth({ required: false }), async (ctx) => {
     const { code, state, error } = ctx.request.query;

@@ -1,10 +1,11 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
+import { type Context } from "koa";
 import type { AccountProvisionerResult } from "../commands/accountProvisioner";
-import type { ContextWithAuthMiddleware } from "../types";
+import { signIn } from "../utils/authentication";
 
 export default function createMiddleware(providerName: string) {
-  return function passportMiddleware(ctx: ContextWithAuthMiddleware) {
+  return function passportMiddleware(ctx: Context) {
     return passport.authorize(
       providerName,
       { session: false },
@@ -27,7 +28,7 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        ctx.signIn(result.user, result.team, providerName, result.isNewUser);
+        signIn(ctx, result.user, result.team, providerName, result.isNewUser);
       }
     )(ctx);
   };
