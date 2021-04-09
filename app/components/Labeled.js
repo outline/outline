@@ -17,12 +17,10 @@ const Labeled = ({ label, children, ...props }: Props) => (
 );
 
 export const Label = styled(Flex)`
-  margin-bottom: 8px;
-  font-size: 13px;
   font-weight: 500;
-  text-transform: uppercase;
-  color: ${(props) => props.theme.textTertiary};
-  letter-spacing: 0.04em;
+  padding-bottom: 4px;
+  display: inline-block;
+  color: ${(props) => props.theme.text};
 `;
 
 export default observer(Labeled);

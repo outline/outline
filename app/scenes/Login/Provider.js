@@ -104,7 +104,7 @@ class Provider extends React.Component<Props, State> {
           icon={<AuthLogo providerName={id} />}
           fullwidth
         >
-          {isCreate ? "Sign up" : "Continue"} with {name}
+          Continue with {name}
         </ButtonLarge>
       </Wrapper>
     );

@@ -9,6 +9,7 @@ const Authenticated = React.lazy(() => import("components/Authenticated"));
 const AuthenticatedRoutes = React.lazy(() => import("./authenticated"));
 const KeyedDocument = React.lazy(() => import("scenes/Document/KeyedDocument"));
 const Login = React.lazy(() => import("scenes/Login"));
+const Logout = React.lazy(() => import("scenes/Logout"));
 
 export default function Routes() {
   return (
@@ -22,6 +23,7 @@ export default function Routes() {
       <Switch>
         <Route exact path="/" component={Login} />
         <Route exact path="/create" component={Login} />
+        <Route exact path="/logout" component={Logout} />
         <Route exact path="/share/:shareId" component={KeyedDocument} />
         <Authenticated>
           <AuthenticatedRoutes />

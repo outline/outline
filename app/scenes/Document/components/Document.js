@@ -13,17 +13,18 @@ import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
+import DocumentMove from "scenes/DocumentMove";
 import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
+import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
-import DocumentMove from "./DocumentMove";
 import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
@@ -75,7 +76,6 @@ class DocumentScene extends React.Component<Props> {
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
-  @observable moveModalOpen: boolean = false;
   @observable lastRevision: number = this.props.document.revision;
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
@@ -185,9 +185,6 @@ class DocumentScene extends React.Component<Props> {
       ui.showTableOfContents();
     }
   }
-
-  handleCloseMoveModal = () => (this.moveModalOpen = false);
-  handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSave = async (
     options: {
@@ -337,7 +334,16 @@ class DocumentScene extends React.Component<Props> {
           <Route
             path={`${match.url}/move`}
             component={() => (
-              <DocumentMove document={document} onRequestClose={this.goBack} />
+              <Modal
+                title={`Move ${document.noun}`}
+                onRequestClose={this.goBack}
+                isOpen
+              >
+                <DocumentMove
+                  document={document}
+                  onRequestClose={this.goBack}
+                />
+              </Modal>
             )}
           />
           <PageTitle
@@ -435,22 +441,23 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
-                  />
+                  >
+                    {!isShare && !revision && (
+                      <>
+                        <MarkAsViewed document={document} />
+                        <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                          <References document={document} />
+                        </ReferencesWrapper>
+                      </>
+                    )}
+                  </Editor>
                 </Flex>
-                {!isShare && !revision && (
-                  <>
-                    <MarkAsViewed document={document} />
-                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                      <References document={document} />
-                    </ReferencesWrapper>
-                  </>
-                )}
               </React.Suspense>
             </MaxWidth>
           </Container>
         </Background>
         {isShare && !isCustomDomain() && (
-          <Branding href="//www.getoutline.com" />
+          <Branding href="//www.getoutline.com?ref=sharelink" />
         )}
         {!isShare && <KeyboardShortcutsButton />}
       </ErrorBoundary>

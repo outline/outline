@@ -25,7 +25,14 @@ const Collection = sequelize.define(
       type: DataTypes.STRING,
       defaultValue: null,
     },
-    private: DataTypes.BOOLEAN,
+    permission: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+      allowNull: true,
+      validate: {
+        isIn: [["read", "read_write"]],
+      },
+    },
     maintainerApprovalRequired: DataTypes.BOOLEAN,
     documentStructure: DataTypes.JSONB,
     sharing: {
@@ -199,7 +206,7 @@ Collection.addHook("afterDestroy", async (model: Collection) => {
 });
 
 Collection.addHook("afterCreate", (model: Collection, options) => {
-  if (model.private) {
+  if (model.permission !== "read_write") {
     return CollectionUser.findOrCreate({
       where: {
         collectionId: model.id,

@@ -112,7 +112,7 @@ describe("#attachments.delete", () => {
   it("should not allow deleting an attachment belonging to a document user does not have access to", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: collection.teamId,
@@ -184,7 +184,7 @@ describe("#attachments.redirect", () => {
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: user.teamId,
@@ -208,7 +208,7 @@ describe("#attachments.redirect", () => {
   it("should not return a redirect for a private attachment belonging to a document user does not have access to", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
-      private: true,
+      permission: null,
     });
     const document = await buildDocument({
       teamId: collection.teamId,

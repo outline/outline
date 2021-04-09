@@ -47,16 +47,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
     });
   }
 
-  @computed
-  get public(): Collection[] {
-    return this.orderedData.filter((collection) => !collection.private);
-  }
-
-  @computed
-  get private(): Collection[] {
-    return this.orderedData.filter((collection) => collection.private);
-  }
-
   /**
    * List of paths to each of the documents, where paths are composed of id and title/name pairs
    */

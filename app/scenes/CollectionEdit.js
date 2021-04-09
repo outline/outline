@@ -28,7 +28,6 @@ class CollectionEdit extends React.Component<Props> {
   @observable sharing: boolean = this.props.collection.sharing;
   @observable icon: string = this.props.collection.icon;
   @observable color: string = this.props.collection.color || "#4E5C6E";
-  @observable private: boolean = this.props.collection.private;
   @observable sort: { field: string, direction: "asc" | "desc" } = this.props
     .collection.sort;
   @observable isSaving: boolean;
@@ -43,7 +42,6 @@ class CollectionEdit extends React.Component<Props> {
         name: this.name,
         icon: this.icon,
         color: this.color,
-        private: this.private,
         sharing: this.sharing,
         sort: this.sort,
       });
@@ -73,10 +71,6 @@ class CollectionEdit extends React.Component<Props> {
   handleChange = (color: string, icon: string) => {
     this.color = color;
     this.icon = icon;
-  };
-
-  handlePrivateChange = (ev: SyntheticInputEvent<*>) => {
-    this.private = ev.target.checked;
   };
 
   handleSharingChange = (ev: SyntheticInputEvent<*>) => {
@@ -122,17 +116,6 @@ class CollectionEdit extends React.Component<Props> {
             value={`${this.sort.field}.${this.sort.direction}`}
             onChange={this.handleSortChange}
           />
-          <Switch
-            id="private"
-            label={t("Private collection")}
-            onChange={this.handlePrivateChange}
-            checked={this.private}
-          />
-          <HelpText>
-            <Trans>
-              A private collection will only be visible to invited team members.
-            </Trans>
-          </HelpText>
           <Switch
             id="sharing"
             label={t("Public document sharing")}

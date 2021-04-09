@@ -128,6 +128,8 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     sort = "updatedAt";
   }
 
+  ctx.assertSort(sort, Document);
+
   // add the users starred state to the response by default
   const starredScope = { method: ["withStarred", user.id] };
   const collectionScope = { method: ["withCollection", user.id] };
@@ -170,6 +172,7 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertUuid(collectionId, "collectionId is required");
+  ctx.assertSort(sort, Document);
 
   const user = ctx.state.user;
   const collection = await Collection.scope({
@@ -214,6 +217,8 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
 
 router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const { sort = "updatedAt" } = ctx.body;
+  ctx.assertSort(sort, Document);
+
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
 
@@ -254,6 +259,8 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
 
 router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const { sort = "deletedAt" } = ctx.body;
+  ctx.assertSort(sort, Document);
+
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
 
@@ -295,6 +302,8 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
 
 router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
+  ctx.assertSort(sort, Document);
+
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
@@ -344,6 +353,8 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
 
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
+  ctx.assertSort(sort, Document);
+
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
@@ -395,6 +406,8 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
 
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   let { collectionId, dateFilter, sort = "updatedAt", direction } = ctx.body;
+  ctx.assertSort(sort, Document);
+
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;

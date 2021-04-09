@@ -24,7 +24,12 @@ function filterProviders(team) {
         !team ||
         find(team.authenticationProviders, { name: provider.id, enabled: true })
       );
-    });
+    })
+    .map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      authUrl: provider.authUrl,
+    }));
 }
 
 router.post("auth.config", async (ctx) => {

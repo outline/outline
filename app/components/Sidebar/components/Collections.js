@@ -18,6 +18,7 @@ type Props = {
 };
 
 function Collections({ onCreateCollection }: Props) {
+  const [isFetching, setFetching] = React.useState(false);
   const { ui, policies, documents, collections } = useStores();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
@@ -27,10 +28,18 @@ function Collections({ onCreateCollection }: Props) {
   );
 
   React.useEffect(() => {
-    if (!collections.isLoaded) {
-      collections.fetchPage({ limit: 100 });
+    async function load() {
+      if (!collections.isLoaded && !isFetching) {
+        try {
+          setFetching(true);
+          await collections.fetchPage({ limit: 100 });
+        } finally {
+          setFetching(false);
+        }
+      }
     }
-  });
+    load();
+  }, [collections, isFetching]);
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",

@@ -12,6 +12,7 @@ type Props = {|
   children: React.Node,
   breadcrumb?: React.Node,
   actions?: React.Node,
+  centered?: boolean,
 |};
 
 function Scene({
@@ -21,6 +22,7 @@ function Scene({
   actions,
   breadcrumb,
   children,
+  centered,
 }: Props) {
   return (
     <FillWidth>
@@ -38,7 +40,11 @@ function Scene({
         actions={actions}
         breadcrumb={breadcrumb}
       />
-      <CenteredContent withStickyHeader>{children}</CenteredContent>
+      {centered !== false ? (
+        <CenteredContent withStickyHeader>{children}</CenteredContent>
+      ) : (
+        children
+      )}
     </FillWidth>
   );
 }

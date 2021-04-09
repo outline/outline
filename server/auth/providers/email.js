@@ -4,10 +4,10 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { AuthorizationError } from "../../errors";
 import mailer from "../../mailer";
-import auth from "../../middlewares/authentication";
 import methodOverride from "../../middlewares/methodOverride";
 import validation from "../../middlewares/validation";
 import { User, Team } from "../../models";
+import { signIn } from "../../utils/authentication";
 import { getUserForEmailSigninToken } from "../../utils/jwt";
 
 const router = new Router();
@@ -84,25 +84,26 @@ router.post("email", async (ctx) => {
   };
 });
 
-router.get("email.callback", auth({ required: false }), async (ctx) => {
+router.get("email.callback", async (ctx) => {
   const { token } = ctx.request.query;
 
   ctx.assertPresent(token, "token is required");
 
   try {
     const user = await getUserForEmailSigninToken(token);
-
-    const team = await Team.findByPk(user.teamId);
-    if (!team.guestSignin) {
-      throw new AuthorizationError();
+    if (!user.team.guestSignin) {
+      return ctx.redirect("/?notice=auth-error");
+    }
+    if (user.isSuspended) {
+      return ctx.redirect("/?notice=suspended");
     }
 
     await user.update({ lastActiveAt: new Date() });
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, "email", false);
+    signIn(ctx, user, user.team, "email", false);
   } catch (err) {
-    ctx.redirect(`${process.env.URL}?notice=expired-token`);
+    ctx.redirect(`/?notice=expired-token`);
   }
 });
 

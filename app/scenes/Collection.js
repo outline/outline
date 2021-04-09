@@ -1,19 +1,12 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, Trans, type TFunction } from "react-i18next";
-import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
-import styled from "styled-components";
-
-import CollectionsStore from "stores/CollectionsStore";
-import DocumentsStore from "stores/DocumentsStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UiStore from "stores/UiStore";
-import Collection from "models/Collection";
-import CollectionEdit from "scenes/CollectionEdit";
-import CollectionMembers from "scenes/CollectionMembers";
+import Dropzone from "react-dropzone";
+import { useTranslation, Trans } from "react-i18next";
+import { useParams, Redirect, Link, Switch, Route } from "react-router-dom";
+import styled, { css } from "styled-components";
+import CollectionPermissions from "scenes/CollectionPermissions";
 import Search from "scenes/Search";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
@@ -26,6 +19,7 @@ import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import InputSearch from "components/InputSearch";
+import LoadingIndicator from "components/LoadingIndicator";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
 import Mask from "components/Mask";
 import Modal from "components/Modal";
@@ -35,339 +29,370 @@ import Subheading from "components/Subheading";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
+import useImportDocument from "hooks/useImportDocument";
+import useStores from "hooks/useStores";
+import useUnmount from "hooks/useUnmount";
 import CollectionMenu from "menus/CollectionMenu";
-import { AuthorizationError } from "utils/errors";
 import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
-type Props = {
-  ui: UiStore,
-  documents: DocumentsStore,
-  collections: CollectionsStore,
-  policies: PoliciesStore,
-  match: Match,
-  t: TFunction,
-};
+function CollectionScene() {
+  const params = useParams();
+  const { t } = useTranslation();
+  const { documents, policies, collections, ui } = useStores();
+  const [isFetching, setFetching] = React.useState();
+  const [error, setError] = React.useState();
+  const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
 
-@observer
-class CollectionScene extends React.Component<Props> {
-  @observable collection: ?Collection;
-  @observable isFetching: boolean = true;
-  @observable permissionsModalOpen: boolean = false;
-  @observable editModalOpen: boolean = false;
+  const collectionId = params.id || "";
+  const collection = collections.get(collectionId);
+  const can = policies.abilities(collectionId || "");
+  const { handleFiles, isImporting } = useImportDocument(collectionId);
 
-  componentDidMount() {
-    const { id } = this.props.match.params;
-    if (id) {
-      this.loadContent(id);
+  React.useEffect(() => {
+    if (collection) {
+      ui.setActiveCollection(collection);
     }
-  }
+  }, [ui, collection]);
 
-  componentDidUpdate(prevProps: Props) {
-    const { id } = this.props.match.params;
+  React.useEffect(() => {
+    setError(null);
+    documents.fetchPinned({ collectionId });
+  }, [documents, collectionId]);
 
-    if (this.collection) {
-      const { collection } = this;
-      const policy = this.props.policies.get(collection.id);
-
-      if (!policy) {
-        this.loadContent(collection.id);
-      }
-    }
-
-    if (id && id !== prevProps.match.params.id) {
-      this.loadContent(id);
-    }
-  }
-
-  componentWillUnmount() {
-    this.props.ui.clearActiveCollection();
-  }
-
-  loadContent = async (id: string) => {
-    try {
-      const collection = await this.props.collections.fetch(id);
-
-      if (collection) {
-        this.props.ui.setActiveCollection(collection);
-        this.collection = collection;
-
-        await this.props.documents.fetchPinned({
-          collectionId: id,
-        });
-      }
-    } catch (error) {
-      if (error instanceof AuthorizationError) {
-        this.collection = null;
-      }
-    } finally {
-      this.isFetching = false;
-    }
-  };
-
-  onPermissions = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.permissionsModalOpen = true;
-  };
-
-  handlePermissionsModalClose = () => {
-    this.permissionsModalOpen = false;
-  };
-
-  handleEditModalOpen = () => {
-    this.editModalOpen = true;
-  };
-
-  handleEditModalClose = () => {
-    this.editModalOpen = false;
-  };
-
-  renderActions() {
-    const { match, policies, t } = this.props;
-    const can = policies.abilities(match.params.id || "");
-
-    return (
-      <>
-        {can.update && (
-          <>
-            <Action>
-              <InputSearch
-                source="collection"
-                placeholder={`${t("Search in collection")}…`}
-                label={`${t("Search in collection")}…`}
-                labelHidden
-                collectionId={match.params.id}
-              />
-            </Action>
-            <Action>
-              <Tooltip
-                tooltip={t("New document")}
-                shortcut="n"
-                delay={500}
-                placement="bottom"
-              >
-                <Button
-                  as={Link}
-                  to={this.collection ? newDocumentUrl(this.collection.id) : ""}
-                  disabled={!this.collection}
-                  icon={<PlusIcon />}
-                >
-                  {t("New doc")}
-                </Button>
-              </Tooltip>
-            </Action>
-            <Separator />
-          </>
-        )}
-        <Action>
-          <CollectionMenu
-            collection={this.collection}
-            placement="bottom-end"
-            modal={false}
-            label={(props) => (
-              <Button
-                icon={<MoreIcon />}
-                {...props}
-                borderOnHover
-                neutral
-                small
-              />
-            )}
-          />
-        </Action>
-      </>
-    );
-  }
-
-  render() {
-    const { documents, t } = this.props;
-
-    if (!this.isFetching && !this.collection) return <Search notFound />;
-
-    const pinnedDocuments = this.collection
-      ? documents.pinnedInCollection(this.collection.id)
-      : [];
-    const collection = this.collection;
-    const collectionName = collection ? collection.name : "";
-    const hasPinnedDocuments = !!pinnedDocuments.length;
-
-    return collection ? (
-      <Scene
-        textTitle={collection.name}
-        title={
-          <>
-            <CollectionIcon collection={collection} expanded />
-            &nbsp;
-            {collection.name}
-          </>
+  React.useEffect(() => {
+    async function load() {
+      if ((!can || !collection) && !error && !isFetching) {
+        try {
+          setError(null);
+          setFetching(true);
+          await collections.fetch(collectionId);
+        } catch (err) {
+          setError(err);
+        } finally {
+          setFetching(false);
         }
-        actions={this.renderActions()}
-      >
-        {collection.isEmpty ? (
-          <Centered column>
-            <HelpText>
-              <Trans
-                defaults="<em>{{ collectionName }}</em> doesn’t contain any
-                    documents yet."
-                values={{ collectionName }}
-                components={{ em: <strong /> }}
-              />
-              <br />
-              <Trans>Get started by creating a new one!</Trans>
-            </HelpText>
-            <Empty>
-              <Link to={newDocumentUrl(collection.id)}>
-                <Button icon={<NewDocumentIcon color="currentColor" />}>
-                  {t("Create a document")}
-                </Button>
-              </Link>
-              &nbsp;&nbsp;
-              {collection.private && (
-                <Button onClick={this.onPermissions} neutral>
-                  {t("Manage members")}…
-                </Button>
-              )}
-            </Empty>
-            <Modal
-              title={t("Collection members")}
-              onRequestClose={this.handlePermissionsModalClose}
-              isOpen={this.permissionsModalOpen}
-            >
-              <CollectionMembers
-                collection={this.collection}
-                onSubmit={this.handlePermissionsModalClose}
-                onEdit={this.handleEditModalOpen}
-              />
-            </Modal>
-            <Modal
-              title={t("Edit collection")}
-              onRequestClose={this.handleEditModalClose}
-              isOpen={this.editModalOpen}
-            >
-              <CollectionEdit
-                collection={this.collection}
-                onSubmit={this.handleEditModalClose}
-              />
-            </Modal>
-          </Centered>
-        ) : (
-          <>
-            <Heading>
-              <CollectionIcon collection={collection} size={40} expanded />{" "}
-              {collection.name}{" "}
-              {collection.private && (
+      }
+    }
+    load();
+  }, [collections, isFetching, collection, error, collectionId, can]);
+
+  useUnmount(ui.clearActiveCollection);
+
+  const handlePermissionsModalOpen = React.useCallback(() => {
+    setPermissionsModalOpen(true);
+  }, []);
+
+  const handlePermissionsModalClose = React.useCallback(() => {
+    setPermissionsModalOpen(false);
+  }, []);
+
+  const handleRejection = React.useCallback(() => {
+    ui.showToast(
+      t("Document not supported – try Markdown, Plain text, HTML, or Word"),
+      { type: "error" }
+    );
+  }, [t, ui]);
+
+  if (!collection && error) {
+    return <Search notFound />;
+  }
+
+  const pinnedDocuments = collection
+    ? documents.pinnedInCollection(collection.id)
+    : [];
+  const collectionName = collection ? collection.name : "";
+  const hasPinnedDocuments = !!pinnedDocuments.length;
+
+  return collection ? (
+    <Scene
+      centered={false}
+      textTitle={collection.name}
+      title={
+        <>
+          <CollectionIcon collection={collection} expanded />
+          &nbsp;
+          {collection.name}
+        </>
+      }
+      actions={
+        <>
+          {can.update && (
+            <>
+              <Action>
+                <InputSearch
+                  source="collection"
+                  placeholder={`${t("Search in collection")}…`}
+                  label={`${t("Search in collection")}…`}
+                  labelHidden
+                  collectionId={collectionId}
+                />
+              </Action>
+              <Action>
                 <Tooltip
-                  tooltip={t(
-                    "This collection is only visible to people given access"
-                  )}
+                  tooltip={t("New document")}
+                  shortcut="n"
+                  delay={500}
                   placement="bottom"
                 >
-                  <Badge>{t("Private")}</Badge>
+                  <Button
+                    as={Link}
+                    to={collection ? newDocumentUrl(collection.id) : ""}
+                    disabled={!collection}
+                    icon={<PlusIcon />}
+                  >
+                    {t("New doc")}
+                  </Button>
                 </Tooltip>
+              </Action>
+              <Separator />
+            </>
+          )}
+          <Action>
+            <CollectionMenu
+              collection={collection}
+              placement="bottom-end"
+              modal={false}
+              label={(props) => (
+                <Button
+                  icon={<MoreIcon />}
+                  {...props}
+                  borderOnHover
+                  neutral
+                  small
+                />
               )}
-            </Heading>
-            <CollectionDescription collection={collection} />
+            />
+          </Action>
+        </>
+      }
+    >
+      <Dropzone
+        accept={documents.importFileTypes.join(", ")}
+        onDropAccepted={handleFiles}
+        onDropRejected={handleRejection}
+        noClick
+        multiple
+      >
+        {({
+          getRootProps,
+          getInputProps,
+          isDragActive,
+          isDragAccept,
+          isDragReject,
+        }) => (
+          <DropzoneContainer
+            {...getRootProps()}
+            isDragActive={isDragActive}
+            tabIndex="-1"
+          >
+            <input {...getInputProps()} />
+            {isImporting && <LoadingIndicator />}
 
-            {hasPinnedDocuments && (
-              <>
-                <Subheading sticky>
-                  <TinyPinIcon size={18} /> {t("Pinned")}
-                </Subheading>
-                <DocumentList documents={pinnedDocuments} showPin />
-              </>
-            )}
+            <CenteredContent withStickyHeader>
+              {collection.isEmpty ? (
+                <Centered column>
+                  <HelpText>
+                    <Trans
+                      defaults="<em>{{ collectionName }}</em> doesn’t contain any
+                    documents yet."
+                      values={{ collectionName }}
+                      components={{ em: <strong /> }}
+                    />
+                    <br />
+                    <Trans>Get started by creating a new one!</Trans>
+                  </HelpText>
+                  <Empty>
+                    <Link to={newDocumentUrl(collection.id)}>
+                      <Button icon={<NewDocumentIcon color="currentColor" />}>
+                        {t("Create a document")}
+                      </Button>
+                    </Link>
+                    &nbsp;&nbsp;
+                    <Button onClick={handlePermissionsModalOpen} neutral>
+                      {t("Manage permissions")}…
+                    </Button>
+                  </Empty>
+                  <Modal
+                    title={t("Collection permissions")}
+                    onRequestClose={handlePermissionsModalClose}
+                    isOpen={permissionsModalOpen}
+                  >
+                    <CollectionPermissions collection={collection} />
+                  </Modal>
+                </Centered>
+              ) : (
+                <>
+                  <Heading>
+                    <CollectionIcon
+                      collection={collection}
+                      size={40}
+                      expanded
+                    />{" "}
+                    {collection.name}{" "}
+                    {!collection.permission && (
+                      <Tooltip
+                        tooltip={t(
+                          "This collection is only visible to those given access"
+                        )}
+                        placement="bottom"
+                      >
+                        <Badge>{t("Private")}</Badge>
+                      </Tooltip>
+                    )}
+                  </Heading>
+                  <CollectionDescription collection={collection} />
 
-            <Tabs>
-              <Tab to={collectionUrl(collection.id)} exact>
-                {t("Documents")}
-              </Tab>
-              <Tab to={collectionUrl(collection.id, "updated")} exact>
-                {t("Recently updated")}
-              </Tab>
-              <Tab to={collectionUrl(collection.id, "published")} exact>
-                {t("Recently published")}
-              </Tab>
-              <Tab to={collectionUrl(collection.id, "old")} exact>
-                {t("Least recently updated")}
-              </Tab>
-              <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
-                {t("A–Z")}
-              </Tab>
-            </Tabs>
-            <Switch>
-              <Route path={collectionUrl(collection.id, "alphabetical")}>
-                <PaginatedDocumentList
-                  key="alphabetical"
-                  documents={documents.alphabeticalInCollection(collection.id)}
-                  fetch={documents.fetchAlphabetical}
-                  options={{ collectionId: collection.id }}
-                  showPin
-                />
-              </Route>
-              <Route path={collectionUrl(collection.id, "old")}>
-                <PaginatedDocumentList
-                  key="old"
-                  documents={documents.leastRecentlyUpdatedInCollection(
-                    collection.id
+                  {hasPinnedDocuments && (
+                    <>
+                      <Subheading sticky>
+                        <TinyPinIcon size={18} color="currentColor" />{" "}
+                        {t("Pinned")}
+                      </Subheading>
+                      <DocumentList documents={pinnedDocuments} showPin />
+                    </>
                   )}
-                  fetch={documents.fetchLeastRecentlyUpdated}
-                  options={{ collectionId: collection.id }}
-                  showPin
-                />
-              </Route>
-              <Route path={collectionUrl(collection.id, "recent")}>
-                <Redirect to={collectionUrl(collection.id, "published")} />
-              </Route>
-              <Route path={collectionUrl(collection.id, "published")}>
-                <PaginatedDocumentList
-                  key="published"
-                  documents={documents.recentlyPublishedInCollection(
-                    collection.id
-                  )}
-                  fetch={documents.fetchRecentlyPublished}
-                  options={{ collectionId: collection.id }}
-                  showPublished
-                  showPin
-                />
-              </Route>
-              <Route path={collectionUrl(collection.id, "updated")}>
-                <PaginatedDocumentList
-                  key="updated"
-                  documents={documents.recentlyUpdatedInCollection(
-                    collection.id
-                  )}
-                  fetch={documents.fetchRecentlyUpdated}
-                  options={{ collectionId: collection.id }}
-                  showPin
-                />
-              </Route>
-              <Route path={collectionUrl(collection.id)} exact>
-                <PaginatedDocumentList
-                  documents={documents.rootInCollection(collection.id)}
-                  fetch={documents.fetchPage}
-                  options={{
-                    collectionId: collection.id,
-                    parentDocumentId: null,
-                    sort: collection.sort.field,
-                    direction: "ASC",
-                  }}
-                  showNestedDocuments
-                  showPin
-                />
-              </Route>
-            </Switch>
-          </>
+
+                  <Tabs>
+                    <Tab to={collectionUrl(collection.id)} exact>
+                      {t("Documents")}
+                    </Tab>
+                    <Tab to={collectionUrl(collection.id, "updated")} exact>
+                      {t("Recently updated")}
+                    </Tab>
+                    <Tab to={collectionUrl(collection.id, "published")} exact>
+                      {t("Recently published")}
+                    </Tab>
+                    <Tab to={collectionUrl(collection.id, "old")} exact>
+                      {t("Least recently updated")}
+                    </Tab>
+                    <Tab
+                      to={collectionUrl(collection.id, "alphabetical")}
+                      exact
+                    >
+                      {t("A–Z")}
+                    </Tab>
+                  </Tabs>
+                  <Switch>
+                    <Route path={collectionUrl(collection.id, "alphabetical")}>
+                      <PaginatedDocumentList
+                        key="alphabetical"
+                        documents={documents.alphabeticalInCollection(
+                          collection.id
+                        )}
+                        fetch={documents.fetchAlphabetical}
+                        options={{ collectionId: collection.id }}
+                        showPin
+                      />
+                    </Route>
+                    <Route path={collectionUrl(collection.id, "old")}>
+                      <PaginatedDocumentList
+                        key="old"
+                        documents={documents.leastRecentlyUpdatedInCollection(
+                          collection.id
+                        )}
+                        fetch={documents.fetchLeastRecentlyUpdated}
+                        options={{ collectionId: collection.id }}
+                        showPin
+                      />
+                    </Route>
+                    <Route path={collectionUrl(collection.id, "recent")}>
+                      <Redirect
+                        to={collectionUrl(collection.id, "published")}
+                      />
+                    </Route>
+                    <Route path={collectionUrl(collection.id, "published")}>
+                      <PaginatedDocumentList
+                        key="published"
+                        documents={documents.recentlyPublishedInCollection(
+                          collection.id
+                        )}
+                        fetch={documents.fetchRecentlyPublished}
+                        options={{ collectionId: collection.id }}
+                        showPublished
+                        showPin
+                      />
+                    </Route>
+                    <Route path={collectionUrl(collection.id, "updated")}>
+                      <PaginatedDocumentList
+                        key="updated"
+                        documents={documents.recentlyUpdatedInCollection(
+                          collection.id
+                        )}
+                        fetch={documents.fetchRecentlyUpdated}
+                        options={{ collectionId: collection.id }}
+                        showPin
+                      />
+                    </Route>
+                    <Route path={collectionUrl(collection.id)} exact>
+                      <PaginatedDocumentList
+                        documents={documents.rootInCollection(collection.id)}
+                        fetch={documents.fetchPage}
+                        options={{
+                          collectionId: collection.id,
+                          parentDocumentId: null,
+                          sort: collection.sort.field,
+                          direction: "ASC",
+                        }}
+                        showNestedDocuments
+                        showPin
+                      />
+                    </Route>
+                  </Switch>
+                </>
+              )}
+              <DropMessage>{t("Drop documents to import")}</DropMessage>
+            </CenteredContent>
+          </DropzoneContainer>
         )}
-      </Scene>
-    ) : (
-      <CenteredContent>
-        <Heading>
-          <Mask height={35} />
-        </Heading>
-        <ListPlaceholder count={5} />
-      </CenteredContent>
-    );
-  }
+      </Dropzone>
+    </Scene>
+  ) : (
+    <CenteredContent>
+      <Heading>
+        <Mask height={35} />
+      </Heading>
+      <ListPlaceholder count={5} />
+    </CenteredContent>
+  );
 }
+
+const DropMessage = styled(HelpText)`
+  opacity: 0;
+  pointer-events: none;
+`;
+
+const DropzoneContainer = styled.div`
+  min-height: calc(100% - 56px);
+  position: relative;
+
+  ${({ isDragActive, theme }) =>
+    isDragActive &&
+    css`
+      &:after {
+        display: block;
+        content: "";
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        bottom: 24px;
+        left: 24px;
+        background: ${theme.background};
+        border-radius: 8px;
+        border: 1px dashed ${theme.divider};
+        z-index: 1;
+      }
+
+      ${DropMessage} {
+        opacity: 1;
+        z-index: 2;
+        position: absolute;
+        text-align: center;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    `}
+`;
 
 const Centered = styled(Flex)`
   text-align: center;
@@ -387,6 +412,4 @@ const Empty = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default withTranslation()<CollectionScene>(
-  inject("collections", "policies", "documents", "ui")(CollectionScene)
-);
+export default observer(CollectionScene);

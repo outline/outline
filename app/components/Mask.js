@@ -23,7 +23,7 @@ class Mask extends React.Component<Props> {
   }
 
   render() {
-    return <Redacted width={this.width} />;
+    return <Redacted width={this.width} height={this.props.height} />;
   }
 }
 

@@ -8,6 +8,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
+import DocumentMove from "scenes/DocumentMove";
 import DocumentShare from "scenes/DocumentShare";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import CollectionIcon from "components/CollectionIcon";
@@ -21,7 +22,6 @@ import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import {
   documentHistoryUrl,
-  documentMoveUrl,
   documentUrl,
   editDocumentUrl,
   newDocumentUrl,
@@ -64,6 +64,7 @@ function DocumentMenu({
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [showMoveModal, setShowMoveModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
   const [showShareModal, setShowShareModal] = React.useState(false);
   const file = React.useRef<?HTMLInputElement>();
@@ -351,7 +352,7 @@ function DocumentMenu({
             },
             {
               title: `${t("Move")}…`,
-              to: documentMoveUrl(document),
+              onClick: () => setShowMoveModal(true),
               visible: !!can.move,
             },
             {
@@ -379,6 +380,18 @@ function DocumentMenu({
       </ContextMenu>
       {renderModals && (
         <>
+          <Modal
+            title={t("Move {{ documentName }}", {
+              documentName: document.noun,
+            })}
+            onRequestClose={() => setShowMoveModal(false)}
+            isOpen={showMoveModal}
+          >
+            <DocumentMove
+              document={document}
+              onRequestClose={() => setShowMoveModal(false)}
+            />
+          </Modal>
           <Modal
             title={t("Delete {{ documentName }}", {
               documentName: document.noun,

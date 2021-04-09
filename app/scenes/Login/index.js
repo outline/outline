@@ -104,7 +104,12 @@ function Login({ location }: Props) {
         </Logo>
 
         {isCreate ? (
-          <Heading centered>Create an account</Heading>
+          <>
+            <Heading centered>Create an account</Heading>
+            <GetStarted>
+              Get started by choosing a sign-in method for your new team below…
+            </GetStarted>
+          </>
         ) : (
           <Heading centered>Login to {config.name || "Outline"}</Heading>
         )}
@@ -168,6 +173,11 @@ const Background = styled(Fade)`
 const Logo = styled.div`
   margin-bottom: -1.5em;
   height: 38px;
+`;
+
+const GetStarted = styled(HelpText)`
+  text-align: center;
+  margin-top: -12px;
 `;
 
 const Note = styled(HelpText)`
