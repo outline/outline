@@ -3,7 +3,8 @@ import { rgba } from "polished";
 import * as React from "react";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
-import { fadeAndScaleIn } from "shared/styles/animations";
+import breakpoint from "styled-components-breakpoint";
+import { fadeAndScaleIn, fadeAndSlideIn } from "shared/styles/animations";
 import usePrevious from "hooks/usePrevious";
 
 type Props = {|
@@ -52,21 +53,28 @@ export default function ContextMenu({
 const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
+
+  ${breakpoint("mobile", "tablet")`
+    position: fixed !important;
+    transform: none !important;
+    inset: auto 8px 0 8px !important;
+  `};
 `;
 
 const Background = styled.div`
-  animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: ${(props) => (props.left !== undefined ? "25%" : "75%")} 0;
-  background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
+  animation: ${fadeAndSlideIn} 200ms ease;
+  transform-origin: 50% 100%;
+  max-width: 100%;
+  background: ${(props) => props.theme.menuBackground};
   border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
-  border-radius: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
   padding: 6px 0;
   min-width: 180px;
   overflow: hidden;
   overflow-y: auto;
   max-height: 75vh;
-  max-width: 276px;
   box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
   font-weight: normal;
@@ -74,4 +82,13 @@ const Background = styled.div`
   @media print {
     display: none;
   }
+
+  ${breakpoint("tablet")`
+    animation: ${fadeAndScaleIn} 200ms ease;
+    transform-origin: ${(props) =>
+      props.left !== undefined ? "25%" : "75%"} 0;
+    max-width: 276px;
+    background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
+    border-radius: 6px;
+  `};
 `;

@@ -211,7 +211,7 @@ const Background = styled.a`
   right: 0;
   cursor: default;
   z-index: ${(props) => props.theme.depths.sidebar - 1};
-  background: rgba(0, 0, 0, 0.5);
+  background: ${(props) => props.theme.sidebarShadow};
 `;
 
 const Container = styled(Flex)`
