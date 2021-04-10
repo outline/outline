@@ -37,7 +37,6 @@ export default async function userCreator({
   const { authenticationProviderId, providerId, ...rest } = authentication;
   const auth = await UserAuthentication.findOne({
     where: {
-      authenticationProviderId,
       providerId,
     },
     include: [
@@ -52,6 +51,16 @@ export default async function userCreator({
   // want to update the details instead of creating a new record
   if (auth) {
     const { user } = auth;
+
+    // We found an authentication record that matches the user id, but it's
+    // associated with a different authentication provider, (eg a different
+    // hosted google domain). This is possible in Google Auth when moving domains.
+    // In the future we may auto-migrate these.
+    if (auth.authenticationProviderId !== authenticationProviderId) {
+      throw new Error(
+        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
+      );
+    }
 
     if (user) {
       await user.update({ email });

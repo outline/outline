@@ -67,6 +67,32 @@ describe("userCreator", () => {
     expect(isNewUser).toEqual(true);
   });
 
+  it("should handle duplicate providerId for different iDP", async () => {
+    const existing = await buildUser();
+    const authentications = await existing.getAuthentications();
+    const existingAuth = authentications[0];
+    let error;
+
+    try {
+      await userCreator({
+        name: "Test Name",
+        email: "test@example.com",
+        teamId: existing.teamId,
+        ip,
+        authentication: {
+          authenticationProviderId: "example.org",
+          providerId: existingAuth.providerId,
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error && error.toString()).toContain("already exists for");
+  });
+
   it("should create a new user", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();
