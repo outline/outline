@@ -42,7 +42,7 @@ if ("serviceWorker" in window.navigator) {
 }
 
 if (element) {
-  render(
+  const App = () => (
     <Provider {...stores}>
       <Analytics>
         <Theme>
@@ -59,9 +59,10 @@ if (element) {
           </ErrorBoundary>
         </Theme>
       </Analytics>
-    </Provider>,
-    element
+    </Provider>
   );
+
+  render(<App />, element);
 }
 
 window.addEventListener("load", async () => {
