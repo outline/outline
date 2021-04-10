@@ -53,10 +53,17 @@ export default async function userCreator({
   if (auth) {
     const { user } = auth;
 
-    await user.update({ email });
-    await auth.update(rest);
+    if (user) {
+      await user.update({ email });
+      await auth.update(rest);
 
-    return { user, authentication: auth, isNewUser: false };
+      return { user, authentication: auth, isNewUser: false };
+    }
+
+    // We found an authentication record, but the associated user was deleted or
+    // otherwise didn't exist. Cleanup the auth record and proceed with creating
+    // a new user. See: https://github.com/outline/outline/issues/2022
+    await auth.destroy();
   }
 
   // A `user` record might exist in the form of an invite even if there is no

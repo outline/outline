@@ -37,6 +37,36 @@ describe("userCreator", () => {
     expect(isNewUser).toEqual(false);
   });
 
+  it("should create user with deleted user matching providerId", async () => {
+    const existing = await buildUser();
+    const authentications = await existing.getAuthentications();
+    const existingAuth = authentications[0];
+    const newEmail = "test@example.com";
+
+    await existing.destroy();
+
+    const result = await userCreator({
+      name: "Test Name",
+      email: "test@example.com",
+      teamId: existing.teamId,
+      ip,
+      authentication: {
+        authenticationProviderId: existingAuth.authenticationProviderId,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    const { user, authentication, isNewUser } = result;
+
+    expect(authentication.accessToken).toEqual("123");
+    expect(authentication.scopes.length).toEqual(1);
+    expect(authentication.scopes[0]).toEqual("read");
+    expect(user.email).toEqual(newEmail);
+    expect(isNewUser).toEqual(true);
+  });
+
   it("should create a new user", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();
