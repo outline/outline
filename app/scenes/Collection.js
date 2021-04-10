@@ -170,6 +170,7 @@ function CollectionScene() {
         accept={documents.importFileTypes.join(", ")}
         onDropAccepted={handleFiles}
         onDropRejected={handleRejection}
+        disabled={!can.update}
         noClick
         multiple
       >
