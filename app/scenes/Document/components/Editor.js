@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "shared/constants";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
@@ -165,11 +166,9 @@ const StarButton = styled(Star)`
 `;
 
 const Title = styled(Textarea)`
-  z-index: 1;
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
-  margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   color: ${(props) => props.theme.text};
@@ -185,6 +184,10 @@ const Title = styled(Textarea)`
     color: ${(props) => props.theme.placeholder};
     -webkit-text-fill-color: ${(props) => props.theme.placeholder};
   }
+
+  ${breakpoint("tablet")`
+    margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
+  `};
 
   ${AnimatedStar} {
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};

@@ -1,10 +1,12 @@
 // @flow
 import { rgba } from "polished";
 import * as React from "react";
+import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { fadeAndScaleIn, fadeAndSlideIn } from "shared/styles/animations";
+import Fade from "components/Fade";
 import usePrevious from "hooks/usePrevious";
 
 type Props = {|
@@ -38,17 +40,40 @@ export default function ContextMenu({
   }, [onOpen, onClose, previousVisible, rest.visible]);
 
   return (
-    <Menu hideOnClickOutside preventBodyScroll {...rest}>
-      {(props) => (
-        <Position {...props}>
-          <Background>
-            {rest.visible || rest.animating ? children : null}
-          </Background>
-        </Position>
+    <>
+      <Menu hideOnClickOutside preventBodyScroll {...rest}>
+        {(props) => (
+          <Position {...props}>
+            <Background>
+              {rest.visible || rest.animating ? children : null}
+            </Background>
+          </Position>
+        )}
+      </Menu>
+      {(rest.visible || rest.animating) && (
+        <Portal>
+          <Fade timing={150}>
+            <Backdrop />
+          </Fade>
+        </Portal>
       )}
-    </Menu>
+    </>
   );
 }
+
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${(props) => props.theme.shadow};
+  z-index: ${(props) => props.theme.depths.menu - 1};
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
+`;
 
 const Position = styled.div`
   position: absolute;
@@ -57,7 +82,7 @@ const Position = styled.div`
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
     transform: none !important;
-    inset: auto 8px 0 8px !important;
+    inset: auto 8px 8px 8px !important;
   `};
 `;
 
@@ -68,8 +93,7 @@ const Background = styled.div`
   background: ${(props) => props.theme.menuBackground};
   border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-radius: 6px;
   padding: 6px 0;
   min-width: 180px;
   overflow: hidden;
@@ -89,6 +113,5 @@ const Background = styled.div`
       props.left !== undefined ? "25%" : "75%"} 0;
     max-width: 276px;
     background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
-    border-radius: 6px;
   `};
 `;
