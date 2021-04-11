@@ -52,7 +52,7 @@ export default function ContextMenu({
       </Menu>
       {(rest.visible || rest.animating) && (
         <Portal>
-          <Fade timing={150}>
+          <Fade timing="200ms">
             <Backdrop />
           </Fade>
         </Portal>
@@ -82,7 +82,10 @@ const Position = styled.div`
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
     transform: none !important;
-    inset: auto 8px 8px 8px !important;
+    top: auto !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    left: 8px !important;
   `};
 `;
 
