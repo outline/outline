@@ -10,6 +10,7 @@ import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
+import UserAuthentication from "./UserAuthentication";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
 
 const User = sequelize.define(
@@ -205,6 +206,10 @@ const removeIdentifyingInfo = async (model, options) => {
     transaction: options.transaction,
   });
   await Star.destroy({
+    where: { userId: model.id },
+    transaction: options.transaction,
+  });
+  await UserAuthentication.destroy({
     where: { userId: model.id },
     transaction: options.transaction,
   });
