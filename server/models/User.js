@@ -7,7 +7,7 @@ import uuid from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
-import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
@@ -25,6 +25,11 @@ const User = sequelize.define(
     name: DataTypes.STRING,
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
     isAdmin: DataTypes.BOOLEAN,
+    isViewer: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     jwtSecret: encryptedFields().vault("jwtSecret"),
@@ -277,6 +282,7 @@ User.getCounts = async function (teamId: string) {
     SELECT 
       COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
       COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
+      COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",
       COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
       COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
       COUNT(*) as count
@@ -295,10 +301,48 @@ User.getCounts = async function (teamId: string) {
   return {
     active: parseInt(counts.activeCount),
     admins: parseInt(counts.adminCount),
+    viewers: parseInt(counts.viewerCount),
     all: parseInt(counts.count),
     invited: parseInt(counts.invitedCount),
     suspended: parseInt(counts.suspendedCount),
   };
+};
+
+User.prototype.demote = async function (
+  teamId: string,
+  to: "Member" | "Viewer"
+) {
+  const res = await User.findAndCountAll({
+    where: {
+      teamId,
+      isAdmin: true,
+      id: {
+        [Op.ne]: this.id,
+      },
+    },
+    limit: 1,
+  });
+
+  if (res.count >= 1) {
+    if (to === "Member") {
+      return this.update({ isAdmin: false, isViewer: false });
+    } else if (to === "Viewer") {
+      return this.update({ isAdmin: false, isViewer: true });
+    }
+  } else {
+    throw new ValidationError("At least one admin is required");
+  }
+};
+
+User.prototype.promote = async function () {
+  return this.update({ isAdmin: true, isViewer: false });
+};
+
+User.prototype.activate = async function () {
+  return this.update({
+    suspendedById: null,
+    suspendedAt: null,
+  });
 };
 
 export default User;

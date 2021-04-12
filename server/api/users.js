@@ -116,8 +116,7 @@ router.post("users.promote", auth(), async (ctx) => {
   const user = await User.findByPk(userId);
   authorize(actor, "promote", user);
 
-  const team = await Team.findByPk(teamId);
-  await team.addAdmin(user);
+  await user.promote();
 
   await Event.create({
     name: "users.promote",
@@ -137,14 +136,18 @@ router.post("users.promote", auth(), async (ctx) => {
 router.post("users.demote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
+  let { to } = ctx.body;
+
   const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
+  to = to === "Viewer" ? "Viewer" : "Member";
+
   const user = await User.findByPk(userId);
+
   authorize(actor, "demote", user);
 
-  const team = await Team.findByPk(teamId);
-  await team.removeAdmin(user);
+  await user.demote(teamId, to);
 
   await Event.create({
     name: "users.demote",
@@ -190,8 +193,7 @@ router.post("users.activate", auth(), async (ctx) => {
   const user = await User.findByPk(userId);
   authorize(actor, "activate", user);
 
-  const team = await Team.findByPk(teamId);
-  await team.activateUser(user, actor);
+  await user.activate();
 
   await Event.create({
     name: "users.activate",
