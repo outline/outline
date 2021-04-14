@@ -126,7 +126,7 @@ const Link = styled(NavLink)`
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   overflow: hidden;
 
@@ -158,6 +158,7 @@ const Link = styled(NavLink)`
 
   ${breakpoint("tablet")`
     padding: 4px 16px;
+    font-size: 15px;
   `}
 `;
 

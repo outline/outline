@@ -1,9 +1,12 @@
 // @flow
 import { rgba } from "polished";
 import * as React from "react";
+import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
-import { fadeAndScaleIn } from "shared/styles/animations";
+import breakpoint from "styled-components-breakpoint";
+import { fadeAndScaleIn, fadeAndSlideIn } from "shared/styles/animations";
+import Fade from "components/Fade";
 import usePrevious from "hooks/usePrevious";
 
 type Props = {|
@@ -37,27 +40,60 @@ export default function ContextMenu({
   }, [onOpen, onClose, previousVisible, rest.visible]);
 
   return (
-    <Menu hideOnClickOutside preventBodyScroll {...rest}>
-      {(props) => (
-        <Position {...props}>
-          <Background>
-            {rest.visible || rest.animating ? children : null}
-          </Background>
-        </Position>
+    <>
+      <Menu hideOnClickOutside preventBodyScroll {...rest}>
+        {(props) => (
+          <Position {...props}>
+            <Background>
+              {rest.visible || rest.animating ? children : null}
+            </Background>
+          </Position>
+        )}
+      </Menu>
+      {(rest.visible || rest.animating) && (
+        <Portal>
+          <Fade timing="200ms">
+            <Backdrop />
+          </Fade>
+        </Portal>
       )}
-    </Menu>
+    </>
   );
 }
+
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${(props) => props.theme.shadow};
+  z-index: ${(props) => props.theme.depths.menu - 1};
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
+`;
 
 const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
+
+  ${breakpoint("mobile", "tablet")`
+    position: fixed !important;
+    transform: none !important;
+    top: auto !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    left: 8px !important;
+  `};
 `;
 
 const Background = styled.div`
-  animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: ${(props) => (props.left !== undefined ? "25%" : "75%")} 0;
-  background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
+  animation: ${fadeAndSlideIn} 200ms ease;
+  transform-origin: 50% 100%;
+  max-width: 100%;
+  background: ${(props) => props.theme.menuBackground};
   border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 6px;
@@ -66,7 +102,6 @@ const Background = styled.div`
   overflow: hidden;
   overflow-y: auto;
   max-height: 75vh;
-  max-width: 276px;
   box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
   font-weight: normal;
@@ -74,4 +109,12 @@ const Background = styled.div`
   @media print {
     display: none;
   }
+
+  ${breakpoint("tablet")`
+    animation: ${fadeAndScaleIn} 200ms ease;
+    transform-origin: ${(props) =>
+      props.left !== undefined ? "25%" : "75%"} 0;
+    max-width: 276px;
+    background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
+  `};
 `;

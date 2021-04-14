@@ -77,7 +77,7 @@ const Actions = styled(Flex)`
 const Wrapper = styled(Flex)`
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: ${(props) => props.theme.depths.header};
   background: ${(props) => transparentize(0.2, props.theme.background)};
   padding: 12px;
   transition: all 100ms ease-out;

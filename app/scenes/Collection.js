@@ -152,7 +152,6 @@ function CollectionScene() {
             <CollectionMenu
               collection={collection}
               placement="bottom-end"
-              modal={false}
               label={(props) => (
                 <Button
                   icon={<MoreIcon />}
