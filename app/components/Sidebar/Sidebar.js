@@ -242,7 +242,6 @@ const Container = styled(Flex)`
 
   ${breakpoint("tablet")`
     margin: 0;
-    z-index: 3;
     min-width: 0;
     transform: translateX(${(props) =>
       props.$collapsed ? "calc(-100% + 16px)" : 0});
