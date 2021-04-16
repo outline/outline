@@ -52,6 +52,7 @@ export default async function present(document: Document, options: ?Options) {
     teamId: document.teamId,
     template: document.template,
     templateId: document.templateId,
+    collaboratorIds: [],
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     pinned: undefined,
@@ -70,6 +71,7 @@ export default async function present(document: Document, options: ?Options) {
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
     data.updatedBy = presentUser(document.updatedBy);
+    data.collaboratorIds = document.collaboratorIds;
   }
 
   return data;
