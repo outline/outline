@@ -24,7 +24,6 @@ export default class Document extends BaseModel {
   @observable lastViewedAt: ?string;
   store: DocumentsStore;
 
-  collaborators: User[];
   collectionId: string;
   createdAt: string;
   createdBy: User;

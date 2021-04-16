@@ -53,7 +53,6 @@ export default async function present(document: Document, options: ?Options) {
     teamId: document.teamId,
     template: document.template,
     templateId: document.templateId,
-    collaborators: [],
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     pinned: undefined,
@@ -72,15 +71,6 @@ export default async function present(document: Document, options: ?Options) {
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
     data.updatedBy = presentUser(document.updatedBy);
-
-    // TODO: This could be further optimized
-    data.collaborators = (
-      await User.findAll({
-        where: {
-          id: takeRight(document.collaboratorIds, 10) || [],
-        },
-      })
-    ).map(presentUser);
   }
 
   return data;
