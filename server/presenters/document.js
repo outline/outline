@@ -1,6 +1,5 @@
 // @flow
-import { takeRight } from "lodash";
-import { Attachment, Document, User } from "../models";
+import { Attachment, Document } from "../models";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 import { getSignedImageUrl } from "../utils/s3";
 import presentUser from "./user";
