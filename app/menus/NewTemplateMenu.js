@@ -16,7 +16,7 @@ import useStores from "hooks/useStores";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 function NewTemplateMenu() {
-  const menu = useMenuState();
+  const menu = useMenuState({ modal: true });
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();

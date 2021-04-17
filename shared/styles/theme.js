@@ -241,4 +241,12 @@ export const dark = {
   scrollbarThumb: colors.lightBlack,
 };
 
+export const lightMobile = {
+  background: colors.white,
+};
+
+export const darkMobile = {
+  background: colors.black,
+};
+
 export default light;

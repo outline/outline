@@ -134,7 +134,7 @@ export type Props = {|
   "data-event-action"?: string,
 |};
 
-const Button = React.forwardRef<Props>(
+const Button = React.forwardRef<Props, HTMLButtonElement>(
   (
     {
       type = "text",

@@ -3,6 +3,7 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { MenuItem } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 
@@ -48,8 +49,8 @@ const Checkmark = styled(CheckmarkIcon)`
 const Button = styled.button`
   display: flex;
   flex-direction: column;
-  font-size: 15px;
-  padding: 4px 8px;
+  font-size: 16px;
+  padding: 8px;
   margin: 0;
   border: 0;
   background: none;
@@ -58,7 +59,7 @@ const Button = styled.button`
   font-weight: ${(props) => (props.active ? "600" : "normal")};
   justify-content: center;
   width: 100%;
-  min-height: 32px;
+  min-height: 42px;
 
   ${HelpText} {
     font-weight: normal;
@@ -68,6 +69,12 @@ const Button = styled.button`
   &:hover {
     background: ${(props) => props.theme.listItemHoverBackground};
   }
+
+  ${breakpoint("tablet")`
+    padding: 4px 8px;
+    font-size: 15px;
+    min-height: 32px;
+  `};
 `;
 
 const ListItem = styled("li")`

@@ -30,7 +30,7 @@ const FilterOptions = ({
   className,
   onSelect,
 }: Props) => {
-  const menu = useMenuState();
+  const menu = useMenuState({ modal: true });
   const selected = find(options, { key: activeKey }) || options[0];
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
 

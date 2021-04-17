@@ -406,8 +406,11 @@ const ResultsWrapper = styled(Flex)`
   position: absolute;
   transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
   top: ${(props) => (props.pinToTop ? "0%" : "50%")};
-  margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
   width: 100%;
+
+  ${breakpoint("tablet")`	
+    margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
+  `};
 `;
 
 const ResultList = styled(Flex)`
