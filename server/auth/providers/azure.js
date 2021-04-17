@@ -29,7 +29,7 @@ export async function request(endpoint: string, accessToken: string) {
 }
 
 export const config = {
-  name: "Microsoft 365",
+  name: "Microsoft",
   enabled: !!AZURE_CLIENT_ID,
 };
 
