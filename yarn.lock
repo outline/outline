@@ -1728,6 +1728,13 @@
   dependencies:
     passport "^0.4.0"
 
+"@outlinewiki/passport-azure-ad-oauth2@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@outlinewiki/passport-azure-ad-oauth2/-/passport-azure-ad-oauth2-0.1.0.tgz#29e8dc238c86b7e390997fc3db9accef4118a765"
+  integrity sha512-9tywL/KToBgolno7ZaT4/c4bRromldi/HemPB3BN3KPJyqhJG+dii3lJRsbeRF9UF+FGlm5ifmONMFLVetdZWA==
+  dependencies:
+    passport-oauth "1.0.x"
+
 "@pmmmwh/react-refresh-webpack-plugin@^0.4.3":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.4.3.tgz#1eec460596d200c0236bf195b078a5d1df89b766"
@@ -9922,13 +9929,6 @@ pascalcase@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/pascalcase/-/pascalcase-0.1.1.tgz#b363e55e8006ca6fe21784d2db22bd15d7917f14"
   integrity sha1-s2PlXoAGym/iF4TS2yK9FdeRfxQ=
-
-passport-azure-ad-oauth2@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/passport-azure-ad-oauth2/-/passport-azure-ad-oauth2-0.0.4.tgz#1a09d8869efd4afd095116e228941961b3a5c120"
-  integrity sha1-GgnYhp79Sv0JURbiKJQZYbOlwSA=
-  dependencies:
-    passport-oauth "1.0.x"
 
 passport-google-oauth2@^0.2.0:
   version "0.2.0"
