@@ -1,7 +1,7 @@
 // @flow
 import crypto from "crypto";
 import invariant from "invariant";
-import fetch from "isomorphic-fetch";
+import fetch from "fetch-with-proxy";
 import packageInfo from "../../package.json";
 
 import { User, Team, Collection, Document } from "../models";

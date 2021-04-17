@@ -1,6 +1,6 @@
 // @flow
 import crypto from "crypto";
-import fetch from "isomorphic-fetch";
+import fetch from "fetch-with-proxy";
 
 export const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
 
