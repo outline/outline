@@ -73,6 +73,7 @@
     "@babel/preset-flow": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
     "@outlinewiki/koa-passport": "^4.1.4",
+    "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@rehooks/window-scroll-position": "^1.0.1",
     "@sentry/node": "^6.1.0",
     "@sentry/react": "^6.1.0",

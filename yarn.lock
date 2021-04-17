@@ -1728,6 +1728,13 @@
   dependencies:
     passport "^0.4.0"
 
+"@outlinewiki/passport-azure-ad-oauth2@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@outlinewiki/passport-azure-ad-oauth2/-/passport-azure-ad-oauth2-0.1.0.tgz#29e8dc238c86b7e390997fc3db9accef4118a765"
+  integrity sha512-9tywL/KToBgolno7ZaT4/c4bRromldi/HemPB3BN3KPJyqhJG+dii3lJRsbeRF9UF+FGlm5ifmONMFLVetdZWA==
+  dependencies:
+    passport-oauth "1.0.x"
+
 "@pmmmwh/react-refresh-webpack-plugin@^0.4.3":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.4.3.tgz#1eec460596d200c0236bf195b078a5d1df89b766"
@@ -9930,7 +9937,16 @@ passport-google-oauth2@^0.2.0:
   dependencies:
     passport-oauth2 "^1.1.2"
 
-passport-oauth2@^1.1.2, passport-oauth2@^1.5.0:
+passport-oauth1@1.x.x:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/passport-oauth1/-/passport-oauth1-1.1.0.tgz#a7de988a211f9cf4687377130ea74df32730c918"
+  integrity sha1-p96YiiEfnPRoc3cTDqdN8ycwyRg=
+  dependencies:
+    oauth "0.9.x"
+    passport-strategy "1.x.x"
+    utils-merge "1.x.x"
+
+passport-oauth2@1.x.x, passport-oauth2@^1.1.2, passport-oauth2@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/passport-oauth2/-/passport-oauth2-1.5.0.tgz#64babbb54ac46a4dcab35e7f266ed5294e3c4108"
   integrity sha512-kqBt6vR/5VlCK8iCx1/KpY42kQ+NEHZwsSyt4Y6STiNjU+wWICG1i8ucc1FapXDGO15C5O5VZz7+7vRzrDPXXQ==
@@ -9940,6 +9956,14 @@ passport-oauth2@^1.1.2, passport-oauth2@^1.5.0:
     passport-strategy "1.x.x"
     uid2 "0.0.x"
     utils-merge "1.x.x"
+
+passport-oauth@1.0.x:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/passport-oauth/-/passport-oauth-1.0.0.tgz#90aff63387540f02089af28cdad39ea7f80d77df"
+  integrity sha1-kK/2M4dUDwIImvKM2tOep/gNd98=
+  dependencies:
+    passport-oauth1 "1.x.x"
+    passport-oauth2 "1.x.x"
 
 passport-slack-oauth2@^1.1.0:
   version "1.1.0"
