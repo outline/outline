@@ -9,6 +9,7 @@ Object {
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
     "isSuspended": false,
+    "isViewer": false,
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
@@ -19,7 +20,7 @@ Object {
       "abilities": Object {
         "activate": true,
         "delete": true,
-        "demote": false,
+        "demote": true,
         "promote": true,
         "read": true,
         "suspend": true,
@@ -59,6 +60,7 @@ Object {
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
     "isSuspended": false,
+    "isViewer": false,
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
@@ -69,7 +71,73 @@ Object {
       "abilities": Object {
         "activate": true,
         "delete": true,
-        "demote": false,
+        "demote": true,
+        "promote": true,
+        "read": true,
+        "suspend": true,
+        "update": false,
+      },
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`#users.demote should demote an admin to viewer 1`] = `
+Object {
+  "data": Object {
+    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png",
+    "createdAt": "2018-01-02T00:00:00.000Z",
+    "email": "user1@example.com",
+    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    "isAdmin": false,
+    "isSuspended": false,
+    "isViewer": true,
+    "language": "en_US",
+    "lastActiveAt": null,
+    "name": "User 1",
+  },
+  "ok": true,
+  "policies": Array [
+    Object {
+      "abilities": Object {
+        "activate": true,
+        "delete": true,
+        "demote": true,
+        "promote": true,
+        "read": true,
+        "suspend": true,
+        "update": false,
+      },
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`#users.demote should demote an admin to member 1`] = `
+Object {
+  "data": Object {
+    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png",
+    "createdAt": "2018-01-02T00:00:00.000Z",
+    "email": "user1@example.com",
+    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    "isAdmin": false,
+    "isSuspended": false,
+    "isViewer": false,
+    "language": "en_US",
+    "lastActiveAt": null,
+    "name": "User 1",
+  },
+  "ok": true,
+  "policies": Array [
+    Object {
+      "abilities": Object {
+        "activate": true,
+        "delete": true,
+        "demote": true,
         "promote": true,
         "read": true,
         "suspend": true,
@@ -109,6 +177,7 @@ Object {
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": true,
     "isSuspended": false,
+    "isViewer": false,
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
@@ -168,6 +237,7 @@ Object {
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
     "isSuspended": true,
+    "isViewer": false,
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",

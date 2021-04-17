@@ -13,6 +13,7 @@ import CollectionsLoading from "./CollectionsLoading";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
+import useCurrentTeam from "hooks/useCurrentTeam";
 type Props = {
   onCreateCollection: () => void,
 };
@@ -22,7 +23,9 @@ function Collections({ onCreateCollection }: Props) {
   const { ui, policies, documents, collections } = useStores();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
+  const team = useCurrentTeam();
   const orderedCollections = collections.orderedData;
+  const can = policies.abilities(team.id);
   const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
     false
   );
@@ -77,13 +80,15 @@ function Collections({ onCreateCollection }: Props) {
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      <SidebarLink
-        to="/collections"
-        onClick={onCreateCollection}
-        icon={<PlusIcon color="currentColor" />}
-        label={`${t("New collection")}…`}
-        exact
-      />
+      {can.createCollection && (
+        <SidebarLink
+          to="/collections"
+          onClick={onCreateCollection}
+          icon={<PlusIcon color="currentColor" />}
+          label={`${t("New collection")}…`}
+          exact
+        />
+      )}
     </>
   );
 

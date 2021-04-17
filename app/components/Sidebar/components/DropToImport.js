@@ -18,11 +18,13 @@ type Props = {|
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const { t } = useTranslation();
-  const { ui, documents } = useStores();
+  const { ui, documents, policies } = useStores();
   const { handleFiles, isImporting } = useImportDocument(
     collectionId,
     documentId
   );
+
+  const can = policies.abilities(collectionId);
 
   const handleRejection = React.useCallback(() => {
     ui.showToast(
@@ -31,7 +33,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     );
   }, [t, ui]);
 
-  if (disabled) {
+  if (disabled || !can.update) {
     return children;
   }
 

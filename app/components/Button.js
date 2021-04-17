@@ -134,30 +134,32 @@ export type Props = {|
   "data-event-action"?: string,
 |};
 
-function Button({
-  type = "text",
-  icon,
-  children,
-  value,
-  disclosure,
-  innerRef,
-  neutral,
-  ...rest
-}: Props) {
-  const hasText = children !== undefined || value !== undefined;
-  const hasIcon = icon !== undefined;
+const Button = React.forwardRef<Props, HTMLButtonElement>(
+  (
+    {
+      type = "text",
+      icon,
+      children,
+      value,
+      disclosure,
+      neutral,
+      ...rest
+    }: Props,
+    innerRef
+  ) => {
+    const hasText = children !== undefined || value !== undefined;
+    const hasIcon = icon !== undefined;
 
-  return (
-    <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
-      <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
-        {hasIcon && icon}
-        {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
-        {disclosure && <ExpandedIcon />}
-      </Inner>
-    </RealButton>
-  );
-}
+    return (
+      <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
+        <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
+          {hasIcon && icon}
+          {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
+          {disclosure && <ExpandedIcon />}
+        </Inner>
+      </RealButton>
+    );
+  }
+);
 
-export default React.forwardRef<Props, typeof Button>((props, ref) => (
-  <Button {...props} innerRef={ref} />
-));
+export default Button;

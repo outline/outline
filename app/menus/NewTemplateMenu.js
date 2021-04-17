@@ -11,13 +11,20 @@ import ContextMenu from "components/ContextMenu";
 import Header from "components/ContextMenu/Header";
 import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 function NewTemplateMenu() {
-  const menu = useMenuState();
+  const menu = useMenuState({ modal: true });
   const { t } = useTranslation();
+  const team = useCurrentTeam();
   const { collections, policies } = useStores();
+  const can = policies.abilities(team.id);
+
+  if (!can.createDocument) {
+    return;
+  }
 
   return (
     <>

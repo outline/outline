@@ -1,11 +1,21 @@
 // @flow
-import { CollectionUser } from "../models";
+import { UserAuthentication, CollectionUser } from "../models";
 import { buildUser, buildTeam, buildCollection } from "../test/factories";
 import { flushdb } from "../test/support";
 
 beforeEach(() => flushdb());
 
 describe("user model", () => {
+  describe("destroy", () => {
+    it("should delete user authentications", async () => {
+      const user = await buildUser();
+      expect(await UserAuthentication.count()).toBe(1);
+
+      await user.destroy();
+      expect(await UserAuthentication.count()).toBe(0);
+    });
+  });
+
   describe("getJwtToken", () => {
     it("should set JWT secret", async () => {
       const user = await buildUser();

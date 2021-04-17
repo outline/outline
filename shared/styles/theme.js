@@ -107,6 +107,7 @@ export const base = {
   },
 
   depths: {
+    header: 900,
     sidebar: 1000,
     modalOverlay: 2000,
     modal: 3000,
@@ -133,6 +134,7 @@ export const light = {
   sidebarBackground: colors.warmGrey,
   sidebarItemBackground: colors.black10,
   sidebarText: "rgb(78, 92, 110)",
+  backdrop: "rgba(0, 0, 0, 0.2)",
   shadow: "rgba(0, 0, 0, 0.2)",
 
   menuBackground: colors.white,
@@ -192,6 +194,7 @@ export const dark = {
   sidebarBackground: colors.veryDarkBlue,
   sidebarItemBackground: colors.transparent,
   sidebarText: colors.slate,
+  backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",
 
   menuBorder: lighten(0.1, colors.almostBlack),
@@ -236,6 +239,14 @@ export const dark = {
 
   scrollbarBackground: colors.black,
   scrollbarThumb: colors.lightBlack,
+};
+
+export const lightMobile = {
+  background: colors.white,
+};
+
+export const darkMobile = {
+  background: colors.black,
 };
 
 export default light;

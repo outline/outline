@@ -29,6 +29,7 @@ import Subheading from "components/Subheading";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
 import useUnmount from "hooks/useUnmount";
@@ -39,6 +40,7 @@ function CollectionScene() {
   const params = useParams();
   const { t } = useTranslation();
   const { documents, policies, collections, ui } = useStores();
+  const team = useCurrentTeam();
   const [isFetching, setFetching] = React.useState();
   const [error, setError] = React.useState();
   const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
@@ -46,6 +48,7 @@ function CollectionScene() {
   const collectionId = params.id || "";
   const collection = collections.get(collectionId);
   const can = policies.abilities(collectionId || "");
+  const canUser = policies.abilities(team.id);
   const { handleFiles, isImporting } = useImportDocument(collectionId);
 
   React.useEffect(() => {
@@ -116,42 +119,39 @@ function CollectionScene() {
       }
       actions={
         <>
+          <Action>
+            <InputSearch
+              source="collection"
+              placeholder={`${t("Search in collection")}…`}
+              label={`${t("Search in collection")}…`}
+              labelHidden
+              collectionId={collectionId}
+            />
+          </Action>
           {can.update && (
-            <>
-              <Action>
-                <InputSearch
-                  source="collection"
-                  placeholder={`${t("Search in collection")}…`}
-                  label={`${t("Search in collection")}…`}
-                  labelHidden
-                  collectionId={collectionId}
-                />
-              </Action>
-              <Action>
-                <Tooltip
-                  tooltip={t("New document")}
-                  shortcut="n"
-                  delay={500}
-                  placement="bottom"
+            <Action>
+              <Tooltip
+                tooltip={t("New document")}
+                shortcut="n"
+                delay={500}
+                placement="bottom"
+              >
+                <Button
+                  as={Link}
+                  to={collection ? newDocumentUrl(collection.id) : ""}
+                  disabled={!collection}
+                  icon={<PlusIcon />}
                 >
-                  <Button
-                    as={Link}
-                    to={collection ? newDocumentUrl(collection.id) : ""}
-                    disabled={!collection}
-                    icon={<PlusIcon />}
-                  >
-                    {t("New doc")}
-                  </Button>
-                </Tooltip>
-              </Action>
-              <Separator />
-            </>
+                  {t("New doc")}
+                </Button>
+              </Tooltip>
+            </Action>
           )}
+          <Separator />
           <Action>
             <CollectionMenu
               collection={collection}
               placement="bottom-end"
-              modal={false}
               label={(props) => (
                 <Button
                   icon={<MoreIcon />}
@@ -170,6 +170,7 @@ function CollectionScene() {
         accept={documents.importFileTypes.join(", ")}
         onDropAccepted={handleFiles}
         onDropRejected={handleRejection}
+        disabled={!can.update}
         noClick
         multiple
       >
@@ -199,14 +200,18 @@ function CollectionScene() {
                       components={{ em: <strong /> }}
                     />
                     <br />
-                    <Trans>Get started by creating a new one!</Trans>
+                    {canUser.createDocument && (
+                      <Trans>Get started by creating a new one!</Trans>
+                    )}
                   </HelpText>
                   <Empty>
-                    <Link to={newDocumentUrl(collection.id)}>
-                      <Button icon={<NewDocumentIcon color="currentColor" />}>
-                        {t("Create a document")}
-                      </Button>
-                    </Link>
+                    {canUser.createDocument && (
+                      <Link to={newDocumentUrl(collection.id)}>
+                        <Button icon={<NewDocumentIcon color="currentColor" />}>
+                          {t("Create a document")}
+                        </Button>
+                      </Link>
+                    )}
                     &nbsp;&nbsp;
                     <Button onClick={handlePermissionsModalOpen} neutral>
                       {t("Manage permissions")}…

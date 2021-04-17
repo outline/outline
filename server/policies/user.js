@@ -46,7 +46,7 @@ allow(User, "promote", User, (actor, user) => {
 
 allow(User, "demote", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
-  if (!user.isAdmin || user.isSuspended) return false;
+  if (user.isSuspended) return false;
   if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });

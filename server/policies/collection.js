@@ -8,7 +8,7 @@ import policy from "./policy";
 const { allow } = policy;
 
 allow(User, "createCollection", Team, (user, team) => {
-  if (!team || user.teamId !== team.id) return false;
+  if (!team || user.isViewer || user.teamId !== team.id) return false;
   return true;
 });
 
@@ -48,6 +48,7 @@ allow(User, ["read", "export"], Collection, (user, collection) => {
 });
 
 allow(User, "share", Collection, (user, collection) => {
+  if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
   if (!collection.sharing) return false;
 
@@ -71,6 +72,7 @@ allow(User, "share", Collection, (user, collection) => {
 });
 
 allow(User, ["publish", "update"], Collection, (user, collection) => {
+  if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
 
   if (collection.permission !== "read_write") {
@@ -93,6 +95,7 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
 });
 
 allow(User, "delete", Collection, (user, collection) => {
+  if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
 
   if (collection.permission !== "read_write") {

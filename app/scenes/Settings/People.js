@@ -71,6 +71,8 @@ class People extends React.Component<Props> {
       users = this.props.users.suspended;
     } else if (filter === "invited") {
       users = this.props.users.invited;
+    } else if (filter === "viewers") {
+      users = this.props.users.viewers;
     }
 
     const can = policies.abilities(team.id);
@@ -113,6 +115,9 @@ class People extends React.Component<Props> {
               {t("Suspended")} <Bubble count={counts.suspended} />
             </Tab>
           )}
+          <Tab to="/settings/people/viewers" exact>
+            {t("Viewers")} <Bubble count={counts.viewers} />
+          </Tab>
           <Tab to="/settings/people/all" exact>
             {t("Everyone")} <Bubble count={counts.all - counts.invited} />
           </Tab>

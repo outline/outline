@@ -77,7 +77,7 @@ const Actions = styled(Flex)`
 const Wrapper = styled(Flex)`
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: ${(props) => props.theme.depths.header};
   background: ${(props) => transparentize(0.2, props.theme.background)};
   padding: 12px;
   transition: all 100ms ease-out;
@@ -97,6 +97,7 @@ const Wrapper = styled(Flex)`
 `;
 
 const Title = styled("div")`
+  display: none;
   font-size: 16px;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -105,12 +106,9 @@ const Title = styled("div")`
   cursor: pointer;
   min-width: 0;
 
-  /* on mobile, there's always a floating menu button in the top left 
-    add some padding here to offset
-  */
-  padding-left: 40px;
   ${breakpoint("tablet")`	
     padding-left: 0;
+    display: block;
   `};
 
   svg {

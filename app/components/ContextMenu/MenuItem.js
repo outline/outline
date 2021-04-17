@@ -3,6 +3,7 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
 type Props = {|
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
@@ -72,7 +73,7 @@ export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
   border: 0;
-  padding: 6px 12px;
+  padding: 12px;
   width: 100%;
   min-height: 32px;
   background: none;
@@ -80,7 +81,7 @@ export const MenuAnchor = styled.a`
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
-  font-size: 15px;
+  font-size: 16px;
   cursor: default;
   user-select: none;
 
@@ -114,6 +115,11 @@ export const MenuAnchor = styled.a`
     color: ${props.theme.white};
     background: ${props.theme.primary};
   }
+  `};
+
+  ${breakpoint("tablet")`
+    padding: 6px 12px;
+    font-size: 15px;
   `};
 `;
 

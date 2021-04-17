@@ -15,8 +15,10 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
+import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
 import UsersStore from "stores/UsersStore";
 
 import Button from "components/Button";
@@ -44,7 +46,9 @@ type Props = {
   match: Match,
   location: LocationWithState,
   documents: DocumentsStore,
+  auth: AuthStore,
   users: UsersStore,
+  policies: PoliciesStore,
   notFound: ?boolean,
   t: TFunction,
 };
@@ -255,11 +259,12 @@ class Search extends React.Component<Props> {
   };
 
   render() {
-    const { documents, notFound, location, t } = this.props;
+    const { documents, notFound, location, t, auth, policies } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
+    const can = policies.abilities(auth.team?.id ? auth.team.id : "");
 
     return (
       <Container auto>
@@ -323,11 +328,11 @@ class Search extends React.Component<Props> {
                 <HelpText>
                   <Trans>
                     No documents found for your search filters. <br />
-                    Create a new document?
                   </Trans>
+                  {can.createDocument && <Trans>Create a new document?</Trans>}
                 </HelpText>
                 <Wrapper>
-                  {this.collectionId ? (
+                  {this.collectionId && can.createDocument ? (
                     <Button
                       onClick={this.handleNewDoc}
                       icon={<PlusIcon />}
@@ -401,8 +406,11 @@ const ResultsWrapper = styled(Flex)`
   position: absolute;
   transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
   top: ${(props) => (props.pinToTop ? "0%" : "50%")};
-  margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
   width: 100%;
+
+  ${breakpoint("tablet")`	
+    margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
+  `};
 `;
 
 const ResultList = styled(Flex)`
@@ -435,5 +443,5 @@ const Filters = styled(Flex)`
 `;
 
 export default withTranslation()<Search>(
-  withRouter(inject("documents")(Search))
+  withRouter(inject("documents", "auth", "policies")(Search))
 );

@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import ApiKeysStore from "stores/ApiKeysStore";
+import UiStore from "stores/UiStore";
 
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
@@ -14,6 +15,7 @@ import TokenListItem from "./components/TokenListItem";
 
 type Props = {
   apiKeys: ApiKeysStore,
+  ui: UiStore,
 };
 
 @observer
@@ -29,9 +31,13 @@ class Tokens extends React.Component<Props> {
   };
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    await this.props.apiKeys.create({ name: this.name });
-    this.name = "";
+    try {
+      ev.preventDefault();
+      await this.props.apiKeys.create({ name: this.name });
+      this.name = "";
+    } catch (error) {
+      this.props.ui.showToast(error.message, { type: "error" });
+    }
   };
 
   render() {
@@ -82,4 +88,4 @@ class Tokens extends React.Component<Props> {
   }
 }
 
-export default inject("apiKeys")(Tokens);
+export default inject("apiKeys", "ui")(Tokens);

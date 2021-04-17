@@ -17,9 +17,10 @@ type Props = {
 
 function ShareMenu({ share }: Props) {
   const menu = useMenuState({ modal: true });
-  const { ui, shares } = useStores();
+  const { ui, shares, policies } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
+  const can = policies.abilities(share.id);
 
   const handleGoToDocument = React.useCallback(
     (ev: SyntheticEvent<>) => {
@@ -57,10 +58,14 @@ function ShareMenu({ share }: Props) {
         <MenuItem {...menu} onClick={handleGoToDocument}>
           {t("Go to document")}
         </MenuItem>
-        <hr />
-        <MenuItem {...menu} onClick={handleRevoke}>
-          {t("Revoke link")}
-        </MenuItem>
+        {can.revoke && (
+          <>
+            <hr />
+            <MenuItem {...menu} onClick={handleRevoke}>
+              {t("Revoke link")}
+            </MenuItem>
+          </>
+        )}
       </ContextMenu>
     </>
   );
