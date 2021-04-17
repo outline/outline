@@ -134,7 +134,7 @@ export const light = {
   sidebarBackground: colors.warmGrey,
   sidebarItemBackground: colors.black10,
   sidebarText: "rgb(78, 92, 110)",
-  sidebarShadow: "rgba(0, 0, 0, 0.2)",
+  backdrop: "rgba(0, 0, 0, 0.2)",
   shadow: "rgba(0, 0, 0, 0.2)",
 
   menuBackground: colors.white,
@@ -194,7 +194,7 @@ export const dark = {
   sidebarBackground: colors.veryDarkBlue,
   sidebarItemBackground: colors.transparent,
   sidebarText: colors.slate,
-  sidebarShadow: "rgba(255, 255, 255, 0.07)",
+  backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",
 
   menuBorder: lighten(0.1, colors.almostBlack),
