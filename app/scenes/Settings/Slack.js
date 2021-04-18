@@ -7,13 +7,14 @@ import styled from "styled-components";
 
 import getQueryVariable from "shared/utils/getQueryVariable";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
 import CollectionIcon from "components/CollectionIcon";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import List from "components/List";
 import ListItem from "components/List/Item";
 import Notice from "components/Notice";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
+import SlackIcon from "components/SlackIcon";
 import SlackButton from "./components/SlackButton";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -35,9 +36,8 @@ function Slack() {
   });
 
   return (
-    <CenteredContent>
-      <PageTitle title="Slack" />
-      <h1>Slack</h1>
+    <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
+      <Heading>Slack</Heading>
       {error === "access_denied" && (
         <Notice>
           <Trans>
@@ -63,7 +63,7 @@ function Slack() {
       </HelpText>
       <p>
         {commandIntegration ? (
-          <Button onClick={commandIntegration.delete}>Disconnect</Button>
+          <Button onClick={commandIntegration.delete}>{t("Disconnect")}</Button>
         ) : (
           <SlackButton
             scopes={["commands", "links:read", "links:write"]}
@@ -127,7 +127,7 @@ function Slack() {
           );
         })}
       </List>
-    </CenteredContent>
+    </Scene>
   );
 }
 
