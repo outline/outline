@@ -83,7 +83,7 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   const { t } = useTranslation();
 
   if (!collections.isLoaded) {
-    return;
+    return null;
   }
 
   let collection = collections.get(document.collectionId);
