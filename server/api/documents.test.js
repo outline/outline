@@ -93,6 +93,9 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.createdBy).toEqual(undefined);
     expect(body.data.updatedBy).toEqual(undefined);
+
+    await share.reload();
+    expect(share.lastAccessedAt).toBeTruthy();
   });
 
   it("should not return document from shareId if sharing is disabled for team", async () => {

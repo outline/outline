@@ -36,7 +36,7 @@ router.post("shares.info", auth(), async (ctx) => {
   authorize(user, "read", share);
 
   ctx.body = {
-    data: presentShare(share),
+    data: presentShare(share, user.isAdmin),
     policies: presentPolicies(user, [share]),
   };
 });
@@ -117,7 +117,7 @@ router.post("shares.update", auth(), async (ctx) => {
   });
 
   ctx.body = {
-    data: presentShare(share),
+    data: presentShare(share, user.isAdmin),
     policies: presentPolicies(user, [share]),
   };
 });
