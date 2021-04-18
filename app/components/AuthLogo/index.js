@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import SlackLogo from "../SlackLogo";
 import GoogleLogo from "./GoogleLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
+import SlackLogo from "./SlackLogo";
 
 type Props = {|
   providerName: string,

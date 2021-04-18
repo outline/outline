@@ -149,7 +149,7 @@ if (SLACK_CLIENT_ID) {
     }
 
     // this code block accounts for the root domain being unable to
-    // access authentcation for subdomains. We must forward to the
+    // access authentication for subdomains. We must forward to the
     // appropriate subdomain to complete the oauth flow
     if (!user) {
       try {

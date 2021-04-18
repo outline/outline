@@ -10,8 +10,14 @@ import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
-import UserAuthentication from "./UserAuthentication";
-import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
+import {
+  UserAuthentication,
+  Star,
+  Team,
+  Collection,
+  NotificationSetting,
+  ApiKey,
+} from ".";
 
 const User = sequelize.define(
   "user",
