@@ -2,7 +2,7 @@
 import { Event } from "../models";
 import presentUser from "./user";
 
-export default function present(event: Event, auditLog: boolean = false) {
+export default function present(event: Event, isAdmin: boolean = false) {
   let data = {
     id: event.id,
     name: event.name,
@@ -16,7 +16,7 @@ export default function present(event: Event, auditLog: boolean = false) {
     actor: presentUser(event.actor),
   };
 
-  if (!auditLog) {
+  if (!isAdmin) {
     delete data.actorIpAddress;
   }
 
