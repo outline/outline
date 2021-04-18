@@ -94,6 +94,25 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Heading 1");
   });
 
+  it("should handle encoded slashes", async () => {
+    const user = await buildUser();
+    const name = "this %2F and %2F this.md";
+    const file = new File({
+      name,
+      type: "text/plain",
+      path: path.resolve(__dirname, "..", "test", "fixtures", "empty.md"),
+    });
+
+    const response = await documentImporter({
+      user,
+      file,
+      ip,
+    });
+
+    expect(response.text).toContain("");
+    expect(response.title).toEqual("this / and / this");
+  });
+
   it("should fallback to extension if mimetype unknown", async () => {
     const user = await buildUser();
     const name = "markdown.md";

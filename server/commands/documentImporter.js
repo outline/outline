@@ -11,6 +11,7 @@ import parseTitle from "../../shared/utils/parseTitle";
 import { FileImportError, InvalidRequestError } from "../errors";
 import { User } from "../models";
 import dataURItoBuffer from "../utils/dataURItoBuffer";
+import { deserializeFilename } from "../utils/fs";
 import parseImages from "../utils/parseImages";
 import attachmentCreator from "./attachmentCreator";
 
@@ -152,7 +153,7 @@ export default async function documentImporter({
   if (!fileInfo) {
     throw new InvalidRequestError(`File type ${file.type} not supported`);
   }
-  let title = file.name.replace(/\.[^/.]+$/, "");
+  let title = deserializeFilename(file.name.replace(/\.[^/.]+$/, ""));
   let text = await fileInfo.getMarkdown(file);
 
   // If the first line of the imported text looks like a markdown heading
