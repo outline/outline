@@ -36,7 +36,7 @@ router.post("shares.info", auth(), async (ctx) => {
   authorize(user, "read", share);
 
   ctx.body = {
-    data: presentShare(share),
+    data: presentShare(share, user.isAdmin),
     policies: presentPolicies(user, [share]),
   };
 });
@@ -89,7 +89,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: shares.map(presentShare),
+    data: shares.map((share) => presentShare(share, user.isAdmin)),
     policies: presentPolicies(user, shares),
   };
 });
@@ -117,7 +117,7 @@ router.post("shares.update", auth(), async (ctx) => {
   });
 
   ctx.body = {
-    data: presentShare(share),
+    data: presentShare(share, user.isAdmin),
     policies: presentPolicies(user, [share]),
   };
 });

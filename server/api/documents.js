@@ -518,6 +518,8 @@ async function loadDocument({ id, shareId, user }) {
     if (!team.sharing) {
       throw new AuthorizationError();
     }
+
+    await share.update({ lastAccessedAt: new Date() });
   } else {
     document = await Document.findByPk(id, {
       userId: user ? user.id : undefined,
