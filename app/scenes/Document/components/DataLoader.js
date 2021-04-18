@@ -8,6 +8,7 @@ import * as React from "react";
 import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
+import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
@@ -33,6 +34,7 @@ type Props = {|
   documents: DocumentsStore,
   policies: PoliciesStore,
   revisions: RevisionsStore,
+  auth: AuthStore,
   ui: UiStore,
   history: RouterHistory,
 |};
@@ -57,7 +59,12 @@ class DataLoader extends React.Component<Props> {
       const document = this.document;
       const policy = this.props.policies.get(document.id);
 
-      if (!policy && !this.error) {
+      if (
+        !policy &&
+        !this.error &&
+        this.props.auth.user &&
+        this.props.auth.user.id
+      ) {
         this.loadDocument();
       }
     }
