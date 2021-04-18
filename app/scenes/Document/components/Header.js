@@ -22,6 +22,7 @@ import Fade from "components/Fade";
 import Header from "components/Header";
 import Modal from "components/Modal";
 import Tooltip from "components/Tooltip";
+import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
@@ -61,6 +62,7 @@ function DocumentHeader({
 }: Props) {
   const { t } = useTranslation();
   const { auth, ui, shares, policies } = useStores();
+  const isMobile = useMobile();
   const [showShareModal, setShowShareModal] = React.useState(false);
 
   const handleSave = React.useCallback(() => {
@@ -182,7 +184,7 @@ function DocumentHeader({
                 <TemplatesMenu document={document} />
               </Action>
             )}
-            {!isEditing && canShareDocument && (
+            {!isEditing && canShareDocument && (!isMobile || !isTemplate) && (
               <Action>
                 <Tooltip
                   tooltip={
@@ -229,7 +231,7 @@ function DocumentHeader({
               </>
             )}
             {canEdit && editAction}
-            {canEdit && can.createChildDocument && (
+            {canEdit && can.createChildDocument && !isMobile && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}
