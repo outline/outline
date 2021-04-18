@@ -19,8 +19,8 @@ const ShareListItem = ({ share }: Props) => {
       title={share.documentTitle}
       subtitle={
         <>
-          Shared <Time dateTime={share.createdAt} addSuffix /> by{" "}
-          {share.createdBy.name}{" "}
+          {t("Shared")} <Time dateTime={share.createdAt} addSuffix />{" "}
+          {t("by {{ name }}", { name: share.createdBy.name })}{" "}
           {lastAccessedAt && (
             <>
               {" "}
