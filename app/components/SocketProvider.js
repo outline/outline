@@ -101,7 +101,10 @@ class SocketProvider extends React.Component<Props> {
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
     this.socket.on("reconnect_attempt", () => {
-      this.socket.io.opts.transports = ["polling", "websocket"];
+      this.socket.io.opts.transports =
+        auth.team && auth.team.domain
+          ? ["websocket"]
+          : ["websocket", "polling"];
     });
 
     this.socket.on("authenticated", () => {
