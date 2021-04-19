@@ -5,7 +5,6 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 
-import getQueryVariable from "shared/utils/getQueryVariable";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
 import Heading from "components/Heading";
@@ -18,13 +17,15 @@ import SlackIcon from "components/SlackIcon";
 import SlackButton from "./components/SlackButton";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
+import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 
 function Slack() {
   const team = useCurrentTeam();
   const { collections, integrations } = useStores();
   const { t } = useTranslation();
-  const error = getQueryVariable("error");
+  const query = useQuery();
+  const error = query.get("error");
 
   React.useEffect(() => {
     collections.fetchPage({ limit: 100 });

@@ -5,7 +5,6 @@ import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Redirect, Link, type Location } from "react-router-dom";
 import styled from "styled-components";
-import getQueryVariable from "shared/utils/getQueryVariable";
 import ButtonLarge from "components/ButtonLarge";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
@@ -114,7 +113,7 @@ function Login({ location }: Props) {
           <Heading centered>Login to {config.name || "Outline"}</Heading>
         )}
 
-        <Notices notice={getQueryVariable("notice")} />
+        <Notices />
 
         {defaultProvider && (
           <React.Fragment key={defaultProvider.id}>
