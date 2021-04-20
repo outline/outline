@@ -126,6 +126,7 @@ function CollectionScene() {
               label={`${t("Search in collection")}…`}
               labelHidden
               collectionId={collectionId}
+              maxWidth="30vw"
             />
           </Action>
           {can.update && (

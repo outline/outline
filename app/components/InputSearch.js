@@ -21,6 +21,7 @@ type Props = {
   labelHidden?: boolean,
   collectionId?: string,
   redirectDisabled?: boolean,
+  maxWidth?: string,
   onChange: (event: SyntheticInputEvent<>) => mixed,
   t: TFunction,
 };
@@ -75,6 +76,7 @@ class InputSearch extends React.Component<Props> {
         }
         label={this.props.label}
         labelHidden={this.props.labelHidden}
+        maxWidth={this.props.maxWidth}
         onFocus={this.handleFocus}
         onBlur={this.handleBlur}
         margin={0}
@@ -84,7 +86,7 @@ class InputSearch extends React.Component<Props> {
 }
 
 const InputMaxWidth = styled(Input)`
-  max-width: 30vw;
+  max-width: ${(props) => props.maxWidth};
 `;
 
 export default withTranslation()<InputSearch>(

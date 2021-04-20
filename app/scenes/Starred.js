@@ -35,6 +35,7 @@ function Starred(props: Props) {
             <InputSearch
               source="starred"
               label={t("Search documents")}
+              maxWidth="30vw"
               labelHidden
             />
           </Action>

@@ -33,7 +33,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
+                <Key>Ctrl</Key> + <Key>{metaDisplay}</Key> + <Key>h</Key>
               </>
             ),
             label: t("Table of contents"),
@@ -66,7 +66,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>p</Key>
+                <Key>{metaDisplay}</Key> + <Key>⇧</Key> + <Key>p</Key>
               </>
             ),
             label: t("Publish document and exit"),
@@ -95,7 +95,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>0</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>0</Key>
               </>
             ),
             label: t("Paragraph"),
@@ -103,7 +103,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>1</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>1</Key>
               </>
             ),
             label: t("Large header"),
@@ -111,7 +111,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>2</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>2</Key>
               </>
             ),
             label: t("Medium header"),
@@ -119,7 +119,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>3</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>3</Key>
               </>
             ),
             label: t("Small header"),
@@ -127,7 +127,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>\</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>\</Key>
               </>
             ),
             label: t("Code block"),
@@ -183,7 +183,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>z</Key>
+                <Key>{metaDisplay}</Key> + <Key>⇧</Key> + <Key>z</Key>
               </>
             ),
             label: t("Redo"),
@@ -196,7 +196,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>7</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>7</Key>
               </>
             ),
             label: t("Todo list"),
@@ -204,7 +204,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>8</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>8</Key>
               </>
             ),
             label: t("Bulleted list"),
@@ -212,7 +212,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Ctrl</Key> + <Key>9</Key>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>9</Key>
               </>
             ),
             label: t("Ordered list"),
@@ -224,7 +224,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Shift</Key> + <Key>Tab</Key>
+                <Key>⇧</Key> + <Key>Tab</Key>
               </>
             ),
             label: t("Lift list item"),
@@ -232,7 +232,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Alt</Key> + <Key>⬆</Key>
+                <Key>Alt</Key> + <Key>↑</Key>
               </>
             ),
             label: t("Move list item up"),
@@ -240,7 +240,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Alt</Key> + <Key>⬇</Key>
+                <Key>Alt</Key> + <Key>↓</Key>
               </>
             ),
             label: t("Move list item down"),
@@ -370,7 +370,9 @@ function KeyboardShortcuts() {
             <List>
               {filtered.map((item) => (
                 <React.Fragment key={item.label}>
-                  <Keys>{item.shortcut}</Keys>
+                  <Keys>
+                    <span>{item.shortcut}</span>
+                  </Keys>
                   <Label>{item.label}</Label>
                 </React.Fragment>
               ))}
@@ -402,7 +404,11 @@ const Keys = styled.dt`
   height: 30px;
   margin: 0;
   text-align: right;
+  font-size: 12px;
   color: ${(props) => props.theme.textSecondary};
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 `;
 
 const Label = styled.dd`

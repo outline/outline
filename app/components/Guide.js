@@ -95,8 +95,7 @@ const Scene = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  width: 25vw;
-  max-width: 350px;
+  width: 350px;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   border-radius: 8px;
