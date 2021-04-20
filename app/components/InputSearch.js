@@ -20,6 +20,8 @@ type Props = {
   label?: string,
   labelHidden?: boolean,
   collectionId?: string,
+  redirectDisabled?: boolean,
+  onChange: (event: SyntheticInputEvent<>) => mixed,
   t: TFunction,
 };
 
@@ -56,7 +58,7 @@ class InputSearch extends React.Component<Props> {
   };
 
   render() {
-    const { t } = this.props;
+    const { t, redirectDisabled, onChange } = this.props;
     const { theme, placeholder = `${t("Search")}…` } = this.props;
 
     return (
@@ -64,7 +66,8 @@ class InputSearch extends React.Component<Props> {
         ref={(ref) => (this.input = ref)}
         type="search"
         placeholder={placeholder}
-        onInput={this.handleSearchInput}
+        onInput={redirectDisabled ? undefined : this.handleSearchInput}
+        onChange={onChange}
         icon={
           <SearchIcon
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
