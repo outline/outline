@@ -17,7 +17,7 @@ function KeyboardShortcuts() {
         items: [
           {
             shortcut: <Key>n</Key>,
-            label: t("New document in current collection"),
+            label: t("New document"),
           },
           { shortcut: <Key>e</Key>, label: t("Edit current document") },
           { shortcut: <Key>m</Key>, label: t("Move current document") },
@@ -61,7 +61,7 @@ function KeyboardShortcuts() {
                 <Key>{metaDisplay}</Key> + <Key>Enter</Key>
               </>
             ),
-            label: t("Save and exit document edit mode"),
+            label: t("Save document and exit"),
           },
           {
             shortcut: (
@@ -69,7 +69,7 @@ function KeyboardShortcuts() {
                 <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>p</Key>
               </>
             ),
-            label: t("Publish and exit document edit mode"),
+            label: t("Publish document and exit"),
           },
           {
             shortcut: (
@@ -77,7 +77,7 @@ function KeyboardShortcuts() {
                 <Key>{metaDisplay}</Key> + <Key>s</Key>
               </>
             ),
-            label: t("Save document and continue editing"),
+            label: t("Save document"),
           },
           {
             shortcut: (
@@ -366,7 +366,7 @@ function KeyboardShortcuts() {
 
         return (
           <React.Fragment key={x}>
-            <h2>{category.title}</h2>
+            <Header>{category.title}</Header>
             <List>
               {filtered.map((item) => (
                 <React.Fragment key={item.label}>
@@ -382,7 +382,14 @@ function KeyboardShortcuts() {
   );
 }
 
+const Header = styled.h2`
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 2em;
+`;
+
 const List = styled.dl`
+  font-size: 14px;
   width: 100%;
   overflow: hidden;
   padding: 0;
@@ -390,19 +397,22 @@ const List = styled.dl`
 `;
 
 const Keys = styled.dt`
-  float: left;
-  width: 25%;
+  float: right;
+  width: 45%;
   height: 30px;
   margin: 0;
+  text-align: right;
+  color: ${(props) => props.theme.textSecondary};
 `;
 
 const Label = styled.dd`
   float: left;
-  width: 75%;
+  width: 55%;
   height: 30px;
   margin: 0;
   display: flex;
   align-items: center;
+  color: ${(props) => props.theme.textSecondary};
 `;
 
 export default KeyboardShortcuts;

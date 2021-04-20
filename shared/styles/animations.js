@@ -30,6 +30,18 @@ export const fadeAndSlideIn = keyframes`
   }
 `;
 
+export const fadeAndSlideInFromRight = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(.98) translateX(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0px);
+  }
+`;
+
 export const bounceIn = keyframes`
   from,
   20%,
