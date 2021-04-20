@@ -219,7 +219,7 @@ function KeyboardShortcuts() {
           },
           {
             shortcut: <Key>Tab</Key>,
-            label: t("Sink list item"),
+            label: t("Indent list item"),
           },
           {
             shortcut: (
@@ -227,7 +227,7 @@ function KeyboardShortcuts() {
                 <Key>⇧</Key> + <Key>Tab</Key>
               </>
             ),
-            label: t("Lift list item"),
+            label: t("Outdent list item"),
           },
           {
             shortcut: (
