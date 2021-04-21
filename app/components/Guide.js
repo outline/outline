@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
-import { fadeAndSlideInFromRight } from "shared/styles/animations";
 import Scrollable from "components/Scrollable";
 import usePrevious from "hooks/usePrevious";
 
@@ -19,7 +18,6 @@ const Guide = ({
   isOpen,
   title = "Untitled",
   onRequestClose,
-  hideBackButton,
   ...rest
 }: Props) => {
   const dialog = useDialogState({ animated: 250 });
@@ -33,8 +31,6 @@ const Guide = ({
       dialog.hide();
     }
   }, [dialog, wasOpen, isOpen]);
-
-  if (!isOpen) return null;
 
   return (
     <DialogBackdrop {...dialog}>
@@ -75,7 +71,7 @@ const Backdrop = styled.div`
   bottom: 0;
   background-color: ${(props) => props.theme.backdrop} !important;
   z-index: ${(props) => props.theme.depths.modalOverlay};
-  transition: opacity 50ms ease-in-out;
+  transition: opacity 200ms ease-in-out;
   opacity: 0;
 
   &[data-enter] {
@@ -84,8 +80,6 @@ const Backdrop = styled.div`
 `;
 
 const Scene = styled.div`
-  animation: ${fadeAndSlideInFromRight} 250ms ease;
-
   position: absolute;
   top: 0;
   right: 0;
@@ -100,6 +94,14 @@ const Scene = styled.div`
   transition: ${(props) => props.theme.backgroundTransition};
   border-radius: 8px;
   outline: none;
+  opacity: 0;
+  transform: translateX(16px);
+  transition: transform 250ms ease, opacity 250ms ease;
+
+  &[data-enter] {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 `;
 
 const Content = styled(Scrollable)`
