@@ -125,6 +125,7 @@
     "outline-icons": "^1.39.0",
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
+    "passport-cloudflare": "https://github.com/pratheekrebala/passport-cloudflare.git",
     "passport-google-oauth2": "^0.2.0",
     "passport-oauth2": "^1.6.1",
     "passport-slack-oauth2": "^1.1.0",
