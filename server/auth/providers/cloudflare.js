@@ -15,7 +15,7 @@ const providerName = 'cloudflare';
 const audienceId = process.env.CLOUDFLARE_AUDIENCE;
 const displayName = process.env.CLOUDFLARE_TEAM_DISPLAY_NAME;
 const teamName = process.env.CLOUDFLARE_TEAM_NAME;
-const teamDomainName = `${CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com`;
+const teamDomainName = `${teamName}.cloudflareaccess.com`;
 
 const providerEnabled = !!teamName;
 
