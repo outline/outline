@@ -3,6 +3,8 @@ const webpack = require("webpack");
 const commonWebpackConfig = require("./webpack.config");
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
+const isTest = process.env.NODE_ENV === "test";
+
 const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   mode: "development",
@@ -16,14 +18,16 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   },
 });
 
-developmentWebpackConfig.plugins = [
-  ...developmentWebpackConfig.plugins,
-  new webpack.HotModuleReplacementPlugin(),
-  new ReactRefreshWebpackPlugin({
-    overlay: {
-      sockIntegration: 'whm',
-    },
-  }),
-];
+if (!isTest) {
+  developmentWebpackConfig.plugins = [
+    ...developmentWebpackConfig.plugins,
+    new webpack.HotModuleReplacementPlugin(),
+    new ReactRefreshWebpackPlugin({
+      overlay: {
+        sockIntegration: 'whm',
+      },
+    }),
+  ];
+}
 
 module.exports = developmentWebpackConfig;
