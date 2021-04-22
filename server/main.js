@@ -1,4 +1,6 @@
 // @flow
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import http from "http";
 import * as Sentry from "@sentry/node";
 import IO from "socket.io";
