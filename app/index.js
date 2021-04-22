@@ -1,8 +1,5 @@
 // @flow
 import "focus-visible";
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-
 import { createBrowserHistory } from "history";
 import { Provider } from "mobx-react";
 import * as React from "react";
