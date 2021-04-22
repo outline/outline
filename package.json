@@ -225,6 +225,7 @@
     "workbox-webpack-plugin": "^6.1.0"
   },
   "resolutions": {
+    "outline-icons": "1.25.1",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },
