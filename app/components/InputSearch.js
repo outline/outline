@@ -20,6 +20,9 @@ type Props = {
   label?: string,
   labelHidden?: boolean,
   collectionId?: string,
+  redirectDisabled?: boolean,
+  maxWidth?: string,
+  onChange: (event: SyntheticInputEvent<>) => mixed,
   t: TFunction,
 };
 
@@ -56,7 +59,7 @@ class InputSearch extends React.Component<Props> {
   };
 
   render() {
-    const { t } = this.props;
+    const { t, redirectDisabled, onChange } = this.props;
     const { theme, placeholder = `${t("Search")}…` } = this.props;
 
     return (
@@ -64,7 +67,8 @@ class InputSearch extends React.Component<Props> {
         ref={(ref) => (this.input = ref)}
         type="search"
         placeholder={placeholder}
-        onInput={this.handleSearchInput}
+        onInput={redirectDisabled ? undefined : this.handleSearchInput}
+        onChange={onChange}
         icon={
           <SearchIcon
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
@@ -72,6 +76,7 @@ class InputSearch extends React.Component<Props> {
         }
         label={this.props.label}
         labelHidden={this.props.labelHidden}
+        maxWidth={this.props.maxWidth}
         onFocus={this.handleFocus}
         onBlur={this.handleBlur}
         margin={0}
@@ -81,7 +86,7 @@ class InputSearch extends React.Component<Props> {
 }
 
 const InputMaxWidth = styled(Input)`
-  max-width: 30vw;
+  max-width: ${(props) => props.maxWidth};
 `;
 
 export default withTranslation()<InputSearch>(

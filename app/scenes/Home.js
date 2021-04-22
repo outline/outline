@@ -32,6 +32,7 @@ function Home() {
             <InputSearch
               source="dashboard"
               label={t("Search documents")}
+              maxWidth="30vw"
               labelHidden
             />
           </Action>

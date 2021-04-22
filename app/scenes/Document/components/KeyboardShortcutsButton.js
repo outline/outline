@@ -1,52 +1,49 @@
 // @flow
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import { KeyboardIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import Modal from "components/Modal";
+import Guide from "components/Guide";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
 
-type Props = {};
+function KeyboardShortcutsButton() {
+  const { t } = useTranslation();
+  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
+    false
+  );
 
-@observer
-class KeyboardShortcutsButton extends React.Component<Props> {
-  @observable keyboardShortcutsOpen: boolean = false;
+  const handleCloseKeyboardShortcuts = React.useCallback(() => {
+    setKeyboardShortcutsOpen(false);
+  }, []);
 
-  handleOpenKeyboardShortcuts = () => {
-    this.keyboardShortcutsOpen = true;
-  };
+  const handleOpenKeyboardShortcuts = React.useCallback(() => {
+    setKeyboardShortcutsOpen(true);
+  }, []);
 
-  handleCloseKeyboardShortcuts = () => {
-    this.keyboardShortcutsOpen = false;
-  };
-
-  render() {
-    return (
-      <>
-        <Modal
-          isOpen={this.keyboardShortcutsOpen}
-          onRequestClose={this.handleCloseKeyboardShortcuts}
-          title="Keyboard shortcuts"
-        >
-          <KeyboardShortcuts />
-        </Modal>
-        <Tooltip
-          tooltip="Keyboard shortcuts"
-          shortcut="?"
-          placement="left"
-          delay={500}
-        >
-          <Button onClick={this.handleOpenKeyboardShortcuts}>
-            <KeyboardIcon />
-          </Button>
-        </Tooltip>
-      </>
-    );
-  }
+  return (
+    <>
+      <Guide
+        isOpen={keyboardShortcutsOpen}
+        onRequestClose={handleCloseKeyboardShortcuts}
+        title={t("Keyboard shortcuts")}
+      >
+        <KeyboardShortcuts />
+      </Guide>
+      <Tooltip
+        tooltip={t("Keyboard shortcuts")}
+        shortcut="?"
+        placement="left"
+        delay={500}
+      >
+        <Button onClick={handleOpenKeyboardShortcuts}>
+          <KeyboardIcon />
+        </Button>
+      </Tooltip>
+    </>
+  );
 }
 
 const Button = styled(NudeButton)`

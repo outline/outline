@@ -86,6 +86,7 @@ class Drafts extends React.Component<Props> {
               <InputSearch
                 source="drafts"
                 label={t("Search documents")}
+                maxWidth="30vw"
                 labelHidden
               />
             </Action>

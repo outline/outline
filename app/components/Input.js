@@ -35,6 +35,10 @@ const RealInput = styled.input`
     color: ${(props) => props.theme.placeholder};
   }
 
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
   ${breakpoint("mobile", "tablet")`
     font-size: 16px;
   `};
