@@ -157,6 +157,8 @@ describe("#users.delete", () => {
 
   it("should allow deleting user account with confirmation", async () => {
     const user = await buildUser();
+    await buildUser({ teamId: user.teamId });
+
     const res = await server.post("/api/users.delete", {
       body: { token: user.getJwtToken(), confirmation: true },
     });
