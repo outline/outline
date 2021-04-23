@@ -347,16 +347,30 @@ function KeyboardShortcuts() {
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleChange = React.useCallback((event) => {
-    setSearchTerm(event.target.value.toLowerCase());
+    setSearchTerm(event.target.value);
+  }, []);
+
+  const handleKeyDown = React.useCallback((event) => {
+    if (event.target.value && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      setSearchTerm("");
+    }
   }, []);
 
   return (
     <Flex column>
-      <Input type="search" onChange={handleChange} redirectDisabled />
+      <Input
+        type="search"
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        value={searchTerm}
+        redirectDisabled
+      />
       {categories.map((category, x) => {
         const filtered = searchTerm
           ? category.items.filter((item) =>
-              item.label.toLowerCase().includes(searchTerm)
+              item.label.toLowerCase().includes(searchTerm.toLowerCase())
             )
           : category.items;
 

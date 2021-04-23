@@ -22,7 +22,9 @@ type Props = {
   collectionId?: string,
   redirectDisabled?: boolean,
   maxWidth?: string,
+  value: string,
   onChange: (event: SyntheticInputEvent<>) => mixed,
+  onKeyDown: (event: SyntheticKeyboardEvent<>) => mixed,
   t: TFunction,
 };
 
@@ -59,7 +61,7 @@ class InputSearch extends React.Component<Props> {
   };
 
   render() {
-    const { t, redirectDisabled, onChange } = this.props;
+    const { t, redirectDisabled, value, onChange, onKeyDown } = this.props;
     const { theme, placeholder = `${t("Search")}…` } = this.props;
 
     return (
@@ -68,7 +70,9 @@ class InputSearch extends React.Component<Props> {
         type="search"
         placeholder={placeholder}
         onInput={redirectDisabled ? undefined : this.handleSearchInput}
+        value={value}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         icon={
           <SearchIcon
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
