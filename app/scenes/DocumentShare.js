@@ -1,137 +1,155 @@
 // @flow
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import invariant from "invariant";
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import PoliciesStore from "stores/PoliciesStore";
-import SharesStore from "stores/SharesStore";
-import UiStore from "stores/UiStore";
 import Document from "models/Document";
+import Share from "models/Share";
 import Button from "components/Button";
 import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Switch from "components/Switch";
+import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   document: Document,
-  shares: SharesStore,
-  ui: UiStore,
-  policies: PoliciesStore,
+  share: Share,
   onSubmit: () => void,
-};
+|};
 
-@observer
-class DocumentShare extends React.Component<Props> {
-  @observable isCopied: boolean;
-  @observable isSaving: boolean = false;
-  timeout: TimeoutID;
+function DocumentShare({ document, share, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const { policies, shares, ui } = useStores();
+  const [isCopied, setIsCopied] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const timeout = React.useRef<?TimeoutID>();
+  const can = policies.abilities(share ? share.id : "");
+  const canPublish = can.update && !document.isTemplate;
 
-  componentWillUnmount() {
-    clearTimeout(this.timeout);
-  }
+  React.useEffect(() => {
+    document.share();
+    return () => clearTimeout(timeout.current);
+  }, [document]);
 
-  handlePublishedChange = async (event) => {
-    const { document, shares } = this.props;
-    const share = shares.getByDocumentId(document.id);
-    invariant(share, "Share must exist");
+  const handlePublishedChange = React.useCallback(
+    async (event) => {
+      const share = shares.getByDocumentId(document.id);
+      invariant(share, "Share must exist");
 
-    this.isSaving = true;
+      setIsSaving(true);
 
-    try {
-      await share.save({ published: event.currentTarget.checked });
-    } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
-    } finally {
-      this.isSaving = false;
-    }
-  };
+      try {
+        await share.save({ published: event.currentTarget.checked });
+      } catch (err) {
+        ui.showToast(err.message, { type: "error" });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [document.id, shares, ui]
+  );
 
-  handleCopied = () => {
-    this.isCopied = true;
+  const handleCopied = React.useCallback(() => {
+    setIsCopied(true);
 
-    this.timeout = setTimeout(() => {
-      this.isCopied = false;
-      this.props.onSubmit();
-    }, 1500);
-  };
+    timeout.current = setTimeout(() => {
+      setIsCopied(false);
+      onSubmit();
 
-  render() {
-    const { document, policies, shares, onSubmit } = this.props;
-    const share = shares.getByDocumentId(document.id);
-    const can = policies.abilities(share ? share.id : "");
-    const canPublish = can.update && !document.isTemplate;
+      ui.showToast(t("Share link copied"));
+    }, 250);
+  }, [t, onSubmit, ui]);
 
-    return (
-      <div>
-        <HelpText>
-          The link below provides a read-only version of the document{" "}
-          <strong>{document.titleWithDefault}</strong>.{" "}
-          {canPublish
-            ? "You can optionally make it accessible to anyone with the link."
-            : "It is only viewable by those that already have access to the collection."}{" "}
-          <Link to="/settings/shares" onClick={onSubmit}>
-            Manage all share links
-          </Link>
-          .
-        </HelpText>
-        {canPublish && (
-          <>
-            <Switch
-              id="published"
-              label="Publish to internet"
-              onChange={this.handlePublishedChange}
-              checked={share ? share.published : false}
-              disabled={!share || this.isSaving}
-            />
-            <Privacy>
-              {share.published ? <GlobeIcon /> : <PadlockIcon />}
-              <PrivacyText>
-                {share.published
-                  ? "Anyone with the link can view this document"
-                  : "Only team members with access can view this document"}
-              </PrivacyText>
-            </Privacy>
-          </>
-        )}
-        <br />
-        <Input
+  return (
+    <>
+      <Heading>
+        {share.published ? (
+          <GlobeIcon size={28} color="currentColor" />
+        ) : (
+          <PadlockIcon size={28} color="currentColor" />
+        )}{" "}
+        {t("Share this document")}
+      </Heading>
+
+      {canPublish && (
+        <PrivacySwitch>
+          <Switch
+            id="published"
+            label={t("Publish to internet")}
+            onChange={handlePublishedChange}
+            checked={share ? share.published : false}
+            disabled={!share || isSaving}
+          />
+          <Privacy>
+            <PrivacyText>
+              {share.published
+                ? t("Anyone with the link can view this document")
+                : t("Only team members with access can view")}
+              {share.lastAccessedAt && (
+                <>
+                  .{" "}
+                  {t("The shared link was last accessed {{ timeAgo }}.", {
+                    timeAgo: distanceInWordsToNow(share.lastAccessedAt, {
+                      addSuffix: true,
+                    }),
+                  })}
+                </>
+              )}
+            </PrivacyText>
+          </Privacy>
+        </PrivacySwitch>
+      )}
+      <Flex>
+        <InputLink
           type="text"
-          label="Get link"
-          value={share ? share.url : "Loading…"}
+          label={t("Link")}
+          placeholder={`${t("Loading")}…`}
+          value={share ? share.url : undefined}
           labelHidden
           readOnly
         />
-        <CopyToClipboard
-          text={share ? share.url : ""}
-          onCopy={this.handleCopied}
-        >
-          <Button type="submit" disabled={this.isCopied || !share} primary>
-            {this.isCopied ? "Copied!" : "Copy Link"}
+        <CopyToClipboard text={share ? share.url : ""} onCopy={handleCopied}>
+          <Button type="submit" disabled={isCopied || !share} primary>
+            {t("Copy link")}
           </Button>
         </CopyToClipboard>
-        &nbsp;&nbsp;&nbsp;
-        <a href={share.url} target="_blank" rel="noreferrer">
-          Preview
-        </a>
-      </div>
-    );
-  }
+      </Flex>
+    </>
+  );
 }
+
+const Heading = styled.h2`
+  display: flex;
+  align-items: center;
+  margin-top: 0;
+  margin-left: -4px;
+`;
+
+const PrivacySwitch = styled.div`
+  margin: 20px 0;
+`;
+
+const InputLink = styled(Input)`
+  flex-grow: 1;
+  margin-right: 8px;
+`;
 
 const Privacy = styled(Flex)`
   flex-align: center;
-  margin-left: -4px;
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 const PrivacyText = styled(HelpText)`
   margin: 0;
-  margin-left: 2px;
   font-size: 15px;
 `;
 
-export default inject("shares", "ui", "policies")(DocumentShare);
+export default observer(DocumentShare);
