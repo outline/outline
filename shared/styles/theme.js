@@ -109,6 +109,7 @@ export const base = {
   depths: {
     header: 800,
     sidebar: 900,
+    hoverPreview: 998,
     // Note: editor lightbox is z-index 999
     modalOverlay: 2000,
     modal: 3000,
