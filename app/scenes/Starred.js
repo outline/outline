@@ -7,7 +7,7 @@ import { type Match } from "react-router-dom";
 import { Action } from "components/Actions";
 import Empty from "components/Empty";
 import Heading from "components/Heading";
-import InputSearch from "components/InputSearch";
+import InputSearchPage from "components/InputSearchPage";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Tab from "components/Tab";
@@ -32,12 +32,7 @@ function Starred(props: Props) {
       actions={
         <>
           <Action>
-            <InputSearch
-              source="starred"
-              label={t("Search documents")}
-              maxWidth="30vw"
-              labelHidden
-            />
+            <InputSearchPage source="starred" label={t("Search documents")} />
           </Action>
           <Action>
             <NewDocumentMenu />

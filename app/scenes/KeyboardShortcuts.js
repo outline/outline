@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "components/Flex";
-import Input from "components/InputSearch";
+import InputSearch from "components/InputSearch";
 import Key from "components/Key";
 import { metaDisplay } from "utils/keyboard";
 
@@ -351,7 +351,7 @@ function KeyboardShortcuts() {
   }, []);
 
   const handleKeyDown = React.useCallback((event) => {
-    if (event.target.value && event.key === "Escape") {
+    if (event.currentTarget.value && event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
       setSearchTerm("");
@@ -360,12 +360,10 @@ function KeyboardShortcuts() {
 
   return (
     <Flex column>
-      <Input
-        type="search"
+      <InputSearch
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         value={searchTerm}
-        redirectDisabled
       />
       {categories.map((category, x) => {
         const filtered = searchTerm

@@ -106,8 +106,9 @@ export type Props = {|
   onChange?: (
     ev: SyntheticInputEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => mixed,
-  onFocus?: (ev: SyntheticEvent<>) => void,
-  onBlur?: (ev: SyntheticEvent<>) => void,
+  onKeyDown?: (ev: SyntheticKeyboardEvent<HTMLInputElement>) => mixed,
+  onFocus?: (ev: SyntheticEvent<>) => mixed,
+  onBlur?: (ev: SyntheticEvent<>) => mixed,
 |};
 
 @observer
