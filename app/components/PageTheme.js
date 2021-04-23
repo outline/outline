@@ -19,17 +19,6 @@ export default function PageTheme() {
       themeElement.setAttribute("content", theme.background);
     }
 
-    // status bar color for iOS PWA
-    const statusElement = document.querySelector(
-      'meta[name="apple-mobile-web-app-status-bar-style"]'
-    );
-    if (statusElement) {
-      statusElement.setAttribute(
-        "content",
-        ui.resolvedTheme === "dark" ? "black-translucent" : "default"
-      );
-    }
-
     // user-agent controls and scrollbars
     const csElement = document.querySelector('meta[name="color-scheme"]');
     if (csElement) {
