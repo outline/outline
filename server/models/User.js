@@ -233,22 +233,6 @@ const removeIdentifyingInfo = async (model, options) => {
   await model.save({ hooks: false, transaction: options.transaction });
 };
 
-const checkLastAdmin = async (model) => {
-  const teamId = model.teamId;
-
-  if (model.isAdmin) {
-    const userCount = await User.count({ where: { teamId } });
-    const adminCount = await User.count({ where: { isAdmin: true, teamId } });
-
-    if (userCount > 1 && adminCount <= 1) {
-      throw new ValidationError(
-        "Cannot delete account as only admin. Please transfer admin permissions to another user and try again."
-      );
-    }
-  }
-};
-
-User.beforeDestroy(checkLastAdmin);
 User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);

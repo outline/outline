@@ -145,14 +145,6 @@ describe("#users.delete", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should allow deleting last admin if only user", async () => {
-    const user = await buildAdmin();
-    const res = await server.post("/api/users.delete", {
-      body: { token: user.getJwtToken(), confirmation: true },
-    });
-    expect(res.status).toEqual(200);
-  });
-
   it("should not allow deleting last admin if many users", async () => {
     const user = await buildAdmin();
     await buildUser({ teamId: user.teamId, isAdmin: false });
