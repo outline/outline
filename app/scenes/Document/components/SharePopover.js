@@ -61,7 +61,7 @@ function DocumentShare({ document, share, onSubmit }: Props) {
       setIsCopied(false);
       onSubmit();
 
-      ui.showToast(t("Share link copied"));
+      ui.showToast(t("Share link copied"), { type: "info" });
     }, 250);
   }, [t, onSubmit, ui]);
 
