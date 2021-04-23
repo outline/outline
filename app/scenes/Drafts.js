@@ -14,7 +14,7 @@ import { Action } from "components/Actions";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
-import InputSearch from "components/InputSearch";
+import InputSearchPage from "components/InputSearchPage";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
@@ -83,12 +83,7 @@ class Drafts extends React.Component<Props> {
         actions={
           <>
             <Action>
-              <InputSearch
-                source="drafts"
-                label={t("Search documents")}
-                maxWidth="30vw"
-                labelHidden
-              />
+              <InputSearchPage source="drafts" label={t("Search documents")} />
             </Action>
             <Action>
               <NewDocumentMenu />

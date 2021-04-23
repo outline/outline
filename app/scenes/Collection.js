@@ -18,7 +18,7 @@ import DocumentList from "components/DocumentList";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import InputSearch from "components/InputSearch";
+import InputSearchPage from "components/InputSearchPage";
 import LoadingIndicator from "components/LoadingIndicator";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
 import Mask from "components/Mask";
@@ -120,13 +120,11 @@ function CollectionScene() {
       actions={
         <>
           <Action>
-            <InputSearch
+            <InputSearchPage
               source="collection"
               placeholder={`${t("Search in collection")}…`}
               label={`${t("Search in collection")}…`}
-              labelHidden
               collectionId={collectionId}
-              maxWidth="30vw"
             />
           </Action>
           {can.update && (
