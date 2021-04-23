@@ -8,7 +8,7 @@ const isTest = process.env.NODE_ENV === "test";
 const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   mode: "development",
-  devtool: "eval-source-map",
+  devtool: "eval-cheap-module-source-map",
   entry: [
     "webpack-hot-middleware/client",
     "./app/index",
