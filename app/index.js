@@ -28,16 +28,24 @@ if (env.SENTRY_DSN) {
 
 if ("serviceWorker" in window.navigator) {
   window.addEventListener("load", () => {
-    window.navigator.serviceWorker
-      .register("/static/service-worker.js", {
+    // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
+    // In some rare (<0.1% of cases) this call can return `undefined`
+    const maybePromise = window.navigator.serviceWorker.register(
+      "/static/service-worker.js",
+      {
         scope: "/",
-      })
-      .then((registration) => {
-        console.log("SW registered: ", registration);
-      })
-      .catch((registrationError) => {
-        console.log("SW registration failed: ", registrationError);
-      });
+      }
+    );
+
+    if (maybePromise) {
+      maybePromise
+        .then((registration) => {
+          console.log("SW registered: ", registration);
+        })
+        .catch((registrationError) => {
+          console.log("SW registration failed: ", registrationError);
+        });
+    }
   });
 }
 
