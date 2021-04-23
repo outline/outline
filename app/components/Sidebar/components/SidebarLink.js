@@ -111,6 +111,8 @@ const Actions = styled(EventBoundary)`
   }
 
   &:hover {
+    display: inline-flex;
+
     svg {
       opacity: 0.75;
     }
@@ -147,9 +149,8 @@ const Link = styled(NavLink)`
     background: ${(props) => props.theme.black05};
   }
 
-  &:hover,
-  &:active {
-    > ${Actions} {
+  &:hover + ${Actions},
+  &:active + ${Actions} {
       display: inline-flex;
 
       svg {
