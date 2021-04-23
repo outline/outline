@@ -5,10 +5,11 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { usePopoverState, Popover, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
+import { fadeAndScaleIn } from "shared/styles/animations";
 import Document from "models/Document";
-import DocumentShare from "scenes/DocumentShare";
 import Button from "components/Button";
 import Tooltip from "components/Tooltip";
+import SharePopover from "./SharePopover";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -20,7 +21,10 @@ function ShareButton({ document }: Props) {
   const { shares } = useStores();
   const share = shares.getByDocumentId(document.id);
   const isPubliclyShared = share && share.published;
-  const popover = usePopoverState({ gutter: 0, placement: "bottom-end" });
+  const popover = usePopoverState({
+    gutter: 0,
+    placement: "bottom-end",
+  });
 
   return (
     <>
@@ -51,21 +55,21 @@ function ShareButton({ document }: Props) {
         )}
       </PopoverDisclosure>
       <Popover {...popover} aria-label={t("Share")}>
-        {(props) => (
-          <Contents {...props}>
-            <DocumentShare
-              document={document}
-              share={share}
-              onSubmit={popover.hide}
-            />
-          </Contents>
-        )}
+        <Contents>
+          <SharePopover
+            document={document}
+            share={share}
+            onSubmit={popover.hide}
+          />
+        </Contents>
       </Popover>
     </>
   );
 }
 
 const Contents = styled.div`
+  animation: ${fadeAndScaleIn} 200ms ease;
+  transform-origin: 75% 0;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
   padding: 24px 24px 12px;

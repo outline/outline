@@ -68,7 +68,7 @@ function DocumentShare({ document, share, onSubmit }: Props) {
   return (
     <>
       <Heading>
-        {share.published ? (
+        {share && share.published ? (
           <GlobeIcon size={28} color="currentColor" />
         ) : (
           <PadlockIcon size={28} color="currentColor" />
