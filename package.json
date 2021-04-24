@@ -131,7 +131,7 @@
     "koa-sslify": "2.1.2",
     "koa-static": "^4.0.1",
     "lodash": "^4.17.19",
-    "mammoth": "^1.4.11",
+    "mammoth": "^1.4.16",
     "mobx": "4.6.0",
     "mobx-react": "^6.2.5",
     "natural-sort": "^1.0.0",

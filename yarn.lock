@@ -4616,6 +4616,11 @@ diffie-hellman@^5.0.0:
     miller-rabin "^4.0.0"
     randombytes "^2.0.0"
 
+dingbat-to-unicode@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/dingbat-to-unicode/-/dingbat-to-unicode-1.0.1.tgz#5091dd673241453e6b5865e26e5a4452cdef5c83"
+  integrity sha512-98l0sW87ZT58pU4i61wa2OHwxbiYSbuxsCBozaVnYX2iCnr3bLM3fIes1/ej7h1YdOKuKt/MLs706TVnALA65w==
+
 direction@^0.1.5:
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/direction/-/direction-0.1.5.tgz#ce5d797f97e26f8be7beff53f7dc40e1c1a9ec4c"
@@ -8673,13 +8678,14 @@ makeerror@1.0.x:
   dependencies:
     tmpl "1.0.x"
 
-mammoth@^1.4.11:
-  version "1.4.14"
-  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.4.14.tgz#0400e20cc3f23ac81dd4c7718a444015bc5051f3"
-  integrity sha512-UbjaESwT6eCA/NAnrWHZV7w00cq/wsSqRDj/rzF/7S/oRMA3e0YUd75YJsmJbZlzRNUtTOfMFQfvwN/VJNs5Ag==
+mammoth@^1.4.16:
+  version "1.4.16"
+  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.4.16.tgz#7633ef85fa81cf37a384262bb4b5d01c6d9f4e1c"
+  integrity sha512-Q2tDk+DJH8oDlDzD7D309dCb6vRcySXPYL8FBaV8ColxiwH1ZlC8AUEfw9QKa9LV3QRsg077EFRN0IHZI/OTaw==
   dependencies:
     argparse "~1.0.3"
     bluebird "~3.4.0"
+    dingbat-to-unicode "^1.0.1"
     jszip "~2.5.0"
     lop "~0.4.0"
     path-is-absolute "^1.0.0"
