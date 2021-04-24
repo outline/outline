@@ -19,12 +19,16 @@ const PageTitle = ({ title, favicon }: Props) => {
       <title>
         {team && team.name ? `${title} - ${team.name}` : `${title} - Outline`}
       </title>
-      <link
-        rel="shortcut icon"
-        type="image/png"
-        href={favicon || cdnPath("/favicon-32.png")}
-        sizes="32x32"
-      />
+      {favicon ? (
+        <link rel="shortcut icon" href={favicon} />
+      ) : (
+        <link
+          rel="shortcut icon"
+          type="image/png"
+          href={cdnPath("/favicon-32.png")}
+          sizes="32x32"
+        />
+      )}
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </Helmet>
   );
