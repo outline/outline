@@ -93,7 +93,7 @@
     "copy-to-clipboard": "^3.0.6",
     "core-js": "^3.10.2",
     "date-fns": "1.29.0",
-    "dd-trace": "^0.30.6",
+    "dd-trace": "^0.32.2",
     "debug": "^4.1.1",
     "dotenv": "^4.0.0",
     "emoji-regex": "^6.5.1",
