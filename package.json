@@ -183,7 +183,7 @@
     "styled-components-breakpoint": "^2.1.1",
     "styled-normalize": "^8.0.4",
     "tiny-cookie": "^2.3.1",
-    "tmp": "0.0.33",
+    "tmp": "^0.2.1",
     "turndown": "^6.0.0",
     "utf8": "^2.1.0",
     "uuid": "2.0.2",
