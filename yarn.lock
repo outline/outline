@@ -1804,10 +1804,10 @@
   dependencies:
     lodash.throttle "^4.1.1"
 
-"@relative-ci/agent@^1.3.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-1.4.0.tgz#5e17b9ed6ba0c8483d32a367faf798e4bb4bd257"
-  integrity sha512-bP2fFYK9rQZTs8bLHoyRjUzAYrRhcFHmfYZmyOu0lXoHe1tyXD7NxYKicLElG2RNjTlzbQS0bwsTU9xjK6wSGg==
+"@relative-ci/agent@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-1.5.0.tgz#6cbd74c1d070eaf57b633a829da78ad903970d72"
+  integrity sha512-lYq5MJLTgEvSb9QrkSg1WTheNctqrt+cwzBHpiXwtw91ViwaxbgCnWJPJCsCznty3kDDFX9YaACznI6PvnSMdQ==
   dependencies:
     "@bundle-stats/utils" "^2.1.1"
     "@relative-ci/env-ci" "^5.1.0"
