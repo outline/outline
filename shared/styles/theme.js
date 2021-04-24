@@ -141,7 +141,7 @@ export const light = {
 
   menuBackground: colors.white,
   menuShadow:
-    "0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08)",
+    "0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08), 0 30px 40px rgb(0 0 0 / 8%)",
   divider: colors.slateLight,
   titleBarDivider: colors.slateLight,
   inputBorder: colors.slateLight,

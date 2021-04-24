@@ -9,7 +9,6 @@ import styled from "styled-components";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentMove from "scenes/DocumentMove";
-import DocumentShare from "scenes/DocumentShare";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import CollectionIcon from "components/CollectionIcon";
 import ContextMenu from "components/ContextMenu";
@@ -17,7 +16,6 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
-import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import {
@@ -52,7 +50,6 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const team = useCurrentTeam();
   const { policies, collections, ui, documents } = useStores();
   const menu = useMenuState({
     modal,
@@ -66,7 +63,6 @@ function DocumentMenu({
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showMoveModal, setShowMoveModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
-  const [showShareModal, setShowShareModal] = React.useState(false);
   const file = React.useRef<?HTMLInputElement>();
 
   const handleOpen = React.useCallback(() => {
@@ -133,17 +129,8 @@ function DocumentMenu({
     [document]
   );
 
-  const handleShareLink = React.useCallback(
-    async (ev: SyntheticEvent<>) => {
-      await document.share();
-      setShowShareModal(true);
-    },
-    [document]
-  );
-
   const collection = collections.get(document.collectionId);
   const can = policies.abilities(document.id);
-  const canShareDocuments = !!(can.share && team.sharing);
   const canViewHistory = can.read && !can.restore;
 
   const stopPropagation = React.useCallback((ev: SyntheticEvent<>) => {
@@ -291,11 +278,6 @@ function DocumentMenu({
               visible: !document.isStarred && !!can.star,
             },
             {
-              title: `${t("Share link")}…`,
-              onClick: handleShareLink,
-              visible: canShareDocuments,
-            },
-            {
               title: t("Enable embeds"),
               onClick: document.enableEmbeds,
               visible: !!showToggleEmbeds && document.embedsDisabled,
@@ -412,16 +394,6 @@ function DocumentMenu({
             <DocumentTemplatize
               document={document}
               onSubmit={() => setShowTemplateModal(false)}
-            />
-          </Modal>
-          <Modal
-            title={t("Share document")}
-            onRequestClose={() => setShowShareModal(false)}
-            isOpen={showShareModal}
-          >
-            <DocumentShare
-              document={document}
-              onSubmit={() => setShowShareModal(false)}
             />
           </Modal>
         </>
