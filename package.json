@@ -173,7 +173,7 @@
     "sequelize-encrypted": "^1.0.0",
     "slate": "0.45.0",
     "slate-md-serializer": "5.5.4",
-    "slug": "^1.0.0",
+    "slug": "^4.0.4",
     "smooth-scroll-into-view-if-needed": "^1.1.29",
     "socket.io": "^2.3.0",
     "socket.io-redis": "^5.4.0",
