@@ -37,7 +37,7 @@ if ("serviceWorker" in window.navigator) {
       }
     );
 
-    if (maybePromise) {
+    if (maybePromise && maybePromise.then) {
       maybePromise
         .then((registration) => {
           console.log("SW registered: ", registration);
