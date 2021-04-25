@@ -1,5 +1,6 @@
 // @flow
 import Router from "koa-router";
+import userDestroyer from "../commands/userDestroyer";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
@@ -232,17 +233,17 @@ router.post("users.delete", auth(), async (ctx) => {
   const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, "confirmation is required");
 
-  let user = ctx.state.user;
-  if (id) user = await User.findByPk(id);
-  authorize(ctx.state.user, "delete", user);
+  const actor = ctx.state.user;
+  let user = actor;
+  if (id) {
+    user = await User.findByPk(id);
+  }
 
-  await user.destroy();
-  await Event.create({
-    name: "users.delete",
-    actorId: user.id,
-    userId: user.id,
-    teamId: user.teamId,
-    data: { name: user.name },
+  authorize(actor, "delete", user);
+
+  await userDestroyer({
+    user,
+    actor,
     ip: ctx.request.ip,
   });
 
