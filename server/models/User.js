@@ -3,7 +3,7 @@ import crypto from "crypto";
 import addMinutes from "date-fns/add_minutes";
 import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
 import { sendEmail } from "../mailer";
@@ -187,7 +187,7 @@ const uploadAvatar = async (model) => {
     try {
       const newUrl = await uploadToS3FromUrl(
         avatarUrl,
-        `avatars/${model.id}/${uuid.v4()}`,
+        `avatars/${model.id}/${uuidv4()}`,
         "public-read"
       );
       if (newUrl) model.avatarUrl = newUrl;

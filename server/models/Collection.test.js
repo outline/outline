@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "../models";
 import {
   buildUser,
@@ -22,7 +22,7 @@ describe("#url", () => {
 describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
     const { collection } = await seed();
-    const id = uuid.v4();
+    const id = uuidv4();
     const newDocument = new Document({
       id,
       title: "New end node",
@@ -36,7 +36,7 @@ describe("#addDocumentToStructure", () => {
 
   test("should add with an index", async () => {
     const { collection } = await seed();
-    const id = uuid.v4();
+    const id = uuidv4();
     const newDocument = new Document({
       id,
       title: "New end node",
@@ -50,7 +50,7 @@ describe("#addDocumentToStructure", () => {
 
   test("should add as a child if with parent", async () => {
     const { collection, document } = await seed();
-    const id = uuid.v4();
+    const id = uuidv4();
     const newDocument = new Document({
       id,
       title: "New end node",
@@ -67,11 +67,11 @@ describe("#addDocumentToStructure", () => {
   test("should add as a child if with parent with index", async () => {
     const { collection, document } = await seed();
     const newDocument = new Document({
-      id: uuid.v4(),
+      id: uuidv4(),
       title: "node",
       parentDocumentId: document.id,
     });
-    const id = uuid.v4();
+    const id = uuidv4();
     const secondDocument = new Document({
       id,
       title: "New start node",
@@ -89,9 +89,9 @@ describe("#addDocumentToStructure", () => {
   describe("options: documentJson", () => {
     test("should append supplied json over document's own", async () => {
       const { collection } = await seed();
-      const id = uuid.v4();
+      const id = uuidv4();
       const newDocument = new Document({
-        id: uuid.v4(),
+        id: uuidv4(),
         title: "New end node",
         parentDocumentId: null,
       });

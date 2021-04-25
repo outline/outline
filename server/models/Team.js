@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
@@ -120,7 +120,7 @@ const uploadAvatar = async (model) => {
     try {
       const newUrl = await uploadToS3FromUrl(
         avatarUrl,
-        `avatars/${model.id}/${uuid.v4()}`,
+        `avatars/${model.id}/${uuidv4()}`,
         "public-read"
       );
       if (newUrl) model.avatarUrl = newUrl;

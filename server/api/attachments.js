@@ -1,7 +1,7 @@
 // @flow
 import format from "date-fns/format";
 import Router from "koa-router";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
 import { Attachment, Document, Event } from "../models";
@@ -28,7 +28,7 @@ router.post("attachments.create", auth(), async (ctx) => {
   const { user } = ctx.state;
   authorize(user, "createAttachment", user.team);
 
-  const s3Key = uuid.v4();
+  const s3Key = uuidv4();
   const acl =
     ctx.body.public === undefined
       ? AWS_S3_ACL

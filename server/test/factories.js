@@ -1,5 +1,5 @@
 // @flow
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import {
   Share,
   Team,
@@ -42,7 +42,7 @@ export function buildTeam(overrides: Object = {}) {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuid.v4(),
+          providerId: uuidv4(),
         },
       ],
       ...overrides,
@@ -84,7 +84,7 @@ export async function buildUser(overrides: Object = {}) {
       authentications: [
         {
           authenticationProviderId: authenticationProvider.id,
-          providerId: uuid.v4(),
+          providerId: uuidv4(),
         },
       ],
       ...overrides,
