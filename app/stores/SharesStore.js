@@ -58,7 +58,7 @@ export default class SharesStore extends BaseStore<Share> {
     }
   }
 
-  getByDocumentId = (documentId): ?Share => {
+  getByDocumentId = (documentId: string): ?Share => {
     return find(this.orderedData, (share) => share.documentId === documentId);
   };
 }

@@ -54,6 +54,27 @@ function DocumentShare({ document, share, onSubmit }: Props) {
     [document.id, shares, ui]
   );
 
+  const handleChildDocumentsChange = React.useCallback(
+    async (event) => {
+      const share = shares.getByDocumentId(document.id);
+      invariant(share, "Share must exist");
+
+      setIsSaving(true);
+
+      try {
+        await share.save({
+          published: share.published,
+          includeChildDocuments: event.currentTarget.checked,
+        });
+      } catch (err) {
+        ui.showToast(err.message, { type: "error" });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [document.id, shares, ui]
+  );
+
   const handleCopied = React.useCallback(() => {
     setIsCopied(true);
 
@@ -77,7 +98,7 @@ function DocumentShare({ document, share, onSubmit }: Props) {
       </Heading>
 
       {canPublish && (
-        <PrivacySwitch>
+        <SwitchWrapper>
           <Switch
             id="published"
             label={t("Publish to internet")}
@@ -85,8 +106,8 @@ function DocumentShare({ document, share, onSubmit }: Props) {
             checked={share ? share.published : false}
             disabled={!share || isSaving}
           />
-          <Privacy>
-            <PrivacyText>
+          <SwitchLabel>
+            <SwitchText>
               {share.published
                 ? t("Anyone with the link can view this document")
                 : t("Only team members with access can view")}
@@ -100,9 +121,27 @@ function DocumentShare({ document, share, onSubmit }: Props) {
                   })}
                 </>
               )}
-            </PrivacyText>
-          </Privacy>
-        </PrivacySwitch>
+            </SwitchText>
+          </SwitchLabel>
+        </SwitchWrapper>
+      )}
+      {share && (
+        <SwitchWrapper>
+          <Switch
+            id="includeChildDocuments"
+            label={t("Share nested documents")}
+            onChange={handleChildDocumentsChange}
+            checked={share ? share.includeChildDocuments : false}
+            disabled={!share || isSaving}
+          />
+          <SwitchLabel>
+            <SwitchText>
+              {share.includeChildDocuments
+                ? t("Also allow access to nested documents")
+                : t("Nested documents will not be shared")}
+            </SwitchText>
+          </SwitchLabel>
+        </SwitchWrapper>
       )}
       <Flex>
         <InputLink
@@ -130,7 +169,7 @@ const Heading = styled.h2`
   margin-left: -4px;
 `;
 
-const PrivacySwitch = styled.div`
+const SwitchWrapper = styled.div`
   margin: 20px 0;
 `;
 
@@ -139,7 +178,7 @@ const InputLink = styled(Input)`
   margin-right: 8px;
 `;
 
-const Privacy = styled(Flex)`
+const SwitchLabel = styled(Flex)`
   flex-align: center;
 
   svg {
@@ -147,7 +186,7 @@ const Privacy = styled(Flex)`
   }
 `;
 
-const PrivacyText = styled(HelpText)`
+const SwitchText = styled(HelpText)`
   margin: 0;
   font-size: 15px;
 `;

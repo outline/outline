@@ -371,6 +371,30 @@ Collection.prototype.deleteDocument = async function (document) {
   await document.deleteWithChildren();
 };
 
+Collection.prototype.isChildDocument = function (
+  parentDocumentId,
+  documentId
+): boolean {
+  let result = false;
+
+  const loopChildren = (documents, input) => {
+    return documents.map((document) => {
+      let parents = [...input];
+      if (document.id === documentId) {
+        result = parents.includes(parentDocumentId);
+      } else {
+        parents.push(document.id);
+        document.children = loopChildren(document.children, parents);
+      }
+      return document;
+    });
+  };
+
+  loopChildren(this.documentStructure, []);
+
+  return result;
+};
+
 Collection.prototype.removeDocumentInStructure = async function (
   document,
   options

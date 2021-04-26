@@ -11,6 +11,7 @@ export default function present(share: Share, isAdmin: boolean = false) {
     published: share.published,
     url: `${share.team.url}/share/${share.id}`,
     createdBy: presentUser(share.user),
+    includeChildDocuments: share.includeChildDocuments,
     lastAccessedAt: share.lastAccessedAt,
     createdAt: share.createdAt,
     updatedAt: share.updatedAt,

@@ -496,7 +496,12 @@ async function loadDocument({ id, shareId, user }) {
       throw new InvalidRequestError("Document could not be found for shareId");
     }
 
-    if (user) {
+    if (id) {
+      document = await Document.findByPk(id, {
+        userId: user ? user.id : undefined,
+        paranoid: false,
+      });
+    } else if (user) {
       document = await Document.findByPk(share.documentId, {
         userId: user.id,
         paranoid: false,
@@ -512,6 +517,12 @@ async function loadDocument({ id, shareId, user }) {
     const collection = await Collection.findByPk(document.collectionId);
     if (!collection.sharing) {
       throw new AuthorizationError();
+    }
+
+    if (share.includeChildDocuments && id) {
+      if (!collection.isChildDocument(share.document.id, document.id)) {
+        throw new AuthorizationError();
+      }
     }
 
     const team = await Team.findByPk(document.teamId);

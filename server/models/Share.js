@@ -10,6 +10,7 @@ const Share = sequelize.define(
       primaryKey: true,
     },
     published: DataTypes.BOOLEAN,
+    includeChildDocuments: DataTypes.BOOLEAN,
     revokedAt: DataTypes.DATE,
     revokedById: DataTypes.UUID,
     lastAccessedAt: DataTypes.DATE,

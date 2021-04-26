@@ -95,13 +95,17 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("shares.update", auth(), async (ctx) => {
-  const { id, published } = ctx.body;
+  const { id, includeChildDocuments, published } = ctx.body;
   ctx.assertUuid(id, "id is required");
   ctx.assertPresent(published, "published is required");
 
   const user = ctx.state.user;
   const share = await Share.findByPk(id);
   authorize(user, "update", share);
+
+  if (includeChildDocuments !== undefined) {
+    share.includeChildDocuments = includeChildDocuments;
+  }
 
   share.published = published;
   await share.save();

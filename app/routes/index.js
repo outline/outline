@@ -4,6 +4,7 @@ import { Switch } from "react-router-dom";
 import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
 import Route from "components/ProfiledRoute";
+import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
 const Authenticated = React.lazy(() => import("components/Authenticated"));
 const AuthenticatedRoutes = React.lazy(() => import("./authenticated"));
@@ -25,6 +26,11 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
         <Route exact path="/share/:shareId" component={KeyedDocument} />
+        <Route
+          exact
+          path={`/share/:shareId/doc/${slug}`}
+          component={KeyedDocument}
+        />
         <Authenticated>
           <AuthenticatedRoutes />
         </Authenticated>
