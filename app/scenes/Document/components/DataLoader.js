@@ -40,7 +40,7 @@ type Props = {|
 
 @observer
 class DataLoader extends React.Component<Props> {
-  @observable documentTree: ?NavigationNode;
+  @observable sharedTree: ?NavigationNode;
   @observable document: ?Document;
   @observable revision: ?Revision;
   @observable error: ?Error;
@@ -164,7 +164,7 @@ class DataLoader extends React.Component<Props> {
       });
 
       this.document = response.document;
-      this.documentTree = response.documentTree;
+      this.sharedTree = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
@@ -252,7 +252,7 @@ class DataLoader extends React.Component<Props> {
           readOnly={!this.isEditing || !abilities.update || document.isArchived}
           onSearchLink={this.onSearchLink}
           onCreateLink={this.onCreateLink}
-          documentTree={this.documentTree}
+          sharedTree={this.sharedTree}
         />
       </SocketPresence>
     );

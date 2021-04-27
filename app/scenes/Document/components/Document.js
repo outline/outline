@@ -58,7 +58,7 @@ type Props = {
   match: Match,
   history: RouterHistory,
   location: LocationWithState,
-  documentTree: ?NavigationNode,
+  sharedTree: ?NavigationNode,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -446,11 +446,13 @@ class DocumentScene extends React.Component<Props> {
                     ui={this.props.ui}
                   >
                     {shareId && (
-                      <PublicReferences
-                        shareId={shareId}
-                        documentId={document.id}
-                        documentTree={this.props.documentTree}
-                      />
+                      <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                        <PublicReferences
+                          shareId={shareId}
+                          documentId={document.id}
+                          sharedTree={this.props.sharedTree}
+                        />
+                      </ReferencesWrapper>
                     )}
                     {!isShare && !revision && (
                       <>

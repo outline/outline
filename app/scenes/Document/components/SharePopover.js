@@ -63,7 +63,6 @@ function DocumentShare({ document, share, onSubmit }: Props) {
 
       try {
         await share.save({
-          published: share.published,
           includeChildDocuments: event.currentTarget.checked,
         });
       } catch (err) {
@@ -125,7 +124,7 @@ function DocumentShare({ document, share, onSubmit }: Props) {
           </SwitchLabel>
         </SwitchWrapper>
       )}
-      {share && (
+      {share && share.published && (
         <SwitchWrapper>
           <Switch
             id="includeChildDocuments"
@@ -137,8 +136,8 @@ function DocumentShare({ document, share, onSubmit }: Props) {
           <SwitchLabel>
             <SwitchText>
               {share.includeChildDocuments
-                ? t("Also allow access to nested documents")
-                : t("Nested documents will not be shared")}
+                ? t("Also allow public access to nested documents")
+                : t("Nested documents are not currently shared")}
             </SwitchText>
           </SwitchLabel>
         </SwitchWrapper>

@@ -448,7 +448,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetch = async (
     id: string,
     options: FetchOptions = {}
-  ): Promise<{ document: ?Document, documentTree?: NavigationNode }> => {
+  ): Promise<{ document: ?Document, sharedTree?: NavigationNode }> => {
     if (!options.prefetch) this.isFetching = true;
 
     try {
@@ -470,7 +470,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
       return {
         document: this.data.get(res.data.document.id),
-        documentTree: res.data.documentTree,
+        sharedTree: res.data.sharedTree,
       };
     } finally {
       this.isFetching = false;

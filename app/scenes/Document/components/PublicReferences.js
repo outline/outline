@@ -1,44 +1,48 @@
 // @flow
 import { observer } from "mobx-react";
 import * as React from "react";
-import Tab from "components/Tab";
-import Tabs from "components/Tabs";
+import { useTranslation } from "react-i18next";
+import Subheading from "components/Subheading";
 import ReferenceListItem from "./ReferenceListItem";
+import { type NavigationNode } from "types";
 
 type Props = {|
   shareId: string,
   documentId: string,
-  documentTree: NavigatioNode,
+  sharedTree: NavigationNode,
 |};
 
 function PublicReferences(props: Props) {
-  const { shareId, documentId, documentTree } = props;
-  let result;
+  const { t } = useTranslation();
+  const { shareId, documentId, sharedTree } = props;
 
-  function findChildren(node) {
-    if (!node) return;
-    if (node.id === documentId) {
-      result = node.children;
-    } else {
-      node.children.forEach((node) => {
-        if (result) {
-          return;
-        }
-        findChildren(node);
-      });
+  const children = React.useMemo(() => {
+    let result;
+
+    function findChildren(node) {
+      if (!node) return;
+      if (node.id === documentId) {
+        result = node.children;
+      } else {
+        node.children.forEach((node) => {
+          if (result) {
+            return;
+          }
+          findChildren(node);
+        });
+      }
+      return result;
     }
-    return result;
-  }
 
-  const children = findChildren(documentTree) || [];
+    return findChildren(sharedTree) || [];
+  }, [documentId, sharedTree]);
+
   const showNestedDocuments = !!children.length;
 
   return (
     showNestedDocuments && (
       <>
-        <Tabs>
-          <Tab to="#children">Nested documents</Tab>
-        </Tabs>
+        <Subheading>{t("Nested documents")}</Subheading>
         {children.map((node) => (
           <ReferenceListItem key={node.id} document={node} shareId={shareId} />
         ))}

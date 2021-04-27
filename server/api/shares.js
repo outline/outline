@@ -97,17 +97,26 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
 router.post("shares.update", auth(), async (ctx) => {
   const { id, includeChildDocuments, published } = ctx.body;
   ctx.assertUuid(id, "id is required");
-  ctx.assertPresent(published, "published is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const share = await Share.findByPk(id);
   authorize(user, "update", share);
+
+  if (published !== undefined) {
+    share.published = published;
+
+    // Reset nested document sharing when unpublishing a share link. So that
+    // If it's ever re-published this doesn't immediately share nested docs
+    // without forewarning the user
+    if (!published) {
+      share.includeChildDocuments = false;
+    }
+  }
 
   if (includeChildDocuments !== undefined) {
     share.includeChildDocuments = includeChildDocuments;
   }
 
-  share.published = published;
   await share.save();
 
   await Event.create({

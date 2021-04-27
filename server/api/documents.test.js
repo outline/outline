@@ -99,7 +99,7 @@ describe("#documents.info", () => {
   });
 
   describe("apiVersion=2", () => {
-    it("should return documentTree from shareId", async () => {
+    it("should return sharedTree from shareId", async () => {
       const { document, collection, user } = await seed();
       const childDocument = await buildDocument({
         teamId: document.teamId,
@@ -110,6 +110,7 @@ describe("#documents.info", () => {
         documentId: document.id,
         teamId: document.teamId,
         userId: user.id,
+        includeChildDocuments: true,
       });
 
       await collection.addDocumentToStructure(childDocument, 0);
@@ -123,14 +124,13 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(childDocument.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-
-      expect(body.data.documentTree).toEqual(collection.documentStructure[0]);
+      expect(body.data.sharedTree).toEqual(collection.documentStructure[0]);
 
       await share.reload();
       expect(share.lastAccessedAt).toBeTruthy();
     });
 
-    it("should return documentTree from shareId with id of nested document", async () => {
+    it("should return sharedTree from shareId with id of nested document", async () => {
       const { document, user } = await seed();
       const share = await buildShare({
         documentId: document.id,
@@ -148,11 +148,56 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(document.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-
-      expect(body.data.documentTree).toEqual(document.toJSON());
+      expect(body.data.sharedTree).toEqual(document.toJSON());
 
       await share.reload();
       expect(share.lastAccessedAt).toBeTruthy();
+    });
+
+    it("should not return sharedTree if child documents not shared", async () => {
+      const { document, user } = await seed();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: false,
+      });
+
+      const res = await server.post("/api/documents.info", {
+        body: { shareId: share.id, apiVersion: 2 },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.document.id).toEqual(document.id);
+      expect(body.data.document.createdBy).toEqual(undefined);
+      expect(body.data.document.updatedBy).toEqual(undefined);
+      expect(body.data.sharedTree).toEqual(undefined);
+
+      await share.reload();
+      expect(share.lastAccessedAt).toBeTruthy();
+    });
+
+    it("should not return details for nested documents", async () => {
+      const { document, collection, user } = await seed();
+      const childDocument = await buildDocument({
+        teamId: document.teamId,
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+      });
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: false,
+      });
+
+      await collection.addDocumentToStructure(childDocument, 0);
+
+      const res = await server.post("/api/documents.info", {
+        body: { shareId: share.id, id: childDocument.id, apiVersion: 2 },
+      });
+      expect(res.status).toEqual(403);
     });
   });
 

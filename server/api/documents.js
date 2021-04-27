@@ -525,8 +525,11 @@ async function loadDocument({
       throw new AuthorizationError();
     }
 
-    if (share.includeChildDocuments && id) {
-      if (!collection.isChildDocument(share.document.id, document.id)) {
+    if (share.document.id !== document.id) {
+      if (
+        !share.includeChildDocuments ||
+        !collection.isChildDocument(share.document.id, document.id)
+      ) {
         throw new AuthorizationError();
       }
     }
@@ -575,9 +578,10 @@ router.post("documents.info", auth({ required: false }), async (ctx) => {
     apiVersion === 2
       ? {
           document: serializedDocument,
-          documentTree: collection.getDocumentTree(
-            share ? share.documentId : document.id
-          ),
+          sharedTree:
+            share && share.includeChildDocuments
+              ? collection.getDocumentTree(share.documentId)
+              : undefined,
         }
       : serializedDocument;
 
