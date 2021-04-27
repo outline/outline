@@ -29,8 +29,9 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import PublicReferences from "./PublicReferences";
 import References from "./References";
-import { type LocationWithState, type Theme } from "types";
+import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import { meta } from "utils/keyboard";
@@ -57,6 +58,7 @@ type Props = {
   match: Match,
   history: RouterHistory,
   location: LocationWithState,
+  documentTree: ?NavigationNode,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -443,6 +445,13 @@ class DocumentScene extends React.Component<Props> {
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
                   >
+                    {shareId && (
+                      <PublicReferences
+                        shareId={shareId}
+                        documentId={document.id}
+                        documentTree={this.props.documentTree}
+                      />
+                    )}
                     {!isShare && !revision && (
                       <>
                         <MarkAsViewed document={document} />

@@ -8,6 +8,7 @@ import DocumentMeta from "components/DocumentMeta";
 import type { NavigationNode } from "types";
 
 type Props = {|
+  shareId?: string,
   document: Document | NavigationNode,
   anchor?: string,
   showCollection?: boolean,
@@ -46,12 +47,12 @@ const Title = styled.h3`
 @observer
 class ReferenceListItem extends React.Component<Props> {
   render() {
-    const { document, showCollection, anchor, ...rest } = this.props;
+    const { document, showCollection, anchor, shareId, ...rest } = this.props;
 
     return (
       <DocumentLink
         to={{
-          pathname: document.url,
+          pathname: shareId ? `/share/${shareId}${document.url}` : document.url,
           hash: anchor ? `d-${anchor}` : undefined,
           state: { title: document.title },
         }}

@@ -8,7 +8,12 @@ import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-import type { FetchOptions, PaginationParams, SearchResult } from "types";
+import type {
+  NavigationNode,
+  FetchOptions,
+  PaginationParams,
+  SearchResult,
+} from "types";
 import { client } from "utils/ApiClient";
 
 type ImportOptions = {
@@ -443,30 +448,30 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetch = async (
     id: string,
     options: FetchOptions = {}
-  ): Promise<?Document> => {
+  ): Promise<{ document: ?Document, documentTree?: NavigationNode }> => {
     if (!options.prefetch) this.isFetching = true;
 
     try {
       const doc: ?Document = this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
       if (doc && policy && !options.force) {
-        return doc;
+        return { document: doc };
       }
 
       const res = await client.post("/documents.info", {
         id,
         shareId: options.shareId,
+        apiVersion: 2,
       });
       invariant(res && res.data, "Document not available");
 
       this.addPolicies(res.policies);
-      this.add(res.data);
+      this.add(res.data.document);
 
-      runInAction("DocumentsStore#fetch", () => {
-        this.isLoaded = true;
-      });
-
-      return this.data.get(res.data.id);
+      return {
+        document: this.data.get(res.data.document.id),
+        documentTree: res.data.documentTree,
+      };
     } finally {
       this.isFetching = false;
     }
