@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Authentication, SearchQuery } from "../models";
+import { IntegrationAuthentication, SearchQuery } from "../models";
 import * as Slack from "../slack";
 import { buildDocument, buildIntegration } from "../test/factories";
 import { flushdb, seed } from "../test/support";
@@ -18,7 +18,7 @@ jest.mock("../slack", () => ({
 describe("#hooks.unfurl", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
-    await Authentication.create({
+    await IntegrationAuthentication.create({
       service: "slack",
       userId: user.id,
       teamId: user.teamId,
