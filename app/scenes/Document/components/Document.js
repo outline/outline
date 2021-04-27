@@ -311,7 +311,8 @@ class DocumentScene extends React.Component<Props> {
       match,
     } = this.props;
     const team = auth.team;
-    const isShare = !!match.params.shareId;
+    const { shareId } = match.params;
+    const isShare = !!shareId;
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
@@ -420,7 +421,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
-                    isShare={isShare}
+                    shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
                     key={[injectTemplate, disableEmbeds].join("-")}

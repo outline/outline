@@ -23,7 +23,7 @@ type Props = {|
   title: string,
   document: Document,
   isDraft: boolean,
-  isShare: boolean,
+  shareId: ?string,
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
   children: React.Node,
@@ -96,7 +96,7 @@ class DocumentEditor extends React.Component<Props> {
       title,
       onChangeTitle,
       isDraft,
-      isShare,
+      shareId,
       readOnly,
       innerRef,
       children,
@@ -117,7 +117,7 @@ class DocumentEditor extends React.Component<Props> {
             $isStarred={document.isStarred}
           >
             <span>{normalizedTitle}</span>{" "}
-            {!isShare && <StarButton document={document} size={32} />}
+            {!shareId && <StarButton document={document} size={32} />}
           </Title>
         ) : (
           <Title
@@ -143,11 +143,12 @@ class DocumentEditor extends React.Component<Props> {
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
           readOnly={readOnly}
+          shareId={shareId}
           grow
           {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !isShare && readOnly && (
+        {this.activeLinkEvent && !shareId && readOnly && (
           <HoverPreview
             node={this.activeLinkEvent.target}
             event={this.activeLinkEvent}
