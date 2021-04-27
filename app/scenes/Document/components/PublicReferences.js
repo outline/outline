@@ -16,6 +16,9 @@ function PublicReferences(props: Props) {
   const { t } = useTranslation();
   const { shareId, documentId, sharedTree } = props;
 
+  // The sharedTree is the entire document tree starting at the shared document
+  // we must filter down the tree to only the part with the document we're
+  // currently viewing
   const children = React.useMemo(() => {
     let result;
 
@@ -37,17 +40,17 @@ function PublicReferences(props: Props) {
     return findChildren(sharedTree) || [];
   }, [documentId, sharedTree]);
 
-  const showNestedDocuments = !!children.length;
+  if (!!children.length) {
+    return null;
+  }
 
   return (
-    showNestedDocuments && (
-      <>
-        <Subheading>{t("Nested documents")}</Subheading>
-        {children.map((node) => (
-          <ReferenceListItem key={node.id} document={node} shareId={shareId} />
-        ))}
-      </>
-    )
+    <>
+      <Subheading>{t("Nested documents")}</Subheading>
+      {children.map((node) => (
+        <ReferenceListItem key={node.id} document={node} shareId={shareId} />
+      ))}
+    </>
   );
 }
 

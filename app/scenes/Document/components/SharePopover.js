@@ -26,7 +26,6 @@ function DocumentShare({ document, share, onSubmit }: Props) {
   const { t } = useTranslation();
   const { policies, shares, ui } = useStores();
   const [isCopied, setIsCopied] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
   const timeout = React.useRef<?TimeoutID>();
   const can = policies.abilities(share ? share.id : "");
   const canPublish = can.update && !document.isTemplate;
@@ -41,14 +40,10 @@ function DocumentShare({ document, share, onSubmit }: Props) {
       const share = shares.getByDocumentId(document.id);
       invariant(share, "Share must exist");
 
-      setIsSaving(true);
-
       try {
         await share.save({ published: event.currentTarget.checked });
       } catch (err) {
         ui.showToast(err.message, { type: "error" });
-      } finally {
-        setIsSaving(false);
       }
     },
     [document.id, shares, ui]
@@ -59,16 +54,12 @@ function DocumentShare({ document, share, onSubmit }: Props) {
       const share = shares.getByDocumentId(document.id);
       invariant(share, "Share must exist");
 
-      setIsSaving(true);
-
       try {
         await share.save({
           includeChildDocuments: event.currentTarget.checked,
         });
       } catch (err) {
         ui.showToast(err.message, { type: "error" });
-      } finally {
-        setIsSaving(false);
       }
     },
     [document.id, shares, ui]
@@ -103,13 +94,13 @@ function DocumentShare({ document, share, onSubmit }: Props) {
             label={t("Publish to internet")}
             onChange={handlePublishedChange}
             checked={share ? share.published : false}
-            disabled={!share || isSaving}
+            disabled={!share}
           />
           <SwitchLabel>
             <SwitchText>
               {share.published
                 ? t("Anyone with the link can view this document")
-                : t("Only team members with access can view")}
+                : t("Only team members with permission can view")}
               {share.lastAccessedAt && (
                 <>
                   .{" "}
@@ -131,12 +122,12 @@ function DocumentShare({ document, share, onSubmit }: Props) {
             label={t("Share nested documents")}
             onChange={handleChildDocumentsChange}
             checked={share ? share.includeChildDocuments : false}
-            disabled={!share || isSaving}
+            disabled={!share}
           />
           <SwitchLabel>
             <SwitchText>
               {share.includeChildDocuments
-                ? t("Also allow public access to nested documents")
+                ? t("Public access to nested documents is allowed")
                 : t("Nested documents are not currently shared")}
             </SwitchText>
           </SwitchLabel>

@@ -502,11 +502,19 @@ async function loadDocument({
       throw new InvalidRequestError("Document could not be found for shareId");
     }
 
+    // It is possible to pass both an id and a shareId to the documents.info
+    // endpoint. In this case we'll load the document based on the `id` and check
+    // if the provided share token allows access. This is used by the frontend
+    // to navigate nested documents from a single share link.
     if (id) {
       document = await Document.findByPk(id, {
         userId: user ? user.id : undefined,
         paranoid: false,
       });
+
+      // otherwise, if the user has an authenticated session make sure to load
+      // with their details so that we can return the correct policies, they may
+      // be able to edit the shared document
     } else if (user) {
       document = await Document.findByPk(share.documentId, {
         userId: user.id,
@@ -516,15 +524,21 @@ async function loadDocument({
       document = share.document;
     }
 
+    // "published" === on the public internet. So if the share isn't published
+    // then we must have permission to read the document
     if (!share.published) {
       authorize(user, "read", document);
     }
 
+    // It is possible to disable sharing at the collection so we must check
     collection = await Collection.findByPk(document.collectionId);
     if (!collection.sharing) {
       throw new AuthorizationError();
     }
 
+    // If we're attempting to load a document that isn't the document originally
+    // shared then includeChildDocuments must be enabled and the document must
+    // still be nested within the shared document
     if (share.document.id !== document.id) {
       if (
         !share.includeChildDocuments ||
@@ -534,6 +548,7 @@ async function loadDocument({
       }
     }
 
+    // It is possible to disable sharing at the team level so we must check
     const team = await Team.findByPk(document.teamId);
     if (!team.sharing) {
       throw new AuthorizationError();
@@ -565,7 +580,7 @@ router.post("documents.info", auth({ required: false }), async (ctx) => {
   const { id, shareId, apiVersion } = ctx.body;
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const { document, share, collection } = await loadDocument({
     id,
     shareId,
@@ -574,6 +589,8 @@ router.post("documents.info", auth({ required: false }), async (ctx) => {
   const isPublic = cannot(user, "read", document);
   const serializedDocument = await presentDocument(document, { isPublic });
 
+  // Passing apiVersion=2 has a single effect, to change the response payload to
+  // include document and sharedTree keys.
   const data =
     apiVersion === 2
       ? {
