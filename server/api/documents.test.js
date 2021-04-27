@@ -98,6 +98,64 @@ describe("#documents.info", () => {
     expect(share.lastAccessedAt).toBeTruthy();
   });
 
+  describe("apiVersion=2", () => {
+    it("should return documentTree from shareId", async () => {
+      const { document, collection, user } = await seed();
+      const childDocument = await buildDocument({
+        teamId: document.teamId,
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+      });
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+      });
+
+      await collection.addDocumentToStructure(childDocument, 0);
+
+      const res = await server.post("/api/documents.info", {
+        body: { shareId: share.id, id: childDocument.id, apiVersion: 2 },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.document.id).toEqual(childDocument.id);
+      expect(body.data.document.createdBy).toEqual(undefined);
+      expect(body.data.document.updatedBy).toEqual(undefined);
+
+      expect(body.data.documentTree).toEqual(collection.documentStructure[0]);
+
+      await share.reload();
+      expect(share.lastAccessedAt).toBeTruthy();
+    });
+
+    it("should return documentTree from shareId with id of nested document", async () => {
+      const { document, user } = await seed();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: true,
+      });
+
+      const res = await server.post("/api/documents.info", {
+        body: { shareId: share.id, apiVersion: 2 },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.document.id).toEqual(document.id);
+      expect(body.data.document.createdBy).toEqual(undefined);
+      expect(body.data.document.updatedBy).toEqual(undefined);
+
+      expect(body.data.documentTree).toEqual(document.toJSON());
+
+      await share.reload();
+      expect(share.lastAccessedAt).toBeTruthy();
+    });
+  });
+
   it("should not return document from shareId if sharing is disabled for team", async () => {
     const { document, team, user } = await seed();
     const share = await buildShare({

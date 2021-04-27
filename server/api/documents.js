@@ -470,11 +470,17 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   };
 });
 
-async function loadDocument({ id, shareId, user }) {
+async function loadDocument({
+  id,
+  shareId,
+  user,
+}): Promise<{ document: Document, share?: Share, collection: Collection }> {
   let document;
+  let collection;
+  let share;
 
   if (shareId) {
-    const share = await Share.findOne({
+    share = await Share.findOne({
       where: {
         revokedAt: { [Op.eq]: null },
         id: shareId,
@@ -514,7 +520,7 @@ async function loadDocument({ id, shareId, user }) {
       authorize(user, "read", document);
     }
 
-    const collection = await Collection.findByPk(document.collectionId);
+    collection = await Collection.findByPk(document.collectionId);
     if (!collection.sharing) {
       throw new AuthorizationError();
     }
@@ -545,21 +551,38 @@ async function loadDocument({ id, shareId, user }) {
     } else {
       authorize(user, "read", document);
     }
+
+    collection = document.collection;
   }
 
-  return document;
+  return { document, share, collection };
 }
 
 router.post("documents.info", auth({ required: false }), async (ctx) => {
-  const { id, shareId } = ctx.body;
+  const { id, shareId, apiVersion } = ctx.body;
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
   const user = ctx.state.user;
-  const document = await loadDocument({ id, shareId, user });
+  const { document, share, collection } = await loadDocument({
+    id,
+    shareId,
+    user,
+  });
   const isPublic = cannot(user, "read", document);
+  const serializedDocument = await presentDocument(document, { isPublic });
+
+  const data =
+    apiVersion === 2
+      ? {
+          document: serializedDocument,
+          documentTree: collection.getDocumentTree(
+            share ? share.documentId : document.id
+          ),
+        }
+      : serializedDocument;
 
   ctx.body = {
-    data: await presentDocument(document, { isPublic }),
+    data,
     policies: isPublic ? undefined : presentPolicies(user, [document]),
   };
 });
@@ -569,7 +592,7 @@ router.post("documents.export", auth({ required: false }), async (ctx) => {
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
   const user = ctx.state.user;
-  const document = await loadDocument({ id, shareId, user });
+  const { document } = await loadDocument({ id, shareId, user });
 
   ctx.body = {
     data: document.toMarkdown(),

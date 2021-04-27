@@ -384,7 +384,7 @@ Collection.prototype.isChildDocument = function (
         result = parents.includes(parentDocumentId);
       } else {
         parents.push(document.id);
-        document.children = loopChildren(document.children, parents);
+        loopChildren(document.children, parents);
       }
       return document;
     });
@@ -392,6 +392,30 @@ Collection.prototype.isChildDocument = function (
 
   loopChildren(this.documentStructure, []);
 
+  return result;
+};
+
+Collection.prototype.getDocumentTree = function (documentId: string) {
+  let result;
+
+  const loopChildren = (documents) => {
+    if (result) {
+      return;
+    }
+
+    documents.forEach((document) => {
+      if (result) {
+        return;
+      }
+      if (document.id === documentId) {
+        result = document;
+      } else {
+        loopChildren(document.children);
+      }
+    });
+  };
+
+  loopChildren(this.documentStructure);
   return result;
 };
 
