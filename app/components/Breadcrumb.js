@@ -143,11 +143,6 @@ const Breadcrumb = ({ document, children, onlyText }: Props) => {
   );
 };
 
-export const Slash = styled(GoToIcon)`
-  flex-shrink: 0;
-  fill: ${(props) => props.theme.divider};
-`;
-
 const SmallSlash = styled(GoToIcon)`
   width: 12px;
   height: 12px;
@@ -158,7 +153,12 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.5;
 `;
 
-const Crumb = styled(Link)`
+export const Slash = styled(GoToIcon)`
+  flex-shrink: 0;
+  fill: ${(props) => props.theme.divider};
+`;
+
+export const Crumb = styled(Link)`
   color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;

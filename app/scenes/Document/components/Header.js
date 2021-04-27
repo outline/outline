@@ -19,18 +19,21 @@ import Collaborators from "components/Collaborators";
 import Fade from "components/Fade";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
+import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
+import { type NavigationNode } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
-  isShare: boolean,
+  sharedTree: ?NavigationNode,
+  shareId: boolean,
   isDraft: boolean,
   isEditing: boolean,
   isRevision: boolean,
@@ -48,7 +51,7 @@ type Props = {|
 
 function DocumentHeader({
   document,
-  isShare,
+  shareId,
   isEditing,
   isDraft,
   isPublishing,
@@ -56,6 +59,7 @@ function DocumentHeader({
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
+  sharedTree,
   onSave,
 }: Props) {
   const { t } = useTranslation();
@@ -116,11 +120,19 @@ function DocumentHeader({
     </Action>
   );
 
-  if (isShare) {
+  if (shareId) {
     return (
       <Header
         title={document.title}
-        breadcrumb={toc}
+        breadcrumb={
+          <PublicBreadcrumb
+            documentId={document.id}
+            shareId={shareId}
+            sharedTree={sharedTree}
+          >
+            {toc}
+          </PublicBreadcrumb>
+        }
         actions={canEdit ? editAction : <div />}
       />
     );

@@ -40,7 +40,7 @@ function PublicReferences(props: Props) {
     return findChildren(sharedTree) || [];
   }, [documentId, sharedTree]);
 
-  if (!!children.length) {
+  if (!children.length) {
     return null;
   }
 

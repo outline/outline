@@ -370,7 +370,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <Header
               document={document}
-              isShare={isShare}
+              shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
               isEditing={!readOnly}
@@ -380,6 +380,7 @@ class DocumentScene extends React.Component<Props> {
                 document.isSaving || this.isPublishing || this.isEmpty
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
+              sharedTree={this.props.sharedTree}
               goBack={this.goBack}
               onSave={this.onSave}
             />
