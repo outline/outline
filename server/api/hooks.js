@@ -5,13 +5,13 @@ import { AuthenticationError, InvalidRequestError } from "../errors";
 import {
   UserAuthentication,
   AuthenticationProvider,
-  Authentication,
   Document,
   User,
   Team,
   Collection,
   SearchQuery,
   Integration,
+  IntegrationAuthentication,
 } from "../models";
 import { presentSlackAttachment } from "../presenters";
 import * as Slack from "../slack";
@@ -38,7 +38,7 @@ router.post("hooks.unfurl", async (ctx) => {
   });
   if (!user) return;
 
-  const auth = await Authentication.findOne({
+  const auth = await IntegrationAuthentication.findOne({
     where: { service: "slack", teamId: user.teamId },
   });
   if (!auth) return;
