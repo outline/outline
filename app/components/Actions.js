@@ -33,7 +33,7 @@ const Actions = styled(Flex)`
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   padding: 12px;
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 
   @media print {
     display: none;

@@ -115,6 +115,7 @@ const Background = styled.div`
       props.left !== undefined ? "25%" : "75%"} 0;
     max-width: 276px;
     background: ${(props) => rgba(props.theme.menuBackground, 0.95)};
+    backdrop-filter: blur(20px);
     box-shadow: ${(props) => props.theme.menuShadow};
     border: ${(props) =>
       props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
