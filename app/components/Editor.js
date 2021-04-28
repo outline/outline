@@ -121,6 +121,10 @@ function Editor(props: PropsWithRef) {
       deleteColumn: t("Delete column"),
       deleteRow: t("Delete row"),
       deleteTable: t("Delete table"),
+      deleteImage: t("Delete image"),
+      alignImageLeft: t("Float left"),
+      alignImageRight: t("Float right"),
+      alignImageDefault: t("Center large"),
       em: t("Italic"),
       embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
       findOrCreateDoc: `${t("Find or create a doc")}…`,
@@ -141,6 +145,7 @@ function Editor(props: PropsWithRef) {
       noResults: t("No results"),
       openLink: t("Open link"),
       orderedList: t("Ordered list"),
+      pageBreak: t("Page break"),
       pasteLink: `${t("Paste a link")}…`,
       pasteLinkWithTitle: (service: string) =>
         t("Paste a {{service}} link…", { service }),
