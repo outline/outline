@@ -10,7 +10,7 @@ import {
   Group,
   GroupUser,
   Attachment,
-  Authentication,
+  IntegrationAuthentication,
   Integration,
   AuthenticationProvider,
 } from "../models";
@@ -123,7 +123,7 @@ export async function buildIntegration(overrides: Object = {}) {
 
   const user = await buildUser({ teamId: overrides.teamId });
 
-  const authentication = await Authentication.create({
+  const authentication = await IntegrationAuthentication.create({
     service: "slack",
     userId: user.id,
     teamId: user.teamId,

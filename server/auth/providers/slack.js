@@ -6,7 +6,12 @@ import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
 import auth from "../../middlewares/authentication";
 import passportMiddleware from "../../middlewares/passport";
-import { Authentication, Collection, Integration, Team } from "../../models";
+import {
+  IntegrationAuthentication,
+  Collection,
+  Integration,
+  Team,
+} from "../../models";
 import * as Slack from "../../slack";
 import { StateStore } from "../../utils/passport";
 
@@ -113,7 +118,7 @@ if (SLACK_CLIENT_ID) {
     const endpoint = `${process.env.URL || ""}/auth/slack.commands`;
     const data = await Slack.oauthAccess(code, endpoint);
 
-    const authentication = await Authentication.create({
+    const authentication = await IntegrationAuthentication.create({
       service: "slack",
       userId: user.id,
       teamId: user.teamId,
@@ -168,7 +173,7 @@ if (SLACK_CLIENT_ID) {
     const endpoint = `${process.env.URL || ""}/auth/slack.post`;
     const data = await Slack.oauthAccess(code, endpoint);
 
-    const authentication = await Authentication.create({
+    const authentication = await IntegrationAuthentication.create({
       service: "slack",
       userId: user.id,
       teamId: user.teamId,
