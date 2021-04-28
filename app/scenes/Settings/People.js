@@ -2,7 +2,7 @@
 import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, type TFunction, Trans } from "react-i18next";
 import { type Match } from "react-router-dom";
@@ -12,15 +12,14 @@ import UsersStore from "stores/UsersStore";
 import Invite from "scenes/Invite";
 import Bubble from "components/Bubble";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
-import PageTitle from "components/PageTitle";
 import PaginatedList from "components/PaginatedList";
+import Scene from "components/Scene";
 import Tab from "components/Tab";
 import Tabs, { Separator } from "components/Tabs";
-
 import UserListItem from "./components/UserListItem";
 
 type Props = {
@@ -79,9 +78,8 @@ class People extends React.Component<Props> {
     const { counts } = this.props.users;
 
     return (
-      <CenteredContent>
-        <PageTitle title={t("People")} />
-        <h1>{t("People")}</h1>
+      <Scene title={t("People")} icon={<UserIcon color="currentColor" />}>
+        <Heading>{t("People")}</Heading>
         <HelpText>
           <Trans>
             Everyone that has signed into Outline appears here. It’s possible
@@ -151,7 +149,7 @@ class People extends React.Component<Props> {
             <Invite onSubmit={this.handleInviteModalClose} />
           </Modal>
         )}
-      </CenteredContent>
+      </Scene>
     );
   }
 }

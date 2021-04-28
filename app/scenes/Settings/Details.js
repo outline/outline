@@ -1,17 +1,17 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { TeamIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Input, { LabelText } from "components/Input";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
 import ImageUpload from "./components/ImageUpload";
 import env from "env";
 
@@ -85,9 +85,8 @@ class Details extends React.Component<Props> {
     const avatarUrl = this.avatarUrl || team.avatarUrl;
 
     return (
-      <CenteredContent>
-        <PageTitle title="Details" />
-        <h1>Details</h1>
+      <Scene title="Details" icon={<TeamIcon color="currentColor" />}>
+        <Heading>Details</Heading>
         <HelpText>
           These details affect the way that your Outline appears to everyone on
           the team.
@@ -143,7 +142,7 @@ class Details extends React.Component<Props> {
             {isSaving ? "Saving…" : "Save"}
           </Button>
         </form>
-      </CenteredContent>
+      </Scene>
     );
   }
 }
