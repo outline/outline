@@ -332,9 +332,7 @@ Document.searchForTeam = async (
   return {
     results: map(results, (result) => ({
       ranking: result.searchRanking,
-      context: removeMarkdown(unescape(result.searchContext), {
-        stripHTML: false,
-      }),
+      context: removeMarkdown(unescape(result.searchContext)),
       document: find(documents, { id: result.id }),
     })),
     totalCount: count,
@@ -457,9 +455,7 @@ Document.searchForUser = async (
   return {
     results: map(results, (result) => ({
       ranking: result.searchRanking,
-      context: removeMarkdown(unescape(result.searchContext), {
-        stripHTML: false,
-      }),
+      context: removeMarkdown(unescape(result.searchContext)),
       document: find(documents, { id: result.id }),
     })),
     totalCount: count,
@@ -690,9 +686,7 @@ Document.prototype.getTimestamp = function () {
 };
 
 Document.prototype.getSummary = function () {
-  const plain = removeMarkdown(unescape(this.text), {
-    stripHTML: false,
-  });
+  const plain = removeMarkdown(unescape(this.text));
   const lines = compact(plain.split("\n"));
   const notEmpty = lines.length >= 1;
 
