@@ -1,5 +1,4 @@
 // @flow
-import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
 import Sequelize, { Transaction } from "sequelize";
@@ -10,6 +9,7 @@ import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
 import { Collection, User } from "../models";
 import { DataTypes, sequelize } from "../sequelize";
+import removeMarkdown from "../utils/removeMarkdown";
 import slugify from "../utils/slugify";
 import Revision from "./Revision";
 
