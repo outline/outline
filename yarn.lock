@@ -1989,10 +1989,10 @@
     prop-types "^15.6.2"
     tippy.js "^4.3.4"
 
-"@tommoor/remove-markdown@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.1.tgz#25e7b845d52fcfadf149a3a6a468a931fee7619b"
-  integrity sha512-aM5TtBfBgcUm+B4WWelm2NBAFBk12oNUr67f5lJapSOTkPnwkuzCNwMlsBoDTsRknoZSsUIkcOJB473AnfyqHA==
+"@tommoor/remove-markdown@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.2.tgz#5288ddd0e26b6b173e76ebb31c94653b0dcff45d"
+  integrity sha512-awcc9hfLZqyyZHOGzAHbnjgZJpQGS1W1oZZ5GXOTTnbKVdKQ4OWYbrRWPUvXI2YAKJazrcS8rxPh67PX3rpGkQ==
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.12"
