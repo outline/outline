@@ -9,7 +9,7 @@ export default function createMiddleware(providerName: string) {
     return passport.authorize(
       providerName,
       { session: false },
-      (err, _, result: AccountProvisionerResult) => {
+      async (err, _, result: AccountProvisionerResult) => {
         if (err) {
           console.error(err);
 
@@ -39,7 +39,7 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        signIn(
+        await signIn(
           ctx,
           result.user,
           result.team,
