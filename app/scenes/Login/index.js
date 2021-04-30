@@ -5,6 +5,7 @@ import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Redirect, Link, type Location } from "react-router-dom";
 import styled from "styled-components";
+import { setCookie } from "tiny-cookie";
 import ButtonLarge from "components/ButtonLarge";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
@@ -16,6 +17,7 @@ import TeamLogo from "components/TeamLogo";
 import Notices from "./Notices";
 import Provider from "./Provider";
 import env from "env";
+import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -23,6 +25,7 @@ type Props = {|
 |};
 
 function Login({ location }: Props) {
+  const query = useQuery();
   const { auth } = useStores();
   const { config } = auth;
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
@@ -39,6 +42,13 @@ function Login({ location }: Props) {
   React.useEffect(() => {
     auth.fetchConfig();
   }, [auth]);
+
+  React.useEffect(() => {
+    const entries = Object.fromEntries(query.entries());
+    if (Object.keys(entries).length) {
+      setCookie("signupQueryParams", JSON.stringify(entries));
+    }
+  }, [query]);
 
   if (auth.authenticated) {
     return <Redirect to="/home" />;
