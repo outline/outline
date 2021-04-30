@@ -88,6 +88,12 @@ export function MicrosoftGraphError(
   return httpErrors(400, message, { id: "graph_error" });
 }
 
+export function GitLabError(
+  message: string = "GitLab API did not return required fields"
+) {
+  return httpErrors(400, message, { id: "gitlab_error" });
+}
+
 export function GoogleWorkspaceRequiredError(
   message: string = "Google Workspace is required to authenticate"
 ) {
