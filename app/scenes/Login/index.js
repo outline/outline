@@ -45,7 +45,11 @@ function Login({ location }: Props) {
 
   React.useEffect(() => {
     const entries = Object.fromEntries(query.entries());
-    if (Object.keys(entries).length) {
+
+    // We don't want to override this cookie if we're viewing an error notice
+    // sent back from the server via query string (notice=), or if there are no
+    // query params at all.
+    if (Object.keys(entries).length && !query.get("notice")) {
       setCookie("signupQueryParams", JSON.stringify(entries));
     }
   }, [query]);
