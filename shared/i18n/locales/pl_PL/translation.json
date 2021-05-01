@@ -1,6 +1,6 @@
 {
-  "currently editing": "currently editing",
-  "currently viewing": "currently viewing",
+  "currently editing": "Aktualnie edytujesz",
+  "currently viewing": "Obecnie wyświetlasz",
   "viewed {{ timeAgo }} ago": "viewed {{ timeAgo }} ago",
   "You": "You",
   "Trash": "Trash",
@@ -14,7 +14,7 @@
   "Expand": "Expand",
   "Submenu": "Submenu",
   "New": "New",
-  "Only visible to you": "Only visible to you",
+  "Only visible to you": "Widoczne tylko dla Ciebie",
   "Draft": "Draft",
   "Template": "Template",
   "New doc": "New doc",
