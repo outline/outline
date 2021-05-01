@@ -1,6 +1,6 @@
 {
-  "currently editing": "Aktualnie edytujesz",
-  "currently viewing": "Obecnie wyświetlasz",
+  "currently editing": "aktualnie edytujesz",
+  "currently viewing": "obecnie wyświetlasz",
   "viewed {{ timeAgo }} ago": "viewed {{ timeAgo }} ago",
   "You": "You",
   "Trash": "Trash",
@@ -37,7 +37,7 @@
   "Align left": "Align left",
   "Align right": "Align right",
   "Bulleted list": "Bulleted list",
-  "Todo list": "Lista TODO",
+  "Todo list": "Lista Todo",
   "Code block": "Kod blokowy",
   "Copied to clipboard": "Skopiowane do schowka",
   "Code": "Kod",
