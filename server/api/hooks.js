@@ -8,7 +8,6 @@ import {
   Document,
   User,
   Team,
-  Collection,
   SearchQuery,
   Integration,
   IntegrationAuthentication,
@@ -87,7 +86,7 @@ router.post("hooks.interactive", async (ctx) => {
     throw new InvalidRequestError("Invalid callback_id");
   }
 
-  const team = await Collection.findByPk(document.teamId);
+  const team = await Team.findByPk(document.teamId);
 
   // respond with a public message that will be posted in the original channel
   ctx.body = {
