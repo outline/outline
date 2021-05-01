@@ -7,7 +7,7 @@ type Props = {
   className?: string,
 };
 
-function GitlabLogo({ size = 34, fill = "#FFF", className }: Props) {
+function GitLabLogo({ size = 34, fill = "#FFF", className }: Props) {
   return (
     <svg
       fill={fill}
@@ -27,4 +27,4 @@ function GitlabLogo({ size = 34, fill = "#FFF", className }: Props) {
   );
 }
 
-export default GitlabLogo;
+export default GitLabLogo;
