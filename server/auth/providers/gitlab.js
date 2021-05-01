@@ -1,8 +1,7 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
-import { Strategy as GitLabStrategy } from "passport-gitlab2";
-import jwt from "jsonwebtoken";
 import Router from "koa-router";
+import { Strategy as GitLabStrategy } from "passport-gitlab2";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
 import { GitLabError } from "../../errors";
@@ -34,17 +33,17 @@ export const config = {
 };
 
 if (GITLAB_APP_ID) {
-  const strategy = new GitLabStrategy({
+  const strategy = new GitLabStrategy(
+    {
       clientID: GITLAB_APP_ID,
       clientSecret: GITLAB_APP_SECRET,
       callbackURL: `${env.URL}/auth/gitlab.callback`,
       baseURL: GITLAB_URL,
       passReqToCallback: true,
-      store: new StateStore()
+      store: new StateStore(),
     },
     async function (req, accessToken, refreshToken, profile, done) {
       try {
-
         profile = profile._json;
 
         const email = profile.email;
@@ -53,13 +52,13 @@ if (GITLAB_APP_ID) {
             "'email' property is required but could not be found in user profile."
           );
         }
-  
+
         const domain = email.split("@")[1];
         const subdomain = domain.split(".")[0];
         // Just set the domain as Team's Name as GitLab doesn't have concept of organization
         // User can the Team name anyway after creating it.
         const teamName = domain;
-  
+
         const result = await accountProvisioner({
           ip: req.ip,
           team: {
@@ -79,7 +78,7 @@ if (GITLAB_APP_ID) {
           },
           authentication: {
             // convert id to string.
-            providerId: '' + profile.id,
+            providerId: "" + profile.id,
             accessToken,
             refreshToken,
             scopes,

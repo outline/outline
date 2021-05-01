@@ -1,10 +1,10 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
+import GitLabLogo from "./GitLabLogo";
 import GoogleLogo from "./GoogleLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
-import GitLabLogo from "./GitLabLogo";
 
 type Props = {|
   providerName: string,
