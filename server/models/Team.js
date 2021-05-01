@@ -55,6 +55,10 @@ const Team = sequelize.define(
     googleId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
     sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    signupQueryParams: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
     guestSignin: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
