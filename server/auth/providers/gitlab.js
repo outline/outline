@@ -56,6 +56,8 @@ if (GITLAB_APP_ID) {
   
         const domain = email.split("@")[1];
         const subdomain = domain.split(".")[0];
+        // Just set the domain as Team's Name as GitLab doesn't have concept of organization
+        // User can the Team name anyway after creating it.
         const teamName = domain;
   
         const result = await accountProvisioner({
@@ -72,9 +74,11 @@ if (GITLAB_APP_ID) {
           },
           authenticationProvider: {
             name: providerName,
-            providerId: '' + profile.id,
+            // GitLab doesn't organization concept, so just set providerName as id.
+            providerId: providerName,
           },
           authentication: {
+            // convert id to string.
             providerId: '' + profile.id,
             accessToken,
             refreshToken,
