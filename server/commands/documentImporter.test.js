@@ -37,6 +37,29 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("images");
   });
 
+  it("should convert Word Document on Windows to markdown", async () => {
+    const user = await buildUser();
+    const name = "images.docx";
+    const file = new File({
+      name,
+      type: "application/octet-stream",
+      path: path.resolve(__dirname, "..", "test", "fixtures", name),
+    });
+
+    const response = await documentImporter({
+      user,
+      file,
+      ip,
+    });
+
+    const attachments = await Attachment.count();
+    expect(attachments).toEqual(1);
+
+    expect(response.text).toContain("This is a test document for images");
+    expect(response.text).toContain("![](/api/attachments.redirect?id=");
+    expect(response.title).toEqual("images");
+  });
+
   it("should convert HTML Document to markdown", async () => {
     const user = await buildUser();
     const name = "webpage.html";

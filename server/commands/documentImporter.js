@@ -45,6 +45,10 @@ const importMapping: ImportableFile[] = [
     getMarkdown: confluenceToMarkdown,
   },
   {
+    type: "application/octet-stream",
+    getMarkdown: docxToMarkdown,
+  },
+  {
     type:
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     getMarkdown: docxToMarkdown,
