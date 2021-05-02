@@ -141,7 +141,7 @@ describe("documentImporter", () => {
     const name = "markdown.md";
     const file = new File({
       name,
-      type: "application/octet-stream",
+      type: "application/lol",
       path: path.resolve(__dirname, "..", "test", "fixtures", name),
     });
 
