@@ -11,6 +11,8 @@ import Document from "models/Document";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
 
+const MAXIUMUM_IMPORT_SIZE = 1024 * 1000 * 5;
+
 type ImportOptions = {
   publish?: boolean,
 };
@@ -28,6 +30,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     "text/html",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/octet-stream",
   ];
 
   constructor(rootStore: RootStore) {
@@ -529,6 +532,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     collectionId: string,
     options: ImportOptions
   ) => {
+    if (!this.importFileTypes.includes(file.type)) {
+      throw new Error(`The selected file type is not supported (${file.type})`);
+    }
+    if (file.size > MAXIUMUM_IMPORT_SIZE) {
+      throw new Error(`The selected file was too large to import.`);
+    }
+
     const title = file.name.replace(/\.[^/.]+$/, "");
     const formData = new FormData();
 
