@@ -2,14 +2,14 @@
 import { debounce } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { PadlockIcon } from "outline-icons";
 import * as React from "react";
-
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import CenteredContent from "components/CenteredContent";
 import Checkbox from "components/Checkbox";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
 
 type Props = {
   auth: AuthStore,
@@ -61,9 +61,8 @@ class Security extends React.Component<Props> {
 
   render() {
     return (
-      <CenteredContent>
-        <PageTitle title="Security" />
-        <h1>Security</h1>
+      <Scene title="Security" icon={<PadlockIcon color="currentColor" />}>
+        <Heading>Security</Heading>
         <HelpText>
           Settings that impact the access, security, and content of your
           knowledge base.
@@ -90,7 +89,7 @@ class Security extends React.Component<Props> {
           onChange={this.handleChange}
           note="Links to supported services are shown as rich embeds within your documents"
         />
-      </CenteredContent>
+      </Scene>
     );
   }
 }

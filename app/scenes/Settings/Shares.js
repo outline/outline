@@ -1,13 +1,14 @@
 // @flow
 import { observer } from "mobx-react";
+import { LinkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
-import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import PageTitle from "components/PageTitle";
 import PaginatedList from "components/PaginatedList";
+import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import ShareListItem from "./components/ShareListItem";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -21,9 +22,8 @@ function Shares() {
   const can = policies.abilities(team.id);
 
   return (
-    <CenteredContent>
-      <PageTitle title={t("Share Links")} />
-      <h1>{t("Share Links")}</h1>
+    <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
+      <Heading>{t("Share Links")}</Heading>
       <HelpText>
         <Trans>
           Documents that have been shared are listed below. Anyone that has the
@@ -49,7 +49,7 @@ function Shares() {
         fetch={shares.fetchPage}
         renderItem={(item) => <ShareListItem key={item.id} share={item} />}
       />
-    </CenteredContent>
+    </Scene>
   );
 }
 

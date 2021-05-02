@@ -1,6 +1,9 @@
 // @flow
+import querystring from "querystring";
+import * as Sentry from "@sentry/node";
 import addMonths from "date-fns/add_months";
 import { type Context } from "koa";
+import { pick } from "lodash";
 import { User, Event, Team } from "../models";
 import { getCookieDomain } from "../utils/domains";
 
@@ -10,15 +13,34 @@ export function getAllowedDomains(): string[] {
   return env ? env.split(",") : [];
 }
 
-export function signIn(
+export async function signIn(
   ctx: Context,
   user: User,
   team: Team,
   service: string,
-  isFirstSignin: boolean = false
+  isNewUser: boolean = false,
+  isNewTeam: boolean = false
 ) {
   if (user.isSuspended) {
     return ctx.redirect("/?notice=suspended");
+  }
+
+  if (isNewTeam) {
+    // see: scenes/Login/index.js for where this cookie is written when
+    // viewing the /login or /create pages. It is a URI encoded JSON string.
+    const cookie = ctx.cookies.get("signupQueryParams");
+
+    if (cookie) {
+      try {
+        const signupQueryParams = pick(
+          JSON.parse(querystring.unescape(cookie)),
+          ["ref", "utm_content", "utm_medium", "utm_source", "utm_campaign"]
+        );
+        await team.update({ signupQueryParams });
+      } catch (err) {
+        Sentry.captureException(err);
+      }
+    }
   }
 
   // update the database when the user last signed in
@@ -77,6 +99,6 @@ export function signIn(
       httpOnly: false,
       expires,
     });
-    ctx.redirect(`${team.url}/home${isFirstSignin ? "?welcome" : ""}`);
+    ctx.redirect(`${team.url}/home${isNewUser ? "?welcome" : ""}`);
   }
 }
