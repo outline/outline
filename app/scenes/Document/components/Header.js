@@ -13,9 +13,9 @@ import styled from "styled-components";
 import Document from "models/Document";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
-import Breadcrumb, { Slash } from "components/Breadcrumb";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
+import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Fade from "components/Fade";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
@@ -33,7 +33,7 @@ import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 type Props = {|
   document: Document,
   sharedTree: ?NavigationNode,
-  shareId: boolean,
+  shareId: ?string,
   isDraft: boolean,
   isEditing: boolean,
   isRevision: boolean,
@@ -142,14 +142,9 @@ function DocumentHeader({
     <>
       <Header
         breadcrumb={
-          <Breadcrumb document={document}>
-            {!isEditing && (
-              <>
-                <Slash />
-                {toc}
-              </>
-            )}
-          </Breadcrumb>
+          <DocumentBreadcrumb document={document}>
+            {!isEditing && toc}
+          </DocumentBreadcrumb>
         }
         title={
           <>

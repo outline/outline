@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
-import Breadcrumb from "components/Breadcrumb";
+import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Flex from "components/Flex";
 import Time from "components/Time";
 import useStores from "hooks/useStores";
@@ -142,7 +142,7 @@ function DocumentMeta({
         <span>
           &nbsp;{t("in")}&nbsp;
           <strong>
-            <Breadcrumb document={document} onlyText />
+            <DocumentBreadcrumb document={document} onlyText />
           </strong>
         </span>
       )}
