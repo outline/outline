@@ -75,7 +75,10 @@ router.post("users.count", auth(), async (ctx) => {
 });
 
 router.post("users.info", auth(), async (ctx) => {
-  const { user } = ctx.state;
+  const { id } = ctx.body;
+
+  const user = id ? await User.findByPk(id) : ctx.state.user;
+  authorize(ctx.state.user, "read", user);
 
   ctx.body = {
     data: presentUser(user),

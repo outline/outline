@@ -22,7 +22,9 @@ const Contents = styled.div`
   transform-origin: 75% 0;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
-  padding: 24px 24px 12px;
+  padding: 12px 24px;
+  max-height: 50vh;
+  overflow-y: scroll;
   width: ${(props) => props.width}px;
   box-shadow: ${(props) => props.theme.menuShadow};
   border: ${(props) =>

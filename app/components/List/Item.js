@@ -8,13 +8,14 @@ type Props = {
   title: React.Node,
   subtitle?: React.Node,
   actions?: React.Node,
+  border?: boolean,
 };
 
-const ListItem = ({ image, title, subtitle, actions }: Props) => {
+const ListItem = ({ image, title, subtitle, actions, border }: Props) => {
   const compact = !subtitle;
 
   return (
-    <Wrapper compact={compact}>
+    <Wrapper compact={compact} $border={border}>
       {image && <Image>{image}</Image>}
       <Content align={compact ? "center" : undefined} column={!compact}>
         <Heading>{title}</Heading>
@@ -27,9 +28,11 @@ const ListItem = ({ image, title, subtitle, actions }: Props) => {
 
 const Wrapper = styled.li`
   display: flex;
-  padding: 10px 0;
+  padding: 8px 0;
   margin: 0;
-  border-bottom: 1px solid ${(props) => props.theme.divider};
+  border-bottom: 1px solid
+    ${(props) =>
+      props.$border === false ? "transparent" : props.theme.divider};
 
   &:last-child {
     border-bottom: 0;
@@ -59,7 +62,8 @@ const Content = styled(Flex)`
 const Subtitle = styled.p`
   margin: 0;
   font-size: 14px;
-  color: ${(props) => props.theme.slate};
+  color: ${(props) => props.theme.textTertiary};
+  margin-top: -2px;
 `;
 
 const Actions = styled.div`
