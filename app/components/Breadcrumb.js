@@ -38,11 +38,14 @@ function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
       {topLevelItems.map((item, index) => (
         <React.Fragment key={item.to || index}>
           {item.icon}
-          {item.icon && <>&nbsp;</>}
           {item.to ? (
-            <Crumb to={item.to} highlight={highlightFirstItem && index === 0}>
+            <Item
+              to={item.to}
+              $withIcon={!!item.icon}
+              $highlight={highlightFirstItem && index === 0}
+            >
               {item.title}
-            </Crumb>
+            </Item>
           ) : (
             item.title
           )}
@@ -54,19 +57,23 @@ function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
   );
 }
 
-export const Slash = styled(GoToIcon)`
+const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   fill: ${(props) => props.theme.divider};
 `;
 
-export const Crumb = styled(Link)`
+const Item = styled(Link)`
+  display: flex;
+  flex-shrink: 1;
+  min-width: 0;
   color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  font-weight: ${(props) => (props.highlight ? "500" : "inherit")};
+  font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
+  margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
 
   svg {
     flex-shrink: 0;
