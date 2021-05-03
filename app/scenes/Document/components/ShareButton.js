@@ -3,11 +3,10 @@ import { observer } from "mobx-react";
 import { GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { usePopoverState, Popover, PopoverDisclosure } from "reakit/Popover";
-import styled from "styled-components";
-import { fadeAndScaleIn } from "shared/styles/animations";
+import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "models/Document";
 import Button from "components/Button";
+import Popover from "components/Popover";
 import Tooltip from "components/Tooltip";
 import SharePopover from "./SharePopover";
 import useStores from "hooks/useStores";
@@ -55,28 +54,14 @@ function ShareButton({ document }: Props) {
         )}
       </PopoverDisclosure>
       <Popover {...popover} aria-label={t("Share")}>
-        <Contents>
-          <SharePopover
-            document={document}
-            share={share}
-            onSubmit={popover.hide}
-          />
-        </Contents>
+        <SharePopover
+          document={document}
+          share={share}
+          onSubmit={popover.hide}
+        />
       </Popover>
     </>
   );
 }
-
-const Contents = styled.div`
-  animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: 75% 0;
-  background: ${(props) => props.theme.menuBackground};
-  border-radius: 6px;
-  padding: 24px 24px 12px;
-  width: 380px;
-  box-shadow: ${(props) => props.theme.menuShadow};
-  border: ${(props) =>
-    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
-`;
 
 export default observer(ShareButton);

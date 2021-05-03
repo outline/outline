@@ -1,45 +1,41 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Flex from "components/Flex";
 
-type Props = {
+type Props = {|
   users: User[],
   size?: number,
   overflow: number,
-  renderAvatar: (user: User) => React.Node,
-};
+  onClick?: (event: SyntheticEvent<>) => mixed,
+  renderAvatar?: (user: User) => React.Node,
+|};
 
-@observer
-class Facepile extends React.Component<Props> {
-  render() {
-    const {
-      users,
-      overflow,
-      size = 32,
-      renderAvatar = renderDefaultAvatar,
-      ...rest
-    } = this.props;
-
-    return (
-      <Avatars {...rest}>
-        {overflow > 0 && (
-          <More size={size}>
-            <span>+{overflow}</span>
-          </More>
-        )}
-        {users.map((user) => (
-          <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
-        ))}
-      </Avatars>
-    );
-  }
+function Facepile({
+  users,
+  overflow,
+  size = 32,
+  renderAvatar = DefaultAvatar,
+  ...rest
+}: Props) {
+  return (
+    <Avatars {...rest}>
+      {overflow > 0 && (
+        <More size={size}>
+          <span>+{overflow}</span>
+        </More>
+      )}
+      {users.map((user) => (
+        <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
+      ))}
+    </Avatars>
+  );
 }
 
-function renderDefaultAvatar(user: User) {
+function DefaultAvatar(user: User) {
   return <Avatar user={user} src={user.avatarUrl} size={32} />;
 }
 
@@ -73,4 +69,4 @@ const Avatars = styled(Flex)`
   cursor: pointer;
 `;
 
-export default inject("views", "presence")(withTheme(Facepile));
+export default observer(Facepile);
