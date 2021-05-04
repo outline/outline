@@ -2,6 +2,7 @@
 import { type Context } from "koa";
 import validator from "validator";
 import { validateColorHex } from "../../shared/utils/color";
+import { validateIndexCharacters } from "../../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "../errors";
 
 export default function validation() {
@@ -60,6 +61,11 @@ export default function validation() {
       }
     };
 
+    ctx.assertIndexCharacters = (value, message) => {
+      if (!validateIndexCharacters(value)) {
+        throw new ValidationError(message);
+      }
+    };
     return next();
   };
 }
