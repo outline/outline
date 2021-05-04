@@ -662,6 +662,10 @@ router.post("collections.move", auth(), async (ctx) => {
   let index = ctx.body.index;
 
   ctx.assertPresent(index, "index is required");
+  ctx.assertIndexCharacters(
+    index,
+    "Index characters must be between x21 to x7E ASCII"
+  );
   ctx.assertUuid(id, "id must be a uuid");
 
   const user = ctx.state.user;
