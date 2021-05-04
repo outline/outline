@@ -11,7 +11,7 @@ import Document from "models/Document";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
 
-const MAXIUMUM_IMPORT_SIZE = 1024 * 1000 * 5;
+const MAXIMUM_IMPORT_SIZE = 1024 * 1000 * 5;
 
 type ImportOptions = {
   publish?: boolean,
@@ -535,7 +535,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     if (!this.importFileTypes.includes(file.type)) {
       throw new Error(`The selected file type is not supported (${file.type})`);
     }
-    if (file.size > MAXIUMUM_IMPORT_SIZE) {
+    if (file.size > MAXIMUM_IMPORT_SIZE) {
       throw new Error(`The selected file was too large to import.`);
     }
 
