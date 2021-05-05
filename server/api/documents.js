@@ -5,6 +5,7 @@ import { subtractDate } from "../../shared/utils/date";
 import documentCreator from "../commands/documentCreator";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
+import env from "../env";
 import {
   NotFoundError,
   InvalidRequestError,
@@ -1178,6 +1179,10 @@ router.post("documents.import", auth(), async (ctx) => {
 
   const file: any = Object.values(ctx.request.files)[0];
   ctx.assertPresent(file, "file is required");
+
+  if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+    throw new InvalidRequestError("The selected file was too large to import");
+  }
 
   ctx.assertUuid(collectionId, "collectionId must be an uuid");
   if (parentDocumentId) {
