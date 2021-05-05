@@ -33,7 +33,7 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
 
   return (
     <>
-      <MenuButton ref={ref} {...menu} {...props}>
+      <MenuButton ref={ref} {...menu} {...props} onClick={menu.show}>
         {(props) => (
           <MenuAnchor {...props}>
             <ChangeTheme justify="space-between">
