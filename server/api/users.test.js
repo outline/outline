@@ -87,7 +87,7 @@ describe("#users.list", () => {
 });
 
 describe("#users.info", () => {
-  it("should return known user", async () => {
+  it("should return current user with no id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.info", {
       body: { token: user.getJwtToken() },
@@ -97,6 +97,33 @@ describe("#users.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(user.id);
     expect(body.data.name).toEqual(user.name);
+    expect(body.data.email).toEqual(user.email);
+  });
+
+  it("should return user with permission", async () => {
+    const user = await buildUser();
+    const another = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/users.info", {
+      body: { token: user.getJwtToken(), id: another.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(another.id);
+    expect(body.data.name).toEqual(another.name);
+
+    // no emails of other users
+    expect(body.data.email).toEqual(undefined);
+  });
+
+  it("should now return user without permission", async () => {
+    const user = await buildUser();
+    const another = await buildUser();
+    const res = await server.post("/api/users.info", {
+      body: { token: user.getJwtToken(), id: another.id },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
