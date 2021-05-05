@@ -83,7 +83,7 @@ function Collaborators(props: Props) {
           </NudeButton>
         )}
       </PopoverDisclosure>
-      <Popover {...popover} width={300} aria-label={t("Viewers")}>
+      <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
         <DocumentViews document={document} isOpen={popover.visible} />
       </Popover>
     </>
