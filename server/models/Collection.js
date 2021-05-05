@@ -229,6 +229,10 @@ Collection.membershipUserIds = async (collectionId: string) => {
     collectionId
   );
 
+  if (!collection) {
+    return [];
+  }
+
   const groupMemberships = collection.collectionGroupMemberships
     .map((cgm) => cgm.group.groupMemberships)
     .flat();
