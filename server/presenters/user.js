@@ -20,16 +20,17 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   const userData = {};
   userData.id = user.id;
   userData.createdAt = user.createdAt;
-  userData.lastActiveAt = user.lastActiveAt;
   userData.name = user.name;
   userData.isAdmin = user.isAdmin;
   userData.isViewer = user.isViewer;
   userData.isSuspended = user.isSuspended;
   userData.avatarUrl = user.avatarUrl;
-  userData.language = user.language || process.env.DEFAULT_LANGUAGE || "en_US";
 
   if (options.includeDetails) {
+    userData.lastActiveAt = user.lastActiveAt;
     userData.email = user.email;
+    userData.language =
+      user.language || process.env.DEFAULT_LANGUAGE || "en_US";
   }
 
   return userData;
