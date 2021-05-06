@@ -413,8 +413,8 @@ const List = styled.dl`
 const Keys = styled.dt`
   float: right;
   width: 45%;
-  height: 30px;
-  margin: 0;
+  margin: 0 0 10px;
+  clear: left;
   text-align: right;
   font-size: 12px;
   color: ${(props) => props.theme.textSecondary};
@@ -426,8 +426,7 @@ const Keys = styled.dt`
 const Label = styled.dd`
   float: left;
   width: 55%;
-  height: 30px;
-  margin: 0;
+  margin: 0 0 10px;
   display: flex;
   align-items: center;
   color: ${(props) => props.theme.textSecondary};
