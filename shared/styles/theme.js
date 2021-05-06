@@ -91,8 +91,11 @@ export const base = {
   blockToolbarTriggerIcon: colors.white,
   blockToolbarItem: colors.almostBlack,
   blockToolbarText: colors.almostBlack,
+  blockToolbarTextSelected: colors.black,
   blockToolbarHoverBackground: colors.slateLight,
   blockToolbarDivider: colors.slateLight,
+  blockToolbarIcon: undefined,
+  blockToolbarIconSelected: colors.black,
 
   noticeTipBackground: colors.brand.purple,
   noticeTipText: colors.white,
