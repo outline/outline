@@ -35,8 +35,9 @@ function DocumentViews({ document, isOpen }: Props) {
 
   // ensure currently present via websocket are always ordered first
   const documentViews = views.inDocument(document.id);
-  const sortedViews = sortBy(documentViews, (view) =>
-    presentIds.includes(view.user.id)
+  const sortedViews = sortBy(
+    documentViews,
+    (view) => !presentIds.includes(view.user.id)
   );
 
   const users = React.useMemo(() => sortedViews.map((v) => v.user), [
@@ -70,6 +71,7 @@ function DocumentViews({ document, isOpen }: Props) {
                 subtitle={subtitle}
                 image={<Avatar key={item.id} src={item.avatarUrl} size={32} />}
                 border={false}
+                small
               />
             );
           }}
