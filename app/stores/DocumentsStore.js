@@ -24,12 +24,13 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   importFileTypes: string[] = [
     ".md",
+    ".doc",
+    ".docx",
     "text/markdown",
     "text/plain",
     "text/html",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/octet-stream",
   ];
 
   constructor(rootStore: RootStore) {
