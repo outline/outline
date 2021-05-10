@@ -1,4 +1,5 @@
 // @flow
+import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
@@ -533,9 +534,14 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: ImportOptions
   ) => {
     // file.type can be an empty string sometimes
-    if (file.type && !this.importFileTypes.includes(file.type)) {
+    if (
+      file.type &&
+      !this.importFileTypes.includes(file.type) &&
+      !this.importFileTypes.includes(path.extname(file.name))
+    ) {
       throw new Error(`The selected file type is not supported (${file.type})`);
     }
+
     if (file.size > env.MAXIMUM_IMPORT_SIZE) {
       throw new Error("The selected file was too large to import");
     }
