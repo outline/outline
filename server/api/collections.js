@@ -67,12 +67,10 @@ router.post("collections.create", auth(), async (ctx) => {
   });
 
   if (index) {
-    const allowedASCII = new RegExp(/^[\x21-\x7E]+$/);
-    if (!allowedASCII.test(index)) {
-      throw new ValidationError(
-        "Index characters must be between x21 to x7E ASCII"
-      );
-    }
+    ctx.assertIndexCharacters(
+      index,
+      "Index characters must be between x21 to x7E ASCII"
+    );
   } else {
     index = fractionalIndex(
       null,
@@ -664,6 +662,10 @@ router.post("collections.move", auth(), async (ctx) => {
   let index = ctx.body.index;
 
   ctx.assertPresent(index, "index is required");
+  ctx.assertIndexCharacters(
+    index,
+    "Index characters must be between x21 to x7E ASCII"
+  );
   ctx.assertUuid(id, "id must be a uuid");
 
   const user = ctx.state.user;
