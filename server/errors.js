@@ -100,6 +100,18 @@ export function GoogleWorkspaceInvalidError(
   return httpErrors(400, message, { id: "hd_not_allowed" });
 }
 
+export function oauthWorkspaceRequiredError(
+  message: string = "oauth Workspace is required to authenticate"
+) {
+  return httpErrors(400, message, { id: "oauth_hd" });
+}
+
+export function oauthWorkspaceInvalidError(
+  message: string = "oauth Workspace is invalid"
+) {
+  return httpErrors(400, message, { id: "hd_not_allowed" });
+}
+
 export function AuthenticationProviderDisabledError(
   message: string = "Authentication method has been disabled by an admin",
   redirectUrl: string = env.URL

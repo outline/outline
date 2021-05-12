@@ -140,6 +140,7 @@
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
     "passport-google-oauth2": "^0.2.0",
+    "passport-oauth": "^1.0.0",
     "passport-slack-oauth2": "^1.1.0",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
