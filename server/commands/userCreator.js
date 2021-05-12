@@ -117,7 +117,7 @@ export default async function userCreator({
       throw err;
     }
 
-    return { user: invite, authentication: auth, isNewUser: false };
+    return { user: invite, authentication: auth, isNewUser: true };
   }
 
   // No auth, no user – this is an entirely new sign in.
