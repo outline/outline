@@ -100,6 +100,18 @@ export function GoogleWorkspaceInvalidError(
   return httpErrors(400, message, { id: "hd_not_allowed" });
 }
 
+export function GiteaOrganizationAPIError(
+  message: string = "Gitea API failed to respond / Invalid Response"
+) {
+  return httpErrors(400, message, { id: "gitea_org_api" });
+}
+
+export function GiteaOrganizationError(
+  message: string = "User must be a part of at least one Organisation"
+) {
+  return httpErrors(400, message, { id: "no_gitea_org" });
+}
+
 export function AuthenticationProviderDisabledError(
   message: string = "Authentication method has been disabled by an admin",
   redirectUrl: string = env.URL

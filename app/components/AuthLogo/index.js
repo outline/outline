@@ -2,6 +2,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import GoogleLogo from "./GoogleLogo";
+import GiteaLogo from "./GiteaLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
 
@@ -22,6 +23,12 @@ function AuthLogo({ providerName, size = 16 }: Props) {
       return (
         <Logo>
           <GoogleLogo size={size} />
+        </Logo>
+      );
+    case "gitea":
+      return (
+        <Logo>
+          <GiteaLogo size={size} />
         </Logo>
       );
     case "azure":

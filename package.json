@@ -139,6 +139,7 @@
     "outline-icons": "^1.27.0",
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
+    "passport-gitea": "^0.0.3",
     "passport-google-oauth2": "^0.2.0",
     "passport-slack-oauth2": "^1.1.0",
     "pg": "^8.5.1",
