@@ -56,7 +56,7 @@
     ]
   },
   "engines": {
-    "node": ">= 12 <=15"
+    "node": ">= 12 <=16"
   },
   "repository": {
     "type": "git",

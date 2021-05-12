@@ -6,6 +6,7 @@ import {
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "../errors";
+import { sendEmail } from "../mailer";
 import { Team, User } from "../models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
@@ -84,6 +85,10 @@ export default async function accountProvisioner({
     });
 
     const { isNewUser, user } = result;
+
+    if (isNewUser) {
+      sendEmail("welcome", user.email, { teamUrl: team.url });
+    }
 
     if (isNewTeam) {
       await team.provisionFirstCollection(user.id);

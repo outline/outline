@@ -6,14 +6,12 @@ import JWT from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
-import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import {
   UserAuthentication,
   Star,
-  Team,
   Collection,
   NotificationSetting,
   ApiKey,
@@ -236,10 +234,6 @@ const removeIdentifyingInfo = async (model, options) => {
 User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
-User.afterCreate(async (user) => {
-  const team = await Team.findByPk(user.teamId);
-  sendEmail("welcome", user.email, { teamUrl: team.url });
-});
 
 // By default when a user signs up we subscribe them to email notifications
 // when documents they created are edited by other team members and onboarding
