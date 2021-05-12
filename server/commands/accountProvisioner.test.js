@@ -1,8 +1,11 @@
 // @flow
+import { sendEmail } from "../mailer";
 import { Collection, UserAuthentication } from "../models";
 import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import accountProvisioner from "./accountProvisioner";
+
+jest.mock("../mailer");
 
 jest.mock("aws-sdk", () => {
   const mS3 = { putObject: jest.fn().mockReturnThis(), promise: jest.fn() };
@@ -12,7 +15,12 @@ jest.mock("aws-sdk", () => {
   };
 });
 
-beforeEach(() => flushdb());
+beforeEach(() => {
+  flushdb();
+
+  // $FlowFixMe
+  sendEmail.mockReset();
+});
 
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
@@ -51,6 +59,7 @@ describe("accountProvisioner", () => {
     expect(user.email).toEqual("jenny@example.com");
     expect(isNewUser).toEqual(true);
     expect(isNewTeam).toEqual(true);
+    expect(sendEmail).toHaveBeenCalled();
 
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(1);
@@ -65,7 +74,7 @@ describe("accountProvisioner", () => {
     const authentication = authentications[0];
     const newEmail = "test@example.com";
 
-    const { user } = await accountProvisioner({
+    const { user, isNewUser, isNewTeam } = await accountProvisioner({
       ip,
       user: {
         name: existing.name,
@@ -93,6 +102,9 @@ describe("accountProvisioner", () => {
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
+    expect(isNewTeam).toEqual(false);
+    expect(isNewUser).toEqual(false);
+    expect(sendEmail).not.toHaveBeenCalled();
 
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(0);
@@ -175,6 +187,7 @@ describe("accountProvisioner", () => {
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual("jenny@example.com");
     expect(isNewUser).toEqual(true);
+    expect(sendEmail).toHaveBeenCalled();
 
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(0);
