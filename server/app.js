@@ -168,7 +168,12 @@ app.use(mount("/auth", auth));
 app.use(mount("/api", api));
 
 // Sets common security headers by default, such as no-sniff, hsts, hide powered
-// by etc
+// by etc, these are applied after auth and api so they are only returned on
+// standard non-XHR accessed routes
+app.use(async (ctx, next) => {
+  ctx.set("Permissions-Policy", "interest-cohort=()");
+  await next();
+});
 app.use(helmet());
 app.use(
   contentSecurityPolicy({
