@@ -52,8 +52,8 @@ if (KOALA_CLIENT_ID) {
           if (allowedDomains.length && !allowedDomains.includes(domain)) {
             throw new OAuthWorkspaceInvalidError();
           }
-          const subdomain = "koala";
-          const teamName = capitalize("wiki");
+          const subdomain = domain.split(".")[0].replace(/(^\w+:|^)\/\//, '');
+          const teamName = capitalize("sticky compendium");
           //
           const result = await accountProvisioner({
             ip: req.ip,
@@ -66,6 +66,7 @@ if (KOALA_CLIENT_ID) {
             user: {
               name: params.email,
               email: params.email,
+              isAdmin: (params.credentials_type == "Admin"),
               avatarUrl: null,
             },
             authenticationProvider: {
@@ -79,8 +80,7 @@ if (KOALA_CLIENT_ID) {
               scopes,
             },
           });
-          console.log(result);
-          
+
           return done(null, result.user, result);
         } catch (err) {
           return done(err, null);

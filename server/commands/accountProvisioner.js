@@ -16,6 +16,7 @@ type Props = {|
   user: {|
     name: string,
     email: string,
+    isAdmin?: boolean,
     avatarUrl?: string,
   |},
   team: {|
@@ -74,7 +75,7 @@ export default async function accountProvisioner({
     const result = await userCreator({
       name: userParams.name,
       email: userParams.email,
-      isAdmin: isNewTeam,
+      isAdmin: isNewTeam || userParams.isAdmin,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
       ip,
