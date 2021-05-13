@@ -6,11 +6,22 @@ import parseAttachmentIds from "../utils/parseAttachmentIds";
 async function copyAttachments(document: Document, options) {
   let text = document.text;
   const documentId = document.id;
+
+  // find any image attachments that are in this documents text
   const attachmentIds = parseAttachmentIds(text);
 
   for (const id of attachmentIds) {
-    const existing = await Attachment.findByPk(id);
+    const existing = await Attachment.findOne({
+      where: {
+        teamId: document.teamId,
+        id,
+      },
+    });
 
+    // if the image attachment was originally uploaded to another document
+    // (this can happen in various ways, copy/paste, or duplicate for example)
+    // then create a new attachment pointed to this doc and update the reference
+    // in the text so that it gets the moved documents permissions
     if (existing && existing.documentId !== documentId) {
       const { id, ...rest } = existing.dataValues;
       const attachment = await Attachment.create(
@@ -111,8 +122,8 @@ export default async function documentMover({
       result.collections.push(collection);
 
       // if collection does not remain the same loop through children and change their
-      // collectionId too. This includes archived children, otherwise their collection
-      // would be wrong once restored.
+      // collectionId and move any attachments they may have too. This includes
+      // archived children, otherwise their collection would be wrong once restored.
       if (collectionChanged) {
         result.collections.push(newCollection);
 
@@ -124,7 +135,6 @@ export default async function documentMover({
           await Promise.all(
             childDocuments.map(async (child) => {
               await loopChildren(child.id);
-
               child.text = await copyAttachments(child, { transaction });
               child.collectionId = collectionId;
               await child.save();
