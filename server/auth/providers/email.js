@@ -17,7 +17,7 @@ const router = new Router();
 
 export const config = {
   name: "Email",
-  enabled: true,
+  enabled: false,
 };
 
 router.use(methodOverride());
