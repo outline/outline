@@ -197,6 +197,12 @@ describe("#searchForTeam", () => {
     expect(results.length).toBe(0);
   });
 
+  test("should handle backslashes in search term", async () => {
+    const team = await buildTeam();
+    const { results } = await Document.searchForTeam(team, "\\\\");
+    expect(results.length).toBe(0);
+  });
+
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({ teamId: team.id });
