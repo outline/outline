@@ -498,7 +498,7 @@ const MaxWidth = styled(Flex)`
   `};
 
   ${breakpoint("desktopLarge")`
-    max-width: calc(48px + 46em);
+    max-width: calc(48px + 52em);
   `};
 `;
 

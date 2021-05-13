@@ -1,79 +1,93 @@
 // @flow
-import { sortBy, keyBy } from "lodash";
-import { observer, inject } from "mobx-react";
+import { filter } from "lodash";
+import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { MAX_AVATAR_DISPLAY } from "shared/constants";
-import DocumentPresenceStore from "stores/DocumentPresenceStore";
-import ViewsStore from "stores/ViewsStore";
 import Document from "models/Document";
 import { AvatarWithPresence } from "components/Avatar";
+import DocumentViews from "components/DocumentViews";
 import Facepile from "components/Facepile";
+import NudeButton from "components/NudeButton";
+import Popover from "components/Popover";
+import useStores from "hooks/useStores";
 
-type Props = {
-  views: ViewsStore,
-  presence: DocumentPresenceStore,
+type Props = {|
   document: Document,
   currentUserId: string,
-};
+|};
 
-@observer
-class Collaborators extends React.Component<Props> {
-  componentDidMount() {
-    if (!this.props.document.isDeleted) {
-      this.props.views.fetchPage({ documentId: this.props.document.id });
+function Collaborators(props: Props) {
+  const { t } = useTranslation();
+  const { users, presence } = useStores();
+  const { document, currentUserId } = props;
+
+  let documentPresence = presence.get(document.id);
+  documentPresence = documentPresence
+    ? Array.from(documentPresence.values())
+    : [];
+
+  const presentIds = documentPresence.map((p) => p.userId);
+  const editingIds = documentPresence
+    .filter((p) => p.isEditing)
+    .map((p) => p.userId);
+
+  // ensure currently present via websocket are always ordered first
+  const presentUsers = filter(users.orderedData, (user) =>
+    presentIds.includes(user.id)
+  );
+
+  // load any users we don't know about
+  React.useEffect(() => {
+    if (users.isFetching) {
+      return;
     }
-  }
 
-  render() {
-    const { document, presence, views, currentUserId } = this.props;
-    let documentPresence = presence.get(document.id);
-    documentPresence = documentPresence
-      ? Array.from(documentPresence.values())
-      : [];
-
-    const documentViews = views.inDocument(document.id);
-
-    const presentIds = documentPresence.map((p) => p.userId);
-    const editingIds = documentPresence
-      .filter((p) => p.isEditing)
-      .map((p) => p.userId);
-
-    // ensure currently present via websocket are always ordered first
-    const mostRecentViewers = sortBy(
-      documentViews.slice(0, MAX_AVATAR_DISPLAY),
-      (view) => {
-        return presentIds.includes(view.user.id);
+    presentIds.forEach((userId) => {
+      if (!users.get(userId)) {
+        return users.fetch(userId);
       }
-    );
+    });
+  }, [document, users, presentIds]);
 
-    const viewersKeyedByUserId = keyBy(mostRecentViewers, (v) => v.user.id);
-    const overflow = documentViews.length - mostRecentViewers.length;
+  const popover = usePopoverState({
+    gutter: 0,
+    placement: "bottom-end",
+  });
 
-    return (
-      <FacepileHiddenOnMobile
-        users={mostRecentViewers.map((v) => v.user)}
-        overflow={overflow}
-        renderAvatar={(user) => {
-          const isPresent = presentIds.includes(user.id);
-          const isEditing = editingIds.includes(user.id);
-          const { lastViewedAt } = viewersKeyedByUserId[user.id];
+  return (
+    <>
+      <PopoverDisclosure {...popover}>
+        {(props) => (
+          <NudeButton width={presentUsers.length * 32} height={32} {...props}>
+            <FacepileHiddenOnMobile
+              users={presentUsers}
+              renderAvatar={(user) => {
+                const isPresent = presentIds.includes(user.id);
+                const isEditing = editingIds.includes(user.id);
 
-          return (
-            <AvatarWithPresence
-              key={user.id}
-              user={user}
-              lastViewedAt={lastViewedAt}
-              isPresent={isPresent}
-              isEditing={isEditing}
-              isCurrentUser={currentUserId === user.id}
+                return (
+                  <AvatarWithPresence
+                    key={user.id}
+                    user={user}
+                    isPresent={isPresent}
+                    isEditing={isEditing}
+                    isCurrentUser={currentUserId === user.id}
+                    profileOnClick={false}
+                  />
+                );
+              }}
             />
-          );
-        }}
-      />
-    );
-  }
+          </NudeButton>
+        )}
+      </PopoverDisclosure>
+      <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
+        <DocumentViews document={document} isOpen={popover.visible} />
+      </Popover>
+    </>
+  );
 }
 
 const FacepileHiddenOnMobile = styled(Facepile)`
@@ -82,4 +96,4 @@ const FacepileHiddenOnMobile = styled(Facepile)`
   `};
 `;
 
-export default inject("views", "presence")(Collaborators);
+export default observer(Collaborators);

@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
@@ -55,6 +55,10 @@ const Team = sequelize.define(
     googleId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
     sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    signupQueryParams: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
     guestSignin: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -120,7 +124,7 @@ const uploadAvatar = async (model) => {
     try {
       const newUrl = await uploadToS3FromUrl(
         avatarUrl,
-        `avatars/${model.id}/${uuid.v4()}`,
+        `avatars/${model.id}/${uuidv4()}`,
         "public-read"
       );
       if (newUrl) model.avatarUrl = newUrl;
@@ -160,6 +164,7 @@ Team.prototype.provisionFirstCollection = async function (userId) {
     teamId: this.id,
     createdById: userId,
     sort: Collection.DEFAULT_SORT,
+    permission: "read_write",
   });
 
   // For the first collection we go ahead and create some intitial documents to get

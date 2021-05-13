@@ -8,8 +8,6 @@ Object {
   "isAdmin": undefined,
   "isSuspended": undefined,
   "isViewer": undefined,
-  "language": "en_US",
-  "lastActiveAt": undefined,
   "name": "Test User",
 }
 `;
@@ -22,8 +20,6 @@ Object {
   "isAdmin": undefined,
   "isSuspended": undefined,
   "isViewer": undefined,
-  "language": "en_US",
-  "lastActiveAt": undefined,
   "name": "Test User",
 }
 `;

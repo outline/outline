@@ -1,5 +1,5 @@
 // @flow
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { Attachment, Event, User } from "../models";
 import { uploadToS3FromBuffer } from "../utils/s3";
 
@@ -18,7 +18,7 @@ export default async function attachmentCreator({
   source?: "import",
   ip: string,
 }) {
-  const key = `uploads/${user.id}/${uuid.v4()}/${name}`;
+  const key = `uploads/${user.id}/${uuidv4()}/${name}`;
   const acl = process.env.AWS_S3_ACL || "private";
   const url = await uploadToS3FromBuffer(buffer, type, key, acl);
 

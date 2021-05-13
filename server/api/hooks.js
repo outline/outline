@@ -5,13 +5,12 @@ import { AuthenticationError, InvalidRequestError } from "../errors";
 import {
   UserAuthentication,
   AuthenticationProvider,
-  Authentication,
   Document,
   User,
   Team,
-  Collection,
   SearchQuery,
   Integration,
+  IntegrationAuthentication,
 } from "../models";
 import { presentSlackAttachment } from "../presenters";
 import * as Slack from "../slack";
@@ -38,7 +37,7 @@ router.post("hooks.unfurl", async (ctx) => {
   });
   if (!user) return;
 
-  const auth = await Authentication.findOne({
+  const auth = await IntegrationAuthentication.findOne({
     where: { service: "slack", teamId: user.teamId },
   });
   if (!auth) return;
@@ -79,49 +78,27 @@ router.post("hooks.interactive", async (ctx) => {
     throw new AuthenticationError("Invalid verification token");
   }
 
-  const authProvider = await AuthenticationProvider.findOne({
-    where: {
-      name: "slack",
-      providerId: data.team.id,
-    },
-    include: [
-      {
-        model: Team,
-        as: "team",
-        required: true,
-      },
-    ],
-  });
-
-  if (!authProvider) {
-    ctx.body = {
-      text:
-        "Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.",
-      response_type: "ephemeral",
-      replace_original: false,
-    };
-    return;
+  // we find the document based on the users teamId to ensure access
+  const document = await Document.scope("withCollection").findByPk(
+    data.callback_id
+  );
+  if (!document) {
+    throw new InvalidRequestError("Invalid callback_id");
   }
 
-  const { team } = authProvider;
-
-  // we find the document based on the users teamId to ensure access
-  const document = await Document.findOne({
-    where: {
-      id: data.callback_id,
-      teamId: team.id,
-    },
-  });
-  if (!document) throw new InvalidRequestError("Invalid document");
-
-  const collection = await Collection.findByPk(document.collectionId);
+  const team = await Team.findByPk(document.teamId);
 
   // respond with a public message that will be posted in the original channel
   ctx.body = {
     response_type: "in_channel",
     replace_original: false,
     attachments: [
-      presentSlackAttachment(document, collection, team, document.getSummary()),
+      presentSlackAttachment(
+        document,
+        document.collection,
+        team,
+        document.getSummary()
+      ),
     ],
   };
 });

@@ -5,7 +5,7 @@ import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Redirect, Link, type Location } from "react-router-dom";
 import styled from "styled-components";
-import getQueryVariable from "shared/utils/getQueryVariable";
+import { setCookie } from "tiny-cookie";
 import ButtonLarge from "components/ButtonLarge";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
@@ -17,6 +17,7 @@ import TeamLogo from "components/TeamLogo";
 import Notices from "./Notices";
 import Provider from "./Provider";
 import env from "env";
+import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -24,6 +25,7 @@ type Props = {|
 |};
 
 function Login({ location }: Props) {
+  const query = useQuery();
   const { auth } = useStores();
   const { config } = auth;
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
@@ -40,6 +42,17 @@ function Login({ location }: Props) {
   React.useEffect(() => {
     auth.fetchConfig();
   }, [auth]);
+
+  React.useEffect(() => {
+    const entries = Object.fromEntries(query.entries());
+
+    // We don't want to override this cookie if we're viewing an error notice
+    // sent back from the server via query string (notice=), or if there are no
+    // query params at all.
+    if (Object.keys(entries).length && !query.get("notice")) {
+      setCookie("signupQueryParams", JSON.stringify(entries));
+    }
+  }, [query]);
 
   if (auth.authenticated) {
     return <Redirect to="/home" />;
@@ -114,7 +127,7 @@ function Login({ location }: Props) {
           <Heading centered>Login to {config.name || "Outline"}</Heading>
         )}
 
-        <Notices notice={getQueryVariable("notice")} />
+        <Notices />
 
         {defaultProvider && (
           <React.Fragment key={defaultProvider.id}>

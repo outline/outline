@@ -1,7 +1,7 @@
 // @flow
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
-import { v4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { light as defaultTheme } from "shared/styles/theme";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -204,7 +204,7 @@ class UiStore {
       return;
     }
 
-    const id = v4();
+    const id = uuidv4();
     const createdAt = new Date().toISOString();
     this.toasts.set(id, {
       id,

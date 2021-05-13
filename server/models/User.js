@@ -3,15 +3,19 @@ import crypto from "crypto";
 import addMinutes from "date-fns/add_minutes";
 import subMinutes from "date-fns/sub_minutes";
 import JWT from "jsonwebtoken";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
-import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
-import UserAuthentication from "./UserAuthentication";
-import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
+import {
+  UserAuthentication,
+  Star,
+  Collection,
+  NotificationSetting,
+  ApiKey,
+} from ".";
 
 const User = sequelize.define(
   "user",
@@ -181,7 +185,7 @@ const uploadAvatar = async (model) => {
     try {
       const newUrl = await uploadToS3FromUrl(
         avatarUrl,
-        `avatars/${model.id}/${uuid.v4()}`,
+        `avatars/${model.id}/${uuidv4()}`,
         "public-read"
       );
       if (newUrl) model.avatarUrl = newUrl;
@@ -227,29 +231,9 @@ const removeIdentifyingInfo = async (model, options) => {
   await model.save({ hooks: false, transaction: options.transaction });
 };
 
-const checkLastAdmin = async (model) => {
-  const teamId = model.teamId;
-
-  if (model.isAdmin) {
-    const userCount = await User.count({ where: { teamId } });
-    const adminCount = await User.count({ where: { isAdmin: true, teamId } });
-
-    if (userCount > 1 && adminCount <= 1) {
-      throw new ValidationError(
-        "Cannot delete account as only admin. Please transfer admin permissions to another user and try again."
-      );
-    }
-  }
-};
-
-User.beforeDestroy(checkLastAdmin);
 User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
-User.afterCreate(async (user) => {
-  const team = await Team.findByPk(user.teamId);
-  sendEmail("welcome", user.email, { teamUrl: team.url });
-});
 
 // By default when a user signs up we subscribe them to email notifications
 // when documents they created are edited by other team members and onboarding

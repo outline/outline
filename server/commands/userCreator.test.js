@@ -145,6 +145,6 @@ describe("userCreator", () => {
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual(invite.email);
-    expect(isNewUser).toEqual(false);
+    expect(isNewUser).toEqual(true);
   });
 });

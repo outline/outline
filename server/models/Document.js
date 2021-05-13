@@ -248,7 +248,7 @@ type SearchOptions = {
 function escape(query: string): string {
   // replace "\" with escaped "\\" because sequelize.escape doesn't do it
   // https://github.com/sequelize/sequelize/issues/2950
-  return sequelize.escape(query).replace("\\", "\\\\");
+  return sequelize.escape(query).replace(/\\/g, "\\\\");
 }
 
 Document.searchForTeam = async (

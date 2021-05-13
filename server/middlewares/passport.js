@@ -9,7 +9,7 @@ export default function createMiddleware(providerName: string) {
     return passport.authorize(
       providerName,
       { session: false },
-      (err, _, result: AccountProvisionerResult) => {
+      async (err, _, result: AccountProvisionerResult) => {
         if (err) {
           console.error(err);
 
@@ -24,11 +24,29 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect(`/?notice=auth-error`);
         }
 
+        // Handle errors from Azure which come in the format: message, Trace ID,
+        // Correlation ID, Timestamp in these two query string parameters.
+        const { error, error_description } = ctx.request.query;
+        if (error && error_description) {
+          console.error(error_description);
+
+          // Display only the descriptive message to the user, log the rest
+          const description = error_description.split("Trace ID")[0];
+          return ctx.redirect(`/?notice=auth-error&description=${description}`);
+        }
+
         if (result.user.isSuspended) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        signIn(ctx, result.user, result.team, providerName, result.isNewUser);
+        await signIn(
+          ctx,
+          result.user,
+          result.team,
+          providerName,
+          result.isNewUser,
+          result.isNewTeam
+        );
       }
     )(ctx);
   };

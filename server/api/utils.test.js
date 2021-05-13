@@ -20,6 +20,37 @@ beforeEach(() => flushdb());
 afterAll(() => server.close());
 
 describe("#utils.gc", () => {
+  it("should not destroy documents not deleted", async () => {
+    await buildDocument({
+      publishedAt: new Date(),
+    });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(1);
+  });
+
+  it("should not destroy documents deleted less than 30 days ago", async () => {
+    await buildDocument({
+      publishedAt: new Date(),
+      deletedAt: subDays(new Date(), 25),
+    });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(1);
+  });
+
   it("should destroy documents deleted more than 30 days ago", async () => {
     await buildDocument({
       publishedAt: new Date(),
@@ -33,7 +64,7 @@ describe("#utils.gc", () => {
     });
 
     expect(res.status).toEqual(200);
-    expect(await Document.scope().count()).toEqual(0);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
   });
 
   it("should destroy attachments no longer referenced", async () => {
@@ -58,7 +89,7 @@ describe("#utils.gc", () => {
 
     expect(res.status).toEqual(200);
     expect(await Attachment.count()).toEqual(0);
-    expect(await Document.scope().count()).toEqual(0);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
   });
 
   it("should handle unknown attachment ids", async () => {
@@ -88,7 +119,7 @@ describe("#utils.gc", () => {
 
     expect(res.status).toEqual(200);
     expect(await Attachment.count()).toEqual(0);
-    expect(await Document.scope().count()).toEqual(0);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
   });
 
   it("should not destroy attachments referenced in other documents", async () => {
@@ -121,7 +152,7 @@ describe("#utils.gc", () => {
 
     expect(res.status).toEqual(200);
     expect(await Attachment.count()).toEqual(1);
-    expect(await Document.scope().count()).toEqual(1);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(1);
   });
 
   it("should destroy draft documents deleted more than 30 days ago", async () => {
@@ -136,7 +167,7 @@ describe("#utils.gc", () => {
       },
     });
     expect(res.status).toEqual(200);
-    expect(await Document.scope().count()).toEqual(0);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
   });
 
   it("should require authentication", async () => {

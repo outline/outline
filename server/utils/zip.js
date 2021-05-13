@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 import JSZip from "jszip";
 import tmp from "tmp";
 import { Attachment, Collection, Document } from "../models";
+import { serializeFilename } from "./fs";
 import { getFileByKey } from "./s3";
 
 async function addToArchive(zip, documents) {
@@ -23,7 +24,9 @@ async function addToArchive(zip, documents) {
       text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
     }
 
-    zip.file(`${document.title || "Untitled"}.md`, text, {
+    const title = serializeFilename(document.title) || "Untitled";
+
+    zip.file(`${title}.md`, text, {
       date: document.updatedAt,
       comment: JSON.stringify({
         pinned: document.pinned,
@@ -33,7 +36,7 @@ async function addToArchive(zip, documents) {
     });
 
     if (doc.children && doc.children.length) {
-      const folder = zip.folder(document.title);
+      const folder = zip.folder(title);
       await addToArchive(folder, doc.children);
     }
   }

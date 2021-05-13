@@ -1,5 +1,6 @@
 // @flow
 import Router from "koa-router";
+import userDestroyer from "../commands/userDestroyer";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
@@ -9,7 +10,7 @@ import { presentUser, presentPolicies } from "../presenters";
 import { Op } from "../sequelize";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
+const { can, authorize } = policy;
 const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
@@ -22,10 +23,10 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   if (direction !== "ASC") direction = "DESC";
   ctx.assertSort(sort, User);
 
-  const user = ctx.state.user;
+  const actor = ctx.state.user;
 
   let where = {
-    teamId: user.teamId,
+    teamId: actor.teamId,
   };
 
   if (!includeSuspended) {
@@ -55,10 +56,10 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: users.map((listUser) =>
-      presentUser(listUser, { includeDetails: user.isAdmin })
+    data: users.map((user) =>
+      presentUser(user, { includeDetails: can(actor, "readDetails", user) })
     ),
-    policies: presentPolicies(user, users),
+    policies: presentPolicies(actor, users),
   };
 });
 
@@ -74,11 +75,17 @@ router.post("users.count", auth(), async (ctx) => {
 });
 
 router.post("users.info", auth(), async (ctx) => {
-  const { user } = ctx.state;
+  const { id } = ctx.body;
+  const actor = ctx.state.user;
+
+  const user = id ? await User.findByPk(id) : actor;
+  authorize(actor, "read", user);
+
+  const includeDetails = can(actor, "readDetails", user);
 
   ctx.body = {
-    data: presentUser(user),
-    policies: presentPolicies(user, [user]),
+    data: presentUser(user, { includeDetails }),
+    policies: presentPolicies(actor, [user]),
   };
 });
 
@@ -127,8 +134,10 @@ router.post("users.promote", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -158,8 +167,10 @@ router.post("users.demote", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -178,8 +189,10 @@ router.post("users.suspend", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -204,8 +217,10 @@ router.post("users.activate", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -232,17 +247,17 @@ router.post("users.delete", auth(), async (ctx) => {
   const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, "confirmation is required");
 
-  let user = ctx.state.user;
-  if (id) user = await User.findByPk(id);
-  authorize(ctx.state.user, "delete", user);
+  const actor = ctx.state.user;
+  let user = actor;
+  if (id) {
+    user = await User.findByPk(id);
+  }
 
-  await user.destroy();
-  await Event.create({
-    name: "users.delete",
-    actorId: user.id,
-    userId: user.id,
-    teamId: user.teamId,
-    data: { name: user.name },
+  authorize(actor, "delete", user);
+
+  await userDestroyer({
+    user,
+    actor,
     ip: ctx.request.ip,
   });
 

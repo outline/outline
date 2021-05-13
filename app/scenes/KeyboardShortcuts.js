@@ -3,165 +3,407 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "components/Flex";
-import HelpText from "components/HelpText";
+import InputSearch from "components/InputSearch";
 import Key from "components/Key";
 import { metaDisplay } from "utils/keyboard";
 
 function KeyboardShortcuts() {
   const { t } = useTranslation();
 
+  const categories = React.useMemo(
+    () => [
+      {
+        title: t("Navigation"),
+        items: [
+          {
+            shortcut: <Key>n</Key>,
+            label: t("New document"),
+          },
+          { shortcut: <Key>e</Key>, label: t("Edit current document") },
+          { shortcut: <Key>m</Key>, label: t("Move current document") },
+          {
+            shortcut: (
+              <>
+                <Key>/</Key> or <Key>t</Key>
+              </>
+            ),
+            label: t("Jump to search"),
+          },
+          { shortcut: <Key>d</Key>, label: t("Jump to home") },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>{metaDisplay}</Key> + <Key>h</Key>
+              </>
+            ),
+            label: t("Table of contents"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>.</Key>
+              </>
+            ),
+            label: t("Toggle navigation"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>f</Key>
+              </>
+            ),
+            label: t("Focus search input"),
+          },
+          { shortcut: <Key>?</Key>, label: t("Open this guide") },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>Enter</Key>
+              </>
+            ),
+            label: t("Save document and exit"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>⇧</Key> + <Key>p</Key>
+              </>
+            ),
+            label: t("Publish document and exit"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>s</Key>
+              </>
+            ),
+            label: t("Save document"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>Esc</Key>
+              </>
+            ),
+            label: t("Cancel editing"),
+          },
+        ],
+      },
+      {
+        title: t("Formatting"),
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>0</Key>
+              </>
+            ),
+            label: t("Paragraph"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>1</Key>
+              </>
+            ),
+            label: t("Large header"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>2</Key>
+              </>
+            ),
+            label: t("Medium header"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>3</Key>
+              </>
+            ),
+            label: t("Small header"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>\</Key>
+              </>
+            ),
+            label: t("Code block"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>b</Key>
+              </>
+            ),
+            label: t("Bold"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>i</Key>
+              </>
+            ),
+            label: t("Italic"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>u</Key>
+              </>
+            ),
+            label: t("Underline"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>d</Key>
+              </>
+            ),
+            label: t("Strikethrough"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>k</Key>
+              </>
+            ),
+            label: t("Link"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>z</Key>
+              </>
+            ),
+            label: t("Undo"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>{metaDisplay}</Key> + <Key>⇧</Key> + <Key>z</Key>
+              </>
+            ),
+            label: t("Redo"),
+          },
+        ],
+      },
+      {
+        title: t("Lists"),
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>7</Key>
+              </>
+            ),
+            label: t("Todo list"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>8</Key>
+              </>
+            ),
+            label: t("Bulleted list"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>9</Key>
+              </>
+            ),
+            label: t("Ordered list"),
+          },
+          {
+            shortcut: <Key>Tab</Key>,
+            label: t("Indent list item"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>⇧</Key> + <Key>Tab</Key>
+              </>
+            ),
+            label: t("Outdent list item"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Alt</Key> + <Key>↑</Key>
+              </>
+            ),
+            label: t("Move list item up"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>Alt</Key> + <Key>↓</Key>
+              </>
+            ),
+            label: t("Move list item down"),
+          },
+        ],
+      },
+      {
+        title: "Markdown",
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key>#</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Large header"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>##</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Medium header"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>###</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Small header"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>1.</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Numbered list"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>-</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Bulleted list"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>[ ]</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Todo list"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>&gt;</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("Blockquote"),
+          },
+          {
+            shortcut: <Key>---</Key>,
+            label: t("Horizontal divider"),
+          },
+          {
+            shortcut: <Key>{"```"}</Key>,
+            label: t("Code block"),
+          },
+          {
+            shortcut: <Key>{":::"}</Key>,
+            label: t("Info notice"),
+          },
+          {
+            shortcut: "_italic_",
+            label: t("Italic"),
+          },
+          {
+            shortcut: "**bold**",
+            label: t("Bold"),
+          },
+          {
+            shortcut: "~~strikethrough~~",
+            label: t("Strikethrough"),
+          },
+          {
+            shortcut: "`code`",
+            label: t("Inline code"),
+          },
+          {
+            shortcut: "==highlight==",
+            label: t("Highlight"),
+          },
+        ],
+      },
+    ],
+    [t]
+  );
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const handleChange = React.useCallback((event) => {
+    setSearchTerm(event.target.value);
+  }, []);
+
+  const handleKeyDown = React.useCallback((event) => {
+    if (event.currentTarget.value && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      setSearchTerm("");
+    }
+  }, []);
+
   return (
     <Flex column>
-      <HelpText>
-        {t(
-          "Outline is designed to be fast and easy to use. All of your usual keyboard shortcuts work here, and there’s Markdown too."
-        )}
-      </HelpText>
+      <InputSearch
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        value={searchTerm}
+      />
+      {categories.map((category, x) => {
+        const filtered = searchTerm
+          ? category.items.filter((item) =>
+              item.label.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : category.items;
 
-      <h2>{t("Navigation")}</h2>
-      <List>
-        <Keys>
-          <Key>n</Key>
-        </Keys>
-        <Label>{t("New document in current collection")}</Label>
-        <Keys>
-          <Key>e</Key>
-        </Keys>
-        <Label>{t("Edit current document")}</Label>
-        <Keys>
-          <Key>m</Key>
-        </Keys>
-        <Label>{t("Move current document")}</Label>
-        <Keys>
-          <Key>/</Key> or <Key>t</Key>
-        </Keys>
-        <Label>{t("Jump to search")}</Label>
-        <Keys>
-          <Key>d</Key>
-        </Keys>
-        <Label>{t("Jump to dashboard")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
-        </Keys>
-        <Label>{t("Table of contents")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>.</Key>
-        </Keys>
-        <Label>{t("Toggle sidebar")}</Label>
-        <Keys>
-          <Key>?</Key>
-        </Keys>
-        <Label>{t("Open this guide")}</Label>
-      </List>
+        if (!filtered.length) {
+          return null;
+        }
 
-      <h2>{t("Editor")}</h2>
-      <List>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>Enter</Key>
-        </Keys>
-        <Label>{t("Save and exit document edit mode")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>p</Key>
-        </Keys>
-        <Label>{t("Publish and exit document edit mode")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>s</Key>
-        </Keys>
-        <Label>{t("Save document and continue editing")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>Esc</Key>
-        </Keys>
-        <Label>{t("Cancel editing")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>b</Key>
-        </Keys>
-        <Label>{t("Bold")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>i</Key>
-        </Keys>
-        <Label>{t("Italic")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>u</Key>
-        </Keys>
-        <Label>{t("Underline")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>d</Key>
-        </Keys>
-        <Label>{t("Strikethrough")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>k</Key>
-        </Keys>
-        <Label>{t("Link")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>z</Key>
-        </Keys>
-        <Label>{t("Undo")}</Label>
-        <Keys>
-          <Key>{metaDisplay}</Key> + <Key>Shift</Key> + <Key>z</Key>
-        </Keys>
-        <Label>{t("Redo")}</Label>
-      </List>
-
-      <h2>{t("Markdown")}</h2>
-      <List>
-        <Keys>
-          <Key>#</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Large header")}</Label>
-        <Keys>
-          <Key>##</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Medium header")}</Label>
-        <Keys>
-          <Key>###</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Small header")}</Label>
-
-        <Keys>
-          <Key>1.</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Numbered list")}</Label>
-        <Keys>
-          <Key>-</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Bulleted list")}</Label>
-        <Keys>
-          <Key>[ ]</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Todo list")}</Label>
-        <Keys>
-          <Key>&gt;</Key> <Key>Space</Key>
-        </Keys>
-        <Label>{t("Blockquote")}</Label>
-        <Keys>
-          <Key>---</Key>
-        </Keys>
-        <Label>{t("Horizontal divider")}</Label>
-        <Keys>
-          <Key>{"```"}</Key>
-        </Keys>
-        <Label>{t("Code block")}</Label>
-        <Keys>
-          <Key>{":::"}</Key>
-        </Keys>
-        <Label>{t("Info notice")}</Label>
-
-        <Keys>_italic_</Keys>
-        <Label>{t("Italic")}</Label>
-        <Keys>**bold**</Keys>
-        <Label>{t("Bold")}</Label>
-        <Keys>~~strikethrough~~</Keys>
-        <Label>{t("Strikethrough")}</Label>
-        <Keys>{"`code`"}</Keys>
-        <Label>{t("Inline code")}</Label>
-        <Keys>==highlight==</Keys>
-        <Label>{t("Highlight")}</Label>
-      </List>
+        return (
+          <React.Fragment key={x}>
+            <Header>{category.title}</Header>
+            <List>
+              {filtered.map((item) => (
+                <React.Fragment key={item.label}>
+                  <Keys>
+                    <span>{item.shortcut}</span>
+                  </Keys>
+                  <Label>{item.label}</Label>
+                </React.Fragment>
+              ))}
+            </List>
+          </React.Fragment>
+        );
+      })}
     </Flex>
   );
 }
 
+const Header = styled.h2`
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 2em;
+`;
+
 const List = styled.dl`
+  font-size: 14px;
   width: 100%;
   overflow: hidden;
   padding: 0;
@@ -169,19 +411,25 @@ const List = styled.dl`
 `;
 
 const Keys = styled.dt`
-  float: left;
-  width: 25%;
-  height: 30px;
-  margin: 0;
+  float: right;
+  width: 45%;
+  margin: 0 0 10px;
+  clear: left;
+  text-align: right;
+  font-size: 12px;
+  color: ${(props) => props.theme.textSecondary};
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 `;
 
 const Label = styled.dd`
   float: left;
-  width: 75%;
-  height: 30px;
-  margin: 0;
+  width: 55%;
+  margin: 0 0 10px;
   display: flex;
   align-items: center;
+  color: ${(props) => props.theme.textSecondary};
 `;
 
 export default KeyboardShortcuts;

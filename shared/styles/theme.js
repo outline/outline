@@ -91,8 +91,11 @@ export const base = {
   blockToolbarTriggerIcon: colors.white,
   blockToolbarItem: colors.almostBlack,
   blockToolbarText: colors.almostBlack,
+  blockToolbarTextSelected: colors.black,
   blockToolbarHoverBackground: colors.slateLight,
   blockToolbarDivider: colors.slateLight,
+  blockToolbarIcon: undefined,
+  blockToolbarIconSelected: colors.black,
 
   noticeTipBackground: colors.brand.purple,
   noticeTipText: colors.white,
@@ -107,8 +110,10 @@ export const base = {
   },
 
   depths: {
-    header: 900,
-    sidebar: 1000,
+    header: 800,
+    sidebar: 900,
+    hoverPreview: 998,
+    // Note: editor lightbox is z-index 999
     modalOverlay: 2000,
     modal: 3000,
     menu: 4000,
@@ -139,7 +144,7 @@ export const light = {
 
   menuBackground: colors.white,
   menuShadow:
-    "0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08)",
+    "0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08), 0 30px 40px rgb(0 0 0 / 8%)",
   divider: colors.slateLight,
   titleBarDivider: colors.slateLight,
   inputBorder: colors.slateLight,

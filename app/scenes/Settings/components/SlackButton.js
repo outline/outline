@@ -1,19 +1,20 @@
 // @flow
 import * as React from "react";
-import styled from "styled-components";
+import { useTranslation } from "react-i18next";
 import { slackAuth } from "shared/utils/routeHelpers";
 import Button from "components/Button";
-import SlackLogo from "components/SlackLogo";
+import SlackIcon from "components/SlackIcon";
 import env from "env";
 
-type Props = {
+type Props = {|
   scopes?: string[],
   redirectUri: string,
   state?: string,
   label?: string,
-};
+|};
 
 function SlackButton({ state = "", scopes, redirectUri, label }: Props) {
+  const { t } = useTranslation();
   const handleClick = () =>
     (window.location.href = slackAuth(
       state,
@@ -25,22 +26,12 @@ function SlackButton({ state = "", scopes, redirectUri, label }: Props) {
   return (
     <Button
       onClick={handleClick}
-      icon={<SpacedSlackLogo size={24} fill="#000" />}
+      icon={<SlackIcon fill="currentColor" />}
       neutral
     >
-      {label ? (
-        label
-      ) : (
-        <span>
-          Add to <strong>Slack</strong>
-        </span>
-      )}
+      {label || t("Add to Slack")}
     </Button>
   );
 }
-
-const SpacedSlackLogo = styled(SlackLogo)`
-  padding-right: 4px;
-`;
 
 export default SlackButton;

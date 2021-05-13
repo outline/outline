@@ -17,6 +17,7 @@ type Props = {
   isEditing: boolean,
   isCurrentUser: boolean,
   lastViewedAt: string,
+  profileOnClick: boolean,
   t: TFunction,
 };
 
@@ -65,7 +66,11 @@ class AvatarWithPresence extends React.Component<Props> {
           <AvatarWrapper isPresent={isPresent}>
             <Avatar
               src={user.avatarUrl}
-              onClick={this.handleOpenProfile}
+              onClick={
+                this.props.profileOnClick === false
+                  ? undefined
+                  : this.handleOpenProfile
+              }
               size={32}
               icon={isEditing ? <EditIcon size={16} color="#FFF" /> : undefined}
             />

@@ -9,6 +9,7 @@ class Share extends BaseModel {
   documentId: string;
   documentTitle: string;
   documentUrl: string;
+  lastAccessedAt: ?string;
   createdBy: User;
   createdAt: string;
   updatedAt: string;

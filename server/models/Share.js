@@ -12,6 +12,7 @@ const Share = sequelize.define(
     published: DataTypes.BOOLEAN,
     revokedAt: DataTypes.DATE,
     revokedById: DataTypes.UUID,
+    lastAccessedAt: DataTypes.DATE,
   },
   {
     getterMethods: {
