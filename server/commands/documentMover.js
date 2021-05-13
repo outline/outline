@@ -1,6 +1,42 @@
 // @flow
-import { Document, Collection, User, Event } from "../models";
+import { Document, Attachment, Collection, User, Event } from "../models";
 import { sequelize } from "../sequelize";
+import parseAttachmentIds from "../utils/parseAttachmentIds";
+
+async function copyAttachments(document: Document, options) {
+  let text = document.text;
+  const documentId = document.id;
+
+  // find any image attachments that are in this documents text
+  const attachmentIds = parseAttachmentIds(text);
+
+  for (const id of attachmentIds) {
+    const existing = await Attachment.findOne({
+      where: {
+        teamId: document.teamId,
+        id,
+      },
+    });
+
+    // if the image attachment was originally uploaded to another document
+    // (this can happen in various ways, copy/paste, or duplicate for example)
+    // then create a new attachment pointed to this doc and update the reference
+    // in the text so that it gets the moved documents permissions
+    if (existing && existing.documentId !== documentId) {
+      const { id, ...rest } = existing.dataValues;
+      const attachment = await Attachment.create(
+        {
+          ...rest,
+          documentId,
+        },
+        options
+      );
+      text = text.replace(existing.redirectUrl, attachment.redirectUrl);
+    }
+  }
+
+  return text;
+}
 
 export default async function documentMover({
   user,
@@ -63,7 +99,11 @@ export default async function documentMover({
 
       // if the collection is the same then it will get saved below, this
       // line prevents a pointless intermediate save from occurring.
-      if (collectionChanged) await collection.save({ transaction });
+      if (collectionChanged) {
+        await collection.save({ transaction });
+
+        document.text = await copyAttachments(document, { transaction });
+      }
 
       // add to new collection (may be the same)
       document.collectionId = collectionId;
@@ -82,8 +122,8 @@ export default async function documentMover({
       result.collections.push(collection);
 
       // if collection does not remain the same loop through children and change their
-      // collectionId too. This includes archived children, otherwise their collection
-      // would be wrong once restored.
+      // collectionId and move any attachments they may have too. This includes
+      // archived children, otherwise their collection would be wrong once restored.
       if (collectionChanged) {
         result.collections.push(newCollection);
 
@@ -95,7 +135,9 @@ export default async function documentMover({
           await Promise.all(
             childDocuments.map(async (child) => {
               await loopChildren(child.id);
-              await child.update({ collectionId }, { transaction });
+              child.text = await copyAttachments(child, { transaction });
+              child.collectionId = collectionId;
+              await child.save();
               child.collection = newCollection;
               result.documents.push(child);
             })
