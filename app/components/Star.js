@@ -61,6 +61,10 @@ export const AnimatedStar = styled(StarredIcon)`
   &:active {
     transform: scale(0.95);
   }
+
+  @media print {
+    display: none;
+  }
 `;
 
 export default Star;

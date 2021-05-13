@@ -6,6 +6,7 @@ import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "shared/constants";
+import { light } from "shared/styles/theme";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
@@ -201,6 +202,12 @@ const Title = styled(Textarea)`
         opacity: 1;
       }
     }
+  }
+
+  @media print {
+    color: ${(props) => light.text};
+    -webkit-text-fill-color: ${(props) => light.text};
+    background: none;
   }
 `;
 
