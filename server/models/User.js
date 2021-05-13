@@ -32,7 +32,7 @@ const User = sequelize.define(
     isAdmin: DataTypes.BOOLEAN,
     isViewer: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      defaultValue: true,
       allowNull: false,
     },
     service: { type: DataTypes.STRING, allowNull: true },
