@@ -5565,6 +5565,16 @@ fetch-test-server@^1.1.0:
     debug "^3.1.0"
     node-fetch "^2.1.2"
 
+fetch-with-proxy@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/fetch-with-proxy/-/fetch-with-proxy-3.0.1.tgz#29ed6d0e2550ef999d40b18de2ba476af4b7dee4"
+  integrity sha512-8C5JZ+Ea2eTOkFuQhB252QPgEc68LS7+8uNrFbYFs7t114Bgdj7hiYmtwkHhmN8TvafGVRbspMMD/Rg/tw0RwA==
+  dependencies:
+    node-abort-controller "^1.1.0"
+    node-fetch "^2.6.1"
+    proxy-from-env "^1.1.0"
+    tunnel-agent "^0.6.0"
+
 figgy-pudding@^3.5.1:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/figgy-pudding/-/figgy-pudding-3.5.2.tgz#b4eee8148abb01dcf1d1ac34367d59e12fa61d6e"
@@ -9156,6 +9166,11 @@ nocache@2.1.0:
   resolved "https://registry.yarnpkg.com/nocache/-/nocache-2.1.0.tgz#120c9ffec43b5729b1d5de88cd71aa75a0ba491f"
   integrity sha512-0L9FvHG3nfnnmaEQPjT9xhfN4ISk0A8/2j4M37Np4mcDesJjHgEUfgPhdCyZuFI954tjokaIj/A3NdpFNdEh4Q==
 
+node-abort-controller@^1.1.0:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-1.2.1.tgz#1eddb57eb8fea734198b11b28857596dc6165708"
+  integrity sha512-79PYeJuj6S9+yOHirR0JBLFOgjB6sQCir10uN6xRx25iD+ZD4ULqgRn3MwWBRaQGB0vEgReJzWwJo42T1R6YbQ==
+
 node-fetch@2.6.1, node-fetch@^2.1.2, node-fetch@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
@@ -10430,6 +10445,11 @@ protobufjs@^6.9.0:
     "@types/long" "^4.0.1"
     "@types/node" "^13.7.0"
     long "^4.0.0"
+
+proxy-from-env@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
+  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
 
 prr@~1.0.1:
   version "1.0.1"

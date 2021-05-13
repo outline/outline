@@ -99,6 +99,7 @@
     "emoji-regex": "^6.5.1",
     "es6-error": "^4.1.1",
     "exports-loader": "^0.6.4",
+    "fetch-with-proxy": "^3.0.1",
     "file-loader": "^1.1.6",
     "flow-typed": "^2.6.2",
     "focus-visible": "^5.1.0",

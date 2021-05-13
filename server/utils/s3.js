@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/node";
 import AWS from "aws-sdk";
 import addHours from "date-fns/add_hours";
 import format from "date-fns/format";
-import fetch from "isomorphic-fetch";
+import fetch from "fetch-with-proxy";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
