@@ -73,7 +73,7 @@ if (KOALA_CLIENT_ID) {
               providerId: domain,
             },
             authentication: {
-              providerId: params.credentials_id.toString(),
+              providerId:  `${params.credentials_type}:${params.credentials_id}` ,
               accessToken,
               refreshToken,
               scopes,

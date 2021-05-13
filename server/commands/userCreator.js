@@ -129,6 +129,7 @@ export default async function userCreator({
         name,
         email,
         isAdmin,
+        isViewer: !isAdmin,
         teamId,
         avatarUrl,
         service: null,
