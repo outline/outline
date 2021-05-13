@@ -4,6 +4,7 @@ import styled from "styled-components";
 import GoogleLogo from "./GoogleLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
+import KoalaLogo from "./KoalaLogo"
 
 type Props = {|
   providerName: string,
@@ -30,6 +31,12 @@ function AuthLogo({ providerName, size = 16 }: Props) {
           <MicrosoftLogo size={size} />
         </Logo>
       );
+    case "oauth2":
+        return (
+          <Logo>
+            <KoalaLogo size ={size}/>
+          </Logo>
+        );
     default:
       return null;
   }

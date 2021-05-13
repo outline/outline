@@ -16,34 +16,34 @@ import { StateStore } from "../../utils/passport";
 
 const router = new Router();
 const providerName = "oauth2";
-const OAUTH_CLIENT_ID = process.env.OAUTH_CLIENT_ID;
-const OAUTH_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET;
-const OAUTH_CLIENT_URL = process.env.OAUTH_CLIENT_URL
+const KOALA_CLIENT_ID = process.env.KOALA_CLIENT_ID;
+const KOALA_CLIENT_SECRET = process.env.KOALA_CLIENT_SECRET;
+const KOALA_CLIENT_URL = process.env.KOALA_CLIENT_URL
 const allowedDomains = getAllowedDomains();
 
 export const config = {
-  name: "oauth2",
-  enabled: !!OAUTH_CLIENT_ID,
+  name: "Koala",
+  enabled: !!KOALA_CLIENT_ID,
 };
 const scopes = [
   "member-read",
 ];
-if (OAUTH_CLIENT_ID) {
+if (KOALA_CLIENT_ID) {
   
   passport.use(
     new OAuth2Strategy(
       {
         callbackURL: `${env.URL}/auth/oauth2.callback`,
-        authorizationURL: `${OAUTH_CLIENT_URL}/api/oauth/authorize`,
-        tokenURL: `${OAUTH_CLIENT_URL}/api/oauth/token`,
-        clientID: OAUTH_CLIENT_ID,
-        clientSecret: OAUTH_CLIENT_SECRET,
+        authorizationURL: `${KOALA_CLIENT_URL}/api/oauth/authorize`,
+        tokenURL: `${KOALA_CLIENT_URL}/api/oauth/token`,
+        clientID: KOALA_CLIENT_ID,
+        clientSecret: KOALA_CLIENT_SECRET,
         store: new StateStore(),
         passReqToCallback: true,
       },
       async function (req, accessToken, refreshToken, params, profile, done) {
         try {
-          const domain = OAUTH_CLIENT_URL;
+          const domain = KOALA_CLIENT_URL;
 
           if (!domain) {
             throw new OAuthWorkspaceRequiredError();
@@ -52,9 +52,8 @@ if (OAUTH_CLIENT_ID) {
           if (allowedDomains.length && !allowedDomains.includes(domain)) {
             throw new OAuthWorkspaceInvalidError();
           }
-
-          const subdomain = domain.split(".")[0];
-          const teamName = capitalize(subdomain);
+          const subdomain = "koala";
+          const teamName = capitalize("wiki");
           //
           const result = await accountProvisioner({
             ip: req.ip,
