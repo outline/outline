@@ -1,161 +1,160 @@
 // @flow
-import invariant from "invariant";
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction, Trans } from "react-i18next";
-import { type Match } from "react-router-dom";
-import AuthStore from "stores/AuthStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UsersStore from "stores/UsersStore";
+import { Trans, useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import Invite from "scenes/Invite";
-import Bubble from "components/Bubble";
+import { Action } from "components/Actions";
 import Button from "components/Button";
-import Empty from "components/Empty";
+import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
+import InputSearch from "components/InputSearch";
 import Modal from "components/Modal";
-import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
-import Tab from "components/Tab";
-import Tabs, { Separator } from "components/Tabs";
-import UserListItem from "./components/UserListItem";
+import PeopleTable from "./components/PeopleTable";
+import StatusFilter from "./components/StatusFilter";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useQuery from "hooks/useQuery";
+import useStores from "hooks/useStores";
 
-type Props = {
-  auth: AuthStore,
-  users: UsersStore,
-  policies: PoliciesStore,
-  match: Match,
-  t: TFunction,
-};
+function People(props) {
+  const location = useLocation();
+  const history = useHistory();
+  const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
+  const team = useCurrentTeam();
+  const { users, policies } = useStores();
+  const { t } = useTranslation();
+  const params = useQuery();
+  const [data, setData] = React.useState([]);
+  const query = params.get("query") || "";
+  const filter = params.get("filter") || "";
 
-@observer
-class People extends React.Component<Props> {
-  @observable inviteModalOpen: boolean = false;
+  React.useEffect(() => {
+    users.fetchCounts(team.id);
+  }, [users, team]);
 
-  componentDidMount() {
-    const { team } = this.props.auth;
-    if (team) {
-      this.props.users.fetchCounts(team.id);
-    }
-  }
+  const fetchData = React.useCallback(
+    async ({ offset, sort, direction }) => {
+      const data = await users.fetchPage({
+        offset,
+        sort,
+        direction,
+        query,
+        includeSuspended: true,
+      });
+      setData(data);
+    },
+    [query, users]
+  );
 
-  handleInviteModalOpen = () => {
-    this.inviteModalOpen = true;
-  };
+  const handleInviteModalOpen = React.useCallback(() => {
+    setInviteModalOpen(true);
+  }, []);
 
-  handleInviteModalClose = () => {
-    this.inviteModalOpen = false;
-  };
+  const handleInviteModalClose = React.useCallback(() => {
+    setInviteModalOpen(false);
+  }, []);
 
-  fetchPage = (params) => {
-    return this.props.users.fetchPage({ ...params, includeSuspended: true });
-  };
+  const handleFilter = React.useCallback(
+    (filter) => {
+      if (filter) {
+        params.set("filter", filter);
+      } else {
+        params.delete("filter");
+      }
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
 
-  render() {
-    const { auth, policies, match, t } = this.props;
-    const { filter } = match.params;
-    const currentUser = auth.user;
-    const team = auth.team;
-    invariant(currentUser, "User should exist");
-    invariant(team, "Team should exist");
+  const handleSearch = React.useCallback(
+    (event) => {
+      params.set("query", event.target.value);
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
 
-    let users = this.props.users.active;
-    if (filter === "all") {
-      users = this.props.users.all;
-    } else if (filter === "admins") {
-      users = this.props.users.admins;
-    } else if (filter === "suspended") {
-      users = this.props.users.suspended;
-    } else if (filter === "invited") {
-      users = this.props.users.invited;
-    } else if (filter === "viewers") {
-      users = this.props.users.viewers;
-    }
+  // let data = users.active;
+  // if (filter === "all") {
+  //   data = users.all;
+  // } else if (filter === "admins") {
+  //   data = users.admins;
+  // } else if (filter === "suspended") {
+  //   data = users.suspended;
+  // } else if (filter === "invited") {
+  //   data = users.invited;
+  // } else if (filter === "viewers") {
+  //   data = users.viewers;
+  // }
 
-    const can = policies.abilities(team.id);
-    const { counts } = this.props.users;
+  const can = policies.abilities(team.id);
 
-    return (
-      <Scene title={t("People")} icon={<UserIcon color="currentColor" />}>
-        <Heading>{t("People")}</Heading>
-        <HelpText>
-          <Trans>
-            Everyone that has signed into Outline appears here. It’s possible
-            that there are other users who have access through{" "}
-            {team.signinMethods} but haven’t signed in yet.
-          </Trans>
-        </HelpText>
-        {can.inviteUser && (
-          <Button
-            type="button"
-            data-on="click"
-            data-event-category="invite"
-            data-event-action="peoplePage"
-            onClick={this.handleInviteModalOpen}
-            icon={<PlusIcon />}
-            neutral
-          >
-            {t("Invite people")}…
-          </Button>
-        )}
-
-        <Tabs>
-          <Tab to="/settings/people" exact>
-            {t("Active")} <Bubble count={counts.active} />
-          </Tab>
-          <Tab to="/settings/people/admins" exact>
-            {t("Admins")} <Bubble count={counts.admins} />
-          </Tab>
-          {can.update && (
-            <Tab to="/settings/people/suspended" exact>
-              {t("Suspended")} <Bubble count={counts.suspended} />
-            </Tab>
-          )}
-          <Tab to="/settings/people/viewers" exact>
-            {t("Viewers")} <Bubble count={counts.viewers} />
-          </Tab>
-          <Tab to="/settings/people/all" exact>
-            {t("Everyone")} <Bubble count={counts.all - counts.invited} />
-          </Tab>
+  return (
+    <Scene
+      title={t("People")}
+      icon={<UserIcon color="currentColor" />}
+      actions={
+        <>
           {can.inviteUser && (
-            <>
-              <Separator />
-              <Tab to="/settings/people/invited" exact>
-                {t("Invited")} <Bubble count={counts.invited} />
-              </Tab>
-            </>
+            <Action>
+              <Button
+                type="button"
+                data-on="click"
+                data-event-category="invite"
+                data-event-action="peoplePage"
+                onClick={handleInviteModalOpen}
+                icon={<PlusIcon />}
+              >
+                {t("Invite people")}…
+              </Button>
+            </Action>
           )}
-        </Tabs>
-        <PaginatedList
-          items={users}
-          empty={<Empty>{t("No people to see here.")}</Empty>}
-          fetch={this.fetchPage}
-          renderItem={(item) => (
-            <UserListItem
-              key={item.id}
-              user={item}
-              showMenu={can.update && currentUser.id !== item.id}
-            />
-          )}
+        </>
+      }
+    >
+      <Heading>{t("People")}</Heading>
+      <HelpText>
+        <Trans>
+          Everyone that has signed into Outline appears here. It’s possible that
+          there are other users who have access through {team.signinMethods} but
+          haven’t signed in yet.
+        </Trans>
+      </HelpText>
+      <Flex gap={8}>
+        <InputSearch
+          short
+          value={query}
+          placeholder={`${t("Filter")}…`}
+          onChange={handleSearch}
         />
-        {can.inviteUser && (
-          <Modal
-            title={t("Invite people")}
-            onRequestClose={this.handleInviteModalClose}
-            isOpen={this.inviteModalOpen}
-          >
-            <Invite onSubmit={this.handleInviteModalClose} />
-          </Modal>
-        )}
-      </Scene>
-    );
-  }
+        <StatusFilter activeKey={filter} onSelect={handleFilter} />
+      </Flex>
+      <PeopleTable
+        data={data}
+        fetchData={fetchData}
+        pageCount={1}
+        canUpdate={can.update}
+      />
+      {can.inviteUser && (
+        <Modal
+          title={t("Invite people")}
+          onRequestClose={handleInviteModalClose}
+          isOpen={inviteModalOpen}
+        >
+          <Invite onSubmit={handleInviteModalClose} />
+        </Modal>
+      )}
+    </Scene>
+  );
 }
 
-export default inject(
-  "auth",
-  "users",
-  "policies"
-)(withTranslation()<People>(People));
+export default observer(People);

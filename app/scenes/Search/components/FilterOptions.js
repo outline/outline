@@ -73,7 +73,6 @@ const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
   border-color: transparent;
-  height: 28px;
 
   &:hover {
     background: transparent;
