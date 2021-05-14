@@ -16,6 +16,7 @@ type Props = {|
   data: User[],
   fetchData: ({
     offset: number,
+    limit: number,
     sort: number,
     direction: "ASC" | "DESC",
   }) => Promise<void>,
@@ -54,11 +55,7 @@ function PeopleTable({
         id: "lastActiveAt",
         Header: t("Last active"),
         accessor: (item) =>
-          item.lastActiveAt && (
-            <>
-              {t("Active")} <Time dateTime={item.lastActiveAt} addSuffix />
-            </>
-          ),
+          item.lastActiveAt && <Time dateTime={item.lastActiveAt} addSuffix />,
       },
       {
         id: "isAdmin",
@@ -86,7 +83,7 @@ function PeopleTable({
     headerGroups,
     rows,
     prepareRow,
-    state: { pageIndex, sortBy },
+    state: { pageIndex, pageSize, sortBy },
   } = useTable(
     {
       columns,
@@ -96,6 +93,9 @@ function PeopleTable({
       autoResetPage: false,
       autoResetSortBy: false,
       pageCount: controlledPageCount,
+      initialState: {
+        pageSize: 50,
+      },
     },
     useSortBy,
     usePagination
@@ -104,10 +104,11 @@ function PeopleTable({
   React.useEffect(() => {
     fetchData({
       offset: pageIndex,
+      limit: pageSize,
       sort: sortBy.length ? sortBy[0].id : undefined,
       direction: sortBy.length && sortBy[0].desc ? "DESC" : "ASC",
     });
-  }, [sortBy, fetchData, pageIndex]);
+  }, [sortBy, fetchData, pageSize, pageIndex]);
 
   return (
     <Table {...getTableProps()}>
@@ -116,11 +117,11 @@ function PeopleTable({
           <tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column) => (
               <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
-                <Flex align="center" gap={8}>
+                <SortWrapper align="center" gap={4}>
                   {column.render("Header")}
                   {column.isSorted &&
                     (column.isSortedDesc ? <CollapsedIcon /> : <AscIcon />)}
-                </Flex>
+                </SortWrapper>
               </Head>
             ))}
           </tr>
@@ -152,12 +153,17 @@ const Table = styled.table`
   width: 100%;
 `;
 
+const SortWrapper = styled(Flex)`
+  height: 24px;
+`;
+
 const Cell = styled.td`
   padding: 8px 0;
   border-bottom: 1px solid ${(props) => props.theme.divider};
-  font-size: 15px;
+  font-size: 14px;
 
   &:first-child {
+    font-size: 15px;
     font-weight: 500;
   }
 `;

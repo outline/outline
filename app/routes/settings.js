@@ -20,8 +20,7 @@ export default function SettingsRoutes() {
       <Route exact path="/settings" component={Profile} />
       <Route exact path="/settings/details" component={Details} />
       <Route exact path="/settings/security" component={Security} />
-      <Route exact path="/settings/people" component={People} />
-      <Route exact path="/settings/people/:filter" component={People} />
+      <Route exact path="/settings/members" component={People} />
       <Route exact path="/settings/groups" component={Groups} />
       <Route exact path="/settings/shares" component={Shares} />
       <Route exact path="/settings/tokens" component={Tokens} />

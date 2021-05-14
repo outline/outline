@@ -179,7 +179,7 @@ function MainSidebar() {
               />
               {can.inviteUser && (
                 <SidebarLink
-                  to="/settings/people"
+                  to="/settings/members"
                   onClick={handleInviteModalOpen}
                   icon={<PlusIcon color="currentColor" />}
                   label={`${t("Invite people")}…`}

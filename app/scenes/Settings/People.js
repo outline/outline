@@ -28,6 +28,7 @@ function People(props) {
   const { t } = useTranslation();
   const params = useQuery();
   const [data, setData] = React.useState([]);
+  const can = policies.abilities(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
 
@@ -36,17 +37,41 @@ function People(props) {
   }, [users, team]);
 
   const fetchData = React.useCallback(
-    async ({ offset, sort, direction }) => {
+    async ({ offset, sort, limit, direction }) => {
       const data = await users.fetchPage({
         offset,
+        limit,
         sort,
         direction,
         query,
         includeSuspended: true,
       });
-      setData(data);
+
+      if (!filter) {
+        setData(
+          data.filter((u) => users.orderedData.map((u) => u.id).includes(u.id))
+        );
+      } else if (filter === "admins") {
+        setData(
+          data.filter((u) => users.admins.map((u) => u.id).includes(u.id))
+        );
+      } else if (filter === "suspended") {
+        setData(
+          data.filter((u) => users.suspended.map((u) => u.id).includes(u.id))
+        );
+      } else if (filter === "invited") {
+        setData(
+          data.filter((u) => users.invited.map((u) => u.id).includes(u.id))
+        );
+      } else if (filter === "viewers") {
+        setData(
+          data.filter((u) => users.viewers.map((u) => u.id).includes(u.id))
+        );
+      } else {
+        setData(data);
+      }
     },
-    [query, users]
+    [query, filter, users]
   );
 
   const handleInviteModalOpen = React.useCallback(() => {
@@ -74,7 +99,12 @@ function People(props) {
 
   const handleSearch = React.useCallback(
     (event) => {
-      params.set("query", event.target.value);
+      const { value } = event.target;
+      if (value) {
+        params.set("query", event.target.value);
+      } else {
+        params.delete("query");
+      }
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -83,24 +113,9 @@ function People(props) {
     [params, history, location.pathname]
   );
 
-  // let data = users.active;
-  // if (filter === "all") {
-  //   data = users.all;
-  // } else if (filter === "admins") {
-  //   data = users.admins;
-  // } else if (filter === "suspended") {
-  //   data = users.suspended;
-  // } else if (filter === "invited") {
-  //   data = users.invited;
-  // } else if (filter === "viewers") {
-  //   data = users.viewers;
-  // }
-
-  const can = policies.abilities(team.id);
-
   return (
     <Scene
-      title={t("People")}
+      title={t("Members")}
       icon={<UserIcon color="currentColor" />}
       actions={
         <>
@@ -121,7 +136,7 @@ function People(props) {
         </>
       }
     >
-      <Heading>{t("People")}</Heading>
+      <Heading>{t("Members")}</Heading>
       <HelpText>
         <Trans>
           Everyone that has signed into Outline appears here. It’s possible that

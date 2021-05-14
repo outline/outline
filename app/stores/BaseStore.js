@@ -170,12 +170,13 @@ export default class BaseStore<T: BaseModel> {
 
       invariant(res && res.data, "Data not available");
 
+      let output;
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);
-        res.data.forEach(this.add);
+        output = res.data.map(this.add);
         this.isLoaded = true;
       });
-      return res.data;
+      return output;
     } finally {
       this.isFetching = false;
     }
