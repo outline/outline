@@ -79,7 +79,7 @@ if (GITEA_CLIENT_ID) {
 
         const organization = organizationResponse[0];
 
-        if (organization.website == "") {
+        if (organization.website === "") {
           throw new GiteaOrganizationError();
         }
         //Remove protocol
