@@ -42,6 +42,9 @@ if (GITEA_CLIENT_ID) {
   let strategyOptions = {
     clientID: GITEA_CLIENT_ID,
     clientSecret: GITEA_CLIENT_SECRET,
+    authorizationURL: false,
+    tokenURL: false,
+    userProfileURL: false,
     passReqToCallback: true,
     callbackURL: `${env.URL}/auth/gitea.callback`,
     store: new StateStore(),
