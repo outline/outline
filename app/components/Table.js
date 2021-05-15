@@ -9,7 +9,7 @@ import User from "models/User";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 
-type Props = {|
+export type Props = {|
   data: User[],
   fetchData: ({
     offset: number,
@@ -17,7 +17,7 @@ type Props = {|
     sort: ?number,
     direction: "ASC" | "DESC",
   }) => Promise<void>,
-  offset: number,
+  offset?: number,
   isLoading: boolean,
   empty?: React.Node,
   currentPage?: number,

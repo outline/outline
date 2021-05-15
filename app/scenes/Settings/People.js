@@ -168,7 +168,6 @@ function People(props) {
       <PeopleTable
         data={data}
         fetchData={fetchData}
-        pageCount={1}
         canUpdate={can.update}
         isLoading={users.isFetching}
       />
