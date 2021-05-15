@@ -1,5 +1,4 @@
 // @flow
-import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
@@ -15,7 +14,7 @@ import InputSearch from "components/InputSearch";
 import Modal from "components/Modal";
 import Scene from "components/Scene";
 import PeopleTable from "./components/PeopleTable";
-import StatusFilter from "./components/StatusFilter";
+import UserStatusFilter from "./components/UserStatusFilter";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
@@ -156,7 +155,7 @@ function People(props) {
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
-        <StatusFilter activeKey={filter} onSelect={handleFilter} />
+        <UserStatusFilter activeKey={filter} onSelect={handleFilter} />
       </Flex>
       <PeopleTable
         data={data}

@@ -48,12 +48,13 @@ const MenuItem = ({
       {(props) => (
         <MenuAnchor
           {...props}
+          $toggleable={selected !== undefined}
           as={onClick ? "button" : as}
           onClick={handleClick}
         >
           {selected !== undefined && (
             <>
-              {selected ? <CheckmarkIcon /> : <Spacer />}
+              {selected ? <CheckmarkIcon color="currentColor" /> : <Spacer />}
               &nbsp;
             </>
           )}
@@ -64,9 +65,10 @@ const MenuItem = ({
   );
 };
 
-const Spacer = styled.div`
+const Spacer = styled.svg`
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
 `;
 
 export const MenuAnchor = styled.a`
@@ -118,7 +120,7 @@ export const MenuAnchor = styled.a`
   `};
 
   ${breakpoint("tablet")`
-    padding: 6px 12px;
+    padding: ${(props) => (props.$toggleable ? "4px 12px" : "6px 12px")};
     font-size: 15px;
   `};
 `;

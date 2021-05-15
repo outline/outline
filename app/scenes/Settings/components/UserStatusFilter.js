@@ -1,14 +1,14 @@
 // @flow
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import FilterOptions from "scenes/Search/components/FilterOptions";
+import FilterOptions from "components/FilterOptions";
 
 type Props = {|
   activeKey: string,
   onSelect: (key: ?string) => void,
 |};
 
-const StatusFilter = ({ activeKey, onSelect }: Props) => {
+const UserStatusFilter = ({ activeKey, onSelect }: Props) => {
   const { t } = useTranslation();
 
   const options = React.useMemo(
@@ -51,4 +51,4 @@ const StatusFilter = ({ activeKey, onSelect }: Props) => {
   );
 };
 
-export default StatusFilter;
+export default UserStatusFilter;

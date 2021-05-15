@@ -34,43 +34,48 @@ function PeopleTable({ canUpdate, ...rest }: Props) {
       {
         id: "name",
         Header: t("Name"),
-        Cell: (d) => <ObserverCell {...d} />,
-        accessor: (item) => (
+        accessor: "name",
+        Cell: observer(({ value, row }) => (
           <Flex align="center" gap={8}>
-            <Avatar src={item.avatarUrl} size={32} /> {item.name}
+            <Avatar src={row.original.avatarUrl} size={32} /> {value}
           </Flex>
-        ),
+        )),
       },
       {
         id: "email",
         Header: t("Email"),
-        Cell: (d) => <ObserverCell {...d} />,
         accessor: "email",
+        Cell: observer(({ value }) => value),
       },
       {
         id: "lastActiveAt",
         Header: t("Last active"),
-        Cell: (d) => <ObserverCell {...d} />,
-        accessor: (item) =>
-          item.lastActiveAt && <Time dateTime={item.lastActiveAt} addSuffix />,
+        accessor: "lastActiveAt",
+        Cell: observer(
+          ({ value }) => value && <Time dateTime={value} addSuffix />
+        ),
       },
       {
         id: "isAdmin",
         Header: t("Role"),
-        Cell: (d) => <ObserverCell {...d} />,
-        accessor: (item) => (
+        accessor: "rank",
+        Cell: observer(({ row }) => (
           <Badges>
-            {!item.lastActiveAt && <Badge>{t("Invited")}</Badge>}
-            {item.isAdmin && <Badge primary>{t("Admin")}</Badge>}
-            {item.isViewer && <Badge>{t("Viewer")}</Badge>}
-            {item.isSuspended && <Badge>{t("Suspended")}</Badge>}
+            {!row.original.lastActiveAt && <Badge>{t("Invited")}</Badge>}
+            {row.original.isAdmin && <Badge primary>{t("Admin")}</Badge>}
+            {row.original.isViewer && <Badge>{t("Viewer")}</Badge>}
+            {row.original.isSuspended && <Badge>{t("Suspended")}</Badge>}
           </Badges>
-        ),
+        )),
       },
       {
         Header: " ",
-        accessor: (item) =>
-          canUpdate && currentUser.id !== item.id && <UserMenu user={item} />,
+        accessor: "id",
+        Cell: observer(
+          ({ row, value }) =>
+            canUpdate &&
+            currentUser.id !== value && <UserMenu user={row.original} />
+        ),
       },
     ],
     [t, canUpdate, currentUser]
@@ -82,11 +87,5 @@ function PeopleTable({ canUpdate, ...rest }: Props) {
 const Badges = styled.div`
   margin-left: -10px;
 `;
-
-const Cell = ({ value }) => {
-  return value;
-};
-
-const ObserverCell = observer(Cell);
 
 export default PeopleTable;
