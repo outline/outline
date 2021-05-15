@@ -37,7 +37,8 @@ function PeopleTable({ canUpdate, ...rest }: Props) {
         accessor: "name",
         Cell: observer(({ value, row }) => (
           <Flex align="center" gap={8}>
-            <Avatar src={row.original.avatarUrl} size={32} /> {value}
+            <Avatar src={row.original.avatarUrl} size={32} /> {value}{" "}
+            {currentUser.id === row.original.id && `(${t("You")})`}
           </Flex>
         )),
       },

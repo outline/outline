@@ -6,7 +6,6 @@ import styled from "styled-components";
 import Button, { Inner } from "components/Button";
 import ContextMenu from "components/ContextMenu";
 import MenuItem from "components/ContextMenu/MenuItem";
-import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 
 type TFilterOption = {|

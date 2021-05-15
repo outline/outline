@@ -2,9 +2,11 @@
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
 import User from "models/User";
+import Empty from "components/Empty";
 import Flex from "components/Flex";
 
 type Props = {|
@@ -16,8 +18,10 @@ type Props = {|
     direction: "ASC" | "DESC",
   }) => Promise<void>,
   offset: number,
-  totalPages: number,
-  canUpdate: boolean,
+  isLoading: boolean,
+  empty?: React.Node,
+  currentPage?: number,
+  totalPages?: number,
   columns: any,
 |};
 
@@ -25,10 +29,12 @@ function Table({
   data,
   fetchData,
   offset,
+  isLoading,
   totalPages,
-  canUpdate,
+  empty,
   columns,
 }: Props) {
+  const { t } = useTranslation();
   const {
     getTableProps,
     getTableBodyProps,
@@ -63,6 +69,8 @@ function Table({
     });
   }, [sortBy, fetchData, pageSize, pageIndex]);
 
+  const isEmpty = !isLoading && rows.length === 0;
+
   return (
     <Wrapper {...getTableProps()}>
       <thead>
@@ -92,6 +100,7 @@ function Table({
           );
         })}
       </tbody>
+      {isEmpty && (empty || <Empty>{t("No results")}</Empty>)}
     </Wrapper>
   );
 }

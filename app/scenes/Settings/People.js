@@ -1,4 +1,5 @@
 // @flow
+import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
@@ -28,6 +29,7 @@ function People(props) {
   const { t } = useTranslation();
   const params = useQuery();
   const [data, setData] = React.useState([]);
+  const [userIds, setUserIds] = React.useState([]);
   const can = policies.abilities(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
@@ -47,36 +49,42 @@ function People(props) {
         includeSuspended: true,
       });
 
-      if (!filter) {
-        setData(
-          data.filter((u) => users.active.map((u) => u.id).includes(u.id))
-        );
-      } else if (filter === "all") {
-        setData(
-          data.filter((u) => users.orderedData.map((u) => u.id).includes(u.id))
-        );
-      } else if (filter === "admins") {
-        setData(
-          data.filter((u) => users.admins.map((u) => u.id).includes(u.id))
-        );
-      } else if (filter === "suspended") {
-        setData(
-          data.filter((u) => users.suspended.map((u) => u.id).includes(u.id))
-        );
-      } else if (filter === "invited") {
-        setData(
-          data.filter((u) => users.invited.map((u) => u.id).includes(u.id))
-        );
-      } else if (filter === "viewers") {
-        setData(
-          data.filter((u) => users.viewers.map((u) => u.id).includes(u.id))
-        );
-      } else {
-        setData(data);
-      }
+      setUserIds(data.map((u) => u.id));
     },
-    [query, filter, users]
+    [query, users]
   );
+
+  React.useEffect(() => {
+    let filtered = users.orderedData;
+    if (!filter) {
+      filtered = users.active.filter((u) => userIds.includes(u.id));
+    } else if (filter === "all") {
+      filtered = users.orderedData.filter((u) => userIds.includes(u.id));
+    } else if (filter === "admins") {
+      filtered = users.admins.filter((u) => userIds.includes(u.id));
+    } else if (filter === "suspended") {
+      filtered = users.suspended.filter((u) => userIds.includes(u.id));
+    } else if (filter === "invited") {
+      filtered = users.invited.filter((u) => userIds.includes(u.id));
+    } else if (filter === "viewers") {
+      filtered = users.viewers.filter((u) => userIds.includes(u.id));
+    }
+
+    setData(
+      sortBy(filtered, function (item) {
+        return userIds.indexOf(item.id);
+      })
+    );
+  }, [
+    filter,
+    users.active,
+    users.admins,
+    users.orderedData,
+    users.suspended,
+    users.invited,
+    users.viewers,
+    userIds,
+  ]);
 
   const handleInviteModalOpen = React.useCallback(() => {
     setInviteModalOpen(true);
@@ -162,6 +170,7 @@ function People(props) {
         fetchData={fetchData}
         pageCount={1}
         canUpdate={can.update}
+        isLoading={users.isFetching}
       />
       {can.inviteUser && (
         <Modal
