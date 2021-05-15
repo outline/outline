@@ -5,6 +5,7 @@ import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import Invite from "scenes/Invite";
 import { Action } from "components/Actions";
 import Button from "components/Button";
@@ -21,6 +22,7 @@ import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 
 function People(props) {
+  const topRef = React.useRef();
   const location = useLocation();
   const history = useHistory();
   const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
@@ -33,26 +35,27 @@ function People(props) {
   const can = policies.abilities(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
+  const sort = params.get("sort") || "name";
+  const direction = params.get("direction") || "";
+  const page = parseInt(params.get("page") || 1, 10);
+  const limit = 20;
 
   React.useEffect(() => {
-    users.fetchCounts(team.id);
-  }, [users, team]);
-
-  const fetchData = React.useCallback(
-    async ({ offset, sort, limit, direction }) => {
+    const fetchData = async () => {
       const data = await users.fetchPage({
-        offset,
+        offset: page * limit,
         limit,
         sort,
         direction,
         query,
-        includeSuspended: true,
+        includeSuspended: filter === "suspended",
       });
 
       setUserIds(data.map((u) => u.id));
-    },
-    [query, users]
-  );
+    };
+
+    fetchData();
+  }, [query, sort, filter, page, direction, users]);
 
   React.useEffect(() => {
     let filtered = users.orderedData;
@@ -70,11 +73,10 @@ function People(props) {
       filtered = users.viewers.filter((u) => userIds.includes(u.id));
     }
 
-    setData(
-      sortBy(filtered, function (item) {
-        return userIds.indexOf(item.id);
-      })
-    );
+    console.log("setData");
+
+    // sort the resulting data by the original order from the server
+    setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
   }, [
     filter,
     users.active,
@@ -125,6 +127,37 @@ function People(props) {
     [params, history, location.pathname]
   );
 
+  const handleChangeSort = React.useCallback(
+    (sort, direction) => {
+      sort ? params.set("sort", sort) : params.delete("sort");
+      params.set("direction", direction);
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleChangePage = React.useCallback(
+    (page) => {
+      params.set("page", page.toString());
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+
+      if (topRef.current) {
+        scrollIntoView(topRef.current, {
+          scrollMode: "if-needed",
+          behavior: "instant",
+          block: "start",
+        });
+      }
+    },
+    [params, history, location.pathname]
+  );
+
   return (
     <Scene
       title={t("Members")}
@@ -166,10 +199,13 @@ function People(props) {
         <UserStatusFilter activeKey={filter} onSelect={handleFilter} />
       </Flex>
       <PeopleTable
+        topRef={topRef}
         data={data}
-        fetchData={fetchData}
         canUpdate={can.update}
         isLoading={users.isFetching}
+        onChangeSort={handleChangeSort}
+        onChangePage={handleChangePage}
+        totalPages={3}
       />
       {can.inviteUser && (
         <Modal

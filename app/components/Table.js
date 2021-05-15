@@ -6,33 +6,37 @@ import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
 import User from "models/User";
+import Button from "components/Button";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 
 export type Props = {|
   data: User[],
-  fetchData: ({
-    offset: number,
-    limit: number,
-    sort: ?number,
-    direction: "ASC" | "DESC",
-  }) => Promise<void>,
   offset?: number,
   isLoading: boolean,
   empty?: React.Node,
   currentPage?: number,
+  pageSize?: number,
   totalPages?: number,
+  defaultSort?: string,
+  topRef?: React.Ref<any>,
+  onChangePage: (index: number) => void,
+  onChangeSort: (sort: ?string, direction: "ASC" | "DESC") => void,
   columns: any,
 |};
 
 function Table({
   data,
-  fetchData,
   offset,
   isLoading,
   totalPages,
   empty,
   columns,
+  pageSize = 50,
+  defaultSort = "name",
+  topRef,
+  onChangeSort,
+  onChangePage,
 }: Props) {
   const { t } = useTranslation();
   const {
@@ -41,7 +45,11 @@ function Table({
     headerGroups,
     rows,
     prepareRow,
-    state: { pageIndex, pageSize, sortBy },
+    canNextPage,
+    nextPage,
+    canPreviousPage,
+    previousPage,
+    state: { pageIndex, sortBy },
   } = useTable(
     {
       columns,
@@ -52,8 +60,8 @@ function Table({
       autoResetSortBy: false,
       pageCount: totalPages,
       initialState: {
-        sortBy: [{ id: "name", desc: false }],
-        pageSize: 50,
+        sortBy: [{ id: defaultSort, desc: false }],
+        pageSize,
       },
     },
     useSortBy,
@@ -61,61 +69,94 @@ function Table({
   );
 
   React.useEffect(() => {
-    fetchData({
-      offset: pageIndex,
-      limit: pageSize,
-      sort: sortBy.length ? sortBy[0].id : undefined,
-      direction: sortBy.length && sortBy[0].desc ? "DESC" : "ASC",
-    });
-  }, [sortBy, fetchData, pageSize, pageIndex]);
+    onChangePage(pageIndex);
+  }, [pageIndex]);
+
+  React.useEffect(() => {
+    onChangeSort(
+      sortBy.length ? sortBy[0].id : undefined,
+      sortBy.length && sortBy[0].desc ? "DESC" : "ASC"
+    );
+  }, [sortBy]);
 
   const isEmpty = !isLoading && rows.length === 0;
 
   return (
-    <Wrapper {...getTableProps()}>
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
-                <SortWrapper align="center" gap={4}>
-                  {column.render("Header")}
-                  {column.isSorted &&
-                    (column.isSortedDesc ? <DescIcon /> : <AscIcon />)}
-                </SortWrapper>
-              </Head>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <Row {...row.getRowProps()}>
-              {row.cells.map((cell) => (
-                <Cell {...cell.getCellProps()}>{cell.render("Cell")}</Cell>
+    <>
+      <Anchor ref={topRef} />
+      <InnerTable {...getTableProps()}>
+        <thead>
+          {headerGroups.map((headerGroup) => (
+            <tr {...headerGroup.getHeaderGroupProps()}>
+              {headerGroup.headers.map((column) => (
+                <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
+                  <SortWrapper align="center" gap={4}>
+                    {column.render("Header")}
+                    {column.isSorted &&
+                      (column.isSortedDesc ? (
+                        <DescSortIcon />
+                      ) : (
+                        <AscSortIcon />
+                      ))}
+                  </SortWrapper>
+                </Head>
               ))}
-            </Row>
-          );
-        })}
-      </tbody>
+            </tr>
+          ))}
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          {rows.map((row) => {
+            prepareRow(row);
+            return (
+              <Row {...row.getRowProps()}>
+                {row.cells.map((cell) => (
+                  <Cell {...cell.getCellProps()}>{cell.render("Cell")}</Cell>
+                ))}
+              </Row>
+            );
+          })}
+        </tbody>
+      </InnerTable>
       {isEmpty && (empty || <Empty>{t("No results")}</Empty>)}
-    </Wrapper>
+      <Pagination
+        justify={canPreviousPage ? "space-between" : "flex-end"}
+        gap={8}
+      >
+        {canPreviousPage && (
+          <Button onClick={previousPage} neutral>
+            {t("Previous page")}
+          </Button>
+        )}
+        {canNextPage && (
+          <Button onClick={nextPage} neutral>
+            {t("Next page")}
+          </Button>
+        )}
+      </Pagination>
+    </>
   );
 }
 
-const DescIcon = styled(CollapsedIcon)`
+const Anchor = styled.div`
+  top: -32px;
+  position: relative;
+`;
+
+const Pagination = styled(Flex)`
+  margin: 0 0 32px;
+`;
+
+const DescSortIcon = styled(CollapsedIcon)`
   &:hover {
     fill: ${(props) => props.theme.text};
   }
 `;
 
-const AscIcon = styled(DescIcon)`
+const AscSortIcon = styled(DescSortIcon)`
   transform: rotate(180deg);
 `;
 
-const Wrapper = styled.table`
+const InnerTable = styled.table`
   border-collapse: collapse;
   margin: 16px 0;
   width: 100%;
