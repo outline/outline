@@ -15,6 +15,10 @@ const StatusFilter = ({ activeKey, onSelect }: Props) => {
     () => [
       {
         key: "",
+        label: t("Active"),
+      },
+      {
+        key: "all",
         label: t("Everyone"),
       },
       {
@@ -42,7 +46,7 @@ const StatusFilter = ({ activeKey, onSelect }: Props) => {
       options={options}
       activeKey={activeKey}
       onSelect={onSelect}
-      defaultLabel={t("Everyone")}
+      defaultLabel={t("Active")}
     />
   );
 };

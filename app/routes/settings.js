@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { Switch } from "react-router-dom";
+import { Switch, Redirect } from "react-router-dom";
 import Details from "scenes/Settings/Details";
 import Groups from "scenes/Settings/Groups";
 import ImportExport from "scenes/Settings/ImportExport";
@@ -28,6 +28,7 @@ export default function SettingsRoutes() {
       <Route exact path="/settings/integrations/slack" component={Slack} />
       <Route exact path="/settings/integrations/zapier" component={Zapier} />
       <Route exact path="/settings/import-export" component={ImportExport} />
+      <Redirect from="/settings/people" to="/settings/members" />
     </Switch>
   );
 }

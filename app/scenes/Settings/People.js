@@ -1,4 +1,5 @@
 // @flow
+import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
@@ -48,6 +49,10 @@ function People(props) {
       });
 
       if (!filter) {
+        setData(
+          data.filter((u) => users.active.map((u) => u.id).includes(u.id))
+        );
+      } else if (filter === "all") {
         setData(
           data.filter((u) => users.orderedData.map((u) => u.id).includes(u.id))
         );

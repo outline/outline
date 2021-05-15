@@ -1,13 +1,13 @@
 // @flow
-import { CollapsedIcon } from "outline-icons";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Flex from "components/Flex";
+import Table from "components/Table";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import UserMenu from "menus/UserMenu";
@@ -25,13 +25,7 @@ type Props = {|
   canUpdate: boolean,
 |};
 
-function PeopleTable({
-  data,
-  fetchData,
-  offset,
-  pageCount: controlledPageCount,
-  canUpdate,
-}: Props) {
+function PeopleTable({ canUpdate, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
 
@@ -40,6 +34,7 @@ function PeopleTable({
       {
         id: "name",
         Header: t("Name"),
+        Cell: (d) => <ObserverCell {...d} />,
         accessor: (item) => (
           <Flex align="center" gap={8}>
             <Avatar src={item.avatarUrl} size={32} /> {item.name}
@@ -49,23 +44,27 @@ function PeopleTable({
       {
         id: "email",
         Header: t("Email"),
+        Cell: (d) => <ObserverCell {...d} />,
         accessor: "email",
       },
       {
         id: "lastActiveAt",
         Header: t("Last active"),
+        Cell: (d) => <ObserverCell {...d} />,
         accessor: (item) =>
           item.lastActiveAt && <Time dateTime={item.lastActiveAt} addSuffix />,
       },
       {
         id: "isAdmin",
         Header: t("Role"),
+        Cell: (d) => <ObserverCell {...d} />,
         accessor: (item) => (
-          <>
+          <Badges>
             {!item.lastActiveAt && <Badge>{t("Invited")}</Badge>}
             {item.isAdmin && <Badge primary>{t("Admin")}</Badge>}
+            {item.isViewer && <Badge>{t("Viewer")}</Badge>}
             {item.isSuspended && <Badge>{t("Suspended")}</Badge>}
-          </>
+          </Badges>
         ),
       },
       {
@@ -77,117 +76,17 @@ function PeopleTable({
     [t, canUpdate, currentUser]
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state: { pageIndex, pageSize, sortBy },
-  } = useTable(
-    {
-      columns,
-      data,
-      manualPagination: true,
-      manualSortBy: true,
-      autoResetPage: false,
-      autoResetSortBy: false,
-      pageCount: controlledPageCount,
-      initialState: {
-        pageSize: 50,
-      },
-    },
-    useSortBy,
-    usePagination
-  );
-
-  React.useEffect(() => {
-    fetchData({
-      offset: pageIndex,
-      limit: pageSize,
-      sort: sortBy.length ? sortBy[0].id : undefined,
-      direction: sortBy.length && sortBy[0].desc ? "DESC" : "ASC",
-    });
-  }, [sortBy, fetchData, pageSize, pageIndex]);
-
-  return (
-    <Table {...getTableProps()}>
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
-                <SortWrapper align="center" gap={4}>
-                  {column.render("Header")}
-                  {column.isSorted &&
-                    (column.isSortedDesc ? <CollapsedIcon /> : <AscIcon />)}
-                </SortWrapper>
-              </Head>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <Row {...row.getRowProps()}>
-              {row.cells.map((cell) => (
-                <Cell {...cell.getCellProps()}>{cell.render("Cell")}</Cell>
-              ))}
-            </Row>
-          );
-        })}
-      </tbody>
-    </Table>
-  );
+  return <Table columns={columns} {...rest} />;
 }
 
-const AscIcon = styled(CollapsedIcon)`
-  transform: rotate(180deg);
+const Badges = styled.div`
+  margin-left: -10px;
 `;
 
-const Table = styled.table`
-  border-collapse: collapse;
-  margin-top: 16px;
-  width: 100%;
-`;
+const Cell = ({ value }) => {
+  return value;
+};
 
-const SortWrapper = styled(Flex)`
-  height: 24px;
-`;
-
-const Cell = styled.td`
-  padding: 8px 0;
-  border-bottom: 1px solid ${(props) => props.theme.divider};
-  font-size: 14px;
-
-  &:first-child {
-    font-size: 15px;
-    font-weight: 500;
-  }
-`;
-
-const Row = styled.tr`
-  &:last-child {
-    ${Cell} {
-      border-bottom: 0;
-    }
-  }
-`;
-
-const Head = styled.th`
-  text-align: left;
-  position: sticky;
-  top: 54px;
-  padding: 6px 0;
-  border-bottom: 1px solid ${(props) => props.theme.divider};
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
-  font-size: 14px;
-  color: ${(props) => props.theme.textTertiary};
-  font-weight: 500;
-  z-index: 1;
-`;
+const ObserverCell = observer(Cell);
 
 export default PeopleTable;
