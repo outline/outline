@@ -172,7 +172,7 @@ export default class BaseStore<T: BaseModel> {
 
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);
-        res.data.map(this.add);
+        res.data.forEach(this.add);
         this.isLoaded = true;
       });
       return res;

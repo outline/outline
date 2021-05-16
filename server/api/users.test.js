@@ -56,6 +56,27 @@ describe("#users.list", () => {
     expect(body.data.length).toEqual(2);
   });
 
+  it("should allow filtering invited", async () => {
+    const user = await buildUser({ name: "Tester" });
+    await buildUser({
+      name: "Tester",
+      teamId: user.teamId,
+      lastActiveAt: null,
+    });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "test",
+        includeInvited: false,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it("should return teams paginated user list", async () => {
     const { admin, user } = await seed();
 
