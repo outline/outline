@@ -7,10 +7,12 @@ import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Flex from "components/Flex";
-import Table, { type Props as TableProps } from "components/Table";
+import { type Props as TableProps } from "components/Table";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import UserMenu from "menus/UserMenu";
+
+const Table = React.lazy<TableProps>(() => import("components/Table"));
 
 type Props = {|
   ...$Diff<TableProps, { columns: any }>,

@@ -5,17 +5,18 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
-import User from "models/User";
 import Button from "components/Button";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
+import Mask from "components/Mask";
 
 export type Props = {|
-  data: User[],
+  data: any[],
   offset?: number,
   isLoading: boolean,
   empty?: React.Node,
   currentPage?: number,
+  page: number,
   pageSize?: number,
   totalPages?: number,
   defaultSort?: string,
@@ -32,12 +33,14 @@ function Table({
   totalPages,
   empty,
   columns,
+  page,
   pageSize = 50,
   defaultSort = "name",
   topRef,
   onChangeSort,
   onChangePage,
 }: Props) {
+  console.log({ totalPages, page, pageSize });
   const { t } = useTranslation();
   const {
     getTableProps,
@@ -56,12 +59,13 @@ function Table({
       data,
       manualPagination: true,
       manualSortBy: true,
-      autoResetPage: false,
       autoResetSortBy: false,
+      autoResetPage: false,
       pageCount: totalPages,
       initialState: {
         sortBy: [{ id: defaultSort, desc: false }],
         pageSize,
+        pageIndex: page,
       },
     },
     useSortBy,
@@ -80,6 +84,7 @@ function Table({
   }, [sortBy]);
 
   const isEmpty = !isLoading && rows.length === 0;
+  const showPlaceholder = isLoading && rows.length === 0;
 
   return (
     <>
@@ -116,13 +121,15 @@ function Table({
             );
           })}
         </tbody>
+        {showPlaceholder && <Placeholder columns={columns.length} />}
       </InnerTable>
       {isEmpty && (empty || <Empty>{t("No results")}</Empty>)}
       <Pagination
         justify={canPreviousPage ? "space-between" : "flex-end"}
         gap={8}
       >
-        {canPreviousPage && (
+        {/* Note: the page > 0 check shouldn't be needed here but is */}
+        {canPreviousPage && page > 0 && (
           <Button onClick={previousPage} neutral>
             {t("Previous page")}
           </Button>
@@ -136,6 +143,28 @@ function Table({
     </>
   );
 }
+
+export const Placeholder = ({
+  columns,
+  rows = 3,
+}: {
+  columns: number,
+  rows?: number,
+}) => {
+  return (
+    <tbody>
+      {new Array(rows).fill().map((_, row) => (
+        <Row key={row}>
+          {new Array(columns).fill().map((_, col) => (
+            <Cell key={col}>
+              <Mask minWidth={25} maxWidth={75} />
+            </Cell>
+          ))}
+        </Row>
+      ))}
+    </tbody>
+  );
+};
 
 const Anchor = styled.div`
   top: -32px;

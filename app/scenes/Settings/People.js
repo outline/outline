@@ -31,27 +31,30 @@ function People(props) {
   const { t } = useTranslation();
   const params = useQuery();
   const [data, setData] = React.useState([]);
+  const [totalPages, setTotalPages] = React.useState(0);
   const [userIds, setUserIds] = React.useState([]);
   const can = policies.abilities(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
   const sort = params.get("sort") || "name";
-  const direction = params.get("direction") || "";
-  const page = parseInt(params.get("page") || 1, 10);
-  const limit = 20;
+  const direction = (params.get("direction") || "").toUpperCase();
+  const page = parseInt(params.get("page") || 0, 10);
+  const limit = 10;
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const data = await users.fetchPage({
+      const response = await users.fetchPage({
         offset: page * limit,
         limit,
         sort,
         direction,
         query,
+        includeInvited: filter === "invited",
         includeSuspended: filter === "suspended",
       });
 
-      setUserIds(data.map((u) => u.id));
+      setTotalPages(Math.ceil(response.pagination.total / limit));
+      setUserIds(response.data.map((u) => u.id));
     };
 
     fetchData();
@@ -72,8 +75,6 @@ function People(props) {
     } else if (filter === "viewers") {
       filtered = users.viewers.filter((u) => userIds.includes(u.id));
     }
-
-    console.log("setData");
 
     // sort the resulting data by the original order from the server
     setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
@@ -100,6 +101,7 @@ function People(props) {
     (filter) => {
       if (filter) {
         params.set("filter", filter);
+        params.delete("page");
       } else {
         params.delete("filter");
       }
@@ -116,6 +118,7 @@ function People(props) {
       const { value } = event.target;
       if (value) {
         params.set("query", event.target.value);
+        params.delete("page");
       } else {
         params.delete("query");
       }
@@ -130,7 +133,7 @@ function People(props) {
   const handleChangeSort = React.useCallback(
     (sort, direction) => {
       sort ? params.set("sort", sort) : params.delete("sort");
-      params.set("direction", direction);
+      params.set("direction", direction.toLowerCase());
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -205,7 +208,8 @@ function People(props) {
         isLoading={users.isFetching}
         onChangeSort={handleChangeSort}
         onChangePage={handleChangePage}
-        totalPages={3}
+        page={page}
+        totalPages={totalPages}
       />
       {can.inviteUser && (
         <Modal

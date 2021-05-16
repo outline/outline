@@ -18,6 +18,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     sort = "createdAt",
     query,
     direction,
+    includeInvited = true,
     includeSuspended = false,
   } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
@@ -38,6 +39,15 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     };
   }
 
+  if (includeInvited === false) {
+    where = {
+      ...where,
+      lastActiveAt: {
+        [Op.ne]: null,
+      },
+    };
+  }
+
   if (query) {
     where = {
       ...where,
@@ -47,15 +57,23 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     };
   }
 
-  const users = await User.findAll({
-    where,
-    order: [[sort, direction]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+  const [users, total] = await Promise.all([
+    await User.findAll({
+      where,
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    }),
+    await User.count({
+      where,
+    }),
+  ]);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
+    pagination: {
+      ...ctx.state.pagination,
+      total,
+    },
     data: users.map((user) =>
       presentUser(user, { includeDetails: can(actor, "readDetails", user) })
     ),
