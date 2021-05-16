@@ -40,7 +40,6 @@ function Table({
   onChangeSort,
   onChangePage,
 }: Props) {
-  console.log({ totalPages, page, pageSize });
   const { t } = useTranslation();
   const {
     getTableProps,

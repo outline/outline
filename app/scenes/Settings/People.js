@@ -37,9 +37,9 @@ function People(props) {
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
   const sort = params.get("sort") || "name";
-  const direction = (params.get("direction") || "").toUpperCase();
+  const direction = (params.get("direction") || "asc").toUpperCase();
   const page = parseInt(params.get("page") || 0, 10);
-  const limit = 10;
+  const limit = 25;
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -132,8 +132,16 @@ function People(props) {
 
   const handleChangeSort = React.useCallback(
     (sort, direction) => {
-      sort ? params.set("sort", sort) : params.delete("sort");
-      params.set("direction", direction.toLowerCase());
+      if (sort) {
+        params.set("sort", sort);
+      } else {
+        params.delete("sort");
+      }
+      if (direction === "DESC") {
+        params.set("direction", direction.toLowerCase());
+      } else {
+        params.delete("direction");
+      }
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -144,7 +152,11 @@ function People(props) {
 
   const handleChangePage = React.useCallback(
     (page) => {
-      params.set("page", page.toString());
+      if (page) {
+        params.set("page", page.toString());
+      } else {
+        params.delete("page");
+      }
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
