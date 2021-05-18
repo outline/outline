@@ -4,7 +4,7 @@ import invariant from "invariant";
 import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Document from "models/Document";
 import Share from "models/Share";
@@ -13,22 +13,25 @@ import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
+import Notice from "components/Notice";
 import Switch from "components/Switch";
 import useStores from "hooks/useStores";
 
 type Props = {|
   document: Document,
   share: Share,
+  sharedParent: ?Share,
   onSubmit: () => void,
 |};
 
-function DocumentShare({ document, share, onSubmit }: Props) {
+function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
   const { t } = useTranslation();
   const { policies, shares, ui } = useStores();
   const [isCopied, setIsCopied] = React.useState(false);
   const timeout = React.useRef<?TimeoutID>();
   const can = policies.abilities(share ? share.id : "");
   const canPublish = can.update && !document.isTemplate;
+  const isPubliclyShared = (share && share.published) || sharedParent;
 
   React.useEffect(() => {
     document.share();
@@ -79,13 +82,23 @@ function DocumentShare({ document, share, onSubmit }: Props) {
   return (
     <>
       <Heading>
-        {share && share.published ? (
+        {isPubliclyShared ? (
           <GlobeIcon size={28} color="currentColor" />
         ) : (
           <PadlockIcon size={28} color="currentColor" />
         )}{" "}
         {t("Share this document")}
       </Heading>
+
+      {sharedParent && (
+        <Notice>
+          <Trans
+            defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
+            values={{ documentTitle: sharedParent.documentTitle }}
+            components={{ em: <strong /> }}
+          />
+        </Notice>
+      )}
 
       {canPublish && (
         <SwitchWrapper>
@@ -127,8 +140,8 @@ function DocumentShare({ document, share, onSubmit }: Props) {
           <SwitchLabel>
             <SwitchText>
               {share.includeChildDocuments
-                ? t("Public access to nested documents is allowed")
-                : t("Nested documents are not currently shared")}
+                ? t("Nested documents are publicly available")
+                : t("Nested documents are not shared")}
             </SwitchText>
           </SwitchLabel>
         </SwitchWrapper>
@@ -181,4 +194,4 @@ const SwitchText = styled(HelpText)`
   font-size: 15px;
 `;
 
-export default observer(DocumentShare);
+export default observer(SharePopover);

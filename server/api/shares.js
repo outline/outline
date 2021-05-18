@@ -46,8 +46,8 @@ router.post("shares.info", auth(), async (ctx) => {
     return;
   }
 
-  // API version 3 returns the response for the current documentId and any
-  // parent documents that are publicly shared as an array
+  // API version 2 returns the response for the current documentId and any
+  // parent documents that are publicly shared and accessible to the user
   if (share && share.document) {
     authorize(user, "read", share);
     shares.push(share);
