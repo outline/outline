@@ -361,7 +361,7 @@
   "Author": "Автор",
   "Not Found": "Не найдено",
   "We were unable to find the page you’re looking for.": "Нам не удалось найти нужную вам страницу.",
-  "Use the <em>{{ meta }}+K</em> shortcut to search from anywhere in your knowledge base": "Используйте ярлык <em>{{ meta }}+ K</em> для поиска из любой точки вашей базы знаний",
+  "Use the <em>{{ meta }}+K</em> shortcut to search from anywhere in your knowledge base": "Используйте комбинацию <em>{{ meta }}+ K</em> в любом месте для быстрого поиска",
   "No documents found for your search filters. <1></1>": "No documents found for your search filters. <1></1>",
   "Create a new document?": "Create a new document?",
   "Clear filters": "Сбросить фильтры",
