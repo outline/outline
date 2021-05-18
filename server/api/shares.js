@@ -13,11 +13,12 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("shares.info", auth(), async (ctx) => {
-  const { id, documentId } = ctx.body;
+  const { id, documentId, apiVersion } = ctx.body;
   ctx.assertUuid(id || documentId, "id or documentId is required");
 
   const user = ctx.state.user;
-  const share = await Share.findOne({
+  let shares = [];
+  let share = await Share.findOne({
     where: id
       ? {
           id,
@@ -29,15 +30,62 @@ router.post("shares.info", auth(), async (ctx) => {
           revokedAt: { [Op.eq]: null },
         },
   });
-  if (!share || !share.document) {
+
+  // Deprecated API response returns just the share for the current documentId
+  if (apiVersion !== 2) {
+    if (!share || !share.document) {
+      return (ctx.response.status = 204);
+    }
+
+    authorize(user, "read", share);
+
+    ctx.body = {
+      data: presentShare(share, user.isAdmin),
+      policies: presentPolicies(user, [share]),
+    };
+    return;
+  }
+
+  // API version 3 returns the response for the current documentId and any
+  // parent documents that are publicly shared as an array
+  if (share && share.document) {
+    authorize(user, "read", share);
+    shares.push(share);
+  }
+
+  if (documentId) {
+    const document = await Document.scope("withCollection").findByPk(
+      documentId
+    );
+    const parentIds = document?.collection?.getDocumentParents(documentId);
+
+    const parentShare = parentIds
+      ? await Share.findOne({
+          where: {
+            documentId: parentIds,
+            teamId: user.teamId,
+            revokedAt: { [Op.eq]: null },
+            includeChildDocuments: true,
+            published: true,
+          },
+        })
+      : undefined;
+
+    if (parentShare && parentShare.document) {
+      authorize(user, "read", parentShare);
+      shares.push(parentShare);
+    }
+  }
+
+  if (!shares.length) {
     return (ctx.response.status = 204);
   }
 
-  authorize(user, "read", share);
-
   ctx.body = {
-    data: presentShare(share, user.isAdmin),
-    policies: presentPolicies(user, [share]),
+    data: {
+      shares: shares.map((share) => presentShare(share, user.isAdmin)),
+    },
+    policies: presentPolicies(user, shares),
   };
 });
 

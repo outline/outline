@@ -4,10 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import { light } from "shared/styles/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
+import useMediaQuery from "hooks/useMediaQuery";
+import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl } from "utils/urls";
@@ -30,6 +33,7 @@ export type Props = {|
   placeholder?: string,
   maxLength?: number,
   scrollTo?: string,
+  theme?: Theme,
   handleDOMEvents?: Object,
   readOnlyWriteCheckboxes?: boolean,
   onBlur?: (event: SyntheticEvent<>) => any,
@@ -54,6 +58,7 @@ type PropsWithRef = Props & {
 function Editor(props: PropsWithRef) {
   const { id, ui, shareId, history } = props;
   const { t } = useTranslation();
+  const isPrinting = useMediaQuery("print");
 
   const onUploadImage = React.useCallback(
     async (file: File) => {
@@ -180,6 +185,7 @@ function Editor(props: PropsWithRef) {
         tooltip={EditorTooltip}
         dictionary={dictionary}
         {...props}
+        theme={isPrinting ? light : props.theme}
       />
     </ErrorBoundary>
   );

@@ -20,6 +20,42 @@ describe("#url", () => {
   });
 });
 
+describe("getDocumentParents", () => {
+  test("should return array of parent document ids", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    const result = collection.getDocumentParents(document.id);
+
+    expect(result.length).toBe(1);
+    expect(result[0]).toBe(parent.id);
+  });
+
+  test("should return array of parent document ids", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    const result = collection.getDocumentParents(parent.id);
+    expect(result.length).toBe(0);
+  });
+});
+
 describe("getDocumentTree", () => {
   test("should return document tree", async () => {
     const document = await buildDocument();

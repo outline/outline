@@ -242,11 +242,6 @@ export async function buildAttachment(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
-  if (!overrides.collectionId) {
-    const collection = await buildCollection(overrides);
-    overrides.collectionId = collection.id;
-  }
-
   if (!overrides.documentId) {
     const document = await buildDocument(overrides);
     overrides.documentId = document.id;

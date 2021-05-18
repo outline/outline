@@ -202,7 +202,7 @@ const Content = styled(Flex)`
     props.$isResizing ? "none" : `margin-left 100ms ease-out`};
 
   @media print {
-    margin: 0;
+    margin: 0 !important;
   }
 
   ${breakpoint("mobile", "tablet")`

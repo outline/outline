@@ -138,7 +138,7 @@ function DocumentShare({ document, share, onSubmit }: Props) {
           type="text"
           label={t("Link")}
           placeholder={`${t("Loading")}…`}
-          value={share ? share.url : undefined}
+          value={share ? share.url : ""}
           labelHidden
           readOnly
         />
@@ -155,7 +155,7 @@ function DocumentShare({ document, share, onSubmit }: Props) {
 const Heading = styled.h2`
   display: flex;
   align-items: center;
-  margin-top: 0;
+  margin-top: 12px;
   margin-left: -4px;
 `;
 

@@ -1,4 +1,5 @@
 // @flow
+import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
@@ -8,6 +9,7 @@ import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
+import env from "env";
 import type {
   NavigationNode,
   FetchOptions,
@@ -28,6 +30,8 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   importFileTypes: string[] = [
     ".md",
+    ".doc",
+    ".docx",
     "text/markdown",
     "text/plain",
     "text/html",
@@ -534,6 +538,19 @@ export default class DocumentsStore extends BaseStore<Document> {
     collectionId: string,
     options: ImportOptions
   ) => {
+    // file.type can be an empty string sometimes
+    if (
+      file.type &&
+      !this.importFileTypes.includes(file.type) &&
+      !this.importFileTypes.includes(path.extname(file.name))
+    ) {
+      throw new Error(`The selected file type is not supported (${file.type})`);
+    }
+
+    if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+      throw new Error("The selected file was too large to import");
+    }
+
     const title = file.name.replace(/\.[^/.]+$/, "");
     const formData = new FormData();
 

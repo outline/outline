@@ -45,6 +45,10 @@ const importMapping: ImportableFile[] = [
     getMarkdown: confluenceToMarkdown,
   },
   {
+    type: "application/octet-stream",
+    getMarkdown: docxToMarkdown,
+  },
+  {
     type:
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     getMarkdown: docxToMarkdown,
@@ -142,6 +146,12 @@ export default async function documentImporter({
 }): Promise<{ text: string, title: string }> {
   const fileInfo = importMapping.filter((item) => {
     if (item.type === file.type) {
+      if (
+        file.type === "application/octet-stream" &&
+        path.extname(file.name) !== ".docx"
+      ) {
+        return false;
+      }
       return true;
     }
     if (item.type === "text/markdown" && path.extname(file.name) === ".md") {

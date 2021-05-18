@@ -16,7 +16,6 @@ import Badge from "components/Badge";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
-import Fade from "components/Fade";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -155,12 +154,10 @@ function DocumentHeader({
         actions={
           <>
             {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
-            <Fade>
-              <Collaborators
-                document={document}
-                currentUserId={auth.user ? auth.user.id : undefined}
-              />
-            </Fade>
+            <Collaborators
+              document={document}
+              currentUserId={auth.user ? auth.user.id : undefined}
+            />
             {isEditing && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu document={document} />

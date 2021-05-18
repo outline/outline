@@ -229,6 +229,10 @@ Collection.membershipUserIds = async (collectionId: string) => {
     collectionId
   );
 
+  if (!collection) {
+    return [];
+  }
+
   const groupMemberships = collection.collectionGroupMemberships
     .map((cgm) => cgm.group.groupMemberships)
     .flat();
@@ -411,6 +415,29 @@ Collection.prototype.getDocumentTree = function (documentId: string) {
         result = document;
       } else {
         loopChildren(document.children);
+      }
+    });
+  };
+
+  loopChildren(this.documentStructure);
+  return result;
+};
+
+Collection.prototype.getDocumentParents = function (
+  documentId: string
+): string[] | void {
+  let result;
+
+  const loopChildren = (documents, path = []) => {
+    if (result) {
+      return;
+    }
+
+    documents.forEach((document) => {
+      if (document.id === documentId) {
+        result = path;
+      } else {
+        loopChildren(document.children, [...path, document.id]);
       }
     });
   };

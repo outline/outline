@@ -164,6 +164,7 @@ Team.prototype.provisionFirstCollection = async function (userId) {
     teamId: this.id,
     createdById: userId,
     sort: Collection.DEFAULT_SORT,
+    permission: "read_write",
   });
 
   // For the first collection we go ahead and create some intitial documents to get

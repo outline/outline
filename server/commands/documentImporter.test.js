@@ -37,6 +37,75 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("images");
   });
 
+  it("should convert Word Document to markdown for application/octet-stream mimetype", async () => {
+    const user = await buildUser();
+    const name = "images.docx";
+    const file = new File({
+      name,
+      type: "application/octet-stream",
+      path: path.resolve(__dirname, "..", "test", "fixtures", name),
+    });
+
+    const response = await documentImporter({
+      user,
+      file,
+      ip,
+    });
+
+    const attachments = await Attachment.count();
+    expect(attachments).toEqual(1);
+
+    expect(response.text).toContain("This is a test document for images");
+    expect(response.text).toContain("![](/api/attachments.redirect?id=");
+    expect(response.title).toEqual("images");
+  });
+
+  it("should error when a file with application/octet-stream mimetype doesn't have .docx extension", async () => {
+    const user = await buildUser();
+    const name = "normal.docx.txt";
+    const file = new File({
+      name,
+      type: "application/octet-stream",
+      path: path.resolve(__dirname, "..", "test", "fixtures", name),
+    });
+
+    let error;
+    try {
+      await documentImporter({
+        user,
+        file,
+        ip,
+      });
+    } catch (err) {
+      error = err.message;
+    }
+
+    expect(error).toEqual("File type application/octet-stream not supported");
+  });
+
+  it("should convert Word Document on Windows to markdown", async () => {
+    const user = await buildUser();
+    const name = "images.docx";
+    const file = new File({
+      name,
+      type: "application/octet-stream",
+      path: path.resolve(__dirname, "..", "test", "fixtures", name),
+    });
+
+    const response = await documentImporter({
+      user,
+      file,
+      ip,
+    });
+
+    const attachments = await Attachment.count();
+    expect(attachments).toEqual(1);
+
+    expect(response.text).toContain("This is a test document for images");
+    expect(response.text).toContain("![](/api/attachments.redirect?id=");
+    expect(response.title).toEqual("images");
+  });
+
   it("should convert HTML Document to markdown", async () => {
     const user = await buildUser();
     const name = "webpage.html";
@@ -118,7 +187,7 @@ describe("documentImporter", () => {
     const name = "markdown.md";
     const file = new File({
       name,
-      type: "application/octet-stream",
+      type: "application/lol",
       path: path.resolve(__dirname, "..", "test", "fixtures", name),
     });
 
