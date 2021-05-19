@@ -1,7 +1,7 @@
 {
   "currently editing": "กำลังแก้ไขอยู่",
   "currently viewing": "กำลังดูอยู่",
-  "viewed {{ timeAgo }} ago": "viewed {{ timeAgo }} ago",
+  "viewed {{ timeAgo }} ago": "ดูเมื่อ {{ timeAgo }} ที่ผ่านมา",
   "You": "You",
   "Trash": "ถังขยะ",
   "Archive": "Archive",
