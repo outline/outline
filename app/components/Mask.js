@@ -8,6 +8,8 @@ import Flex from "components/Flex";
 type Props = {|
   header?: boolean,
   height?: number,
+  minWidth?: number,
+  maxWidth?: number,
 |};
 
 class Mask extends React.Component<Props> {
@@ -17,9 +19,9 @@ class Mask extends React.Component<Props> {
     return false;
   }
 
-  constructor() {
+  constructor(props: Props) {
     super();
-    this.width = randomInteger(75, 100);
+    this.width = randomInteger(props.minWidth || 75, props.maxWidth || 100);
   }
 
   render() {

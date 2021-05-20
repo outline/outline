@@ -14,14 +14,20 @@ const { can, authorize } = policy;
 const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  let {
-    sort = "createdAt",
-    query,
-    direction,
-    includeSuspended = false,
-  } = ctx.body;
+  let { sort = "createdAt", query, direction, filter } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertSort(sort, User);
+
+  if (filter) {
+    ctx.assertIn(filter, [
+      "invited",
+      "viewers",
+      "admins",
+      "active",
+      "all",
+      "suspended",
+    ]);
+  }
 
   const actor = ctx.state.user;
 
@@ -29,13 +35,30 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     teamId: actor.teamId,
   };
 
-  if (!includeSuspended) {
-    where = {
-      ...where,
-      suspendedAt: {
-        [Op.eq]: null,
-      },
-    };
+  switch (filter) {
+    case "invited": {
+      where = { ...where, lastActiveAt: null };
+      break;
+    }
+    case "viewers": {
+      where = { ...where, isViewer: true };
+      break;
+    }
+    case "admins": {
+      where = { ...where, isAdmin: true };
+      break;
+    }
+    case "suspended": {
+      where = { ...where, suspendedAt: { [Op.ne]: null } };
+      break;
+    }
+    case "all": {
+      break;
+    }
+    default: {
+      where = { ...where, suspendedAt: { [Op.eq]: null } };
+      break;
+    }
   }
 
   if (query) {
@@ -47,15 +70,23 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     };
   }
 
-  const users = await User.findAll({
-    where,
-    order: [[sort, direction]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+  const [users, total] = await Promise.all([
+    await User.findAll({
+      where,
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    }),
+    await User.count({
+      where,
+    }),
+  ]);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
+    pagination: {
+      ...ctx.state.pagination,
+      total,
+    },
     data: users.map((user) =>
       presentUser(user, { includeDetails: can(actor, "readDetails", user) })
     ),

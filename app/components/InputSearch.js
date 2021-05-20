@@ -3,13 +3,14 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import Input from "./Input";
+import Input, { type Props as InputProps } from "./Input";
 
 type Props = {|
+  ...InputProps,
   placeholder?: string,
   value?: string,
   onChange: (event: SyntheticInputEvent<>) => mixed,
-  onKeyDown: (event: SyntheticKeyboardEvent<HTMLInputElement>) => mixed,
+  onKeyDown?: (event: SyntheticKeyboardEvent<HTMLInputElement>) => mixed,
 |};
 
 export default function InputSearch(props: Props) {
