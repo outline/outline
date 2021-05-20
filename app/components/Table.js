@@ -82,8 +82,8 @@ function Table({
     );
   }, [sortBy]);
 
-  const isEmpty = !isLoading && rows.length === 0;
-  const showPlaceholder = isLoading && rows.length === 0;
+  const isEmpty = !isLoading && data.length === 0;
+  const showPlaceholder = isLoading && data.length === 0;
 
   return (
     <>
@@ -122,23 +122,26 @@ function Table({
         </tbody>
         {showPlaceholder && <Placeholder columns={columns.length} />}
       </InnerTable>
-      {isEmpty && (empty || <Empty>{t("No results")}</Empty>)}
-      <Pagination
-        justify={canPreviousPage ? "space-between" : "flex-end"}
-        gap={8}
-      >
-        {/* Note: the page > 0 check shouldn't be needed here but is */}
-        {canPreviousPage && page > 0 && (
-          <Button onClick={previousPage} neutral>
-            {t("Previous page")}
-          </Button>
-        )}
-        {canNextPage && (
-          <Button onClick={nextPage} neutral>
-            {t("Next page")}
-          </Button>
-        )}
-      </Pagination>
+      {isEmpty ? (
+        empty || <Empty>{t("No results")}</Empty>
+      ) : (
+        <Pagination
+          justify={canPreviousPage ? "space-between" : "flex-end"}
+          gap={8}
+        >
+          {/* Note: the page > 0 check shouldn't be needed here but is */}
+          {canPreviousPage && page > 0 && (
+            <Button onClick={previousPage} neutral>
+              {t("Previous page")}
+            </Button>
+          )}
+          {canNextPage && (
+            <Button onClick={nextPage} neutral>
+              {t("Next page")}
+            </Button>
+          )}
+        </Pagination>
+      )}
     </>
   );
 }

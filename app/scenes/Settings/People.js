@@ -30,6 +30,7 @@ function People(props) {
   const { users, policies } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
+  const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState([]);
   const [totalPages, setTotalPages] = React.useState(0);
   const [userIds, setUserIds] = React.useState([]);
@@ -43,18 +44,24 @@ function People(props) {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const response = await users.fetchPage({
-        offset: page * limit,
-        limit,
-        sort,
-        direction,
-        query,
-        includeInvited: filter === "invited",
-        includeSuspended: filter === "suspended",
-      });
+      setIsLoading(true);
 
-      setTotalPages(Math.ceil(response.pagination.total / limit));
-      setUserIds(response.data.map((u) => u.id));
+      try {
+        const response = await users.fetchPage({
+          offset: page * limit,
+          limit,
+          sort,
+          direction,
+          query,
+          includeInvited: filter === "invited",
+          includeSuspended: filter === "suspended",
+        });
+
+        setTotalPages(Math.ceil(response.pagination.total / limit));
+        setUserIds(response.data.map((u) => u.id));
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
@@ -216,8 +223,8 @@ function People(props) {
       <PeopleTable
         topRef={topRef}
         data={data}
-        canUpdate={can.update}
-        isLoading={users.isFetching}
+        canManage={can.manage}
+        isLoading={isLoading}
         onChangeSort={handleChangeSort}
         onChangePage={handleChangePage}
         page={page}
