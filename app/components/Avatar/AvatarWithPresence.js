@@ -1,5 +1,4 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
@@ -16,7 +15,6 @@ type Props = {
   isPresent: boolean,
   isEditing: boolean,
   isCurrentUser: boolean,
-  lastViewedAt: string,
   profileOnClick: boolean,
   t: TFunction,
 };
@@ -34,22 +32,13 @@ class AvatarWithPresence extends React.Component<Props> {
   };
 
   render() {
-    const {
-      user,
-      lastViewedAt,
-      isPresent,
-      isEditing,
-      isCurrentUser,
-      t,
-    } = this.props;
+    const { user, isPresent, isEditing, isCurrentUser, t } = this.props;
 
     const action = isPresent
       ? isEditing
         ? t("currently editing")
         : t("currently viewing")
-      : t("viewed {{ timeAgo }} ago", {
-          timeAgo: distanceInWordsToNow(new Date(lastViewedAt)),
-        });
+      : t("previously edited");
 
     return (
       <>
@@ -57,8 +46,12 @@ class AvatarWithPresence extends React.Component<Props> {
           tooltip={
             <Centered>
               <strong>{user.name}</strong> {isCurrentUser && `(${t("You")})`}
-              <br />
-              {action}
+              {action && (
+                <>
+                  <br />
+                  {action}
+                </>
+              )}
             </Centered>
           }
           placement="bottom"
