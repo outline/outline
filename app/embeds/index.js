@@ -7,6 +7,7 @@ import Airtable from "./Airtable";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
+import Descript from "./Descript";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
@@ -84,6 +85,13 @@ export default [
     icon: () => <Img src="/images/codepen.png" />,
     component: Codepen,
     matcher: matcher(Codepen),
+  },
+  {
+    title: "Descript",
+    keywords: "audio",
+    icon: () => <Img src="/images/descript.png" />,
+    component: Descript,
+    matcher: matcher(Descript),
   },
   {
     title: "Figma",
