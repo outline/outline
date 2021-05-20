@@ -86,6 +86,8 @@ function Table({
   const isEmpty = !isLoading && data.length === 0;
   const showPlaceholder = isLoading && data.length === 0;
 
+  console.log({ canNextPage, pageIndex, totalPages, rows, data });
+
   return (
     <>
       <Anchor ref={topRef} />

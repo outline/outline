@@ -53,8 +53,7 @@ function People(props) {
           sort,
           direction,
           query,
-          includeInvited: filter === "invited",
-          includeSuspended: filter === "suspended",
+          filter,
         });
 
         setTotalPages(Math.ceil(response.pagination.total / limit));

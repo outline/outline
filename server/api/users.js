@@ -14,15 +14,20 @@ const { can, authorize } = policy;
 const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  let {
-    sort = "createdAt",
-    query,
-    direction,
-    includeInvited = true,
-    includeSuspended = false,
-  } = ctx.body;
+  let { sort = "createdAt", query, direction, filter } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertSort(sort, User);
+
+  if (filter) {
+    ctx.assertIn(filter, [
+      "invited",
+      "viewers",
+      "admins",
+      "active",
+      "all",
+      "suspended",
+    ]);
+  }
 
   const actor = ctx.state.user;
 
@@ -30,22 +35,30 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     teamId: actor.teamId,
   };
 
-  if (!includeSuspended) {
-    where = {
-      ...where,
-      suspendedAt: {
-        [Op.eq]: null,
-      },
-    };
-  }
-
-  if (includeInvited === false) {
-    where = {
-      ...where,
-      lastActiveAt: {
-        [Op.ne]: null,
-      },
-    };
+  switch (filter) {
+    case "invited": {
+      where = { ...where, lastActiveAt: null };
+      break;
+    }
+    case "viewers": {
+      where = { ...where, isViewer: true };
+      break;
+    }
+    case "admins": {
+      where = { ...where, isAdmin: true };
+      break;
+    }
+    case "suspended": {
+      where = { ...where, suspendedAt: { [Op.ne]: null } };
+      break;
+    }
+    case "all": {
+      break;
+    }
+    default: {
+      where = { ...where, suspendedAt: { [Op.eq]: null } };
+      break;
+    }
   }
 
   if (query) {
