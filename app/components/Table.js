@@ -76,6 +76,7 @@ function Table({
   }, [pageIndex]);
 
   React.useEffect(() => {
+    onChangePage(0);
     onChangeSort(
       sortBy.length ? sortBy[0].id : undefined,
       sortBy.length && sortBy[0].desc ? "DESC" : "ASC"
