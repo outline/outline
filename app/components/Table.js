@@ -114,7 +114,15 @@ function Table({
             return (
               <Row {...row.getRowProps()}>
                 {row.cells.map((cell) => (
-                  <Cell {...cell.getCellProps()}>{cell.render("Cell")}</Cell>
+                  <Cell
+                    {...cell.getCellProps([
+                      {
+                        className: cell.column.className,
+                      },
+                    ])}
+                  >
+                    {cell.render("Cell")}
+                  </Cell>
                 ))}
               </Row>
             );
@@ -207,7 +215,8 @@ const Cell = styled.td`
     font-weight: 500;
   }
 
-  &:last-child {
+  &.actions,
+  &.right-aligned {
     text-align: right;
     vertical-align: bottom;
   }

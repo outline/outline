@@ -71,6 +71,7 @@ function PeopleTable({ canManage, ...rest }: Props) {
           ? {
               Header: " ",
               accessor: "id",
+              className: "actions",
               Cell: observer(
                 ({ row, value }) =>
                   currentUser.id !== value && <UserMenu user={row.original} />
