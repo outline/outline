@@ -1,6 +1,7 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
+import fetch from "fetch-with-proxy";
 import { Strategy as GiteaStrategy } from "passport-gitea";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
@@ -47,7 +48,6 @@ if (GITEA_CLIENT_ID) {
     store: new StateStore(),
     scope: scopes,
   };
-
 
   passport.use(
     new GiteaStrategy(strategyOptions, async function (
