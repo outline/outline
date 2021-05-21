@@ -6,6 +6,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import { PAGINATION_SYMBOL } from "stores/BaseStore";
 import Invite from "scenes/Invite";
 import { Action } from "components/Actions";
 import Button from "components/Button";
@@ -56,8 +57,8 @@ function People(props) {
           filter,
         });
 
-        setTotalPages(Math.ceil(response.pagination.total / limit));
-        setUserIds(response.data.map((u) => u.id));
+        setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        setUserIds(response.map((u) => u.id));
       } finally {
         setIsLoading(false);
       }

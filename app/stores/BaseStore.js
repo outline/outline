@@ -15,6 +15,8 @@ function modelNameFromClassName(string) {
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
 
+export const PAGINATION_SYMBOL = Symbol.for("pagination");
+
 export default class BaseStore<T: BaseModel> {
   @observable data: Map<string, T> = new Map();
   @observable isFetching: boolean = false;
@@ -175,7 +177,10 @@ export default class BaseStore<T: BaseModel> {
         res.data.forEach(this.add);
         this.isLoaded = true;
       });
-      return res;
+
+      let response = res.data;
+      response[PAGINATION_SYMBOL] = res.pagination;
+      return response;
     } finally {
       this.isFetching = false;
     }
