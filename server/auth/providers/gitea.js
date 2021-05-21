@@ -1,7 +1,6 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
-//import { capitalize } from "lodash";
 import { Strategy as GiteaStrategy } from "passport-gitea";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
@@ -10,15 +9,13 @@ import {
   GiteaOrganizationAPIError,
 } from "../../errors";
 import passportMiddleware from "../../middlewares/passport";
-//import { getAllowedDomains } from "../../utils/authentication";
 import { StateStore } from "../../utils/passport";
 
 const router = new Router();
 const providerName = "gitea";
 const GITEA_CLIENT_ID = process.env.GITEA_CLIENT_ID;
 const GITEA_CLIENT_SECRET = process.env.GITEA_CLIENT_SECRET;
-const GITEA_URL = process.env.GITEA_URL; //Usage of custom url
-//const allowedDomains = getAllowedDomains();
+const GITEA_URL = process.env.GITEA_URL || "https://gitea.com";
 
 const scopes = [];
 
@@ -42,21 +39,15 @@ if (GITEA_CLIENT_ID) {
   let strategyOptions = {
     clientID: GITEA_CLIENT_ID,
     clientSecret: GITEA_CLIENT_SECRET,
-    authorizationURL: "",
-    tokenURL: "",
-    userProfileURL: "",
+    authorizationURL: `${GITEA_URL}/login/oauth/authorize`,
+    tokenURL: `${GITEA_URL}/login/oauth/access_token`,
+    userProfileURL: `${GITEA_URL}/api/v1/user`,
     passReqToCallback: true,
     callbackURL: `${env.URL}/auth/gitea.callback`,
     store: new StateStore(),
     scope: scopes,
   };
 
-  //When using a user installed Gitea instance
-  if (GITEA_URL) {
-    strategyOptions["authorizationURL"] = `${GITEA_URL}/login/oauth/authorize`;
-    strategyOptions["tokenURL"] = `${GITEA_URL}/login/oauth/access_token`;
-    strategyOptions["userProfileURL"] = `${GITEA_URL}/api/v1/user`;
-  }
 
   passport.use(
     new GiteaStrategy(strategyOptions, async function (
