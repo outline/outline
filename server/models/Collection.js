@@ -442,7 +442,10 @@ Collection.prototype.getDocumentParents = function (
     });
   };
 
-  loopChildren(this.documentStructure);
+  if (this.documentStructure) {
+    loopChildren(this.documentStructure);
+  }
+
   return result;
 };
 

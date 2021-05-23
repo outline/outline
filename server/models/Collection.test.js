@@ -54,6 +54,15 @@ describe("getDocumentParents", () => {
     const result = collection.getDocumentParents(parent.id);
     expect(result.length).toBe(0);
   });
+
+  test("should not error if documentStructure is empty", async () => {
+    const parent = await buildDocument();
+    await buildDocument();
+    const collection = await buildCollection();
+
+    const result = collection.getDocumentParents(parent.id);
+    expect(result).toBe(undefined);
+  });
 });
 
 describe("getDocumentTree", () => {
