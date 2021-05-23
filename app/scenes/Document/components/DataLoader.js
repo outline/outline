@@ -38,6 +38,8 @@ type Props = {|
   history: RouterHistory,
 |};
 
+const sharedTreeCache = {};
+
 @observer
 class DataLoader extends React.Component<Props> {
   @observable sharedTree: ?NavigationNode;
@@ -48,6 +50,9 @@ class DataLoader extends React.Component<Props> {
   componentDidMount() {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
+    this.sharedTree = this.document
+      ? sharedTreeCache[this.document.id]
+      : undefined;
     this.loadDocument();
   }
 
@@ -165,6 +170,7 @@ class DataLoader extends React.Component<Props> {
 
       this.document = response.document;
       this.sharedTree = response.sharedTree;
+      sharedTreeCache[this.document.id] = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
