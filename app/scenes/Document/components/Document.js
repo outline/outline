@@ -29,8 +29,9 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import PublicReferences from "./PublicReferences";
 import References from "./References";
-import { type LocationWithState, type Theme } from "types";
+import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import { meta } from "utils/keyboard";
@@ -57,6 +58,7 @@ type Props = {
   match: Match,
   history: RouterHistory,
   location: LocationWithState,
+  sharedTree: ?NavigationNode,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -311,7 +313,8 @@ class DocumentScene extends React.Component<Props> {
       match,
     } = this.props;
     const team = auth.team;
-    const isShare = !!match.params.shareId;
+    const { shareId } = match.params;
+    const isShare = !!shareId;
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
@@ -367,7 +370,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <Header
               document={document}
-              isShare={isShare}
+              shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
               isEditing={!readOnly}
@@ -377,6 +380,7 @@ class DocumentScene extends React.Component<Props> {
                 document.isSaving || this.isPublishing || this.isEmpty
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
+              sharedTree={this.props.sharedTree}
               goBack={this.goBack}
               onSave={this.onSave}
             />
@@ -420,7 +424,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
-                    isShare={isShare}
+                    shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
                     key={[injectTemplate, disableEmbeds].join("-")}
@@ -442,6 +446,15 @@ class DocumentScene extends React.Component<Props> {
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
                   >
+                    {shareId && (
+                      <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                        <PublicReferences
+                          shareId={shareId}
+                          documentId={document.id}
+                          sharedTree={this.props.sharedTree}
+                        />
+                      </ReferencesWrapper>
+                    )}
                     {!isShare && !revision && (
                       <>
                         <MarkAsViewed document={document} />

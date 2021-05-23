@@ -6,6 +6,7 @@ import {
   buildGroup,
   buildCollection,
   buildTeam,
+  buildDocument,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 
@@ -16,6 +17,134 @@ describe("#url", () => {
   test("should return correct url for the collection", () => {
     const collection = new Collection({ id: "1234" });
     expect(collection.url).toBe("/collections/1234");
+  });
+});
+
+describe("getDocumentParents", () => {
+  test("should return array of parent document ids", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    const result = collection.getDocumentParents(document.id);
+
+    expect(result.length).toBe(1);
+    expect(result[0]).toBe(parent.id);
+  });
+
+  test("should return array of parent document ids", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    const result = collection.getDocumentParents(parent.id);
+    expect(result.length).toBe(0);
+  });
+});
+
+describe("getDocumentTree", () => {
+  test("should return document tree", async () => {
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [document.toJSON()],
+    });
+
+    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+  });
+
+  test("should return nested documents in tree", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    expect(collection.getDocumentTree(parent.id)).toEqual({
+      ...parent.toJSON(),
+      children: [document.toJSON()],
+    });
+    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+  });
+});
+
+describe("isChildDocument", () => {
+  test("should return false with unexpected data", async () => {
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [document.toJSON()],
+    });
+
+    expect(collection.isChildDocument(document.id, document.id)).toEqual(false);
+    expect(collection.isChildDocument(document.id, undefined)).toEqual(false);
+    expect(collection.isChildDocument(undefined, document.id)).toEqual(false);
+  });
+
+  test("should return false if sibling", async () => {
+    const one = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [one.toJSON(), document.toJSON()],
+    });
+
+    expect(collection.isChildDocument(one.id, document.id)).toEqual(false);
+    expect(collection.isChildDocument(document.id, one.id)).toEqual(false);
+  });
+
+  test("should return true if direct child of parent", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    expect(collection.isChildDocument(parent.id, document.id)).toEqual(true);
+    expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
+  });
+
+  test("should return true if nested child of parent", async () => {
+    const parent = await buildDocument();
+    const nested = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [
+            {
+              ...nested.toJSON(),
+              children: [document.toJSON()],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(collection.isChildDocument(parent.id, document.id)).toEqual(true);
+    expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
   });
 });
 

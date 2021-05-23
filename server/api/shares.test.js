@@ -2,7 +2,7 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 import { CollectionUser } from "../models";
-import { buildUser, buildShare } from "../test/factories";
+import { buildUser, buildDocument, buildShare } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -260,7 +260,7 @@ describe("#shares.info", () => {
     expect(body.data.createdBy.id).toBe(user.id);
   });
 
-  it("should allow reading share creaded by deleted user", async () => {
+  it("should allow reading share created by deleted user", async () => {
     const { user, document } = await seed();
     const author = await buildUser({ teamId: user.teamId });
     const share = await buildShare({
@@ -345,6 +345,135 @@ describe("#shares.info", () => {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
     expect(res.status).toEqual(204);
+  });
+
+  describe("apiVersion=2", () => {
+    it("should allow reading share by documentId", async () => {
+      const { user, document } = await seed();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: user.teamId,
+        userId: user.id,
+      });
+
+      const res = await server.post("/api/shares.info", {
+        body: {
+          token: user.getJwtToken(),
+          documentId: document.id,
+          apiVersion: 2,
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.shares.length).toBe(1);
+      expect(body.data.shares[0].id).toBe(share.id);
+      expect(body.data.shares[0].published).toBe(true);
+    });
+
+    it("should return share for parent document with includeChildDocuments=true", async () => {
+      const { user, document, collection } = await seed();
+      const childDocument = await buildDocument({
+        teamId: document.teamId,
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+      });
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: true,
+      });
+
+      await collection.addDocumentToStructure(childDocument, 0);
+
+      const res = await server.post("/api/shares.info", {
+        body: {
+          token: user.getJwtToken(),
+          documentId: childDocument.id,
+          apiVersion: 2,
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.shares.length).toBe(1);
+      expect(body.data.shares[0].id).toBe(share.id);
+      expect(body.data.shares[0].documentId).toBe(document.id);
+      expect(body.data.shares[0].published).toBe(true);
+      expect(body.data.shares[0].includeChildDocuments).toBe(true);
+    });
+
+    it("should not return share for parent document with includeChildDocuments=false", async () => {
+      const { user, document, collection } = await seed();
+      const childDocument = await buildDocument({
+        teamId: document.teamId,
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+      });
+      await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: false,
+      });
+
+      await collection.addDocumentToStructure(childDocument, 0);
+
+      const res = await server.post("/api/shares.info", {
+        body: {
+          token: user.getJwtToken(),
+          documentId: childDocument.id,
+          apiVersion: 2,
+        },
+      });
+
+      expect(res.status).toEqual(204);
+    });
+
+    it("should return shares for parent document and current document", async () => {
+      const { user, document, collection } = await seed();
+      const childDocument = await buildDocument({
+        teamId: document.teamId,
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+      });
+      const share = await buildShare({
+        documentId: childDocument.id,
+        teamId: user.teamId,
+        userId: user.id,
+        includeChildDocuments: false,
+      });
+      const share2 = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: true,
+      });
+
+      await collection.addDocumentToStructure(childDocument, 0);
+
+      const res = await server.post("/api/shares.info", {
+        body: {
+          token: user.getJwtToken(),
+          documentId: childDocument.id,
+          apiVersion: 2,
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.data.shares.length).toBe(2);
+      expect(body.data.shares[0].id).toBe(share.id);
+      expect(body.data.shares[0].includeChildDocuments).toBe(false);
+      expect(body.data.shares[0].documentId).toBe(childDocument.id);
+      expect(body.data.shares[0].published).toBe(true);
+
+      expect(body.data.shares[1].id).toBe(share2.id);
+      expect(body.data.shares[1].documentId).toBe(document.id);
+      expect(body.data.shares[1].published).toBe(true);
+      expect(body.data.shares[1].includeChildDocuments).toBe(true);
+    });
   });
 
   it("should require authentication", async () => {

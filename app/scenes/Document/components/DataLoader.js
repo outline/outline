@@ -22,11 +22,10 @@ import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
-import { type LocationWithState } from "types";
+import { type LocationWithState, type NavigationNode } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 import { isInternalUrl } from "utils/urls";
-
 type Props = {|
   match: Match,
   location: LocationWithState,
@@ -41,6 +40,7 @@ type Props = {|
 
 @observer
 class DataLoader extends React.Component<Props> {
+  @observable sharedTree: ?NavigationNode;
   @observable document: ?Document;
   @observable revision: ?Revision;
   @observable error: ?Error;
@@ -89,7 +89,7 @@ class DataLoader extends React.Component<Props> {
       // search for exact internal document
       const slug = parseDocumentSlug(term);
       try {
-        const document = await this.props.documents.fetch(slug);
+        const { document } = await this.props.documents.fetch(slug);
         const time = distanceInWordsToNow(document.updatedAt, {
           addSuffix: true,
         });
@@ -159,9 +159,12 @@ class DataLoader extends React.Component<Props> {
     }
 
     try {
-      this.document = await this.props.documents.fetch(documentSlug, {
+      const response = await this.props.documents.fetch(documentSlug, {
         shareId,
       });
+
+      this.document = response.document;
+      this.sharedTree = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
@@ -249,6 +252,7 @@ class DataLoader extends React.Component<Props> {
           readOnly={!this.isEditing || !abilities.update || document.isArchived}
           onSearchLink={this.onSearchLink}
           onCreateLink={this.onCreateLink}
+          sharedTree={this.sharedTree}
         />
       </SocketPresence>
     );

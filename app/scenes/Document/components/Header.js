@@ -13,23 +13,26 @@ import styled from "styled-components";
 import Document from "models/Document";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
-import Breadcrumb, { Slash } from "components/Breadcrumb";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
+import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
+import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
+import { type NavigationNode } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
-  isShare: boolean,
+  sharedTree: ?NavigationNode,
+  shareId: ?string,
   isDraft: boolean,
   isEditing: boolean,
   isRevision: boolean,
@@ -47,7 +50,7 @@ type Props = {|
 
 function DocumentHeader({
   document,
-  isShare,
+  shareId,
   isEditing,
   isDraft,
   isPublishing,
@@ -55,6 +58,7 @@ function DocumentHeader({
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
+  sharedTree,
   onSave,
 }: Props) {
   const { t } = useTranslation();
@@ -115,11 +119,19 @@ function DocumentHeader({
     </Action>
   );
 
-  if (isShare) {
+  if (shareId) {
     return (
       <Header
         title={document.title}
-        breadcrumb={toc}
+        breadcrumb={
+          <PublicBreadcrumb
+            documentId={document.id}
+            shareId={shareId}
+            sharedTree={sharedTree}
+          >
+            {toc}
+          </PublicBreadcrumb>
+        }
         actions={canEdit ? editAction : <div />}
       />
     );
@@ -129,14 +141,9 @@ function DocumentHeader({
     <>
       <Header
         breadcrumb={
-          <Breadcrumb document={document}>
-            {!isEditing && (
-              <>
-                <Slash />
-                {toc}
-              </>
-            )}
-          </Breadcrumb>
+          <DocumentBreadcrumb document={document}>
+            {!isEditing && toc}
+          </DocumentBreadcrumb>
         }
         title={
           <>

@@ -27,6 +27,7 @@ export type Props = {|
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
+  shareId?: ?string,
   autoFocus?: boolean,
   template?: boolean,
   placeholder?: string,
@@ -55,7 +56,7 @@ type PropsWithRef = Props & {
 };
 
 function Editor(props: PropsWithRef) {
-  const { id, ui, history } = props;
+  const { id, ui, shareId, history } = props;
   const { t } = useTranslation();
   const isPrinting = useMediaQuery("print");
 
@@ -89,12 +90,16 @@ function Editor(props: PropsWithRef) {
           }
         }
 
+        if (shareId) {
+          navigateTo = `/share/${shareId}${navigateTo}`;
+        }
+
         history.push(navigateTo);
       } else if (href) {
         window.open(href, "_blank");
       }
     },
-    [history]
+    [history, shareId]
   );
 
   const onShowToast = React.useCallback(

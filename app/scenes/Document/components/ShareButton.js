@@ -19,7 +19,9 @@ function ShareButton({ document }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const share = shares.getByDocumentId(document.id);
-  const isPubliclyShared = share && share.published;
+  const sharedParent = shares.getByDocumentParents(document.id);
+  const isPubliclyShared =
+    (share && share.published) || (sharedParent && sharedParent.published);
   const popover = usePopoverState({
     gutter: 0,
     placement: "bottom-end",
@@ -57,6 +59,7 @@ function ShareButton({ document }: Props) {
         <SharePopover
           document={document}
           share={share}
+          sharedParent={sharedParent}
           onSubmit={popover.hide}
         />
       </Popover>

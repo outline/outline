@@ -471,11 +471,17 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   };
 });
 
-async function loadDocument({ id, shareId, user }) {
+async function loadDocument({
+  id,
+  shareId,
+  user,
+}): Promise<{ document: Document, share?: Share, collection: Collection }> {
   let document;
+  let collection;
+  let share;
 
   if (shareId) {
-    const share = await Share.findOne({
+    share = await Share.findOne({
       where: {
         revokedAt: { [Op.eq]: null },
         id: shareId,
@@ -497,7 +503,20 @@ async function loadDocument({ id, shareId, user }) {
       throw new InvalidRequestError("Document could not be found for shareId");
     }
 
-    if (user) {
+    // It is possible to pass both an id and a shareId to the documents.info
+    // endpoint. In this case we'll load the document based on the `id` and check
+    // if the provided share token allows access. This is used by the frontend
+    // to navigate nested documents from a single share link.
+    if (id) {
+      document = await Document.findByPk(id, {
+        userId: user ? user.id : undefined,
+        paranoid: false,
+      });
+
+      // otherwise, if the user has an authenticated session make sure to load
+      // with their details so that we can return the correct policies, they may
+      // be able to edit the shared document
+    } else if (user) {
       document = await Document.findByPk(share.documentId, {
         userId: user.id,
         paranoid: false,
@@ -506,15 +525,31 @@ async function loadDocument({ id, shareId, user }) {
       document = share.document;
     }
 
+    // "published" === on the public internet. So if the share isn't published
+    // then we must have permission to read the document
     if (!share.published) {
       authorize(user, "read", document);
     }
 
-    const collection = await Collection.findByPk(document.collectionId);
+    // It is possible to disable sharing at the collection so we must check
+    collection = await Collection.findByPk(document.collectionId);
     if (!collection.sharing) {
       throw new AuthorizationError();
     }
 
+    // If we're attempting to load a document that isn't the document originally
+    // shared then includeChildDocuments must be enabled and the document must
+    // still be nested within the shared document
+    if (share.document.id !== document.id) {
+      if (
+        !share.includeChildDocuments ||
+        !collection.isChildDocument(share.document.id, document.id)
+      ) {
+        throw new AuthorizationError();
+      }
+    }
+
+    // It is possible to disable sharing at the team level so we must check
     const team = await Team.findByPk(document.teamId);
     if (!team.sharing) {
       throw new AuthorizationError();
@@ -535,21 +570,41 @@ async function loadDocument({ id, shareId, user }) {
     } else {
       authorize(user, "read", document);
     }
+
+    collection = document.collection;
   }
 
-  return document;
+  return { document, share, collection };
 }
 
 router.post("documents.info", auth({ required: false }), async (ctx) => {
-  const { id, shareId } = ctx.body;
+  const { id, shareId, apiVersion } = ctx.body;
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
-  const user = ctx.state.user;
-  const document = await loadDocument({ id, shareId, user });
+  const { user } = ctx.state;
+  const { document, share, collection } = await loadDocument({
+    id,
+    shareId,
+    user,
+  });
   const isPublic = cannot(user, "read", document);
+  const serializedDocument = await presentDocument(document, { isPublic });
+
+  // Passing apiVersion=2 has a single effect, to change the response payload to
+  // include document and sharedTree keys.
+  const data =
+    apiVersion === 2
+      ? {
+          document: serializedDocument,
+          sharedTree:
+            share && share.includeChildDocuments
+              ? collection.getDocumentTree(share.documentId)
+              : undefined,
+        }
+      : serializedDocument;
 
   ctx.body = {
-    data: await presentDocument(document, { isPublic }),
+    data,
     policies: isPublic ? undefined : presentPolicies(user, [document]),
   };
 });
@@ -559,7 +614,7 @@ router.post("documents.export", auth({ required: false }), async (ctx) => {
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
   const user = ctx.state.user;
-  const document = await loadDocument({ id, shareId, user });
+  const { document } = await loadDocument({ id, shareId, user });
 
   ctx.body = {
     data: document.toMarkdown(),
