@@ -127,6 +127,7 @@ function Editor(props: PropsWithRef) {
       deleteRow: t("Delete row"),
       deleteTable: t("Delete table"),
       deleteImage: t("Delete image"),
+      downloadImage: t("Download image"),
       alignImageLeft: t("Float left"),
       alignImageRight: t("Float right"),
       alignImageDefault: t("Center large"),
