@@ -282,6 +282,7 @@ const Draggable = styled("div")`
 `;
 
 const Disclosure = styled(CollapsedIcon)`
+  transition: transform 100ms ease, fill 50ms !important;
   position: absolute;
   left: -24px;
 
