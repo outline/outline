@@ -306,7 +306,7 @@
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Sei sicuro di questo? L'eliminazione del documento <em>{{ documentTitle }}</em> eliminerà tutta la sua cronologia e tutti i documenti nidificati.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Se desideri l'opzione di fare riferimento o ripristinare {{noun}} in futuro, considera l'archiviazione.",
   "Deleting": "Sto eliminando",
-  "I’m sure – Delete": "Sono sicuro - Elimina",
+  "I’m sure – Delete": "Sono sicuro – Elimina",
   "Archiving": "Archiviazione in corso",
   "Search documents": "Cerca documenti",
   "No documents found for your filters.": "Nessun documento trovato per i tuoi filtri.",
