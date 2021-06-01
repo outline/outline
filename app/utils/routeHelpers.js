@@ -14,10 +14,19 @@ export function newCollectionUrl(): string {
   return "/collections/new";
 }
 
-export function collectionUrl(collectionId: string, section: ?string): string {
-  const path = `/collections/${collectionId}`;
-  if (section) return `${path}/${section}`;
-  return path;
+export function collectionUrl(url: string, section: ?string): string {
+  if (section) return `${url}/${section}`;
+  return url;
+}
+
+export function updateCollectionUrl(oldUrl: string, newUrl: string): string {
+  // Update url to match the current one
+  const urlParts = oldUrl.trim().split("/");
+  const sections = urlParts.slice(3);
+  if (sections[0]) {
+    return [newUrl, sections].join("/");
+  }
+  return newUrl;
 }
 
 export function documentUrl(doc: Document): string {

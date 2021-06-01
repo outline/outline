@@ -4,8 +4,17 @@ import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation, Trans } from "react-i18next";
-import { useParams, Redirect, Link, Switch, Route } from "react-router-dom";
+import {
+  useParams,
+  Redirect,
+  Link,
+  Switch,
+  Route,
+  useHistory,
+  useRouteMatch,
+} from "react-router-dom";
 import styled, { css } from "styled-components";
+import isUUID from "validator/lib/isUUID";
 import CollectionPermissions from "scenes/CollectionPermissions";
 import Search from "scenes/Search";
 import { Action, Separator } from "components/Actions";
@@ -29,6 +38,7 @@ import Subheading from "components/Subheading";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
+import { updateCollectionUrl } from "../utils/routeHelpers";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
@@ -38,6 +48,8 @@ import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
 function CollectionScene() {
   const params = useParams();
+  const history = useHistory();
+  const match = useRouteMatch();
   const { t } = useTranslation();
   const { documents, policies, collections, ui } = useStores();
   const team = useCurrentTeam();
@@ -45,11 +57,22 @@ function CollectionScene() {
   const [error, setError] = React.useState();
   const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
 
-  const collectionId = params.id || "";
-  const collection = collections.get(collectionId);
-  const can = policies.abilities(collectionId || "");
+  const id = params.id || "";
+  const collection = collections.getByUrl(id);
+  const can = policies.abilities(collection?.id || "");
   const canUser = policies.abilities(team.id);
-  const { handleFiles, isImporting } = useImportDocument(collectionId);
+  const { handleFiles, isImporting } = useImportDocument(collection?.id || "");
+
+  React.useEffect(() => {
+    async function load() {
+      if (isUUID(id)) {
+        const collection = await collections.fetch(id);
+        const canonicalUrl = updateCollectionUrl(match.url, collection.url);
+        history.replace(canonicalUrl);
+      }
+    }
+    load();
+  });
 
   React.useEffect(() => {
     if (collection) {
@@ -59,8 +82,10 @@ function CollectionScene() {
 
   React.useEffect(() => {
     setError(null);
-    documents.fetchPinned({ collectionId });
-  }, [documents, collectionId]);
+    if (collection) {
+      documents.fetchPinned({ collectionId: collection.id });
+    }
+  }, [documents, collection]);
 
   React.useEffect(() => {
     async function load() {
@@ -68,7 +93,7 @@ function CollectionScene() {
         try {
           setError(null);
           setFetching(true);
-          await collections.fetch(collectionId);
+          await collections.fetch(id);
         } catch (err) {
           setError(err);
         } finally {
@@ -77,7 +102,7 @@ function CollectionScene() {
       }
     }
     load();
-  }, [collections, isFetching, collection, error, collectionId, can]);
+  }, [collections, isFetching, collection, error, id, can]);
 
   useUnmount(ui.clearActiveCollection);
 
@@ -124,7 +149,7 @@ function CollectionScene() {
               source="collection"
               placeholder={`${t("Search in collection")}…`}
               label={`${t("Search in collection")}…`}
-              collectionId={collectionId}
+              collectionId={collection.id}
             />
           </Action>
           {can.update && (
@@ -257,27 +282,27 @@ function CollectionScene() {
                   )}
 
                   <Tabs>
-                    <Tab to={collectionUrl(collection.id)} exact>
+                    <Tab to={collectionUrl(collection.url)} exact>
                       {t("Documents")}
                     </Tab>
-                    <Tab to={collectionUrl(collection.id, "updated")} exact>
+                    <Tab to={collectionUrl(collection.url, "updated")} exact>
                       {t("Recently updated")}
                     </Tab>
-                    <Tab to={collectionUrl(collection.id, "published")} exact>
+                    <Tab to={collectionUrl(collection.url, "published")} exact>
                       {t("Recently published")}
                     </Tab>
-                    <Tab to={collectionUrl(collection.id, "old")} exact>
+                    <Tab to={collectionUrl(collection.url, "old")} exact>
                       {t("Least recently updated")}
                     </Tab>
                     <Tab
-                      to={collectionUrl(collection.id, "alphabetical")}
+                      to={collectionUrl(collection.url, "alphabetical")}
                       exact
                     >
                       {t("A–Z")}
                     </Tab>
                   </Tabs>
                   <Switch>
-                    <Route path={collectionUrl(collection.id, "alphabetical")}>
+                    <Route path={collectionUrl(collection.url, "alphabetical")}>
                       <PaginatedDocumentList
                         key="alphabetical"
                         documents={documents.alphabeticalInCollection(
@@ -288,7 +313,7 @@ function CollectionScene() {
                         showPin
                       />
                     </Route>
-                    <Route path={collectionUrl(collection.id, "old")}>
+                    <Route path={collectionUrl(collection.url, "old")}>
                       <PaginatedDocumentList
                         key="old"
                         documents={documents.leastRecentlyUpdatedInCollection(
@@ -299,12 +324,12 @@ function CollectionScene() {
                         showPin
                       />
                     </Route>
-                    <Route path={collectionUrl(collection.id, "recent")}>
+                    <Route path={collectionUrl(collection.url, "recent")}>
                       <Redirect
-                        to={collectionUrl(collection.id, "published")}
+                        to={collectionUrl(collection.url, "published")}
                       />
                     </Route>
-                    <Route path={collectionUrl(collection.id, "published")}>
+                    <Route path={collectionUrl(collection.url, "published")}>
                       <PaginatedDocumentList
                         key="published"
                         documents={documents.recentlyPublishedInCollection(
@@ -316,7 +341,7 @@ function CollectionScene() {
                         showPin
                       />
                     </Route>
-                    <Route path={collectionUrl(collection.id, "updated")}>
+                    <Route path={collectionUrl(collection.url, "updated")}>
                       <PaginatedDocumentList
                         key="updated"
                         documents={documents.recentlyUpdatedInCollection(
@@ -327,7 +352,7 @@ function CollectionScene() {
                         showPin
                       />
                     </Route>
-                    <Route path={collectionUrl(collection.id)} exact>
+                    <Route path={collectionUrl(collection.url)} exact>
                       <PaginatedDocumentList
                         documents={documents.rootInCollection(collection.id)}
                         fetch={documents.fetchPage}
