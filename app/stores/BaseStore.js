@@ -139,11 +139,7 @@ export default class BaseStore<T: BaseModel> {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
 
-    let item = this.data.get(id);
-
-    if (this.modelName === "Collection") {
-      item = this.rootStore.collections.getByUrl(id);
-    }
+    const item = this.data.get(id);
 
     if (item && !options.force) return item;
 

@@ -126,6 +126,30 @@ export default class CollectionsStore extends BaseStore<Collection> {
     return result;
   }
 
+  @action
+  async fetch(id: string, options: Object = {}): Promise<*> {
+    const item = this.get(id) || this.getByUrl(id);
+
+    if (item && !options.force) return item;
+
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/collections.info`, { id });
+      invariant(res && res.data, "Collection not available");
+
+      this.addPolicies(res.policies);
+      return this.add(res.data);
+    } catch (err) {
+      if (err.statusCode === 403) {
+        this.remove(id);
+      }
+      throw err;
+    } finally {
+      this.isFetching = false;
+    }
+  }
+
   getPathForDocument(documentId: string): ?DocumentPath {
     return this.pathsToDocuments.find((path) => path.id === documentId);
   }
