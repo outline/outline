@@ -1,58 +1,52 @@
 // @flow
-import { inject } from "mobx-react";
+import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
-import {
-  type RouterHistory,
-  type Location,
-  type Match,
-} from "react-router-dom";
-import DocumentsStore from "stores/DocumentsStore";
-import UiStore from "stores/UiStore";
+import { useEffect } from "react";
+import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
+import useStores from "hooks/useStores";
 import { editDocumentUrl } from "utils/routeHelpers";
 
-type Props = {
-  history: RouterHistory,
-  location: Location,
-  documents: DocumentsStore,
-  ui: UiStore,
-  match: Match,
-};
+function DocumentNew() {
+  const history = useHistory();
+  const location = useLocation();
+  const match = useRouteMatch();
+  const { documents, ui, collections } = useStores();
 
-class DocumentNew extends React.Component<Props> {
-  async componentDidMount() {
-    const params = queryString.parse(this.props.location.search);
-
-    try {
-      const document = await this.props.documents.create({
-        collectionId: this.props.match.params.id,
-        parentDocumentId: params.parentDocumentId,
-        templateId: params.templateId,
-        template: params.template,
-        title: "",
-        text: "",
-      });
-      this.props.history.replace(editDocumentUrl(document));
-    } catch (err) {
-      this.props.ui.showToast("Couldn’t create the document, try again?", {
-        type: "error",
-      });
-      this.props.history.goBack();
+  useEffect(() => {
+    async function createDocument() {
+      const params = queryString.parse(location.search);
+      try {
+        const collection = await collections.fetch(match.params.id || "");
+        const document = await documents.create({
+          collectionId: collection.id,
+          parentDocumentId: params.parentDocumentId,
+          templateId: params.templateId,
+          template: params.template,
+          title: "",
+          text: "",
+        });
+        history.replace(editDocumentUrl(document));
+      } catch (err) {
+        ui.showToast("Couldn’t create the document, try again?", {
+          type: "error",
+        });
+        history.goBack();
+      }
     }
-  }
+    createDocument();
+  });
 
-  render() {
-    return (
-      <Flex column auto>
-        <CenteredContent>
-          <LoadingPlaceholder />
-        </CenteredContent>
-      </Flex>
-    );
-  }
+  return (
+    <Flex column auto>
+      <CenteredContent>
+        <LoadingPlaceholder />
+      </CenteredContent>
+    </Flex>
+  );
 }
 
-export default inject("documents", "ui")(DocumentNew);
+export default observer(DocumentNew);

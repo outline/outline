@@ -140,6 +140,11 @@ export default class BaseStore<T: BaseModel> {
     }
 
     let item = this.data.get(id);
+
+    if (this.modelName === "Collection") {
+      item = this.rootStore.collections.getByUrl(id);
+    }
+
     if (item && !options.force) return item;
 
     this.isFetching = true;
