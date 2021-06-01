@@ -181,7 +181,7 @@
   "Duplicate": "文書の複製",
   "Unpublish": "未発表",
   "Move": "移動",
-  "History": "時間旅行",
+  "History": "変更履歴",
   "Download": "ダウンロード",
   "Print": "プリント",
   "Move {{ documentName }}": "{{ documentName }} を移動",
