@@ -1,6 +1,6 @@
 // @flow
 import invariant from "invariant";
-import { concat, last } from "lodash";
+import { concat, find, last } from "lodash";
 import { computed, action } from "mobx";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
@@ -133,6 +133,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
   titleForDocument(documentUrl: string): ?string {
     const path = this.pathsToDocuments.find((path) => path.url === documentUrl);
     if (path) return path.title;
+  }
+
+  getByUrl(url: string): ?Collection {
+    return find(Array.from(this.data.values()), (col: Collection) =>
+      url.endsWith(col.urlId)
+    );
   }
 
   delete = async (collection: Collection) => {
