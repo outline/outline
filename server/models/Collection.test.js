@@ -16,7 +16,7 @@ beforeEach(jest.resetAllMocks);
 describe("#url", () => {
   test("should return correct url for the collection", () => {
     const collection = new Collection({ id: "1234" });
-    expect(collection.url).toBe("/collections/1234");
+    expect(collection.url).toBe(`/collections/untitled-${collection.urlId}`);
   });
 });
 

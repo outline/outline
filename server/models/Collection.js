@@ -1,12 +1,13 @@
 // @flow
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import slug from "slug";
+import isUUID from "validator/lib/isUUID";
 import { Op, DataTypes, sequelize } from "../sequelize";
+import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 
-slug.defaults.mode = "rfc3986";
+const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 
 const Collection = sequelize.define(
   "collection",
@@ -72,7 +73,9 @@ const Collection = sequelize.define(
     },
     getterMethods: {
       url() {
-        return `/collections/${this.id}`;
+        if (!this.name) return `/collections/untitled-${this.urlId}`;
+
+        return `/collections/${slugify(this.name)}-${this.urlId}`;
       },
     },
   }
@@ -222,6 +225,17 @@ Collection.addHook("afterCreate", (model: Collection, options) => {
 });
 
 // Class methods
+
+Collection.findByPk = async function (id, options = {}) {
+  if (isUUID(id)) {
+    return this.findOne({ where: { id }, ...options });
+  } else if (id.match(URL_REGEX)) {
+    return this.findOne({
+      where: { urlId: id.match(URL_REGEX)[1] },
+      ...options,
+    });
+  }
+};
 
 // get all the membership relationshps a user could have with the collection
 Collection.membershipUserIds = async (collectionId: string) => {
