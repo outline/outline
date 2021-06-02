@@ -1,6 +1,6 @@
 // @flow
-import addDays from "date-fns/add_days";
-import differenceInDays from "date-fns/difference_in_days";
+import add from "date-fns/add";
+import differenceInDays from "date-fns/differenceInDays";
 import invariant from "invariant";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
@@ -118,7 +118,7 @@ export default class Document extends BaseModel {
       return undefined;
     }
 
-    return addDays(new Date(this.deletedAt), 30).toString();
+    return add(new Date(this.deletedAt), { days: 30 }).toString();
   }
 
   @computed

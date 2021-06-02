@@ -1,5 +1,5 @@
 // @flow
-import subHours from "date-fns/sub_hours";
+import sub from "date-fns/sub";
 import type { Event } from "../events";
 import { socketio } from "../main";
 import {
@@ -438,7 +438,7 @@ export default class Websockets {
           where: {
             groupId: event.modelId,
             deletedAt: {
-              [Op.gt]: subHours(new Date(), 1),
+              [Op.gt]: sub(new Date(), { hours: 1 }),
             },
           },
         });
@@ -448,7 +448,7 @@ export default class Websockets {
           where: {
             groupId: event.modelId,
             deletedAt: {
-              [Op.gt]: subHours(new Date(), 1),
+              [Op.gt]: sub(new Date(), { hours: 1 }),
             },
           },
         });

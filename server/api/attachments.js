@@ -39,7 +39,7 @@ router.post("attachments.create", auth(), async (ctx) => {
   const bucket = acl === "public-read" ? "public" : "uploads";
   const key = `${bucket}/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
-  const longDate = format(new Date(), "YYYYMMDDTHHmmss\\Z");
+  const longDate = format(new Date(), "yyyyMMdd'T'HHmmss'Z'");
   const policy = makePolicy(credential, longDate, acl, contentType);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;

@@ -1,19 +1,19 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import format from "date-fns/format";
+import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
 
 const locales = {
-  en: require(`date-fns/locale/en`),
+  en: require(`date-fns/locale/en-US`),
   de: require(`date-fns/locale/de`),
   es: require(`date-fns/locale/es`),
   fr: require(`date-fns/locale/fr`),
   it: require(`date-fns/locale/it`),
   ko: require(`date-fns/locale/ko`),
   pt: require(`date-fns/locale/pt`),
-  zh: require(`date-fns/locale/zh_cn`),
+  zh: require(`date-fns/locale/zh-CN`),
   ru: require(`date-fns/locale/ru`),
 };
 
@@ -64,7 +64,7 @@ function LocaleTime({
     };
   }, []);
 
-  let content = distanceInWordsToNow(dateTime, {
+  let content = formatDistanceToNow(Date.parse(dateTime), {
     addSuffix,
     locale: userLocale ? locales[userLocale] : undefined,
   });
@@ -78,7 +78,7 @@ function LocaleTime({
 
   return (
     <Tooltip
-      tooltip={format(dateTime, "MMMM Do, YYYY h:mm a")}
+      tooltip={format(Date.parse(dateTime), "MMMM do, yyyy h:mm a")}
       delay={tooltipDelay}
       placement="bottom"
     >

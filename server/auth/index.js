@@ -1,6 +1,6 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
-import addMonths from "date-fns/add_months";
+import add from "date-fns/add";
 import debug from "debug";
 import Koa from "koa";
 import bodyParser from "koa-body";
@@ -38,7 +38,7 @@ router.get("/redirect", auth(), async (ctx) => {
 
   ctx.cookies.set("accessToken", jwtToken, {
     httpOnly: false,
-    expires: addMonths(new Date(), 3),
+    expires: add(new Date(), { months: 3 }),
   });
 
   const team = await Team.findByPk(user.teamId);

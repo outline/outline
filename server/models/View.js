@@ -1,5 +1,5 @@
 // @flow
-import subMilliseconds from "date-fns/sub_milliseconds";
+import sub from "date-fns/sub";
 import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 import { User } from "../models";
 import { DataTypes, Op, sequelize } from "../sequelize";
@@ -57,7 +57,9 @@ View.findRecentlyEditingByDocument = async (documentId) => {
     where: {
       documentId,
       lastEditingAt: {
-        [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
+        [Op.gt]: sub(new Date(), {
+          seconds: (USER_PRESENCE_INTERVAL * 2) / 1000,
+        }),
       },
     },
     order: [["lastEditingAt", "DESC"]],

@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import * as React from "react";
 
 const LocaleTime = React.lazy(() => import("components/LocaleTime"));
@@ -13,7 +13,7 @@ type Props = {
 };
 
 function Time(props: Props) {
-  let content = distanceInWordsToNow(props.dateTime, {
+  let content = formatDistanceToNow(Date.parse(props.dateTime), {
     addSuffix: props.addSuffix,
   });
 

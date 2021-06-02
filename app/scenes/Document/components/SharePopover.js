@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import invariant from "invariant";
 import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
@@ -118,9 +118,12 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
                 <>
                   .{" "}
                   {t("The shared link was last accessed {{ timeAgo }}.", {
-                    timeAgo: distanceInWordsToNow(share.lastAccessedAt, {
-                      addSuffix: true,
-                    }),
+                    timeAgo: formatDistanceToNow(
+                      Date.parse(share.lastAccessedAt),
+                      {
+                        addSuffix: true,
+                      }
+                    ),
                   })}
                 </>
               )}

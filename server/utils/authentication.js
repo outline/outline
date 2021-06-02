@@ -1,7 +1,7 @@
 // @flow
 import querystring from "querystring";
 import * as Sentry from "@sentry/node";
-import addMonths from "date-fns/add_months";
+import add from "date-fns/add";
 import { type Context } from "koa";
 import { pick } from "lodash";
 import { User, Event, Team } from "../models";
@@ -60,7 +60,7 @@ export async function signIn(
   });
 
   const domain = getCookieDomain(ctx.request.hostname);
-  const expires = addMonths(new Date(), 3);
+  const expires = add(new Date(), { months: 3 });
 
   // set a cookie for which service we last signed in with. This is
   // only used to display a UI hint for the user for next time

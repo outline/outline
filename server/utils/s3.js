@@ -2,7 +2,7 @@
 import crypto from "crypto";
 import * as Sentry from "@sentry/node";
 import AWS from "aws-sdk";
-import addHours from "date-fns/add_hours";
+import add from "date-fns/add";
 import format from "date-fns/format";
 import fetch from "fetch-with-proxy";
 
@@ -36,7 +36,7 @@ export const makeCredential = () => {
   const credential =
     AWS_ACCESS_KEY_ID +
     "/" +
-    format(new Date(), "YYYYMMDD") +
+    format(new Date(), "yyyyMMdd") +
     "/" +
     AWS_REGION +
     "/s3/aws4_request";
@@ -49,7 +49,7 @@ export const makePolicy = (
   acl: string,
   contentType: string = "image"
 ) => {
-  const tomorrow = addHours(new Date(), 24);
+  const tomorrow = add(new Date(), { hours: 24 });
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
@@ -62,7 +62,7 @@ export const makePolicy = (
       { "x-amz-credential": credential },
       { "x-amz-date": longDate },
     ],
-    expiration: format(tomorrow, "YYYY-MM-DDTHH:mm:ss\\Z"),
+    expiration: format(tomorrow, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
   };
 
   return Buffer.from(JSON.stringify(policy)).toString("base64");
@@ -71,7 +71,7 @@ export const makePolicy = (
 export const getSignature = (policy: any) => {
   const kDate = hmac(
     "AWS4" + AWS_SECRET_ACCESS_KEY,
-    format(new Date(), "YYYYMMDD")
+    format(new Date(), "yyyyMMdd")
   );
   const kRegion = hmac(kDate, AWS_REGION);
   const kService = hmac(kRegion, "s3");

@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -59,7 +59,7 @@ function DocumentViews({ document, isOpen }: Props) {
                 ? t("Currently editing")
                 : t("Currently viewing")
               : t("Viewed {{ timeAgo }} ago", {
-                  timeAgo: distanceInWordsToNow(
+                  timeAgo: formatDistanceToNow(
                     view ? new Date(view.lastViewedAt) : new Date()
                   ),
                 });
