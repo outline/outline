@@ -8,5 +8,5 @@ export default function useUserLocale() {
     return undefined;
   }
 
-  return auth.user.language.split("_")[0];
+  return auth.user.language;
 }

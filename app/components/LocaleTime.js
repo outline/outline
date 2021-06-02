@@ -6,15 +6,16 @@ import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
 
 const locales = {
-  en: require(`date-fns/locale/en-US`),
-  de: require(`date-fns/locale/de`),
-  es: require(`date-fns/locale/es`),
-  fr: require(`date-fns/locale/fr`),
-  it: require(`date-fns/locale/it`),
-  ko: require(`date-fns/locale/ko`),
-  pt: require(`date-fns/locale/pt`),
-  zh: require(`date-fns/locale/zh-CN`),
-  ru: require(`date-fns/locale/ru`),
+  en_US: require(`date-fns/locale/en-US`),
+  de_DE: require(`date-fns/locale/de`),
+  es_ES: require(`date-fns/locale/es`),
+  fr_FR: require(`date-fns/locale/fr`),
+  it_IT: require(`date-fns/locale/it`),
+  ko_KR: require(`date-fns/locale/ko`),
+  pt_BR: require(`date-fns/locale/pt-BR`),
+  pt_PT: require(`date-fns/locale/pt`),
+  zh_CN: require(`date-fns/locale/zh-CN`),
+  ru_RU: require(`date-fns/locale/ru`),
 };
 
 let callbacks = [];
