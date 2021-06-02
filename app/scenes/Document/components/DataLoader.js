@@ -42,7 +42,7 @@ const sharedTreeCache = {};
 
 @observer
 class DataLoader extends React.Component<Props> {
-  @observable sharedTree: ?NavigationNode;
+  sharedTree: ?NavigationNode;
   @observable document: ?Document;
   @observable revision: ?Revision;
   @observable error: ?Error;
@@ -171,8 +171,8 @@ class DataLoader extends React.Component<Props> {
         shareId,
       });
 
-      this.document = response.document;
       this.sharedTree = response.sharedTree;
+      this.document = response.document;
       sharedTreeCache[this.document.id] = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
