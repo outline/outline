@@ -58,7 +58,7 @@ function CollectionScene() {
   const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
 
   const id = params.id || "";
-  const collection = collections.getByUrl(id);
+  const collection = collections.getByUrl(id) || collections.get(id);
   const can = policies.abilities(collection?.id || "");
   const canUser = policies.abilities(team.id);
   const { handleFiles, isImporting } = useImportDocument(collection?.id || "");
