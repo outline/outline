@@ -160,7 +160,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   getByUrl(url: string): ?Collection {
-    return find(Array.from(this.data.values()), (col: Collection) =>
+    return find(this.orderedData, (col: Collection) =>
       url.endsWith(col.urlId)
     );
   }
