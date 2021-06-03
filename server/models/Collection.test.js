@@ -1,4 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "../models";
 import {
@@ -9,6 +10,7 @@ import {
   buildDocument,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
+import slugify from "../utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -414,5 +416,56 @@ describe("#membershipUserIds", () => {
 
     const membershipUserIds = await Collection.membershipUserIds(collection.id);
     expect(membershipUserIds.length).toBe(6);
+  });
+});
+
+describe("#findByPk", () => {
+  test("should return collection with collection Id", async () => {
+    const { collection } = await seed();
+    const response = await Collection.findByPk(collection.id);
+
+    expect(response.id).toBe(collection.id);
+  });
+
+  test("should return collection when urlId is present", async () => {
+    const { collection } = await seed();
+    const id = `${slugify(collection.name)}-${collection.urlId}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response.id).toBe(collection.id);
+  });
+
+  test("should return undefined when incorrect uuid type", async () => {
+    const { collection } = await seed();
+    const response = await Collection.findByPk(collection.id + "-incorrect");
+
+    expect(response).toBe(undefined);
+  });
+
+  test("should return undefined when incorrect urlId length", async () => {
+    const { collection } = await seed();
+    const id = `${slugify(collection.name)}-${collection.urlId}incorrect`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(undefined);
+  });
+
+  test("should return null when uuid isn't present", async () => {
+    const { collection } = await seed();
+    const response = await Collection.findByPk("a" + collection.id.slice(1));
+
+    expect(response).toBe(null);
+  });
+
+  test("should return null when urlId isn't present", async () => {
+    const id = `${slugify("not present collection")}-${randomstring.generate(
+      15
+    )}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(null);
   });
 });
