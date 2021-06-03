@@ -468,4 +468,13 @@ describe("#findByPk", () => {
 
     expect(response).toBe(null);
   });
+
+  test("should return null when urlId is present but corresponding collection name is incorrect", async () => {
+    const { collection } = await seed();
+    const id = `${slugify("not present collection")}-${collection.urlId}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(null);
+  });
 });

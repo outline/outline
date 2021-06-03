@@ -217,12 +217,16 @@ Document.findByPk = async function (id, options = {}) {
       ...options,
     });
   } else if (id.match(URL_REGEX)) {
-    return scope.findOne({
+    const document = await scope.findOne({
       where: {
-        urlId: id.match(URL_REGEX)[1],
+        urlId: id.match(URL_REGEX)[2],
       },
       ...options,
     });
+    if (document && slugify(document.title) !== id.match(URL_REGEX)[1]) {
+      return null;
+    }
+    return document;
   }
 };
 

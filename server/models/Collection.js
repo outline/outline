@@ -229,10 +229,16 @@ Collection.findByPk = async function (id, options = {}) {
   if (isUUID(id)) {
     return this.findOne({ where: { id }, ...options });
   } else if (id.match(URL_REGEX)) {
-    return this.findOne({
-      where: { urlId: id.match(URL_REGEX)[1] },
+    const matching = id.match(URL_REGEX);
+    const collection = await this.findOne({
+      where: { urlId: matching[2] },
       ...options,
     });
+
+    if (collection && slugify(collection.name) !== matching[1]) {
+      return null;
+    }
+    return collection;
   }
 };
 
