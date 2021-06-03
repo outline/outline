@@ -22,7 +22,6 @@ sharedmemory.heap_size=3221225472
 
 module.system.node.resolve_dirname=node_modules
 module.system.node.resolve_dirname=app
-module.ignore_non_literal_requires=true
 
 module.name_mapper='^\(.*\)\.md$' -> 'empty/object'
 module.name_mapper='^shared\/\(.*\)$' -> '<PROJECT_ROOT>/shared/\1'

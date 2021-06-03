@@ -7,19 +7,6 @@ const pkg = require("rich-markdown-editor/package.json");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
-const supportedLocales = [
-  "en-US",
-  "de",
-  "es",
-  "fr",
-  "it",
-  "zh-CN",
-  "ko",
-  "pt-BR",
-  "pt",
-  "ru",
-];
-
 require('dotenv').config({ silent: true });
 
 module.exports = {
@@ -100,9 +87,6 @@ module.exports = {
       maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // For large bundles
     }),
     new RelativeCiAgentWebpackPlugin(),
-    new webpack.ContextReplacementPlugin(
-      /date\-fns[\/\\]/,
-      new RegExp(`[/\\\\\](${supportedLocales.join('|')})[/\\\\\]index\.js$`))
   ],
   stats: {
     assets: false,
