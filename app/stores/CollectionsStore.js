@@ -160,9 +160,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   getByUrl(url: string): ?Collection {
-    return find(this.orderedData, (col: Collection) =>
-      url.endsWith(col.urlId)
-    );
+    return find(this.orderedData, (col: Collection) => url.endsWith(col.urlId));
   }
 
   delete = async (collection: Collection) => {

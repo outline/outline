@@ -7,6 +7,7 @@ import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
 import parseTitle from "../../shared/utils/parseTitle";
+import { URL_REGEX } from "../../shared/utils/routeHelpers";
 import unescape from "../../shared/utils/unescape";
 import { Collection, User } from "../models";
 import { DataTypes, sequelize } from "../sequelize";
@@ -14,7 +15,6 @@ import slugify from "../utils/slugify";
 import Revision from "./Revision";
 
 const Op = Sequelize.Op;
-const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;

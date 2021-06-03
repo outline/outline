@@ -38,6 +38,7 @@ import Subheading from "components/Subheading";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
+import Collection from "../models/Collection";
 import { updateCollectionUrl } from "../utils/routeHelpers";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
@@ -58,21 +59,21 @@ function CollectionScene() {
   const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
 
   const id = params.id || "";
-  const collection = collections.getByUrl(id) || collections.get(id);
+  const collection: ?Collection =
+    collections.getByUrl(id) || collections.get(id);
   const can = policies.abilities(collection?.id || "");
   const canUser = policies.abilities(team.id);
   const { handleFiles, isImporting } = useImportDocument(collection?.id || "");
 
   React.useEffect(() => {
     async function load() {
-      if (isUUID(id)) {
-        const collection = await collections.fetch(id);
+      if (isUUID(id) && collection) {
         const canonicalUrl = updateCollectionUrl(match.url, collection.url);
         history.replace(canonicalUrl);
       }
     }
     load();
-  });
+  }, [collection, history, id, match.url]);
 
   React.useEffect(() => {
     if (collection) {

@@ -2,12 +2,11 @@
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import isUUID from "validator/lib/isUUID";
+import { URL_REGEX } from "../../shared/utils/routeHelpers";
 import { Op, DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
-
-const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 
 const Collection = sequelize.define(
   "collection",
