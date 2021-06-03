@@ -1,7 +1,6 @@
 // @flow
 import crypto from "crypto";
-import add from "date-fns/add";
-import sub from "date-fns/sub";
+import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";
@@ -119,7 +118,7 @@ User.prototype.collectionIds = async function (options = {}) {
 };
 
 User.prototype.updateActiveAt = function (ip, force = false) {
-  const fiveMinutesAgo = sub(new Date(), { minutes: 5 });
+  const fiveMinutesAgo = subMinutes(new Date(), 5);
 
   // ensure this is updated only every few minutes otherwise
   // we'll be constantly writing to the DB as API requests happen
@@ -156,7 +155,7 @@ User.prototype.getTransferToken = function () {
     {
       id: this.id,
       createdAt: new Date().toISOString(),
-      expiresAt: add(new Date(), { minutes: 1 }).toISOString(),
+      expiresAt: addMinutes(new Date(), 1).toISOString(),
       type: "transfer",
     },
     this.jwtSecret

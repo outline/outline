@@ -2,8 +2,7 @@
 import crypto from "crypto";
 import * as Sentry from "@sentry/node";
 import AWS from "aws-sdk";
-import add from "date-fns/add";
-import format from "date-fns/format";
+import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
@@ -49,7 +48,7 @@ export const makePolicy = (
   acl: string,
   contentType: string = "image"
 ) => {
-  const tomorrow = add(new Date(), { hours: 24 });
+  const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },

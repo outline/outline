@@ -1,5 +1,5 @@
 // @flow
-import sub from "date-fns/sub";
+import { subDays } from "date-fns";
 import debug from "debug";
 import Router from "koa-router";
 import { AuthenticationError } from "../errors";
@@ -23,7 +23,7 @@ router.post("utils.gc", async (ctx) => {
     attributes: ["id", "teamId", "text"],
     where: {
       deletedAt: {
-        [Op.lt]: sub(new Date(), { days: 30 }),
+        [Op.lt]: subDays(new Date(), 30),
       },
     },
     paranoid: false,

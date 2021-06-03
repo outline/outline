@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import sub from "date-fns/sub";
+import { subDays } from "date-fns";
 import TestServer from "fetch-test-server";
 import app from "../app";
 import { Attachment, Document } from "../models";
@@ -38,7 +38,7 @@ describe("#utils.gc", () => {
   it("should not destroy documents deleted less than 30 days ago", async () => {
     await buildDocument({
       publishedAt: new Date(),
-      deletedAt: sub(new Date(), { days: 25 }),
+      deletedAt: subDays(new Date(), 25),
     });
 
     const res = await server.post("/api/utils.gc", {
@@ -54,7 +54,7 @@ describe("#utils.gc", () => {
   it("should destroy documents deleted more than 30 days ago", async () => {
     await buildDocument({
       publishedAt: new Date(),
-      deletedAt: sub(new Date(), { days: 60 }),
+      deletedAt: subDays(new Date(), 60),
     });
 
     const res = await server.post("/api/utils.gc", {
@@ -69,8 +69,8 @@ describe("#utils.gc", () => {
 
   it("should destroy attachments no longer referenced", async () => {
     const document = await buildDocument({
-      publishedAt: sub(new Date(), { days: 90 }),
-      deletedAt: sub(new Date(), { days: 60 }),
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
     });
 
     const attachment = await buildAttachment({
@@ -94,8 +94,8 @@ describe("#utils.gc", () => {
 
   it("should handle unknown attachment ids", async () => {
     const document = await buildDocument({
-      publishedAt: sub(new Date(), { days: 90 }),
-      deletedAt: sub(new Date(), { days: 60 }),
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
     });
 
     const attachment = await buildAttachment({
@@ -127,8 +127,8 @@ describe("#utils.gc", () => {
 
     const document = await buildDocument({
       teamId: document1.teamId,
-      publishedAt: sub(new Date(), { days: 90 }),
-      deletedAt: sub(new Date(), { days: 60 }),
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
     });
 
     const attachment = await buildAttachment({
@@ -158,7 +158,7 @@ describe("#utils.gc", () => {
   it("should destroy draft documents deleted more than 30 days ago", async () => {
     await buildDocument({
       publishedAt: undefined,
-      deletedAt: sub(new Date(), { days: 60 }),
+      deletedAt: subDays(new Date(), 60),
     });
 
     const res = await server.post("/api/utils.gc", {

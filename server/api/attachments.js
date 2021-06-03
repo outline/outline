@@ -1,5 +1,5 @@
 // @flow
-import format from "date-fns/format";
+import { format } from "date-fns";
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { NotFoundError } from "../errors";

@@ -1,5 +1,5 @@
 // @flow
-import formatDistanceToNow from "date-fns/formatDistanceToNow";
+import { formatDistanceToNow } from "date-fns";
 import * as React from "react";
 
 const LocaleTime = React.lazy(() => import("components/LocaleTime"));

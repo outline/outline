@@ -1,5 +1,5 @@
 // @flow
-import format from "date-fns/format";
+import { format } from "date-fns";
 import * as React from "react";
 import { NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";

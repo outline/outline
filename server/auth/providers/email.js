@@ -1,5 +1,5 @@
 // @flow
-import sub from "date-fns/sub";
+import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
 import { AuthorizationError } from "../../errors";
@@ -57,7 +57,7 @@ router.post("email", async (ctx) => {
     // basic rate limit of endpoint to prevent send email abuse
     if (
       user.lastSigninEmailSentAt &&
-      user.lastSigninEmailSentAt > sub(new Date(), { minutes: 2 })
+      user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
     ) {
       ctx.body = {
         redirect: `${team.url}?notice=email-auth-ratelimit`,

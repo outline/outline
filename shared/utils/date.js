@@ -1,5 +1,5 @@
 // @flow
-import sub from "date-fns/sub";
+import { subDays, subMonths, subWeeks, subYears } from "date-fns";
 
 export function subtractDate(
   date: Date,
@@ -7,13 +7,13 @@ export function subtractDate(
 ) {
   switch (period) {
     case "day":
-      return sub(date, { days: 1 });
+      return subDays(date, 1);
     case "week":
-      return sub(date, { weeks: 1 });
+      return subWeeks(date, 1);
     case "month":
-      return sub(date, { months: 1 });
+      return subMonths(date, 1);
     case "year":
-      return sub(date, { years: 1 });
+      return subYears(date, 1);
     default:
       return date;
   }

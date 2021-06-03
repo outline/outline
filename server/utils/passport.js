@@ -1,6 +1,5 @@
 // @flow
-import add from "date-fns/add";
-import sub from "date-fns/sub";
+import { addMinutes, subMinutes } from "date-fns";
 import { type Request } from "koa";
 import { OAuthStateMismatchError } from "../errors";
 import { getCookieDomain } from "./domains";
@@ -14,7 +13,7 @@ export class StateStore {
     // $FlowFixMe
     req.cookies.set(this.key, state, {
       httpOnly: false,
-      expires: add(new Date(), { minutes: 10 }),
+      expires: addMinutes(new Date(), 10),
       domain: getCookieDomain(req.hostname),
     });
 
@@ -37,7 +36,7 @@ export class StateStore {
     // $FlowFixMe
     req.cookies.set(this.key, "", {
       httpOnly: false,
-      expires: sub(new Date(), { minutes: 1 }),
+      expires: subMinutes(new Date(), 1),
       domain: getCookieDomain(req.hostname),
     });
 

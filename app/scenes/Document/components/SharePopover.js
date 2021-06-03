@@ -1,5 +1,5 @@
 // @flow
-import formatDistanceToNow from "date-fns/formatDistanceToNow";
+import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
 import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
