@@ -1005,13 +1005,14 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bundle-stats/utils@^2.1.1":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@bundle-stats/utils/-/utils-2.3.0.tgz#c5c314d7c9b07a8bc35b19328f3f251d1671fb8b"
-  integrity sha512-v+tYFCHE4dmdsodwRuhbVcKgfrDz3mBOc3RLJpyKUPy/CHnhKBjMtOw68OTM8hUQG/FtcvEqyvyEM1SLAfGGiw==
+"@bundle-stats/utils@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@bundle-stats/utils/-/utils-3.0.0.tgz#8578b957bbad3a71b6137ca6541f2ee81f1f176b"
+  integrity sha512-JnaatWw0HQ4rmjbQU5nrYy1EmWniYGMo/gqg0LNS09mymvM0k9MzNk7hoXd4AbYL8R23v8cx7Bjr5yMhvKE7BQ==
   dependencies:
     convert-units "^2.3.4"
-    core-js "^3.1.4"
+    query-string "^7.0.0"
+    serialize-query-params "^1.3.3"
     superstruct "^0.8.3"
 
 "@cnakazawa/watch@^1.0.3":
@@ -1804,13 +1805,13 @@
   dependencies:
     lodash.throttle "^4.1.1"
 
-"@relative-ci/agent@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-1.5.0.tgz#6cbd74c1d070eaf57b633a829da78ad903970d72"
-  integrity sha512-lYq5MJLTgEvSb9QrkSg1WTheNctqrt+cwzBHpiXwtw91ViwaxbgCnWJPJCsCznty3kDDFX9YaACznI6PvnSMdQ==
+"@relative-ci/agent@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-2.0.0.tgz#21f73fec146a0f7c94684ead0f6ecbf05ea5c4ee"
+  integrity sha512-W/Mew+z7PRnFNxceAf4H3BI49FEanT3EGr3Q2LN/5JNvDBfzs+x2jYr1DAmBjHrNR88+emxSir2mQv+5GCNCbg==
   dependencies:
-    "@bundle-stats/utils" "^2.1.1"
-    "@relative-ci/env-ci" "^5.1.0"
+    "@bundle-stats/utils" "^3.0.0"
+    "@relative-ci/env-ci" "^5.3.1"
     core-js "^3.6.4"
     cosmiconfig "^7.0.0"
     debug "^4.1.1"
@@ -1819,10 +1820,10 @@
     isomorphic-fetch "^3.0.0"
     lodash "^4.17.15"
 
-"@relative-ci/env-ci@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@relative-ci/env-ci/-/env-ci-5.1.0.tgz#efc21a015b4a7112ffca92900239cdeddba114c1"
-  integrity sha512-7KI6izFxbx0Hyzk1kgpL/DaAmP9wEArSGJWaCo/B4cgy/D5Q2lOH1P/LkItTq2rnPl96bo1aCOB6z0/RmEBA2w==
+"@relative-ci/env-ci@^5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@relative-ci/env-ci/-/env-ci-5.3.1.tgz#ab88f0c414fe04f602d3087b76068cd00ea756cb"
+  integrity sha512-FychihgwUb2n28hACPROIb7LDrIQPGrIPXOZ7OsIFZw8o2rJzI1Xz0l6EJd79ePB+30rgmMJBFCnTmsH+t5ZvQ==
   dependencies:
     execa "^4.0.0"
     java-properties "^1.0.0"
@@ -4167,7 +4168,7 @@ core-js@^2.4.0, core-js@^2.6.5:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.11.tgz#38831469f9922bded8ee21c9dc46985e0399308c"
   integrity sha512-5wjnpaT/3dV+XB4borEsnAYQchn00XSgTAWKDkEqv+K8KevjbzmofK6hfJ9TZIlpj2N0xQpazy7PiRQiWHqzWg==
 
-core-js@^3.1.2, core-js@^3.1.4, core-js@^3.10.2, core-js@^3.6.4:
+core-js@^3.1.2, core-js@^3.10.2, core-js@^3.6.4:
   version "3.10.2"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.10.2.tgz#17cb038ce084522a717d873b63f2b3ee532e2cd5"
   integrity sha512-W+2oVYeNghuBr3yTzZFQ5rfmjZtYB/Ubg87R5YOmlGrIb+Uw9f7qjUbhsj+/EkXhcV7eOD3jiM4+sgraX3FZUw==
@@ -5628,6 +5629,11 @@ fill-range@^7.0.1:
   integrity sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==
   dependencies:
     to-regex-range "^5.0.1"
+
+filter-obj@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/filter-obj/-/filter-obj-1.1.0.tgz#9b311112bc6c6127a16e016c6c5d7f19e0805c5b"
+  integrity sha1-mzERErxsYSehbgFsbF1/GeCAXFs=
 
 find-cache-dir@^2.1.0:
   version "2.1.0"
@@ -10550,6 +10556,16 @@ query-string@^5.0.1:
     object-assign "^4.1.0"
     strict-uri-encode "^1.0.0"
 
+query-string@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/query-string/-/query-string-7.0.0.tgz#aaad2c8d5c6a6d0c6afada877fecbd56af79e609"
+  integrity sha512-Iy7moLybliR5ZgrK/1R3vjrXq03S13Vz4Rbm5Jg3EFq1LUmQppto0qtXz4vqZ386MSRjZgnTSZ9QC+NZOSd/XA==
+  dependencies:
+    decode-uri-component "^0.2.0"
+    filter-obj "^1.1.0"
+    split-on-first "^1.0.0"
+    strict-uri-encode "^2.0.0"
+
 querystring-es3@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/querystring-es3/-/querystring-es3-0.2.1.tgz#9ec61f79049875707d69414596fd907a4d711e73"
@@ -11646,6 +11662,11 @@ serialize-javascript@^5.0.1:
   dependencies:
     randombytes "^2.1.0"
 
+serialize-query-params@^1.3.3:
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/serialize-query-params/-/serialize-query-params-1.3.4.tgz#21a6a1c6110ac46aa23a269a0e1517e4de3204ed"
+  integrity sha512-hSVbcw7DLktsgdbfcFrwIFDxM1m/EBvba/YJe/uYeN58FMHrhza9VgM5S4EruJnDlB2YShynfTgnYpVkN23rxA==
+
 set-blocking@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/set-blocking/-/set-blocking-2.0.0.tgz#045f9782d011ae9a6803ddd382b24392b3d890f7"
@@ -12054,6 +12075,11 @@ spdx-license-ids@^3.0.0:
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-3.0.6.tgz#c80757383c28abf7296744998cbc106ae8b854ce"
   integrity sha512-+orQK83kyMva3WyPf59k1+Y525csj5JejicWut55zeTWANuN17qSiSLUXWtzHeNWORSvT7GLDJ/E/XiIWoXBTw==
 
+split-on-first@^1.0.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/split-on-first/-/split-on-first-1.1.0.tgz#f610afeee3b12bce1d0c30425e76398b78249a5f"
+  integrity sha512-43ZssAJaMusuKWL8sKUBQXHWOpq8d6CfN/u1p4gUzfJkM05C8rxTmYrkIPTXapZpORA6LkkzcUulJ8FqA7Uudw==
+
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/split-string/-/split-string-3.1.0.tgz#7cb09dda3a86585705c64b39a6466038682e8fe2"
@@ -12188,6 +12214,11 @@ strict-uri-encode@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz#279b225df1d582b1f54e65addd4352e18faa0713"
   integrity sha1-J5siXfHVgrH1TmWt3UNS4Y+qBxM=
+
+strict-uri-encode@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-2.0.0.tgz#b9c7330c7042862f6b142dc274bbcc5866ce3546"
+  integrity sha1-ucczDHBChi9rFC3CdLvMWGbONUY=
 
 string-length@^4.0.1:
   version "4.0.1"
