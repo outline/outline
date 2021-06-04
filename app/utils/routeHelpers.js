@@ -12,7 +12,7 @@ export function starredUrl(): string {
 }
 
 export function newCollectionUrl(): string {
-  return "/collections/new";
+  return "/collection/new";
 }
 
 export function collectionUrl(url: string, section: ?string): string {
@@ -25,7 +25,7 @@ export function updateCollectionUrl(
   collection: Collection
 ): string {
   // Update url to match the current one
-  return oldUrl.replace(`/collections/${collection.id}`, collection.url);
+  return oldUrl.replace(`/collection/${collection.id}`, collection.url);
 }
 
 export function documentUrl(doc: Document): string {
@@ -63,7 +63,7 @@ export function newDocumentUrl(
     template?: boolean,
   }
 ): string {
-  return `/collections/${collectionId}/new?${queryString.stringify(params)}`;
+  return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
 export function searchUrl(

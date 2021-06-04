@@ -46,9 +46,9 @@ export default function AuthenticatedRoutes() {
           <Route exact path="/drafts" component={Drafts} />
           <Route exact path="/archive" component={Archive} />
           <Route exact path="/trash" component={Trash} />
-          <Route exact path="/collections/:id/new" component={DocumentNew} />
-          <Route exact path="/collections/:id/:tab" component={Collection} />
-          <Route exact path="/collections/:id" component={Collection} />
+          <Route exact path="/collection/:id/new" component={DocumentNew} />
+          <Route exact path="/collection/:id/:tab" component={Collection} />
+          <Route exact path="/collection/:id" component={Collection} />
           <Route exact path={`/d/${slug}`} component={RedirectDocument} />
           <Route
             exact

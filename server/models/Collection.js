@@ -72,9 +72,9 @@ const Collection = sequelize.define(
     },
     getterMethods: {
       url() {
-        if (!this.name) return `/collections/untitled-${this.urlId}`;
+        if (!this.name) return `/collection/untitled-${this.urlId}`;
 
-        return `/collections/${slugify(this.name)}-${this.urlId}`;
+        return `/collection/${slugify(this.name)}-${this.urlId}`;
       },
     },
   }
