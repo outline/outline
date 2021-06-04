@@ -17,12 +17,17 @@ function DocumentNew() {
   const match = useRouteMatch();
   const { t } = useTranslation();
   const { documents, ui, collections } = useStores();
+  const id = match.params.id || "";
 
   useEffect(() => {
     async function createDocument() {
       const params = queryString.parse(location.search);
       try {
-        const collection = await collections.fetch(match.params.id || "");
+        const collection =
+          collections.getByUrl(id) ||
+          collections.get(id) ||
+          (await collections.fetch(id));
+
         const document = await documents.create({
           collectionId: collection.id,
           parentDocumentId: params.parentDocumentId,
@@ -31,6 +36,7 @@ function DocumentNew() {
           title: "",
           text: "",
         });
+
         history.replace(editDocumentUrl(document));
       } catch (err) {
         ui.showToast(t("Couldn’t create the document, try again?"), {
