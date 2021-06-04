@@ -2,7 +2,9 @@
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import * as React from "react";
 
-const LocaleTime = React.lazy(() => import("components/LocaleTime"));
+const LocaleTime = React.lazy(() =>
+  import(/* webpackChunkName: "locale-time" */ "components/LocaleTime")
+);
 
 type Props = {
   dateTime: string,

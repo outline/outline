@@ -20,7 +20,9 @@ import Route from "components/ProfiledRoute";
 import SocketProvider from "components/SocketProvider";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
-const SettingsRoutes = React.lazy(() => import("./settings"));
+const SettingsRoutes = React.lazy(() =>
+  import(/* webpackChunkName: "settings" */ "./settings")
+);
 
 const NotFound = () => <Search notFound />;
 const RedirectDocument = ({ match }: { match: Match }) => (

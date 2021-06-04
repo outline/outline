@@ -12,7 +12,9 @@ import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import UserMenu from "menus/UserMenu";
 
-const Table = React.lazy<TableProps>(() => import("components/Table"));
+const Table = React.lazy<TableProps>(() =>
+  import(/* webpackChunkName: "table" */ "components/Table")
+);
 
 type Props = {|
   ...$Diff<TableProps, { columns: any }>,
