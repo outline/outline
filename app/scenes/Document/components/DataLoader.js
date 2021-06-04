@@ -220,7 +220,6 @@ class DataLoader extends React.Component<Props> {
   };
 
   render() {
-    console.log(this.props.location.pathname);
     const { location, policies, ui } = this.props;
 
     if (this.error) {
@@ -233,7 +232,6 @@ class DataLoader extends React.Component<Props> {
 
     const document = this.document;
     const revision = this.revision;
-    console.log(document?.id);
 
     if (!document) {
       return (
