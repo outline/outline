@@ -67,7 +67,7 @@ function CollectionScene() {
 
   React.useEffect(() => {
     if (isUUID(id) && collection) {
-      const canonicalUrl = updateCollectionUrl(match.url, collection.url);
+      const canonicalUrl = updateCollectionUrl(match.url, collection);
       history.replace(canonicalUrl);
     }
   }, [collection, history, id, match.url]);

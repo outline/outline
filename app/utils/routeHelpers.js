@@ -1,5 +1,6 @@
 // @flow
 import queryString from "query-string";
+import Collection from "models/Collection";
 import Document from "models/Document";
 
 export function homeUrl(): string {
@@ -19,14 +20,12 @@ export function collectionUrl(url: string, section: ?string): string {
   return url;
 }
 
-export function updateCollectionUrl(oldUrl: string, newUrl: string): string {
+export function updateCollectionUrl(
+  oldUrl: string,
+  collection: Collection
+): string {
   // Update url to match the current one
-  const urlParts = oldUrl.trim().split("/");
-  const sections = urlParts.slice(3);
-  if (sections[0]) {
-    return [newUrl, sections].join("/");
-  }
-  return newUrl;
+  return oldUrl.replace(`/collections/${collection.id}`, collection.url);
 }
 
 export function documentUrl(doc: Document): string {
@@ -51,14 +50,9 @@ export function documentHistoryUrl(doc: Document, revisionId?: string): string {
  * Replace full url's document part with the new one in case
  * the document slug has been updated
  */
-export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
+export function updateDocumentUrl(oldUrl: string, document: Document): string {
   // Update url to match the current one
-  const urlParts = oldUrl.trim().split("/");
-  const actions = urlParts.slice(3);
-  if (actions[0]) {
-    return [newUrl, actions].join("/");
-  }
-  return newUrl;
+  return oldUrl.replace(`/doc/${document.id}`, document.url);
 }
 
 export function newDocumentUrl(

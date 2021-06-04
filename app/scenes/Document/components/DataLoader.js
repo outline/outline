@@ -211,10 +211,7 @@ class DataLoader extends React.Component<Props> {
       const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
       if (canRedirect) {
-        const canonicalUrl = updateDocumentUrl(
-          this.props.match.url,
-          document.url
-        );
+        const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
         if (this.props.location.pathname !== canonicalUrl) {
           this.props.history.replace(canonicalUrl);
         }
@@ -223,6 +220,7 @@ class DataLoader extends React.Component<Props> {
   };
 
   render() {
+    console.log(this.props.location.pathname);
     const { location, policies, ui } = this.props;
 
     if (this.error) {
@@ -235,6 +233,7 @@ class DataLoader extends React.Component<Props> {
 
     const document = this.document;
     const revision = this.revision;
+    console.log(document?.id);
 
     if (!document) {
       return (
