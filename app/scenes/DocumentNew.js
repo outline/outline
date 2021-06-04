@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
@@ -14,6 +15,7 @@ function DocumentNew() {
   const history = useHistory();
   const location = useLocation();
   const match = useRouteMatch();
+  const { t } = useTranslation();
   const { documents, ui, collections } = useStores();
 
   useEffect(() => {
@@ -31,7 +33,7 @@ function DocumentNew() {
         });
         history.replace(editDocumentUrl(document));
       } catch (err) {
-        ui.showToast("Couldn’t create the document, try again?", {
+        ui.showToast(t("Couldn’t create the document, try again?"), {
           type: "error",
         });
         history.goBack();
