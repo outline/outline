@@ -45,9 +45,12 @@ module.exports = {
       path.resolve(__dirname, 'app'),
       'node_modules'
     ],
-    mainFields: ["browser",  "main"],
     alias: {
       shared: path.resolve(__dirname, 'shared'),
+      'boundless-arrow-key-navigation': 'boundless-arrow-key-navigation/build',
+      'boundless-popover': 'boundless-popover/build',
+      'boundless-utils-omit-keys': 'boundless-utils-omit-keys/build',
+      'boundless-utils-uuid': 'boundless-utils-uuid/build'
     }
   },
   plugins: [
