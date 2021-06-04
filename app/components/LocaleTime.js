@@ -1,5 +1,5 @@
 // @flow
-import { formatRFC7231, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
@@ -78,7 +78,7 @@ function LocaleTime({
 
   return (
     <Tooltip
-      tooltip={formatRFC7231(Date.parse(dateTime))}
+      tooltip={format(Date.parse(dateTime), "MMMM do, yyyy h:mm a")}
       delay={tooltipDelay}
       placement="bottom"
     >

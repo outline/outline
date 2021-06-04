@@ -1,5 +1,5 @@
 // @flow
-import { lightFormat } from "date-fns";
+import { format } from "date-fns";
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { NotFoundError } from "../errors";
@@ -39,7 +39,7 @@ router.post("attachments.create", auth(), async (ctx) => {
   const bucket = acl === "public-read" ? "public" : "uploads";
   const key = `${bucket}/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
-  const longDate = lightFormat(new Date(), "yyyyMMdd'T'HHmmss'Z'");
+  const longDate = format(new Date(), "yyyyMMdd'T'HHmmss'Z'");
   const policy = makePolicy(credential, longDate, acl, contentType);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
