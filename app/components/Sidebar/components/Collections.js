@@ -38,7 +38,7 @@ function Collections({ onCreateCollection }: Props) {
           setFetching(true);
           await collections.fetchPage({ limit: 100 });
         } catch (error) {
-          ui.showToast(error.message + ", try again?", {
+          ui.showToast(error.message + t(", try again?"), {
             type: "error",
           });
           setFetchError(true);
@@ -48,7 +48,7 @@ function Collections({ onCreateCollection }: Props) {
       }
     }
     load();
-  }, [collections, isFetching, ui, fetchError]);
+  }, [collections, isFetching, ui, fetchError, t]);
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
