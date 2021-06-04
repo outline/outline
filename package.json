@@ -194,7 +194,7 @@
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
-    "@relative-ci/agent": "^1.5.0",
+    "@relative-ci/agent": "^2.0.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
