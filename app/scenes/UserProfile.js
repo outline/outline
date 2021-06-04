@@ -1,5 +1,5 @@
 // @flow
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns/esm";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";

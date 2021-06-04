@@ -1,5 +1,5 @@
 // @flow
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns/esm";
 import invariant from "invariant";
 import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";

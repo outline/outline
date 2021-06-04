@@ -1,5 +1,5 @@
 // @flow
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns/esm";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
