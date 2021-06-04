@@ -66,13 +66,10 @@ function CollectionScene() {
   const { handleFiles, isImporting } = useImportDocument(collection?.id || "");
 
   React.useEffect(() => {
-    async function load() {
-      if (isUUID(id) && collection) {
-        const canonicalUrl = updateCollectionUrl(match.url, collection.url);
-        history.replace(canonicalUrl);
-      }
+    if (isUUID(id) && collection) {
+      const canonicalUrl = updateCollectionUrl(match.url, collection.url);
+      history.replace(canonicalUrl);
     }
-    load();
   }, [collection, history, id, match.url]);
 
   React.useEffect(() => {
