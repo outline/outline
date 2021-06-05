@@ -110,7 +110,7 @@ if (isProduction) {
   app.use(mount("/emails", emails));
 }
 
-// redirect routing logger to other output pipe
+// redirect routing logger to optional "http" debug
 app.use(
   logger((str, args) => {
     log(str);
