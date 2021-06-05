@@ -23,10 +23,7 @@ function DocumentNew() {
     async function createDocument() {
       const params = queryString.parse(location.search);
       try {
-        const collection =
-          collections.getByUrl(id) ||
-          collections.get(id) ||
-          (await collections.fetch(id));
+        const collection = await collections.fetch(id);
 
         const document = await documents.create({
           collectionId: collection.id,
