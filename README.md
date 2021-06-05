@@ -97,6 +97,9 @@ For contributing features and fixes you can quickly get an environment running u
     1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
 1. Configure your Slack app's Oauth & Permissions settings 
     1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
+       1. In the latest Slack settings, the `http//*` cannot be added for security. For local development, you can use a tool like `ngrok` or a package like `mkcert` and I've included some links below.
+          1. [ngrok](https://ngrok.com)
+          1. [How to use HTTPS for local development](https://web.dev/how-to-use-local-https/)
     1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
