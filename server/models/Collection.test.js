@@ -421,14 +421,14 @@ describe("#membershipUserIds", () => {
 
 describe("#findByPk", () => {
   test("should return collection with collection Id", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id);
 
     expect(response.id).toBe(collection.id);
   });
 
   test("should return collection when urlId is present", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const id = `${slugify(collection.name)}-${collection.urlId}`;
 
     const response = await Collection.findByPk(id);
@@ -437,14 +437,14 @@ describe("#findByPk", () => {
   });
 
   test("should return undefined when incorrect uuid type", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id + "-incorrect");
 
     expect(response).toBe(undefined);
   });
 
   test("should return undefined when incorrect urlId length", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const id = `${slugify(collection.name)}-${collection.urlId}incorrect`;
 
     const response = await Collection.findByPk(id);
@@ -453,7 +453,7 @@ describe("#findByPk", () => {
   });
 
   test("should return null when uuid isn't present", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const response = await Collection.findByPk("a" + collection.id.slice(1));
 
     expect(response).toBe(null);
@@ -470,7 +470,7 @@ describe("#findByPk", () => {
   });
 
   test("should return null when urlId is present but corresponding collection name is incorrect", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const id = `${slugify("not present collection")}-${collection.urlId}`;
 
     const response = await Collection.findByPk(id);
