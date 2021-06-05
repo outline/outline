@@ -38,10 +38,10 @@ function Collections({ onCreateCollection }: Props) {
           setFetching(true);
           await collections.fetchPage({ limit: 100 });
         } catch (error) {
-          ui.showToast(error.message + t(", try again?"), {
+          ui.showToast(t("Collections could not be loaded, please reload the app"), {
             type: "error",
           });
-          setFetchError(true);
+          setFetchError(error);
         } finally {
           setFetching(false);
         }
