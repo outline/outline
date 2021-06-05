@@ -1,5 +1,5 @@
 // @flow
-import { formatDistanceToNow } from "date-fns/esm";
+import { formatDistanceToNow } from "date-fns";
 import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";

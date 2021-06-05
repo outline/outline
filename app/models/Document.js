@@ -1,5 +1,5 @@
 // @flow
-import { addDays, differenceInDays } from "date-fns/esm";
+import { addDays, differenceInDays } from "date-fns";
 import invariant from "invariant";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";

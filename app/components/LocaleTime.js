@@ -1,20 +1,21 @@
 // @flow
-import { format, formatDistanceToNow } from "date-fns/esm";
+import { format, formatDistanceToNow } from "date-fns";
+import { enUS, de, fr, es, it, ko, ptBR, pt, zhCN, ru } from "date-fns/locale";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
 
 const locales = {
-  en_US: require(`date-fns/locale/en-US`),
-  de_DE: require(`date-fns/locale/de`),
-  es_ES: require(`date-fns/locale/es`),
-  fr_FR: require(`date-fns/locale/fr`),
-  it_IT: require(`date-fns/locale/it`),
-  ko_KR: require(`date-fns/locale/ko`),
-  pt_BR: require(`date-fns/locale/pt-BR`),
-  pt_PT: require(`date-fns/locale/pt`),
-  zh_CN: require(`date-fns/locale/zh-CN`),
-  ru_RU: require(`date-fns/locale/ru`),
+  en_US: enUS,
+  de_DE: de,
+  es_ES: es,
+  fr_FR: fr,
+  it_IT: it,
+  ko_KR: ko,
+  pt_BR: ptBR,
+  pt_PT: pt,
+  zh_CN: zhCN,
+  ru_RU: ru,
 };
 
 let callbacks = [];
