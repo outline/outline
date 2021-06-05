@@ -20,7 +20,7 @@ type Props = {
 
 function Collections({ onCreateCollection }: Props) {
   const [isFetching, setFetching] = React.useState(false);
-  const [fetchError, setFetchError] = React.useState(false);
+  const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
