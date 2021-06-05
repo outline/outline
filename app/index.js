@@ -51,23 +51,25 @@ if ("serviceWorker" in window.navigator) {
 
 if (element) {
   const App = () => (
-    <Provider {...stores}>
-      <Analytics>
-        <Theme>
-          <ErrorBoundary>
-            <Router history={history}>
-              <>
-                <PageTheme />
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </>
-            </Router>
-          </ErrorBoundary>
-        </Theme>
-      </Analytics>
-    </Provider>
+    <React.StrictMode>
+      <Provider {...stores}>
+        <Analytics>
+          <Theme>
+            <ErrorBoundary>
+              <Router history={history}>
+                <>
+                  <PageTheme />
+                  <ScrollToTop>
+                    <Routes />
+                  </ScrollToTop>
+                  <Toasts />
+                </>
+              </Router>
+            </ErrorBoundary>
+          </Theme>
+        </Analytics>
+      </Provider>
+    </React.StrictMode>
   );
 
   render(<App />, element);
