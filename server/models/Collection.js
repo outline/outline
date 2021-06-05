@@ -2,7 +2,7 @@
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import isUUID from "validator/lib/isUUID";
-import { URL_REGEX } from "../../shared/utils/routeHelpers";
+import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import { Op, DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
@@ -228,17 +228,11 @@ Collection.addHook("afterCreate", (model: Collection, options) => {
 Collection.findByPk = async function (id, options = {}) {
   if (isUUID(id)) {
     return this.findOne({ where: { id }, ...options });
-  } else if (id.match(URL_REGEX)) {
-    const matching = id.match(URL_REGEX);
-    const collection = await this.findOne({
-      where: { urlId: matching[2] },
+  } else if (id.match(SLUG_URL_REGEX)) {
+    return this.findOne({
+      where: { urlId: id.match(SLUG_URL_REGEX)[1] },
       ...options,
     });
-
-    if (collection && slugify(collection.name) !== matching[1]) {
-      return null;
-    }
-    return collection;
   }
 };
 

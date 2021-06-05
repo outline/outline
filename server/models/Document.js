@@ -7,7 +7,7 @@ import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
 import parseTitle from "../../shared/utils/parseTitle";
-import { URL_REGEX } from "../../shared/utils/routeHelpers";
+import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import unescape from "../../shared/utils/unescape";
 import { Collection, User } from "../models";
 import { DataTypes, sequelize } from "../sequelize";
@@ -216,17 +216,13 @@ Document.findByPk = async function (id, options = {}) {
       where: { id },
       ...options,
     });
-  } else if (id.match(URL_REGEX)) {
-    const document = await scope.findOne({
+  } else if (id.match(SLUG_URL_REGEX)) {
+    return scope.findOne({
       where: {
-        urlId: id.match(URL_REGEX)[2],
+        urlId: id.match(SLUG_URL_REGEX)[1],
       },
       ...options,
     });
-    if (document && slugify(document.title) !== id.match(URL_REGEX)[1]) {
-      return null;
-    }
-    return document;
   }
 };
 

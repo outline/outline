@@ -310,15 +310,7 @@ describe("#delete", () => {
 });
 
 describe("#findByPk", () => {
-  test("should return null when urlId is present but document title is incorrect", async () => {
-    const { document } = await seed();
-    const id = `${slugify("document not present")}-${document.urlId}`;
-
-    const response = await Document.findByPk(id);
-
-    expect(response).toBe(null);
-  });
-  test("should return document when urlId and document title is correct", async () => {
+  test("should return document when urlId is correct", async () => {
     const { document } = await seed();
     const id = `${slugify(document.title)}-${document.urlId}`;
 

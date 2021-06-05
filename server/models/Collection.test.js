@@ -452,26 +452,15 @@ describe("#findByPk", () => {
     expect(response).toBe(undefined);
   });
 
-  test("should return null when uuid isn't present", async () => {
+  test("should return null when no collection is found with uuid", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk("a" + collection.id.slice(1));
 
     expect(response).toBe(null);
   });
 
-  test("should return null when urlId isn't present", async () => {
-    const id = `${slugify("not present collection")}-${randomstring.generate(
-      15
-    )}`;
-
-    const response = await Collection.findByPk(id);
-
-    expect(response).toBe(null);
-  });
-
-  test("should return null when urlId is present but corresponding collection name is incorrect", async () => {
-    const collection = await buildCollection();
-    const id = `${slugify("not present collection")}-${collection.urlId}`;
+  test("should return null when no collection is found with urlId", async () => {
+    const id = `${slugify("test collection")}-${randomstring.generate(15)}`;
 
     const response = await Collection.findByPk(id);
 
