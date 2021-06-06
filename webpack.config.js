@@ -99,10 +99,12 @@ module.exports = {
     moduleIds: 'hashed',
     chunkIds: 'named',
     splitChunks: {
-      chunks: "all",
       cacheGroups: {
+        chunks: "all",
         vendors: {
           test: /[\\/]node_modules[\\/]/,
+          reuseExistingChunk: true,
+          enforce: true,
           priority: -10
         },
         default: {
