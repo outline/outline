@@ -174,7 +174,7 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
-  @keydown(`${meta}+ctrl+h`)
+  @keydown(`${meta}+alt+h`)
   onToggleTableOfContents(ev) {
     if (!this.props.readOnly) return;
 
