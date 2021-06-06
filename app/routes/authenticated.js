@@ -3,7 +3,6 @@ import * as React from "react";
 import { Switch, Redirect, type Match } from "react-router-dom";
 import Archive from "scenes/Archive";
 import Collection from "scenes/Collection";
-import KeyedDocument from "scenes/Document/KeyedDocument";
 import DocumentNew from "scenes/DocumentNew";
 import Drafts from "scenes/Drafts";
 import Error404 from "scenes/Error404";
@@ -22,6 +21,11 @@ import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
 const SettingsRoutes = React.lazy(() =>
   import(/* webpackChunkName: "settings" */ "./settings")
+);
+const KeyedDocument = React.lazy(() =>
+  import(
+    /* webpackChunkName: "keyed-document" */ "scenes/Document/KeyedDocument"
+  )
 );
 
 const NotFound = () => <Search notFound />;
