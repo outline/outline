@@ -14,7 +14,6 @@ import {
   useRouteMatch,
 } from "react-router-dom";
 import styled, { css } from "styled-components";
-import isUUID from "validator/lib/isUUID";
 import CollectionPermissions from "scenes/CollectionPermissions";
 import Search from "scenes/Search";
 import { Action, Separator } from "components/Actions";
@@ -66,9 +65,11 @@ function CollectionScene() {
   const { handleFiles, isImporting } = useImportDocument(collection?.id || "");
 
   React.useEffect(() => {
-    if (isUUID(id) && collection) {
+    if (collection) {
       const canonicalUrl = updateCollectionUrl(match.url, collection);
-      history.replace(canonicalUrl);
+      if (match.url !== canonicalUrl) {
+        history.replace(canonicalUrl);
+      }
     }
   }, [collection, history, id, match.url]);
 
