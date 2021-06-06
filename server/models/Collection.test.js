@@ -453,8 +453,9 @@ describe("#findByPk", () => {
   });
 
   test("should return null when no collection is found with uuid", async () => {
-    const collection = await buildCollection();
-    const response = await Collection.findByPk("a" + collection.id.slice(1));
+    const response = await Collection.findByPk(
+      "a9e71a81-7342-4ea3-9889-9b9cc8f667da"
+    );
 
     expect(response).toBe(null);
   });
