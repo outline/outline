@@ -101,8 +101,15 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
 });
 
 allow(User, "delete", Document, (user, document) => {
-  // unpublished drafts can always be deleted
   if (user.isViewer) return false;
+  if (document.deletedAt) return false;
+
+  // allow deleting document without a collection
+  if (document.collection && cannot(user, "update", document.collection)) {
+    return false;
+  }
+
+  // unpublished drafts can always be deleted
   if (
     !document.deletedAt &&
     !document.publishedAt &&
@@ -110,13 +117,6 @@ allow(User, "delete", Document, (user, document) => {
   ) {
     return true;
   }
-
-  // allow deleting document without a collection
-  if (document.collection && cannot(user, "update", document.collection)) {
-    return false;
-  }
-
-  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });
