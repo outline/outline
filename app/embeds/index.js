@@ -8,6 +8,7 @@ import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
 import Descript from "./Descript";
+import Dropbox from "./Dropbox";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
@@ -92,6 +93,13 @@ export default [
     icon: () => <Img src="/images/descript.png" />,
     component: Descript,
     matcher: matcher(Descript),
+  },
+  {
+    title: "Dropbox",
+    keywords: "dropbox file pdf",
+    icon: () => <Img src="/images/descript.png" />,
+    component: Dropbox,
+    matcher: matcher(Dropbox),
   },
   {
     title: "Figma",
