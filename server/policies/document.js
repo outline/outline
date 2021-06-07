@@ -121,6 +121,18 @@ allow(User, "delete", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, "permanentDelete", Document, (user, document) => {
+  if (user.isViewer) return false;
+  if (!document.deletedAt) return false;
+
+  // allow deleting document without a collection
+  if (document.collection && cannot(user, "update", document.collection)) {
+    return false;
+  }
+
+  return user.teamId === document.teamId;
+});
+
 allow(User, "restore", Document, (user, document) => {
   if (user.isViewer) return false;
   if (!document.deletedAt) return false;
