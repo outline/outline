@@ -139,30 +139,32 @@ const Link = styled(NavLink)`
     transition: fill 50ms;
   }
 
-  &:hover {
-    color: ${(props) =>
-      props.$isActiveDrop ? props.theme.white : props.theme.text};
-  }
-
   &:focus {
     color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.black05};
-  }
-
-  &:hover + ${Actions},
-  &:active + ${Actions} {
-      display: inline-flex;
-
-      svg {
-        opacity: 0.75;
-      }
-    }
   }
 
   ${breakpoint("tablet")`
     padding: 4px 32px 4px 16px;
     font-size: 15px;
   `}
+
+  @media (hover: hover) {
+    &:hover + ${Actions},
+    &:active + ${Actions} {
+        display: inline-flex;
+
+        svg {
+          opacity: 0.75;
+        }
+      }
+    }
+
+    &:hover {
+      color: ${(props) =>
+        props.$isActiveDrop ? props.theme.white : props.theme.text};
+    }
+  }
 `;
 
 const Label = styled.div`
