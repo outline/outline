@@ -9,6 +9,7 @@ import serve from "koa-static";
 import { languages } from "../shared/i18n";
 import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
+import Share from "./models/Share";
 import { opensearchResponse } from "./utils/opensearch";
 import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
@@ -39,7 +40,7 @@ const readIndexFile = async (ctx) => {
   });
 };
 
-const renderApp = async (ctx, next) => {
+const renderApp = async (ctx, next, title = "Outline") => {
   if (ctx.request.path === "/realtime/") {
     return next();
   }
@@ -51,8 +52,28 @@ const renderApp = async (ctx, next) => {
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
+    .replace(/\/\/inject-title\/\//g, title)
     .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+};
+
+const renderShare = async (ctx, next) => {
+  const { shareId } = ctx.params;
+
+  // Find the share record if publicly published so that the document title
+  // can be be returned in the server-rendered HTML. This allows it to appear in
+  // unfurls with more reliablity
+  const share = await Share.findOne({
+    where: {
+      id: shareId,
+      published: true,
+    },
+  });
+
+  // Allow shares to be embedded in iframes on other websites
+  ctx.remove("X-Frame-Options");
+
+  return renderApp(ctx, next, share ? share.document.title : undefined);
 };
 
 // serve static assets
@@ -105,10 +126,8 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse();
 });
 
-router.get("/share/*", (ctx, next) => {
-  ctx.remove("X-Frame-Options");
-  return renderApp(ctx, next);
-});
+router.get("/share/:shareId", renderShare);
+router.get("/share/:shareId/*", renderShare);
 
 // catch all for application
 router.get("*", renderApp);
