@@ -15,7 +15,9 @@ import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl } from "utils/urls";
 
-const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
+const RichMarkdownEditor = React.lazy(() =>
+  import(/* webpackChunkName: "rich-markdown-editor" */ "rich-markdown-editor")
+);
 
 const EMPTY_ARRAY = [];
 

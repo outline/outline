@@ -20,6 +20,7 @@ type Props = {
 
 function Collections({ onCreateCollection }: Props) {
   const [isFetching, setFetching] = React.useState(false);
+  const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
@@ -32,17 +33,25 @@ function Collections({ onCreateCollection }: Props) {
 
   React.useEffect(() => {
     async function load() {
-      if (!collections.isLoaded && !isFetching) {
+      if (!collections.isLoaded && !isFetching && !fetchError) {
         try {
           setFetching(true);
           await collections.fetchPage({ limit: 100 });
+        } catch (error) {
+          ui.showToast(
+            t("Collections could not be loaded, please reload the app"),
+            {
+              type: "error",
+            }
+          );
+          setFetchError(error);
         } finally {
           setFetching(false);
         }
       }
     }
     load();
-  }, [collections, isFetching]);
+  }, [collections, isFetching, ui, fetchError, t]);
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
@@ -92,7 +101,7 @@ function Collections({ onCreateCollection }: Props) {
     </>
   );
 
-  if (!collections.isLoaded) {
+  if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
         <Header>{t("Collections")}</Header>

@@ -12,13 +12,15 @@ type Options = {
 async function replaceImageAttachments(text: string) {
   const attachmentIds = parseAttachmentIds(text);
 
-  for (const id of attachmentIds) {
-    const attachment = await Attachment.findByPk(id);
-    if (attachment) {
-      const accessUrl = await getSignedImageUrl(attachment.key);
-      text = text.replace(attachment.redirectUrl, accessUrl);
-    }
-  }
+  await Promise.all(
+    attachmentIds.map(async (id) => {
+      const attachment = await Attachment.findByPk(id);
+      if (attachment) {
+        const accessUrl = await getSignedImageUrl(attachment.key);
+        text = text.replace(attachment.redirectUrl, accessUrl);
+      }
+    })
+  );
 
   return text;
 }

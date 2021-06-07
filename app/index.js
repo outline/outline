@@ -51,23 +51,25 @@ if ("serviceWorker" in window.navigator) {
 
 if (element) {
   const App = () => (
-    <Provider {...stores}>
-      <Analytics>
-        <Theme>
-          <ErrorBoundary>
-            <Router history={history}>
-              <>
-                <PageTheme />
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </>
-            </Router>
-          </ErrorBoundary>
-        </Theme>
-      </Analytics>
-    </Provider>
+    <React.StrictMode>
+      <Provider {...stores}>
+        <Analytics>
+          <Theme>
+            <ErrorBoundary>
+              <Router history={history}>
+                <>
+                  <PageTheme />
+                  <ScrollToTop>
+                    <Routes />
+                  </ScrollToTop>
+                  <Toasts />
+                </>
+              </Router>
+            </ErrorBoundary>
+          </Theme>
+        </Analytics>
+      </Provider>
+    </React.StrictMode>
   );
 
   render(<App />, element);
@@ -79,7 +81,7 @@ window.addEventListener("load", async () => {
   if (!env.GOOGLE_ANALYTICS_ID || !window.ga) return;
 
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
-  await import("autotrack/autotrack.js");
+  await import(/** webpackChunkName: "autotrack" */ "autotrack/autotrack.js");
 
   window.ga("require", "outboundLinkTracker");
   window.ga("require", "urlChangeTracker");

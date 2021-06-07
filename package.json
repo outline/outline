@@ -124,7 +124,7 @@
     "koa-convert": "1.2.0",
     "koa-helmet": "5.2.0",
     "koa-jwt": "^3.6.0",
-    "koa-logger": "^2.0.1",
+    "koa-logger": "^3.2.1",
     "koa-mount": "^3.0.0",
     "koa-onerror": "^4.0.0",
     "koa-router": "7.0.1",
@@ -194,7 +194,7 @@
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
-    "@relative-ci/agent": "^1.5.0",
+    "@relative-ci/agent": "^2.0.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
@@ -230,5 +230,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },
-  "version": "0.55.0"
+  "version": "0.56.0"
 }
