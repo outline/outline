@@ -1179,17 +1179,26 @@ router.post("documents.delete", auth(), async (ctx) => {
   ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
-  let document: Document;
   if (permanent) {
-    document = await Document.findByPk(id, {
+    const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
     });
     authorize(user, "permanentDelete", document);
 
     await documentPermanentDeleter([document]);
+
+    await Event.create({
+      name: "documents.permanent_delete",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
   } else {
-    document = await Document.findByPk(id, { userId: user.id });
+    const document = await Document.findByPk(id, { userId: user.id });
     authorize(user, "delete", document);
 
     await document.delete(user.id);

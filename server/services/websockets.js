@@ -79,6 +79,11 @@ export default class Websockets {
             ],
           });
       }
+      case "documents.permanent_delete": {
+        return socketio.to(`team-${event.teamId}`).emit(event.name, {
+          documentId: event.documentId,
+        });
+      }
       case "documents.pin":
       case "documents.unpin":
       case "documents.update": {
