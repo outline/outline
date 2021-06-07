@@ -36,7 +36,6 @@ import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import { meta } from "utils/keyboard";
 import {
-  collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
@@ -291,15 +290,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goBack = () => {
-    let url;
-    if (this.props.document.url) {
-      url = this.props.document.url;
-    } else if (this.props.match.params.id) {
-      url = collectionUrl(this.props.match.params.id);
-    }
-    if (url) {
-      this.props.history.push(url);
-    }
+    this.props.history.push(this.props.document.url);
   };
 
   render() {
