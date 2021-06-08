@@ -27,6 +27,7 @@ import Prezi from "./Prezi";
 import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
+import Twitter from "./Twitter";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
 
@@ -226,6 +227,13 @@ export default [
     icon: () => <Img src="/images/typeform.png" />,
     component: Typeform,
     matcher: matcher(Typeform),
+  },
+  {
+    title: "Twitter",
+    keywords: "microblogging",
+    icon: () => <Img src="/images/twitter.png" />,
+    component: Twitter,
+    matcher: matcher(Twitter),
   },
   {
     title: "Vimeo",
