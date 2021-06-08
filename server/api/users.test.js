@@ -167,6 +167,17 @@ describe("#users.invite", () => {
     expect(body.data.sent.length).toEqual(1);
   });
 
+  it("should require invites to be an array", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: { email: "test@example.com", name: "Test", guest: false },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.invite", {
