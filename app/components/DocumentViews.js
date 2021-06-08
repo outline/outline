@@ -20,8 +20,10 @@ function DocumentViews({ document, isOpen }: Props) {
   const { views, presence } = useStores();
 
   React.useEffect(() => {
-    views.fetchPage({ documentId: document.id });
-  }, [views, document.id]);
+    if (!document.isDeleted) {
+      views.fetchPage({ documentId: document.id });
+    }
+  }, [views, document.id, document.isDeleted]);
 
   let documentPresence = presence.get(document.id);
   documentPresence = documentPresence
