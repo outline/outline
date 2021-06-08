@@ -258,7 +258,7 @@ router.post("users.activate", auth(), async (ctx) => {
 
 router.post("users.invite", auth(), async (ctx) => {
   const { invites } = ctx.body;
-  ctx.assertPresent(invites, "invites is required");
+  ctx.assertArray(invites, "invites must be an array");
 
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
