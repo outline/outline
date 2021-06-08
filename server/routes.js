@@ -6,6 +6,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
+import isUUID from "validator/lib/isUUID";
 import { languages } from "../shared/i18n";
 import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
@@ -67,12 +68,16 @@ const renderShare = async (ctx, next) => {
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
-  const share = await Share.findOne({
-    where: {
-      id: shareId,
-      published: true,
-    },
-  });
+  let share;
+
+  if (isUUID(shareId)) {
+    share = await Share.findOne({
+      where: {
+        id: shareId,
+        published: true,
+      },
+    });
+  }
 
   // Allow shares to be embedded in iframes on other websites
   ctx.remove("X-Frame-Options");
