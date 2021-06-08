@@ -30,4 +30,15 @@ describe("/share/:id", () => {
     expect(res.status).toEqual(200);
     expect(body).toContain(`<title>${document.title}</title>`);
   });
+
+  it("should return document title in html when loading published share with nested doc route", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({ documentId: document.id });
+
+    const res = await server.get(`/share/${share.id}/doc/test-Cl6g1AgPYn`);
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).toContain(`<title>${document.title}</title>`);
+  });
 });
