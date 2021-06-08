@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Image from "components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import BambooHR from "./BambooHR";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -62,6 +63,13 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "BambooHR",
+    keywords: "human resources",
+    icon: () => <Img src="/images/bamboohr.png" />,
+    component: BambooHR,
+    matcher: matcher(BambooHR),
   },
   {
     title: "Cawemo",
