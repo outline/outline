@@ -15,6 +15,7 @@ import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 const koa = new Koa();
 const router = new Router();
 const readFile = util.promisify(fs.readFile);
@@ -22,6 +23,9 @@ const readFile = util.promisify(fs.readFile);
 const readIndexFile = async (ctx) => {
   if (isProduction) {
     return readFile(path.join(__dirname, "../app/index.html"));
+  }
+  if (isTest) {
+    return readFile(path.join(__dirname, "/static/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
