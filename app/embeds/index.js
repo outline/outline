@@ -151,7 +151,7 @@ export default [
   },
   {
     title: "Giphy",
-    keywords: "presentation slideshow",
+    keywords: "short looping videos",
     icon: () => <Img src="/images/giphy.png" />,
     component: Giphy,
     matcher: matcher(Giphy),
