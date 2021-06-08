@@ -26,6 +26,7 @@ import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
+import QuickMenu from "components/QuickMenu";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
@@ -57,6 +58,7 @@ class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
+  @observable quickMenuOpen: boolean = false;
 
   componentDidUpdate() {
     if (this.redirectTo) {
@@ -78,7 +80,12 @@ class Layout extends React.Component<Props> {
     this.keyboardShortcutsOpen = false;
   };
 
-  @keydown(["t", "/", `${meta}+k`])
+  @keydown(`${meta}+k`)
+  toggleQuickMenu() {
+    this.quickMenuOpen = !this.quickMenuOpen;
+  }
+
+  @keydown(["t", "/"])
   goToSearch(ev: SyntheticEvent<>) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -168,6 +175,10 @@ class Layout extends React.Component<Props> {
         >
           <KeyboardShortcuts />
         </Guide>
+        <QuickMenu
+          isOpen={this.quickMenuOpen}
+          requestClose={this.toggleQuickMenu}
+        />
       </Container>
     );
   }

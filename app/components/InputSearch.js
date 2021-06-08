@@ -9,7 +9,7 @@ type Props = {|
   ...InputProps,
   placeholder?: string,
   value?: string,
-  onChange: (event: SyntheticInputEvent<>) => mixed,
+  onChange?: (event: SyntheticInputEvent<>) => mixed,
   onKeyDown?: (event: SyntheticKeyboardEvent<HTMLInputElement>) => mixed,
 |};
 
