@@ -19,12 +19,6 @@ function DocumentViews({ document, isOpen }: Props) {
   const { t } = useTranslation();
   const { views, presence } = useStores();
 
-  React.useEffect(() => {
-    if (!document.isDeleted) {
-      views.fetchPage({ documentId: document.id });
-    }
-  }, [views, document.id, document.isDeleted]);
-
   let documentPresence = presence.get(document.id);
   documentPresence = documentPresence
     ? Array.from(documentPresence.values())
