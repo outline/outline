@@ -32,6 +32,7 @@ import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
 import env from "env";
+import { isCustomDomain } from "utils/domains";
 
 function matcher(Component) {
   return (url: string) => {
@@ -107,7 +108,7 @@ export default filter<void | EmbedSpec>(
       component: Descript,
       matcher: matcher(Descript),
     },
-    env.DROPBOX_APP_KEY
+    env.DROPBOX_APP_KEY && !isCustomDomain()
       ? {
           title: "Dropbox",
           keywords: "dropbox file pdf",

@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import env from "env";
 
-const URL_REGEX = new RegExp("^https://www.dropbox.com/s/(.*)$");
+const URL_REGEX = new RegExp("^https://www.dropbox.com/sh?/(.*)$");
 
 type Props = {|
   isSelected: boolean,
@@ -16,10 +16,28 @@ type Props = {|
 class Dropbox extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  container = React.createRef<HTMLElement>();
+  container = React.createRef<HTMLAnchorElement>();
+
+  shouldComponentUpdate(nextProps: Props) {
+    return (
+      nextProps.isSelected !== this.props.isSelected ||
+      nextProps.attrs.href !== this.props.attrs.href
+    );
+  }
 
   componentDidMount() {
-    var tag = document.createElement("script");
+    if (document.getElementById("dropboxjs")) {
+      if (this.container.current) {
+        window.Dropbox.embed(
+          { link: this.props.attrs.href },
+          this.container.current
+        );
+      }
+
+      return;
+    }
+
+    const tag = document.createElement("script");
     tag.async = false;
     tag.id = "dropboxjs";
     tag.setAttribute("data-app-key", env.DROPBOX_APP_KEY);
@@ -45,6 +63,7 @@ class Dropbox extends React.Component<Props> {
 
 const Rounded = styled.div`
   border-radius: 3px;
+  height: 400px;
 `;
 
 export default Dropbox;
