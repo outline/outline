@@ -80,6 +80,7 @@ class DocumentScene extends React.Component<Props> {
   @observable isEmpty: boolean = true;
   @observable lastRevision: number = this.props.document.revision;
   @observable title: string = this.props.document.title;
+  @observable direction: string = this.props.document.direction;
   getEditorText: () => string = () => this.props.document.text;
 
   componentDidUpdate(prevProps) {
@@ -94,6 +95,10 @@ class DocumentScene extends React.Component<Props> {
 
       if (document.title !== this.title) {
         this.title = document.title;
+      }
+
+      if (document.direction !== this.direction) {
+        this.direction = document.direction;
       }
     } else if (prevProps.document.revision !== this.lastRevision) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
@@ -116,6 +121,7 @@ class DocumentScene extends React.Component<Props> {
     if (document.injectTemplate) {
       document.injectTemplate = false;
       this.title = document.title;
+      this.direction = document.direction;
       this.isDirty = true;
     }
   }
@@ -203,6 +209,7 @@ class DocumentScene extends React.Component<Props> {
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
     const title = this.title;
+    const direction = this.direction;
 
     // prevent save before anything has been written (single hash is empty doc)
     if (text.trim() === "" && title.trim === "") return;
@@ -217,6 +224,7 @@ class DocumentScene extends React.Component<Props> {
 
     document.title = title;
     document.text = text;
+    document.direction = direction;
 
     let isNew = !document.id;
     this.isSaving = true;
@@ -254,10 +262,11 @@ class DocumentScene extends React.Component<Props> {
     const editorText = this.getEditorText().trim();
     const titleChanged = this.title !== document.title;
     const bodyChanged = editorText !== document.text.trim();
+    const directionChanged = this.direction !== document.direction;
 
     // a single hash is a doc with just an empty title
     this.isEmpty = (!editorText || editorText === "#") && !this.title;
-    this.isDirty = bodyChanged || titleChanged;
+    this.isDirty = bodyChanged || titleChanged || directionChanged;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
@@ -286,6 +295,12 @@ class DocumentScene extends React.Component<Props> {
 
   onChangeTitle = (event) => {
     this.title = event.target.value;
+    this.updateIsDirtyDebounced();
+    this.autosave();
+  };
+
+  onChangeDirection = (dir) => {
+    this.direction = dir;
     this.updateIsDirtyDebounced();
     this.autosave();
   };
@@ -438,12 +453,14 @@ class DocumentScene extends React.Component<Props> {
                     onSearchLink={this.props.onSearchLink}
                     onCreateLink={this.props.onCreateLink}
                     onChangeTitle={this.onChangeTitle}
+                    onChangeDirection={this.onChangeDirection}
                     onChange={this.onChange}
                     onSave={this.onSave}
                     onPublish={this.onPublish}
                     onCancel={this.goBack}
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
+                    direction={this.direction}
                     ui={this.props.ui}
                   >
                     {shareId && (
