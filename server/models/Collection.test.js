@@ -1,4 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "../models";
 import {
@@ -9,6 +10,7 @@ import {
   buildDocument,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
+import slugify from "../utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -16,7 +18,7 @@ beforeEach(jest.resetAllMocks);
 describe("#url", () => {
   test("should return correct url for the collection", () => {
     const collection = new Collection({ id: "1234" });
-    expect(collection.url).toBe("/collections/1234");
+    expect(collection.url).toBe(`/collection/untitled-${collection.urlId}`);
   });
 });
 
@@ -414,5 +416,55 @@ describe("#membershipUserIds", () => {
 
     const membershipUserIds = await Collection.membershipUserIds(collection.id);
     expect(membershipUserIds.length).toBe(6);
+  });
+});
+
+describe("#findByPk", () => {
+  test("should return collection with collection Id", async () => {
+    const collection = await buildCollection();
+    const response = await Collection.findByPk(collection.id);
+
+    expect(response.id).toBe(collection.id);
+  });
+
+  test("should return collection when urlId is present", async () => {
+    const collection = await buildCollection();
+    const id = `${slugify(collection.name)}-${collection.urlId}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response.id).toBe(collection.id);
+  });
+
+  test("should return undefined when incorrect uuid type", async () => {
+    const collection = await buildCollection();
+    const response = await Collection.findByPk(collection.id + "-incorrect");
+
+    expect(response).toBe(undefined);
+  });
+
+  test("should return undefined when incorrect urlId length", async () => {
+    const collection = await buildCollection();
+    const id = `${slugify(collection.name)}-${collection.urlId}incorrect`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(undefined);
+  });
+
+  test("should return null when no collection is found with uuid", async () => {
+    const response = await Collection.findByPk(
+      "a9e71a81-7342-4ea3-9889-9b9cc8f667da"
+    );
+
+    expect(response).toBe(null);
+  });
+
+  test("should return null when no collection is found with urlId", async () => {
+    const id = `${slugify("test collection")}-${randomstring.generate(15)}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(null);
   });
 });

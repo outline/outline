@@ -214,10 +214,7 @@ class DataLoader extends React.Component<Props> {
       const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
       if (canRedirect) {
-        const canonicalUrl = updateDocumentUrl(
-          this.props.match.url,
-          document.url
-        );
+        const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
         if (this.props.location.pathname !== canonicalUrl) {
           this.props.history.replace(canonicalUrl);
         }

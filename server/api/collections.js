@@ -115,7 +115,7 @@ router.post("collections.create", auth(), async (ctx) => {
 
 router.post("collections.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
   const collection = await Collection.scope({
