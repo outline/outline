@@ -34,6 +34,7 @@ export default class Document extends BaseModel {
   pinned: boolean;
   text: string;
   title: string;
+  direction: string;
   emoji: string;
   template: boolean;
   templateId: ?string;
@@ -228,6 +229,7 @@ export default class Document extends BaseModel {
     this.templateId = template.id;
     this.title = template.title;
     this.text = template.text;
+    this.direction = template.direction;
     this.injectTemplate = true;
   };
 
@@ -245,6 +247,7 @@ export default class Document extends BaseModel {
           collectionId: this.collectionId,
           title: this.title,
           text: this.text,
+          direction: this.direction,
           publish: options.publish,
           done: options.done,
           autosave: options.autosave,
@@ -256,6 +259,7 @@ export default class Document extends BaseModel {
           id: this.id,
           title: this.title,
           text: this.text,
+          direction: this.direction,
           templateId: this.templateId,
           lastRevision: options.lastRevision,
           publish: options.publish,
