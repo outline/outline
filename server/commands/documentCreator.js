@@ -4,6 +4,7 @@ import { Document, Event, User } from "../models";
 export default async function documentCreator({
   title = "",
   text = "",
+  direction = "ltr",
   publish,
   collectionId,
   parentDocumentId,
@@ -19,6 +20,7 @@ export default async function documentCreator({
 }: {
   title: string,
   text: string,
+  direction: string,
   publish?: boolean,
   collectionId: string,
   parentDocumentId?: string,
@@ -47,6 +49,7 @@ export default async function documentCreator({
     templateId,
     title: templateDocument ? templateDocument.title : title,
     text: templateDocument ? templateDocument.text : text,
+    direction: templateDocument ? templateDocument.direction : direction,
   });
 
   await Event.create({

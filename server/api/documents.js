@@ -963,6 +963,7 @@ router.post("documents.templatize", auth(), async (ctx) => {
     template: true,
     title: original.title,
     text: original.text,
+    direction: original.direction,
   });
 
   await Event.create({
@@ -989,6 +990,7 @@ router.post("documents.update", auth(), async (ctx) => {
     id,
     title,
     text,
+    direction,
     publish,
     autosave,
     done,
@@ -1014,6 +1016,7 @@ router.post("documents.update", auth(), async (ctx) => {
 
   // Update document
   if (title) document.title = title;
+  if (direction) document.direction = direction;
   if (editorVersion) document.editorVersion = editorVersion;
   if (templateId) document.templateId = templateId;
 
@@ -1299,6 +1302,7 @@ router.post("documents.create", auth(), async (ctx) => {
   const {
     title = "",
     text = "",
+    direction = "ltr",
     publish,
     collectionId,
     parentDocumentId,
@@ -1348,6 +1352,7 @@ router.post("documents.create", auth(), async (ctx) => {
   const document = await documentCreator({
     title,
     text,
+    direction,
     publish,
     collectionId,
     parentDocumentId,
