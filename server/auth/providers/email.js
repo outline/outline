@@ -1,5 +1,5 @@
 // @flow
-import subMinutes from "date-fns/sub_minutes";
+import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
 import { AuthorizationError } from "../../errors";
