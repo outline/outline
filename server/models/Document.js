@@ -74,7 +74,13 @@ const Document = sequelize.define(
     template: DataTypes.BOOLEAN,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
-
+    direction: {
+      type: DataTypes.STRING,
+      defaultValue: 'ltr',
+      validate: {
+        isIn: [['ltr', 'rtl']]
+      },
+    },
     // backup contains a record of text at the moment it was converted to v2
     // this is a safety measure during deployment of new editor and will be
     // dropped in a future update

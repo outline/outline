@@ -1786,6 +1786,7 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
     expect(newDocument.collectionId).toBe(collection.id);
+    expect(newDocument.direction).toBe('ltr');
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
@@ -1855,6 +1856,37 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("new document");
     expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
+  it("should create RTL document", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        title: "new document",
+        text: "hello",
+        direction: "rtl"
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.direction).toBe("rtl");
+  });
+
+  it("should not allow illegal direction", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        title: "new document",
+        text: "hello",
+        direction: "unknown"
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 
@@ -2129,6 +2161,25 @@ describe("#documents.update", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.text).toBe("");
+  });
+
+  it("should allow changing document direction", async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        lastRevision: document.revision,
+        title: document.title,
+        text: document.text,
+        direction: "rtl"
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.direction).toBe("rtl");
   });
 
   it("should require authentication", async () => {

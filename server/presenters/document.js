@@ -43,6 +43,7 @@ export default async function present(document: Document, options: ?Options) {
     urlId: document.urlId,
     title: document.title,
     text,
+    direction: document.direction,
     emoji: document.emoji,
     createdAt: document.createdAt,
     createdBy: undefined,
