@@ -7,26 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="description" content="A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…">
+    <meta name="description"
+      content="A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…">
     //inject-prefetch//
-    <link
-      rel="shortcut icon"
-      type="image/png"
-      href="/favicon-32.png"
-      sizes="32x32"
-    />
-    <link
-      rel="apple-touch-icon"
-      type="image/png"
-      href="/apple-touch-icon.png"
-      sizes="192x192"
-    />
-    <link
-      rel="search"
-      type="application/opensearchdescription+xml"
-      href="/opensearch.xml"
-      title="Outline"
-    />
+    <link rel="shortcut icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" type="image/png" href="/apple-touch-icon.png" sizes="192x192" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="Outline" />
     <style>
       body,
       html {
@@ -40,6 +26,10 @@
         height: 100%;
       }
 
+      body * {
+        unicode-bidi: plaintext;
+      }
+
       #root {
         flex: 1;
         min-height: 100vh;
@@ -51,7 +41,7 @@
   <body>
     <div id="root"></div>
     <script>
-      //inject-env//
+              //inject-env//
     </script>
     <script>
       if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
