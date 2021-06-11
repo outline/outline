@@ -26,6 +26,13 @@ export async function buildShare(overrides: Object = {}) {
     const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      createdById: overrides.userId,
+      teamId: overrides.teamId,
+    });
+    overrides.documentId = document.id;
+  }
 
   return Share.create({
     published: true,

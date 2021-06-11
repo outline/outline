@@ -1,7 +1,6 @@
 // @flow
 import crypto from "crypto";
-import addMinutes from "date-fns/add_minutes";
-import subMinutes from "date-fns/sub_minutes";
+import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";

@@ -6,14 +6,17 @@ import Koa from "koa";
 import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
+import isUUID from "validator/lib/isUUID";
 import { languages } from "../shared/i18n";
 import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
+import Share from "./models/Share";
 import { opensearchResponse } from "./utils/opensearch";
 import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 const koa = new Koa();
 const router = new Router();
 const readFile = util.promisify(fs.readFile);
@@ -21,6 +24,9 @@ const readFile = util.promisify(fs.readFile);
 const readIndexFile = async (ctx) => {
   if (isProduction) {
     return readFile(path.join(__dirname, "../app/index.html"));
+  }
+  if (isTest) {
+    return readFile(path.join(__dirname, "/static/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
@@ -39,7 +45,7 @@ const readIndexFile = async (ctx) => {
   });
 };
 
-const renderApp = async (ctx, next) => {
+const renderApp = async (ctx, next, title = "Outline") => {
   if (ctx.request.path === "/realtime/") {
     return next();
   }
@@ -51,8 +57,32 @@ const renderApp = async (ctx, next) => {
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
+    .replace(/\/\/inject-title\/\//g, title)
     .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+};
+
+const renderShare = async (ctx, next) => {
+  const { shareId } = ctx.params;
+
+  // Find the share record if publicly published so that the document title
+  // can be be returned in the server-rendered HTML. This allows it to appear in
+  // unfurls with more reliablity
+  let share;
+
+  if (isUUID(shareId)) {
+    share = await Share.findOne({
+      where: {
+        id: shareId,
+        published: true,
+      },
+    });
+  }
+
+  // Allow shares to be embedded in iframes on other websites
+  ctx.remove("X-Frame-Options");
+
+  return renderApp(ctx, next, share ? share.document.title : undefined);
 };
 
 // serve static assets
@@ -105,10 +135,8 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse();
 });
 
-router.get("/share/*", (ctx, next) => {
-  ctx.remove("X-Frame-Options");
-  return renderApp(ctx, next);
-});
+router.get("/share/:shareId", renderShare);
+router.get("/share/:shareId/*", renderShare);
 
 // catch all for application
 router.get("*", renderApp);
