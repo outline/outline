@@ -15,7 +15,8 @@ export default {
   SUBDOMAINS_ENABLED: process.env.SUBDOMAINS_ENABLED === "true",
   GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID,
   RELEASE: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
-  SITE_NAME: "Outline",
-  SITE_DESCRIPTION: `A modern team knowledge base for your 
- internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…`,
+  SITE_NAME: process.env.SITE_NAME || "Outline",
+  SITE_DESCRIPTION:
+    process.env.SITE_DESCRIPTION ||
+    "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
 };

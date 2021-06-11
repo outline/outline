@@ -19,9 +19,10 @@
     "db:migrate": "sequelize db:migrate",
     "db:rollback": "sequelize db:migrate:undo",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
-    "test": "yarn test:app && yarn test:server",
+    "test": "yarn test:app && yarn test:server && test:env",
     "test:app": "jest",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
+    "test:env": "jest --config=server/env.jestconfig.json env.test.js --runInBand --forceExit",
     "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
   "funding": {
