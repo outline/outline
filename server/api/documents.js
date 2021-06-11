@@ -1303,7 +1303,7 @@ router.post("documents.create", auth(), async (ctx) => {
   const {
     title = "",
     text = "",
-    direction = "ltr",
+    direction = "auto",
     publish,
     collectionId,
     parentDocumentId,

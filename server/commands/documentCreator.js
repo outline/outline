@@ -4,7 +4,7 @@ import { Document, Event, User } from "../models";
 export default async function documentCreator({
   title = "",
   text = "",
-  direction = "ltr",
+  direction = "auto",
   publish,
   collectionId,
   parentDocumentId,
