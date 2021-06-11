@@ -11,6 +11,7 @@ import { languages } from "../shared/i18n";
 import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
 import Share from "./models/Share";
+import metaTags from "./utils/metaTags";
 import { opensearchResponse } from "./utils/opensearch";
 import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
@@ -57,7 +58,7 @@ const renderApp = async (ctx, next, title = "Outline") => {
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
-    .replace(/\/\/inject-title\/\//g, title)
+    .replace(/\/\/inject-meta-tags\/\//g, metaTags)
     .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
