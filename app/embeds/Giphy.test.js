@@ -1,8 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import Giphy from "./Giphy";
 
-describe("ClickUp", () => {
-  const match = ClickUp.ENABLED[0];
+describe("Giphy", () => {
+  const match = Giphy.ENABLED[0];
   test("to be enabled on share link", () => {
     expect(
       "https://giphy.com/gifs/southparkgifs-3o6ZsYqMZVnZ4Aigo0".match(match)
