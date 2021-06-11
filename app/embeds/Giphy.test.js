@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import ClickUp from "./ClickUp";
+import Giphy from "./Giphy";
 
 describe("ClickUp", () => {
   const match = ClickUp.ENABLED[0];
