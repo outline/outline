@@ -9,5 +9,10 @@
     "<rootDir>/__mocks__/console.js",
     "./server/test/helper.js"
   ],
-  "testEnvironment": "node"
+  "testEnvironment": "node",
+  "testMatch": [
+    "**/__tests__/**/*.[jt]s?(x)",
+    "**/?(*.)+(spec|test).[jt]s?(x)",
+    "!**/server/env.test.js"
+  ]
 }
