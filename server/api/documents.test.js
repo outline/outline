@@ -1786,7 +1786,7 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
     expect(newDocument.collectionId).toBe(collection.id);
-    expect(newDocument.direction).toBe('auto');
+    expect(newDocument.direction).toBe("auto");
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
@@ -1866,7 +1866,7 @@ describe("#documents.create", () => {
         collectionId: collection.id,
         title: "new document",
         text: "hello",
-        direction: "rtl"
+        direction: "rtl",
       },
     });
     const body = await res.json();
@@ -1883,7 +1883,7 @@ describe("#documents.create", () => {
         collectionId: collection.id,
         title: "new document",
         text: "hello",
-        direction: "unknown"
+        direction: "unknown",
       },
     });
     expect(res.status).toEqual(400);
@@ -2173,7 +2173,7 @@ describe("#documents.update", () => {
         lastRevision: document.revision,
         title: document.title,
         text: document.text,
-        direction: "rtl"
+        direction: "rtl",
       },
     });
     const body = await res.json();

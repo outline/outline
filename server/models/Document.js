@@ -76,9 +76,9 @@ const Document = sequelize.define(
     text: DataTypes.TEXT,
     direction: {
       type: DataTypes.STRING,
-      defaultValue: 'auto',
+      defaultValue: "auto",
       validate: {
-        isIn: [['auto', 'ltr', 'rtl']]
+        isIn: [["auto", "ltr", "rtl"]],
       },
     },
     // backup contains a record of text at the moment it was converted to v2

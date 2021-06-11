@@ -197,15 +197,15 @@ class DocumentScene extends React.Component<Props> {
   changeDirection() {
     if (this.props.readOnly) return;
 
-    if (this.direction == 'rtl') {
-      this.direction = 'auto';
+    if (this.direction === "rtl") {
+      this.direction = "auto";
     } else {
-      this.direction = 'rtl';
-    };
+      this.direction = "rtl";
+    }
 
     this.updateIsDirtyDebounced();
     this.autosave();
-  };
+  }
 
   onSave = async (
     options: {
@@ -311,7 +311,6 @@ class DocumentScene extends React.Component<Props> {
     this.updateIsDirtyDebounced();
     this.autosave();
   };
-
 
   goBack = () => {
     this.props.history.push(this.props.document.url);
