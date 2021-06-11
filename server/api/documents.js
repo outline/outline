@@ -1283,6 +1283,7 @@ router.post("documents.import", auth(), async (ctx) => {
     source: "import",
     title,
     text,
+    direction: "auto",
     publish,
     collectionId,
     parentDocumentId,

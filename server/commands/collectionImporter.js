@@ -126,6 +126,7 @@ export default async function collectionImporter({
         source: "import",
         title,
         text,
+        direction: "auto",
         publish: true,
         collectionId: collection.id,
         createdAt: item.metadata.createdAt
