@@ -25,6 +25,7 @@ export type Props = {|
   id?: string,
   value?: string,
   defaultValue?: string,
+  dir?: string,
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,

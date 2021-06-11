@@ -135,6 +135,14 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
+                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>l</Key>
+              </>
+            ),
+            label: t("Toggle direction"),
+          },
+          {
+            shortcut: (
+              <>
                 <Key>{metaDisplay}</Key> + <Key>b</Key>
               </>
             ),

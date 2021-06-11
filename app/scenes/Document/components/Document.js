@@ -194,6 +194,20 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
+  @keydown("ctrl+shift+l")
+  changeDirection() {
+    if (this.props.readOnly) return;
+
+    if (this.direction == 'rtl') {
+      this.direction = 'auto';
+    } else {
+      this.direction = 'rtl';
+    };
+
+    this.updateIsDirtyDebounced();
+    this.autosave();
+  };
+
   onSave = async (
     options: {
       done?: boolean,
@@ -299,11 +313,6 @@ class DocumentScene extends React.Component<Props> {
     this.autosave();
   };
 
-  onChangeDirection = (dir) => {
-    this.direction = dir;
-    this.updateIsDirtyDebounced();
-    this.autosave();
-  };
 
   goBack = () => {
     let url;
@@ -453,14 +462,14 @@ class DocumentScene extends React.Component<Props> {
                     onSearchLink={this.props.onSearchLink}
                     onCreateLink={this.props.onCreateLink}
                     onChangeTitle={this.onChangeTitle}
-                    onChangeDirection={this.onChangeDirection}
+                    onChangeDirection={this.changeDirection}
                     onChange={this.onChange}
                     onSave={this.onSave}
                     onPublish={this.onPublish}
                     onCancel={this.goBack}
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
-                    direction={this.direction}
+                    dir={this.direction}
                     ui={this.props.ui}
                   >
                     {shareId && (
