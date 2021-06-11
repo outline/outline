@@ -218,12 +218,7 @@ function DocumentMenu({
           items={[
             {
               title: t("Restore"),
-              visible: !!can.unarchive,
-              onClick: handleRestore,
-            },
-            {
-              title: t("Restore"),
-              visible: !!(collection && can.restore),
+              visible: (!!collection && can.restore) || can.unarchive,
               onClick: handleRestore,
             },
             {

@@ -1,5 +1,6 @@
 // @flow
 import { type Context } from "koa";
+import { isArrayLike } from "lodash";
 import validator from "validator";
 import { validateColorHex } from "../../shared/utils/color";
 import { validateIndexCharacters } from "../../shared/utils/indexCharacters";
@@ -10,6 +11,12 @@ export default function validation() {
     ctx.assertPresent = (value, message) => {
       if (value === undefined || value === null || value === "") {
         throw new ParamRequiredError(message);
+      }
+    };
+
+    ctx.assertArray = (value, message) => {
+      if (!isArrayLike(value)) {
+        throw new ValidationError(message);
       }
     };
 

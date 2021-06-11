@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import subDays from "date-fns/sub_days";
+import { subDays } from "date-fns";
 import TestServer from "fetch-test-server";
 import app from "../app";
 import { Attachment, Document } from "../models";

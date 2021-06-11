@@ -1588,7 +1588,7 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.parentDocumentId).toEqual(undefined);
+    expect(body.data.parentDocumentId).toEqual(null);
     expect(body.data.archivedAt).toEqual(null);
   });
 

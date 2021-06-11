@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
 import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
@@ -94,8 +94,11 @@ class DataLoader extends React.Component<Props> {
       // search for exact internal document
       const slug = parseDocumentSlug(term);
       try {
-        const { document } = await this.props.documents.fetch(slug);
-        const time = distanceInWordsToNow(document.updatedAt, {
+        const {
+          document,
+        }: { document: Document } = await this.props.documents.fetch(slug);
+
+        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
         });
         return [
@@ -118,7 +121,7 @@ class DataLoader extends React.Component<Props> {
 
     return sortBy(
       results.map((document) => {
-        const time = distanceInWordsToNow(document.updatedAt, {
+        const time = formatDistanceToNow(document.updatedAt, {
           addSuffix: true,
         });
         return {
@@ -211,10 +214,7 @@ class DataLoader extends React.Component<Props> {
       const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
       if (canRedirect) {
-        const canonicalUrl = updateDocumentUrl(
-          this.props.match.url,
-          document.url
-        );
+        const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
         if (this.props.location.pathname !== canonicalUrl) {
           this.props.history.replace(canonicalUrl);
         }

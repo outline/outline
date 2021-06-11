@@ -24,6 +24,7 @@ export default function present(collection: Collection) {
   const data = {
     id: collection.id,
     url: collection.url,
+    urlId: collection.urlId,
     name: collection.name,
     description: collection.description,
     sort: collection.sort,

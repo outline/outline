@@ -4381,10 +4381,10 @@ data-urls@^2.0.0:
     whatwg-mimetype "^2.3.0"
     whatwg-url "^8.0.0"
 
-date-fns@1.29.0:
-  version "1.29.0"
-  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.29.0.tgz#12e609cdcb935127311d04d33334e2960a2a54e6"
-  integrity sha512-lbTXWZ6M20cWH8N9S6afb0SBm6tMk+uUg6z3MqHPKE9atmsY3kJkTm8vKe93izJ2B2+q5MV990sM2CHgtAZaOw==
+date-fns@2.22.1:
+  version "2.22.1"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.22.1.tgz#1e5af959831ebb1d82992bf67b765052d8f0efc4"
+  integrity sha512-yUFPQjrxEmIsMqlHhAhmxkuH769baF21Kk+nZwZGyrMoyLA+LugaQtC0+Tqf9CBUUULWwUJt6Q5ySI3LJDDCGg==
 
 dd-trace@^0.32.2:
   version "0.32.2"
@@ -11327,10 +11327,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.9.1:
-  version "11.9.1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.9.1.tgz#98afd9d634c946cb102436da2a2c0495821706a0"
-  integrity sha512-o5+SMSExhT6hvgcEU/dbW648tTA22uqHjXcpN179BKP1JHKZMg90VwBiqFCLm+5uEHe3pCOSi2K5GAOD1yG9HQ==
+rich-markdown-editor@^11.10.0:
+  version "11.10.0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.10.0.tgz#8a622bcee063ed459d100a9f42ec91bb722d66d5"
+  integrity sha512-cRQ6JALDHAKkDWnizi/DMJQoZmbwaMJrr0Y1p/r/7ypndpmGIb7VPA2AiwgP9ttaBliwTT2m5wMyE3Sfm5EOFQ==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
