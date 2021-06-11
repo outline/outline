@@ -2,7 +2,6 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import keydown from "react-keydown";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -22,10 +21,9 @@ import { documentHistoryUrl } from "utils/routeHelpers";
 type Props = {|
   ...EditorProps,
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
-  onChangeDirection: (dir: string) => void,
   title: string,
   document: Document,
-  direction: string,
+  dir: string,
   isDraft: boolean,
   shareId: ?string,
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
@@ -36,15 +34,6 @@ type Props = {|
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-
-  @keydown("ctrl+shift+l")
-  changDirection() {
-    if (this.props.direction == 'rtl') {
-      this.props.onChangeDirection('ltr');
-    } else {
-      this.props.onChangeDirection('rtl');
-    };
-  };
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
@@ -106,7 +95,7 @@ class DocumentEditor extends React.Component<Props> {
   render() {
     const {
       document,
-      direction,
+      dir,
       title,
       onChangeTitle,
       isDraft,
@@ -127,7 +116,7 @@ class DocumentEditor extends React.Component<Props> {
         {readOnly ? (
           <Title
             as="div"
-            dir={direction}
+            dir={dir}
             $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
             $isStarred={document.isStarred}
           >
@@ -137,7 +126,7 @@ class DocumentEditor extends React.Component<Props> {
         ) : (
           <Title
             type="text"
-            dir={direction}
+            dir={dir}
             onChange={onChangeTitle}
             onKeyDown={this.handleTitleKeyDown}
             placeholder={document.placeholder}
@@ -159,7 +148,7 @@ class DocumentEditor extends React.Component<Props> {
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
           readOnly={readOnly}
-          direction={direction}
+          dir={dir}
           shareId={shareId}
           grow
           {...rest}
