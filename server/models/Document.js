@@ -637,7 +637,7 @@ Document.prototype.unarchive = async function (userId: string) {
         },
       },
     });
-    if (!parent) this.parentDocumentId = undefined;
+    if (!parent) this.parentDocumentId = null;
   }
 
   if (!this.template) {
