@@ -2186,6 +2186,26 @@ describe("#documents.delete", () => {
     expect(body.success).toEqual(true);
   });
 
+  it("should allow permanently deleting a document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await server.post("/api/documents.delete", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    const res = await server.post("/api/documents.delete", {
+      body: { token: user.getJwtToken(), id: document.id, permanent: true },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+
   it("should allow deleting document without collection", async () => {
     const { user, document, collection } = await seed();
 
