@@ -1186,6 +1186,16 @@ router.post("documents.delete", auth(), async (ctx) => {
     });
     authorize(user, "permanentDelete", document);
 
+    await Document.update(
+      { parentDocumentId: null },
+      {
+        where: {
+          parentDocumentId: document.id,
+        },
+        paranoid: false,
+      }
+    );
+
     await documentPermanentDeleter([document]);
 
     await Event.create({
