@@ -9,6 +9,7 @@ import styled from "styled-components";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentMove from "scenes/DocumentMove";
+import DocumentPermanentDelete from "scenes/DocumentPermanentDelete";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import CollectionIcon from "components/CollectionIcon";
 import ContextMenu from "components/ContextMenu";
@@ -61,6 +62,10 @@ function DocumentMenu({
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [
+    showPermanentDeleteModal,
+    setShowPermanentDeleteModal,
+  ] = React.useState(false);
   const [showMoveModal, setShowMoveModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
   const file = React.useRef<?HTMLInputElement>();
@@ -328,6 +333,11 @@ function DocumentMenu({
               visible: !!can.delete,
             },
             {
+              title: `${t("Permanent delete")}…`,
+              onClick: () => setShowPermanentDeleteModal(true),
+              visible: can.permanentDelete,
+            },
+            {
               title: `${t("Move")}…`,
               onClick: () => setShowMoveModal(true),
               visible: !!can.move,
@@ -379,6 +389,18 @@ function DocumentMenu({
             <DocumentDelete
               document={document}
               onSubmit={() => setShowDeleteModal(false)}
+            />
+          </Modal>
+          <Modal
+            title={t("Permanent delete {{ documentName }}", {
+              documentName: document.noun,
+            })}
+            onRequestClose={() => setShowPermanentDeleteModal(false)}
+            isOpen={showPermanentDeleteModal}
+          >
+            <DocumentPermanentDelete
+              document={document}
+              onSubmit={() => setShowPermanentDeleteModal(false)}
             />
           </Modal>
           <Modal
