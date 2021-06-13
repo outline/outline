@@ -163,6 +163,7 @@
     "react-keydown": "^1.7.3",
     "react-portal": "^4.2.0",
     "react-router-dom": "^5.2.0",
+    "react-table": "^7.7.0",
     "react-virtualized-auto-sizer": "^1.0.5",
     "react-waypoint": "^9.0.3",
     "react-window": "^1.8.6",
