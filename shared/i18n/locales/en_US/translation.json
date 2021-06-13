@@ -313,7 +313,7 @@
   "Archiving": "Archiving",
   "Couldn’t create the document, try again?": "Couldn’t create the document, try again?",
   "Document permanently deleted": "Document permanently deleted",
-  "Are you sure about that? This irreverisble action will permanently delete the <em>{{ documentTitle }}</em> document.": "Are you sure about that? This irreverisble action will permanently delete the <em>{{ documentTitle }}</em> document.",
+  "Are you sure you want to permanently delete the <em>{{ documentTitle }}</em> document? This action cannot be undone.": "Are you sure you want to permanently delete the <em>{{ documentTitle }}</em> document? This action cannot be undone.",
   "Search documents": "Search documents",
   "No documents found for your filters.": "No documents found for your filters.",
   "You’ve not got any drafts at the moment.": "You’ve not got any drafts at the moment.",
