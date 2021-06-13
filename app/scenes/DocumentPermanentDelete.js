@@ -10,10 +10,10 @@ import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import { collectionUrl } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
   document: Document,
   onSubmit: () => void,
-};
+|};
 
 function DocumentPermanentDelete({ document, onSubmit }: Props) {
   const [isDeleting, setIsDeleting] = React.useState(false);
