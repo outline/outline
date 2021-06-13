@@ -30,7 +30,7 @@ router.post("utils.gc", async (ctx) => {
     limit,
   });
 
-  const countDeletedDocument = await documentPermanentDeleter(documents, log);
+  const countDeletedDocument = await documentPermanentDeleter(documents);
 
   log(`Destroyed ${countDeletedDocument} documents`);
 

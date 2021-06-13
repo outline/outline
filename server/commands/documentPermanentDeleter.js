@@ -4,10 +4,9 @@ import { Document, Attachment } from "../models";
 import { sequelize } from "../sequelize";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 
-export async function documentPermanentDeleter(
-  documents: Document[],
-  log?: debug.Debugger
-) {
+const log = debug("commands");
+
+export async function documentPermanentDeleter(documents: Document[]) {
   const query = `
     SELECT COUNT(id)
     FROM documents
@@ -40,9 +39,9 @@ export async function documentPermanentDeleter(
         if (attachment) {
           await attachment.destroy();
 
-          log && log(`Attachment ${attachmentId} deleted`);
+          log(`Attachment ${attachmentId} deleted`);
         } else {
-          log && log(`Unknown attachment ${attachmentId} ignored`);
+          log(`Unknown attachment ${attachmentId} ignored`);
         }
       }
     }
