@@ -18,6 +18,29 @@ beforeEach(() => {
 });
 
 describe("documentPermanentDeleter", () => {
+  it("should destroy documents", async () => {
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: new Date(),
+    });
+
+    const countDeletedDoc = await documentPermanentDeleter([document]);
+
+    expect(countDeletedDoc).toEqual(1);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
+  });
+
+  it("should destroy documents even if not deleted", async () => {
+    const document = await buildDocument({
+      publishedAt: new Date(),
+    });
+
+    const countDeletedDoc = await documentPermanentDeleter([document]);
+
+    expect(countDeletedDoc).toEqual(1);
+    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
+  });
+
   it("should destroy attachments no longer referenced", async () => {
     const document = await buildDocument({
       publishedAt: subDays(new Date(), 90),
