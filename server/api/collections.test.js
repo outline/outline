@@ -284,7 +284,7 @@ describe("#collections.export", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: "read_write",
     });
 
     const res = await server.post("/api/collections.export", {
@@ -305,7 +305,7 @@ describe("#collections.export", () => {
     await group.addUser(user, { through: { createdById: user.id } });
 
     await collection.addGroup(group, {
-      through: { permission: "read", createdById: user.id },
+      through: { permission: "read_write", createdById: user.id },
     });
 
     const res = await server.post("/api/collections.export", {
