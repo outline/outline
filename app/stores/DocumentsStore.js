@@ -616,7 +616,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  async delete(document: Document, options?: Object) {
+  async delete(document: Document, options?: {| permanent: boolean |}) {
     await super.delete(document, options);
 
     // check to see if we have any shares related to this document already
