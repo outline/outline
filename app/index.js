@@ -81,7 +81,7 @@ window.addEventListener("load", async () => {
   if (!env.GOOGLE_ANALYTICS_ID || !window.ga) return;
 
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
-  await import(/** webpackChunkName: "autotrack" */ "autotrack/autotrack.js");
+  await import(/* webpackChunkName: "autotrack" */ "autotrack/autotrack.js");
 
   window.ga("require", "outboundLinkTracker");
   window.ga("require", "urlChangeTracker");
