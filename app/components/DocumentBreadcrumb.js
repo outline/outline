@@ -105,7 +105,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   }, [path, category, collection]);
 
   if (!collections.isLoaded) {
-    return;
+    return null;
   }
 
   if (onlyText === true) {

@@ -1,9 +1,9 @@
 // @flow
-import useWindowScrollPosition from "@rehooks/window-scroll-position";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import HelpText from "components/HelpText";
+import useWindowScrollPosition from "hooks/useWindowScrollPosition";
 
 const HEADING_OFFSET = 20;
 
