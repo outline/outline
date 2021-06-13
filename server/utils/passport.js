@@ -1,6 +1,5 @@
 // @flow
-import addMinutes from "date-fns/add_minutes";
-import subMinutes from "date-fns/sub_minutes";
+import { addMinutes, subMinutes } from "date-fns";
 import { type Request } from "koa";
 import { OAuthStateMismatchError } from "../errors";
 import { getCookieDomain } from "./domains";

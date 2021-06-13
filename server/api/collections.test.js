@@ -162,6 +162,15 @@ describe("#collections.move", () => {
     expect(body.success).toBe(true);
   });
 
+  it("should return error when index is not valid", async () => {
+    const { admin, collection } = await seed();
+    const res = await server.post("/api/collections.move", {
+      body: { token: admin.getJwtToken(), id: collection.id, index: "يونيكود" },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
   it("if index collision occurs, should updated index of other collection", async () => {
     const { user, admin, collection } = await seed();
     const createdCollectionResponse = await server.post(
@@ -275,7 +284,7 @@ describe("#collections.export", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: "read_write",
     });
 
     const res = await server.post("/api/collections.export", {
@@ -296,7 +305,7 @@ describe("#collections.export", () => {
     await group.addUser(user, { through: { createdById: user.id } });
 
     await collection.addGroup(group, {
-      through: { permission: "read", createdById: user.id },
+      through: { permission: "read_write", createdById: user.id },
     });
 
     const res = await server.post("/api/collections.export", {
@@ -1017,6 +1026,14 @@ describe("#collections.create", () => {
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[0].abilities.export).toBeTruthy();
+  });
+
+  it("should error when index is invalid", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.create", {
+      body: { token: user.getJwtToken(), name: "Test", index: "يونيكود" },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should allow setting sharing to false", async () => {

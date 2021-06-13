@@ -1,12 +1,12 @@
 // @flow
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import slug from "slug";
+import isUUID from "validator/lib/isUUID";
+import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import { Op, DataTypes, sequelize } from "../sequelize";
+import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
-
-slug.defaults.mode = "rfc3986";
 
 const Collection = sequelize.define(
   "collection",
@@ -72,7 +72,9 @@ const Collection = sequelize.define(
     },
     getterMethods: {
       url() {
-        return `/collections/${this.id}`;
+        if (!this.name) return `/collection/untitled-${this.urlId}`;
+
+        return `/collection/${slugify(this.name)}-${this.urlId}`;
       },
     },
   }
@@ -223,11 +225,26 @@ Collection.addHook("afterCreate", (model: Collection, options) => {
 
 // Class methods
 
+Collection.findByPk = async function (id, options = {}) {
+  if (isUUID(id)) {
+    return this.findOne({ where: { id }, ...options });
+  } else if (id.match(SLUG_URL_REGEX)) {
+    return this.findOne({
+      where: { urlId: id.match(SLUG_URL_REGEX)[1] },
+      ...options,
+    });
+  }
+};
+
 // get all the membership relationshps a user could have with the collection
 Collection.membershipUserIds = async (collectionId: string) => {
   const collection = await Collection.scope("withAllMemberships").findByPk(
     collectionId
   );
+
+  if (!collection) {
+    return [];
+  }
 
   const groupMemberships = collection.collectionGroupMemberships
     .map((cgm) => cgm.group.groupMemberships)
@@ -369,6 +386,80 @@ Collection.prototype.updateDocument = async function (
 Collection.prototype.deleteDocument = async function (document) {
   await this.removeDocumentInStructure(document);
   await document.deleteWithChildren();
+};
+
+Collection.prototype.isChildDocument = function (
+  parentDocumentId,
+  documentId
+): boolean {
+  let result = false;
+
+  const loopChildren = (documents, input) => {
+    return documents.map((document) => {
+      let parents = [...input];
+      if (document.id === documentId) {
+        result = parents.includes(parentDocumentId);
+      } else {
+        parents.push(document.id);
+        loopChildren(document.children, parents);
+      }
+      return document;
+    });
+  };
+
+  loopChildren(this.documentStructure, []);
+
+  return result;
+};
+
+Collection.prototype.getDocumentTree = function (documentId: string) {
+  let result;
+
+  const loopChildren = (documents) => {
+    if (result) {
+      return;
+    }
+
+    documents.forEach((document) => {
+      if (result) {
+        return;
+      }
+      if (document.id === documentId) {
+        result = document;
+      } else {
+        loopChildren(document.children);
+      }
+    });
+  };
+
+  loopChildren(this.documentStructure);
+  return result;
+};
+
+Collection.prototype.getDocumentParents = function (
+  documentId: string
+): string[] | void {
+  let result;
+
+  const loopChildren = (documents, path = []) => {
+    if (result) {
+      return;
+    }
+
+    documents.forEach((document) => {
+      if (document.id === documentId) {
+        result = path;
+      } else {
+        loopChildren(document.children, [...path, document.id]);
+      }
+    });
+  };
+
+  if (this.documentStructure) {
+    loopChildren(this.documentStructure);
+  }
+
+  return result;
 };
 
 Collection.prototype.removeDocumentInStructure = async function (

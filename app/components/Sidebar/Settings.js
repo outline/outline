@@ -19,14 +19,14 @@ import styled from "styled-components";
 import Flex from "components/Flex";
 import Scrollable from "components/Scrollable";
 
+import SlackIcon from "components/SlackIcon";
+import ZapierIcon from "components/ZapierIcon";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
 import TeamButton from "./components/TeamButton";
 import Version from "./components/Version";
-import SlackIcon from "./icons/Slack";
-import ZapierIcon from "./icons/Zapier";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
@@ -96,10 +96,10 @@ function SettingsSidebar() {
               />
             )}
             <SidebarLink
-              to="/settings/people"
+              to="/settings/members"
               icon={<UserIcon color="currentColor" />}
               exact={false}
-              label={t("People")}
+              label={t("Members")}
             />
             <SidebarLink
               to="/settings/groups"

@@ -35,7 +35,7 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
-  it("should allow including suspended", async () => {
+  it("should allow filtering to suspended users", async () => {
     const user = await buildUser({ name: "Tester" });
     await buildUser({
       name: "Tester",
@@ -46,14 +46,35 @@ describe("#users.list", () => {
     const res = await server.post("/api/users.list", {
       body: {
         query: "test",
-        includeSuspended: true,
+        filter: "suspended",
         token: user.getJwtToken(),
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it("should allow filtering to invited", async () => {
+    const user = await buildUser({ name: "Tester" });
+    await buildUser({
+      name: "Tester",
+      teamId: user.teamId,
+      lastActiveAt: null,
+    });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "test",
+        filter: "invited",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it("should return teams paginated user list", async () => {
@@ -87,7 +108,7 @@ describe("#users.list", () => {
 });
 
 describe("#users.info", () => {
-  it("should return known user", async () => {
+  it("should return current user with no id", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.info", {
       body: { token: user.getJwtToken() },
@@ -97,6 +118,33 @@ describe("#users.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(user.id);
     expect(body.data.name).toEqual(user.name);
+    expect(body.data.email).toEqual(user.email);
+  });
+
+  it("should return user with permission", async () => {
+    const user = await buildUser();
+    const another = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/users.info", {
+      body: { token: user.getJwtToken(), id: another.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(another.id);
+    expect(body.data.name).toEqual(another.name);
+
+    // no emails of other users
+    expect(body.data.email).toEqual(undefined);
+  });
+
+  it("should now return user without permission", async () => {
+    const user = await buildUser();
+    const another = await buildUser();
+    const res = await server.post("/api/users.info", {
+      body: { token: user.getJwtToken(), id: another.id },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
@@ -117,6 +165,17 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
+  });
+
+  it("should require invites to be an array", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: { email: "test@example.com", name: "Test", guest: false },
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should require admin", async () => {
@@ -145,14 +204,6 @@ describe("#users.delete", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should allow deleting last admin if only user", async () => {
-    const user = await buildAdmin();
-    const res = await server.post("/api/users.delete", {
-      body: { token: user.getJwtToken(), confirmation: true },
-    });
-    expect(res.status).toEqual(200);
-  });
-
   it("should not allow deleting last admin if many users", async () => {
     const user = await buildAdmin();
     await buildUser({ teamId: user.teamId, isAdmin: false });
@@ -165,6 +216,8 @@ describe("#users.delete", () => {
 
   it("should allow deleting user account with confirmation", async () => {
     const user = await buildUser();
+    await buildUser({ teamId: user.teamId });
+
     const res = await server.post("/api/users.delete", {
       body: { token: user.getJwtToken(), confirmation: true },
     });

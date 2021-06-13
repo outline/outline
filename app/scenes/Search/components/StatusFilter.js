@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import FilterOptions from "./FilterOptions";
+import FilterOptions from "components/FilterOptions";
 
 type Props = {|
   includeArchived?: boolean,

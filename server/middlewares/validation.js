@@ -1,7 +1,9 @@
 // @flow
 import { type Context } from "koa";
+import { isArrayLike } from "lodash";
 import validator from "validator";
 import { validateColorHex } from "../../shared/utils/color";
+import { validateIndexCharacters } from "../../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "../errors";
 
 export default function validation() {
@@ -9,6 +11,12 @@ export default function validation() {
     ctx.assertPresent = (value, message) => {
       if (value === undefined || value === null || value === "") {
         throw new ParamRequiredError(message);
+      }
+    };
+
+    ctx.assertArray = (value, message) => {
+      if (!isArrayLike(value)) {
+        throw new ValidationError(message);
       }
     };
 
@@ -60,6 +68,11 @@ export default function validation() {
       }
     };
 
+    ctx.assertIndexCharacters = (value, message) => {
+      if (!validateIndexCharacters(value)) {
+        throw new ValidationError(message);
+      }
+    };
     return next();
   };
 }

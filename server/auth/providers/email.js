@@ -1,9 +1,9 @@
 // @flow
-import subMinutes from "date-fns/sub_minutes";
+import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
 import { AuthorizationError } from "../../errors";
-import mailer from "../../mailer";
+import mailer, { sendEmail } from "../../mailer";
 import methodOverride from "../../middlewares/methodOverride";
 import validation from "../../middlewares/validation";
 import { User, Team } from "../../models";
@@ -97,11 +97,14 @@ router.get("email.callback", async (ctx) => {
     if (user.isSuspended) {
       return ctx.redirect("/?notice=suspended");
     }
+    if (user.isInvited) {
+      sendEmail("welcome", user.email, { teamUrl: user.team.url });
+    }
 
     await user.update({ lastActiveAt: new Date() });
 
     // set cookies on response and redirect to team subdomain
-    signIn(ctx, user, user.team, "email", false);
+    await signIn(ctx, user, user.team, "email", false, false);
   } catch (err) {
     ctx.redirect(`/?notice=expired-token`);
   }

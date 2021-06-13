@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import { Action } from "components/Actions";
 import Heading from "components/Heading";
-import InputSearch from "components/InputSearch";
+import InputSearchPage from "components/InputSearchPage";
 import LanguagePrompt from "components/LanguagePrompt";
 import Scene from "components/Scene";
 import Tab from "components/Tab";
@@ -29,11 +29,7 @@ function Home() {
       actions={
         <>
           <Action>
-            <InputSearch
-              source="dashboard"
-              label={t("Search documents")}
-              labelHidden
-            />
+            <InputSearchPage source="dashboard" label={t("Search documents")} />
           </Action>
           <Action>
             <NewDocumentMenu />

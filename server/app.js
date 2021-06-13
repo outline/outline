@@ -1,5 +1,6 @@
 // @flow
 import * as Sentry from "@sentry/node";
+import debug from "debug";
 import Koa from "koa";
 import compress from "koa-compress";
 import helmet, {
@@ -21,6 +22,7 @@ import updates from "./utils/updates";
 const app = new Koa();
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
+const log = debug("http");
 
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
@@ -105,10 +107,15 @@ if (isProduction) {
       })
     )
   );
-  app.use(logger());
-
   app.use(mount("/emails", emails));
 }
+
+// redirect routing logger to optional "http" debug
+app.use(
+  logger((str, args) => {
+    log(str);
+  })
+);
 
 // catch errors in one place, automatically set status and response headers
 onerror(app);
@@ -168,7 +175,12 @@ app.use(mount("/auth", auth));
 app.use(mount("/api", api));
 
 // Sets common security headers by default, such as no-sniff, hsts, hide powered
-// by etc
+// by etc, these are applied after auth and api so they are only returned on
+// standard non-XHR accessed routes
+app.use(async (ctx, next) => {
+  ctx.set("Permissions-Policy", "interest-cohort=()");
+  await next();
+});
 app.use(helmet());
 app.use(
   contentSecurityPolicy({

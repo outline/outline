@@ -1,4 +1,5 @@
 // @flow
+import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
@@ -8,7 +9,13 @@ import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-import type { FetchOptions, PaginationParams, SearchResult } from "types";
+import env from "env";
+import type {
+  NavigationNode,
+  FetchOptions,
+  PaginationParams,
+  SearchResult,
+} from "types";
 import { client } from "utils/ApiClient";
 
 type ImportOptions = {
@@ -23,6 +30,8 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   importFileTypes: string[] = [
     ".md",
+    ".doc",
+    ".docx",
     "text/markdown",
     "text/plain",
     "text/html",
@@ -443,30 +452,30 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetch = async (
     id: string,
     options: FetchOptions = {}
-  ): Promise<?Document> => {
+  ): Promise<{ document: ?Document, sharedTree?: NavigationNode }> => {
     if (!options.prefetch) this.isFetching = true;
 
     try {
       const doc: ?Document = this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
       if (doc && policy && !options.force) {
-        return doc;
+        return { document: doc };
       }
 
       const res = await client.post("/documents.info", {
         id,
         shareId: options.shareId,
+        apiVersion: 2,
       });
       invariant(res && res.data, "Document not available");
 
       this.addPolicies(res.policies);
-      this.add(res.data);
+      this.add(res.data.document);
 
-      runInAction("DocumentsStore#fetch", () => {
-        this.isLoaded = true;
-      });
-
-      return this.data.get(res.data.id);
+      return {
+        document: this.data.get(res.data.document.id),
+        sharedTree: res.data.sharedTree,
+      };
     } finally {
       this.isFetching = false;
     }
@@ -529,6 +538,19 @@ export default class DocumentsStore extends BaseStore<Document> {
     collectionId: string,
     options: ImportOptions
   ) => {
+    // file.type can be an empty string sometimes
+    if (
+      file.type &&
+      !this.importFileTypes.includes(file.type) &&
+      !this.importFileTypes.includes(path.extname(file.name))
+    ) {
+      throw new Error(`The selected file type is not supported (${file.type})`);
+    }
+
+    if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+      throw new Error("The selected file was too large to import");
+    }
+
     const title = file.name.replace(/\.[^/.]+$/, "");
     const formData = new FormData();
 

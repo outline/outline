@@ -1,5 +1,5 @@
 // @flow
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { User, Document, Collection, Team } from "../models";
 import { sequelize } from "../sequelize";
 
@@ -23,7 +23,7 @@ export const seed = async () => {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuid.v4(),
+          providerId: uuidv4(),
         },
       ],
     },
@@ -45,7 +45,7 @@ export const seed = async () => {
       authentications: [
         {
           authenticationProviderId: authenticationProvider.id,
-          providerId: uuid.v4(),
+          providerId: uuidv4(),
         },
       ],
     },
@@ -64,7 +64,7 @@ export const seed = async () => {
       authentications: [
         {
           authenticationProviderId: authenticationProvider.id,
-          providerId: uuid.v4(),
+          providerId: uuidv4(),
         },
       ],
     },

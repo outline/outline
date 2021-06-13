@@ -1,17 +1,17 @@
 // @flow
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import { CollectionIcon } from "outline-icons";
+import { CollectionIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import { parseOutlineExport } from "shared/utils/zip";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Notice from "components/Notice";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -107,9 +107,11 @@ function ImportExport() {
   const isImportable = hasCollections && hasDocuments;
 
   return (
-    <CenteredContent>
-      <PageTitle title={`${t("Import")} / ${t("Export")}`} />
-      <h1>{t("Import")}</h1>
+    <Scene
+      title={`${t("Import")} / ${t("Export")}`}
+      icon={<DocumentIcon color="currentColor" />}
+    >
+      <Heading>{t("Import")}</Heading>
       <HelpText>
         <Trans>
           It is possible to import a zip file of folders and Markdown files
@@ -176,7 +178,7 @@ function ImportExport() {
         </Button>
       )}
 
-      <h1>{t("Export")}</h1>
+      <Heading>{t("Export")}</Heading>
       <HelpText>
         <Trans
           defaults="A full export might take some time, consider exporting a single document or collection if possible. We’ll put together a zip of all your documents in Markdown format and email it to <em>{{ userEmail }}</em>."
@@ -196,7 +198,7 @@ function ImportExport() {
           ? `${t("Requesting Export")}…`
           : t("Export Data")}
       </Button>
-    </CenteredContent>
+    </Scene>
   );
 }
 

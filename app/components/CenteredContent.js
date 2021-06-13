@@ -21,6 +21,10 @@ const Container = styled.div`
 const Content = styled.div`
   max-width: 46em;
   margin: 0 auto;
+
+  ${breakpoint("desktopLarge")`
+    max-width: 52em;
+  `};
 `;
 
 const CenteredContent = ({ children, ...rest }: Props) => {

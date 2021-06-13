@@ -11,6 +11,7 @@ export default {
   TEAM_LOGO: process.env.TEAM_LOGO,
   SLACK_KEY: process.env.SLACK_KEY,
   SLACK_APP_ID: process.env.SLACK_APP_ID,
+  MAXIMUM_IMPORT_SIZE: process.env.MAXIMUM_IMPORT_SIZE || 1024 * 1000 * 5,
   SUBDOMAINS_ENABLED: process.env.SUBDOMAINS_ENABLED === "true",
   GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID,
   RELEASE: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,

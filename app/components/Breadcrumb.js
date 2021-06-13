@@ -1,193 +1,87 @@
 // @flow
-import { observer } from "mobx-react";
-import {
-  ArchiveIcon,
-  EditIcon,
-  GoToIcon,
-  ShapesIcon,
-  TrashIcon,
-} from "outline-icons";
+import { GoToIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import Document from "models/Document";
-import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
-import useStores from "hooks/useStores";
 import BreadcrumbMenu from "menus/BreadcrumbMenu";
-import { collectionUrl } from "utils/routeHelpers";
 
-type Props = {|
-  document: Document,
-  children?: React.Node,
-  onlyText: boolean,
+type MenuItem = {|
+  icon?: React.Node,
+  title: React.Node,
+  to?: string,
 |};
 
-function Icon({ document }) {
-  const { t } = useTranslation();
+type Props = {|
+  items: MenuItem[],
+  max?: number,
+  children?: React.Node,
+  highlightFirstItem?: boolean,
+|};
 
-  if (document.isDeleted) {
-    return (
-      <>
-        <CategoryName to="/trash">
-          <TrashIcon color="currentColor" />
-          &nbsp;
-          <span>{t("Trash")}</span>
-        </CategoryName>
-        <Slash />
-      </>
-    );
-  }
-  if (document.isArchived) {
-    return (
-      <>
-        <CategoryName to="/archive">
-          <ArchiveIcon color="currentColor" />
-          &nbsp;
-          <span>{t("Archive")}</span>
-        </CategoryName>
-        <Slash />
-      </>
-    );
-  }
-  if (document.isDraft) {
-    return (
-      <>
-        <CategoryName to="/drafts">
-          <EditIcon color="currentColor" />
-          &nbsp;
-          <span>{t("Drafts")}</span>
-        </CategoryName>
-        <Slash />
-      </>
-    );
-  }
-  if (document.isTemplate) {
-    return (
-      <>
-        <CategoryName to="/templates">
-          <ShapesIcon color="currentColor" />
-          &nbsp;
-          <span>{t("Templates")}</span>
-        </CategoryName>
-        <Slash />
-      </>
-    );
-  }
-  return null;
-}
+function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
+  const totalItems = items.length;
+  let topLevelItems: MenuItem[] = [...items];
+  let overflowItems;
 
-const Breadcrumb = ({ document, children, onlyText }: Props) => {
-  const { collections } = useStores();
-  const { t } = useTranslation();
-
-  if (!collections.isLoaded) {
-    return null;
+  // chop middle breadcrumbs and present a "..." menu instead
+  if (totalItems > max) {
+    const halfMax = Math.floor(max / 2);
+    overflowItems = topLevelItems.splice(halfMax, totalItems - max);
+    topLevelItems.splice(halfMax, 0, {
+      title: <BreadcrumbMenu items={overflowItems} />,
+    });
   }
-
-  let collection = collections.get(document.collectionId);
-  if (!collection) {
-    collection = {
-      id: document.collectionId,
-      name: t("Deleted Collection"),
-      color: "currentColor",
-    };
-  }
-
-  const path = collection.pathToDocument
-    ? collection.pathToDocument(document.id).slice(0, -1)
-    : [];
-
-  if (onlyText === true) {
-    return (
-      <>
-        {collection.name}
-        {path.map((n) => (
-          <React.Fragment key={n.id}>
-            <SmallSlash />
-            {n.title}
-          </React.Fragment>
-        ))}
-      </>
-    );
-  }
-
-  const isNestedDocument = path.length > 1;
-  const lastPath = path.length ? path[path.length - 1] : undefined;
-  const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
     <Flex justify="flex-start" align="center">
-      <Icon document={document} />
-      <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />
-        &nbsp;
-        <span>{collection.name}</span>
-      </CollectionName>
-      {isNestedDocument && (
-        <>
-          <Slash /> <BreadcrumbMenu path={menuPath} />
-        </>
-      )}
-      {lastPath && (
-        <>
-          <Slash />{" "}
-          <Crumb to={lastPath.url} title={lastPath.title}>
-            {lastPath.title}
-          </Crumb>
-        </>
-      )}
+      {topLevelItems.map((item, index) => (
+        <React.Fragment key={item.to || index}>
+          {item.icon}
+          {item.to ? (
+            <Item
+              to={item.to}
+              $withIcon={!!item.icon}
+              $highlight={highlightFirstItem && index === 0}
+            >
+              {item.title}
+            </Item>
+          ) : (
+            item.title
+          )}
+          {index !== topLevelItems.length - 1 || !!children ? <Slash /> : null}
+        </React.Fragment>
+      ))}
       {children}
     </Flex>
   );
-};
+}
 
-export const Slash = styled(GoToIcon)`
+const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   fill: ${(props) => props.theme.divider};
 `;
 
-const SmallSlash = styled(GoToIcon)`
-  width: 12px;
-  height: 12px;
-  vertical-align: middle;
-  flex-shrink: 0;
-
-  fill: ${(props) => props.theme.slate};
-  opacity: 0.5;
-`;
-
-const Crumb = styled(Link)`
+const Item = styled(Link)`
+  display: flex;
+  flex-shrink: 1;
+  min-width: 0;
   color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
+  margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
+
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover {
     text-decoration: underline;
   }
 `;
 
-const CollectionName = styled(Link)`
-  display: flex;
-  flex-shrink: 1;
-  color: ${(props) => props.theme.text};
-  font-size: 15px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  min-width: 0;
-
-  svg {
-    flex-shrink: 0;
-  }
-`;
-
-const CategoryName = styled(CollectionName)`
-  flex-shrink: 0;
-`;
-
-export default observer(Breadcrumb);
+export default Breadcrumb;

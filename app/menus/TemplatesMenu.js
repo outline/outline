@@ -57,6 +57,7 @@ function TemplatesMenu({ document }: Props) {
 
 const Author = styled.div`
   font-size: 13px;
+  text-align: left;
 `;
 
 export default observer(TemplatesMenu);

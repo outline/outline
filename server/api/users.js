@@ -1,5 +1,6 @@
 // @flow
 import Router from "koa-router";
+import userDestroyer from "../commands/userDestroyer";
 import userInviter from "../commands/userInviter";
 import userSuspender from "../commands/userSuspender";
 import auth from "../middlewares/authentication";
@@ -9,32 +10,55 @@ import { presentUser, presentPolicies } from "../presenters";
 import { Op } from "../sequelize";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
+const { can, authorize } = policy;
 const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  let {
-    sort = "createdAt",
-    query,
-    direction,
-    includeSuspended = false,
-  } = ctx.body;
+  let { sort = "createdAt", query, direction, filter } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertSort(sort, User);
 
-  const user = ctx.state.user;
+  if (filter) {
+    ctx.assertIn(filter, [
+      "invited",
+      "viewers",
+      "admins",
+      "active",
+      "all",
+      "suspended",
+    ]);
+  }
+
+  const actor = ctx.state.user;
 
   let where = {
-    teamId: user.teamId,
+    teamId: actor.teamId,
   };
 
-  if (!includeSuspended) {
-    where = {
-      ...where,
-      suspendedAt: {
-        [Op.eq]: null,
-      },
-    };
+  switch (filter) {
+    case "invited": {
+      where = { ...where, lastActiveAt: null };
+      break;
+    }
+    case "viewers": {
+      where = { ...where, isViewer: true };
+      break;
+    }
+    case "admins": {
+      where = { ...where, isAdmin: true };
+      break;
+    }
+    case "suspended": {
+      where = { ...where, suspendedAt: { [Op.ne]: null } };
+      break;
+    }
+    case "all": {
+      break;
+    }
+    default: {
+      where = { ...where, suspendedAt: { [Op.eq]: null } };
+      break;
+    }
   }
 
   if (query) {
@@ -46,19 +70,27 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     };
   }
 
-  const users = await User.findAll({
-    where,
-    order: [[sort, direction]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+  const [users, total] = await Promise.all([
+    await User.findAll({
+      where,
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    }),
+    await User.count({
+      where,
+    }),
+  ]);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
-    data: users.map((listUser) =>
-      presentUser(listUser, { includeDetails: user.isAdmin })
+    pagination: {
+      ...ctx.state.pagination,
+      total,
+    },
+    data: users.map((user) =>
+      presentUser(user, { includeDetails: can(actor, "readDetails", user) })
     ),
-    policies: presentPolicies(user, users),
+    policies: presentPolicies(actor, users),
   };
 });
 
@@ -74,11 +106,17 @@ router.post("users.count", auth(), async (ctx) => {
 });
 
 router.post("users.info", auth(), async (ctx) => {
-  const { user } = ctx.state;
+  const { id } = ctx.body;
+  const actor = ctx.state.user;
+
+  const user = id ? await User.findByPk(id) : actor;
+  authorize(actor, "read", user);
+
+  const includeDetails = can(actor, "readDetails", user);
 
   ctx.body = {
-    data: presentUser(user),
-    policies: presentPolicies(user, [user]),
+    data: presentUser(user, { includeDetails }),
+    policies: presentPolicies(actor, [user]),
   };
 });
 
@@ -127,8 +165,10 @@ router.post("users.promote", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -158,8 +198,10 @@ router.post("users.demote", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -178,8 +220,10 @@ router.post("users.suspend", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
@@ -204,15 +248,17 @@ router.post("users.activate", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
-    data: presentUser(user, { includeDetails: true }),
+    data: presentUser(user, { includeDetails }),
     policies: presentPolicies(actor, [user]),
   };
 });
 
 router.post("users.invite", auth(), async (ctx) => {
   const { invites } = ctx.body;
-  ctx.assertPresent(invites, "invites is required");
+  ctx.assertArray(invites, "invites must be an array");
 
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
@@ -232,17 +278,17 @@ router.post("users.delete", auth(), async (ctx) => {
   const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, "confirmation is required");
 
-  let user = ctx.state.user;
-  if (id) user = await User.findByPk(id);
-  authorize(ctx.state.user, "delete", user);
+  const actor = ctx.state.user;
+  let user = actor;
+  if (id) {
+    user = await User.findByPk(id);
+  }
 
-  await user.destroy();
-  await Event.create({
-    name: "users.delete",
-    actorId: user.id,
-    userId: user.id,
-    teamId: user.teamId,
-    data: { name: user.name },
+  authorize(actor, "delete", user);
+
+  await userDestroyer({
+    user,
+    actor,
     ip: ctx.request.ip,
   });
 

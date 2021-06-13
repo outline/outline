@@ -4,12 +4,25 @@ import { Switch } from "react-router-dom";
 import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
 import Route from "components/ProfiledRoute";
+import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
-const Authenticated = React.lazy(() => import("components/Authenticated"));
-const AuthenticatedRoutes = React.lazy(() => import("./authenticated"));
-const KeyedDocument = React.lazy(() => import("scenes/Document/KeyedDocument"));
-const Login = React.lazy(() => import("scenes/Login"));
-const Logout = React.lazy(() => import("scenes/Logout"));
+const Authenticated = React.lazy(() =>
+  import(/* webpackChunkName: "authenticated" */ "components/Authenticated")
+);
+const AuthenticatedRoutes = React.lazy(() =>
+  import(/* webpackChunkName: "authenticated-routes" */ "./authenticated")
+);
+const KeyedDocument = React.lazy(() =>
+  import(
+    /* webpackChunkName: "keyed-document" */ "scenes/Document/KeyedDocument"
+  )
+);
+const Login = React.lazy(() =>
+  import(/* webpackChunkName: "login" */ "scenes/Login")
+);
+const Logout = React.lazy(() =>
+  import(/* webpackChunkName: "logout" */ "scenes/Logout")
+);
 
 export default function Routes() {
   return (
@@ -25,6 +38,11 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
         <Route exact path="/share/:shareId" component={KeyedDocument} />
+        <Route
+          exact
+          path={`/share/:shareId/doc/${slug}`}
+          component={KeyedDocument}
+        />
         <Authenticated>
           <AuthenticatedRoutes />
         </Authenticated>

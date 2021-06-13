@@ -45,9 +45,12 @@ module.exports = {
       path.resolve(__dirname, 'app'),
       'node_modules'
     ],
-    mainFields: ["browser",  "main"],
     alias: {
       shared: path.resolve(__dirname, 'shared'),
+      'boundless-arrow-key-navigation': 'boundless-arrow-key-navigation/build',
+      'boundless-popover': 'boundless-popover/build',
+      'boundless-utils-omit-keys': 'boundless-utils-omit-keys/build',
+      'boundless-utils-uuid': 'boundless-utils-uuid/build'
     }
   },
   plugins: [
@@ -94,14 +97,26 @@ module.exports = {
   optimization: {
     runtimeChunk: 'single',
     moduleIds: 'hashed',
+    chunkIds: 'named',
     splitChunks: {
+      chunks: 'async',
+      minSize: 20000,
+      minChunks: 1,
+      maxAsyncRequests: 30,
+      maxInitialRequests: 30,
+      enforceSizeThreshold: 50000,
       cacheGroups: {
-        vendor: {
+        defaultVendors: {
           test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'initial',
+          priority: -10,
+          reuseExistingChunk: true,
         },
-      },
-    },
+        default: {
+          minChunks: 2,
+          priority: -20,
+          reuseExistingChunk: true,
+        }
+      }
+    }
   }
 };

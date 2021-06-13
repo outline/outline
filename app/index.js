@@ -28,38 +28,48 @@ if (env.SENTRY_DSN) {
 
 if ("serviceWorker" in window.navigator) {
   window.addEventListener("load", () => {
-    window.navigator.serviceWorker
-      .register("/static/service-worker.js", {
+    // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
+    // In some rare (<0.1% of cases) this call can return `undefined`
+    const maybePromise = window.navigator.serviceWorker.register(
+      "/static/service-worker.js",
+      {
         scope: "/",
-      })
-      .then((registration) => {
-        console.log("SW registered: ", registration);
-      })
-      .catch((registrationError) => {
-        console.log("SW registration failed: ", registrationError);
-      });
+      }
+    );
+
+    if (maybePromise && maybePromise.then) {
+      maybePromise
+        .then((registration) => {
+          console.log("SW registered: ", registration);
+        })
+        .catch((registrationError) => {
+          console.log("SW registration failed: ", registrationError);
+        });
+    }
   });
 }
 
 if (element) {
   const App = () => (
-    <Provider {...stores}>
-      <Analytics>
-        <Theme>
-          <ErrorBoundary>
-            <Router history={history}>
-              <>
-                <PageTheme />
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </>
-            </Router>
-          </ErrorBoundary>
-        </Theme>
-      </Analytics>
-    </Provider>
+    <React.StrictMode>
+      <Provider {...stores}>
+        <Analytics>
+          <Theme>
+            <ErrorBoundary>
+              <Router history={history}>
+                <>
+                  <PageTheme />
+                  <ScrollToTop>
+                    <Routes />
+                  </ScrollToTop>
+                  <Toasts />
+                </>
+              </Router>
+            </ErrorBoundary>
+          </Theme>
+        </Analytics>
+      </Provider>
+    </React.StrictMode>
   );
 
   render(<App />, element);
@@ -71,7 +81,7 @@ window.addEventListener("load", async () => {
   if (!env.GOOGLE_ANALYTICS_ID || !window.ga) return;
 
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
-  await import("autotrack/autotrack.js");
+  await import(/** webpackChunkName: "autotrack" */ "autotrack/autotrack.js");
 
   window.ga("require", "outboundLinkTracker");
   window.ga("require", "urlChangeTracker");

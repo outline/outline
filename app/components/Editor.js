@@ -4,15 +4,20 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import { light } from "shared/styles/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
+import useMediaQuery from "hooks/useMediaQuery";
+import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl } from "utils/urls";
 
-const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
+const RichMarkdownEditor = React.lazy(() =>
+  import(/* webpackChunkName: "rich-markdown-editor" */ "rich-markdown-editor")
+);
 
 const EMPTY_ARRAY = [];
 
@@ -24,11 +29,13 @@ export type Props = {|
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
+  shareId?: ?string,
   autoFocus?: boolean,
   template?: boolean,
   placeholder?: string,
   maxLength?: number,
   scrollTo?: string,
+  theme?: Theme,
   handleDOMEvents?: Object,
   readOnlyWriteCheckboxes?: boolean,
   onBlur?: (event: SyntheticEvent<>) => any,
@@ -51,8 +58,9 @@ type PropsWithRef = Props & {
 };
 
 function Editor(props: PropsWithRef) {
-  const { id, ui, history } = props;
+  const { id, ui, shareId, history } = props;
   const { t } = useTranslation();
+  const isPrinting = useMediaQuery("print");
 
   const onUploadImage = React.useCallback(
     async (file: File) => {
@@ -84,12 +92,16 @@ function Editor(props: PropsWithRef) {
           }
         }
 
+        if (shareId) {
+          navigateTo = `/share/${shareId}${navigateTo}`;
+        }
+
         history.push(navigateTo);
       } else if (href) {
         window.open(href, "_blank");
       }
     },
-    [history]
+    [history, shareId]
   );
 
   const onShowToast = React.useCallback(
@@ -121,6 +133,11 @@ function Editor(props: PropsWithRef) {
       deleteColumn: t("Delete column"),
       deleteRow: t("Delete row"),
       deleteTable: t("Delete table"),
+      deleteImage: t("Delete image"),
+      downloadImage: t("Download image"),
+      alignImageLeft: t("Float left"),
+      alignImageRight: t("Float right"),
+      alignImageDefault: t("Center large"),
       em: t("Italic"),
       embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
       findOrCreateDoc: `${t("Find or create a doc")}…`,
@@ -141,6 +158,7 @@ function Editor(props: PropsWithRef) {
       noResults: t("No results"),
       openLink: t("Open link"),
       orderedList: t("Ordered list"),
+      pageBreak: t("Page break"),
       pasteLink: `${t("Paste a link")}…`,
       pasteLinkWithTitle: (service: string) =>
         t("Paste a {{service}} link…", { service }),
@@ -170,6 +188,7 @@ function Editor(props: PropsWithRef) {
         tooltip={EditorTooltip}
         dictionary={dictionary}
         {...props}
+        theme={isPrinting ? light : props.theme}
       />
     </ErrorBoundary>
   );

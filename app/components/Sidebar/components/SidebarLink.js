@@ -66,22 +66,24 @@ function SidebarLink({
   };
 
   return (
-    <Link
-      $isActiveDrop={isActiveDrop}
-      activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
-      style={active ? activeStyle : style}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      exact={exact !== false}
-      to={to}
-      as={to ? undefined : href ? "a" : "div"}
-      href={href}
-      className={className}
-    >
-      {icon && <IconWrapper>{icon}</IconWrapper>}
-      <Label>{label}</Label>
+    <>
+      <Link
+        $isActiveDrop={isActiveDrop}
+        activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
+        style={active ? activeStyle : style}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        exact={exact !== false}
+        to={to}
+        as={to ? undefined : href ? "a" : "div"}
+        href={href}
+        className={className}
+      >
+        {icon && <IconWrapper>{icon}</IconWrapper>}
+        <Label>{label}</Label>
+      </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
-    </Link>
+    </>
   );
 }
 
@@ -109,6 +111,8 @@ const Actions = styled(EventBoundary)`
   }
 
   &:hover {
+    display: inline-flex;
+
     svg {
       opacity: 0.75;
     }
@@ -135,31 +139,32 @@ const Link = styled(NavLink)`
     transition: fill 50ms;
   }
 
-  &:hover {
-    color: ${(props) =>
-      props.$isActiveDrop ? props.theme.white : props.theme.text};
-  }
-
   &:focus {
     color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.black05};
   }
 
-  &:hover,
-  &:active {
-    > ${Actions} {
-      display: inline-flex;
-
-      svg {
-        opacity: 0.75;
-      }
-    }
-  }
-
   ${breakpoint("tablet")`
-    padding: 4px 16px;
+    padding: 4px 32px 4px 16px;
     font-size: 15px;
   `}
+
+  @media (hover: hover) {
+    &:hover + ${Actions},
+    &:active + ${Actions} {
+        display: inline-flex;
+
+        svg {
+          opacity: 0.75;
+        }
+      }
+    }
+
+    &:hover {
+      color: ${(props) =>
+        props.$isActiveDrop ? props.theme.white : props.theme.text};
+    }
+  }
 `;
 
 const Label = styled.div`

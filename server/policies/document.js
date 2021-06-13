@@ -149,6 +149,7 @@ allow(User, "unarchive", Document, (user, document) => {
   if (cannot(user, "update", document.collection)) return false;
 
   if (!document.archivedAt) return false;
+  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });

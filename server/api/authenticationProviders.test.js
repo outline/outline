@@ -1,6 +1,6 @@
 // @flow
 import TestServer from "fetch-test-server";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import app from "../app";
 import { buildUser, buildAdmin, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
@@ -81,7 +81,7 @@ describe("#authenticationProviders.update", () => {
     const user = await buildAdmin({ teamId: team.id });
     await team.createAuthenticationProvider({
       name: "google",
-      providerId: uuid.v4(),
+      providerId: uuidv4(),
     });
     const authenticationProviders = await team.getAuthenticationProviders();
 

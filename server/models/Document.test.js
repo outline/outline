@@ -6,7 +6,8 @@ import {
   buildTeam,
   buildUser,
 } from "../test/factories";
-import { flushdb } from "../test/support";
+import { flushdb, seed } from "../test/support";
+import slugify from "../utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -197,6 +198,12 @@ describe("#searchForTeam", () => {
     expect(results.length).toBe(0);
   });
 
+  test("should handle backslashes in search term", async () => {
+    const team = await buildTeam();
+    const { results } = await Document.searchForTeam(team, "\\\\");
+    expect(results.length).toBe(0);
+  });
+
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({ teamId: team.id });
@@ -299,5 +306,16 @@ describe("#delete", () => {
     document = await Document.findByPk(document.id, { paranoid: false });
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
+  });
+});
+
+describe("#findByPk", () => {
+  test("should return document when urlId is correct", async () => {
+    const { document } = await seed();
+    const id = `${slugify(document.title)}-${document.urlId}`;
+
+    const response = await Document.findByPk(id);
+
+    expect(response.id).toBe(document.id);
   });
 });

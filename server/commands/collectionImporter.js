@@ -6,7 +6,7 @@ import debug from "debug";
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import { values, keys } from "lodash";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { parseOutlineExport } from "../../shared/utils/zip";
 import { FileImportError } from "../errors";
 import { Attachment, Event, Document, Collection, User } from "../models";
@@ -96,7 +96,7 @@ export default async function collectionImporter({
       const content = await item.item.async("string");
       const name = path.basename(item.name);
       const tmpDir = os.tmpdir();
-      const tmpFilePath = `${tmpDir}/upload-${uuid.v4()}`;
+      const tmpFilePath = `${tmpDir}/upload-${uuidv4()}`;
 
       await fs.promises.writeFile(tmpFilePath, content);
       const file = new File({
