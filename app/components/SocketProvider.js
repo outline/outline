@@ -253,6 +253,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("documents.permanent_delete", (event) => {
       documents.remove(event.documentId);
     });
+
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.
     this.socket.on("collections.add_user", (event) => {
