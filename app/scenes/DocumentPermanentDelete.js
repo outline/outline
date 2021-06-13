@@ -8,7 +8,6 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
-import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
@@ -18,10 +17,9 @@ type Props = {|
 function DocumentPermanentDelete({ document, onSubmit }: Props) {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { t } = useTranslation();
-  const { ui, documents, collections } = useStores();
+  const { ui, documents } = useStores();
   const { showToast } = ui;
   const history = useHistory();
-  const collection = collections.get(document.collectionId);
 
   const handleSubmit = React.useCallback(
     async (ev: SyntheticEvent<>) => {
@@ -31,19 +29,14 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
         await documents.delete(document, { permanent: true });
         showToast(t("Document permanently deleted"), { type: "success" });
         onSubmit();
-
-        if (documents.deleted.length) {
-          history.push("/trash");
-        } else {
-          history.push(collectionUrl(collection?.url || "/"));
-        }
+        history.push("/trash");
       } catch (err) {
         showToast(err.message, { type: "error" });
       } finally {
         setIsDeleting(false);
       }
     },
-    [document, onSubmit, showToast, t, history, documents, collection]
+    [document, onSubmit, showToast, t, history, documents]
   );
 
   return (
