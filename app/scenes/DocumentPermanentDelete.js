@@ -51,7 +51,7 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           <Trans
-            defaults="Are you sure about that? This irreverisble action will permanently delete the <em>{{ documentTitle }}</em> document."
+            defaults="Are you sure you want to permanently delete the <em>{{ documentTitle }}</em> document? This action cannot be undone."
             values={{ documentTitle: document.titleWithDefault }}
             components={{ em: <strong /> }}
           />
