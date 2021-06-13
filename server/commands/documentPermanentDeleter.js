@@ -48,12 +48,10 @@ export async function documentPermanentDeleter(
     }
   }
 
-  const countDeletedDocument = await Document.scope("withUnpublished").destroy({
+  return Document.scope("withUnpublished").destroy({
     where: {
       id: documents.map((document) => document.id),
     },
     force: true,
   });
-
-  return countDeletedDocument;
 }
