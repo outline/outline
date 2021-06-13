@@ -59,7 +59,7 @@ describe("read permission", () => {
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(true);
+    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(false);
     expect(abilities.share).toEqual(false);
   });
