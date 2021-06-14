@@ -42,7 +42,6 @@ import { updateCollectionUrl } from "../utils/routeHelpers";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
-import useUnmount from "hooks/useUnmount";
 import CollectionMenu from "menus/CollectionMenu";
 import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
@@ -102,8 +101,6 @@ function CollectionScene() {
     }
     load();
   }, [collections, isFetching, collection, error, id, can]);
-
-  useUnmount(ui.clearActiveCollection);
 
   const handlePermissionsModalOpen = React.useCallback(() => {
     setPermissionsModalOpen(true);
