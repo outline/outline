@@ -20,7 +20,6 @@ import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
-import SocketPresence from "./SocketPresence";
 import { type LocationWithState, type NavigationNode } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
