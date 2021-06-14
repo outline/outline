@@ -603,7 +603,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   async update(params: {
     id: string,
     title: string,
-    text: string,
+    text?: string,
     lastRevision: number,
   }) {
     const document = await super.update(params);

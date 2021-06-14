@@ -5,6 +5,7 @@ import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import * as Y from "yjs";
 import { MAX_TITLE_LENGTH } from "shared/constants";
 import { light } from "shared/styles/theme";
 import parseTitle from "shared/utils/parseTitle";
@@ -15,6 +16,8 @@ import Editor, { type Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import Star, { AnimatedStar } from "components/Star";
+import MultiplayerEditor from "./MultiplayerEditor";
+import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
@@ -24,9 +27,18 @@ type Props = {|
   title: string,
   document: Document,
   isDraft: boolean,
-  shareId: ?string,
-  onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
+  canShowHoverPreviews?: boolean,
+  readOnly?: boolean,
+  onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
   innerRef: { current: any },
+  multiplayer: {
+    isConnected: boolean,
+    isReconnecting: boolean,
+    isRemoteSynced: boolean,
+    provider: ?WebsocketProvider,
+    doc: Y.Doc,
+  },
+  shareId: ?string,
   children: React.Node,
 |};
 
@@ -97,15 +109,18 @@ class DocumentEditor extends React.Component<Props> {
       title,
       onChangeTitle,
       isDraft,
-      shareId,
+      canShowHoverPreviews,
       readOnly,
       innerRef,
+      multiplayer,
+      shareId,
       children,
       ...rest
     } = this.props;
 
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
+    const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
     const normalizedTitle =
       !title && readOnly ? document.titleWithDefault : title;
 
@@ -139,19 +154,20 @@ class DocumentEditor extends React.Component<Props> {
             to={documentHistoryUrl(document)}
           />
         )}
-        <Editor
+        <EditorComponent
           ref={innerRef}
           autoFocus={!!title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
           readOnly={readOnly}
+          multiplayer={multiplayer}
           shareId={shareId}
           grow
           {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !shareId && readOnly && (
+        {this.activeLinkEvent && canShowHoverPreviews && readOnly && (
           <HoverPreview
             node={this.activeLinkEvent.target}
             event={this.activeLinkEvent}

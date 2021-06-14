@@ -40,6 +40,7 @@ const colors = {
     blue: "#3633FF",
     marine: "#2BC2FF",
     green: "#42DED1",
+    yellow: "#F5BE31",
   },
 };
 

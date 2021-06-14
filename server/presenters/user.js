@@ -10,6 +10,7 @@ type UserPresentation = {
   name: string,
   avatarUrl: ?string,
   email?: string,
+  color: string,
   isAdmin: boolean,
   isSuspended: boolean,
   isViewer: boolean,
@@ -25,6 +26,7 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   userData.isViewer = user.isViewer;
   userData.isSuspended = user.isSuspended;
   userData.avatarUrl = user.avatarUrl;
+  userData.color = user.color;
   userData.lastActiveAt = user.lastActiveAt;
 
   if (options.includeDetails) {

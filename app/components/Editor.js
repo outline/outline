@@ -245,6 +245,53 @@ const StyledEditor = styled(RichMarkdownEditor)`
       }
     }
   }
+
+  .ProseMirror {
+    .ProseMirror-yjs-cursor {
+      position: relative;
+      margin-left: -1px;
+      margin-right: -1px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      height: 1em;
+      word-break: normal;
+
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        left: -8px;
+        right: -8px;
+        top: 0;
+        bottom: 0;
+      }
+
+      > div {
+        opacity: 0;
+        position: absolute;
+        top: -1.8em;
+        font-size: 13px;
+        background-color: rgb(250, 129, 0);
+        font-style: normal;
+        line-height: normal;
+        user-select: none;
+        white-space: nowrap;
+        color: white;
+        padding: 2px 6px;
+        font-weight: 500;
+        border-radius: 4px;
+        pointer-events: none;
+        left: -1px;
+      }
+
+      &:hover {
+        > div {
+          opacity: 1;
+          transition: opacity 100ms ease-in-out;
+        }
+      }
+    }
+  }
 `;
 
 const EditorTooltip = ({ children, ...props }) => (
@@ -262,3 +309,17 @@ const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 export default React.forwardRef<Props, typeof Editor>((props, ref) => (
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));
+
+// > .ProseMirror-yjs-cursor:first-child {
+//   margin-top: 16px;
+// }
+
+// p:first-child,
+// h1:first-child,
+// h2:first-child,
+// h3:first-child,
+// h4:first-child,
+// h5:first-child,
+// h6:first-child {
+//   margin-top: 16px;
+// }

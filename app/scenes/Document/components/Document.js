@@ -6,9 +6,10 @@ import { InputIcon } from "outline-icons";
 import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
-import type { RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import * as Y from "yjs";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
@@ -17,6 +18,7 @@ import DocumentMove from "scenes/DocumentMove";
 import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
+import LoadingEllipsis from "components/LoadingEllipsis";
 import LoadingIndicator from "components/LoadingIndicator";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Modal from "components/Modal";
@@ -31,6 +33,7 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
+import { WebsocketProvider } from "multiplayer/WebsocketProvider";
 import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
@@ -54,7 +57,6 @@ Are you sure you want to discard them?
 `;
 
 type Props = {
-  match: Match,
   history: RouterHistory,
   location: LocationWithState,
   sharedTree: ?NavigationNode,
@@ -62,6 +64,14 @@ type Props = {
   document: Document,
   revision: Revision,
   readOnly: boolean,
+  isShare?: boolean,
+  multiplayer: {
+    isConnected: boolean,
+    isReconnecting: boolean,
+    isRemoteSynced: boolean,
+    provider: ?WebsocketProvider,
+    doc: Y.Doc,
+  },
   onCreateLink: (title: string) => Promise<string>,
   onSearchLink: (term: string) => any,
   theme: Theme,
@@ -194,7 +204,7 @@ class DocumentScene extends React.Component<Props> {
       autosave?: boolean,
     } = {}
   ) => {
-    const { document } = this.props;
+    const { document, auth } = this.props;
 
     // prevent saves when we are already saving
     if (document.isSaving) return;
@@ -222,10 +232,22 @@ class DocumentScene extends React.Component<Props> {
     this.isPublishing = !!options.publish;
 
     try {
-      const savedDocument = await document.save({
-        ...options,
-        lastRevision: this.lastRevision,
-      });
+      let savedDocument = document;
+      if (auth.team && auth.team.multiplayerEditor) {
+        // update does not send "text" field to the API, this is a workaround
+        // while the multiplayer editor is toggleable. Once it's finalized
+        // this can be cleaned up to single code path
+        savedDocument = await document.update({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      } else {
+        savedDocument = await document.save({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      }
+
       this.isDirty = false;
       this.lastRevision = savedDocument.revision;
 
@@ -270,6 +292,11 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChange = (getEditorText) => {
+    const { auth } = this.props;
+    if (auth.team && auth.team.multiplayerEditor) {
+      return;
+    }
+
     this.getEditorText = getEditorText;
 
     // document change while read only is presumed to be a checkbox edit,
@@ -298,9 +325,10 @@ class DocumentScene extends React.Component<Props> {
       document,
       revision,
       readOnly,
-      abilities,
+      abilities = {},
       auth,
       ui,
+      multiplayer,
       match,
     } = this.props;
     const team = auth.team;
@@ -326,7 +354,7 @@ class DocumentScene extends React.Component<Props> {
           auto
         >
           <Route
-            path={`${match.url}/move`}
+            path={`${document.url}/move`}
             component={() => (
               <Modal
                 title={`Move ${document.noun}`}
@@ -350,7 +378,12 @@ class DocumentScene extends React.Component<Props> {
             {!readOnly && (
               <>
                 <Prompt
-                  when={this.isDirty && !this.isUploading}
+                  when={
+                    this.isDirty &&
+                    !this.isUploading &&
+                    !!team &&
+                    !team.multiplayerEditor
+                  }
                   message={DISCARD_CHANGES}
                 />
                 <Prompt
@@ -409,12 +442,28 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
+              {team &&
+                multiplayer &&
+                !multiplayer.isConnected &&
+                team.multiplayerEditor && (
+                  <Notice muted>
+                    Connection lost. Any edits will sync once you’re back
+                    online.{" "}
+                    {multiplayer.isReconnecting && (
+                      <>
+                        Trying to reconnect
+                        <LoadingEllipsis />
+                      </>
+                    )}
+                  </Notice>
+                )}
               <React.Suspense fallback={<LoadingPlaceholder />}>
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
+                    canShowHoverPreviews={!isShare}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
@@ -436,6 +485,7 @@ class DocumentScene extends React.Component<Props> {
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
+                    multiplayer={this.props.multiplayer}
                   >
                     {shareId && (
                       <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>

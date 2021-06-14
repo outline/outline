@@ -76,6 +76,7 @@ export default class Document extends BaseModel {
   @computed
   get isNew(): boolean {
     return (
+      !!this.publishedAt &&
       !this.lastViewedAt &&
       differenceInDays(new Date(), new Date(this.createdAt)) < 14
     );
@@ -232,6 +233,27 @@ export default class Document extends BaseModel {
   };
 
   @action
+  update = async (options: SaveOptions & { title: string }) => {
+    if (this.isSaving) return this;
+    this.isSaving = true;
+
+    try {
+      if (options.lastRevision) {
+        return await this.store.update({
+          id: this.id,
+          title: this.title,
+          lastRevision: options.lastRevision,
+          ...options,
+        });
+      }
+
+      throw new Error("Attempting to update without a lastRevision");
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
   save = async (options: SaveOptions = {}) => {
     if (this.isSaving) return this;
 
@@ -264,7 +286,7 @@ export default class Document extends BaseModel {
         });
       }
 
-      throw new Error("Attempting to update without a lastRevision");
+      throw new Error("Attempting to save without a lastRevision");
     } finally {
       this.isSaving = false;
     }

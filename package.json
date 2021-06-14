@@ -78,6 +78,7 @@
     "@sentry/tracing": "^6.3.1",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "^0.3.2",
+    "y-prosemirror": "^1.0.9",
     "autotrack": "^2.4.1",
     "aws-sdk": "^2.831.0",
     "babel-plugin-lodash": "^3.3.4",
@@ -130,6 +131,7 @@
     "koa-sendfile": "2.0.0",
     "koa-sslify": "2.1.2",
     "koa-static": "^4.0.1",
+    "lib0": "^0.2.34",
     "lodash": "^4.17.19",
     "mammoth": "^1.4.16",
     "mobx": "^4.15.4",
@@ -189,7 +191,10 @@
     "turndown": "^6.0.0",
     "utf8": "^2.1.0",
     "uuid": "^8.3.2",
-    "validator": "5.2.0"
+    "validator": "5.2.0",
+    "y-indexeddb": "^9.0.5",
+    "y-protocols": "^1.0.1",
+    "yjs": "^13.4.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",

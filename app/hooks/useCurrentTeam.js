@@ -4,6 +4,6 @@ import useStores from "./useStores";
 
 export default function useCurrentTeam() {
   const { auth } = useStores();
-  invariant(auth.team, "team required");
+  invariant(auth.team, "Expected to be authenticated");
   return auth.team;
 }

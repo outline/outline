@@ -11,6 +11,10 @@
 .*/node_modules/react-side-effect/.*
 .*/node_modules/fbjs/.*
 .*/node_modules/config-chain/.*
+.*/node_modules/yjs/.*
+.*/node_modules/y-prosemirror/.*
+.*/node_modules/y-protocols/.*
+.*/node_modules/lib0/.*
 .*/server/scripts/.*
 *.test.js
 

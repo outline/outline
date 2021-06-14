@@ -12,10 +12,8 @@ const Authenticated = React.lazy(() =>
 const AuthenticatedRoutes = React.lazy(() =>
   import(/* webpackChunkName: "authenticated-routes" */ "./authenticated")
 );
-const KeyedDocument = React.lazy(() =>
-  import(
-    /* webpackChunkName: "keyed-document" */ "scenes/Document/KeyedDocument"
-  )
+const SharedDocument = React.lazy(() =>
+  import(/* webpackChunkName: "shared-document" */ "scenes/Document/Shared")
 );
 const Login = React.lazy(() =>
   import(/* webpackChunkName: "login" */ "scenes/Login")
@@ -37,11 +35,11 @@ export default function Routes() {
         <Route exact path="/" component={Login} />
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
-        <Route exact path="/share/:shareId" component={KeyedDocument} />
+        <Route exact path="/share/:shareId" component={SharedDocument} />
         <Route
           exact
           path={`/share/:shareId/doc/${slug}`}
-          component={KeyedDocument}
+          component={SharedDocument}
         />
         <Authenticated>
           <AuthenticatedRoutes />
