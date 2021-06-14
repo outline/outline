@@ -20,7 +20,7 @@ router.post("utils.gc", async (ctx) => {
   log(`Permanently destroying upto ${limit} documents older than 30 days…`);
 
   const documents = await Document.scope("withUnpublished").findAll({
-    attributes: ["id", "teamId", "text"],
+    attributes: ["id", "teamId", "text", "deletedAt"],
     where: {
       deletedAt: {
         [Op.lt]: subDays(new Date(), 30),
