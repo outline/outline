@@ -16,6 +16,7 @@ export default class Collection extends BaseModel {
   icon: string;
   color: string;
   permission: "read" | "read_write" | void;
+  isPersonal: boolean;
   sharing: boolean;
   index: string;
   documents: NavigationNode[];

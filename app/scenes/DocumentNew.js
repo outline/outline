@@ -27,6 +27,7 @@ function DocumentNew() {
 
         const document = await documents.create({
           collectionId: collection.id,
+          publish: collection.isPersonal,
           parentDocumentId: params.parentDocumentId,
           templateId: params.templateId,
           template: params.template,

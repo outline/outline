@@ -32,11 +32,16 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @computed
+  get personal(): ?Collection {
+    return Array.from(this.data.values()).find((c) => c.isPersonal);
+  }
+
+  @computed
   get orderedData(): Collection[] {
     let collections = Array.from(this.data.values());
 
-    collections = collections.filter((collection) =>
-      collection.deletedAt ? false : true
+    collections = collections.filter(
+      (collection) => !collection.deletedAt && !collection.isPersonal
     );
 
     return collections.sort((a, b) => {

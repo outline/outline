@@ -609,6 +609,20 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
+  const personalCollection = collections.find((c) => c.isPersonal);
+  if (!personalCollection) {
+    const personalCollection = await Collection.create({
+      name: user.name,
+      teamId: user.teamId,
+      createdById: user.id,
+      isPersonal: true,
+      sort: Collection.DEFAULT_SORT,
+      permission: null,
+    });
+
+    collections.push(personalCollection);
+  }
+
   const nullIndexCollection = collections.findIndex(
     (collection) => collection.index === null
   );

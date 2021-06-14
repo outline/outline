@@ -100,7 +100,7 @@ User.prototype.collectionIds = async function (options = {}) {
   const collectionStubs = await Collection.scope({
     method: ["withMembership", this.id],
   }).findAll({
-    attributes: ["id", "permission"],
+    attributes: ["id", "permission", "isPersonal"],
     where: { teamId: this.teamId },
     paranoid: true,
     ...options,
@@ -111,6 +111,7 @@ User.prototype.collectionIds = async function (options = {}) {
       (c) =>
         c.permission === "read" ||
         c.permission === "read_write" ||
+        (c.isPersonal && c.createdById === this.id) ||
         c.memberships.length > 0 ||
         c.collectionGroupMemberships.length > 0
     )

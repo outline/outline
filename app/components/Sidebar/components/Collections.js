@@ -1,7 +1,7 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PlusIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -10,10 +10,12 @@ import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
 import CollectionsLoading from "./CollectionsLoading";
+import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
 import useCurrentTeam from "hooks/useCurrentTeam";
+import { newDocumentUrl } from "utils/routeHelpers";
 type Props = {
   onCreateCollection: () => void,
 };
@@ -22,6 +24,7 @@ function Collections({ onCreateCollection }: Props) {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
+  const personalCollection = collections.personal;
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const team = useCurrentTeam();
@@ -97,6 +100,32 @@ function Collections({ onCreateCollection }: Props) {
           label={`${t("New collection")}…`}
           exact
         />
+      )}
+
+      {personalCollection && (
+        <>
+          <br />
+          <Header>{t("Personal")}</Header>
+          {personalCollection.documents.map((node, index) => (
+            <DocumentLink
+              key={node.id}
+              node={node}
+              collection={personalCollection}
+              activeDocument={documents.active}
+              prefetchDocument={documents.prefetchDocument}
+              icon={node.children.length ? undefined : <DocumentIcon />}
+              depth={node.children.length ? 1.5 : 0}
+              canUpdate
+              index={index}
+            />
+          ))}
+          <SidebarLink
+            to={newDocumentUrl(personalCollection.id)}
+            icon={<PlusIcon color="currentColor" />}
+            label={`${t("New document")}…`}
+            exact
+          />
+        </>
       )}
     </>
   );

@@ -25,6 +25,11 @@ const Collection = sequelize.define(
       type: DataTypes.STRING,
       defaultValue: null,
     },
+    isPersonal: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     permission: {
       type: DataTypes.STRING,
       defaultValue: null,

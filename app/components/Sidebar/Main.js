@@ -116,17 +116,6 @@ function MainSidebar() {
               />
               {can.createDocument && (
                 <SidebarLink
-                  to="/templates"
-                  icon={<ShapesIcon color="currentColor" />}
-                  exact={false}
-                  label={t("Templates")}
-                  active={
-                    documents.active ? documents.active.template : undefined
-                  }
-                />
-              )}
-              {can.createDocument && (
-                <SidebarLink
                   to="/drafts"
                   icon={<EditIcon color="currentColor" />}
                   label={
@@ -171,6 +160,17 @@ function MainSidebar() {
                   documents.active ? documents.active.isDeleted : undefined
                 }
               />
+              {can.createDocument && (
+                <SidebarLink
+                  to="/templates"
+                  icon={<ShapesIcon color="currentColor" />}
+                  exact={false}
+                  label={t("Templates")}
+                  active={
+                    documents.active ? documents.active.template : undefined
+                  }
+                />
+              )}
               <SidebarLink
                 to="/settings"
                 icon={<SettingsIcon color="currentColor" />}

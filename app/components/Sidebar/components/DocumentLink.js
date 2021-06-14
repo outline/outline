@@ -24,6 +24,7 @@ type Props = {|
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
   index: number,
+  icon?: React.Node,
   parentId?: string,
 |};
 
@@ -35,6 +36,7 @@ function DocumentLink({
   prefetchDocument,
   depth,
   index,
+  icon,
   parentId,
 }: Props) {
   const { documents, policies } = useStores();
@@ -236,6 +238,7 @@ function DocumentLink({
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
+                icon={icon}
                 menu={
                   document && !isMoving ? (
                     <Fade>
@@ -264,7 +267,7 @@ function DocumentLink({
               node={childNode}
               activeDocument={activeDocument}
               prefetchDocument={prefetchDocument}
-              depth={depth + 1}
+              depth={(depth || 1) + 1}
               canUpdate={canUpdate}
               index={index}
               parentId={node.id}
