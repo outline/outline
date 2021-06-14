@@ -7,6 +7,14 @@ import parseAttachmentIds from "../utils/parseAttachmentIds";
 const log = debug("commands");
 
 export async function documentPermanentDeleter(documents: Document[]) {
+  const index = documents.findIndex((doc) => !doc.deletedAt);
+
+  if (index !== -1) {
+    throw new Error(
+      `Cannot permanently delete ${documents[index].id} document. Please delete it and try again.`
+    );
+  }
+
   const query = `
     SELECT COUNT(id)
     FROM documents

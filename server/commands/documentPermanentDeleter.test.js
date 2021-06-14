@@ -28,15 +28,21 @@ describe("documentPermanentDeleter", () => {
     expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
   });
 
-  it("should destroy documents even if not deleted", async () => {
+  it("should error when trying to destroy undeleted documents", async () => {
     const document = await buildDocument({
       publishedAt: new Date(),
     });
 
-    const countDeletedDoc = await documentPermanentDeleter([document]);
+    let error;
+    try {
+      await documentPermanentDeleter([document]);
+    } catch (err) {
+      error = err.message;
+    }
 
-    expect(countDeletedDoc).toEqual(1);
-    expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
+    expect(error).toEqual(
+      `Cannot permanently delete ${document.id} document. Please delete it and try again.`
+    );
   });
 
   it("should destroy attachments no longer referenced", async () => {
