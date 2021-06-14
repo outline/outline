@@ -27,18 +27,17 @@ class UserDelete extends React.Component<Props> {
       await this.props.auth.deleteUser();
       this.props.auth.logout();
     } catch (error) {
-      this.props.ui.showToast(error.message);
-      throw error;
+      this.props.ui.showToast(error.message, { type: "error" });
     } finally {
       this.isDeleting = false;
     }
   };
 
   render() {
-    const { auth, ...rest } = this.props;
+    const { onRequestClose } = this.props;
 
     return (
-      <Modal isOpen title="Delete Account" {...rest}>
+      <Modal isOpen title="Delete Account" onRequestClose={onRequestClose}>
         <Flex column>
           <form onSubmit={this.handleSubmit}>
             <HelpText>

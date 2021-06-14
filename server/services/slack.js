@@ -1,4 +1,5 @@
 // @flow
+import fetch from "fetch-with-proxy";
 import type { DocumentEvent, IntegrationEvent, Event } from "../events";
 import { Document, Integration, Collection, Team } from "../models";
 import { presentSlackAttachment } from "../presenters";
@@ -55,6 +56,9 @@ export default class Slack {
   }
 
   async documentUpdated(event: DocumentEvent) {
+    // never send notifications when batch importing documents
+    if (event.data && event.data.source === "import") return;
+
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
 

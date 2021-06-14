@@ -1,8 +1,8 @@
 // @flow
-import subMinutes from "date-fns/sub_minutes";
+import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { AuthenticationError } from "../errors";
-import { User } from "../models";
+import { Team, User } from "../models";
 
 function getJWTPayload(token) {
   let payload;
@@ -21,6 +21,10 @@ function getJWTPayload(token) {
 export async function getUserForJWT(token: string): Promise<User> {
   const payload = getJWTPayload(token);
 
+  if (payload.type === "email-signin") {
+    throw new AuthenticationError("Invalid token");
+  }
+
   // check the token is within it's expiration time
   if (payload.expiresAt) {
     if (new Date(payload.expiresAt) < new Date()) {
@@ -28,7 +32,15 @@ export async function getUserForJWT(token: string): Promise<User> {
     }
   }
 
-  const user = await User.findByPk(payload.id);
+  const user = await User.findByPk(payload.id, {
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
+  });
 
   if (payload.type === "transfer") {
     // If the user has made a single API request since the transfer token was
@@ -61,7 +73,15 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
     }
   }
 
-  const user = await User.findByPk(payload.id);
+  const user = await User.findByPk(payload.id, {
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
+  });
 
   // if user has signed in at all since the token was created then
   // it's no longer valid, they'll need a new one.

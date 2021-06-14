@@ -1,140 +1,246 @@
 // @flow
-import invariant from "invariant";
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { sortBy } from "lodash";
+import { observer } from "mobx-react";
+import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
-import { type Match } from "react-router-dom";
-
-import AuthStore from "stores/AuthStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UsersStore from "stores/UsersStore";
+import { Trans, useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import { PAGINATION_SYMBOL } from "stores/BaseStore";
 import Invite from "scenes/Invite";
+import { Action } from "components/Actions";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
-import Empty from "components/Empty";
+import Flex from "components/Flex";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
+import InputSearch from "components/InputSearch";
 import Modal from "components/Modal";
-import PageTitle from "components/PageTitle";
-import PaginatedList from "components/PaginatedList";
-import Tab from "components/Tab";
-import Tabs, { Separator } from "components/Tabs";
+import Scene from "components/Scene";
+import PeopleTable from "./components/PeopleTable";
+import UserStatusFilter from "./components/UserStatusFilter";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useQuery from "hooks/useQuery";
+import useStores from "hooks/useStores";
 
-import UserListItem from "./components/UserListItem";
+function People(props) {
+  const topRef = React.useRef();
+  const location = useLocation();
+  const history = useHistory();
+  const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
+  const team = useCurrentTeam();
+  const { users, policies } = useStores();
+  const { t } = useTranslation();
+  const params = useQuery();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [data, setData] = React.useState([]);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [userIds, setUserIds] = React.useState([]);
+  const can = policies.abilities(team.id);
+  const query = params.get("query") || "";
+  const filter = params.get("filter") || "";
+  const sort = params.get("sort") || "name";
+  const direction = (params.get("direction") || "asc").toUpperCase();
+  const page = parseInt(params.get("page") || 0, 10);
+  const limit = 25;
 
-type Props = {
-  auth: AuthStore,
-  users: UsersStore,
-  policies: PoliciesStore,
-  match: Match,
-};
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
 
-@observer
-class People extends React.Component<Props> {
-  @observable inviteModalOpen: boolean = false;
+      try {
+        const response = await users.fetchPage({
+          offset: page * limit,
+          limit,
+          sort,
+          direction,
+          query,
+          filter,
+        });
 
-  handleInviteModalOpen = () => {
-    this.inviteModalOpen = true;
-  };
+        setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        setUserIds(response.map((u) => u.id));
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  handleInviteModalClose = () => {
-    this.inviteModalOpen = false;
-  };
+    fetchData();
+  }, [query, sort, filter, page, direction, users]);
 
-  fetchPage = (params) => {
-    return this.props.users.fetchPage({ ...params, includeSuspended: true });
-  };
-
-  render() {
-    const { auth, policies, match } = this.props;
-    const { filter } = match.params;
-    const currentUser = auth.user;
-    const team = auth.team;
-    invariant(currentUser, "User should exist");
-    invariant(team, "Team should exist");
-
-    let users = this.props.users.active;
-    if (filter === "all") {
-      users = this.props.users.all;
+  React.useEffect(() => {
+    let filtered = users.orderedData;
+    if (!filter) {
+      filtered = users.active.filter((u) => userIds.includes(u.id));
+    } else if (filter === "all") {
+      filtered = users.orderedData.filter((u) => userIds.includes(u.id));
     } else if (filter === "admins") {
-      users = this.props.users.admins;
+      filtered = users.admins.filter((u) => userIds.includes(u.id));
     } else if (filter === "suspended") {
-      users = this.props.users.suspended;
+      filtered = users.suspended.filter((u) => userIds.includes(u.id));
     } else if (filter === "invited") {
-      users = this.props.users.invited;
+      filtered = users.invited.filter((u) => userIds.includes(u.id));
+    } else if (filter === "viewers") {
+      filtered = users.viewers.filter((u) => userIds.includes(u.id));
     }
 
-    const can = policies.abilities(team.id);
+    // sort the resulting data by the original order from the server
+    setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
+  }, [
+    filter,
+    users.active,
+    users.admins,
+    users.orderedData,
+    users.suspended,
+    users.invited,
+    users.viewers,
+    userIds,
+  ]);
 
-    return (
-      <CenteredContent>
-        <PageTitle title="People" />
-        <h1>People</h1>
-        <HelpText>
+  const handleInviteModalOpen = React.useCallback(() => {
+    setInviteModalOpen(true);
+  }, []);
+
+  const handleInviteModalClose = React.useCallback(() => {
+    setInviteModalOpen(false);
+  }, []);
+
+  const handleFilter = React.useCallback(
+    (filter) => {
+      if (filter) {
+        params.set("filter", filter);
+        params.delete("page");
+      } else {
+        params.delete("filter");
+      }
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleSearch = React.useCallback(
+    (event) => {
+      const { value } = event.target;
+      if (value) {
+        params.set("query", event.target.value);
+        params.delete("page");
+      } else {
+        params.delete("query");
+      }
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleChangeSort = React.useCallback(
+    (sort, direction) => {
+      if (sort) {
+        params.set("sort", sort);
+      } else {
+        params.delete("sort");
+      }
+      if (direction === "DESC") {
+        params.set("direction", direction.toLowerCase());
+      } else {
+        params.delete("direction");
+      }
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleChangePage = React.useCallback(
+    (page) => {
+      if (page) {
+        params.set("page", page.toString());
+      } else {
+        params.delete("page");
+      }
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+
+      if (topRef.current) {
+        scrollIntoView(topRef.current, {
+          scrollMode: "if-needed",
+          behavior: "instant",
+          block: "start",
+        });
+      }
+    },
+    [params, history, location.pathname]
+  );
+
+  return (
+    <Scene
+      title={t("Members")}
+      icon={<UserIcon color="currentColor" />}
+      actions={
+        <>
+          {can.inviteUser && (
+            <Action>
+              <Button
+                type="button"
+                data-on="click"
+                data-event-category="invite"
+                data-event-action="peoplePage"
+                onClick={handleInviteModalOpen}
+                icon={<PlusIcon />}
+              >
+                {t("Invite people")}…
+              </Button>
+            </Action>
+          )}
+        </>
+      }
+    >
+      <Heading>{t("Members")}</Heading>
+      <HelpText>
+        <Trans>
           Everyone that has signed into Outline appears here. It’s possible that
           there are other users who have access through {team.signinMethods} but
           haven’t signed in yet.
-        </HelpText>
-        <Button
-          type="button"
-          data-on="click"
-          data-event-category="invite"
-          data-event-action="peoplePage"
-          onClick={this.handleInviteModalOpen}
-          icon={<PlusIcon />}
-          neutral
-        >
-          Invite people…
-        </Button>
-
-        <Tabs>
-          <Tab to="/settings/people" exact>
-            Active
-          </Tab>
-          <Tab to="/settings/people/admins" exact>
-            Admins
-          </Tab>
-          {can.update && (
-            <Tab to="/settings/people/suspended" exact>
-              Suspended
-            </Tab>
-          )}
-          <Tab to="/settings/people/all" exact>
-            Everyone
-          </Tab>
-
-          {can.invite && (
-            <>
-              <Separator />
-              <Tab to="/settings/people/invited" exact>
-                Invited
-              </Tab>
-            </>
-          )}
-        </Tabs>
-        <PaginatedList
-          items={users}
-          empty={<Empty>No people to see here.</Empty>}
-          fetch={this.fetchPage}
-          renderItem={(item) => (
-            <UserListItem
-              key={item.id}
-              user={item}
-              showMenu={can.update && currentUser.id !== item.id}
-            />
-          )}
+        </Trans>
+      </HelpText>
+      <Flex gap={8}>
+        <InputSearch
+          short
+          value={query}
+          placeholder={`${t("Filter")}…`}
+          onChange={handleSearch}
         />
-
+        <UserStatusFilter activeKey={filter} onSelect={handleFilter} />
+      </Flex>
+      <PeopleTable
+        topRef={topRef}
+        data={data}
+        canManage={can.manage}
+        isLoading={isLoading}
+        onChangeSort={handleChangeSort}
+        onChangePage={handleChangePage}
+        page={page}
+        totalPages={totalPages}
+      />
+      {can.inviteUser && (
         <Modal
-          title="Invite people"
-          onRequestClose={this.handleInviteModalClose}
-          isOpen={this.inviteModalOpen}
+          title={t("Invite people")}
+          onRequestClose={handleInviteModalClose}
+          isOpen={inviteModalOpen}
         >
-          <Invite onSubmit={this.handleInviteModalClose} />
+          <Invite onSubmit={handleInviteModalClose} />
         </Modal>
-      </CenteredContent>
-    );
-  }
+      )}
+    </Scene>
+  );
 }
 
-export default inject("auth", "users", "policies")(People);
+export default observer(People);

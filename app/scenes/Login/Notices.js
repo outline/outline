@@ -1,18 +1,25 @@
 // @flow
 import * as React from "react";
 import NoticeAlert from "components/NoticeAlert";
+import useQuery from "hooks/useQuery";
 
-type Props = {
-  notice?: string,
-};
+export default function Notices() {
+  const query = useQuery();
+  const notice = query.get("notice");
+  const description = query.get("description");
 
-export default function Notices({ notice }: Props) {
   return (
     <>
       {notice === "google-hd" && (
         <NoticeAlert>
           Sorry, Google sign in cannot be used with a personal email. Please try
           signing in with your Google Workspace account.
+        </NoticeAlert>
+      )}
+      {notice === "maximum-teams" && (
+        <NoticeAlert>
+          The team you authenticated with is not authorized on this
+          installation. Try another?
         </NoticeAlert>
       )}
       {notice === "hd-not-allowed" && (
@@ -33,12 +40,15 @@ export default function Notices({ notice }: Props) {
           try again in a few minutes.
         </NoticeAlert>
       )}
-      {notice === "auth-error" && (
-        <NoticeAlert>
-          Authentication failed - we were unable to sign you in at this time.
-          Please try again.
-        </NoticeAlert>
-      )}
+      {notice === "auth-error" &&
+        (description ? (
+          <NoticeAlert>{description}</NoticeAlert>
+        ) : (
+          <NoticeAlert>
+            Authentication failed – we were unable to sign you in at this time.
+            Please try again.
+          </NoticeAlert>
+        ))}
       {notice === "expired-token" && (
         <NoticeAlert>
           Sorry, it looks like that sign-in link is no longer valid, please try
@@ -49,6 +59,12 @@ export default function Notices({ notice }: Props) {
         <NoticeAlert>
           Your Outline account has been suspended. To re-activate your account,
           please contact a team admin.
+        </NoticeAlert>
+      )}
+      {notice === "authentication-provider-disabled" && (
+        <NoticeAlert>
+          Authentication failed – this login method was disabled by a team
+          admin.
         </NoticeAlert>
       )}
     </>

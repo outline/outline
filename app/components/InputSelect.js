@@ -2,17 +2,23 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
-import VisuallyHidden from "components/VisuallyHidden";
 import { Outline, LabelText } from "./Input";
 
 const Select = styled.select`
   border: 0;
   flex: 1;
-  padding: 8px 12px;
+  padding: 4px 0;
+  margin: 0 12px;
   outline: none;
   background: none;
   color: ${(props) => props.theme.text};
+  height: 30px;
+
+  option {
+    background: ${(props) => props.theme.buttonNeutralBackground};
+  }
 
   &:disabled,
   &::placeholder {
@@ -25,7 +31,7 @@ const Wrapper = styled.label`
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-type Option = { label: string, value: string };
+export type Option = { label: string, value: string };
 
 export type Props = {
   value?: string,
@@ -34,6 +40,8 @@ export type Props = {
   className?: string,
   labelHidden?: boolean,
   options: Option[],
+  onBlur?: () => void,
+  onFocus?: () => void,
 };
 
 @observer

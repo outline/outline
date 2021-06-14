@@ -1,4 +1,5 @@
 // @flow
+import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
@@ -8,7 +9,13 @@ import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-import type { FetchOptions, PaginationParams, SearchResult } from "types";
+import env from "env";
+import type {
+  NavigationNode,
+  FetchOptions,
+  PaginationParams,
+  SearchResult,
+} from "types";
 import { client } from "utils/ApiClient";
 
 type ImportOptions = {
@@ -19,8 +26,12 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
+  @observable movingDocumentId: ?string;
 
   importFileTypes: string[] = [
+    ".md",
+    ".doc",
+    ".docx",
     "text/markdown",
     "text/plain",
     "text/html",
@@ -110,6 +121,15 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  rootInCollection(collectionId: string): Document[] {
+    const collection = this.rootStore.collections.get(collectionId);
+    if (!collection) {
+      return [];
+    }
+
+    return compact(collection.documents.map((node) => this.get(node.id)));
+  }
+
   leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
     return orderBy(this.inCollection(collectionId), "updatedAt", "asc");
   }
@@ -173,7 +193,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.drafts().length;
   }
 
-  drafts = (options = {}): Document[] => {
+  drafts = (
+    options: {
+      ...PaginationParams,
+      dateFilter?: "day" | "week" | "month" | "year",
+      collectionId?: string,
+    } = {}
+  ): Document[] => {
     let drafts = filter(
       orderBy(this.all, "updatedAt", "desc"),
       (doc) => !doc.publishedAt
@@ -184,7 +210,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         drafts,
         (draft) =>
           new Date(draft.updatedAt) >=
-          subtractDate(new Date(), options.dateFilter)
+          subtractDate(new Date(), options.dateFilter || "year")
       );
     }
 
@@ -244,7 +270,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchNamedPage = async (
     request: string = "list",
-    options: ?PaginationParams
+    options: ?Object
   ): Promise<?(Document[])> => {
     this.isFetching = true;
 
@@ -337,10 +363,9 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  searchTitles = async (query: string, options: PaginationParams = {}) => {
+  searchTitles = async (query: string) => {
     const res = await client.get("/documents.search_titles", {
       query,
-      ...options,
     });
     invariant(res && res.data, "Search response should be available");
 
@@ -353,7 +378,15 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   search = async (
     query: string,
-    options: PaginationParams = {}
+    options: {
+      offset?: number,
+      limit?: number,
+      dateFilter?: "day" | "week" | "month" | "year",
+      includeArchived?: boolean,
+      includeDrafts?: boolean,
+      collectionId?: string,
+      userId?: string,
+    }
   ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
@@ -419,30 +452,30 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetch = async (
     id: string,
     options: FetchOptions = {}
-  ): Promise<?Document> => {
+  ): Promise<{ document: ?Document, sharedTree?: NavigationNode }> => {
     if (!options.prefetch) this.isFetching = true;
 
     try {
       const doc: ?Document = this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
       if (doc && policy && !options.force) {
-        return doc;
+        return { document: doc };
       }
 
       const res = await client.post("/documents.info", {
         id,
         shareId: options.shareId,
+        apiVersion: 2,
       });
       invariant(res && res.data, "Document not available");
 
       this.addPolicies(res.policies);
-      this.add(res.data);
+      this.add(res.data.document);
 
-      runInAction("DocumentsStore#fetch", () => {
-        this.isLoaded = true;
-      });
-
-      return this.data.get(res.data.id);
+      return {
+        document: this.data.get(res.data.document.id),
+        sharedTree: res.data.sharedTree,
+      };
     } finally {
       this.isFetching = false;
     }
@@ -450,20 +483,28 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   move = async (
-    document: Document,
+    documentId: string,
     collectionId: string,
-    parentDocumentId: ?string
+    parentDocumentId: ?string,
+    index: ?number
   ) => {
-    const res = await client.post("/documents.move", {
-      id: document.id,
-      collectionId,
-      parentDocumentId,
-    });
-    invariant(res && res.data, "Data not available");
+    this.movingDocumentId = documentId;
 
-    res.data.documents.forEach(this.add);
-    res.data.collections.forEach(this.rootStore.collections.add);
-    this.addPolicies(res.policies);
+    try {
+      const res = await client.post("/documents.move", {
+        id: documentId,
+        collectionId,
+        parentDocumentId,
+        index: index,
+      });
+      invariant(res && res.data, "Data not available");
+
+      res.data.documents.forEach(this.add);
+      res.data.collections.forEach(this.rootStore.collections.add);
+      this.addPolicies(res.policies);
+    } finally {
+      this.movingDocumentId = undefined;
+    }
   };
 
   @action
@@ -497,6 +538,19 @@ export default class DocumentsStore extends BaseStore<Document> {
     collectionId: string,
     options: ImportOptions
   ) => {
+    // file.type can be an empty string sometimes
+    if (
+      file.type &&
+      !this.importFileTypes.includes(file.type) &&
+      !this.importFileTypes.includes(path.extname(file.name))
+    ) {
+      throw new Error(`The selected file type is not supported (${file.type})`);
+    }
+
+    if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+      throw new Error("The selected file was too large to import");
+    }
+
     const title = file.name.replace(/\.[^/.]+$/, "");
     const formData = new FormData();
 
@@ -592,10 +646,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  restore = async (document: Document, options = {}) => {
+  restore = async (
+    document: Document,
+    options: { revisionId?: string, collectionId?: string } = {}
+  ) => {
     const res = await client.post("/documents.restore", {
       id: document.id,
-      ...options,
+      revisionId: options.revisionId,
+      collectionId: options.collectionId,
     });
     runInAction("Document#restore", () => {
       invariant(res && res.data, "Data should be available");

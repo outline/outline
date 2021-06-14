@@ -1,5 +1,6 @@
 // @flow
 import http from "http";
+import * as Sentry from "@sentry/node";
 import debug from "debug";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
@@ -10,6 +11,7 @@ import * as multiplayer from "./multiplayer";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
+import { checkMigrations } from "./utils/startup";
 
 const server = http.createServer(app.callback());
 const log = debug("server");
@@ -199,7 +201,17 @@ io.on("connection", (socket) => {
 
             // let this user know who else is already present in the room
             io.in(room).clients(async (err, socketIds) => {
-              if (err) throw err;
+              if (err) {
+                if (process.env.SENTRY_DSN) {
+                  Sentry.withScope(function (scope) {
+                    scope.setExtra("clients", socketIds);
+                    Sentry.captureException(err);
+                  });
+                } else {
+                  console.error(err);
+                }
+                return;
+              }
 
               // because a single user can have multiple socket connections we
               // need to make sure that only unique userIds are returned. A Map
@@ -294,7 +306,10 @@ server.on("listening", () => {
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
-server.listen(process.env.PORT || "3000");
+(async () => {
+  await checkMigrations();
+  server.listen(process.env.PORT || "3000");
+})();
 
 export const socketio = io;
 

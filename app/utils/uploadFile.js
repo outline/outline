@@ -39,10 +39,12 @@ export const uploadFile = async (
     formData.append("file", file);
   }
 
-  await fetch(data.uploadUrl, {
+  const uploadResponse = await fetch(data.uploadUrl, {
     method: "post",
     body: formData,
   });
+
+  invariant(uploadResponse.ok, "Upload failed, try again?");
 
   return attachment;
 };

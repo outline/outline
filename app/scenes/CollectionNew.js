@@ -3,8 +3,9 @@ import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { withTranslation, type TFunction, Trans } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
+import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
@@ -13,11 +14,12 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
-import InputRich from "components/InputRich";
+import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 
 type Props = {
   history: RouterHistory,
+  auth: AuthStore,
   ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
@@ -27,10 +29,10 @@ type Props = {
 @observer
 class CollectionNew extends React.Component<Props> {
   @observable name: string = "";
-  @observable description: string = "";
   @observable icon: string = "";
   @observable color: string = "#4E5C6E";
-  @observable private: boolean = false;
+  @observable sharing: boolean = true;
+  @observable permission: string = "read_write";
   @observable isSaving: boolean;
   hasOpenedIconPicker: boolean = false;
 
@@ -40,10 +42,10 @@ class CollectionNew extends React.Component<Props> {
     const collection = new Collection(
       {
         name: this.name,
-        description: this.description,
+        sharing: this.sharing,
         icon: this.icon,
         color: this.color,
-        private: this.private,
+        permission: this.permission,
       },
       this.props.collections
     );
@@ -53,13 +55,13 @@ class CollectionNew extends React.Component<Props> {
       this.props.onSubmit();
       this.props.history.push(collection.url);
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }
   };
 
-  handleNameChange = (ev: SyntheticInputEvent<*>) => {
+  handleNameChange = (ev: SyntheticInputEvent<>) => {
     this.name = ev.target.value;
 
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -86,12 +88,12 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handleDescriptionChange = (getValue: () => string) => {
-    this.description = getValue();
+  handlePermissionChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+    this.permission = ev.target.value;
   };
 
-  handlePrivateChange = (ev: SyntheticInputEvent<*>) => {
-    this.private = ev.target.checked;
+  handleSharingChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
+    this.sharing = ev.target.checked;
   };
 
   handleChange = (color: string, icon: string) => {
@@ -100,14 +102,17 @@ class CollectionNew extends React.Component<Props> {
   };
 
   render() {
-    const { t } = this.props;
+    const { t, auth } = this.props;
+    const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          {t(
-            "Collections are for grouping your knowledge base. They work best when organized around a topic or internal team — Product or Engineering for example."
-          )}
+          <Trans>
+            Collections are for grouping your documents. They work best when
+            organized around a topic or internal team — Product or Engineering
+            for example.
+          </Trans>
         </HelpText>
         <Flex>
           <Input
@@ -127,28 +132,36 @@ class CollectionNew extends React.Component<Props> {
             icon={this.icon}
           />
         </Flex>
-        <InputRich
-          label={t("Description")}
-          onChange={this.handleDescriptionChange}
-          defaultValue={this.description || ""}
-          placeholder={t("More details about this collection…")}
-          minHeight={68}
-          maxHeight={200}
-        />
-        <Switch
-          id="private"
-          label={t("Private collection")}
-          onChange={this.handlePrivateChange}
-          checked={this.private}
+        <InputSelectPermission
+          value={this.permission}
+          onChange={this.handlePermissionChange}
+          short
         />
         <HelpText>
-          {t(
-            "A private collection will only be visible to invited team members."
-          )}
+          <Trans>
+            This is the default level of access given to team members, you can
+            give specific users or groups more access once the collection is
+            created.
+          </Trans>
         </HelpText>
+        {teamSharingEnabled && (
+          <>
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              onChange={this.handleSharingChange}
+              checked={this.sharing}
+            />
+            <HelpText>
+              <Trans>
+                When enabled, documents can be shared publicly on the internet.
+              </Trans>
+            </HelpText>
+          </>
+        )}
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? t("Creating…") : t("Create")}
+          {this.isSaving ? `${t("Creating")}…` : t("Create")}
         </Button>
       </form>
     );
@@ -156,5 +169,5 @@ class CollectionNew extends React.Component<Props> {
 }
 
 export default withTranslation()<CollectionNew>(
-  inject("collections", "ui")(withRouter(CollectionNew))
+  inject("collections", "ui", "auth")(withRouter(CollectionNew))
 );

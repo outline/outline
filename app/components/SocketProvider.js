@@ -101,7 +101,10 @@ class SocketProvider extends React.Component<Props> {
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
     this.socket.on("reconnect_attempt", () => {
-      this.socket.io.opts.transports = ["polling", "websocket"];
+      this.socket.io.opts.transports =
+        auth.team && auth.team.domain
+          ? ["websocket"]
+          : ["websocket", "polling"];
     });
 
     this.socket.on("authenticated", () => {
@@ -110,7 +113,9 @@ class SocketProvider extends React.Component<Props> {
 
     this.socket.on("unauthorized", (err) => {
       this.socket.authenticated = false;
-      ui.showToast(err.message);
+      ui.showToast(err.message, {
+        type: "error",
+      });
       throw err;
     });
 
@@ -139,9 +144,10 @@ class SocketProvider extends React.Component<Props> {
 
           // otherwise, grab the latest version of the document
           try {
-            document = await documents.fetch(documentId, {
+            const response = await documents.fetch(documentId, {
               force: true,
             });
+            document = response.document;
           } catch (err) {
             if (err.statusCode === 404 || err.statusCode === 403) {
               documents.remove(documentId);
@@ -267,6 +273,13 @@ class SocketProvider extends React.Component<Props> {
         documents.removeCollectionDocuments(event.collectionId);
       } else {
         memberships.remove(`${event.userId}-${event.collectionId}`);
+      }
+    });
+
+    this.socket.on("collections.update_index", (event) => {
+      const collection = collections.get(event.collectionId);
+      if (collection) {
+        collection.updateIndex(event.index);
       }
     });
 

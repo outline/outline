@@ -1,64 +1,78 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { useTranslation } from "react-i18next";
+import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
 import Button from "components/Button";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import ContextMenu from "components/ContextMenu";
+import MenuItem from "components/ContextMenu/MenuItem";
+import Separator from "components/ContextMenu/Separator";
+import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   document: Document,
-  documents: DocumentsStore,
-  t: TFunction,
-};
+|};
 
-@observer
-class TemplatesMenu extends React.Component<Props> {
-  render() {
-    const { documents, document, t, ...rest } = this.props;
-    const templates = documents.templatesInCollection(document.collectionId);
+function TemplatesMenu({ document }: Props) {
+  const menu = useMenuState({ modal: true });
+  const { documents } = useStores();
+  const { t } = useTranslation();
+  const templates = documents.templates;
 
-    if (!templates.length) {
-      return null;
-    }
+  if (!templates.length) {
+    return null;
+  }
 
-    return (
-      <DropdownMenu
-        position="left"
-        label={
-          <Button disclosure neutral>
+  const templatesInCollection = templates.filter(
+    (t) => t.collectionId === document.collectionId
+  );
+  const otherTemplates = templates.filter(
+    (t) => t.collectionId !== document.collectionId
+  );
+
+  const renderTemplate = (template) => (
+    <MenuItem
+      key={template.id}
+      onClick={() => document.updateFromTemplate(template)}
+      {...menu}
+    >
+      <DocumentIcon />
+      <div>
+        <strong>{template.titleWithDefault}</strong>
+        <br />
+        <Author>
+          {t("By {{ author }}", { author: template.createdBy.name })}
+        </Author>
+      </div>
+    </MenuItem>
+  );
+
+  return (
+    <>
+      <MenuButton {...menu}>
+        {(props) => (
+          <Button {...props} disclosure neutral>
             {t("Templates")}
           </Button>
-        }
-        {...rest}
-      >
-        {templates.map((template) => (
-          <DropdownMenuItem
-            key={template.id}
-            onClick={() => document.updateFromTemplate(template)}
-          >
-            <DocumentIcon />
-            <div>
-              <strong>{template.titleWithDefault}</strong>
-              <br />
-              <Author>
-                {t("By {{ author }}", { author: template.createdBy.name })}
-              </Author>
-            </div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenu>
-    );
-  }
+        )}
+      </MenuButton>
+      <ContextMenu {...menu} aria-label={t("Templates")}>
+        {templatesInCollection.map(renderTemplate)}
+        {otherTemplates.length && templatesInCollection.length ? (
+          <Separator />
+        ) : undefined}
+        {otherTemplates.map(renderTemplate)}
+      </ContextMenu>
+    </>
+  );
 }
 
 const Author = styled.div`
   font-size: 13px;
+  text-align: left;
 `;
 
-export default withTranslation()<TemplatesMenu>(
-  inject("documents")(TemplatesMenu)
-);
+export default observer(TemplatesMenu);

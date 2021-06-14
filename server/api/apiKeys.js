@@ -15,7 +15,7 @@ router.post("apiKeys.create", auth(), async (ctx) => {
   ctx.assertPresent(name, "name is required");
 
   const user = ctx.state.user;
-  authorize(user, "create", ApiKey);
+  authorize(user, "createApiKey", user.team);
 
   const key = await ApiKey.create({
     name,

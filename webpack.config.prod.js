@@ -1,7 +1,7 @@
 /* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
-const ManifestPlugin = require('webpack-manifest-plugin');
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 commonWebpackConfig = require('./webpack.config');
@@ -10,7 +10,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
   output: {
     path: path.join(__dirname, 'build/app'),
     filename: '[name].[contenthash].js',
-    publicPath: '/static/',
+    publicPath: `${process.env.CDN_URL || ""}/static/`,
   },
   cache: true,
   mode: "production",
@@ -42,7 +42,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
 
 productionWebpackConfig.plugins = [
   ...productionWebpackConfig.plugins,
-  new ManifestPlugin()
+  new WebpackManifestPlugin()
 ];
 
 module.exports = productionWebpackConfig;

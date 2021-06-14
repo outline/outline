@@ -11,11 +11,6 @@ export const Action = styled(Flex)`
   font-size: 15px;
   flex-shrink: 0;
 
-  a {
-    color: ${(props) => props.theme.text};
-    height: 24px;
-  }
-
   &:empty {
     display: none;
   }
@@ -38,7 +33,7 @@ const Actions = styled(Flex)`
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   padding: 12px;
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 
   @media print {
     display: none;

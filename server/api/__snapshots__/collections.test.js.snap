@@ -61,6 +61,15 @@ Object {
 }
 `;
 
+exports[`#collections.import should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#collections.info should require authentication 1`] = `
 Object {
   "error": "authentication_required",
@@ -80,6 +89,15 @@ Object {
 `;
 
 exports[`#collections.memberships should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.move should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",

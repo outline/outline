@@ -1,18 +1,21 @@
 // @flow
 import * as React from "react";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
-import VisuallyHidden from "components/VisuallyHidden";
 
-export type Props = {
+export type Props = {|
   checked?: boolean,
-  label?: string,
+  label?: React.Node,
   labelHidden?: boolean,
   className?: string,
+  name?: string,
+  disabled?: boolean,
+  onChange: (event: SyntheticInputEvent<HTMLInputElement>) => mixed,
   note?: string,
   short?: boolean,
   small?: boolean,
-};
+|};
 
 const LabelText = styled.span`
   font-weight: 500;
@@ -23,6 +26,7 @@ const LabelText = styled.span`
 const Wrapper = styled.div`
   padding-bottom: 8px;
   ${(props) => (props.small ? "font-size: 14px" : "")};
+  width: 100%;
 `;
 
 const Label = styled.label`

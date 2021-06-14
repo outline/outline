@@ -6,7 +6,7 @@
       "@babel/preset-env",
       {
         "corejs": {
-          "version": "2",
+          "version": "3",
           "proposals": true
         },
         "targets": {
@@ -17,6 +17,15 @@
     ]
   ],
   "plugins": [
-    "transform-class-properties"
+    "transform-class-properties",
+    [
+      "transform-inline-environment-variables",
+      {
+        "include": [
+          "SOURCE_COMMIT",
+          "SOURCE_VERSION"
+        ]
+      }
+    ]
   ]
 }

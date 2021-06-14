@@ -31,10 +31,25 @@ export default createGlobalStyle`
     font-size: 16px;
     line-height: 1.5;
     color: ${(props) => props.theme.text};
-
+    overscroll-behavior-y: none;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  @media (min-width: ${(props) =>
+    props.theme.breakpoints.tablet}px) and (display-mode: standalone) {
+    body:after {
+      content: "";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: ${(props) => props.theme.titleBarDivider};
+      z-index: ${(props) => props.theme.depths.titleBarDivider};
+    }
   }
 
   a {

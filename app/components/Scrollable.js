@@ -1,39 +1,78 @@
 // @flow
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import useWindowSize from "hooks/useWindowSize";
 
-type Props = {
+type Props = {|
   shadow?: boolean,
-};
+  topShadow?: boolean,
+  bottomShadow?: boolean,
+  flex?: boolean,
+|};
 
-@observer
-class Scrollable extends React.Component<Props> {
-  @observable shadow: boolean = false;
+function Scrollable({ shadow, topShadow, bottomShadow, flex, ...rest }: Props) {
+  const ref = React.useRef<?HTMLDivElement>();
+  const [topShadowVisible, setTopShadow] = React.useState(false);
+  const [bottomShadowVisible, setBottomShadow] = React.useState(false);
+  const { height } = useWindowSize();
 
-  handleScroll = (ev: SyntheticMouseEvent<HTMLDivElement>) => {
-    this.shadow = !!(this.props.shadow && ev.currentTarget.scrollTop > 0);
-  };
+  const updateShadows = React.useCallback(() => {
+    const c = ref.current;
+    if (!c) return;
 
-  render() {
-    const { shadow, ...rest } = this.props;
+    const scrollTop = c.scrollTop;
+    const tsv = !!((shadow || topShadow) && scrollTop > 0);
+    if (tsv !== topShadowVisible) {
+      setTopShadow(tsv);
+    }
 
-    return (
-      <Wrapper onScroll={this.handleScroll} shadow={this.shadow} {...rest} />
-    );
-  }
+    const wrapperHeight = c.scrollHeight - c.clientHeight;
+    const bsv = !!((shadow || bottomShadow) && wrapperHeight - scrollTop !== 0);
+
+    if (bsv !== bottomShadowVisible) {
+      setBottomShadow(bsv);
+    }
+  }, [shadow, topShadow, bottomShadow, topShadowVisible, bottomShadowVisible]);
+
+  React.useEffect(() => {
+    updateShadows();
+  }, [height, updateShadows]);
+
+  return (
+    <Wrapper
+      ref={ref}
+      onScroll={updateShadows}
+      $flex={flex}
+      $topShadowVisible={topShadowVisible}
+      $bottomShadowVisible={bottomShadowVisible}
+      {...rest}
+    />
+  );
 }
 
 const Wrapper = styled.div`
+  display: ${(props) => (props.$flex ? "flex" : "block")};
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  box-shadow: ${(props) =>
-    props.shadow ? "0 1px inset rgba(0,0,0,.1)" : "none"};
-  transition: all 250ms ease-in-out;
+  box-shadow: ${(props) => {
+    if (props.$topShadowVisible && props.$bottomShadowVisible) {
+      return "0 1px inset rgba(0,0,0,.1), 0 -1px inset rgba(0,0,0,.1)";
+    }
+    if (props.$topShadowVisible) {
+      return "0 1px inset rgba(0,0,0,.1)";
+    }
+    if (props.$bottomShadowVisible) {
+      return "0 -1px inset rgba(0,0,0,.1)";
+    }
+
+    return "none";
+  }};
+  transition: all 100ms ease-in-out;
 `;
 
-export default Scrollable;
+export default observer(Scrollable);

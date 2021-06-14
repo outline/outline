@@ -10,6 +10,7 @@ import validation from "../middlewares/validation";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
+import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
 import documents from "./documents";
 import events from "./events";
@@ -31,13 +32,13 @@ const api = new Koa();
 const router = new Router();
 
 // middlewares
+api.use(errorHandling());
 api.use(
   bodyParser({
     multipart: true,
     formidable: { maxFieldsSize: 10 * 1024 * 1024 },
   })
 );
-api.use(errorHandling());
 api.use(methodOverride());
 api.use(validation());
 api.use(apiWrapper());
@@ -45,6 +46,7 @@ api.use(editor());
 
 // routes
 router.use("/", auth.routes());
+router.use("/", authenticationProviders.routes());
 router.use("/", events.routes());
 router.use("/", users.routes());
 router.use("/", collections.routes());

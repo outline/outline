@@ -1,19 +1,21 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import ApiKeysStore from "stores/ApiKeysStore";
-
+import UiStore from "stores/UiStore";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import List from "components/List";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
 import TokenListItem from "./components/TokenListItem";
 
 type Props = {
   apiKeys: ApiKeysStore,
+  ui: UiStore,
 };
 
 @observer
@@ -29,9 +31,13 @@ class Tokens extends React.Component<Props> {
   };
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    await this.props.apiKeys.create({ name: this.name });
-    this.name = "";
+    try {
+      ev.preventDefault();
+      await this.props.apiKeys.create({ name: this.name });
+      this.name = "";
+    } catch (error) {
+      this.props.ui.showToast(error.message, { type: "error" });
+    }
   };
 
   render() {
@@ -39,10 +45,8 @@ class Tokens extends React.Component<Props> {
     const hasApiKeys = apiKeys.orderedData.length > 0;
 
     return (
-      <CenteredContent>
-        <PageTitle title="API Tokens" />
-        <h1>API Tokens</h1>
-
+      <Scene title="API Tokens" icon={<CodeIcon color="currentColor" />}>
+        <Heading>API Tokens</Heading>
         <HelpText>
           You can create an unlimited amount of personal tokens to authenticate
           with the API. For more details about the API take a look at the{" "}
@@ -77,9 +81,9 @@ class Tokens extends React.Component<Props> {
             disabled={apiKeys.isSaving}
           />
         </form>
-      </CenteredContent>
+      </Scene>
     );
   }
 }
 
-export default inject("apiKeys")(Tokens);
+export default inject("apiKeys", "ui")(Tokens);

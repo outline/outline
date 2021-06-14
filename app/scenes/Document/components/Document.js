@@ -14,27 +14,30 @@ import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
+import DocumentMove from "scenes/DocumentMove";
 import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingEllipsis from "components/LoadingEllipsis";
 import LoadingIndicator from "components/LoadingIndicator";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
+import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
-import DocumentMove from "./DocumentMove";
 import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import PublicReferences from "./PublicReferences";
 import References from "./References";
 import { WebsocketProvider } from "multiplayer/WebsocketProvider";
-import { type LocationWithState, type Theme } from "types";
+import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
+import { meta } from "utils/keyboard";
 import {
   documentMoveUrl,
   documentHistoryUrl,
@@ -56,6 +59,7 @@ Are you sure you want to discard them?
 type Props = {
   history: RouterHistory,
   location: LocationWithState,
+  sharedTree: ?NavigationNode,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -68,7 +72,7 @@ type Props = {
     provider: ?WebsocketProvider,
     doc: Y.Doc,
   },
-  onCreateLink: (title: string) => string,
+  onCreateLink: (title: string) => Promise<string>,
   onSearchLink: (term: string) => any,
   theme: Theme,
   auth: AuthStore,
@@ -83,17 +87,16 @@ class DocumentScene extends React.Component<Props> {
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
-  @observable moveModalOpen: boolean = false;
   @observable lastRevision: number = this.props.document.revision;
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
 
-  componentDidMount() {
-    this.updateIsDirty();
-  }
-
   componentDidUpdate(prevProps) {
     const { auth, document } = this.props;
+
+    if (prevProps.readOnly && !this.props.readOnly) {
+      this.updateIsDirty();
+    }
 
     if (this.props.readOnly) {
       this.lastRevision = document.revision;
@@ -107,6 +110,7 @@ class DocumentScene extends React.Component<Props> {
           `Document updated by ${document.updatedBy.name}`,
           {
             timeout: 30 * 1000,
+            type: "warning",
             action: {
               text: "Reload",
               onClick: () => {
@@ -171,7 +175,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  @keydown("meta+shift+p")
+  @keydown(`${meta}+shift+p`)
   onPublish(ev) {
     ev.preventDefault();
     const { document } = this.props;
@@ -179,7 +183,7 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
-  @keydown("meta+ctrl+h")
+  @keydown("ctrl+alt+h")
   onToggleTableOfContents(ev) {
     if (!this.props.readOnly) return;
 
@@ -192,9 +196,6 @@ class DocumentScene extends React.Component<Props> {
       ui.showTableOfContents();
     }
   }
-
-  handleCloseMoveModal = () => (this.moveModalOpen = false);
-  handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSave = async (
     options: {
@@ -258,7 +259,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.ui.showToast(err.message);
+      this.props.ui.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
       this.isPublishing = false;
@@ -324,13 +325,15 @@ class DocumentScene extends React.Component<Props> {
       document,
       revision,
       readOnly,
-      isShare,
       abilities = {},
       auth,
       ui,
       multiplayer,
+      match,
     } = this.props;
     const team = auth.team;
+    const { shareId } = match.params;
+    const isShare = !!shareId;
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
@@ -340,8 +343,7 @@ class DocumentScene extends React.Component<Props> {
     const headings = this.editor.current
       ? this.editor.current.getHeadings()
       : [];
-    const showContents =
-      (ui.tocVisible && readOnly) || (isShare && !!headings.length);
+    const showContents = ui.tocVisible && readOnly;
 
     return (
       <ErrorBoundary>
@@ -354,7 +356,16 @@ class DocumentScene extends React.Component<Props> {
           <Route
             path={`${document.url}/move`}
             component={() => (
-              <DocumentMove document={document} onRequestClose={this.goBack} />
+              <Modal
+                title={`Move ${document.noun}`}
+                onRequestClose={this.goBack}
+                isOpen
+              >
+                <DocumentMove
+                  document={document}
+                  onRequestClose={this.goBack}
+                />
+              </Modal>
             )}
           />
           <PageTitle
@@ -381,22 +392,22 @@ class DocumentScene extends React.Component<Props> {
                 />
               </>
             )}
-            {!isShare && (
-              <Header
-                document={document}
-                isRevision={!!revision}
-                isDraft={document.isDraft}
-                isEditing={!readOnly}
-                isSaving={this.isSaving}
-                isPublishing={this.isPublishing}
-                publishingIsDisabled={
-                  document.isSaving || this.isPublishing || this.isEmpty
-                }
-                savingIsDisabled={document.isSaving || this.isEmpty}
-                goBack={this.goBack}
-                onSave={this.onSave}
-              />
-            )}
+            <Header
+              document={document}
+              shareId={shareId}
+              isRevision={!!revision}
+              isDraft={document.isDraft}
+              isEditing={!readOnly}
+              isSaving={this.isSaving}
+              isPublishing={this.isPublishing}
+              publishingIsDisabled={
+                document.isSaving || this.isPublishing || this.isEmpty
+              }
+              savingIsDisabled={document.isSaving || this.isEmpty}
+              sharedTree={this.props.sharedTree}
+              goBack={this.goBack}
+              onSave={this.onSave}
+            />
             <MaxWidth
               archived={document.isArchived}
               showContents={showContents}
@@ -453,6 +464,7 @@ class DocumentScene extends React.Component<Props> {
                     id={document.id}
                     innerRef={this.editor}
                     canShowHoverPreviews={!isShare}
+                    shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
                     key={[injectTemplate, disableEmbeds].join("-")}
@@ -474,21 +486,33 @@ class DocumentScene extends React.Component<Props> {
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
                     multiplayer={this.props.multiplayer}
-                  />
+                  >
+                    {shareId && (
+                      <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                        <PublicReferences
+                          shareId={shareId}
+                          documentId={document.id}
+                          sharedTree={this.props.sharedTree}
+                        />
+                      </ReferencesWrapper>
+                    )}
+                    {!isShare && !revision && (
+                      <>
+                        <MarkAsViewed document={document} />
+                        <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                          <References document={document} />
+                        </ReferencesWrapper>
+                      </>
+                    )}
+                  </Editor>
                 </Flex>
-                {readOnly && !isShare && !revision && (
-                  <>
-                    <MarkAsViewed document={document} />
-                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                      <References document={document} />
-                    </ReferencesWrapper>
-                  </>
-                )}
               </React.Suspense>
             </MaxWidth>
           </Container>
         </Background>
-        {isShare && !isCustomDomain() && <Branding />}
+        {isShare && !isCustomDomain() && (
+          <Branding href="//www.getoutline.com?ref=sharelink" />
+        )}
         {!isShare && <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );
@@ -516,7 +540,7 @@ const ReferencesWrapper = styled("div")`
 const MaxWidth = styled(Flex)`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-  padding: 0 16px;
+  padding: 0 12px;
   max-width: 100vw;
   width: 100%;
 
@@ -528,7 +552,7 @@ const MaxWidth = styled(Flex)`
   `};
 
   ${breakpoint("desktopLarge")`
-    max-width: calc(48px + 46em);
+    max-width: calc(48px + 52em);
   `};
 `;
 

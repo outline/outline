@@ -8,7 +8,6 @@ import {
   undo,
   redo,
 } from "y-prosemirror";
-// import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 
 export default class MultiplayerExtension extends Extension {
@@ -41,11 +40,6 @@ export default class MultiplayerExtension extends Extension {
     });
 
     doc.on("afterTransaction", assignUser);
-
-    // const dbProvider = new IndexeddbPersistence(doc.documentId, doc);
-    // dbProvider.whenSynced.then(() => {
-    //   console.log("loaded data from indexed db");
-    // });
 
     return [
       ySyncPlugin(type),

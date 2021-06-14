@@ -1,8 +1,8 @@
 // @flow
 import Router from "koa-router";
-import { reject } from "lodash";
+import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
-import { signin } from "../../shared/utils/routeHelpers";
+import providers from "../auth/providers";
 import auth from "../middlewares/authentication";
 import { Team } from "../models";
 import { presentUser, presentTeam, presentPolicies } from "../presenters";
@@ -10,44 +10,26 @@ import { isCustomDomain } from "../utils/domains";
 
 const router = new Router();
 
-let services = [];
+function filterProviders(team) {
+  return providers
+    .sort((provider) => (provider.id === "email" ? 1 : -1))
+    .filter((provider) => {
+      // guest sign-in is an exception as it does not have an authentication
+      // provider using passport, instead it exists as a boolean option on the team
+      if (provider.id === "email") {
+        return team && team.guestSignin;
+      }
 
-if (process.env.GOOGLE_CLIENT_ID) {
-  services.push({
-    id: "google",
-    name: "Google",
-    authUrl: signin("google"),
-  });
-}
-
-if (process.env.SLACK_KEY) {
-  services.push({
-    id: "slack",
-    name: "Slack",
-    authUrl: signin("slack"),
-  });
-}
-
-services.push({
-  id: "email",
-  name: "Email",
-  authUrl: "",
-});
-
-function filterServices(team) {
-  let output = services;
-
-  if (team && !team.googleId) {
-    output = reject(output, (service) => service.id === "google");
-  }
-  if (team && !team.slackId) {
-    output = reject(output, (service) => service.id === "slack");
-  }
-  if (!team || !team.guestSignin) {
-    output = reject(output, (service) => service.id === "email");
-  }
-
-  return output;
+      return (
+        !team ||
+        find(team.authenticationProviders, { name: provider.id, enabled: true })
+      );
+    })
+    .map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      authUrl: provider.authUrl,
+    }));
 }
 
 router.post("auth.config", async (ctx) => {
@@ -55,14 +37,14 @@ router.post("auth.config", async (ctx) => {
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (process.env.DEPLOYMENT !== "hosted") {
-    const teams = await Team.findAll();
+    const teams = await Team.scope("withAuthenticationProviders").findAll();
 
     if (teams.length === 1) {
       const team = teams[0];
       ctx.body = {
         data: {
           name: team.name,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -70,7 +52,7 @@ router.post("auth.config", async (ctx) => {
   }
 
   if (isCustomDomain(ctx.request.hostname)) {
-    const team = await Team.findOne({
+    const team = await Team.scope("withAuthenticationProviders").findOne({
       where: { domain: ctx.request.hostname },
     });
 
@@ -79,7 +61,7 @@ router.post("auth.config", async (ctx) => {
         data: {
           name: team.name,
           hostname: ctx.request.hostname,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -95,7 +77,7 @@ router.post("auth.config", async (ctx) => {
   ) {
     const domain = parseDomain(ctx.request.hostname);
     const subdomain = domain ? domain.subdomain : undefined;
-    const team = await Team.findOne({
+    const team = await Team.scope("withAuthenticationProviders").findOne({
       where: { subdomain },
     });
 
@@ -104,7 +86,7 @@ router.post("auth.config", async (ctx) => {
         data: {
           name: team.name,
           hostname: ctx.request.hostname,
-          services: filterServices(team),
+          providers: filterProviders(team),
         },
       };
       return;
@@ -114,7 +96,7 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      services: filterServices(),
+      providers: filterProviders(),
     },
   };
 });

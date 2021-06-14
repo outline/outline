@@ -1,8 +1,7 @@
 // @flow
-import { concat, filter, last } from "lodash";
-import { computed } from "mobx";
-
-import naturalSort from "shared/utils/naturalSort";
+import invariant from "invariant";
+import { concat, find, last } from "lodash";
+import { computed, action } from "mobx";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
@@ -34,20 +33,18 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   @computed
   get orderedData(): Collection[] {
-    return filter(
-      naturalSort(Array.from(this.data.values()), "name"),
-      (d) => !d.deletedAt
+    let collections = Array.from(this.data.values());
+
+    collections = collections.filter((collection) =>
+      collection.deletedAt ? false : true
     );
-  }
 
-  @computed
-  get public(): Collection[] {
-    return this.orderedData.filter((collection) => !collection.private);
-  }
-
-  @computed
-  get private(): Collection[] {
-    return this.orderedData.filter((collection) => collection.private);
+    return collections.sort((a, b) => {
+      if (a.index === b.index) {
+        return a.updatedAt > b.updatedAt ? -1 : 1;
+      }
+      return a.index < b.index ? -1 : 1;
+    });
   }
 
   /**
@@ -88,6 +85,71 @@ export default class CollectionsStore extends BaseStore<Collection> {
     });
   }
 
+  @action
+  import = async (attachmentId: string) => {
+    await client.post("/collections.import", {
+      type: "outline",
+      attachmentId,
+    });
+  };
+
+  @action
+  move = async (collectionId: string, index: string) => {
+    const res = await client.post("/collections.move", {
+      id: collectionId,
+      index,
+    });
+    invariant(res && res.success, "Collection could not be moved");
+
+    const collection = this.get(collectionId);
+
+    if (collection) {
+      collection.updateIndex(res.data.index);
+    }
+  };
+
+  async update(params: Object): Promise<Collection> {
+    const result = await super.update(params);
+
+    // If we're changing sharing permissions on the collection then we need to
+    // remove all locally cached policies for documents in the collection as they
+    // are now invalid
+    if (params.sharing !== undefined) {
+      const collection = this.get(params.id);
+      if (collection) {
+        collection.documentIds.forEach((id) => {
+          this.rootStore.policies.remove(id);
+        });
+      }
+    }
+
+    return result;
+  }
+
+  @action
+  async fetch(id: string, options: Object = {}): Promise<*> {
+    const item = this.get(id) || this.getByUrl(id);
+
+    if (item && !options.force) return item;
+
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/collections.info`, { id });
+      invariant(res && res.data, "Collection not available");
+
+      this.addPolicies(res.policies);
+      return this.add(res.data);
+    } catch (err) {
+      if (err.statusCode === 403) {
+        this.remove(id);
+      }
+      throw err;
+    } finally {
+      this.isFetching = false;
+    }
+  }
+
   getPathForDocument(documentId: string): ?DocumentPath {
     return this.pathsToDocuments.find((path) => path.id === documentId);
   }
@@ -97,12 +159,16 @@ export default class CollectionsStore extends BaseStore<Collection> {
     if (path) return path.title;
   }
 
-  delete(collection: Collection) {
-    super.delete(collection);
+  getByUrl(url: string): ?Collection {
+    return find(this.orderedData, (col: Collection) => url.endsWith(col.urlId));
+  }
+
+  delete = async (collection: Collection) => {
+    await super.delete(collection);
 
     this.rootStore.documents.fetchRecentlyUpdated();
     this.rootStore.documents.fetchRecentlyViewed();
-  }
+  };
 
   export = () => {
     return client.post("/collections.export_all");

@@ -1,74 +1,66 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
-import { Redirect } from "react-router-dom";
-
-import CollectionsStore from "stores/CollectionsStore";
-import PoliciesStore from "stores/PoliciesStore";
+import { useTranslation } from "react-i18next";
+import { useMenuState, MenuButton } from "reakit/Menu";
+import styled from "styled-components";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
-import { DropdownMenu, Header } from "components/DropdownMenu";
-import DropdownMenuItems from "components/DropdownMenu/DropdownMenuItems";
+import ContextMenu from "components/ContextMenu";
+import Header from "components/ContextMenu/Header";
+import Template from "components/ContextMenu/Template";
+import Flex from "components/Flex";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useStores from "hooks/useStores";
 import { newDocumentUrl } from "utils/routeHelpers";
 
-type Props = {
-  label?: React.Node,
-  collections: CollectionsStore,
-  policies: PoliciesStore,
-  t: TFunction,
-};
+function NewTemplateMenu() {
+  const menu = useMenuState({ modal: true });
+  const { t } = useTranslation();
+  const team = useCurrentTeam();
+  const { collections, policies } = useStores();
+  const can = policies.abilities(team.id);
 
-@observer
-class NewTemplateMenu extends React.Component<Props> {
-  @observable redirectTo: ?string;
-
-  componentDidUpdate() {
-    this.redirectTo = undefined;
+  if (!can.createDocument) {
+    return null;
   }
 
-  handleNewDocument = (collectionId: string) => {
-    this.redirectTo = newDocumentUrl(collectionId, {
-      template: true,
-    });
-  };
-
-  render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
-    const { collections, policies, label, t, ...rest } = this.props;
-
-    return (
-      <DropdownMenu
-        label={
-          label || (
-            <Button icon={<PlusIcon />} small>
-              {t("New template…")}
-            </Button>
-          )
-        }
-        {...rest}
-      >
+  return (
+    <>
+      <MenuButton {...menu}>
+        {(props) => (
+          <Button icon={<PlusIcon />} {...props} small>
+            {t("New template")}…
+          </Button>
+        )}
+      </MenuButton>
+      <ContextMenu aria-label={t("New template")} {...menu}>
         <Header>{t("Choose a collection")}</Header>
-        <DropdownMenuItems
+        <Template
+          {...menu}
           items={collections.orderedData.map((collection) => ({
-            onClick: () => this.handleNewDocument(collection.id),
+            to: newDocumentUrl(collection.id, {
+              template: true,
+            }),
             disabled: !policies.abilities(collection.id).update,
             title: (
-              <>
+              <Flex align="center">
                 <CollectionIcon collection={collection} />
-                &nbsp;{collection.name}
-              </>
+                <CollectionName>{collection.name}</CollectionName>
+              </Flex>
             ),
           }))}
         />
-      </DropdownMenu>
-    );
-  }
+      </ContextMenu>
+    </>
+  );
 }
 
-export default withTranslation()<NewTemplateMenu>(
-  inject("collections", "policies")(NewTemplateMenu)
-);
+const CollectionName = styled.div`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`;
+
+export default observer(NewTemplateMenu);

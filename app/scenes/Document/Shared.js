@@ -17,7 +17,7 @@ type Props = {|
 
 export default function SharedEditor(props: Props) {
   const theme = useTheme();
-  const [document, setDocument] = React.useState();
+  const [response, setResponse] = React.useState();
   const [error, setError] = React.useState<?Error>();
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
@@ -30,10 +30,10 @@ export default function SharedEditor(props: Props) {
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const doc = await documents.fetch(documentSlug, {
+        const response = await documents.fetch(documentSlug, {
           shareId,
         });
-        setDocument(doc);
+        setResponse(response);
       } catch (err) {
         setError(err);
       }
@@ -45,11 +45,17 @@ export default function SharedEditor(props: Props) {
     return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
   }
 
-  if (!document) {
+  if (!response) {
     return <Loading location={props.location} />;
   }
 
   return (
-    <Document document={document} location={props.location} isShare readOnly />
+    <Document
+      document={response.document}
+      sharedTree={response.sharedTree}
+      location={props.location}
+      shareId={shareId}
+      readOnly
+    />
   );
 }

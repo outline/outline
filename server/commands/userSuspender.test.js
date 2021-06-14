@@ -1,6 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { GroupUser } from "../models";
-import { buildGroup, buildUser } from "../test/factories";
+import { buildGroup, buildAdmin, buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import userSuspender from "./userSuspender";
 
@@ -27,7 +27,7 @@ describe("userSuspender", () => {
   });
 
   it("should suspend the user", async () => {
-    const admin = await buildUser({ isAdmin: true });
+    const admin = await buildAdmin();
     const user = await buildUser({ teamId: admin.teamId });
     await userSuspender({
       actorId: admin.id,
@@ -39,7 +39,7 @@ describe("userSuspender", () => {
   });
 
   it("should remove group memberships", async () => {
-    const admin = await buildUser({ isAdmin: true });
+    const admin = await buildAdmin();
     const user = await buildUser({ teamId: admin.teamId });
     const group = await buildGroup({ teamId: user.teamId });
 

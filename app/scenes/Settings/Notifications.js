@@ -1,16 +1,17 @@
 // @flow
 import { debounce } from "lodash";
 import { observer, inject } from "mobx-react";
+import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import NotificationSettingsStore from "stores/NotificationSettingsStore";
 import UiStore from "stores/UiStore";
-import CenteredContent from "components/CenteredContent";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Notice from "components/Notice";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 
 import NotificationListItem from "./components/NotificationListItem";
@@ -75,7 +76,7 @@ class Notifications extends React.Component<Props> {
   };
 
   showSuccessMessage = debounce(() => {
-    this.props.ui.showToast("Notifications saved");
+    this.props.ui.showToast("Notifications saved", { type: "success" });
   }, 500);
 
   render() {
@@ -85,20 +86,16 @@ class Notifications extends React.Component<Props> {
     if (!team || !user) return null;
 
     return (
-      <CenteredContent>
+      <Scene title="Notifications" icon={<EmailIcon color="currentColor" />}>
         {showSuccessNotice && (
           <Notice>
             Unsubscription successful. Your notification settings were updated
           </Notice>
         )}
-
-        <PageTitle title="Notifications" />
-        <h1>Notifications</h1>
-
+        <Heading>Notifications</Heading>
         <HelpText>
           Manage when and where you receive email notifications from Outline.
-          Your email address can be updated in your{" "}
-          {team.slackConnected ? "Slack" : "Google"} account.
+          Your email address can be updated in your SSO provider.
         </HelpText>
 
         <Input
@@ -128,7 +125,7 @@ class Notifications extends React.Component<Props> {
             />
           );
         })}
-      </CenteredContent>
+      </Scene>
     );
   }
 }

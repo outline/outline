@@ -16,7 +16,7 @@ type AlignValues =
   | "flex-start"
   | "flex-end";
 
-type Props = {
+type Props = {|
   column?: ?boolean,
   shrink?: ?boolean,
   align?: AlignValues,
@@ -24,12 +24,19 @@ type Props = {
   auto?: ?boolean,
   className?: string,
   children?: React.Node,
-};
+  role?: string,
+  gap?: number,
+|};
 
-const Flex = (props: Props) => {
+const Flex = React.forwardRef<Props, HTMLDivElement>((props: Props, ref) => {
   const { children, ...restProps } = props;
-  return <Container {...restProps}>{children}</Container>;
-};
+
+  return (
+    <Container ref={ref} {...restProps}>
+      {children}
+    </Container>
+  );
+});
 
 const Container = styled.div`
   display: flex;
@@ -38,6 +45,7 @@ const Container = styled.div`
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
   flex-shrink: ${({ shrink }) => (shrink ? 1 : "initial")};
+  gap: ${({ gap }) => `${gap}px` || "initial"};
   min-height: 0;
   min-width: 0;
 `;

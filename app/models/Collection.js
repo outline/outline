@@ -1,5 +1,5 @@
 // @flow
-import { pick } from "lodash";
+import { pick, trim } from "lodash";
 import { action, computed, observable } from "mobx";
 import BaseModel from "models/BaseModel";
 import Document from "models/Document";
@@ -15,17 +15,16 @@ export default class Collection extends BaseModel {
   description: string;
   icon: string;
   color: string;
-  private: boolean;
+  permission: "read" | "read_write" | void;
+  sharing: boolean;
+  index: string;
   documents: NavigationNode[];
-  createdAt: ?string;
-  updatedAt: ?string;
+  createdAt: string;
+  updatedAt: string;
   deletedAt: ?string;
+  sort: { field: string, direction: "asc" | "desc" };
   url: string;
-
-  @computed
-  get isPrivate(): boolean {
-    return this.private;
-  }
+  urlId: string;
 
   @computed
   get isEmpty(): boolean {
@@ -45,6 +44,11 @@ export default class Collection extends BaseModel {
     return results;
   }
 
+  @computed
+  get hasDescription(): boolean {
+    return !!trim(this.description, "\\").trim();
+  }
+
   @action
   updateDocument(document: Document) {
     const travelDocuments = (documentList, path) =>
@@ -58,6 +62,11 @@ export default class Collection extends BaseModel {
       });
 
     travelDocuments(this.documents);
+  }
+
+  @action
+  updateIndex(index: string) {
+    this.index = index;
   }
 
   getDocumentChildren(documentId: string): NavigationNode[] {
@@ -79,12 +88,12 @@ export default class Collection extends BaseModel {
     return result;
   }
 
-  pathToDocument(document: Document) {
+  pathToDocument(documentId: string) {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach((childNode) => {
         const newPath = [...previousPath, childNode];
-        if (childNode.id === document.id) {
+        if (childNode.id === documentId) {
           path = newPath;
           return;
         }
@@ -106,8 +115,11 @@ export default class Collection extends BaseModel {
       "name",
       "color",
       "description",
+      "sharing",
       "icon",
-      "private",
+      "permission",
+      "sort",
+      "index",
     ]);
   };
 

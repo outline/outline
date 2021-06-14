@@ -7,6 +7,7 @@ import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
 import parseTitle from "../../shared/utils/parseTitle";
+import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import unescape from "../../shared/utils/unescape";
 import { Collection, User } from "../models";
 import { DataTypes, sequelize } from "../sequelize";
@@ -14,7 +15,6 @@ import slugify from "../utils/slugify";
 import Revision from "./Revision";
 
 const Op = Sequelize.Op;
-const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
@@ -96,7 +96,9 @@ const Document = sequelize.define(
     },
     getterMethods: {
       url: function () {
-        const slugifiedTitle = slugify(this.title || "untitled");
+        if (!this.title) return `/doc/untitled-${this.urlId}`;
+
+        const slugifiedTitle = slugify(this.title);
         return `/doc/${slugifiedTitle}-${this.urlId}`;
       },
     },
@@ -215,10 +217,10 @@ Document.findByPk = async function (id, options = {}) {
       where: { id },
       ...options,
     });
-  } else if (id.match(URL_REGEX)) {
+  } else if (id.match(SLUG_URL_REGEX)) {
     return scope.findOne({
       where: {
-        urlId: id.match(URL_REGEX)[1],
+        urlId: id.match(SLUG_URL_REGEX)[1],
       },
       ...options,
     });
@@ -247,7 +249,7 @@ type SearchOptions = {
 function escape(query: string): string {
   // replace "\" with escaped "\\" because sequelize.escape doesn't do it
   // https://github.com/sequelize/sequelize/issues/2950
-  return sequelize.escape(query).replace("\\", "\\\\");
+  return sequelize.escape(query).replace(/\\/g, "\\\\");
 }
 
 Document.searchForTeam = async (
@@ -491,7 +493,7 @@ Document.addHook("afterCreate", async (model) => {
     return;
   }
 
-  await collection.addDocumentToStructure(model);
+  await collection.addDocumentToStructure(model, 0);
   model.collection = collection;
 
   return model;
@@ -576,24 +578,32 @@ Document.prototype.archiveWithChildren = async function (userId, options) {
   return this.save(options);
 };
 
-Document.prototype.publish = async function (options) {
+Document.prototype.publish = async function (userId: string, options) {
   if (this.publishedAt) return this.save(options);
 
-  const collection = await Collection.findByPk(this.collectionId);
-  await collection.addDocumentToStructure(this);
+  if (!this.template) {
+    const collection = await Collection.findByPk(this.collectionId);
+    await collection.addDocumentToStructure(this, 0);
+  }
 
+  this.lastModifiedById = userId;
   this.publishedAt = new Date();
   await this.save(options);
 
   return this;
 };
 
-Document.prototype.unpublish = async function (options) {
+Document.prototype.unpublish = async function (userId: string, options) {
   if (!this.publishedAt) return this;
 
   const collection = await this.getCollection();
   await collection.removeDocumentInStructure(this);
 
+  // unpublishing a document converts the "ownership" to yourself, so that it
+  // can appear in your drafts rather than the original creators
+  this.userId = userId;
+
+  this.lastModifiedById = userId;
   this.publishedAt = null;
   await this.save(options);
 
@@ -628,11 +638,13 @@ Document.prototype.unarchive = async function (userId: string) {
         },
       },
     });
-    if (!parent) this.parentDocumentId = undefined;
+    if (!parent) this.parentDocumentId = null;
   }
 
-  await collection.addDocumentToStructure(this);
-  this.collection = collection;
+  if (!this.template) {
+    await collection.addDocumentToStructure(this);
+    this.collection = collection;
+  }
 
   if (this.deletedAt) {
     await this.restore();
@@ -651,8 +663,10 @@ Document.prototype.delete = function (userId: string) {
     async (transaction: Transaction): Promise<Document> => {
       if (!this.archivedAt && !this.template) {
         // delete any children and remove from the document structure
-        const collection = await this.getCollection();
+        const collection = await this.getCollection({ transaction });
         if (collection) await collection.deleteDocument(this, { transaction });
+      } else {
+        await this.destroy({ transaction });
       }
 
       await Revision.destroy({
@@ -660,10 +674,13 @@ Document.prototype.delete = function (userId: string) {
         transaction,
       });
 
-      this.lastModifiedById = userId;
-      this.deletedAt = new Date();
+      await this.update(
+        { lastModifiedById: userId },
+        {
+          transaction,
+        }
+      );
 
-      await this.save({ transaction });
       return this;
     }
   );
