@@ -25,7 +25,7 @@ function NewDocumentMenu() {
   const can = policies.abilities(team.id);
 
   if (!can.createDocument) {
-    return;
+    return null;
   }
 
   if (singleCollection) {

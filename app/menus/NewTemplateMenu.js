@@ -23,7 +23,7 @@ function NewTemplateMenu() {
   const can = policies.abilities(team.id);
 
   if (!can.createDocument) {
-    return;
+    return null;
   }
 
   return (
