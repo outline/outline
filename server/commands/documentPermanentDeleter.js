@@ -7,11 +7,11 @@ import parseAttachmentIds from "../utils/parseAttachmentIds";
 const log = debug("commands");
 
 export async function documentPermanentDeleter(documents: Document[]) {
-  const index = documents.findIndex((doc) => !doc.deletedAt);
+  const activeDocument = documents.find((doc) => !doc.deletedAt);
 
-  if (index !== -1) {
+  if (activeDocument) {
     throw new Error(
-      `Cannot permanently delete ${documents[index].id} document. Please delete it and try again.`
+      `Cannot permanently delete ${activeDocument.id} document. Please delete it and try again.`
     );
   }
 
