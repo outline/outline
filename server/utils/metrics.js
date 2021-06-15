@@ -9,7 +9,7 @@ if (process.env.DD_API_KEY) {
   });
 }
 
-export function gauge(key: string, value: number) {
+export function gauge(key: string, value: number): void {
   if (!process.env.DD_API_KEY) {
     return;
   }
@@ -17,10 +17,10 @@ export function gauge(key: string, value: number) {
   return metrics.gauge(key, value);
 }
 
-export function increment(key: string, value: number) {
+export function increment(key: string, tags?: { [string]: string }): void {
   if (!process.env.DD_API_KEY) {
     return;
   }
 
-  return metrics.increment(key, value);
+  return metrics.increment(key, tags);
 }
