@@ -39,6 +39,16 @@ io.of("/").adapter.on("error", (err) => {
   }
 });
 
+io.on("connection", (socket) => {
+  metrics.increment("websockets.connected");
+  metrics.gauge("websockets.count", socket.client.conn.server.clientsCount);
+
+  socket.on("disconnect", () => {
+    metrics.increment("websockets.disconnected");
+    metrics.gauge("websockets.count", socket.client.conn.server.clientsCount);
+  });
+});
+
 SocketAuth(io, {
   authenticate: async (socket, data, callback) => {
     const { token } = data;
@@ -180,16 +190,6 @@ SocketAuth(io, {
           });
         }
       });
-    });
-
-    socket.on("connect", () => {
-      metrics.increment("websockets.connect");
-      metrics.gauge("websockets.count", socket.client.conn.server.clientsCount);
-    });
-
-    socket.on("disconnect", () => {
-      metrics.increment("websockets.disconnect");
-      metrics.gauge("websockets.count", socket.client.conn.server.clientsCount);
     });
 
     socket.on("presence", async (event) => {
