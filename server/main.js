@@ -9,6 +9,7 @@ import { Document, Collection, View } from "./models";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
+import * as metrics from "./utils/metrics";
 import { checkMigrations } from "./utils/startup";
 
 const server = http.createServer(app.callback());
@@ -171,6 +172,20 @@ SocketAuth(io, {
           });
         }
       });
+    });
+
+    socket.on("connect", () => {
+      metrics.gauge(
+        "websocket_connections",
+        socket.client.conn.server.clientsCount
+      );
+    });
+
+    socket.on("disconnect", () => {
+      metrics.gauge(
+        "websocket_connections",
+        socket.client.conn.server.clientsCount
+      );
     });
 
     socket.on("presence", async (event) => {

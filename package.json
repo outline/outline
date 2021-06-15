@@ -91,6 +91,7 @@
     "compressorjs": "^1.0.7",
     "copy-to-clipboard": "^3.3.1",
     "core-js": "^3.10.2",
+    "datadog-metrics": "^0.9.3",
     "date-fns": "2.22.1",
     "dd-trace": "^0.32.2",
     "debug": "^4.1.1",
