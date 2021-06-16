@@ -9,7 +9,9 @@ type Props = {
 
 export default class Analytics extends React.Component<Props> {
   componentDidMount() {
-    if (!env.GOOGLE_ANALYTICS_ID) return;
+    if (!env.GOOGLE_ANALYTICS_ID) {
+      return null;
+    }
 
     // standard Google Analytics script
     window.ga =
