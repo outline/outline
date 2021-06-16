@@ -41,11 +41,17 @@ io.of("/").adapter.on("error", (err) => {
 
 io.on("connection", (socket) => {
   metrics.increment("websockets.connected");
-  metrics.gauge("websockets.count", socket.client.conn.server.clientsCount);
+  metrics.gaugePerInstance(
+    "websockets.count",
+    socket.client.conn.server.clientsCount
+  );
 
   socket.on("disconnect", () => {
     metrics.increment("websockets.disconnected");
-    metrics.gauge("websockets.count", socket.client.conn.server.clientsCount);
+    metrics.gaugePerInstance(
+      "websockets.count",
+      socket.client.conn.server.clientsCount
+    );
   });
 });
 

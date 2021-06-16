@@ -9,12 +9,31 @@ if (process.env.DD_API_KEY) {
   });
 }
 
-export function gauge(key: string, value: number): void {
+export function gauge(
+  key: string,
+  value: number,
+  tags?: { [string]: string }
+): void {
   if (!process.env.DD_API_KEY) {
     return;
   }
 
-  return metrics.gauge(key, value);
+  return metrics.gauge(key, value, tags);
+}
+
+export function gaugePerInstance(
+  key: string,
+  value: number,
+  tags?: { [string]: string } = {}
+): void {
+  if (!process.env.DD_API_KEY) {
+    return;
+  }
+
+  return metrics.gauge(key, value, {
+    ...tags,
+    instance: process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID,
+  });
 }
 
 export function increment(key: string, tags?: { [string]: string }): void {
