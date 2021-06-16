@@ -121,7 +121,7 @@ class DataLoader extends React.Component<Props> {
 
     return sortBy(
       results.map((document) => {
-        const time = formatDistanceToNow(document.updatedAt, {
+        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
         });
         return {

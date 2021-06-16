@@ -52,7 +52,7 @@ function UserProfile(props: Props) {
             ? t("Joined")
             : t("Invited")}{" "}
           {t("{{ time }} ago.", {
-            time: formatDistanceToNow(new Date(user.createdAt)),
+            time: formatDistanceToNow(Date.parse(user.createdAt)),
           })}
           {user.isAdmin && (
             <StyledBadge primary={user.isAdmin}>{t("Admin")}</StyledBadge>

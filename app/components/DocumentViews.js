@@ -56,7 +56,7 @@ function DocumentViews({ document, isOpen }: Props) {
                 : t("Currently viewing")
               : t("Viewed {{ timeAgo }} ago", {
                   timeAgo: formatDistanceToNow(
-                    view ? new Date(view.lastViewedAt) : new Date()
+                    view ? Date.parse(view.lastViewedAt) : new Date()
                   ),
                 });
 
