@@ -9,11 +9,7 @@ if (process.env.DD_API_KEY) {
   });
 }
 
-export function gauge(
-  key: string,
-  value: number,
-  tags?: { [string]: string }
-): void {
+export function gauge(key: string, value: number, tags?: string[]): void {
   if (!process.env.DD_API_KEY) {
     return;
   }
@@ -24,16 +20,20 @@ export function gauge(
 export function gaugePerInstance(
   key: string,
   value: number,
-  tags?: { [string]: string } = {}
+  tags?: string[] = []
 ): void {
   if (!process.env.DD_API_KEY) {
     return;
   }
 
-  return metrics.gauge(key, value, {
-    ...tags,
-    instance: process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID,
-  });
+  const instanceId = process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID;
+  if (!instanceId) {
+    throw new Error(
+      "INSTANCE_ID or HEROKU_DYNO_ID must be set when using Datadog"
+    );
+  }
+
+  return metrics.gauge(key, value, [...tags, `instance:${instanceId}`]);
 }
 
 export function increment(key: string, tags?: { [string]: string }): void {
