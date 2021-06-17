@@ -9,7 +9,7 @@ export default function createMiddleware(providerName: string) {
     return passport.authorize(
       providerName,
       { session: false },
-      async (err, _, result: AccountProvisionerResult) => {
+      async (err, user, result: AccountProvisionerResult) => {
         if (err) {
           console.error(err);
 
@@ -21,6 +21,14 @@ export default function createMiddleware(providerName: string) {
           if (process.env.NODE_ENV === "development") {
             throw err;
           }
+          return ctx.redirect(`/?notice=auth-error`);
+        }
+
+        // Passport.js may invoke this callback with err=null and user=null in
+        // the event that error=access_denied is received from the OAuth server.
+        // I'm not sure why this exception to the rule exists, but it does:
+        // https://github.com/jaredhanson/passport-oauth2/blob/e20f26aad60ed54f0e7952928cbb64979ef8da2b/lib/strategy.js#L135
+        if (!user) {
           return ctx.redirect(`/?notice=auth-error`);
         }
 
