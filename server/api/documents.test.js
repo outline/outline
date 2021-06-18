@@ -984,6 +984,21 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should not error when search term is very long", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query:
+          "much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much longer search term",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it("should return draft documents created by user if chosen", async () => {
     const { user } = await seed();
     const document = await buildDocument({
