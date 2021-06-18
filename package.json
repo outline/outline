@@ -169,7 +169,7 @@
     "react-window": "^1.8.6",
     "reakit": "^1.3.6",
     "regenerator-runtime": "^0.13.7",
-    "rich-markdown-editor": "^11.10.0",
+    "rich-markdown-editor": "^11.11.0",
     "semver": "^7.3.2",
     "sequelize": "^6.3.4",
     "sequelize-cli": "^6.2.0",
@@ -228,6 +228,7 @@
     "workbox-webpack-plugin": "^6.1.0"
   },
   "resolutions": {
+    "prosemirror-view": "1.18.1",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },

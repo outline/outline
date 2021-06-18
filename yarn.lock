@@ -10414,10 +10414,10 @@ prosemirror-utils@^0.9.6:
   resolved "https://registry.yarnpkg.com/prosemirror-utils/-/prosemirror-utils-0.9.6.tgz#3d97bd85897e3b535555867dc95a51399116a973"
   integrity sha512-UC+j9hQQ1POYfMc5p7UFxBTptRiGPR7Kkmbl3jVvU8VgQbkI89tR/GK+3QYC8n+VvBZrtAoCrJItNhWSxX3slA==
 
-prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3, prosemirror-view@^1.18.4:
-  version "1.18.4"
-  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.18.4.tgz#179141df117cf414434ade08115f2e233d135f6d"
-  integrity sha512-6oi62XRK5WxhMX1Amjk5uMsWILUEcFbFF75i09BzpAdI+5glhs7heCaRvKOj4v3YRJ7LJVkOXS9xvjetlE3+pA==
+prosemirror-view@1.18.1, prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3:
+  version "1.18.1"
+  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.18.1.tgz#52ad1c67f51144e27e368bba129142ce87c7791e"
+  integrity sha512-TZd8byDRfdopLiokBY7T27msCSfWqqRxWs/LnBbdI030F+iI2kS+tO59/XFnpZxMLFKlJgOgGGhM9SzD1Nwdxw==
   dependencies:
     prosemirror-model "^1.1.0"
     prosemirror-state "^1.0.0"
@@ -11312,10 +11312,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.10.0:
-  version "11.10.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.10.0.tgz#8a622bcee063ed459d100a9f42ec91bb722d66d5"
-  integrity sha512-cRQ6JALDHAKkDWnizi/DMJQoZmbwaMJrr0Y1p/r/7ypndpmGIb7VPA2AiwgP9ttaBliwTT2m5wMyE3Sfm5EOFQ==
+rich-markdown-editor@^11.11.0:
+  version "11.11.0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.11.0.tgz#ee2af2d883ebbdcb08ab101782c35fe25ed92de1"
+  integrity sha512-mbAHsUCbIu/+YgCRNtqId0ObgzLEskWyo1hppYiDlRZNvivOMhKGi2PdM1ZO/q65FIYqze0jh1d29pVOaDlfoA==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
@@ -11334,7 +11334,7 @@ rich-markdown-editor@^11.10.0:
     prosemirror-tables "^1.1.1"
     prosemirror-transform "1.2.5"
     prosemirror-utils "^0.9.6"
-    prosemirror-view "^1.18.4"
+    prosemirror-view "1.18.1"
     react-medium-image-zoom "^3.1.3"
     react-portal "^4.2.1"
     refractor "^3.3.1"
