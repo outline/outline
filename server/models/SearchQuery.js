@@ -15,6 +15,9 @@ const SearchQuery = sequelize.define(
     },
     query: {
       type: DataTypes.STRING,
+      set(val) {
+        this.setDataValue("query", val.substring(0, 255));
+      },
       allowNull: false,
     },
     results: {
