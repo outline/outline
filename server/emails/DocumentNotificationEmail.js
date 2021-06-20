@@ -3,6 +3,7 @@ import * as React from "react";
 import { User, Document, Team, Collection } from "../models";
 import Body from "./components/Body";
 import Button from "./components/Button";
+import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
 import Footer from "./components/Footer";
@@ -15,6 +16,7 @@ export type Props = {
   document: Document,
   collection: Collection,
   eventName: string,
+  summary: string,
   unsubscribeUrl: string,
 };
 
@@ -38,6 +40,7 @@ export const DocumentNotificationEmail = ({
   document,
   collection,
   eventName = "published",
+  summary,
   unsubscribeUrl,
 }: Props) => {
   return (
@@ -52,9 +55,10 @@ export const DocumentNotificationEmail = ({
           {actor.name} {eventName} the document "{document.title}", in the{" "}
           {collection.name} collection.
         </p>
-        <hr />
         <EmptySpace height={10} />
-        <p>{document.getSummary()}</p>
+        <Diff>
+          <div dangerouslySetInnerHTML={{ __html: summary }} />
+        </Diff>
         <EmptySpace height={10} />
         <p>
           <Button href={`${team.url}${document.url}`}>Open Document</Button>

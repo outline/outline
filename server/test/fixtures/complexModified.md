@@ -2,7 +2,11 @@
 
 ## Heading 2
 
-This is a test paragraph. This was added.
+This is a test paragraph
+
+This is a second test paragraph. This is a second sentence.
+
+This is a another test paragraph. This is a another sentence.
 
 - list item 1
 
@@ -26,4 +30,8 @@ This is an info block
 - [ ] checklist item 4
 - [x] checklist item 5
 
+same on both sides
 
+same on both sides
+
+same on both sides

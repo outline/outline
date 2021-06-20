@@ -1,16 +1,23 @@
 // @flow
 import debug from "debug";
-import type { DocumentEvent, CollectionEvent, Event } from "../events";
+import type {
+  DocumentEvent,
+  RevisionEvent,
+  CollectionEvent,
+  Event,
+} from "../events";
 import mailer from "../mailer";
 import {
   View,
   Document,
   Team,
   Collection,
+  Revision,
   User,
   NotificationSetting,
 } from "../models";
 import { Op } from "../sequelize";
+import revisionDiff from "../utils/revisionDiff";
 
 const log = debug("services");
 
@@ -18,15 +25,16 @@ export default class Notifications {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":
-      case "documents.update.debounced":
-        return this.documentUpdated(event);
+        return this.documentPublished(event);
+      case "revisions.create":
+        return this.revisionCreated(event);
       case "collections.create":
         return this.collectionCreated(event);
-      default: //TODO pick up revisions create!
+      default:
     }
   }
 
-  async documentUpdated(event: DocumentEvent) {
+  async documentPublished(event: DocumentEvent) {
     // never send notifications when batch importing documents
     if (event.data && event.data.source === "import") return;
 
@@ -45,10 +53,7 @@ export default class Notifications {
           [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
-        event:
-          event.name === "documents.publish"
-            ? "documents.publish"
-            : "documents.update",
+        event: "documents.publish",
       },
       include: [
         {
@@ -59,25 +64,14 @@ export default class Notifications {
       ],
     });
 
-    const eventName =
-      event.name === "documents.publish" ? "published" : "updated";
+    const eventName = "published";
 
     for (const setting of notificationSettings) {
-      // For document updates we only want to send notifications if
-      // the document has been edited by the user with this notification setting
-      // This could be replaced with ability to "follow" in the future
-      if (
-        eventName === "updated" &&
-        !document.collaboratorIds.includes(setting.userId)
-      ) {
-        return;
-      }
-
       // Check the user has access to the collection this document is in. Just
       // because they were a collaborator once doesn't mean they still are.
       const collectionIds = await setting.user.collectionIds();
       if (!collectionIds.includes(document.collectionId)) {
-        return;
+        continue;
       }
 
       // If this user has viewed the document since the last update was made
@@ -96,10 +90,8 @@ export default class Notifications {
         log(
           `suppressing notification to ${setting.userId} because update viewed`
         );
-        return;
+        continue;
       }
-
-      // TODO: calculate the diff in document revision and send it through to the mailer
 
       mailer.documentNotification({
         to: setting.user.email,
@@ -107,7 +99,116 @@ export default class Notifications {
         document,
         team,
         collection,
+        summary: document.getSummary(),
         actor: document.updatedBy,
+        unsubscribeUrl: setting.unsubscribeUrl,
+      });
+    }
+  }
+
+  async revisionCreated(event: RevisionEvent) {
+    const revision = await Revision.findByPk(event.modelId, {
+      include: [
+        {
+          model: Document,
+          as: "document",
+          include: [
+            {
+              model: Collection,
+              as: "collection",
+            },
+          ],
+        },
+      ],
+    });
+    if (!revision) return;
+
+    const { document } = revision;
+    const { collection } = document;
+    if (!collection || !document) return;
+
+    const team = await Team.findByPk(document.teamId);
+    if (!team) return;
+
+    const notificationSettings = await NotificationSetting.findAll({
+      where: {
+        userId: {
+          [Op.ne]: revision.userId,
+        },
+        teamId: document.teamId,
+        event: "documents.update",
+      },
+      include: [
+        {
+          model: User,
+          required: true,
+          as: "user",
+        },
+      ],
+    });
+
+    const eventName = "updated";
+
+    for (const setting of notificationSettings) {
+      // For document updates we only want to send notifications if
+      // the document has been edited by the user with this notification setting
+      // This could be replaced with ability to "follow" in the future
+      if (
+        eventName === "updated" &&
+        !document.collaboratorIds.includes(setting.userId)
+      ) {
+        continue;
+      }
+
+      // Check the user has access to the collection this document is in. Just
+      // because they were a collaborator once doesn't mean they still are.
+      const collectionIds = await setting.user.collectionIds();
+      if (!collectionIds.includes(document.collectionId)) {
+        continue;
+      }
+
+      // If this user has viewed the document since the last update was made
+      // then we can avoid sending them a useless notification, yay.
+      const view = await View.findOne({
+        where: {
+          userId: setting.userId,
+          documentId: event.documentId,
+          updatedAt: {
+            [Op.gt]: document.updatedAt,
+          },
+        },
+      });
+
+      if (view) {
+        log(
+          `suppressing notification to ${setting.userId} because update viewed`
+        );
+        continue;
+      }
+
+      const previous = await Revision.findOne({
+        where: {
+          documentId: document.id,
+          createdAt: {
+            [Op.lt]: revision.createdAt,
+          },
+        },
+        order: [["createdAt", "DESC"]],
+      });
+
+      const summary = revisionDiff(
+        previous ? previous.text : "",
+        revision.text
+      );
+
+      mailer.documentNotification({
+        to: setting.user.email,
+        eventName,
+        document,
+        team,
+        collection,
+        summary,
+        actor: revision.user,
         unsubscribeUrl: setting.unsubscribeUrl,
       });
     }

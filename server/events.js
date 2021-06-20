@@ -99,6 +99,8 @@ export type RevisionEvent = {
   documentId: string,
   collectionId: string,
   teamId: string,
+  actorId: string,
+  modelId: string,
 };
 
 export type CollectionImportEvent = {

@@ -14,8 +14,6 @@ it("should diff a new revision of a document", async () => {
     "utf8"
   );
 
-  // markdown => HTML
-  // markdownIT inside of rich md editor
   // expose API in lib, use direct path for now
   // !! == checklist item all need classes to distinguish
 

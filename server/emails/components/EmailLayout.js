@@ -23,4 +23,15 @@ export const baseStyles = `
     font-size: 16px;
     line-height: 1.5;
   }
+
+  ins {
+    background-color: ${theme.brand.green};
+    text-decoration: none;
+  }
+
+  del {
+    background-color: ${theme.slateLight};
+    color: ${theme.slate};
+    text-decoration: strikethrough;
+  }
 `;
