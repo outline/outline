@@ -4,6 +4,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { languages, languageOptions } from "shared/i18n";
+import ButtonLink from "components/ButtonLink";
 import Flex from "components/Flex";
 import NoticeTip from "components/NoticeTip";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -68,7 +69,7 @@ export default function LanguagePrompt() {
             like to change?
           </Trans>
           <br />
-          <a
+          <Link
             onClick={() => {
               auth.updateUser({
                 language,
@@ -77,13 +78,23 @@ export default function LanguagePrompt() {
             }}
           >
             {t("Change Language")}
-          </a>{" "}
-          &middot; <a onClick={ui.setLanguagePromptDismissed}>{t("Dismiss")}</a>
+          </Link>{" "}
+          &middot;{" "}
+          <Link onClick={ui.setLanguagePromptDismissed}>{t("Dismiss")}</Link>
         </span>
       </Flex>
     </NoticeTip>
   );
 }
+
+const Link = styled(ButtonLink)`
+  color: ${(props) => props.theme.almostBlack};
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 const LanguageIcon = styled(Icon)`
   margin-right: 12px;

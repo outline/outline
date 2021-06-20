@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
-import Breadcrumb from "components/Breadcrumb";
+import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Flex from "components/Flex";
 import Time from "components/Time";
 import useStores from "hooks/useStores";
@@ -18,24 +18,31 @@ const Container = styled(Flex)`
   min-width: 0;
 `;
 
+const Viewed = styled.span`
+  text-overflow: ellipsis;
+  overflow: hidden;
+`;
+
 const Modified = styled.span`
   color: ${(props) => props.theme.textTertiary};
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
-type Props = {
+type Props = {|
   showCollection?: boolean,
   showPublished?: boolean,
   showLastViewed?: boolean,
+  showNestedDocuments?: boolean,
   document: Document,
   children: React.Node,
   to?: string,
-};
+|};
 
 function DocumentMeta({
   showPublished,
   showCollection,
   showLastViewed,
+  showNestedDocuments,
   document,
   children,
   to,
@@ -110,18 +117,22 @@ function DocumentMeta({
     }
     if (!lastViewedAt) {
       return (
-        <>
+        <Viewed>
           •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
-        </>
+        </Viewed>
       );
     }
 
     return (
-      <span>
+      <Viewed>
         •&nbsp;{t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
-      </span>
+      </Viewed>
     );
   };
+
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
 
   return (
     <Container align="center" {...rest}>
@@ -131,8 +142,14 @@ function DocumentMeta({
         <span>
           &nbsp;{t("in")}&nbsp;
           <strong>
-            <Breadcrumb document={document} onlyText />
+            <DocumentBreadcrumb document={document} onlyText />
           </strong>
+        </span>
+      )}
+      {showNestedDocuments && nestedDocumentsCount > 0 && (
+        <span>
+          &nbsp;&middot; {nestedDocumentsCount}{" "}
+          {t("nested document", { count: nestedDocumentsCount })}
         </span>
       )}
       &nbsp;{timeSinceNow()}

@@ -201,6 +201,7 @@ const Card = styled.div`
 const Position = styled.div`
   margin-top: 10px;
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
+  z-index: ${(props) => props.theme.depths.hoverPreview};
   display: flex;
   max-height: 75%;
 

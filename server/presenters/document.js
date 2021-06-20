@@ -1,6 +1,5 @@
 // @flow
-import { takeRight } from "lodash";
-import { Attachment, Document, User } from "../models";
+import { Attachment, Document } from "../models";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 import { getSignedImageUrl } from "../utils/s3";
 import presentUser from "./user";
@@ -13,13 +12,15 @@ type Options = {
 async function replaceImageAttachments(text: string) {
   const attachmentIds = parseAttachmentIds(text);
 
-  for (const id of attachmentIds) {
-    const attachment = await Attachment.findByPk(id);
-    if (attachment) {
-      const accessUrl = await getSignedImageUrl(attachment.key);
-      text = text.replace(attachment.redirectUrl, accessUrl);
-    }
-  }
+  await Promise.all(
+    attachmentIds.map(async (id) => {
+      const attachment = await Attachment.findByPk(id);
+      if (attachment) {
+        const accessUrl = await getSignedImageUrl(attachment.key);
+        text = text.replace(attachment.redirectUrl, accessUrl);
+      }
+    })
+  );
 
   return text;
 }
@@ -53,7 +54,7 @@ export default async function present(document: Document, options: ?Options) {
     teamId: document.teamId,
     template: document.template,
     templateId: document.templateId,
-    collaborators: [],
+    collaboratorIds: [],
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     pinned: undefined,
@@ -72,15 +73,7 @@ export default async function present(document: Document, options: ?Options) {
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
     data.updatedBy = presentUser(document.updatedBy);
-
-    // TODO: This could be further optimized
-    data.collaborators = (
-      await User.findAll({
-        where: {
-          id: takeRight(document.collaboratorIds, 10) || [],
-        },
-      })
-    ).map(presentUser);
+    data.collaboratorIds = document.collaboratorIds;
   }
 
   return data;

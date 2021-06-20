@@ -9,90 +9,90 @@ describe("i18n process.env is unset", () => {
   beforeEach(() => {
     delete process.env.DEFAULT_LANGUAGE;
     initI18n()
-      .addResources("en_US", "translation", en_US)
-      .addResources("de_DE", "translation", de_DE)
-      .addResources("pt_PT", "translation", pt_PT);
+      .addResources("en-US", "translation", en_US)
+      .addResources("de-DE", "translation", de_DE)
+      .addResources("pt-PT", "translation", pt_PT);
   });
 
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
 
-  it("translation if changed to de_DE", () => {
-    i18n.changeLanguage("de_DE");
+  it("translation if changed to de-DE", () => {
+    i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 
-  it("translation if changed to pt_PT", () => {
-    i18n.changeLanguage("pt_PT");
+  it("translation if changed to pt-PT", () => {
+    i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
-describe("i18n process.env is en_US", () => {
+describe("i18n process.env is en-US", () => {
   beforeEach(() => {
-    process.env.DEFAULT_LANGUAGE = "en_US";
+    process.env.DEFAULT_LANGUAGE = "en-US";
     initI18n()
-      .addResources("en_US", "translation", en_US)
-      .addResources("de_DE", "translation", de_DE)
-      .addResources("pt_PT", "translation", pt_PT);
+      .addResources("en-US", "translation", en_US)
+      .addResources("de-DE", "translation", de_DE)
+      .addResources("pt-PT", "translation", pt_PT);
   });
 
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
 
-  it("translation if changed to de_DE", () => {
-    i18n.changeLanguage("de_DE");
+  it("translation if changed to de-DE", () => {
+    i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 
-  it("translation if changed to pt_PT", () => {
-    i18n.changeLanguage("pt_PT");
+  it("translation if changed to pt-PT", () => {
+    i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
-describe("i18n process.env is de_DE", () => {
+describe("i18n process.env is de-DE", () => {
   beforeEach(() => {
-    process.env.DEFAULT_LANGUAGE = "de_DE";
+    process.env.DEFAULT_LANGUAGE = "de-DE";
     initI18n()
-      .addResources("en_US", "translation", en_US)
-      .addResources("de_DE", "translation", de_DE)
-      .addResources("pt_PT", "translation", pt_PT);
+      .addResources("en-US", "translation", en_US)
+      .addResources("de-DE", "translation", de_DE)
+      .addResources("pt-PT", "translation", pt_PT);
   });
 
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Speichert"));
 
-  it("translation if changed to en_US", () => {
-    i18n.changeLanguage("en_US");
+  it("translation if changed to en-US", () => {
+    i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
-  it("translation if changed to pt_PT", () => {
-    i18n.changeLanguage("pt_PT");
+  it("translation if changed to pt-PT", () => {
+    i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
-describe("i18n process.env is pt_PT", () => {
+describe("i18n process.env is pt-PT", () => {
   beforeEach(() => {
-    process.env.DEFAULT_LANGUAGE = "pt_PT";
+    process.env.DEFAULT_LANGUAGE = "pt-PT";
     initI18n()
-      .addResources("en_US", "translation", en_US)
-      .addResources("de_DE", "translation", de_DE)
-      .addResources("pt_PT", "translation", pt_PT);
+      .addResources("en-US", "translation", en_US)
+      .addResources("de-DE", "translation", de_DE)
+      .addResources("pt-PT", "translation", pt_PT);
   });
 
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("A guardar"));
 
-  it("translation if changed to en_US", () => {
-    i18n.changeLanguage("en_US");
+  it("translation if changed to en-US", () => {
+    i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
-  it("translation if changed to de_DE", () => {
-    i18n.changeLanguage("de_DE");
+  it("translation if changed to de-DE", () => {
+    i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 });

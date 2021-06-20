@@ -1,15 +1,44 @@
 // @flow
 require("dotenv").config({ silent: true });
 
+const errors = [];
+const boxen = require("boxen");
+const chalk = require("chalk");
+
+// If the DataDog agent is installed and the DD_API_KEY environment variable is
+// in the environment then we can safely attempt to start the DD tracer
+if (process.env.DD_API_KEY) {
+  require("dd-trace").init({
+    // SOURCE_COMMIT is used by Docker Hub
+    // SOURCE_VERSION is used by Heroku
+    version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
+  });
+}
+
 if (
   !process.env.SECRET_KEY ||
   process.env.SECRET_KEY === "generate_a_new_key"
 ) {
-  console.error(
-    "The SECRET_KEY env variable must be set with the output of `openssl rand -hex 32`"
+  errors.push(
+    `The ${chalk.bold(
+      "SECRET_KEY"
+    )} env variable must be set with the output of ${chalk.bold(
+      "$ openssl rand -hex 32"
+    )}`
   );
-  // $FlowFixMe
-  process.exit(1);
+}
+
+if (
+  !process.env.UTILS_SECRET ||
+  process.env.UTILS_SECRET === "generate_a_new_key"
+) {
+  errors.push(
+    `The ${chalk.bold(
+      "UTILS_SECRET"
+    )} env variable must be set with a secret value, it is recommended to use the output of ${chalk.bold(
+      "$ openssl rand -hex 32"
+    )}`
+  );
 }
 
 if (process.env.AWS_ACCESS_KEY_ID) {
@@ -20,53 +49,66 @@ if (process.env.AWS_ACCESS_KEY_ID) {
     "AWS_S3_UPLOAD_MAX_SIZE",
   ].forEach((key) => {
     if (!process.env[key]) {
-      console.error(`The ${key} env variable must be set when using AWS`);
-      // $FlowFixMe
-      process.exit(1);
+      errors.push(
+        `The ${chalk.bold(
+          key
+        )} env variable must be set when using S3 compatible storage`
+      );
     }
   });
 }
 
-if (process.env.SLACK_KEY) {
-  if (!process.env.SLACK_SECRET) {
-    console.error(
-      `The SLACK_SECRET env variable must be set when using Slack Sign In`
-    );
-    // $FlowFixMe
-    process.exit(1);
-  }
-}
-
 if (!process.env.URL) {
-  console.error(
-    "The URL env variable must be set to the externally accessible URL, e.g (https://www.getoutline.com)"
+  errors.push(
+    `The ${chalk.bold(
+      "URL"
+    )} env variable must be set to the fully qualified, externally accessible URL, e.g https://wiki.mycompany.com`
   );
-  // $FlowFixMe
-  process.exit(1);
 }
 
 if (!process.env.DATABASE_URL) {
-  console.error(
-    "The DATABASE_URL env variable must be set to the location of your postgres server, including authentication and port"
+  errors.push(
+    `The ${chalk.bold(
+      "DATABASE_URL"
+    )} env variable must be set to the location of your postgres server, including username, password, and port`
   );
-  // $FlowFixMe
-  process.exit(1);
 }
 
 if (!process.env.REDIS_URL) {
-  console.error(
-    "The REDIS_URL env variable must be set to the location of your redis server, including authentication and port"
+  errors.push(
+    `The ${chalk.bold(
+      "REDIS_URL"
+    )} env variable must be set to the location of your redis server, including username, password, and port`
   );
-  // $FlowFixMe
+}
+
+if (errors.length) {
+  console.log(
+    chalk.bold.red(
+      "\n\nThe server could not start, please fix the following configuration errors and try again:\n"
+    )
+  );
+  errors.map((text) => console.log(`  - ${text}`));
+  console.log("\n");
   process.exit(1);
 }
 
 if (process.env.NODE_ENV === "production") {
-  console.log("\n\x1b[33m%s\x1b[0m", "Running Outline in production mode.");
+  console.log(
+    boxen(
+      `
+Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
+`,
+      { padding: 1, margin: 1, borderStyle: "double", borderColor: "green" }
+    )
+  );
 } else if (process.env.NODE_ENV === "development") {
   console.log(
-    "\n\x1b[33m%s\x1b[0m",
-    'Running Outline in development mode with hot reloading. To run Outline in production mode set the NODE_ENV env variable to "production"'
+    chalk.yellow(
+      `\nRunning Outline in development mode. To run Outline in production mode set the ${chalk.bold(
+        "NODE_ENV"
+      )} env variable to "production"\n`
+    )
   );
 }
 

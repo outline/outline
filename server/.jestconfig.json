@@ -1,5 +1,5 @@
 {
-  "verbose": true,
+  "verbose": false,
   "rootDir": "..",
   "roots": [
     "<rootDir>/server",

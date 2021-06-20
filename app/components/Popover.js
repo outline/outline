@@ -1,66 +1,34 @@
 // @flow
-import BoundlessPopover from "boundless-popover";
 import * as React from "react";
-import styled, { keyframes } from "styled-components";
+import { Popover as ReakitPopover } from "reakit/Popover";
+import styled from "styled-components";
+import { fadeAndScaleIn } from "shared/styles/animations";
 
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-  }
+type Props = {
+  children: React.Node,
+  width?: number,
+};
 
-  50% {
-    opacity: 1;
-  }
-`;
-
-const StyledPopover = styled(BoundlessPopover)`
-  animation: ${fadeIn} 150ms ease-in-out;
-  display: flex;
-  flex-direction: column;
-
-  line-height: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: ${(props) => props.theme.depths.popover};
-
-  svg {
-    height: 16px;
-    width: 16px;
-    position: absolute;
-
-    polygon:first-child {
-      fill: rgba(0, 0, 0, 0.075);
-    }
-    polygon {
-      fill: #fff;
-    }
-  }
-`;
-
-const Dialog = styled.div`
-  outline: none;
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 16px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  line-height: 1.5;
-  padding: 16px;
-  margin-top: 14px;
-  min-width: 200px;
-  min-height: 150px;
-`;
-
-export const Preset = BoundlessPopover.preset;
-
-export default function Popover(props: Object) {
+function Popover({ children, width = 380, ...rest }: Props) {
   return (
-    <StyledPopover
-      dialogComponent={Dialog}
-      closeOnOutsideScroll
-      closeOnOutsideFocus
-      closeOnEscKey
-      {...props}
-    />
+    <ReakitPopover {...rest}>
+      <Contents width={width}>{children}</Contents>
+    </ReakitPopover>
   );
 }
+
+const Contents = styled.div`
+  animation: ${fadeAndScaleIn} 200ms ease;
+  transform-origin: 75% 0;
+  background: ${(props) => props.theme.menuBackground};
+  border-radius: 6px;
+  padding: 12px 24px;
+  max-height: 50vh;
+  overflow-y: scroll;
+  width: ${(props) => props.width}px;
+  box-shadow: ${(props) => props.theme.menuShadow};
+  border: ${(props) =>
+    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
+`;
+
+export default Popover;

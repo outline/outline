@@ -15,7 +15,9 @@ import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { newDocumentUrl } from "utils/routeHelpers";
 
@@ -23,6 +25,7 @@ type Props = {|
   document: Document,
   highlight?: ?string,
   context?: ?string,
+  showNestedDocuments?: boolean,
   showCollection?: boolean,
   showPublished?: boolean,
   showPin?: boolean,
@@ -40,10 +43,13 @@ function replaceResultMarks(tag: string) {
 
 function DocumentListItem(props: Props) {
   const { t } = useTranslation();
+  const { policies } = useStores();
   const currentUser = useCurrentUser();
+  const currentTeam = useCurrentTeam();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const {
     document,
+    showNestedDocuments,
     showCollection,
     showPublished,
     showPin,
@@ -58,6 +64,7 @@ function DocumentListItem(props: Props) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
+  const can = policies.abilities(currentTeam.id);
 
   return (
     <DocumentLink
@@ -104,25 +111,29 @@ function DocumentListItem(props: Props) {
           document={document}
           showCollection={showCollection}
           showPublished={showPublished}
+          showNestedDocuments={showNestedDocuments}
           showLastViewed
         />
       </Content>
       <Actions>
-        {document.isTemplate && !document.isArchived && !document.isDeleted && (
-          <>
-            <Button
-              as={Link}
-              to={newDocumentUrl(document.collectionId, {
-                templateId: document.id,
-              })}
-              icon={<PlusIcon />}
-              neutral
-            >
-              {t("New doc")}
-            </Button>
-            &nbsp;
-          </>
-        )}
+        {document.isTemplate &&
+          !document.isArchived &&
+          !document.isDeleted &&
+          can.createDocument && (
+            <>
+              <Button
+                as={Link}
+                to={newDocumentUrl(document.collectionId, {
+                  templateId: document.id,
+                })}
+                icon={<PlusIcon />}
+                neutral
+              >
+                {t("New doc")}
+              </Button>
+              &nbsp;
+            </>
+          )}
         <DocumentMenu
           document={document}
           showPin={showPin}
@@ -160,8 +171,11 @@ const DocumentLink = styled(Link)`
   padding: 6px 8px;
   border-radius: 8px;
   max-height: 50vh;
-  min-width: 100%;
-  max-width: calc(100vw - 40px);
+  width: calc(100vw - 8px);
+
+  ${breakpoint("tablet")`
+    width: auto;
+  `};
 
   ${Actions} {
     opacity: 0;

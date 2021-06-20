@@ -7,7 +7,7 @@ Object {
   "id": "123",
   "isAdmin": undefined,
   "isSuspended": undefined,
-  "language": "en_US",
+  "isViewer": undefined,
   "lastActiveAt": undefined,
   "name": "Test User",
 }
@@ -20,7 +20,7 @@ Object {
   "id": "123",
   "isAdmin": undefined,
   "isSuspended": undefined,
-  "language": "en_US",
+  "isViewer": undefined,
   "lastActiveAt": undefined,
   "name": "Test User",
 }

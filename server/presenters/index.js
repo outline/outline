@@ -1,5 +1,6 @@
 // @flow
 import presentApiKey from "./apiKey";
+import presentAuthenticationProvider from "./authenticationProvider";
 import presentCollection from "./collection";
 import presentCollectionGroupMembership from "./collectionGroupMembership";
 import presentDocument from "./document";
@@ -18,13 +19,14 @@ import presentUser from "./user";
 import presentView from "./view";
 
 export {
+  presentApiKey,
+  presentAuthenticationProvider,
   presentUser,
   presentView,
   presentDocument,
   presentEvent,
   presentRevision,
   presentCollection,
-  presentApiKey,
   presentShare,
   presentTeam,
   presentGroup,

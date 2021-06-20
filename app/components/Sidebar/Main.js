@@ -1,6 +1,5 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import {
   ArchiveIcon,
   HomeIcon,
@@ -10,84 +9,89 @@ import {
   ShapesIcon,
   TrashIcon,
   PlusIcon,
+  SettingsIcon,
 } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-
-import AuthStore from "stores/AuthStore";
-import DocumentsStore from "stores/DocumentsStore";
-import PoliciesStore from "stores/PoliciesStore";
 import CollectionNew from "scenes/CollectionNew";
 import Invite from "scenes/Invite";
+import Bubble from "components/Bubble";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Scrollable from "components/Scrollable";
 import Sidebar from "./Sidebar";
-import Bubble from "./components/Bubble";
 import Collections from "./components/Collections";
-import HeaderBlock from "./components/HeaderBlock";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
+import TeamButton from "./components/TeamButton";
+import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
 
-type Props = {
-  auth: AuthStore,
-  documents: DocumentsStore,
-  policies: PoliciesStore,
-  t: TFunction,
-};
+function MainSidebar() {
+  const { t } = useTranslation();
+  const { policies, auth, documents } = useStores();
+  const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
+  const [
+    createCollectionModalOpen,
+    setCreateCollectionModalOpen,
+  ] = React.useState(false);
 
-@observer
-class MainSidebar extends React.Component<Props> {
-  @observable inviteModalOpen = false;
-  @observable createCollectionModalOpen = false;
+  React.useEffect(() => {
+    documents.fetchDrafts();
+    documents.fetchTemplates();
+  }, [documents]);
 
-  componentDidMount() {
-    this.props.documents.fetchDrafts();
-    this.props.documents.fetchTemplates();
-  }
+  const handleCreateCollectionModalOpen = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      setCreateCollectionModalOpen(true);
+    },
+    []
+  );
 
-  handleCreateCollectionModalOpen = (ev: SyntheticEvent<>) => {
+  const handleCreateCollectionModalClose = React.useCallback(() => {
+    setCreateCollectionModalOpen(false);
+  }, []);
+
+  const handleInviteModalOpen = React.useCallback((ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.createCollectionModalOpen = true;
-  };
+    setInviteModalOpen(true);
+  }, []);
 
-  handleCreateCollectionModalClose = (ev: SyntheticEvent<>) => {
-    this.createCollectionModalOpen = false;
-  };
+  const handleInviteModalClose = React.useCallback(() => {
+    setInviteModalOpen(false);
+  }, []);
 
-  handleInviteModalOpen = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.inviteModalOpen = true;
-  };
+  const [dndArea, setDndArea] = React.useState();
+  const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
+  const html5Options = React.useMemo(() => ({ rootElement: dndArea }), [
+    dndArea,
+  ]);
 
-  handleInviteModalClose = () => {
-    this.inviteModalOpen = false;
-  };
+  const { user, team } = auth;
+  if (!user || !team) return null;
 
-  render() {
-    const { auth, documents, policies, t } = this.props;
-    const { user, team } = auth;
-    if (!user || !team) return null;
+  const can = policies.abilities(team.id);
 
-    const can = policies.abilities(team.id);
-
-    return (
-      <Sidebar>
-        <AccountMenu>
-          {(props) => (
-            <HeaderBlock
-              {...props}
-              subheading={user.name}
-              teamName={team.name}
-              logoUrl={team.avatarUrl}
-              showDisclosure
-            />
-          )}
-        </AccountMenu>
-        <Flex auto column>
-          <Scrollable shadow>
+  return (
+    <Sidebar ref={handleSidebarRef}>
+      {dndArea && (
+        <DndProvider backend={HTML5Backend} options={html5Options}>
+          <AccountMenu>
+            {(props) => (
+              <TeamButton
+                {...props}
+                subheading={user.name}
+                teamName={team.name}
+                logoUrl={team.avatarUrl}
+                showDisclosure
+              />
+            )}
+          </AccountMenu>
+          <Scrollable flex topShadow>
             <Section>
               <SidebarLink
                 to="/home"
@@ -110,38 +114,40 @@ class MainSidebar extends React.Component<Props> {
                 exact={false}
                 label={t("Starred")}
               />
-              <SidebarLink
-                to="/templates"
-                icon={<ShapesIcon color="currentColor" />}
-                exact={false}
-                label={t("Templates")}
-                active={
-                  documents.active ? documents.active.template : undefined
-                }
-              />
-              <SidebarLink
-                to="/drafts"
-                icon={<EditIcon color="currentColor" />}
-                label={
-                  <Drafts align="center">
-                    {t("Drafts")}
-                    {documents.totalDrafts > 0 && (
+              {can.createDocument && (
+                <SidebarLink
+                  to="/templates"
+                  icon={<ShapesIcon color="currentColor" />}
+                  exact={false}
+                  label={t("Templates")}
+                  active={
+                    documents.active ? documents.active.template : undefined
+                  }
+                />
+              )}
+              {can.createDocument && (
+                <SidebarLink
+                  to="/drafts"
+                  icon={<EditIcon color="currentColor" />}
+                  label={
+                    <Drafts align="center">
+                      {t("Drafts")}
                       <Bubble count={documents.totalDrafts} />
-                    )}
-                  </Drafts>
-                }
-                active={
-                  documents.active
-                    ? !documents.active.publishedAt &&
-                      !documents.active.isDeleted &&
-                      !documents.active.isTemplate
-                    : undefined
-                }
-              />
+                    </Drafts>
+                  }
+                  active={
+                    documents.active
+                      ? !documents.active.publishedAt &&
+                        !documents.active.isDeleted &&
+                        !documents.active.isTemplate
+                      : undefined
+                  }
+                />
+              )}
             </Section>
-            <Section>
+            <Section auto>
               <Collections
-                onCreateCollection={this.handleCreateCollectionModalOpen}
+                onCreateCollection={handleCreateCollectionModalOpen}
               />
             </Section>
             <Section>
@@ -165,40 +171,46 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? documents.active.isDeleted : undefined
                 }
               />
-              {can.invite && (
+              <SidebarLink
+                to="/settings"
+                icon={<SettingsIcon color="currentColor" />}
+                exact={false}
+                label={t("Settings")}
+              />
+              {can.inviteUser && (
                 <SidebarLink
-                  to="/settings/people"
-                  onClick={this.handleInviteModalOpen}
+                  to="/settings/members"
+                  onClick={handleInviteModalOpen}
                   icon={<PlusIcon color="currentColor" />}
-                  label={t("Invite people…")}
+                  label={`${t("Invite people")}…`}
                 />
               )}
             </Section>
           </Scrollable>
-        </Flex>
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={this.handleInviteModalClose}
-          isOpen={this.inviteModalOpen}
-        >
-          <Invite onSubmit={this.handleInviteModalClose} />
-        </Modal>
-        <Modal
-          title={t("Create a collection")}
-          onRequestClose={this.handleCreateCollectionModalClose}
-          isOpen={this.createCollectionModalOpen}
-        >
-          <CollectionNew onSubmit={this.handleCreateCollectionModalClose} />
-        </Modal>
-      </Sidebar>
-    );
-  }
+          {can.inviteUser && (
+            <Modal
+              title={t("Invite people")}
+              onRequestClose={handleInviteModalClose}
+              isOpen={inviteModalOpen}
+            >
+              <Invite onSubmit={handleInviteModalClose} />
+            </Modal>
+          )}
+          <Modal
+            title={t("Create a collection")}
+            onRequestClose={handleCreateCollectionModalClose}
+            isOpen={createCollectionModalOpen}
+          >
+            <CollectionNew onSubmit={handleCreateCollectionModalClose} />
+          </Modal>
+        </DndProvider>
+      )}
+    </Sidebar>
+  );
 }
 
 const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default withTranslation()<MainSidebar>(
-  inject("documents", "policies", "auth")(MainSidebar)
-);
+export default observer(MainSidebar);

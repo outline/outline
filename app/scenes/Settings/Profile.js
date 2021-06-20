@@ -1,21 +1,21 @@
 // @flow
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { ProfileIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
 import { languageOptions } from "shared/i18n";
-
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import UserDelete from "scenes/UserDelete";
 import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Input, { LabelText } from "components/Input";
 import InputSelect from "components/InputSelect";
-import PageTitle from "components/PageTitle";
+import Scene from "components/Scene";
 import ImageUpload from "./components/ImageUpload";
 
 type Props = {
@@ -99,9 +99,8 @@ class Profile extends React.Component<Props> {
     const avatarUrl = this.avatarUrl || user.avatarUrl;
 
     return (
-      <CenteredContent>
-        <PageTitle title={t("Profile")} />
-        <h1>{t("Profile")}</h1>
+      <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
+        <Heading>{t("Profile")}</Heading>
         <ProfilePicture column>
           <LabelText>{t("Photo")}</LabelText>
           <AvatarContainer>
@@ -154,27 +153,27 @@ class Profile extends React.Component<Props> {
         </form>
 
         <DangerZone>
-          <LabelText>{t("Delete Account")}</LabelText>
-          <p>
-            {t(
-              "You may delete your account at any time, note that this is unrecoverable"
-            )}
-            . <a onClick={this.toggleDeleteAccount}>{t("Delete account")}</a>.
-          </p>
+          <h2>{t("Delete Account")}</h2>
+          <HelpText small>
+            <Trans>
+              You may delete your account at any time, note that this is
+              unrecoverable
+            </Trans>
+          </HelpText>
+          <Button onClick={this.toggleDeleteAccount} neutral>
+            {t("Delete account")}…
+          </Button>
         </DangerZone>
         {this.showDeleteModal && (
           <UserDelete onRequestClose={this.toggleDeleteAccount} />
         )}
-      </CenteredContent>
+      </Scene>
     );
   }
 }
 
 const DangerZone = styled.div`
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
-  position: absolute;
-  bottom: 16px;
+  margin-top: 60px;
 `;
 
 const ProfilePicture = styled(Flex)`

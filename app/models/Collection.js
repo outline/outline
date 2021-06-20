@@ -15,18 +15,16 @@ export default class Collection extends BaseModel {
   description: string;
   icon: string;
   color: string;
-  private: boolean;
+  permission: "read" | "read_write" | void;
+  sharing: boolean;
+  index: string;
   documents: NavigationNode[];
-  createdAt: ?string;
-  updatedAt: ?string;
+  createdAt: string;
+  updatedAt: string;
   deletedAt: ?string;
   sort: { field: string, direction: "asc" | "desc" };
   url: string;
-
-  @computed
-  get isPrivate(): boolean {
-    return this.private;
-  }
+  urlId: string;
 
   @computed
   get isEmpty(): boolean {
@@ -64,6 +62,11 @@ export default class Collection extends BaseModel {
       });
 
     travelDocuments(this.documents);
+  }
+
+  @action
+  updateIndex(index: string) {
+    this.index = index;
   }
 
   getDocumentChildren(documentId: string): NavigationNode[] {
@@ -112,9 +115,11 @@ export default class Collection extends BaseModel {
       "name",
       "color",
       "description",
+      "sharing",
       "icon",
-      "private",
+      "permission",
       "sort",
+      "index",
     ]);
   };
 

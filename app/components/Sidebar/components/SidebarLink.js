@@ -1,13 +1,10 @@
 // @flow
 import * as React from "react";
-import {
-  withRouter,
-  NavLink,
-  type RouterHistory,
-  type Match,
-} from "react-router-dom";
+import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
+import NavLink from "./NavLink";
 import { type Theme } from "types";
 
 type Props = {
@@ -46,7 +43,6 @@ function SidebarLink({
   theme,
   exact,
   href,
-  innerRef,
   depth,
   history,
   match,
@@ -65,28 +61,29 @@ function SidebarLink({
     ...style,
   };
 
-  const activeFontWeightOnly = {
+  const activeDropStyle = {
     fontWeight: 600,
   };
 
   return (
-    <StyledNavLink
-      $isActiveDrop={isActiveDrop}
-      activeStyle={isActiveDrop ? activeFontWeightOnly : activeStyle}
-      style={active ? activeStyle : style}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      exact={exact !== false}
-      to={to}
-      as={to ? undefined : href ? "a" : "div"}
-      href={href}
-      ref={innerRef}
-      className={className}
-    >
-      {icon && <IconWrapper>{icon}</IconWrapper>}
-      <Label>{label}</Label>
+    <>
+      <Link
+        $isActiveDrop={isActiveDrop}
+        activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
+        style={active ? activeStyle : style}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        exact={exact !== false}
+        to={to}
+        as={to ? undefined : href ? "a" : "div"}
+        href={href}
+        className={className}
+      >
+        {icon && <IconWrapper>{icon}</IconWrapper>}
+        <Label>{label}</Label>
+      </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
-    </StyledNavLink>
+    </>
   );
 }
 
@@ -96,6 +93,7 @@ const IconWrapper = styled.span`
   margin-right: 4px;
   height: 24px;
   overflow: hidden;
+  flex-shrink: 0;
 `;
 
 const Actions = styled(EventBoundary)`
@@ -113,35 +111,32 @@ const Actions = styled(EventBoundary)`
   }
 
   &:hover {
+    display: inline-flex;
+
     svg {
       opacity: 0.75;
     }
   }
 `;
 
-const StyledNavLink = styled(NavLink)`
+const Link = styled(NavLink)`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
-  padding: 4px 16px;
+  padding: 6px 16px;
   border-radius: 4px;
   transition: background 50ms, color 50ms;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   overflow: hidden;
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
-    transition: fill 50ms
-  }
-
-  &:hover {
-    color: ${(props) =>
-      props.$isActiveDrop ? props.theme.white : props.theme.text};
+    transition: fill 50ms;
   }
 
   &:focus {
@@ -149,14 +144,25 @@ const StyledNavLink = styled(NavLink)`
     background: ${(props) => props.theme.black05};
   }
 
-  &:hover,
-  &:active {
-    > ${Actions} {
-      display: inline-flex;
+  ${breakpoint("tablet")`
+    padding: 4px 32px 4px 16px;
+    font-size: 15px;
+  `}
 
-      svg {
-        opacity: 0.75;
+  @media (hover: hover) {
+    &:hover + ${Actions},
+    &:active + ${Actions} {
+        display: inline-flex;
+
+        svg {
+          opacity: 0.75;
+        }
       }
+    }
+
+    &:hover {
+      color: ${(props) =>
+        props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }
 `;

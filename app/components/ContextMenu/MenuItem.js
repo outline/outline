@@ -3,14 +3,19 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
-type Props = {
+type Props = {|
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
   children?: React.Node,
   selected?: boolean,
   disabled?: boolean,
+  to?: string,
+  href?: string,
+  target?: "_blank",
   as?: string | React.ComponentType<*>,
-};
+  hide?: () => void,
+|};
 
 const MenuItem = ({
   onClick,
@@ -18,19 +23,38 @@ const MenuItem = ({
   selected,
   disabled,
   as,
+  hide,
   ...rest
 }: Props) => {
+  const handleClick = React.useCallback(
+    (ev) => {
+      if (onClick) {
+        onClick(ev);
+      }
+      if (hide) {
+        hide();
+      }
+    },
+    [hide, onClick]
+  );
+
   return (
     <BaseMenuItem
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      hide={hide}
       {...rest}
     >
       {(props) => (
-        <MenuAnchor as={onClick ? "button" : as} {...props}>
+        <MenuAnchor
+          {...props}
+          $toggleable={selected !== undefined}
+          as={onClick ? "button" : as}
+          onClick={handleClick}
+        >
           {selected !== undefined && (
             <>
-              {selected ? <CheckmarkIcon /> : <Spacer />}
+              {selected ? <CheckmarkIcon color="currentColor" /> : <Spacer />}
               &nbsp;
             </>
           )}
@@ -41,16 +65,17 @@ const MenuItem = ({
   );
 };
 
-const Spacer = styled.div`
+const Spacer = styled.svg`
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
 `;
 
 export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
   border: 0;
-  padding: 6px 12px;
+  padding: 12px;
   width: 100%;
   min-height: 32px;
   background: none;
@@ -58,12 +83,12 @@ export const MenuAnchor = styled.a`
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
-  font-size: 15px;
+  font-size: 16px;
   cursor: default;
   user-select: none;
 
   svg:not(:last-child) {
-    margin-right: 8px;
+    margin-right: 4px;
   }
 
   svg {
@@ -76,7 +101,8 @@ export const MenuAnchor = styled.a`
       ? "pointer-events: none;"
       : `
 
-  &:hover,
+  &:hover,  
+  &:focus,
   &.focus-visible {
     color: ${props.theme.white};
     background: ${props.theme.primary};
@@ -87,11 +113,11 @@ export const MenuAnchor = styled.a`
       fill: ${props.theme.white};
     }
   }
+  `};
 
-  &:focus {
-    color: ${props.theme.white};
-    background: ${props.theme.primary};
-  }
+  ${breakpoint("tablet")`
+    padding: ${(props) => (props.$toggleable ? "4px 12px" : "6px 12px")};
+    font-size: 15px;
   `};
 `;
 

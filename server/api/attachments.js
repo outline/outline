@@ -1,7 +1,7 @@
 // @flow
-import format from "date-fns/format";
+import { format } from "date-fns";
 import Router from "koa-router";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
 import { Attachment, Document, Event } from "../models";
@@ -26,7 +26,9 @@ router.post("attachments.create", auth(), async (ctx) => {
   ctx.assertPresent(size, "size is required");
 
   const { user } = ctx.state;
-  const s3Key = uuid.v4();
+  authorize(user, "createAttachment", user.team);
+
+  const s3Key = uuidv4();
   const acl =
     ctx.body.public === undefined
       ? AWS_S3_ACL
@@ -37,8 +39,8 @@ router.post("attachments.create", auth(), async (ctx) => {
   const bucket = acl === "public-read" ? "public" : "uploads";
   const key = `${bucket}/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
-  const longDate = format(new Date(), "YYYYMMDDTHHmmss\\Z");
-  const policy = makePolicy(credential, longDate, acl);
+  const longDate = format(new Date(), "yyyyMMdd'T'HHmmss'Z'");
+  const policy = makePolicy(credential, longDate, acl, contentType);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
 
@@ -85,6 +87,7 @@ router.post("attachments.create", auth(), async (ctx) => {
         documentId,
         contentType,
         name,
+        id: attachment.id,
         url: attachment.redirectUrl,
         size,
       },
@@ -138,6 +141,7 @@ router.post("attachments.redirect", auth(), async (ctx) => {
     if (attachment.documentId) {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
+        paranoid: false,
       });
       authorize(user, "read", document);
     }

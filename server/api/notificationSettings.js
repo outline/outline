@@ -14,7 +14,7 @@ router.post("notificationSettings.create", auth(), async (ctx) => {
   ctx.assertPresent(event, "event is required");
 
   const user = ctx.state.user;
-  authorize(user, "create", NotificationSetting);
+  authorize(user, "createNotificationSetting", user.team);
 
   const [setting] = await NotificationSetting.findOrCreate({
     where: {

@@ -1,6 +1,5 @@
 // @flow
-import addDays from "date-fns/add_days";
-import differenceInDays from "date-fns/difference_in_days";
+import { addDays, differenceInDays } from "date-fns";
 import invariant from "invariant";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
@@ -24,7 +23,7 @@ export default class Document extends BaseModel {
   @observable lastViewedAt: ?string;
   store: DocumentsStore;
 
-  collaborators: User[];
+  collaboratorIds: string[];
   collectionId: string;
   createdAt: string;
   createdBy: User;
@@ -142,7 +141,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  updateFromJson = (data) => {
+  updateFromJson = (data: Object) => {
     set(this, data);
   };
 
@@ -150,7 +149,7 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (options) => {
+  restore = (options: { revisionId?: string, collectionId?: string }) => {
     return this.store.restore(this, options);
   };
 
@@ -233,7 +232,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: SaveOptions) => {
+  save = async (options: SaveOptions = {}) => {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
@@ -246,7 +245,9 @@ export default class Document extends BaseModel {
           collectionId: this.collectionId,
           title: this.title,
           text: this.text,
-          ...options,
+          publish: options.publish,
+          done: options.done,
+          autosave: options.autosave,
         });
       }
 
@@ -257,7 +258,9 @@ export default class Document extends BaseModel {
           text: this.text,
           templateId: this.templateId,
           lastRevision: options.lastRevision,
-          ...options,
+          publish: options.publish,
+          done: options.done,
+          autosave: options.autosave,
         });
       }
 

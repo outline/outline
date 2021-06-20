@@ -1,7 +1,7 @@
 // @flow
 import path from "path";
 import { DataTypes, sequelize } from "../sequelize";
-import { deleteFromS3 } from "../utils/s3";
+import { deleteFromS3, getFileByKey } from "../utils/s3";
 
 const Attachment = sequelize.define(
   "attachment",
@@ -46,6 +46,9 @@ const Attachment = sequelize.define(
       },
       isPrivate: function () {
         return this.acl === "private";
+      },
+      buffer: function () {
+        return getFileByKey(this.key);
       },
     },
   }

@@ -1,6 +1,7 @@
 // @flow
-import { StarredIcon } from "outline-icons";
+import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "models/Document";
 import NudeButton from "./NudeButton";
@@ -11,6 +12,7 @@ type Props = {|
 |};
 
 function Star({ size, document, ...rest }: Props) {
+  const { t } = useTranslation();
   const handleClick = React.useCallback(
     (ev: SyntheticEvent<>) => {
       ev.preventDefault();
@@ -30,12 +32,17 @@ function Star({ size, document, ...rest }: Props) {
   }
 
   return (
-    <Button onClick={handleClick} size={size} {...rest}>
-      <AnimatedStar
-        solid={document.isStarred}
-        size={size}
-        color="currentColor"
-      />
+    <Button
+      onClick={handleClick}
+      size={size}
+      aria-label={document.isStarred ? t("Unstar") : t("Star")}
+      {...rest}
+    >
+      {document.isStarred ? (
+        <AnimatedStar size={size} color="currentColor" />
+      ) : (
+        <AnimatedStar size={size} color="currentColor" as={UnstarredIcon} />
+      )}
     </Button>
   );
 }
@@ -53,6 +60,10 @@ export const AnimatedStar = styled(StarredIcon)`
   }
   &:active {
     transform: scale(0.95);
+  }
+
+  @media print {
+    display: none;
   }
 `;
 

@@ -28,3 +28,9 @@ export function cdnPath(path: string): string {
 export function imagePath(path: string): string {
   return cdnPath(`/images/${path}`);
 }
+
+export function decodeURIComponentSafe(text: string) {
+  return text
+    ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
+    : text;
+}

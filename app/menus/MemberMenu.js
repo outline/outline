@@ -1,5 +1,4 @@
 // @flow
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
@@ -17,7 +16,7 @@ function MemberMenu({ onRemove }: Props) {
 
   return (
     <>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Member options")}>
         <Template
           {...menu}
@@ -33,4 +32,4 @@ function MemberMenu({ onRemove }: Props) {
   );
 }
 
-export default observer(MemberMenu);
+export default MemberMenu;

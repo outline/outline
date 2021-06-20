@@ -26,7 +26,7 @@ Integration.associate = (models) => {
     as: "collection",
     foreignKey: "collectionId",
   });
-  Integration.belongsTo(models.Authentication, {
+  Integration.belongsTo(models.IntegrationAuthentication, {
     as: "authentication",
     foreignKey: "authenticationId",
   });

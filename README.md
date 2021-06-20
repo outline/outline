@@ -6,7 +6,7 @@
 <p align="center">
   <i>An open, extensible, wiki for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
   <br/>
-  <img src="https://user-images.githubusercontent.com/380914/78513257-153ae080-775f-11ea-9b49-1e1939451a3e.png" alt="Outline" width="800" />
+  <img width="1640" alt="screenshot" src="https://user-images.githubusercontent.com/380914/110356468-26374600-7fef-11eb-9f6a-f2cc2c8c6590.png">
 </p>
 <p align="center">
   <a href="https://circleci.com/gh/outline/outline" rel="nofollow"><img src="https://circleci.com/gh/outline/outline.svg?style=shield&amp;circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a"></a>
@@ -19,7 +19,7 @@ This is the source code that runs [**Outline**](https://www.getoutline.com) and 
 
 If you'd like to run your own copy of Outline or contribute to development then this is the place for you.
 
-## Installation
+# Installation
 
 Outline requires the following dependencies:
 
@@ -31,38 +31,63 @@ Outline requires the following dependencies:
 - Slack or Google developer application for authentication
 
 
-### Production
+## Self-Hosted Production
 
-For a manual self-hosted production installation these are the suggested steps:
+### Docker
 
-1. Clone this repo and install dependencies with `yarn install`
-1. Build the source code with `yarn build`
-1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
-    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
-    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
-    1. `URL` (the public facing URL of your installation)
-    1. `AWS_` (all of the keys beginning with AWS)
-1. Migrate database schema with `yarn sequelize:migrate`. Production assumes an SSL connection, if
-Postgres is on the same machine and is not SSL you can migrate with `yarn sequelize:migrate --env=production-ssl-disabled`.
-1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start ./build/server/index.js --name outline `
+For a manual self-hosted production installation these are the recommended steps:
+
+1. First setup Redis and Postgres servers, this is outside the scope of the guide.
+1. Download the latest official Docker image, new releases are available around the middle of every month:
+
+   `docker pull outlinewiki/outline`
+1. Using the [.env.sample](.env.sample) as a reference, set the required variables in your production environment. You can export the environment variables directly, or create a `.env` file and pass it to the docker image like so:
+
+   `docker run --env-file=.env outlinewiki/outline`
+1. Setup the database with `yarn db:migrate`. Production assumes an SSL connection to the database by default, if
+Postgres is on the same machine and is not SSL you can migrate with `yarn db:migrate --env=production-ssl-disabled`, for example:
+
+   `docker run --rm outlinewiki/outline yarn db:migrate`
+1. Start the container:
+
+   `docker run outlinewiki/outline`
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
    > Port number can be changed using the `PORT` environment variable
 
-1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
+1. (Optional) You can add an `nginx` or other reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
+
+### Terraform
+
+Alternatively a community member maintains a script to deploy Outline on Google Cloud Platform with [Terraform & Ansible](https://github.com/rjsgn/outline-terraform-ansible).
+
+### Upgrading
+
+#### Docker
+
+If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
+
+```shell
+docker run --rm outlinewiki/outline:latest yarn db:migrate
+```
+
+#### Git
+
+If you're running Outline by cloning this repository, run the following command to upgrade:
+
+```shell
+yarn run upgrade
+```
 
 
-### Development
+## Local Development
 
-In development you can quickly get an environment running using Docker by following these steps:
+For contributing features and fixes you can quickly get an environment running using Docker by following these steps:
 
 1. Install these dependencies if you don't already have them
-  1. [Docker for Desktop](https://www.docker.com)
-  1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
-  1. [Yarn](https://yarnpkg.com)
+    1. [Docker for Desktop](https://www.docker.com)
+    1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
+    1. [Yarn](https://yarnpkg.com)
 1. Clone this repo
 1. Register a Slack app at https://api.slack.com/apps
 1. Copy the file `.env.sample` to `.env`
@@ -71,80 +96,40 @@ In development you can quickly get an environment running using Docker by follow
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
     1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
 1. Configure your Slack app's Oauth & Permissions settings 
-    1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
+    1. Slack recently prevented the use of `http` protocol for localhost. For local development, you can use a tool like [ngrok](https://ngrok.com) or a package like `mkcert`. ([How to use HTTPS for local development](https://web.dev/how-to-use-local-https/))
+    1. Add `https://my_ngrok_address/auth/slack.callback` as an Oauth redirect URL
     1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
-### Upgrade
 
-#### Docker
+# Contributing
 
-If you're running Outline with Docker you'll need to run migrations within the docker container after updating the image. The command will be something like:
-```
-docker run --rm outlinewiki/outline:latest yarn sequelize:migrate
-```
-#### Yarn
+Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-If you're running Outline by cloning this repository, run the following command to upgrade:
-```
-yarn upgrade
-```
+Before submitting a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written. This will result in a much higher liklihood of code being accepted.
 
-## Development
+If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
-### Server
+* [Translation](TRANSLATION.md) into other languages
+* Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
+* Performance improvements, both on server and frontend
+* Developer happiness and documentation
+* Bugs and other issues listed on GitHub
+
+
+## Architecture
+
+If you're interested in contributing or learning more about the Outline codebase
+please refer to the [architecture document](ARCHITECTURE.md) first for a high level overview of how the application is put together.
+
+
+## Debugging
 
 Outline uses [debug](https://www.npmjs.com/package/debug). To enable debugging output, the following categories are available:
 
 ```
-DEBUG=sql,cache,presenters,events,logistics,emails,mailer
+DEBUG=sql,cache,presenters,events,importer,exporter,emails,mailer
 ```
-
-## Migrations
-
-Sequelize is used to create and run migrations, for example:
-
-```
-yarn sequelize migration:generate --name my-migration
-yarn sequelize db:migrate
-```
-
-Or to run migrations on test database:
-
-```
-yarn sequelize db:migrate --env test
-```
-
-## Structure
-
-Outline is composed of separate backend and frontend application which are both driven by the same Node process. As both are written in Javascript, they share some code but are mostly separate. We utilize the latest language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier and ESLint are enforced by CI.
-
-### Frontend
-
-Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage.
-
-The editor itself is built on [Prosemirror](https://github.com/prosemirror) and hosted in a separate repository to encourage reuse: [rich-markdown-editor](https://github.com/outline/rich-markdown-editor)
-
-- `app/` - Frontend React application
-- `app/scenes` - Full page views
-- `app/components` - Reusable React components
-- `app/stores` - Global state stores
-- `app/models` - State models
-- `app/types` - Flow types for non-models
-
-### Backend
-
-Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](http://docs.sequelizejs.com/) (database) and React for public pages and emails.
-
-- `server/api` - API endpoints
-- `server/commands` - Domain logic, currently being refactored from /models
-- `server/emails`  - React rendered email templates
-- `server/models` - Database models
-- `server/policies` - Authorization logic
-- `server/presenters` - API responses for database models
-- `server/test` - Test helps and support
-- `server/utils` - Utility methods
-- `shared` - Code shared between frontend and backend applications
 
 ## Tests
 
@@ -171,20 +156,21 @@ yarn test:server
 yarn test:app
 ```
 
-## Contributing
+## Migrations
 
-Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
+Sequelize is used to create and run migrations, for example:
 
-However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
+```
+yarn sequelize migration:generate --name my-migration
+yarn sequelize db:migrate
+```
 
-If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
+Or to run migrations on test database:
 
-* [Translation](TRANSLATION.md) into other languages
-* Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
-* Performance improvements, both on server and frontend
-* Developer happiness and documentation
-* Bugs and other issues listed on GitHub
+```
+yarn sequelize db:migrate --env test
+```
 
 ## License
 
-Outline is [BSL 1.1 licensed](https://github.com/outline/outline/blob/master/LICENSE).
+Outline is [BSL 1.1 licensed](LICENSE).

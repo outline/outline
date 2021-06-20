@@ -108,8 +108,8 @@ export const Inner = styled.span`
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
-export type Props = {
-  type?: string,
+export type Props = {|
+  type?: "button" | "submit",
   value?: string,
   icon?: React.Node,
   iconColor?: string,
@@ -118,34 +118,48 @@ export type Props = {
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
   neutral?: boolean,
+  danger?: boolean,
+  primary?: boolean,
+  disabled?: boolean,
   fullwidth?: boolean,
+  autoFocus?: boolean,
+  style?: Object,
+  as?: React.ComponentType<any>,
+  to?: string,
+  onClick?: (event: SyntheticEvent<>) => mixed,
   borderOnHover?: boolean,
-};
 
-function Button({
-  type = "text",
-  icon,
-  children,
-  value,
-  disclosure,
-  innerRef,
-  neutral,
-  ...rest
-}: Props) {
-  const hasText = children !== undefined || value !== undefined;
-  const hasIcon = icon !== undefined;
+  "data-on"?: string,
+  "data-event-category"?: string,
+  "data-event-action"?: string,
+|};
 
-  return (
-    <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
-      <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
-        {hasIcon && icon}
-        {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
-        {disclosure && <ExpandedIcon />}
-      </Inner>
-    </RealButton>
-  );
-}
+const Button = React.forwardRef<Props, HTMLButtonElement>(
+  (
+    {
+      type = "text",
+      icon,
+      children,
+      value,
+      disclosure,
+      neutral,
+      ...rest
+    }: Props,
+    innerRef
+  ) => {
+    const hasText = children !== undefined || value !== undefined;
+    const hasIcon = icon !== undefined;
 
-export default React.forwardRef<Props, typeof Button>((props, ref) => (
-  <Button {...props} innerRef={ref} />
-));
+    return (
+      <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
+        <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
+          {hasIcon && icon}
+          {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
+          {disclosure && <ExpandedIcon />}
+        </Inner>
+      </RealButton>
+    );
+  }
+);
+
+export default Button;

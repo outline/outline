@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { formatDistanceToNow } from "date-fns";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
@@ -19,11 +19,11 @@ import Subheading from "components/Subheading";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
-type Props = {
+type Props = {|
   user: User,
   history: RouterHistory,
   onRequestClose: () => void,
-};
+|};
 
 function UserProfile(props: Props) {
   const { t } = useTranslation();
@@ -52,12 +52,12 @@ function UserProfile(props: Props) {
             ? t("Joined")
             : t("Invited")}{" "}
           {t("{{ time }} ago.", {
-            time: distanceInWordsToNow(new Date(user.createdAt)),
+            time: formatDistanceToNow(Date.parse(user.createdAt)),
           })}
           {user.isAdmin && (
-            <StyledBadge admin={user.isAdmin}>{t("Admin")}</StyledBadge>
+            <StyledBadge primary={user.isAdmin}>{t("Admin")}</StyledBadge>
           )}
-          {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
+          {user.isSuspended && <StyledBadge>{t("Suspended")}</StyledBadge>}
           {isCurrentUser && (
             <Edit>
               <Button

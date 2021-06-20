@@ -1,5 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
+import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -7,11 +8,12 @@ import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
 import type { NavigationNode } from "types";
 
-type Props = {
+type Props = {|
+  shareId?: string,
   document: Document | NavigationNode,
   anchor?: string,
   showCollection?: boolean,
-};
+|};
 
 const DocumentLink = styled(Link)`
   display: block;
@@ -31,6 +33,8 @@ const DocumentLink = styled(Link)`
 `;
 
 const Title = styled.h3`
+  display: flex;
+  align-items: center;
   max-width: 90%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -43,27 +47,52 @@ const Title = styled.h3`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
-@observer
-class ReferenceListItem extends React.Component<Props> {
-  render() {
-    const { document, showCollection, anchor, ...rest } = this.props;
+const StyledDocumentIcon = styled(DocumentIcon)`
+  margin-left: -4px;
+  color: ${(props) => props.theme.textSecondary};
+`;
 
-    return (
-      <DocumentLink
-        to={{
-          pathname: document.url,
-          hash: anchor ? `d-${anchor}` : undefined,
-          state: { title: document.title },
-        }}
-        {...rest}
-      >
-        <Title>{document.title}</Title>
-        {document.updatedBy && (
-          <DocumentMeta document={document} showCollection={showCollection} />
-        )}
-      </DocumentLink>
-    );
-  }
+const Emoji = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -4px;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+`;
+
+function ReferenceListItem({
+  document,
+  showCollection,
+  anchor,
+  shareId,
+  ...rest
+}: Props) {
+  return (
+    <DocumentLink
+      to={{
+        pathname: shareId ? `/share/${shareId}${document.url}` : document.url,
+        hash: anchor ? `d-${anchor}` : undefined,
+        state: { title: document.title },
+      }}
+      {...rest}
+    >
+      <Title>
+        {document.emoji ? (
+          <Emoji>{document.emoji}</Emoji>
+        ) : (
+          <StyledDocumentIcon color="currentColor" />
+        )}{" "}
+        {document.emoji
+          ? document.title.replace(new RegExp(`^${document.emoji}`), "")
+          : document.title}
+      </Title>
+      {document.updatedBy && (
+        <DocumentMeta document={document} showCollection={showCollection} />
+      )}
+    </DocumentLink>
+  );
 }
 
-export default ReferenceListItem;
+export default observer(ReferenceListItem);

@@ -4,29 +4,31 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "shared/constants";
+import { light } from "shared/styles/theme";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
-import Editor from "components/Editor";
+import Editor, { type Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import Star, { AnimatedStar } from "components/Star";
-import { isMetaKey } from "utils/keyboard";
+import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-type Props = {
+type Props = {|
+  ...EditorProps,
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
   title: string,
-  defaultValue: string,
   document: Document,
   isDraft: boolean,
-  isShare: boolean,
-  readOnly?: boolean,
-  onSave: ({ publish?: boolean, done?: boolean, autosave?: boolean }) => mixed,
+  shareId: ?string,
+  onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
-};
+  children: React.Node,
+|};
 
 @observer
 class DocumentEditor extends React.Component<Props> {
@@ -55,7 +57,7 @@ class DocumentEditor extends React.Component<Props> {
   handleTitleKeyDown = (event: SyntheticKeyboardEvent<>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      if (isMetaKey(event)) {
+      if (isModKey(event)) {
         this.props.onSave({ done: true });
         return;
       }
@@ -69,12 +71,12 @@ class DocumentEditor extends React.Component<Props> {
       this.focusAtStart();
       return;
     }
-    if (event.key === "p" && isMetaKey(event) && event.shiftKey) {
+    if (event.key === "p" && isModKey(event) && event.shiftKey) {
       event.preventDefault();
       this.props.onSave({ publish: true, done: true });
       return;
     }
-    if (event.key === "s" && isMetaKey(event)) {
+    if (event.key === "s" && isModKey(event)) {
       event.preventDefault();
       this.props.onSave({});
       return;
@@ -95,9 +97,11 @@ class DocumentEditor extends React.Component<Props> {
       title,
       onChangeTitle,
       isDraft,
-      isShare,
+      shareId,
       readOnly,
       innerRef,
+      children,
+      ...rest
     } = this.props;
 
     const { emoji } = parseTitle(title);
@@ -114,7 +118,7 @@ class DocumentEditor extends React.Component<Props> {
             $isStarred={document.isStarred}
           >
             <span>{normalizedTitle}</span>{" "}
-            {!isShare && <StarButton document={document} size={32} />}
+            {!shareId && <StarButton document={document} size={32} />}
           </Title>
         ) : (
           <Title
@@ -128,28 +132,33 @@ class DocumentEditor extends React.Component<Props> {
             maxLength={MAX_TITLE_LENGTH}
           />
         )}
-        <DocumentMetaWithViews
-          isDraft={isDraft}
-          document={document}
-          to={documentHistoryUrl(document)}
-        />
+        {!shareId && (
+          <DocumentMetaWithViews
+            isDraft={isDraft}
+            document={document}
+            to={documentHistoryUrl(document)}
+          />
+        )}
         <Editor
           ref={innerRef}
-          autoFocus={title && !this.props.defaultValue}
+          autoFocus={!!title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
+          readOnly={readOnly}
+          shareId={shareId}
           grow
-          {...this.props}
+          {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !isShare && readOnly && (
+        {this.activeLinkEvent && !shareId && readOnly && (
           <HoverPreview
             node={this.activeLinkEvent.target}
             event={this.activeLinkEvent}
             onClose={this.handleLinkInactive}
           />
         )}
+        {children}
       </Flex>
     );
   }
@@ -161,11 +170,9 @@ const StarButton = styled(Star)`
 `;
 
 const Title = styled(Textarea)`
-  z-index: 1;
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
-  margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   color: ${(props) => props.theme.text};
@@ -182,6 +189,10 @@ const Title = styled(Textarea)`
     -webkit-text-fill-color: ${(props) => props.theme.placeholder};
   }
 
+  ${breakpoint("tablet")`
+    margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
+  `};
+
   ${AnimatedStar} {
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
@@ -194,6 +205,12 @@ const Title = styled(Textarea)`
         opacity: 1;
       }
     }
+  }
+
+  @media print {
+    color: ${(props) => light.text};
+    -webkit-text-fill-color: ${(props) => light.text};
+    background: none;
   }
 `;
 

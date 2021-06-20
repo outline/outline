@@ -3,13 +3,14 @@ import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { AuthenticationError, InvalidRequestError } from "../errors";
 import {
-  Authentication,
+  UserAuthentication,
+  AuthenticationProvider,
   Document,
   User,
   Team,
-  Collection,
   SearchQuery,
   Integration,
+  IntegrationAuthentication,
 } from "../models";
 import { presentSlackAttachment } from "../presenters";
 import * as Slack from "../slack";
@@ -25,11 +26,18 @@ router.post("hooks.unfurl", async (ctx) => {
   }
 
   const user = await User.findOne({
-    where: { service: "slack", serviceId: event.user },
+    include: [
+      {
+        where: { providerId: event.user },
+        model: UserAuthentication,
+        as: "authentications",
+        required: true,
+      },
+    ],
   });
   if (!user) return;
 
-  const auth = await Authentication.findOne({
+  const auth = await IntegrationAuthentication.findOne({
     where: { service: "slack", teamId: user.teamId },
   });
   if (!auth) return;
@@ -70,37 +78,27 @@ router.post("hooks.interactive", async (ctx) => {
     throw new AuthenticationError("Invalid verification token");
   }
 
-  const team = await Team.findOne({
-    where: { slackId: data.team.id },
-  });
-
-  if (!team) {
-    ctx.body = {
-      text:
-        "Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.",
-      response_type: "ephemeral",
-      replace_original: false,
-    };
-    return;
+  // we find the document based on the users teamId to ensure access
+  const document = await Document.scope("withCollection").findByPk(
+    data.callback_id
+  );
+  if (!document) {
+    throw new InvalidRequestError("Invalid callback_id");
   }
 
-  // we find the document based on the users teamId to ensure access
-  const document = await Document.findOne({
-    where: {
-      id: data.callback_id,
-      teamId: team.id,
-    },
-  });
-  if (!document) throw new InvalidRequestError("Invalid document");
-
-  const collection = await Collection.findByPk(document.collectionId);
+  const team = await Team.findByPk(document.teamId);
 
   // respond with a public message that will be posted in the original channel
   ctx.body = {
     response_type: "in_channel",
     replace_original: false,
     attachments: [
-      presentSlackAttachment(document, collection, team, document.getSummary()),
+      presentSlackAttachment(
+        document,
+        document.collection,
+        team,
+        document.getSummary()
+      ),
     ],
   };
 });
@@ -131,20 +129,41 @@ router.post("hooks.slack", async (ctx) => {
     return;
   }
 
-  let user;
+  let user, team;
 
   // attempt to find the corresponding team for this request based on the team_id
-  let team = await Team.findOne({
-    where: { slackId: team_id },
-  });
-  if (team) {
-    user = await User.findOne({
-      where: {
-        teamId: team.id,
-        service: "slack",
-        serviceId: user_id,
+  team = await Team.findOne({
+    include: [
+      {
+        where: {
+          name: "slack",
+          providerId: team_id,
+        },
+        as: "authenticationProviders",
+        model: AuthenticationProvider,
+        required: true,
       },
+    ],
+  });
+
+  if (team) {
+    const authentication = await UserAuthentication.findOne({
+      where: {
+        providerId: user_id,
+      },
+      include: [
+        {
+          where: { teamId: team.id },
+          model: User,
+          as: "user",
+          required: true,
+        },
+      ],
     });
+
+    if (authentication) {
+      user = authentication.user;
+    }
   } else {
     // If we couldn't find a team it's still possible that the request is from
     // a team that authenticated with a different service, but connected Slack

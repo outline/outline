@@ -9,7 +9,9 @@ type Props = {
 
 export default class Analytics extends React.Component<Props> {
   componentDidMount() {
-    if (!env.GOOGLE_ANALYTICS_ID) return;
+    if (!env.GOOGLE_ANALYTICS_ID) {
+      return null;
+    }
 
     // standard Google Analytics script
     window.ga =
@@ -28,6 +30,11 @@ export default class Analytics extends React.Component<Props> {
     const script = document.createElement("script");
     script.src = "https://www.google-analytics.com/analytics.js";
     script.async = true;
+
+    // Track PWA install event
+    window.addEventListener("appinstalled", () => {
+      ga("send", "event", "pwa", "install");
+    });
 
     if (document.body) {
       document.body.appendChild(script);

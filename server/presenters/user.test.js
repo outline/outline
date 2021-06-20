@@ -6,9 +6,6 @@ it("presents a user", async () => {
     id: "123",
     name: "Test User",
     username: "testuser",
-    slackData: {
-      image_192: "http://example.com/avatar.png",
-    },
   });
 
   expect(user).toMatchSnapshot();
@@ -19,7 +16,6 @@ it("presents a user without slack data", async () => {
     id: "123",
     name: "Test User",
     username: "testuser",
-    slackData: null,
   });
 
   expect(user).toMatchSnapshot();

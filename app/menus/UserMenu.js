@@ -14,9 +14,10 @@ type Props = {|
 |};
 
 function UserMenu({ user }: Props) {
-  const { users } = useStores();
+  const { users, policies } = useStores();
   const { t } = useTranslation();
   const menu = useMenuState({ modal: true });
+  const can = policies.abilities(user.id);
 
   const handlePromote = React.useCallback(
     (ev: SyntheticEvent<>) => {
@@ -36,7 +37,7 @@ function UserMenu({ user }: Props) {
     [users, user, t]
   );
 
-  const handleDemote = React.useCallback(
+  const handleMember = React.useCallback(
     (ev: SyntheticEvent<>) => {
       ev.preventDefault();
       if (
@@ -48,7 +49,27 @@ function UserMenu({ user }: Props) {
       ) {
         return;
       }
-      users.demote(user);
+      users.demote(user, "Member");
+    },
+    [users, user, t]
+  );
+
+  const handleViewer = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      if (
+        !window.confirm(
+          t(
+            "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content",
+            {
+              userName: user.name,
+            }
+          )
+        )
+      ) {
+        return;
+      }
+      users.demote(user, "Viewer");
     },
     [users, user, t]
   );
@@ -88,24 +109,31 @@ function UserMenu({ user }: Props) {
 
   return (
     <>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("User options")}>
         <Template
           {...menu}
           items={[
             {
-              title: t("Make {{ userName }} a member…", {
+              title: t("Make {{ userName }} a member", {
                 userName: user.name,
               }),
-              onClick: handleDemote,
-              visible: user.isAdmin,
+              onClick: handleMember,
+              visible: can.demote && user.rank !== "Member",
+            },
+            {
+              title: t("Make {{ userName }} a viewer", {
+                userName: user.name,
+              }),
+              onClick: handleViewer,
+              visible: can.demote && user.rank !== "Viewer",
             },
             {
               title: t("Make {{ userName }} an admin…", {
                 userName: user.name,
               }),
               onClick: handlePromote,
-              visible: !user.isAdmin && !user.isSuspended,
+              visible: can.promote && user.rank !== "Admin",
             },
             {
               type: "separator",

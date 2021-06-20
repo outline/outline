@@ -18,7 +18,8 @@ import ContextMenu from "components/ContextMenu";
 import MenuItem, { MenuAnchor } from "components/ContextMenu/MenuItem";
 import Separator from "components/ContextMenu/Separator";
 import Flex from "components/Flex";
-import Modal from "components/Modal";
+import Guide from "components/Guide";
+import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -32,7 +33,7 @@ const AppearanceMenu = React.forwardRef((props, ref) => {
 
   return (
     <>
-      <MenuButton ref={ref} {...menu} {...props}>
+      <MenuButton ref={ref} {...menu} {...props} onClick={menu.show}>
         {(props) => (
           <MenuAnchor {...props}>
             <ChangeTheme justify="space-between">
@@ -74,21 +75,28 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
-  const { auth } = useStores();
+  const { auth, ui } = useStores();
+  const previousTheme = usePrevious(ui.theme);
   const { t } = useTranslation();
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
     false
   );
 
+  React.useEffect(() => {
+    if (ui.theme !== previousTheme) {
+      menu.hide();
+    }
+  }, [menu, ui.theme, previousTheme]);
+
   return (
     <>
-      <Modal
+      <Guide
         isOpen={keyboardShortcutsOpen}
         onRequestClose={() => setKeyboardShortcutsOpen(false)}
         title={t("Keyboard shortcuts")}
       >
         <KeyboardShortcuts />
-      </Modal>
+      </Guide>
       <MenuButton {...menu}>{props.children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
         <MenuItem {...menu} as={Link} to={settings()}>

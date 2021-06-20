@@ -7,9 +7,9 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
-import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import DropCursor from "./DropCursor";
+import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import useStores from "hooks/useStores";
@@ -21,7 +21,6 @@ type Props = {|
   canUpdate: boolean,
   collection?: Collection,
   activeDocument: ?Document,
-  activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
   index: number,
@@ -33,7 +32,6 @@ function DocumentLink({
   canUpdate,
   collection,
   activeDocument,
-  activeDocumentRef,
   prefetchDocument,
   depth,
   index,
@@ -125,7 +123,8 @@ function DocumentLink({
 
   // Draggable
   const [{ isDragging }, drag] = useDrag({
-    item: { type: "document", ...node, depth, active: isActiveDocument },
+    type: "document",
+    item: () => ({ ...node, depth, active: isActiveDocument }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -148,7 +147,7 @@ function DocumentLink({
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
+    drop: (item, monitor) => {
       if (monitor.didDrop()) return;
       if (!collection) return;
       documents.move(item.id, collection.id, node.id);
@@ -185,7 +184,7 @@ function DocumentLink({
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
+    drop: (item, monitor) => {
       if (!collection) return;
       if (item.id === node.id) return;
 
@@ -213,7 +212,6 @@ function DocumentLink({
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
-                innerRef={isActiveDocument ? activeDocumentRef : undefined}
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
@@ -284,6 +282,7 @@ const Draggable = styled("div")`
 `;
 
 const Disclosure = styled(CollapsedIcon)`
+  transition: transform 100ms ease, fill 50ms !important;
   position: absolute;
   left: -24px;
 

@@ -17,7 +17,7 @@ function GroupMemberMenu({ onRemove }: Props) {
 
   return (
     <>
-      <OverflowMenuButton {...menu} />
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Group member options")}>
         <Template
           {...menu}

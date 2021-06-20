@@ -7,13 +7,15 @@ import BaseModel from "../models/BaseModel";
 import type { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
 
-type Action = "list" | "info" | "create" | "update" | "delete";
+type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
 function modelNameFromClassName(string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
 }
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
+
+export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
 export default class BaseStore<T: BaseModel> {
   @observable data: Map<string, T> = new Map();
@@ -24,7 +26,7 @@ export default class BaseStore<T: BaseModel> {
   model: Class<T>;
   modelName: string;
   rootStore: RootStore;
-  actions: Action[] = ["list", "info", "create", "update", "delete"];
+  actions: Action[] = ["list", "info", "create", "update", "delete", "count"];
 
   constructor(rootStore: RootStore, model: Class<T>) {
     this.rootStore = rootStore;
@@ -137,7 +139,8 @@ export default class BaseStore<T: BaseModel> {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
 
-    let item = this.data.get(id);
+    const item = this.data.get(id);
+
     if (item && !options.force) return item;
 
     this.isFetching = true;
@@ -175,7 +178,10 @@ export default class BaseStore<T: BaseModel> {
         res.data.forEach(this.add);
         this.isLoaded = true;
       });
-      return res.data;
+
+      let response = res.data;
+      response[PAGINATION_SYMBOL] = res.pagination;
+      return response;
     } finally {
       this.isFetching = false;
     }

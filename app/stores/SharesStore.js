@@ -46,19 +46,42 @@ export default class SharesStore extends BaseStore<Share> {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.info`, { documentId });
+      const res = await client.post(`/${this.modelName}s.info`, {
+        documentId,
+        apiVersion: 2,
+      });
       if (isUndefined(res)) return;
 
       invariant(res && res.data, "Data should be available");
 
       this.addPolicies(res.policies);
-      return this.add(res.data);
+      return res.data.shares.map(this.add);
     } finally {
       this.isFetching = false;
     }
   }
 
-  getByDocumentId = (documentId): ?Share => {
+  getByDocumentParents = (documentId: string): ?Share => {
+    const document = this.rootStore.documents.get(documentId);
+    if (!document) return;
+
+    const collection = this.rootStore.collections.get(document.collectionId);
+    if (!collection) return;
+
+    const parentIds = collection
+      .pathToDocument(documentId)
+      .slice(0, -1)
+      .map((p) => p.id);
+
+    for (const parentId of parentIds) {
+      const share = this.getByDocumentId(parentId);
+      if (share && share.includeChildDocuments && share.published) {
+        return share;
+      }
+    }
+  };
+
+  getByDocumentId = (documentId: string): ?Share => {
     return find(this.orderedData, (share) => share.documentId === documentId);
   };
 }

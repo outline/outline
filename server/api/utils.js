@@ -1,5 +1,5 @@
 // @flow
-import subDays from "date-fns/sub_days";
+import { subDays } from "date-fns";
 import debug from "debug";
 import Router from "koa-router";
 import { AuthenticationError } from "../errors";

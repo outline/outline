@@ -17,12 +17,13 @@ type Props = {
 
 function DocumentDelete({ document, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { ui, documents } = useStores();
+  const { ui, documents, collections } = useStores();
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
   const { showToast } = ui;
   const canArchive = !document.isDraft && !document.isArchived;
+  const collection = collections.get(document.collectionId);
 
   const handleSubmit = React.useCallback(
     async (ev: SyntheticEvent<>) => {
@@ -45,7 +46,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
           }
 
           // otherwise, redirect to the collection home
-          history.push(collectionUrl(document.collectionId));
+          history.push(collectionUrl(collection?.url || "/"));
         }
         onSubmit();
       } catch (err) {
@@ -54,7 +55,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
         setDeleting(false);
       }
     },
-    [showToast, onSubmit, ui, document, documents, history]
+    [showToast, onSubmit, ui, document, documents, history, collection]
   );
 
   const handleArchive = React.useCallback(
@@ -79,17 +80,17 @@ function DocumentDelete({ document, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           {document.isTemplate ? (
-            <Trans>
-              Are you sure you want to delete the{" "}
-              <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              template?
-            </Trans>
+            <Trans
+              defaults="Are you sure you want to delete the <em>{{ documentTitle }}</em> template?"
+              values={{ documentTitle: document.titleWithDefault }}
+              components={{ em: <strong /> }}
+            />
           ) : (
-            <Trans>
-              Are you sure about that? Deleting the{" "}
-              <strong>{{ documentTitle: document.titleWithDefault }}</strong>{" "}
-              document will delete all of its history and any nested documents.
-            </Trans>
+            <Trans
+              defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents."
+              values={{ documentTitle: document.titleWithDefault }}
+              components={{ em: <strong /> }}
+            />
           )}
         </HelpText>
         {canArchive && (

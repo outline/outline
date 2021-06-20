@@ -30,6 +30,10 @@
     "postdeploy": "yarn sequelize db:migrate"
   },
   "env": {
+    "NODE_ENV": {
+      "value": "production",
+      "required": true
+    },
     "SECRET_KEY": {
       "description": "A secret key",
       "generator": "secret",
@@ -51,7 +55,7 @@
       "description": "",
       "required": false
     },
-    "GOOGLE_ALLOWED_DOMAINS": {
+    "ALLOWED_DOMAINS": {
       "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default",
       "required": false
     },
@@ -129,6 +133,15 @@
     },
     "SMTP_REPLY_EMAIL": {
       "description": "wikireply@example.com (optional)",
+      "required": false
+    },
+    "SMTP_SECURE": {
+      "value": "true",
+      "description": "Use a secure SMTP connection (optional)",
+      "required": false
+    },
+    "SMTP_TLS_CIPHERS": {
+      "description": "Override SMTP cipher configuration (optional)",
       "required": false
     },
     "GOOGLE_ANALYTICS_ID": {

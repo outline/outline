@@ -32,15 +32,15 @@ class References extends React.Component<Props> {
       : [];
 
     const showBacklinks = !!backlinks.length;
-    const showChildren = !!children.length;
+    const showNestedDocuments = !!children.length;
     const isBacklinksTab =
-      this.props.location.hash === "#backlinks" || !showChildren;
+      this.props.location.hash === "#backlinks" || !showNestedDocuments;
 
     return (
-      (showBacklinks || showChildren) && (
+      (showBacklinks || showNestedDocuments) && (
         <Fade>
           <Tabs>
-            {showChildren && (
+            {showNestedDocuments && (
               <Tab to="#children" isActive={() => !isBacklinksTab}>
                 Nested documents
               </Tab>

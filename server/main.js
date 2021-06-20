@@ -1,5 +1,6 @@
 // @flow
 import http from "http";
+import * as Sentry from "@sentry/node";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
@@ -8,6 +9,8 @@ import { Document, Collection, View } from "./models";
 import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
+import * as metrics from "./utils/metrics";
+import { checkMigrations } from "./utils/startup";
 
 const server = http.createServer(app.callback());
 let io;
@@ -34,6 +37,22 @@ io.of("/").adapter.on("error", (err) => {
   } else {
     console.error(`Redis error: ${err.message}`);
   }
+});
+
+io.on("connection", (socket) => {
+  metrics.increment("websockets.connected");
+  metrics.gaugePerInstance(
+    "websockets.count",
+    socket.client.conn.server.clientsCount
+  );
+
+  socket.on("disconnect", () => {
+    metrics.increment("websockets.disconnected");
+    metrics.gaugePerInstance(
+      "websockets.count",
+      socket.client.conn.server.clientsCount
+    );
+  });
 });
 
 SocketAuth(io, {
@@ -81,7 +100,9 @@ SocketAuth(io, {
         }).findByPk(event.collectionId);
 
         if (can(user, "read", collection)) {
-          socket.join(`collection-${event.collectionId}`);
+          socket.join(`collection-${event.collectionId}`, () => {
+            metrics.increment("websockets.collections.join");
+          });
         }
       }
 
@@ -101,6 +122,8 @@ SocketAuth(io, {
           );
 
           socket.join(room, () => {
+            metrics.increment("websockets.documents.join");
+
             // let everyone else in the room know that a new user joined
             io.to(room).emit("user.join", {
               userId: user.id,
@@ -110,7 +133,17 @@ SocketAuth(io, {
 
             // let this user know who else is already present in the room
             io.in(room).clients(async (err, sockets) => {
-              if (err) throw err;
+              if (err) {
+                if (process.env.SENTRY_DSN) {
+                  Sentry.withScope(function (scope) {
+                    scope.setExtra("clients", sockets);
+                    Sentry.captureException(err);
+                  });
+                } else {
+                  console.error(err);
+                }
+                return;
+              }
 
               // because a single user can have multiple socket connections we
               // need to make sure that only unique userIds are returned. A Map
@@ -134,11 +167,15 @@ SocketAuth(io, {
     // allow the client to request to leave rooms
     socket.on("leave", (event) => {
       if (event.collectionId) {
-        socket.leave(`collection-${event.collectionId}`);
+        socket.leave(`collection-${event.collectionId}`, () => {
+          metrics.increment("websockets.collections.leave");
+        });
       }
       if (event.documentId) {
         const room = `document-${event.documentId}`;
         socket.leave(room, () => {
+          metrics.increment("websockets.documents.leave");
+
           io.to(room).emit("user.leave", {
             userId: user.id,
             documentId: event.documentId,
@@ -162,6 +199,8 @@ SocketAuth(io, {
     });
 
     socket.on("presence", async (event) => {
+      metrics.increment("websockets.presence");
+
       const room = `document-${event.documentId}`;
 
       if (event.documentId && socket.rooms[room]) {
@@ -191,7 +230,10 @@ server.on("listening", () => {
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
-server.listen(process.env.PORT || "3000");
+(async () => {
+  await checkMigrations();
+  server.listen(process.env.PORT || "3000");
+})();
 
 export const socketio = io;
 

@@ -1,66 +1,56 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
+import { LinkIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
-import AuthStore from "stores/AuthStore";
-import SharesStore from "stores/SharesStore";
-
-import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
+import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import List from "components/List";
-import PageTitle from "components/PageTitle";
+import PaginatedList from "components/PaginatedList";
+import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import ShareListItem from "./components/ShareListItem";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useStores from "hooks/useStores";
 
-type Props = {
-  shares: SharesStore,
-  auth: AuthStore,
-};
+function Shares() {
+  const team = useCurrentTeam();
+  const { t } = useTranslation();
+  const { shares, auth, policies } = useStores();
+  const canShareDocuments = auth.team && auth.team.sharing;
+  const can = policies.abilities(team.id);
 
-@observer
-class Shares extends React.Component<Props> {
-  componentDidMount() {
-    this.props.shares.fetchPage({ limit: 100 });
-  }
-
-  render() {
-    const { shares, auth } = this.props;
-    const { user } = auth;
-    const canShareDocuments = auth.team && auth.team.sharing;
-    const hasSharedDocuments = shares.orderedData.length > 0;
-
-    return (
-      <CenteredContent>
-        <PageTitle title="Share Links" />
-        <h1>Share Links</h1>
-        <HelpText>
+  return (
+    <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
+      <Heading>{t("Share Links")}</Heading>
+      <HelpText>
+        <Trans>
           Documents that have been shared are listed below. Anyone that has the
           public link can access a read-only version of the document until the
           link has been revoked.
+        </Trans>
+      </HelpText>
+      {can.manage && (
+        <HelpText>
+          {!canShareDocuments && (
+            <strong>{t("Sharing is currently disabled.")}</strong>
+          )}{" "}
+          <Trans
+            defaults="You can globally enable and disable public document sharing in the <em>security settings</em>."
+            components={{ em: <Link to="/settings/security" /> }}
+          />
         </HelpText>
-        {user && user.isAdmin && (
-          <HelpText>
-            {!canShareDocuments && (
-              <strong>Sharing is currently disabled.</strong>
-            )}{" "}
-            You can turn {canShareDocuments ? "off" : "on"} public document
-            sharing in <Link to="/settings/security">security settings</Link>.
-          </HelpText>
-        )}
-        <Subheading>Shared Documents</Subheading>
-        {hasSharedDocuments ? (
-          <List>
-            {shares.published.map((share) => (
-              <ShareListItem key={share.id} share={share} />
-            ))}
-          </List>
-        ) : (
-          <Empty>No share links, yet.</Empty>
-        )}
-      </CenteredContent>
-    );
-  }
+      )}
+      <Subheading>{t("Shared documents")}</Subheading>
+      <PaginatedList
+        items={shares.published}
+        empty={<Empty>{t("No share links, yet.")}</Empty>}
+        fetch={shares.fetchPage}
+        renderItem={(item) => <ShareListItem key={item.id} share={item} />}
+      />
+    </Scene>
+  );
 }
 
-export default inject("shares", "auth")(Shares);
+export default observer(Shares);

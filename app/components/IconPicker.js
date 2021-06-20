@@ -32,7 +32,10 @@ import NudeButton from "components/NudeButton";
 const style = { width: 30, height: 30 };
 
 const TwitterPicker = React.lazy(() =>
-  import("react-color/lib/components/twitter/Twitter")
+  import(
+    /* webpackChunkName: "twitter-picker" */
+    "react-color/lib/components/twitter/Twitter"
+  )
 );
 
 export const icons = {
@@ -145,8 +148,8 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
       </Label>
       <MenuButton {...menu}>
         {(props) => (
-          <Button {...props}>
-            <Component role="button" color={color} size={30} />
+          <Button aria-label={t("Show menu")} {...props}>
+            <Component color={color} size={30} />
           </Button>
         )}
       </MenuButton>
