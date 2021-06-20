@@ -10,7 +10,6 @@ export default (props: Props) => {
   const style = {
     borderRadius: "4px",
     background: theme.secondaryBackground,
-    margin: "1em 0",
     padding: ".5em 1em",
   };
 

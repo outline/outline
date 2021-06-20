@@ -1,11 +1,13 @@
 // @flow
+import fs from "fs";
+import path from "path";
 import Router from "koa-router";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
 import { Document, Revision } from "../models";
 import policy from "../policies";
 import { presentRevision } from "../presenters";
-import { revisionDiffExample } from "../utils/revisionDiff";
+import markdownDiff from "../utils/markdownDiff";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -60,11 +62,24 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
 });
 
 // TODO: dev harness for revision diffs
-router.post("revisions.diff_example", auth(), pagination(), async (ctx) => {
-  const diff = await revisionDiffExample();
-  ctx.body = {
-    data: { diff },
-  };
-});
+if (process.env.NODE_ENV !== "production") {
+  router.post("revisions.diff_example", auth(), pagination(), async (ctx) => {
+    let before = await fs.promises.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", "complex.md"),
+      "utf8"
+    );
+
+    let after = await fs.promises.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", "complexModified.md"),
+      "utf8"
+    );
+
+    const diff = markdownDiff(before, after);
+
+    ctx.body = {
+      data: { diff },
+    };
+  });
+}
 
 export default router;

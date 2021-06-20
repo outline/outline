@@ -1,11 +1,9 @@
 // @flow
-import fs from "fs";
-import path from "path";
 import { findLastIndex } from "lodash";
 import diff from "node-htmldiff";
 import { renderToHtml } from "rich-markdown-editor";
 
-export default function revisionDiff(
+export default function markdownDiff(
   before: string,
   after: string,
   fullDiff: boolean = false,
@@ -45,18 +43,4 @@ export default function revisionDiff(
       Math.min(lines.length, lastChangedLineIndex + buffer)
     )
     .join("\n");
-}
-
-export async function revisionDiffExample() {
-  let before = await fs.promises.readFile(
-    path.resolve(__dirname, "..", "test", "fixtures", "complex.md"),
-    "utf8"
-  );
-
-  let after = await fs.promises.readFile(
-    path.resolve(__dirname, "..", "test", "fixtures", "complexModified.md"),
-    "utf8"
-  );
-
-  return revisionDiff(before, after);
 }

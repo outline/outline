@@ -55,11 +55,15 @@ export const DocumentNotificationEmail = ({
           {actor.name} {eventName} the document "{document.title}", in the{" "}
           {collection.name} collection.
         </p>
-        <EmptySpace height={10} />
-        <Diff>
-          <div dangerouslySetInnerHTML={{ __html: summary }} />
-        </Diff>
-        <EmptySpace height={10} />
+        {summary && (
+          <>
+            <EmptySpace height={20} />
+            <Diff>
+              <div dangerouslySetInnerHTML={{ __html: summary }} />
+            </Diff>
+            <EmptySpace height={20} />
+          </>
+        )}
         <p>
           <Button href={`${team.url}${document.url}`}>Open Document</Button>
         </p>

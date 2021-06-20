@@ -17,7 +17,7 @@ import {
   NotificationSetting,
 } from "../models";
 import { Op } from "../sequelize";
-import revisionDiff from "../utils/revisionDiff";
+import markdownDiff from "../utils/markdownDiff";
 
 const log = debug("services");
 
@@ -196,7 +196,7 @@ export default class Notifications {
         order: [["createdAt", "DESC"]],
       });
 
-      const summary = revisionDiff(
+      const summary = markdownDiff(
         previous ? previous.text : "",
         revision.text
       );

@@ -3,9 +3,9 @@ import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "../../../shared/styles/theme";
 
-type Props = {
+type Props = {|
   children: React.Node,
-};
+|};
 
 export default (props: Props) => (
   <Table width="550" padding="40">
@@ -25,7 +25,7 @@ export const baseStyles = `
   }
 
   ins {
-    background-color: ${theme.brand.green};
+    background-color: #128a2929;
     text-decoration: none;
   }
 
