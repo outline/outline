@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import theme from "../../shared/styles/theme";
 import { User, Document, Team, Collection } from "../models";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -73,3 +74,39 @@ export const DocumentNotificationEmail = ({
     </EmailTemplate>
   );
 };
+
+export const css = `
+  ins {
+    background-color: #128a2929;
+    text-decoration: none;
+  }
+
+  del {
+    background-color: ${theme.slateLight};
+    color: ${theme.slate};
+    text-decoration: strikethrough;
+  }
+
+  ul {
+    padding-left: 0;
+  }
+
+  .checkbox-list-item {
+    list-style: none;
+    padding: 4px 0;
+    margin: 0;
+  }
+
+  .checkbox {
+    font-size: 0;
+    display: block;
+    float: left;
+    white-space: nowrap;
+    width: 12px;
+    height: 12px;
+    margin-top: 2px;
+    margin-right: 8px;
+    border: 1px solid ${theme.textSecondary};
+    border-radius: 3px;
+  }
+`;

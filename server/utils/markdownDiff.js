@@ -1,5 +1,5 @@
 // @flow
-import { findLastIndex } from "lodash";
+import { findIndex, findLastIndex } from "lodash";
 import diff from "node-htmldiff";
 import { renderToHtml } from "rich-markdown-editor";
 
@@ -28,9 +28,9 @@ export default function markdownDiff(
   // so we can chop around those lines rather than return the entire document.
   let lines = diffHtml.split("\n");
 
-  const firstChangedLineIndex = findLastIndex(
+  const firstChangedLineIndex = findIndex(
     lines,
-    (value) => value.includes("<ins>") || value.includes("<del>")
+    (value) => value.includes("<ins ") || value.includes("<del ")
   );
   const lastChangedLineIndex = findLastIndex(
     lines,
