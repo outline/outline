@@ -4,7 +4,6 @@ import { Switch } from "react-router-dom";
 import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
 import Route from "components/ProfiledRoute";
-import RevisionDiffExample from "components/RevisionDiffExample";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
 const Authenticated = React.lazy(() =>
@@ -39,12 +38,6 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
         <Route exact path="/share/:shareId" component={KeyedDocument} />
-        {/* TODO this is just a development harness -- delete later */}
-        <Route
-          exact
-          path="/revisionDiffExample"
-          component={RevisionDiffExample}
-        />
         <Route
           exact
           path={`/share/:shareId/doc/${slug}`}

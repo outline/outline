@@ -5,12 +5,18 @@ import markdownDiff from "./markdownDiff";
 
 it("should diff a complex document", async () => {
   const before = await fs.promises.readFile(
-    path.resolve(__dirname, "..", "test", "fixtures", "complex.md"),
+    path.resolve(process.cwd(), "server", "test", "fixtures", "complex.md"),
     "utf8"
   );
 
   const after = await fs.promises.readFile(
-    path.resolve(__dirname, "..", "test", "fixtures", "complexModified.md"),
+    path.resolve(
+      process.cwd(),
+      "server",
+      "test",
+      "fixtures",
+      "complexModified.md"
+    ),
     "utf8"
   );
 
@@ -25,7 +31,7 @@ it("should return empty string when both sides are empty", () => {
 
 it("should return everything inserted when previously empty", async () => {
   const content = await fs.promises.readFile(
-    path.resolve(__dirname, "..", "test", "fixtures", "complex.md"),
+    path.resolve(process.cwd(), "server", "test", "fixtures", "complex.md"),
     "utf8"
   );
 
