@@ -39,7 +39,10 @@ it("should return everything inserted when previously empty", async () => {
   expect(diff).toMatchSnapshot();
 });
 
-it("should mark changed nodes", async () => {
+it("should return empty for changed nodes", async () => {
+  // Note: This isn't ideal behavior, but it is current behavior. If the diffing
+  // library is improved then we could potentially render the old + new heading
+  // with ins/del tags as appropriate.
   const diff = markdownDiff("# Heading", "## Heading");
-  expect(diff).toMatchSnapshot();
+  expect(diff).toEqual("");
 });

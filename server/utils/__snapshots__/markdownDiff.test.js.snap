@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should diff a complex document 1`] = `
-"<li>list item 1</li>
+"
+<p>This is a second test paragraph. This is a second sentence.</p>
+<p>This is a another test paragraph. This is a another sentence.</p>
+<ul>
+<li>list item 1</li>
 <li data-diff-node=\\"del\\" data-operation-index=\\"1\\"><del data-operation-index=\\"1\\">list item 2</del></li></ul>
 <pre><code>this is a codeblock
 </code></pre><p data-diff-node=\\"ins\\" data-operation-index=\\"3\\"><ins data-operation-index=\\"3\\">This is a new paragraph.</ins></p>
@@ -13,10 +17,9 @@ exports[`should diff a complex document 1`] = `
 <ul>
 <li class=\\"checkbox-list-item\\"><span class=\\"checkbox checked\\">[<del data-operation-index=\\"5\\"> ]</del><ins data-operation-index=\\"5\\">x]</ins></span>checklist item 1</li><li class=\\"checkbox-list-item\\"><span class=\\"checkbox checked\\" data-diff-node=\\"ins\\" data-operation-index=\\"7\\"><ins data-operation-index=\\"7\\">[x]</ins></span><ins data-operation-index=\\"7\\">checklist item 2</ins></li>
 <li class=\\"checkbox-list-item\\"><span class=\\"checkbox \\">[ ]</span>checklist item <del data-operation-index=\\"9\\">2</del><ins data-operation-index=\\"9\\">3</ins></li><li class=\\"checkbox-list-item\\"><span class=\\"checkbox \\" data-diff-node=\\"ins\\" data-operation-index=\\"9\\"><ins data-operation-index=\\"9\\">[ ]</ins></span><ins data-operation-index=\\"9\\">checklist item 4</ins></li>
-<li class=\\"checkbox-list-item\\"><span class=\\"checkbox checked\\">[x]</span>checklist item <del data-operation-index=\\"11\\">3</del><ins data-operation-index=\\"11\\">5</ins></li>"
+<li class=\\"checkbox-list-item\\"><span class=\\"checkbox checked\\">[x]</span>checklist item <del data-operation-index=\\"11\\">3</del><ins data-operation-index=\\"11\\">5</ins></li>
+</ul>"
 `;
-
-exports[`should mark changed nodes 1`] = `""`;
 
 exports[`should return everything inserted when previously empty 1`] = `
 "<h1 data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">Heading 1</ins></h1><h2 data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">Heading 2</ins></h2><p data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">This is a test paragraph</ins></p><p data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">This is a second test paragraph. This is a second sentence.</ins></p><p data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">This is a another test paragraph. This is a another sentence.</ins></p><ul data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><li data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">list item 1</ins></li><li data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">list item 2</ins></li></ul><pre data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><code data-diff-node=\\"ins\\" data-operation-index=\\"0\\"><ins data-operation-index=\\"0\\">this is a codeblock

@@ -24,9 +24,14 @@ export default function markdownDiff(
     return "";
   }
 
-  // split diff into individual lines and find the first and last changed tags
-  // so we can chop around those lines rather than return the entire document.
-  let lines = diffHtml.split("\n");
+  // Split diff at paragraphs and find the first and last changed tags
+  // so we can chop around paragraphs rather than return the entire document.
+  //
+  // In an ideal world we'd use an AST here and parse that rather than be doing
+  // operations on strings. I hope this can be revisted in the future with an
+  // improved diffing library.
+  const newParagraph = /(?:^|\n)<p>/;
+  let lines = diffHtml.split(newParagraph);
 
   const firstChangedLineIndex = findIndex(
     lines,
@@ -37,10 +42,16 @@ export default function markdownDiff(
     (value) => value.includes("</ins>") || value.includes("</del>")
   );
 
-  return lines
-    .slice(
-      Math.max(0, firstChangedLineIndex - buffer),
-      Math.min(lines.length, lastChangedLineIndex + buffer)
-    )
-    .join("\n");
+  lines = lines.slice(
+    Math.max(0, firstChangedLineIndex - buffer),
+    Math.min(lines.length, lastChangedLineIndex + buffer)
+  );
+
+  if (!lines.length) {
+    return "";
+  }
+
+  return [firstChangedLineIndex > 0 ? "" : undefined, ...lines]
+    .filter((x) => x !== undefined)
+    .join("\n<p>");
 }
