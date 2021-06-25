@@ -15,11 +15,31 @@ import {
   Revision,
   User,
   NotificationSetting,
+  Attachment,
 } from "../models";
 import { Op } from "../sequelize";
 import markdownDiff from "../utils/markdownDiff";
 
+import parseAttachmentIds from "../utils/parseAttachmentIds";
+import { getSignedImageUrl } from "../utils/s3";
+
 const log = debug("services");
+
+async function replaceImageAttachments(text: string) {
+  const attachmentIds = parseAttachmentIds(text);
+
+  await Promise.all(
+    attachmentIds.map(async (id) => {
+      const attachment = await Attachment.findByPk(id);
+      if (attachment) {
+        const accessUrl = await getSignedImageUrl(attachment.key, 86400 * 4);
+        text = text.replace(attachment.redirectUrl, accessUrl);
+      }
+    })
+  );
+
+  return text;
+}
 
 export default class Notifications {
   async on(event: Event) {
@@ -153,10 +173,7 @@ export default class Notifications {
       // For document updates we only want to send notifications if
       // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
-      if (
-        eventName === "updated" &&
-        !document.collaboratorIds.includes(setting.userId)
-      ) {
+      if (!document.collaboratorIds.includes(setting.userId)) {
         continue;
       }
 
@@ -196,10 +213,11 @@ export default class Notifications {
         order: [["createdAt", "DESC"]],
       });
 
-      const summary = markdownDiff(
-        previous ? previous.text : "",
-        revision.text
-      );
+      let summary = markdownDiff(previous ? previous.text : "", revision.text);
+
+      console.log(summary);
+      summary = await replaceImageAttachments(summary);
+      console.log(summary);
 
       mailer.documentNotification({
         to: setting.user.email,
