@@ -35,6 +35,7 @@ export type DocumentEvent =
   name: | "documents.create" // eslint-disable-line
         | "documents.publish"
         | "documents.delete"
+        | "documents.permanent_delete"
         | "documents.pin"
         | "documents.unpin"
         | "documents.archive"

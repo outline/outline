@@ -5,6 +5,7 @@ import { subtractDate } from "../../shared/utils/date";
 import documentCreator from "../commands/documentCreator";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
+import { documentPermanentDeleter } from "../commands/documentPermanentDeleter";
 import env from "../env";
 import {
   NotFoundError,
@@ -1174,24 +1175,53 @@ router.post("documents.archive", auth(), async (ctx) => {
 });
 
 router.post("documents.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id, permanent } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, "delete", document);
+  if (permanent) {
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      paranoid: false,
+    });
+    authorize(user, "permanentDelete", document);
 
-  await document.delete(user.id);
+    await Document.update(
+      { parentDocumentId: null },
+      {
+        where: {
+          parentDocumentId: document.id,
+        },
+        paranoid: false,
+      }
+    );
 
-  await Event.create({
-    name: "documents.delete",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: { title: document.title },
-    ip: ctx.request.ip,
-  });
+    await documentPermanentDeleter([document]);
+
+    await Event.create({
+      name: "documents.permanent_delete",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
+  } else {
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "delete", document);
+
+    await document.delete(user.id);
+    await Event.create({
+      name: "documents.delete",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
+  }
 
   ctx.body = {
     success: true,
