@@ -42,16 +42,16 @@ export default function markdownDiff(
     (value) => value.includes("</ins>") || value.includes("</del>")
   );
 
-  lines = lines.slice(
-    Math.max(0, firstChangedLineIndex - buffer),
-    Math.min(lines.length, lastChangedLineIndex + buffer)
-  );
+  const start = Math.max(0, firstChangedLineIndex - buffer);
+  const end = Math.min(lines.length, lastChangedLineIndex + buffer);
+  lines = lines.slice(start, end);
 
   if (!lines.length) {
     return "";
   }
 
-  return [firstChangedLineIndex > 0 ? "" : undefined, ...lines]
+  return [start > 0 ? "" : undefined, ...lines]
     .filter((x) => x !== undefined)
-    .join("\n<p>");
+    .join("\n<p>")
+    .trim();
 }

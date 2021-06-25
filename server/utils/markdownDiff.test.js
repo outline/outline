@@ -46,3 +46,10 @@ it("should return empty for changed nodes", async () => {
   const diff = markdownDiff("# Heading", "## Heading");
   expect(diff).toEqual("");
 });
+
+it("should return deleted nodes", async () => {
+  const diff = markdownDiff("![caption](/image.png)", "");
+  expect(diff).toEqual(
+    '<p><del data-operation-index="0"><img src="/image.png" alt="caption"></del></p>'
+  );
+});

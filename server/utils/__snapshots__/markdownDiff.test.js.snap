@@ -1,8 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should diff a complex document 1`] = `
-"
-<p>This is a second test paragraph. This is a second sentence.</p>
+"<p>This is a second test paragraph. This is a second sentence.</p>
 <p>This is a another test paragraph. This is a another sentence.</p>
 <ul>
 <li>list item 1</li>
