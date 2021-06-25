@@ -2,7 +2,7 @@
 import TestServer from "fetch-test-server";
 import app from "../../app";
 import mailer from "../../mailer";
-import { buildUser, buildGuestUser } from "../../test/factories";
+import { buildUser, buildGuestUser, buildTeam } from "../../test/factories";
 import { flushdb } from "../../test/support";
 
 const server = new TestServer(app.callback());
@@ -64,5 +64,91 @@ describe("email", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
     expect(mailer.signin).not.toHaveBeenCalled();
+  });
+
+  describe("with multiple users matching email", () => {
+    it("should default to current subdomain with SSO", async () => {
+      process.env.URL = "http://localoutline.com";
+
+      const email = "user@example.org";
+      const team = await buildTeam({
+        subdomain: "example",
+      });
+
+      await buildGuestUser({ email });
+      await buildUser({ email, teamId: team.id });
+
+      const res = await server.post("/auth/email", {
+        body: { email },
+        headers: { host: "example.localoutline.com" },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.redirect).toMatch("slack");
+      expect(mailer.signin).not.toHaveBeenCalled();
+    });
+
+    it("should default to current subdomain with guest email", async () => {
+      process.env.URL = "http://localoutline.com";
+
+      const email = "user@example.org";
+      const team = await buildTeam({
+        subdomain: "example",
+      });
+
+      await buildUser({ email });
+      await buildGuestUser({ email, teamId: team.id });
+
+      const res = await server.post("/auth/email", {
+        body: { email },
+        headers: { host: "example.localoutline.com" },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.success).toEqual(true);
+      expect(mailer.signin).toHaveBeenCalled();
+    });
+
+    it("should default to custom domain with SSO", async () => {
+      const email = "user@example.org";
+      const team = await buildTeam({
+        domain: "docs.mycompany.com",
+      });
+
+      await buildGuestUser({ email });
+      await buildUser({ email, teamId: team.id });
+
+      const res = await server.post("/auth/email", {
+        body: { email },
+        headers: { host: "docs.mycompany.com" },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.redirect).toMatch("slack");
+      expect(mailer.signin).not.toHaveBeenCalled();
+    });
+
+    it("should default to custom domain with guest email", async () => {
+      const email = "user@example.org";
+      const team = await buildTeam({
+        domain: "docs.mycompany.com",
+      });
+
+      await buildUser({ email });
+      await buildGuestUser({ email, teamId: team.id });
+
+      const res = await server.post("/auth/email", {
+        body: { email },
+        headers: { host: "docs.mycompany.com" },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.success).toEqual(true);
+      expect(mailer.signin).toHaveBeenCalled();
+    });
   });
 });

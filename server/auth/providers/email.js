@@ -2,6 +2,7 @@
 import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
+import { parseDomain, isCustomSubdomain } from "../../../shared/utils/domains";
 import { AuthorizationError } from "../../errors";
 import mailer, { sendEmail } from "../../mailer";
 import errorHandling from "../../middlewares/errorHandling";
@@ -9,6 +10,7 @@ import methodOverride from "../../middlewares/methodOverride";
 import validation from "../../middlewares/validation";
 import { User, Team } from "../../models";
 import { signIn } from "../../utils/authentication";
+import { isCustomDomain } from "../../utils/domains";
 import { getUserForEmailSigninToken } from "../../utils/jwt";
 
 const router = new Router();
@@ -26,14 +28,40 @@ router.post("email", errorHandling(), async (ctx) => {
 
   ctx.assertEmail(email, "email is required");
 
-  const user = await User.scope("withAuthentications").findOne({
+  const users = await User.scope("withAuthentications").findAll({
     where: { email: email.toLowerCase() },
   });
 
-  if (user) {
-    const team = await Team.scope("withAuthenticationProviders").findByPk(
-      user.teamId
-    );
+  if (users.length) {
+    let team;
+
+    if (isCustomDomain(ctx.request.hostname)) {
+      team = await Team.scope("withAuthenticationProviders").findOne({
+        where: { domain: ctx.request.hostname },
+      });
+    }
+
+    if (
+      process.env.SUBDOMAINS_ENABLED === "true" &&
+      isCustomSubdomain(ctx.request.hostname) &&
+      !isCustomDomain(ctx.request.hostname)
+    ) {
+      const domain = parseDomain(ctx.request.hostname);
+      const subdomain = domain ? domain.subdomain : undefined;
+      team = await Team.scope("withAuthenticationProviders").findOne({
+        where: { subdomain },
+      });
+    }
+
+    const user =
+      users.find((user) => team && user.teamId === team.id) || users[0];
+
+    if (!team) {
+      team = await Team.scope("withAuthenticationProviders").findByPk(
+        user.teamId
+      );
+    }
+
     if (!team) {
       ctx.redirect(`/?notice=auth-error`);
       return;
