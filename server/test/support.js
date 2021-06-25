@@ -3,17 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 import { User, Document, Collection, Team } from "../models";
 import { sequelize } from "../sequelize";
 
-export function flushdb() {
-  const sql = sequelize.getQueryInterface();
-  const tables = Object.keys(sequelize.models).map((model) => {
-    const n = sequelize.models[model].getTableName();
-    return sql.queryGenerator.quoteTable(
-      typeof n === "string" ? n : n.tableName
-    );
-  });
+const sql = sequelize.getQueryInterface();
+const tables = Object.keys(sequelize.models).map((model) => {
+  const n = sequelize.models[model].getTableName();
+  return sql.queryGenerator.quoteTable(typeof n === "string" ? n : n.tableName);
+});
+const flushQuery = `TRUNCATE ${tables.join(", ")}`;
 
-  const query = `TRUNCATE ${tables.join(", ")} CASCADE`;
-  return sequelize.query(query);
+export function flushdb() {
+  return sequelize.query(flushQuery);
 }
 
 export const seed = async () => {

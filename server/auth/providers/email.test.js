@@ -70,7 +70,7 @@ describe("email", () => {
     it("should default to current subdomain with SSO", async () => {
       process.env.URL = "http://localoutline.com";
 
-      const email = "user@example.org";
+      const email = "sso-user@example.org";
       const team = await buildTeam({
         subdomain: "example",
       });
@@ -92,7 +92,7 @@ describe("email", () => {
     it("should default to current subdomain with guest email", async () => {
       process.env.URL = "http://localoutline.com";
 
-      const email = "user@example.org";
+      const email = "guest-user@example.org";
       const team = await buildTeam({
         subdomain: "example",
       });
@@ -112,7 +112,7 @@ describe("email", () => {
     });
 
     it("should default to custom domain with SSO", async () => {
-      const email = "user@example.org";
+      const email = "sso-user-2@example.org";
       const team = await buildTeam({
         domain: "docs.mycompany.com",
       });
@@ -132,7 +132,7 @@ describe("email", () => {
     });
 
     it("should default to custom domain with guest email", async () => {
-      const email = "user@example.org";
+      const email = "guest-user-2@example.org";
       const team = await buildTeam({
         domain: "docs.mycompany.com",
       });
