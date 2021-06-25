@@ -69,6 +69,7 @@ describe("email", () => {
   describe("with multiple users matching email", () => {
     it("should default to current subdomain with SSO", async () => {
       process.env.URL = "http://localoutline.com";
+      process.env.SUBDOMAINS_ENABLED = "true";
 
       const email = "sso-user@example.org";
       const team = await buildTeam({
@@ -91,6 +92,7 @@ describe("email", () => {
 
     it("should default to current subdomain with guest email", async () => {
       process.env.URL = "http://localoutline.com";
+      process.env.SUBDOMAINS_ENABLED = "true";
 
       const email = "guest-user@example.org";
       const team = await buildTeam({
