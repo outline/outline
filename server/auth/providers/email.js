@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { AuthorizationError } from "../../errors";
 import mailer, { sendEmail } from "../../mailer";
+import errorHandling from "../../middlewares/errorHandling";
 import methodOverride from "../../middlewares/methodOverride";
 import validation from "../../middlewares/validation";
 import { User, Team } from "../../models";
@@ -20,7 +21,7 @@ export const config = {
 router.use(methodOverride());
 router.use(validation());
 
-router.post("email", async (ctx) => {
+router.post("email", errorHandling(), async (ctx) => {
   const { email } = ctx.body;
 
   ctx.assertEmail(email, "email is required");
