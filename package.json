@@ -20,40 +20,13 @@
     "db:rollback": "sequelize db:migrate:undo",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
     "test": "yarn test:app && yarn test:server",
-    "test:app": "jest",
+    "test:app": "jest --config=app/.jestconfig.json",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
   "funding": {
     "type": "GitHub Sponsors ❤",
     "url": "https://github.com/sponsors/outline"
-  },
-  "jest": {
-    "testURL": "http://localhost",
-    "verbose": false,
-    "roots": [
-      "app",
-      "shared"
-    ],
-    "moduleNameMapper": {
-      "^shared/(.*)$": "<rootDir>/shared/$1",
-      "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "json"
-    ],
-    "moduleDirectories": [
-      "node_modules"
-    ],
-    "modulePaths": [
-      "app"
-    ],
-    "setupFiles": [
-      "<rootDir>/setupJest.js",
-      "<rootDir>/__mocks__/window.js"
-    ]
   },
   "engines": {
     "node": ">= 12 <=16"
@@ -200,6 +173,8 @@
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.6",
     "eslint": "^7.6.0",
     "eslint-config-react-app": "3.0.6",
     "eslint-plugin-flowtype": "^5.2.0",
