@@ -11,6 +11,7 @@ import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationSettingsStore from "./NotificationSettingsStore";
 import PoliciesStore from "./PoliciesStore";
+import QuickMenuStore from "./QuickMenuStore";
 import RevisionsStore from "./RevisionsStore";
 import SharesStore from "./SharesStore";
 import UiStore from "./UiStore";
@@ -30,6 +31,7 @@ export default class RootStore {
   notificationSettings: NotificationSettingsStore;
   presence: DocumentPresenceStore;
   policies: PoliciesStore;
+  quickMenu: QuickMenuStore;
   revisions: RevisionsStore;
   shares: SharesStore;
   ui: UiStore;
@@ -49,6 +51,7 @@ export default class RootStore {
     this.notificationSettings = new NotificationSettingsStore(this);
     this.presence = new DocumentPresenceStore();
     this.policies = new PoliciesStore(this);
+    this.quickMenu = new QuickMenuStore();
     this.revisions = new RevisionsStore(this);
     this.shares = new SharesStore(this);
     this.ui = new UiStore();

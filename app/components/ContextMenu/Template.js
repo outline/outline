@@ -53,9 +53,9 @@ type TMenuItem =
       title: React.Node,
     |};
 
-type Props = {|
+type Props = {
   items: TMenuItem[],
-|};
+};
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);

@@ -18,6 +18,9 @@ class UiStore {
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable systemTheme: "light" | "dark";
+
+  // highlighted items in the sidebar, unfortunately this cannot be accurately
+  // inferred from the route at all times so manually controlled in stoer
   @observable activeDocumentId: ?string;
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;

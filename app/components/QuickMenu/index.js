@@ -5,13 +5,27 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
+import Template from "components/ContextMenu/Template";
 import InputSearch from "components/InputSearch";
+import Scrollable from "components/Scrollable";
 import usePrevious from "hooks/usePrevious";
+import useStores from "hooks/useStores";
+import useUnmount from "hooks/useUnmount";
 
-function QuickJump({ isOpen, requestClose }) {
+function QuickMenu({ isOpen, requestClose }) {
+  const { quickMenu } = useStores();
   const dialog = useDialogState({ modal: true, animated: 250 });
   const wasOpen = usePrevious(isOpen);
   const { t } = useTranslation();
+
+  const handleSearchChange = React.useCallback(
+    (event) => {
+      quickMenu.setSearchTerm(event.target.value);
+    },
+    [quickMenu]
+  );
+
+  useUnmount(() => quickMenu.setSearchTerm(""));
 
   React.useEffect(() => {
     if (!wasOpen && isOpen) {
@@ -35,7 +49,22 @@ function QuickJump({ isOpen, requestClose }) {
           >
             {(props) => (
               <Content {...props}>
-                <InputSearch />
+                <InputSearch onChange={handleSearchChange} />
+                <Scrollable>
+                  <ul>
+                    {quickMenu.orderedData.map((context) => (
+                      <React.Fragment key={context.id}>
+                        <h3>{context.title}</h3>
+                        <Template
+                          hide={requestClose}
+                          items={context.items.filter(
+                            (item) => item.visible && item.type !== "separator"
+                          )}
+                        />
+                      </React.Fragment>
+                    ))}
+                  </ul>
+                </Scrollable>
               </Content>
             )}
           </Dialog>
@@ -48,6 +77,7 @@ function QuickJump({ isOpen, requestClose }) {
 const Content = styled.div`
   background: ${(props) => props.theme.background};
   width: 40vw;
+  height: 50vh;
   border-radius: 8px;
   padding: 16px;
   margin: 20vh auto;
@@ -71,4 +101,4 @@ const Backdrop = styled.div`
   }
 `;
 
-export default observer(QuickJump);
+export default observer(QuickMenu);

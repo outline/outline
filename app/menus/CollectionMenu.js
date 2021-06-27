@@ -37,7 +37,7 @@ function CollectionMenu({
 }: Props) {
   const menu = useMenuState({ modal, placement });
   const [renderModals, setRenderModals] = React.useState(false);
-  const { ui, documents, policies } = useStores();
+  const { ui, documents, policies, quickMenu } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
 
@@ -111,6 +111,59 @@ function CollectionMenu({
 
   const can = policies.abilities(collection.id);
 
+  const items = [
+    {
+      title: t("New document"),
+      visible: can.update,
+      onClick: handleNewDocument,
+    },
+    {
+      title: t("Import document"),
+      visible: can.update,
+      onClick: handleImportDocument,
+    },
+    {
+      type: "separator",
+    },
+    {
+      title: `${t("Edit")}…`,
+      visible: can.update,
+      onClick: () => setShowCollectionEdit(true),
+    },
+    {
+      title: `${t("Permissions")}…`,
+      visible: can.update,
+      onClick: () => setShowCollectionPermissions(true),
+    },
+    {
+      title: `${t("Export")}…`,
+      visible: !!(collection && can.export),
+      onClick: () => setShowCollectionExport(true),
+    },
+    {
+      type: "separator",
+    },
+    {
+      title: `${t("Delete")}…`,
+      visible: !!(collection && can.delete),
+      onClick: () => setShowCollectionDelete(true),
+    },
+  ];
+
+  React.useEffect(() => {
+    const id = `collection-${collection.id}`;
+
+    if (ui.activeCollectionId === collection.id) {
+      quickMenu.addContext({
+        id,
+        items,
+        title: t("Collection"),
+      });
+    }
+
+    return () => quickMenu.removeContext(id);
+  }, [quickMenu, items, collection.id, ui.activeDocumentId, t]);
+
   return (
     <>
       <VisuallyHidden>
@@ -134,47 +187,7 @@ function CollectionMenu({
         onClose={onClose}
         aria-label={t("Collection")}
       >
-        <Template
-          {...menu}
-          items={[
-            {
-              title: t("New document"),
-              visible: can.update,
-              onClick: handleNewDocument,
-            },
-            {
-              title: t("Import document"),
-              visible: can.update,
-              onClick: handleImportDocument,
-            },
-            {
-              type: "separator",
-            },
-            {
-              title: `${t("Edit")}…`,
-              visible: can.update,
-              onClick: () => setShowCollectionEdit(true),
-            },
-            {
-              title: `${t("Permissions")}…`,
-              visible: can.update,
-              onClick: () => setShowCollectionPermissions(true),
-            },
-            {
-              title: `${t("Export")}…`,
-              visible: !!(collection && can.export),
-              onClick: () => setShowCollectionExport(true),
-            },
-            {
-              type: "separator",
-            },
-            {
-              title: `${t("Delete")}…`,
-              visible: !!(collection && can.delete),
-              onClick: () => setShowCollectionDelete(true),
-            },
-          ]}
-        />
+        <Template {...menu} items={items} />
       </ContextMenu>
       {renderModals && (
         <>

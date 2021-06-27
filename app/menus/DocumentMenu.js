@@ -51,7 +51,7 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const { policies, collections, ui, documents } = useStores();
+  const { policies, collections, ui, documents, quickMenu } = useStores();
   const menu = useMenuState({
     modal,
     unstable_preventOverflow: true,
@@ -191,6 +191,161 @@ function DocumentMenu({
     [history, ui, collection, documents, document.id]
   );
 
+  const items = [
+    {
+      title: t("Restore"),
+      visible: (!!collection && can.restore) || can.unarchive,
+      onClick: handleRestore,
+    },
+    {
+      title: t("Restore"),
+      visible: !collection && !!can.restore,
+      style: {
+        left: -170,
+        position: "relative",
+        top: -40,
+      },
+      hover: true,
+      items: [
+        {
+          type: "heading",
+          title: t("Choose a collection"),
+        },
+        ...collections.orderedData.map((collection) => {
+          const can = policies.abilities(collection.id);
+
+          return {
+            title: (
+              <Flex align="center">
+                <CollectionIcon collection={collection} />
+                <CollectionName>{collection.name}</CollectionName>
+              </Flex>
+            ),
+            onClick: (ev) => handleRestore(ev, { collectionId: collection.id }),
+            disabled: !can.update,
+          };
+        }),
+      ],
+    },
+    {
+      title: t("Unpin"),
+      onClick: document.unpin,
+      visible: !!(showPin && document.pinned && can.unpin),
+    },
+    {
+      title: t("Pin to collection"),
+      onClick: document.pin,
+      visible: !!(showPin && !document.pinned && can.pin),
+    },
+    {
+      title: t("Unstar"),
+      onClick: handleUnstar,
+      visible: document.isStarred && !!can.unstar,
+    },
+    {
+      title: t("Star"),
+      onClick: handleStar,
+      visible: !document.isStarred && !!can.star,
+    },
+    {
+      title: t("Enable embeds"),
+      onClick: document.enableEmbeds,
+      visible: !!showToggleEmbeds && document.embedsDisabled,
+    },
+    {
+      title: t("Disable embeds"),
+      onClick: document.disableEmbeds,
+      visible: !!showToggleEmbeds && !document.embedsDisabled,
+    },
+    {
+      type: "separator",
+    },
+    {
+      title: t("New nested document"),
+      to: newDocumentUrl(document.collectionId, {
+        parentDocumentId: document.id,
+      }),
+      visible: !!can.createChildDocument,
+    },
+    {
+      title: t("Import document"),
+      visible: can.createChildDocument,
+      onClick: handleImportDocument,
+    },
+    {
+      title: `${t("Create template")}…`,
+      onClick: () => setShowTemplateModal(true),
+      visible: !!can.update && !document.isTemplate,
+    },
+    {
+      title: t("Edit"),
+      to: editDocumentUrl(document),
+      visible: !!can.update,
+    },
+    {
+      title: t("Duplicate"),
+      onClick: handleDuplicate,
+      visible: !!can.update,
+    },
+    {
+      title: t("Unpublish"),
+      onClick: handleUnpublish,
+      visible: !!can.unpublish,
+    },
+    {
+      title: t("Archive"),
+      onClick: handleArchive,
+      visible: !!can.archive,
+    },
+    {
+      title: `${t("Delete")}…`,
+      onClick: () => setShowDeleteModal(true),
+      visible: !!can.delete,
+    },
+    {
+      title: `${t("Permanently delete")}…`,
+      onClick: () => setShowPermanentDeleteModal(true),
+      visible: can.permanentDelete,
+    },
+    {
+      title: `${t("Move")}…`,
+      onClick: () => setShowMoveModal(true),
+      visible: !!can.move,
+    },
+    {
+      type: "separator",
+    },
+    {
+      title: t("History"),
+      to: isRevision ? documentUrl(document) : documentHistoryUrl(document),
+      visible: canViewHistory,
+    },
+    {
+      title: t("Download"),
+      onClick: document.download,
+      visible: !!can.download,
+    },
+    {
+      title: t("Print"),
+      onClick: handlePrint,
+      visible: !!showPrint,
+    },
+  ];
+
+  React.useEffect(() => {
+    const id = `document-${document.id}`;
+
+    if (ui.activeDocumentId === document.id) {
+      quickMenu.addContext({
+        id,
+        items,
+        title: t("Document"),
+      });
+    }
+
+    return () => quickMenu.removeContext(id);
+  }, [quickMenu, items, document.id, ui.activeDocumentId, t]);
+
   return (
     <>
       <VisuallyHidden>
@@ -218,152 +373,7 @@ function DocumentMenu({
         onOpen={handleOpen}
         onClose={onClose}
       >
-        <Template
-          {...menu}
-          items={[
-            {
-              title: t("Restore"),
-              visible: (!!collection && can.restore) || can.unarchive,
-              onClick: handleRestore,
-            },
-            {
-              title: t("Restore"),
-              visible: !collection && !!can.restore,
-              style: {
-                left: -170,
-                position: "relative",
-                top: -40,
-              },
-              hover: true,
-              items: [
-                {
-                  type: "heading",
-                  title: t("Choose a collection"),
-                },
-                ...collections.orderedData.map((collection) => {
-                  const can = policies.abilities(collection.id);
-
-                  return {
-                    title: (
-                      <Flex align="center">
-                        <CollectionIcon collection={collection} />
-                        <CollectionName>{collection.name}</CollectionName>
-                      </Flex>
-                    ),
-                    onClick: (ev) =>
-                      handleRestore(ev, { collectionId: collection.id }),
-                    disabled: !can.update,
-                  };
-                }),
-              ],
-            },
-            {
-              title: t("Unpin"),
-              onClick: document.unpin,
-              visible: !!(showPin && document.pinned && can.unpin),
-            },
-            {
-              title: t("Pin to collection"),
-              onClick: document.pin,
-              visible: !!(showPin && !document.pinned && can.pin),
-            },
-            {
-              title: t("Unstar"),
-              onClick: handleUnstar,
-              visible: document.isStarred && !!can.unstar,
-            },
-            {
-              title: t("Star"),
-              onClick: handleStar,
-              visible: !document.isStarred && !!can.star,
-            },
-            {
-              title: t("Enable embeds"),
-              onClick: document.enableEmbeds,
-              visible: !!showToggleEmbeds && document.embedsDisabled,
-            },
-            {
-              title: t("Disable embeds"),
-              onClick: document.disableEmbeds,
-              visible: !!showToggleEmbeds && !document.embedsDisabled,
-            },
-            {
-              type: "separator",
-            },
-            {
-              title: t("New nested document"),
-              to: newDocumentUrl(document.collectionId, {
-                parentDocumentId: document.id,
-              }),
-              visible: !!can.createChildDocument,
-            },
-            {
-              title: t("Import document"),
-              visible: can.createChildDocument,
-              onClick: handleImportDocument,
-            },
-            {
-              title: `${t("Create template")}…`,
-              onClick: () => setShowTemplateModal(true),
-              visible: !!can.update && !document.isTemplate,
-            },
-            {
-              title: t("Edit"),
-              to: editDocumentUrl(document),
-              visible: !!can.update,
-            },
-            {
-              title: t("Duplicate"),
-              onClick: handleDuplicate,
-              visible: !!can.update,
-            },
-            {
-              title: t("Unpublish"),
-              onClick: handleUnpublish,
-              visible: !!can.unpublish,
-            },
-            {
-              title: t("Archive"),
-              onClick: handleArchive,
-              visible: !!can.archive,
-            },
-            {
-              title: `${t("Delete")}…`,
-              onClick: () => setShowDeleteModal(true),
-              visible: !!can.delete,
-            },
-            {
-              title: `${t("Permanently delete")}…`,
-              onClick: () => setShowPermanentDeleteModal(true),
-              visible: can.permanentDelete,
-            },
-            {
-              title: `${t("Move")}…`,
-              onClick: () => setShowMoveModal(true),
-              visible: !!can.move,
-            },
-            {
-              type: "separator",
-            },
-            {
-              title: t("History"),
-              to: isRevision
-                ? documentUrl(document)
-                : documentHistoryUrl(document),
-              visible: canViewHistory,
-            },
-            {
-              title: t("Download"),
-              onClick: document.download,
-              visible: !!can.download,
-            },
-            {
-              title: t("Print"),
-              onClick: handlePrint,
-              visible: !!showPrint,
-            },
-          ]}
-        />
+        <Template {...menu} items={items} />
       </ContextMenu>
       {renderModals && (
         <>

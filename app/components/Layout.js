@@ -85,6 +85,10 @@ class Layout extends React.Component<Props> {
     this.quickMenuOpen = !this.quickMenuOpen;
   }
 
+  closeQuickMenu = () => {
+    this.quickMenuOpen = false;
+  };
+
   @keydown(["t", "/"])
   goToSearch(ev: SyntheticEvent<>) {
     ev.preventDefault();
@@ -177,7 +181,7 @@ class Layout extends React.Component<Props> {
         </Guide>
         <QuickMenu
           isOpen={this.quickMenuOpen}
-          requestClose={this.toggleQuickMenu}
+          requestClose={this.closeQuickMenu}
         />
       </Container>
     );
