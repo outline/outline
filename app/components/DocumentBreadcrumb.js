@@ -67,6 +67,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
       id: document.collectionId,
       name: t("Deleted Collection"),
       color: "currentColor",
+      url: "deleted-collection",
     };
   }
 
@@ -89,7 +90,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
       output.push({
         icon: <CollectionIcon collection={collection} expanded />,
         title: collection.name,
-        to: collectionUrl(collection.id),
+        to: collectionUrl(collection.url),
       });
     }
 
@@ -104,7 +105,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   }, [path, category, collection]);
 
   if (!collections.isLoaded) {
-    return;
+    return null;
   }
 
   if (onlyText === true) {

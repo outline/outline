@@ -16,10 +16,10 @@ jest.mock("aws-sdk", () => {
 });
 
 beforeEach(() => {
-  flushdb();
-
   // $FlowFixMe
   sendEmail.mockReset();
+
+  return flushdb();
 });
 
 describe("accountProvisioner", () => {

@@ -1,7 +1,7 @@
 // @flow
 import querystring from "querystring";
 import * as Sentry from "@sentry/node";
-import addMonths from "date-fns/add_months";
+import { addMonths } from "date-fns";
 import { type Context } from "koa";
 import { pick } from "lodash";
 import { User, Event, Team } from "../models";

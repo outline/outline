@@ -1,5 +1,5 @@
 // @flow
-import subHours from "date-fns/sub_hours";
+import { subHours } from "date-fns";
 import type { Event } from "../events";
 import { socketio } from "../main";
 import {
@@ -77,6 +77,13 @@ export default class Websockets {
                 id: document.collectionId,
               },
             ],
+          });
+      }
+      case "documents.permanent_delete": {
+        return socketio
+          .to(`collection-${event.collectionId}`)
+          .emit(event.name, {
+            documentId: event.documentId,
           });
       }
       case "documents.pin":

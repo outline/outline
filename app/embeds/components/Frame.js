@@ -11,9 +11,7 @@ import Flex from "components/Flex";
 const Iframe = (props) => <iframe title="Embed" {...props} />;
 
 const StyledIframe = styled(Iframe)`
-  border: 1px solid;
-  border-color: ${(props) => props.theme.embedBorder};
-  border-radius: ${(props) => (props.withBar ? "3px 3px 0 0" : "3px")};
+  border-radius: ${(props) => (props.$withBar ? "3px 3px 0 0" : "3px")};
   display: block;
 `;
 
@@ -70,13 +68,13 @@ class Frame extends React.Component<PropsWithRef> {
       <Rounded
         width={width}
         height={height}
-        withBar={withBar}
+        $withBar={withBar}
         className={isSelected ? "ProseMirror-selectednode" : ""}
       >
         {this.isLoaded && (
           <Component
             ref={forwardedRef}
-            withBar={withBar}
+            $withBar={withBar}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             width={width}
             height={height}
@@ -108,10 +106,11 @@ class Frame extends React.Component<PropsWithRef> {
 }
 
 const Rounded = styled.div`
-  border-radius: ${(props) => (props.withBar ? "3px 3px 0 0" : "3px")};
+  border: 1px solid ${(props) => props.theme.embedBorder};
+  border-radius: 6px;
   overflow: hidden;
   width: ${(props) => props.width};
-  height: ${(props) => (props.withBar ? props.height + 28 : props.height)};
+  height: ${(props) => (props.$withBar ? props.height + 28 : props.height)};
 `;
 
 const Open = styled.a`
@@ -132,11 +131,12 @@ const Title = styled.span`
 `;
 
 const Bar = styled(Flex)`
+  border-top: 1px solid ${(props) => props.theme.embedBorder};
   background: ${(props) => props.theme.secondaryBackground};
   color: ${(props) => props.theme.textSecondary};
   padding: 0 8px;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
   user-select: none;
 `;
 

@@ -109,14 +109,8 @@ class UiStore {
   };
 
   @action
-  clearActiveCollection = (): void => {
-    this.activeCollectionId = undefined;
-  };
-
-  @action
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
-    this.activeCollectionId = undefined;
   };
 
   @action

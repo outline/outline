@@ -101,8 +101,15 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
 });
 
 allow(User, "delete", Document, (user, document) => {
-  // unpublished drafts can always be deleted
   if (user.isViewer) return false;
+  if (document.deletedAt) return false;
+
+  // allow deleting document without a collection
+  if (document.collection && cannot(user, "update", document.collection)) {
+    return false;
+  }
+
+  // unpublished drafts can always be deleted
   if (
     !document.deletedAt &&
     !document.publishedAt &&
@@ -111,12 +118,17 @@ allow(User, "delete", Document, (user, document) => {
     return true;
   }
 
+  return user.teamId === document.teamId;
+});
+
+allow(User, "permanentDelete", Document, (user, document) => {
+  if (user.isViewer) return false;
+  if (!document.deletedAt) return false;
+
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
     return false;
   }
-
-  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });
@@ -149,6 +161,7 @@ allow(User, "unarchive", Document, (user, document) => {
   if (cannot(user, "update", document.collection)) return false;
 
   if (!document.archivedAt) return false;
+  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });

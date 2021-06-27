@@ -101,7 +101,8 @@ export const MenuAnchor = styled.a`
       ? "pointer-events: none;"
       : `
 
-  &:hover,
+  &:hover,  
+  &:focus,
   &.focus-visible {
     color: ${props.theme.white};
     background: ${props.theme.primary};
@@ -111,11 +112,6 @@ export const MenuAnchor = styled.a`
     svg {
       fill: ${props.theme.white};
     }
-  }
-
-  &:focus {
-    color: ${props.theme.white};
-    background: ${props.theme.primary};
   }
   `};
 

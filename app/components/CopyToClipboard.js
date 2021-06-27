@@ -15,6 +15,7 @@ class CopyToClipboard extends React.PureComponent<Props> {
     const elem = React.Children.only(children);
     copy(text, {
       debug: process.env.NODE_ENV !== "production",
+      format: "text/plain",
     });
 
     if (onCopy) onCopy();

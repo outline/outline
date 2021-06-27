@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { formatDistanceToNow } from "date-fns";
 import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -18,12 +18,6 @@ type Props = {|
 function DocumentViews({ document, isOpen }: Props) {
   const { t } = useTranslation();
   const { views, presence } = useStores();
-
-  React.useEffect(() => {
-    if (!document.isDeleted) {
-      views.fetchPage({ documentId: document.id });
-    }
-  }, [views, document.id, document.isDeleted]);
 
   let documentPresence = presence.get(document.id);
   documentPresence = documentPresence
@@ -61,8 +55,8 @@ function DocumentViews({ document, isOpen }: Props) {
                 ? t("Currently editing")
                 : t("Currently viewing")
               : t("Viewed {{ timeAgo }} ago", {
-                  timeAgo: distanceInWordsToNow(
-                    view ? new Date(view.lastViewedAt) : new Date()
+                  timeAgo: formatDistanceToNow(
+                    view ? Date.parse(view.lastViewedAt) : new Date()
                   ),
                 });
 

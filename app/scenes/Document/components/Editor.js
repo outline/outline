@@ -132,11 +132,13 @@ class DocumentEditor extends React.Component<Props> {
             maxLength={MAX_TITLE_LENGTH}
           />
         )}
-        <DocumentMetaWithViews
-          isDraft={isDraft}
-          document={document}
-          to={documentHistoryUrl(document)}
-        />
+        {!shareId && (
+          <DocumentMetaWithViews
+            isDraft={isDraft}
+            document={document}
+            to={documentHistoryUrl(document)}
+          />
+        )}
         <Editor
           ref={innerRef}
           autoFocus={!!title && !this.props.defaultValue}

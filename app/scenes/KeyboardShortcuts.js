@@ -33,7 +33,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>{metaDisplay}</Key> + <Key>h</Key>
+                <Key>Ctrl</Key> + <Key>Alt</Key> + <Key>h</Key>
               </>
             ),
             label: t("Table of contents"),

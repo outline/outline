@@ -24,6 +24,7 @@ export default class Collection extends BaseModel {
   deletedAt: ?string;
   sort: { field: string, direction: "asc" | "desc" };
   url: string;
+  urlId: string;
 
   @computed
   get isEmpty(): boolean {

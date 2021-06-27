@@ -6,7 +6,8 @@ import {
   buildTeam,
   buildUser,
 } from "../test/factories";
-import { flushdb } from "../test/support";
+import { flushdb, seed } from "../test/support";
+import slugify from "../utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -305,5 +306,16 @@ describe("#delete", () => {
     document = await Document.findByPk(document.id, { paranoid: false });
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
+  });
+});
+
+describe("#findByPk", () => {
+  test("should return document when urlId is correct", async () => {
+    const { document } = await seed();
+    const id = `${slugify(document.title)}-${document.urlId}`;
+
+    const response = await Document.findByPk(id);
+
+    expect(response.id).toBe(document.id);
   });
 });

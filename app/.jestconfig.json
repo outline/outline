@@ -1,0 +1,30 @@
+{
+  "testURL": "http://localhost",
+  "verbose": false,
+  "rootDir": "..",
+  "roots": [
+    "<rootDir>/app",
+    "<rootDir>/shared"
+  ],
+  "moduleNameMapper": {
+    "^shared/(.*)$": "<rootDir>/shared/$1",
+    "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
+  },
+  "moduleFileExtensions": [
+    "js",
+    "jsx",
+    "json"
+  ],
+  "moduleDirectories": [
+    "node_modules"
+  ],
+  "modulePaths": [
+    "<rootDir>/app"
+  ],
+  "setupFiles": [
+    "<rootDir>/__mocks__/window.js"
+  ],
+  "setupFilesAfterEnv": [
+    "./app/test/setup.js"
+  ]
+}

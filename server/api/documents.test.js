@@ -984,6 +984,21 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should not error when search term is very long", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query:
+          "much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much much longer search term",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it("should return draft documents created by user if chosen", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1588,7 +1603,7 @@ describe("#documents.restore", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.parentDocumentId).toEqual(undefined);
+    expect(body.data.parentDocumentId).toEqual(null);
     expect(body.data.archivedAt).toEqual(null);
   });
 
@@ -2179,6 +2194,26 @@ describe("#documents.delete", () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.delete", {
       body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+
+  it("should allow permanently deleting a document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await server.post("/api/documents.delete", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    const res = await server.post("/api/documents.delete", {
+      body: { token: user.getJwtToken(), id: document.id, permanent: true },
     });
     const body = await res.json();
 

@@ -1,6 +1,6 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
-import addMonths from "date-fns/add_months";
+import { addMonths } from "date-fns";
 import debug from "debug";
 import Koa from "koa";
 import bodyParser from "koa-body";

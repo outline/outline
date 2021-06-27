@@ -83,7 +83,7 @@ function DocumentHeader({
   const toc = (
     <Tooltip
       tooltip={ui.tocVisible ? t("Hide contents") : t("Show contents")}
-      shortcut={`ctrl+${metaDisplay}+h`}
+      shortcut="ctrl+alt+h"
       delay={250}
       placement="bottom"
     >
