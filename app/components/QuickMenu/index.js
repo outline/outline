@@ -49,21 +49,30 @@ function QuickMenu() {
           >
             {(props) => (
               <Content {...props}>
-                <InputSearch onChange={handleSearchChange} />
-                <Scrollable>
-                  <ul>
-                    {quickMenu.orderedData.map((context) => (
-                      <React.Fragment key={context.id}>
-                        <h3>{context.title}</h3>
-                        <Template
-                          {...dialog}
-                          items={context.items.filter(
-                            (item) => item.visible !== false
-                          )}
-                        />
-                      </React.Fragment>
-                    ))}
-                  </ul>
+                <InputWrapper>
+                  <InputSearch
+                    onChange={handleSearchChange}
+                    placeholder={`${t("Search actions")}…`}
+                  />
+                </InputWrapper>
+                <Scrollable topShadow>
+                  {quickMenu.orderedData.map((context) => (
+                    <Template
+                      key={context.id}
+                      {...dialog}
+                      items={[
+                        {
+                          type: "heading",
+                          title: context.title,
+                          visible: true,
+                        },
+                        ...context.items.filter(
+                          // $FlowFixMe
+                          (item) => item.type !== "separator"
+                        ),
+                      ]}
+                    />
+                  ))}
                 </Scrollable>
               </Content>
             )}
@@ -74,12 +83,15 @@ function QuickMenu() {
   );
 }
 
+const InputWrapper = styled.div`
+  padding: 16px;
+`;
+
 const Content = styled.div`
   background: ${(props) => props.theme.background};
   width: 40vw;
   height: 50vh;
   border-radius: 8px;
-  padding: 16px;
   margin: 20vh auto;
   box-shadow: ${(props) => props.theme.menuShadow};
 `;

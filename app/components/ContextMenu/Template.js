@@ -9,6 +9,7 @@ import {
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
 import styled from "styled-components";
+import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
@@ -123,6 +124,10 @@ function Template({ items, ...menu }: Props): React.Node {
 
     if (item.type === "separator") {
       return <Separator key={index} />;
+    }
+
+    if (item.type === "heading") {
+      return <Header key={index}>{item.title}</Header>;
     }
 
     return null;
