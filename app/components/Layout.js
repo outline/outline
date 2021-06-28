@@ -58,7 +58,6 @@ class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
-  @observable quickMenuOpen: boolean = false;
 
   componentDidUpdate() {
     if (this.redirectTo) {
@@ -78,15 +77,6 @@ class Layout extends React.Component<Props> {
 
   handleCloseKeyboardShortcuts = () => {
     this.keyboardShortcutsOpen = false;
-  };
-
-  @keydown(`${meta}+k`)
-  toggleQuickMenu() {
-    this.quickMenuOpen = !this.quickMenuOpen;
-  }
-
-  closeQuickMenu = () => {
-    this.quickMenuOpen = false;
   };
 
   @keydown(["t", "/"])
@@ -179,10 +169,7 @@ class Layout extends React.Component<Props> {
         >
           <KeyboardShortcuts />
         </Guide>
-        <QuickMenu
-          isOpen={this.quickMenuOpen}
-          requestClose={this.closeQuickMenu}
-        />
+        <QuickMenu />
       </Container>
     );
   }

@@ -12,50 +12,12 @@ import styled from "styled-components";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
+import { type MenuItem as TMenuItem } from "types";
 
-type TMenuItem =
-  | {|
-      title: React.Node,
-      to: string,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      onClick: (event: SyntheticEvent<>) => void | Promise<void>,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      href: string,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      visible?: boolean,
-      disabled?: boolean,
-      style?: Object,
-      hover?: boolean,
-      items: TMenuItem[],
-    |}
-  | {|
-      type: "separator",
-      visible?: boolean,
-    |}
-  | {|
-      type: "heading",
-      visible?: boolean,
-      title: React.Node,
-    |};
-
-type Props = {
+type Props = {|
   items: TMenuItem[],
-};
+  hide?: Function,
+|};
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);

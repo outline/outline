@@ -162,7 +162,7 @@ function CollectionMenu({
     }
 
     return () => quickMenu.removeContext(id);
-  }, [quickMenu, items, collection.id, ui.activeDocumentId, t]);
+  }, [quickMenu, items, collection.id, ui.activeCollectionId, t]);
 
   return (
     <>

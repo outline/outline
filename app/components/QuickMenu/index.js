@@ -8,14 +8,12 @@ import styled from "styled-components";
 import Template from "components/ContextMenu/Template";
 import InputSearch from "components/InputSearch";
 import Scrollable from "components/Scrollable";
-import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 import useUnmount from "hooks/useUnmount";
 
-function QuickMenu({ isOpen, requestClose }) {
+function QuickMenu() {
   const { quickMenu } = useStores();
   const dialog = useDialogState({ modal: true, animated: 250 });
-  const wasOpen = usePrevious(isOpen);
   const { t } = useTranslation();
 
   const handleSearchChange = React.useCallback(
@@ -28,13 +26,16 @@ function QuickMenu({ isOpen, requestClose }) {
   useUnmount(() => quickMenu.setSearchTerm(""));
 
   React.useEffect(() => {
-    if (!wasOpen && isOpen) {
-      dialog.show();
-    }
-    if (wasOpen && !isOpen) {
-      dialog.hide();
-    }
-  }, [dialog, wasOpen, isOpen]);
+    const handleKeyDown = (event) => {
+      if (event.key === "k" && event.metaKey) {
+        dialog.visible ? dialog.hide() : dialog.show();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   return (
     <DialogBackdrop {...dialog}>
@@ -42,7 +43,6 @@ function QuickMenu({ isOpen, requestClose }) {
         <Backdrop {...props}>
           <Dialog
             {...dialog}
-            hide={requestClose}
             aria-label={t("Quick menu")}
             preventBodyScroll
             hideOnEsc
@@ -56,9 +56,9 @@ function QuickMenu({ isOpen, requestClose }) {
                       <React.Fragment key={context.id}>
                         <h3>{context.title}</h3>
                         <Template
-                          hide={requestClose}
+                          {...dialog}
                           items={context.items.filter(
-                            (item) => item.visible && item.type !== "separator"
+                            (item) => item.visible !== false
                           )}
                         />
                       </React.Fragment>

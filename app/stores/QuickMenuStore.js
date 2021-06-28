@@ -1,10 +1,11 @@
 // @flow
 import { observable, computed, action } from "mobx";
+import { type MenuItem } from "types";
 
 type QuickMenuContext = {|
   id: string,
   title: string,
-  items: any[],
+  items: MenuItem[],
   priority?: number,
 |};
 
