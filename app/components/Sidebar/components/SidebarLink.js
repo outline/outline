@@ -80,7 +80,7 @@ function SidebarLink({
         className={className}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label>{label}</Label>
+        <Label dir="auto">{label}</Label>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
     </>
