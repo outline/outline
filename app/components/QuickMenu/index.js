@@ -56,7 +56,7 @@ function QuickMenu() {
                   />
                 </InputWrapper>
                 <Scrollable topShadow>
-                  {quickMenu.orderedData.map((context) => (
+                  {quickMenu.resolvedMenuItems.map((context) => (
                     <Template
                       key={context.id}
                       {...dialog}

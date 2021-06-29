@@ -1,5 +1,6 @@
 // @flow
 import { observable, computed, action } from "mobx";
+import * as React from "react";
 import { type MenuItem } from "types";
 
 type QuickMenuContext = {|
@@ -14,19 +15,39 @@ class QuickMenuStore {
   @observable contextItems: Map<string, QuickMenuContext> = new Map();
 
   @computed
-  get orderedData(): QuickMenuContext[] {
-    if (!this.searchTerm) {
-      return Array.from(this.contextItems.values());
-    }
-
+  get resolvedMenuItems(): QuickMenuContext[] {
     let filtered = [];
 
     this.contextItems.forEach((context) => {
       const items = context.items.filter(
         (item) =>
-          typeof item.title === "string" &&
-          item.title.toLowerCase().includes(this.searchTerm.toLowerCase())
+          !this.searchTerm ||
+          (typeof item.title === "string" &&
+            item.title.toLowerCase().includes(this.searchTerm.toLowerCase()))
       );
+
+      items.forEach((item, index) => {
+        if (item.items && item.title) {
+          items.splice(
+            index,
+            1,
+            item.items.map((child: MenuItem) => {
+              if (!child.title) {
+                return child;
+              }
+
+              return {
+                ...child,
+                title: (
+                  <>
+                    {item.title} > {child.title}
+                  </>
+                ),
+              };
+            })
+          );
+        }
+      });
 
       if (items.length) {
         filtered.push({

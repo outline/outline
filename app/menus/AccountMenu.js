@@ -1,10 +1,9 @@
 // @flow
 import { observer } from "mobx-react";
-import { SunIcon, MoonIcon } from "outline-icons";
+// import { SunIcon, MoonIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
-import styled from "styled-components";
 import {
   developers,
   changelog,
@@ -14,9 +13,7 @@ import {
 } from "shared/utils/routeHelpers";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
-import MenuItem, { MenuAnchor } from "components/ContextMenu/MenuItem";
 import Template from "components/ContextMenu/Template";
-import Flex from "components/Flex";
 import Guide from "components/Guide";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
@@ -24,50 +21,6 @@ import useStores from "hooks/useStores";
 type Props = {|
   children: (props: any) => React.Node,
 |};
-
-const AppearanceMenu = React.forwardRef((props, ref) => {
-  const { ui } = useStores();
-  const { t } = useTranslation();
-  const menu = useMenuState();
-
-  return (
-    <>
-      <MenuButton ref={ref} {...menu} {...props} onClick={menu.show}>
-        {(props) => (
-          <MenuAnchor {...props}>
-            <ChangeTheme justify="space-between">
-              {t("Appearance")}
-              {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
-            </ChangeTheme>
-          </MenuAnchor>
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Appearance")}>
-        <MenuItem
-          {...menu}
-          onClick={() => ui.setTheme("system")}
-          selected={ui.theme === "system"}
-        >
-          {t("System")}
-        </MenuItem>
-        <MenuItem
-          {...menu}
-          onClick={() => ui.setTheme("light")}
-          selected={ui.theme === "light"}
-        >
-          {t("Light")}
-        </MenuItem>
-        <MenuItem
-          {...menu}
-          onClick={() => ui.setTheme("dark")}
-          selected={ui.theme === "dark"}
-        >
-          {t("Dark")}
-        </MenuItem>
-      </ContextMenu>
-    </>
-  );
-});
 
 function AccountMenu(props: Props) {
   const menu = useMenuState({
@@ -121,6 +74,27 @@ function AccountMenu(props: Props) {
       type: "separator",
     },
     {
+      title: t("Appearance"),
+      // icon: ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
+      items: [
+        {
+          title: t("System"),
+          selected: ui.theme === "system",
+          onClick: () => ui.setTheme("system"),
+        },
+        {
+          title: t("Light"),
+          selected: ui.theme === "light",
+          onClick: () => ui.setTheme("light"),
+        },
+        {
+          title: t("Dark"),
+          selected: ui.theme === "dark",
+          onClick: () => ui.setTheme("dark"),
+        },
+      ],
+    },
+    {
       type: "separator",
     },
     {
@@ -157,9 +131,5 @@ function AccountMenu(props: Props) {
     </>
   );
 }
-
-const ChangeTheme = styled(Flex)`
-  width: 100%;
-`;
 
 export default observer(AccountMenu);
