@@ -151,7 +151,7 @@
     "slate-md-serializer": "5.5.4",
     "slug": "^4.0.4",
     "smooth-scroll-into-view-if-needed": "^1.1.29",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "socket.io-redis": "^5.4.0",
     "socketio-auth": "^0.1.1",
     "string-replace-to-array": "^1.0.3",
