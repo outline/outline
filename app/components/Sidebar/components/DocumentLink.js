@@ -27,16 +27,19 @@ type Props = {|
   parentId?: string,
 |};
 
-function DocumentLink({
-  node,
-  canUpdate,
-  collection,
-  activeDocument,
-  prefetchDocument,
-  depth,
-  index,
-  parentId,
-}: Props) {
+function DocumentLink(
+  {
+    node,
+    canUpdate,
+    collection,
+    activeDocument,
+    prefetchDocument,
+    depth,
+    index,
+    parentId,
+  }: Props,
+  ref
+) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
 
@@ -236,6 +239,7 @@ function DocumentLink({
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
+                ref={ref}
                 menu={
                   document && !isMoving ? (
                     <Fade>
@@ -289,5 +293,6 @@ const Disclosure = styled(CollapsedIcon)`
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
-const ObservedDocumentLink = observer(DocumentLink);
+const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
+
 export default ObservedDocumentLink;
