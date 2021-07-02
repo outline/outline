@@ -41,7 +41,7 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
-function DocumentListItem(props: Props) {
+function DocumentListItem(props: Props, ref) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const currentUser = useCurrentUser();
@@ -68,6 +68,7 @@ function DocumentListItem(props: Props) {
 
   return (
     <DocumentLink
+      ref={ref}
       dir={document.dir}
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
@@ -257,4 +258,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default observer(DocumentListItem);
+export default observer(React.forwardRef(DocumentListItem));

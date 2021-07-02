@@ -12194,9 +12194,9 @@ socket.io-client@2.3.0:
     to-array "0.1.4"
 
 socket.io-parser@~3.3.0:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/socket.io-parser/-/socket.io-parser-3.3.1.tgz#f07d9c8cb3fb92633aa93e76d98fd3a334623199"
-  integrity sha512-1QLvVAe8dTz+mKmZ07Swxt+LAo4Y1ff50rlyoEx00TQmDFVQYPfcqGvIDJLGaBdhdNCecXtyKpD+EgKGcmmbuQ==
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/socket.io-parser/-/socket.io-parser-3.3.2.tgz#ef872009d0adcf704f2fbe830191a14752ad50b6"
+  integrity sha512-FJvDBuOALxdCI9qwRrO/Rfp9yfndRtc1jSgVgV8FDraihmSP/MLGD5PEuJrNfjALvcQ+vMDM/33AWOYP/JSjDg==
   dependencies:
     component-emitter "~1.3.0"
     debug "~3.1.0"

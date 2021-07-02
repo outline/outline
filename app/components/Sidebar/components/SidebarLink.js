@@ -29,25 +29,28 @@ type Props = {
   depth?: number,
 };
 
-function SidebarLink({
-  icon,
-  children,
-  onClick,
-  onMouseEnter,
-  to,
-  label,
-  active,
-  isActiveDrop,
-  menu,
-  showActions,
-  theme,
-  exact,
-  href,
-  depth,
-  history,
-  match,
-  className,
-}: Props) {
+function SidebarLink(
+  {
+    icon,
+    children,
+    onClick,
+    onMouseEnter,
+    to,
+    label,
+    active,
+    isActiveDrop,
+    menu,
+    showActions,
+    theme,
+    exact,
+    href,
+    depth,
+    history,
+    match,
+    className,
+  }: Props,
+  ref
+) {
   const style = React.useMemo(() => {
     return {
       paddingLeft: `${(depth || 0) * 16 + 16}px`,
@@ -78,6 +81,7 @@ function SidebarLink({
         as={to ? undefined : href ? "a" : "div"}
         href={href}
         className={className}
+        ref={ref}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
         <Label dir="auto">{label}</Label>
@@ -174,4 +178,4 @@ const Label = styled.div`
   line-height: 1.6;
 `;
 
-export default withRouter(withTheme(SidebarLink));
+export default withRouter(withTheme(React.forwardRef(SidebarLink)));

@@ -1,2 +1,2 @@
 // @flow
-export const runAllPromises = () => new Promise(setImmediate);
+export const runAllPromises = () => new Promise<void>(setImmediate);
