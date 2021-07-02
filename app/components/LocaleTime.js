@@ -1,6 +1,18 @@
 // @flow
 import { format, formatDistanceToNow } from "date-fns";
-import { enUS, de, fr, es, it, ko, ptBR, pt, zhCN, ru } from "date-fns/locale";
+import {
+  enUS,
+  de,
+  fr,
+  es,
+  it,
+  ko,
+  ptBR,
+  pt,
+  zhCN,
+  zhTW,
+  ru,
+} from "date-fns/locale";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
@@ -15,6 +27,7 @@ const locales = {
   pt_BR: ptBR,
   pt_PT: pt,
   zh_CN: zhCN,
+  zh_TW: zhTW,
   ru_RU: ru,
 };
 
