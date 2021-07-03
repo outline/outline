@@ -46,7 +46,7 @@ export default function ContextMenu({
       <Menu hideOnClickOutside preventBodyScroll {...rest}>
         {(props) => (
           <Position {...props}>
-            <Background>
+            <Background dir="auto">
               {rest.visible || rest.animating ? children : null}
             </Background>
           </Position>

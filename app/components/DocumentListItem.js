@@ -69,6 +69,7 @@ function DocumentListItem(props: Props, ref) {
   return (
     <DocumentLink
       ref={ref}
+      dir={document.dir}
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
@@ -77,8 +78,12 @@ function DocumentListItem(props: Props, ref) {
       }}
     >
       <Content>
-        <Heading>
-          <Title text={document.titleWithDefault} highlight={highlight} />
+        <Heading dir={document.dir}>
+          <Title
+            text={document.titleWithDefault}
+            highlight={highlight}
+            dir={document.dir}
+          />
           {document.isNew && document.createdBy.id !== currentUser.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
@@ -222,6 +227,7 @@ const DocumentLink = styled(Link)`
 
 const Heading = styled.h3`
   display: flex;
+  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
   height: 24px;
   margin-top: 0;
