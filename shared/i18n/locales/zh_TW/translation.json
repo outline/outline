@@ -430,7 +430,7 @@
   "Whoops, you need to accept the permissions in Slack to connect Outline to your team. Try again?": "哇嗚，您必須在 Slack 允許 Outline \b取得權限連結您的團隊。再試一次？",
   "Something went wrong while authenticating your request. Please try logging in again?": "請求認證時發生一些錯誤，請嘗試重新登入？",
   "Get rich previews of Outline links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "使用 <em>{{ command }}</em> slash command 功能搜尋文件不需跳開聊天視窗，而且可以在 Slack 獲得更多細節的 Outline 文件預覽功能。",
-  "Disconnect": "Disconnect",
+  "Disconnect": "解除綁定",
   "Connect Outline collections to Slack channels and messages will be automatically posted to Slack when documents are published or updated.": "將 Outline 文件集連結到 Slack 頻道，若文件已經被更新或公開釋出，則會被自動張貼在 Slack 上。",
   "Connected to the <em>{{ channelName }}</em> channel": "連結到 <em>{{ channelName }}</em> 頻道",
   "Connect": "Connect",
