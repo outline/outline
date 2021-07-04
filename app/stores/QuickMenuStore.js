@@ -57,11 +57,13 @@ class QuickMenuStore {
       }
     });
 
+    console.log({ filtered });
     return filtered;
   }
 
   @action
   setSearchTerm(searchTerm: string): void {
+    console.log({ searchTerm });
     this.searchTerm = searchTerm;
   }
 
