@@ -26,9 +26,11 @@ const MenuItem = ({
   hide,
   ...rest
 }: Props) => {
-  const handleClick = React.useCallback(
+  const handleMouseDown = React.useCallback(
     (ev) => {
       if (onClick) {
+        ev.preventDefault();
+        ev.stopPropagation();
         onClick(ev);
       }
       if (hide) {
@@ -50,7 +52,7 @@ const MenuItem = ({
           {...props}
           $toggleable={selected !== undefined}
           as={onClick ? "button" : as}
-          onClick={handleClick}
+          onMouseDown={handleMouseDown}
         >
           {selected !== undefined && (
             <>
