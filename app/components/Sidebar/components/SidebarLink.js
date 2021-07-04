@@ -84,7 +84,7 @@ function SidebarLink(
         ref={ref}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label dir="auto">{label}</Label>
+        <Label>{label}</Label>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
     </>
@@ -176,6 +176,9 @@ const Label = styled.div`
   width: 100%;
   max-height: 4.8em;
   line-height: 1.6;
+  * {
+    unicode-bidi: plaintext;
+  }
 `;
 
 export default withRouter(withTheme(React.forwardRef(SidebarLink)));
