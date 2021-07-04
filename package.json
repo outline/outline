@@ -20,7 +20,7 @@
     "db:rollback": "sequelize db:migrate:undo",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
     "test": "yarn test:app && yarn test:server",
-    "test:app": "jest --config=app/.jestconfig.json",
+    "test:app": "jest --config=app/.jestconfig.json --runInBand --forceExit",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
