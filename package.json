@@ -197,6 +197,7 @@
     "@types/invariant": "^2.2.34",
     "@types/ioredis": "^4.26.4",
     "@types/isomorphic-fetch": "^0.0.35",
+    "@types/jest": "^26.0.23",
     "@types/jest-cli": "^24.3.0",
     "@types/js-search": "^1.4.0",
     "@types/jsonwebtoken": "^8.5.3",

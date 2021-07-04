@@ -19,7 +19,13 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        loader: 'ts-loader'
+        loader: 'ts-loader',
+        exclude: [
+          path.join(__dirname, 'node_modules')
+        ],
+        include: [
+          path.join(__dirname, 'app'),
+        ],
       },
       {
         
