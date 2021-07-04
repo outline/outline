@@ -26,6 +26,9 @@ const MenuItem = ({
   hide,
   ...rest
 }: Props) => {
+  // We bind to mousedown instead of onClick here as otherwise menu items do not
+  // work in Firefox which triggers the hideOnClickOutside handler first via
+  // mousedown.
   const handleMouseDown = React.useCallback(
     (ev) => {
       if (onClick) {
@@ -33,11 +36,8 @@ const MenuItem = ({
         ev.stopPropagation();
         onClick(ev);
       }
-      if (hide) {
-        hide();
-      }
     },
-    [hide, onClick]
+    [onClick]
   );
 
   return (
@@ -53,6 +53,7 @@ const MenuItem = ({
           $toggleable={selected !== undefined}
           as={onClick ? "button" : as}
           onMouseDown={handleMouseDown}
+          onClick={hide}
         >
           {selected !== undefined && (
             <>
