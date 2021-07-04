@@ -1,0 +1,128 @@
+import { CheckmarkIcon } from "outline-icons";
+import * as React from "react";
+import { MenuItem as BaseMenuItem } from "reakit/Menu";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+
+import type { SyntheticEvent } from "react";
+
+type Props = {
+  onClick?: (a: SyntheticEvent) => void | Promise<void>;
+  children?: React.ReactNode;
+  selected?: boolean;
+  disabled?: boolean;
+  to?: string;
+  href?: string;
+  target?: "_blank";
+  as?: string | React.ComponentType<any>;
+  hide?: () => void;
+};
+
+const MenuItem = ({
+  onClick,
+  children,
+  selected,
+  disabled,
+  as,
+  hide,
+  ...rest
+}: Props) => {
+  // We bind to mousedown instead of onClick here as otherwise menu items do not
+  // work in Firefox which triggers the hideOnClickOutside handler first via
+  // mousedown.
+  const handleMouseDown = React.useCallback(
+    (ev) => {
+      if (onClick) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        onClick(ev);
+      }
+    },
+    [onClick]
+  );
+
+  return (
+    <BaseMenuItem
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      hide={hide}
+      {...rest}
+    >
+      {(props) => (
+        <MenuAnchor
+          {...props}
+          $toggleable={selected !== undefined}
+          as={onClick ? "button" : as}
+          onMouseDown={handleMouseDown}
+          onClick={hide}
+        >
+          {selected !== undefined && (
+            <>
+              {selected ? <CheckmarkIcon color="currentColor" /> : <Spacer />}
+              &nbsp;
+            </>
+          )}
+          {children}
+        </MenuAnchor>
+      )}
+    </BaseMenuItem>
+  );
+};
+
+const Spacer = styled.svg`
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+`;
+
+export const MenuAnchor = styled.a`
+  display: flex;
+  margin: 0;
+  border: 0;
+  padding: 12px;
+  width: 100%;
+  min-height: 32px;
+  background: none;
+  color: ${(props) =>
+    props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
+  justify-content: left;
+  align-items: center;
+  font-size: 16px;
+  cursor: default;
+  user-select: none;
+
+  svg:not(:last-child) {
+    margin-right: 4px;
+  }
+
+  svg {
+    flex-shrink: 0;
+    opacity: ${(props) => (props.disabled ? ".5" : 1)};
+  }
+
+  ${(props) =>
+    props.disabled
+      ? "pointer-events: none;"
+      : `
+
+  &:hover,  
+  &:focus,
+  &.focus-visible {
+    color: ${props.theme.white};
+    background: ${props.theme.primary};
+    box-shadow: none;
+    cursor: pointer;
+
+    svg {
+      fill: ${props.theme.white};
+    }
+  }
+  `};
+
+  ${breakpoint("tablet")`
+    padding: ${(props) => (props.$toggleable ? "4px 12px" : "6px 12px")};
+    font-size: 15px;
+  `};
+`;
+
+export default MenuItem;
