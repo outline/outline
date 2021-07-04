@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 import Cawemo from "./Cawemo";
 
 describe("Cawemo", () => {

@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 import Typeform from "./Typeform";
 
 describe("Typeform", () => {

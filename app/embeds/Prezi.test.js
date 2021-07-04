@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 import Prezi from "./Prezi";
 
 describe("Prezi", () => {

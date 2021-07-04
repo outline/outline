@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 import Marvel from "./Marvel";
 
 describe("Marvel", () => {

@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 import Lucidchart from "./Lucidchart";
 
 describe("Lucidchart", () => {

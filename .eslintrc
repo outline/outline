@@ -4,6 +4,7 @@
     "react-app",
     "plugin:import/errors",
     "plugin:import/warnings",
+    "plugin:import/typescript",
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
@@ -67,7 +68,16 @@
       "pragma": "React",
       "version": "detect"
     },
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".ts",
+        ".tsx"
+      ]
+    },
     "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+      },
       "node": {
         "paths": [
           "app",

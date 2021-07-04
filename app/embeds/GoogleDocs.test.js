@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 import GoogleDocs from "./GoogleDocs";
 
 describe("GoogleDocs", () => {
