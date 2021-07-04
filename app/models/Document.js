@@ -58,6 +58,26 @@ export default class Document extends BaseModel {
     return emoji;
   }
 
+  /**
+   * Best-guess the text direction of the document based on the language the
+   * title is written in. Note: wrapping as a computed getter means that it will
+   * only be called directly when the title changes.
+   */
+  @computed
+  get dir(): "rtl" | "ltr" {
+    const element = document.createElement("p");
+    element.innerHTML = this.title;
+    element.style.visibility = "hidden";
+    element.dir = "auto";
+
+    // element must appear in body for direction to be computed
+    document.body?.appendChild(element);
+
+    const direction = window.getComputedStyle(element).direction;
+    document.body?.removeChild(element);
+    return direction;
+  }
+
   @computed
   get noun(): string {
     return this.template ? "template" : "document";

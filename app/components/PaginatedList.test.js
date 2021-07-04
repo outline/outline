@@ -1,4 +1,5 @@
 // @flow
+import "../stores";
 import { shallow } from "enzyme";
 import * as React from "react";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
@@ -6,14 +7,20 @@ import { runAllPromises } from "../test/support";
 import PaginatedList from "./PaginatedList";
 
 describe("PaginatedList", () => {
+  const render = () => null;
+
   it("with no items renders nothing", () => {
-    const list = shallow(<PaginatedList items={[]} />);
+    const list = shallow(<PaginatedList items={[]} renderItem={render} />);
     expect(list).toEqual({});
   });
 
   it("with no items renders empty prop", () => {
     const list = shallow(
-      <PaginatedList items={[]} empty={<p>Sorry, no results</p>} />
+      <PaginatedList
+        items={[]}
+        empty={<p>Sorry, no results</p>}
+        renderItem={render}
+      />
     );
     expect(list.text()).toEqual("Sorry, no results");
   });
@@ -22,7 +29,14 @@ describe("PaginatedList", () => {
     const fetch = jest.fn();
     const options = { id: "one" };
 
-    shallow(<PaginatedList items={[]} fetch={fetch} options={options} />);
+    shallow(
+      <PaginatedList
+        items={[]}
+        fetch={fetch}
+        options={options}
+        renderItem={render}
+      />
+    );
     expect(fetch).toHaveBeenCalledWith({
       ...options,
       limit: DEFAULT_PAGINATION_LIMIT,
@@ -35,7 +49,12 @@ describe("PaginatedList", () => {
     const fetch = jest.fn().mockReturnValue(fetchedItems);
 
     const list = shallow(
-      <PaginatedList items={[]} fetch={fetch} options={{ id: "one" }} />
+      <PaginatedList
+        items={[]}
+        fetch={fetch}
+        options={{ id: "one" }}
+        renderItem={render}
+      />
     );
 
     await runAllPromises();

@@ -7,7 +7,7 @@ const ResizeBorder = styled.div`
   bottom: 0;
   right: -6px;
   width: 12px;
-  cursor: ew-resize;
+  cursor: col-resize;
 `;
 
 export default ResizeBorder;

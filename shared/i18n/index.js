@@ -8,6 +8,7 @@ import { initReactI18next } from "react-i18next";
 export const languageOptions = [
   { label: "English (US)", value: "en_US" },
   { label: "简体中文 (Chinese, Simplified)", value: "zh_CN" },
+  { label: "繁體中文 (Chinese, Traditional)", value: "zh_TW" },
   { label: "Deutsch (Deutschland)", value: "de_DE" },
   { label: "Español (España)", value: "es_ES" },
   { label: "Français (France)", value: "fr_FR" },

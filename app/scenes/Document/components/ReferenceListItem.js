@@ -35,7 +35,6 @@ const DocumentLink = styled(Link)`
 const Title = styled.h3`
   display: flex;
   align-items: center;
-  max-width: 90%;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 14px;
@@ -78,7 +77,7 @@ function ReferenceListItem({
       }}
       {...rest}
     >
-      <Title>
+      <Title dir="auto">
         {document.emoji ? (
           <Emoji>{document.emoji}</Emoji>
         ) : (
