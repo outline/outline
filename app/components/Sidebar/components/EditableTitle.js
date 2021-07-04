@@ -65,6 +65,7 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
       {isEditing ? (
         <form onSubmit={handleSave}>
           <Input
+            dir="auto"
             type="text"
             value={value}
             onKeyDown={handleKeyDown}
