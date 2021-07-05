@@ -53,8 +53,19 @@ router.post("email", errorHandling(), async (ctx) => {
       });
     }
 
-    const user =
-      users.find((user) => team && user.teamId === team.id) || users[0];
+    // If there are multiple users with this email address then give precedence
+    // to the one that is active on this subdomain/domain (if any)
+    let user = users.find((user) => team && user.teamId === team.id);
+
+    // A user was found for the email address, but they don't belong to the team
+    // that this subdomain belongs to, we load their team and allow the logic to
+    // continue
+    if (!user) {
+      user = users[0];
+      team = await Team.scope("withAuthenticationProviders").findByPk(
+        user.teamId
+      );
+    }
 
     if (!team) {
       team = await Team.scope("withAuthenticationProviders").findByPk(
