@@ -137,7 +137,7 @@ export const light = {
   placeholder: "#a2b2c3",
 
   sidebarBackground: colors.warmGrey,
-  sidebarItemBackground: colors.black10,
+  sidebarItemBackground: "#d7e0ea",
   sidebarText: "rgb(78, 92, 110)",
   backdrop: "rgba(0, 0, 0, 0.2)",
   shadow: "rgba(0, 0, 0, 0.2)",
