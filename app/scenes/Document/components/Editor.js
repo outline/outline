@@ -33,7 +33,7 @@ type Props = {|
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  @observable ref = React.createRef<HTMLDivElement | HTMLInputElement>();
+  ref = React.createRef<HTMLDivElement | HTMLInputElement>();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
@@ -109,8 +109,6 @@ class DocumentEditor extends React.Component<Props> {
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
     const normalizedTitle =
       !title && readOnly ? document.titleWithDefault : title;
-
-    console.log(this.ref.current);
 
     return (
       <Flex auto column>
