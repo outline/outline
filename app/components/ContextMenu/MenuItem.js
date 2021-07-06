@@ -15,6 +15,7 @@ type Props = {|
   target?: "_blank",
   as?: string | React.ComponentType<*>,
   hide?: () => void,
+  level?: number,
 |};
 
 const MenuItem = ({
@@ -77,6 +78,7 @@ const Spacer = styled.svg`
 export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
+  margin-left: ${(props) => props.level * 10}px;
   border: 0;
   padding: 12px;
   width: 100%;
