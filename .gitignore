@@ -8,4 +8,3 @@ stats.json
 .DS_Store
 fakes3/*
 .idea
-.dev.dockerfile
