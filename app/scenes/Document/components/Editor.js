@@ -33,7 +33,7 @@ type Props = {|
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  @observable ref = React.createRef<Textarea>();
+  ref = React.createRef<Textarea>();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
