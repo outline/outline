@@ -402,10 +402,13 @@ class DocumentScene extends React.Component<Props> {
               )}
               {document.deletedAt && (
                 <Notice muted>
-                  <Trans>
-                    Deleted by {document.updatedBy.name}{" "}
-                    <Time dateTime={document.deletedAt} /> ago
-                  </Trans>
+                  <Trans
+                    defaults="Deleted by {{ userName }} <time> ago"
+                    values={{ userName: document.updatedBy.name }}
+                    components={{
+                      time: <Time dateTime={document.deletedAt} />,
+                    }}
+                  />
                   {document.permanentlyDeletedAt && (
                     <>
                       <br />
