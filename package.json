@@ -11,7 +11,6 @@
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
     "dev": "nodemon --exec \"yarn build:server && yarn build:i18n && node --inspect=0.0.0.0 build/server/index.js\" -e js --ignore build/ --ignore app/",
-    "dev:essential": "nodemon --exec \"yarn build:server && node --inspect=0.0.0.0 build/server/index.js\" -e js --ignore build/ --ignore app/",
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
     "heroku-postbuild": "yarn build && yarn db:migrate",
