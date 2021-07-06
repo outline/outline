@@ -33,7 +33,7 @@ type Props = {|
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  @observable ref = React.createRef<HTMLDivElement | HTMLInputElement>();
+  @observable ref = React.createRef<Textarea>();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
@@ -110,8 +110,6 @@ class DocumentEditor extends React.Component<Props> {
     const normalizedTitle =
       !title && readOnly ? document.titleWithDefault : title;
 
-    console.log(this.ref.current);
-
     return (
       <Flex auto column>
         {readOnly ? (
@@ -145,8 +143,9 @@ class DocumentEditor extends React.Component<Props> {
             document={document}
             to={documentHistoryUrl(document)}
             rtl={
-              this.ref.current
-                ? window.getComputedStyle(this.ref.current).direction === "rtl"
+              this.ref.current?.textarea
+                ? window.getComputedStyle(this.ref.current.textarea)
+                    .direction === "rtl"
                 : false
             }
           />
