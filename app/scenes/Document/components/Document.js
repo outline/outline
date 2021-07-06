@@ -391,10 +391,13 @@ class DocumentScene extends React.Component<Props> {
               )}
               {document.archivedAt && !document.deletedAt && (
                 <Notice muted>
-                  <Trans>
-                    Archived by {document.updatedBy.name}{" "}
-                    <Time dateTime={document.archivedAt} /> ago
-                  </Trans>
+                  <Trans
+                    defaults="Archived by {{ userName }} <time> ago"
+                    values={{ userName: document.updatedBy.name }}
+                    components={{
+                      time: <Time dateTime={document.archivedAt} />,
+                    }}
+                  />
                 </Notice>
               )}
               {document.deletedAt && (
@@ -406,11 +409,18 @@ class DocumentScene extends React.Component<Props> {
                   {document.permanentlyDeletedAt && (
                     <>
                       <br />
-                      <Trans>
-                        This {document.noun} will be permanently deleted in{" "}
-                        <Time dateTime={document.permanentlyDeletedAt} /> unless
-                        restored.
-                      </Trans>
+                      <Trans
+                        defaults="This {{ documentName }} will be permanently deleted in <time> unless restored."
+                        values={{
+                          userName: document.updatedBy.name,
+                          documentName: document.noun,
+                        }}
+                        components={{
+                          time: (
+                            <Time dateTime={document.permanentlyDeletedAt} />
+                          ),
+                        }}
+                      />
                     </>
                   )}
                 </Notice>
