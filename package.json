@@ -118,7 +118,7 @@
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "polished": "3.6.5",
-    "query-string": "^4.3.4",
+    "query-string": "^7.0.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
