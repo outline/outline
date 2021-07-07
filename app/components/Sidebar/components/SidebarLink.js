@@ -1,4 +1,5 @@
 // @flow
+import { transparentize } from "polished";
 import * as React from "react";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -145,7 +146,8 @@ const Link = styled(NavLink)`
 
   &:focus {
     color: ${(props) => props.theme.text};
-    background: ${(props) => props.theme.black05};
+    background: ${(props) =>
+      transparentize("0.25", props.theme.sidebarItemBackground)};
   }
 
   ${breakpoint("tablet")`

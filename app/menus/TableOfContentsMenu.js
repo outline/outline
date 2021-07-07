@@ -44,11 +44,10 @@ function TableOfContentsMenu({ headings }: Props) {
       <ContextMenu {...menu} aria-label="Table of contents">
         <Template
           {...menu}
-          items={headings.map((heading, index) => {
+          items={headings.map((heading) => {
             return {
               id: heading.id,
               title: `${t(heading.title)}`,
-              index,
               level: heading.level - minHeading,
             };
           })}

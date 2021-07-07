@@ -42,6 +42,27 @@ describe("email", () => {
     expect(mailer.signin).not.toHaveBeenCalled();
   });
 
+  it("should respond with redirect location when user is SSO enabled on another subdomain", async () => {
+    process.env.URL = "http://localoutline.com";
+    process.env.SUBDOMAINS_ENABLED = "true";
+
+    const user = await buildUser();
+
+    await buildTeam({
+      subdomain: "example",
+    });
+
+    const res = await server.post("/auth/email", {
+      body: { email: user.email },
+      headers: { host: "example.localoutline.com" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.redirect).toMatch("slack");
+    expect(mailer.signin).not.toHaveBeenCalled();
+  });
+
   it("should respond with success when user is not SSO enabled", async () => {
     const user = await buildGuestUser();
 

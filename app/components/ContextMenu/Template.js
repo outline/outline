@@ -51,6 +51,12 @@ type TMenuItem =
       type: "heading",
       visible?: boolean,
       title: React.Node,
+    |}
+  | {|
+      title: React.Node,
+      id: string,
+      level: number,
+      visible?: boolean,
     |};
 
 type Props = {|
@@ -83,7 +89,7 @@ const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   );
 });
 
-function Template({ items, ...menu }: Props): React.Node {
+export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators
@@ -101,7 +107,11 @@ function Template({ items, ...menu }: Props): React.Node {
     return [...acc, item];
   }, []);
 
-  return filtered.map((item, index) => {
+  return filtered;
+}
+
+function Template({ items, ...menu }: Props): React.Node {
+  return filterTemplateItems(items).map((item, index) => {
     if (item.id) {
       return (
         <MenuItem href={`#${item.id}`} key={index} level={item.level} {...menu}>
