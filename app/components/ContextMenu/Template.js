@@ -104,7 +104,7 @@ function Template({ items, ...menu }: Props): React.Node {
   return filtered.map((item, index) => {
     if (item.id) {
       return (
-        <MenuItem as={Link} to={item.id} key={index} level={item.level}>
+        <MenuItem href={`#${item.id}`} key={index} level={item.level} {...menu}>
           {item.title}
         </MenuItem>
       );
