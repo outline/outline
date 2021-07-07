@@ -149,25 +149,27 @@ function CollectionScene() {
             />
           </Action>
           {can.update && (
-            <Action>
-              <Tooltip
-                tooltip={t("New document")}
-                shortcut="n"
-                delay={500}
-                placement="bottom"
-              >
-                <Button
-                  as={Link}
-                  to={collection ? newDocumentUrl(collection.id) : ""}
-                  disabled={!collection}
-                  icon={<PlusIcon />}
+            <>
+              <Action>
+                <Tooltip
+                  tooltip={t("New document")}
+                  shortcut="n"
+                  delay={500}
+                  placement="bottom"
                 >
-                  {t("New doc")}
-                </Button>
-              </Tooltip>
-            </Action>
+                  <Button
+                    as={Link}
+                    to={collection ? newDocumentUrl(collection.id) : ""}
+                    disabled={!collection}
+                    icon={<PlusIcon />}
+                  >
+                    {t("New doc")}
+                  </Button>
+                </Tooltip>
+              </Action>
+              <Separator />
+            </>
           )}
-          <Separator />
           <Action>
             <CollectionMenu
               collection={collection}
