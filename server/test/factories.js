@@ -68,6 +68,23 @@ export function buildEvent(overrides: Object = {}) {
   });
 }
 
+export async function buildGuestUser(overrides: Object = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  count++;
+
+  return User.create({
+    email: `user${count}@example.com`,
+    name: `User ${count}`,
+    createdAt: new Date("2018-01-01T00:00:00.000Z"),
+    lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+    ...overrides,
+  });
+}
+
 export async function buildUser(overrides: Object = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();

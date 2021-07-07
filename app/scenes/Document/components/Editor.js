@@ -33,6 +33,7 @@ type Props = {|
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
+  ref = React.createRef<HTMLDivElement | HTMLInputElement>();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
@@ -114,8 +115,10 @@ class DocumentEditor extends React.Component<Props> {
         {readOnly ? (
           <Title
             as="div"
+            ref={this.ref}
             $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
             $isStarred={document.isStarred}
+            dir="auto"
           >
             <span>{normalizedTitle}</span>{" "}
             {!shareId && <StarButton document={document} size={32} />}
@@ -123,6 +126,7 @@ class DocumentEditor extends React.Component<Props> {
         ) : (
           <Title
             type="text"
+            ref={this.ref}
             onChange={onChangeTitle}
             onKeyDown={this.handleTitleKeyDown}
             placeholder={document.placeholder}
@@ -130,6 +134,7 @@ class DocumentEditor extends React.Component<Props> {
             $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
             autoFocus={!title}
             maxLength={MAX_TITLE_LENGTH}
+            dir="auto"
           />
         )}
         {!shareId && (
@@ -137,6 +142,11 @@ class DocumentEditor extends React.Component<Props> {
             isDraft={isDraft}
             document={document}
             to={documentHistoryUrl(document)}
+            rtl={
+              this.ref.current
+                ? window.getComputedStyle(this.ref.current).direction === "rtl"
+                : false
+            }
           />
         )}
         <Editor

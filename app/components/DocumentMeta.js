@@ -11,6 +11,7 @@ import Time from "components/Time";
 import useStores from "hooks/useStores";
 
 const Container = styled(Flex)`
+  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   color: ${(props) => props.theme.textTertiary};
   font-size: 13px;
   white-space: nowrap;
@@ -135,7 +136,7 @@ function DocumentMeta({
     : 0;
 
   return (
-    <Container align="center" {...rest}>
+    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {updatedByMe ? t("You") : updatedBy.name}&nbsp;
       {to ? <Link to={to}>{content}</Link> : content}
       {showCollection && collection && (

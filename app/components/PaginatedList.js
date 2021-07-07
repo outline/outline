@@ -38,13 +38,23 @@ class PaginatedList extends React.Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.fetch !== this.props.fetch) {
-      this.fetchResults();
-    }
-    if (!isEqual(prevProps.options, this.props.options)) {
+    if (
+      prevProps.fetch !== this.props.fetch ||
+      !isEqual(prevProps.options, this.props.options)
+    ) {
+      this.reset();
       this.fetchResults();
     }
   }
+
+  reset = () => {
+    this.offset = 0;
+    this.allowLoadMore = true;
+    this.renderCount = DEFAULT_PAGINATION_LIMIT;
+    this.isFetching = false;
+    this.isFetchingMore = false;
+    this.isLoaded = false;
+  };
 
   fetchResults = async () => {
     if (!this.props.fetch) return;

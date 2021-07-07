@@ -30,6 +30,10 @@ io.adapter(
   })
 );
 
+io.origins((_, callback) => {
+  callback(null, true);
+});
+
 io.of("/").adapter.on("error", (err) => {
   if (err.name === "MaxRetriesPerRequestError") {
     console.error(`Redis error: ${err.message}. Shutting down now.`);

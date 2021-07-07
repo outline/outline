@@ -1,4 +1,5 @@
 // @flow
+import { transparentize } from "polished";
 import * as React from "react";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -29,25 +30,28 @@ type Props = {
   depth?: number,
 };
 
-function SidebarLink({
-  icon,
-  children,
-  onClick,
-  onMouseEnter,
-  to,
-  label,
-  active,
-  isActiveDrop,
-  menu,
-  showActions,
-  theme,
-  exact,
-  href,
-  depth,
-  history,
-  match,
-  className,
-}: Props) {
+function SidebarLink(
+  {
+    icon,
+    children,
+    onClick,
+    onMouseEnter,
+    to,
+    label,
+    active,
+    isActiveDrop,
+    menu,
+    showActions,
+    theme,
+    exact,
+    href,
+    depth,
+    history,
+    match,
+    className,
+  }: Props,
+  ref
+) {
   const style = React.useMemo(() => {
     return {
       paddingLeft: `${(depth || 0) * 16 + 16}px`,
@@ -78,6 +82,7 @@ function SidebarLink({
         as={to ? undefined : href ? "a" : "div"}
         href={href}
         className={className}
+        ref={ref}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
         <Label>{label}</Label>
@@ -141,7 +146,8 @@ const Link = styled(NavLink)`
 
   &:focus {
     color: ${(props) => props.theme.text};
-    background: ${(props) => props.theme.black05};
+    background: ${(props) =>
+      transparentize("0.25", props.theme.sidebarItemBackground)};
   }
 
   ${breakpoint("tablet")`
@@ -172,6 +178,9 @@ const Label = styled.div`
   width: 100%;
   max-height: 4.8em;
   line-height: 1.6;
+  * {
+    unicode-bidi: plaintext;
+  }
 `;
 
-export default withRouter(withTheme(SidebarLink));
+export default withRouter(withTheme(React.forwardRef(SidebarLink)));
