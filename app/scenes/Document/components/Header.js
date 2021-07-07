@@ -142,6 +142,11 @@ function DocumentHeader({
 
   return (
     <>
+      {isMobile && (
+        <TocWrapper>
+          <TableOfContentsMenu headings={headings} />
+        </TocWrapper>
+      )}
       <Header
         breadcrumb={
           <DocumentBreadcrumb document={document}>
@@ -156,11 +161,6 @@ function DocumentHeader({
         }
         actions={
           <>
-            {isMobile && (
-              <Action>
-                <TableOfContentsMenu headings={headings} />
-              </Action>
-            )}
             {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
             <Collaborators
               document={document}
@@ -280,6 +280,21 @@ const Status = styled(Action)`
   padding-left: 0;
   padding-right: 4px;
   color: ${(props) => props.theme.slate};
+`;
+
+const TocWrapper = styled(Action)`
+  padding-left: 0;
+  padding-right: 4px;
+  color: ${(props) => props.theme.slate};
+  position: fixed;
+  margin-left: 8px;
+  top: 12px;
+  left: 46px;
+  z-index: ${(props) => props.theme.depths.sidebar - 1};
+
+  @media print {
+    display: none;
+  }
 `;
 
 export default observer(DocumentHeader);
