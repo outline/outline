@@ -13,6 +13,7 @@ export const languageOptions = [
   { label: "Español (España)", value: "es_ES" },
   { label: "Français (France)", value: "fr_FR" },
   { label: "Italiano (Italia)", value: "it_IT" },
+  { label: "日本語 (Japanese)", value: "ja_JP" },
   { label: "한국어 (Korean)", value: "ko_KR" },
   { label: "Português (Brazil)", value: "pt_BR" },
   { label: "Português (Portugal)", value: "pt_PT" },
