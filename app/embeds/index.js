@@ -15,6 +15,7 @@ import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleSheets from "./GoogleSheets";
+import GoogleSites from "./GoogleSites";
 import GoogleSlides from "./GoogleSlides";
 import InVision from "./InVision";
 import Loom from "./Loom";
@@ -147,6 +148,13 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Sites",
+    keywords: "landing page",
+    icon: () => <Img src="/images/google-sites.png" />,
+    component: GoogleSites,
+    matcher: matcher(GoogleSites),
   },
   {
     title: "InVision",
