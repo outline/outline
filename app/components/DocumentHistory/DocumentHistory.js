@@ -43,10 +43,13 @@ class DocumentHistory extends React.Component<Props> {
     this.isFetching = true;
 
     const limit = DEFAULT_PAGINATION_LIMIT;
-    const results = await this.props.revisions.fetchPage({
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+    const results = await this.props.events.fetchPage({
       limit,
       offset: this.offset,
-      documentId: this.props.match.params.documentSlug,
+      documentId: document.id,
     });
 
     if (
@@ -196,4 +199,4 @@ const Header = styled(Flex)`
   flex-shrink: 0;
 `;
 
-export default inject("documents", "revisions")(DocumentHistory);
+export default inject("documents", "revisions", "events")(DocumentHistory);
