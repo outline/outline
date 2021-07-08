@@ -41,7 +41,7 @@ function TableOfContentsMenu({ headings }: Props) {
           />
         )}
       </MenuButton>
-      <ContextMenu {...menu} aria-label="Table of contents">
+      <ContextMenu {...menu} aria-label={t("Table of contents")}>
         <Template
           {...menu}
           items={headings.map((heading) => {
