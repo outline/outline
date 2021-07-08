@@ -130,7 +130,7 @@ function Template({ items, ...menu }: Props): React.Node {
           disabled={item.disabled}
           selected={item.selected}
           level={item.level}
-          target={item.level !== undefined ? undefined : "_blank"}
+          target={item.href.startsWith("#") ? undefined : "_blank"}
           {...menu}
         >
           {item.title}
