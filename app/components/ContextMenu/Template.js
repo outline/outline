@@ -34,6 +34,7 @@ type TMenuItem =
       visible?: boolean,
       selected?: boolean,
       disabled?: boolean,
+      level?: number,
     |}
   | {|
       title: React.Node,
@@ -51,12 +52,6 @@ type TMenuItem =
       type: "heading",
       visible?: boolean,
       title: React.Node,
-    |}
-  | {|
-      title: React.Node,
-      id: string,
-      level: number,
-      visible?: boolean,
     |};
 
 type Props = {|
@@ -112,14 +107,6 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
 
 function Template({ items, ...menu }: Props): React.Node {
   return filterTemplateItems(items).map((item, index) => {
-    if (item.id) {
-      return (
-        <MenuItem href={`#${item.id}`} key={index} level={item.level} {...menu}>
-          {item.title}
-        </MenuItem>
-      );
-    }
-
     if (item.to) {
       return (
         <MenuItem
@@ -142,6 +129,7 @@ function Template({ items, ...menu }: Props): React.Node {
           key={index}
           disabled={item.disabled}
           selected={item.selected}
+          level={item.level}
           target="_blank"
           {...menu}
         >

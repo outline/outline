@@ -46,7 +46,7 @@ function TableOfContentsMenu({ headings }: Props) {
           {...menu}
           items={headings.map((heading) => {
             return {
-              id: heading.id,
+              href: `#${heading.id}`,
               title: `${t(heading.title)}`,
               level: heading.level - minHeading,
             };
