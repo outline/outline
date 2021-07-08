@@ -8,6 +8,13 @@ const Nav = styled.nav`
   overflow-y: auto;
   white-space: nowrap;
   transition: opacity 250ms ease-out;
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 // When sticky we need extra background coverage around the sides otherwise
