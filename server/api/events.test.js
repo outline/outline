@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { buildEvent } from "../test/factories";
+import { buildEvent, buildUser } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -99,6 +99,54 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(auditEvent.id);
+  });
+
+  it("should allow filtering by documentId", async () => {
+    const { user, admin, document, collection } = await seed();
+
+    const event = await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    const res = await server.post("/api/events.list", {
+      body: {
+        token: admin.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(event.id);
+  });
+
+  it("should not return events for documentId without authorization", async () => {
+    const { user, document, collection } = await seed();
+    const actor = await buildUser();
+
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    const res = await server.post("/api/events.list", {
+      body: {
+        token: actor.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
   });
 
   it("should allow filtering by event name", async () => {
