@@ -9,9 +9,9 @@ import Button from "components/Button";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 
-type Props = {
+type Props = {|
   headings: { title: string, level: number, id: string }[],
-};
+|};
 
 function TableOfContentsMenu({ headings }: Props) {
   const menu = useMenuState({
