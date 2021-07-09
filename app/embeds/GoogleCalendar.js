@@ -3,7 +3,7 @@ import * as React from "react";
 import Image from "components/Image";
 import Frame from "./components/Frame";
 
-const URL_REGEX = new RegExp("^https?://calendar.google.com/calendar/(.*)$");
+const URL_REGEX = new RegExp("^https?://calendar.google.com/calendar/embed?src=(.*)$");
 
 type Props = {|
   attrs: {|
