@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { TeamIcon } from "outline-icons";
 import * as React from "react";
 import { useRef, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Button from "components/Button";
 import Flex from "components/Flex";
@@ -18,7 +19,7 @@ import useStores from "hooks/useStores";
 function Details() {
   const { auth, ui } = useStores();
   const team = useCurrentTeam();
-
+  const { t } = useTranslation();
   const form = useRef<?HTMLFormElement>();
   const [name, setName] = useState(team?.name);
   const [subdomain, setSubdomain] = useState(team?.subdomain);
@@ -36,12 +37,12 @@ function Details() {
           avatarUrl: avatarUrl,
           subdomain: subdomain,
         });
-        ui.showToast("Settings saved", { type: "success" });
+        ui.showToast(t("Settings saved"), { type: "success" });
       } catch (err) {
         ui.showToast(err.message, { type: "error" });
       }
     },
-    [auth, ui, name, avatarUrl, subdomain]
+    [auth, ui, name, avatarUrl, subdomain, t]
   );
 
   const handleNameChange = React.useCallback((ev: SyntheticInputEvent<*>) => {
@@ -65,9 +66,9 @@ function Details() {
 
   const handleAvatarError = React.useCallback(
     (error: ?string) => {
-      ui.showToast(error || "Unable to upload new logo");
+      ui.showToast(error || t("Unable to upload new logo"));
     },
-    [ui]
+    [ui, t]
   );
 
   const isValid = form.current && form.current.checkValidity();
@@ -75,32 +76,34 @@ function Details() {
   if (!team) return null;
 
   return (
-    <Scene title="Details" icon={<TeamIcon color="currentColor" />}>
-      <Heading>Details</Heading>
+    <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
+      <Heading>{t("Details")}</Heading>
       <HelpText>
-        These details affect the way that your Outline appears to everyone on
-        the team.
+        <Trans>
+          These details affect the way that your Outline appears to everyone on
+          the team.
+        </Trans>
       </HelpText>
 
       <ProfilePicture column>
-        <LabelText>Logo</LabelText>
+        <LabelText>{t("Logo")}</LabelText>
         <AvatarContainer>
           <ImageUpload
             onSuccess={handleAvatarUpload}
             onError={handleAvatarError}
-            submitText="Crop logo"
+            submitText={t("Crop logo")}
             borderRadius={0}
           >
             <Avatar src={avatarUrl} />
             <Flex auto align="center" justify="center">
-              Upload
+              <Trans>Upload</Trans>
             </Flex>
           </ImageUpload>
         </AvatarContainer>
       </ProfilePicture>
       <form onSubmit={handleSubmit} ref={form}>
         <Input
-          label="Name"
+          label={t("Name")}
           name="name"
           autoComplete="organization"
           value={name}
@@ -111,7 +114,7 @@ function Details() {
         {env.SUBDOMAINS_ENABLED && (
           <>
             <Input
-              label="Subdomain"
+              label={t("Subdomain")}
               name="subdomain"
               value={subdomain || ""}
               onChange={handleSubdomainChange}
@@ -122,14 +125,14 @@ function Details() {
             />
             {subdomain && (
               <HelpText small>
-                Your knowledge base will be accessible at{" "}
+                <Trans>Your knowledge base will be accessible at</Trans>{" "}
                 <strong>{subdomain}.getoutline.com</strong>
               </HelpText>
             )}
           </>
         )}
         <Button type="submit" disabled={auth.isSaving || !isValid}>
-          {auth.isSaving ? "Saving…" : "Save"}
+          {auth.isSaving ? t("Saving…") : t("Save")}
         </Button>
       </form>
     </Scene>
