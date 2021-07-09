@@ -1,6 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import mailer from "../mailer";
-import { View, NotificationSetting } from "../models";
+import { View, NotificationSetting, Revision } from "../models";
 import { buildDocument, buildCollection, buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import NotificationsService from "./notifications";
@@ -89,9 +89,10 @@ describe("documents.publish", () => {
   });
 });
 
-describe("documents.update.debounced", () => {
+describe("revisions.create", () => {
   test("should send a notification to other collaborator", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
@@ -103,8 +104,9 @@ describe("documents.update.debounced", () => {
     });
 
     await Notifications.on({
-      name: "documents.update.debounced",
+      name: "revisions.create",
       documentId: document.id,
+      modelId: revision.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
@@ -115,6 +117,7 @@ describe("documents.update.debounced", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
@@ -128,9 +131,10 @@ describe("documents.update.debounced", () => {
     await View.touch(document.id, collaborator.id, true);
 
     await Notifications.on({
-      name: "documents.update.debounced",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
+      modelId: revision.id,
       teamId: document.teamId,
       actorId: document.createdById,
     });
@@ -138,12 +142,13 @@ describe("documents.update.debounced", () => {
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
 
-  test("should not send a notification to last editor", async () => {
+  test("should not send a notification to the last user that modified", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
+    const revision = await Revision.createFromDocument(document);
 
     await NotificationSetting.create({
       userId: user.id,
@@ -152,8 +157,9 @@ describe("documents.update.debounced", () => {
     });
 
     await Notifications.on({
-      name: "documents.update.debounced",
+      name: "revisions.create",
       documentId: document.id,
+      modelId: revision.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,

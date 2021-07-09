@@ -13,6 +13,7 @@ import {
   type Props as DocumentNotificationEmailT,
   DocumentNotificationEmail,
   documentNotificationEmailText,
+  css as documentNotificationEmailCSS,
 } from "./emails/DocumentNotificationEmail";
 import { ExportEmail, exportEmailText } from "./emails/ExportEmail";
 import {
@@ -146,8 +147,9 @@ export class Mailer {
     this.sendMail({
       to: opts.to,
       title: `“${opts.document.title}” ${opts.eventName}`,
-      previewText: `${opts.actor.name} ${opts.eventName} a new document`,
+      previewText: `${opts.actor.name} ${opts.eventName} a document`,
       html: <DocumentNotificationEmail {...opts} />,
+      headCSS: documentNotificationEmailCSS,
       text: documentNotificationEmailText(opts),
     });
   };

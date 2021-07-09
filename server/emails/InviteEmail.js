@@ -47,7 +47,7 @@ export const InviteEmail = ({
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={teamUrl}>Join now</Button>
+          <Button href={`${teamUrl}?ref=invite-email`}>Join now</Button>
         </p>
       </Body>
 

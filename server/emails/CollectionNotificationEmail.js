@@ -41,11 +41,13 @@ export const CollectionNotificationEmail = ({
       <Body>
         <Heading>{collection.name}</Heading>
         <p>
-          {actor.name} {eventName} the collection "{collection.name}".
+          {actor.name} {eventName} the collection “{collection.name}”.
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}${collection.url}`}>
+          <Button
+            href={`${process.env.URL}${collection.url}?ref=notification-email`}
+          >
             Open Collection
           </Button>
         </p>

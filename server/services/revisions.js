@@ -1,6 +1,6 @@
 // @flow
 import type { DocumentEvent, RevisionEvent } from "../events";
-import { Revision, Document } from "../models";
+import { Revision, Document, Event } from "../models";
 
 export default class Revisions {
   async on(event: DocumentEvent | RevisionEvent) {
@@ -22,7 +22,15 @@ export default class Revisions {
           return;
         }
 
-        await Revision.createFromDocument(document);
+        const revision = await Revision.createFromDocument(document);
+        Event.add({
+          name: "revisions.create",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          modelId: revision.id,
+          teamId: document.teamId,
+          actorId: revision.userId,
+        });
 
         break;
       }

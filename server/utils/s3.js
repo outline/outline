@@ -163,13 +163,13 @@ export const deleteFromS3 = (key: string) => {
     .promise();
 };
 
-export const getSignedImageUrl = async (key: string) => {
+export const getSignedImageUrl = async (key: string, expires: number = 60) => {
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
 
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
-    Expires: 60,
+    Expires: expires,
   };
 
   return isDocker
