@@ -189,6 +189,7 @@
     "html-webpack-plugin": "3.2.0",
     "i18next-parser": "^3.3.0",
     "jest-cli": "^26.0.0",
+    "jest-fetch-mock": "^3.0.3",
     "koa-webpack-dev-middleware": "^1.4.5",
     "koa-webpack-hot-middleware": "^1.0.3",
     "nodemon": "^1.19.4",
