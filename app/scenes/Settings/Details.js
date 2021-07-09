@@ -132,7 +132,7 @@ function Details() {
           </>
         )}
         <Button type="submit" disabled={auth.isSaving || !isValid}>
-          {auth.isSaving ? t("Saving…") : t("Save")}
+          {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>
     </Scene>
