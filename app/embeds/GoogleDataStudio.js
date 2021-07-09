@@ -4,10 +4,7 @@ import Image from "components/Image";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  "^https?://datastudio.google.com/embed/reporting/(.*)/page/(.*)$"
-);
-const URL_REGEX_SECONDARY = new RegExp(
-  "^https?://datastudio.google.com/u/0/reporting/(.*)/page/(.*)/edit?$"
+  "^https?://datastudio.google.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
 );
 
 type Props = {|
@@ -18,7 +15,7 @@ type Props = {|
 |};
 
 export default class GoogleDataStudio extends React.Component<Props> {
-  static ENABLED = [URL_REGEX] || [URL_REGEX_SECONDARY];
+  static ENABLED = [URL_REGEX];
 
   render() {
     return (
