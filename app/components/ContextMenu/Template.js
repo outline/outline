@@ -169,8 +169,20 @@ function Template({ items, ...menu }: Props): React.Node {
       return <Separator key={index} />;
     }
 
+    if (item.type === "heading") {
+      return <Heading>{item.title}</Heading>;
+    }
+
     return null;
   });
 }
+
+const Heading = styled("h3")`
+  padding: 0 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.sidebarText};
+  letter-spacing: 0.04em;
+`;
 
 export default React.memo<Props>(Template);

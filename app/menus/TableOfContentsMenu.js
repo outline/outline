@@ -1,5 +1,4 @@
 // @flow
-
 import { observer } from "mobx-react";
 import { TableOfContentsIcon } from "outline-icons";
 import * as React from "react";
@@ -44,13 +43,20 @@ function TableOfContentsMenu({ headings }: Props) {
       <ContextMenu {...menu} aria-label={t("Table of contents")}>
         <Template
           {...menu}
-          items={headings.map((heading) => {
-            return {
-              href: `#${heading.id}`,
-              title: `${t(heading.title)}`,
-              level: heading.level - minHeading,
-            };
-          })}
+          items={[
+            {
+              type: "heading",
+              visible: true,
+              title: t("Contents"),
+            },
+            ...headings.map((heading) => {
+              return {
+                href: `#${heading.id}`,
+                title: t(heading.title),
+                level: heading.level - minHeading,
+              };
+            }),
+          ]}
         />
       </ContextMenu>
     </>
