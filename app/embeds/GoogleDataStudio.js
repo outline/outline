@@ -32,7 +32,7 @@ export default class GoogleDataStudio extends React.Component<Props> {
         icon={
           <Image
             src="/images/google-datastudio.png"
-            alt="Google DataStudio Icon"
+            alt="Google Data Studio Icon"
             width={16}
             height={16}
           />
