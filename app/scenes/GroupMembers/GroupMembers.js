@@ -1,14 +1,8 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
-import AuthStore from "stores/AuthStore";
-import GroupMembershipsStore from "stores/GroupMembershipsStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UiStore from "stores/UiStore";
-import UsersStore from "stores/UsersStore";
+import { useTranslation, Trans } from "react-i18next";
 import Group from "models/Group";
 import User from "models/User";
 import Button from "components/Button";
@@ -20,112 +14,101 @@ import PaginatedList from "components/PaginatedList";
 import Subheading from "components/Subheading";
 import AddPeopleToGroup from "./AddPeopleToGroup";
 import GroupMemberListItem from "./components/GroupMemberListItem";
+import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 
 type Props = {
-  ui: UiStore,
-  auth: AuthStore,
   group: Group,
-  users: UsersStore,
-  policies: PoliciesStore,
-  groupMemberships: GroupMembershipsStore,
-  t: TFunction,
 };
 
-@observer
-class GroupMembers extends React.Component<Props> {
-  @observable addModalOpen: boolean = false;
+function GroupMembers({ group }: Props) {
+  const [addModalOpen, setAddModalOpen] = React.useState();
+  const { users, groupMemberships, policies, ui } = useStores();
+  const { t } = useTranslation();
+  const can = policies.abilities(group.id);
 
-  handleAddModalOpen = () => {
-    this.addModalOpen = true;
+  // validate user is not null
+  useCurrentUser();
+
+  const handleAddModal = (state) => {
+    setAddModalOpen(state);
   };
 
-  handleAddModalClose = () => {
-    this.addModalOpen = false;
-  };
-
-  handleRemoveUser = async (user: User) => {
-    const { t } = this.props;
-
+  const handleRemoveUser = async (user: User) => {
     try {
-      await this.props.groupMemberships.delete({
-        groupId: this.props.group.id,
+      await groupMemberships.delete({
+        groupId: group.id,
         userId: user.id,
       });
-      this.props.ui.showToast(
+      ui.showToast(
         t(`{{userName}} was removed from the group`, { userName: user.name }),
         { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not remove user"), { type: "error" });
+      ui.showToast(t("Could not remove user"), { type: "error" });
     }
   };
 
-  render() {
-    const { group, users, groupMemberships, policies, t, auth } = this.props;
-    const { user } = auth;
-    if (!user) return null;
-
-    const can = policies.abilities(group.id);
-
-    return (
-      <Flex column>
-        {can.update ? (
-          <>
-            <HelpText>
+  return (
+    <Flex column>
+      {can.update ? (
+        <>
+          <HelpText>
+            <Trans>
               Add and remove team members in the <strong>{group.name}</strong>{" "}
               group. Adding people to the group will give them access to any
               collections this group has been added to.
-            </HelpText>
-            <span>
-              <Button
-                type="button"
-                onClick={this.handleAddModalOpen}
-                icon={<PlusIcon />}
-                neutral
-              >
-                {t("Add people")}…
-              </Button>
-            </span>
-          </>
-        ) : (
-          <HelpText>
-            Listing team members in the <strong>{group.name}</strong> group.
+            </Trans>
           </HelpText>
-        )}
+          <span>
+            <Button
+              type="button"
+              onClick={() => handleAddModal(true)}
+              icon={<PlusIcon />}
+              neutral
+            >
+              {t("Add people")}…
+            </Button>
+          </span>
+        </>
+      ) : (
+        <HelpText>
+          <Trans>
+            Listing team members in the <strong>{group.name}</strong> group.
+          </Trans>
+        </HelpText>
+      )}
 
-        <Subheading>Members</Subheading>
-        <PaginatedList
-          items={users.inGroup(group.id)}
-          fetch={groupMemberships.fetchPage}
-          options={{ id: group.id }}
-          empty={<Empty>{t("This group has no members.")}</Empty>}
-          renderItem={(item) => (
-            <GroupMemberListItem
-              key={item.id}
-              user={item}
-              onRemove={
-                can.update ? () => this.handleRemoveUser(item) : undefined
-              }
-            />
-          )}
-        />
-        {can.update && (
-          <Modal
-            title={`Add people to ${group.name}`}
-            onRequestClose={this.handleAddModalClose}
-            isOpen={this.addModalOpen}
-          >
-            <AddPeopleToGroup
-              group={group}
-              onSubmit={this.handleAddModalClose}
-            />
-          </Modal>
+      <Subheading>
+        <Trans>Members</Trans>
+      </Subheading>
+      <PaginatedList
+        items={users.inGroup(group.id)}
+        fetch={groupMemberships.fetchPage}
+        options={{ id: group.id }}
+        empty={<Empty>{t("This group has no members.")}</Empty>}
+        renderItem={(item) => (
+          <GroupMemberListItem
+            key={item.id}
+            user={item}
+            onRemove={can.update ? () => handleRemoveUser(item) : undefined}
+          />
         )}
-      </Flex>
-    );
-  }
+      />
+      {can.update && (
+        <Modal
+          title={t(`Add people to {{groupName}}`, { groupName: group.name })}
+          onRequestClose={() => handleAddModal(false)}
+          isOpen={addModalOpen}
+        >
+          <AddPeopleToGroup
+            group={group}
+            onSubmit={() => handleAddModal(false)}
+          />
+        </Modal>
+      )}
+    </Flex>
+  );
 }
 
-export default withTranslation()<GroupMembers>(
-  inject("auth", "users", "policies", "groupMemberships", "ui")(GroupMembers)
-);
+export default observer(GroupMembers);

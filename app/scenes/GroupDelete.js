@@ -1,59 +1,57 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import { groupSettings } from "shared/utils/routeHelpers";
-import UiStore from "stores/UiStore";
 import Group from "models/Group";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
+import useStores from "hooks/useStores";
 
-type Props = {
-  history: RouterHistory,
+type Props = {|
   group: Group,
-  ui: UiStore,
   onSubmit: () => void,
-};
+|};
 
-@observer
-class GroupDelete extends React.Component<Props> {
-  @observable isDeleting: boolean;
+function GroupDelete({ group, onSubmit }: Props) {
+  const { ui } = useStores();
+  const { t } = useTranslation();
+  const history = useHistory();
+  const [isDeleting, setIsDeleting] = React.useState();
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
+  const handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.isDeleting = true;
+    setIsDeleting(true);
 
     try {
-      await this.props.group.delete();
-      this.props.history.push(groupSettings());
-      this.props.onSubmit();
+      await group.delete();
+      history.push(groupSettings());
+      onSubmit();
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      ui.showToast(err.message, { type: "error" });
     } finally {
-      this.isDeleting = false;
+      setIsDeleting(false);
     }
   };
 
-  render() {
-    const { group } = this.props;
-
-    return (
-      <Flex column>
-        <form onSubmit={this.handleSubmit}>
-          <HelpText>
+  return (
+    <Flex column>
+      <form onSubmit={handleSubmit}>
+        <HelpText>
+          <Trans>
             Are you sure about that? Deleting the <strong>{group.name}</strong>{" "}
             group will cause its members to lose access to collections and
             documents that it is associated with.
-          </HelpText>
-          <Button type="submit" danger>
-            {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
-          </Button>
-        </form>
-      </Flex>
-    );
-  }
+          </Trans>
+        </HelpText>
+        <Button type="submit" danger>
+          {isDeleting ? `${t("Deleting")}...` : t("I’m sure – Delete")}
+        </Button>
+      </form>
+    </Flex>
+  );
 }
 
-export default inject("ui")(withRouter(GroupDelete));
+export default observer(GroupDelete);
