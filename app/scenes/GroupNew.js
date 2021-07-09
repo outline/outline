@@ -73,7 +73,7 @@ function GroupNew({ groups, onSubmit }: Props) {
         </HelpText>
 
         <Button type="submit" disabled={isSaving || !name}>
-          {isSaving ? `${t("Creating")}...` : t("Continue")}
+          {isSaving ? `${t("Creating")}…` : t("Continue")}
         </Button>
       </form>
       <Modal
