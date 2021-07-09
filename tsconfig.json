@@ -1,6 +1,28 @@
 {
   "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "esModuleInterop": true,
-  }
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "paths": {
+      "components": [
+        "./app/components"
+      ],
+      "shared": [
+        "./shared"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "build"
+  ]
 }

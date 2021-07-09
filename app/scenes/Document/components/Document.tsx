@@ -300,8 +300,15 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { document, revision, readOnly, abilities, auth, ui, match } =
-      this.props;
+    const {
+      document,
+      revision,
+      readOnly,
+      abilities,
+      auth,
+      ui,
+      match,
+    } = this.props;
     const team = auth.team;
     const { shareId } = match.params;
     const isShare = !!shareId;

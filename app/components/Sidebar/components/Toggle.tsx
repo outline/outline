@@ -9,7 +9,7 @@ type Props = {
   onClick?: () => any;
 };
 
-const Toggle = React.forwardRef<HTMLButtonElement, Props>(
+const Toggle = React.forwardRef<HTMLButtonElement>(
   ({ direction = "left", onClick, style }: Props, ref) => {
     return (
       <Positioner style={style}>

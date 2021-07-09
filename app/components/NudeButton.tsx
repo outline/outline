@@ -13,6 +13,6 @@ const Button = styled.button`
   user-select: none;
 `;
 
-export default React.forwardRef<typeof Button, any>(
+export default React.forwardRef<typeof Button>(
   ({ size = 24, ...props }, ref) => <Button size={size} {...props} ref={ref} />
 );

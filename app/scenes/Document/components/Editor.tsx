@@ -1,6 +1,7 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -18,8 +19,6 @@ import Star, { AnimatedStar } from "components/Star";
 import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-import type { ChangeEvent, KeyboardEvent } from "react";
-
 type Props = {
   onChangeTitle: (event: ChangeEvent) => void;
   title: string;
@@ -35,9 +34,10 @@ type Props = {
 
 @observer
 class DocumentEditor extends React.Component<Props> {
-  @observable
-  activeLinkEvent: MouseEvent | undefined | null;
-  @observable ref = React.createRef<HTMLDivElement | HTMLInputElement>();
+  @observable activeLinkEvent: MouseEvent | undefined | null;
+  @observable ref = React.createRef<
+    HTMLDivElement | HTMLTextAreaElement | HTMLInputElement
+  >();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {

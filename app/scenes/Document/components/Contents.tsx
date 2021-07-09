@@ -15,7 +15,7 @@ type Props = {
 };
 
 export default function Contents({ headings }: Props) {
-  const [activeSlug, setActiveSlug] = React.useState();
+  const [activeSlug, setActiveSlug] = React.useState<string | void>();
   const position = useWindowScrollPosition({ throttle: 100 });
 
   React.useEffect(() => {

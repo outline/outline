@@ -20,20 +20,16 @@ module.exports = {
       {
         test: /\.tsx?$/,
         loader: 'ts-loader',
-        exclude: [
-          path.join(__dirname, 'node_modules')
-        ],
+        options: {
+          transpileOnly: true
+        },
         include: [
           path.join(__dirname, 'app'),
         ],
       },
       {
-        
-       test: /\.(js|ts)x?$/,
+       test: /\.(j|t)sx?$/,
        loader: 'babel-loader',
-       exclude: [
-         path.join(__dirname, 'node_modules')
-       ],
        include: [
          path.join(__dirname, 'app'),
          path.join(__dirname, 'shared'),

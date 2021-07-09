@@ -140,6 +140,6 @@ const Bar = styled(Flex)`
   user-select: none;
 `;
 
-export default React.forwardRef<typeof Frame, Props>((props, ref) => (
+export default React.forwardRef<HTMLIFrameElement>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));

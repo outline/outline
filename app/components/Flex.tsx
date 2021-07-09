@@ -26,7 +26,7 @@ type Props = {
   gap?: number;
 };
 
-const Flex = React.forwardRef<HTMLDivElement, Props>((props: Props, ref) => {
+const Flex = React.forwardRef<HTMLDivElement>((props: Props, ref) => {
   const { children, ...restProps } = props;
 
   return (

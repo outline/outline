@@ -1,9 +1,8 @@
 import { ExpandedIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
-import styled from "styled-components";
-
 import type { SyntheticEvent } from "react";
+import styled from "styled-components";
 
 const RealButton = styled.button`
   display: ${(props) => (props.fullwidth ? "block" : "inline-block")};
@@ -134,7 +133,7 @@ export type Props = {
   "data-event-action"?: string;
 };
 
-const Button = React.forwardRef<HTMLButtonElement, Props>(
+const Button = React.forwardRef<HTMLButtonElement>(
   (
     {
       type = "text",

@@ -76,7 +76,7 @@
     },
     "import/resolver": {
       "typescript": {
-        "alwaysTryTypes": true,
+        "alwaysTryTypes": true
       },
       "node": {
         "paths": [

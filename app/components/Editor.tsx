@@ -1,5 +1,6 @@
 import { lighten } from "polished";
 import * as React from "react";
+import type { SyntheticEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter } from "react-router-dom";
 import type { RouterHistory } from "react-router-dom";
@@ -15,10 +16,11 @@ import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl } from "utils/urls";
 
-import type { SyntheticEvent } from "react";
-
-const RichMarkdownEditor = React.lazy(() =>
-  import(/* webpackChunkName: "rich-markdown-editor" */ "rich-markdown-editor")
+const RichMarkdownEditor = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "rich-markdown-editor" */ "rich-markdown-editor"
+    )
 );
 
 const EMPTY_ARRAY = [];
@@ -265,6 +267,6 @@ const Span = styled.span`
 
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 
-export default React.forwardRef<typeof Editor, Props>((props, ref) => (
+export default React.forwardRef<typeof Editor>((props, ref) => (
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));

@@ -234,7 +234,7 @@
     "@types/react-i18next": "^8.1.0",
     "@types/react-is": "^17.0.1",
     "@types/react-portal": "^4.0.2",
-    "@types/react-router-dom": "^5.1.7",
+    "@types/react-router-dom": "^5.1.8",
     "@types/react-table": "^7.7.1",
     "@types/react-virtualized-auto-sizer": "^1.0.0",
     "@types/react-window": "^1.8.3",

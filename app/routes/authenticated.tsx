@@ -1,6 +1,5 @@
 import * as React from "react";
-import { Switch, Redirect } from "react-router-dom";
-import type { Match } from "react-router-dom";
+import { Switch, Redirect, Match } from "react-router-dom";
 import Archive from "scenes/Archive";
 import Collection from "scenes/Collection";
 import DocumentNew from "scenes/DocumentNew";
@@ -19,13 +18,14 @@ import Route from "components/ProfiledRoute";
 import SocketProvider from "components/SocketProvider";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
-const SettingsRoutes = React.lazy(() =>
-  import(/* webpackChunkName: "settings" */ "./settings")
+const SettingsRoutes = React.lazy(
+  () => import(/* webpackChunkName: "settings" */ "./settings")
 );
-const KeyedDocument = React.lazy(() =>
-  import(
-    /* webpackChunkName: "keyed-document" */ "scenes/Document/KeyedDocument"
-  )
+const KeyedDocument = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "keyed-document" */ "scenes/Document/KeyedDocument"
+    )
 );
 const NotFound = () => <Search notFound />;
 const RedirectDocument = ({ match }: { match: Match }) => (

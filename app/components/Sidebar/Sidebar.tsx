@@ -20,7 +20,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const Sidebar = React.forwardRef<HTMLButtonElement, Props>(
+const Sidebar = React.forwardRef<HTMLButtonElement>(
   ({ children }: Props, ref) => {
     const [isCollapsing, setCollapsing] = React.useState(false);
     const theme = useTheme();
