@@ -57,9 +57,6 @@ module.exports = {
     new webpack.DefinePlugin({
       EDITOR_VERSION: JSON.stringify(pkg.version)
     }),
-    new webpack.ProvidePlugin({
-      fetch: 'imports-loader?this=>global!exports-loader?global.fetch!isomorphic-fetch',
-    }),
     new webpack.IgnorePlugin(/unicode\/category\/So/),
     new HtmlWebpackPlugin({
       template: 'server/static/index.html',
