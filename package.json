@@ -13,6 +13,7 @@
     "dev": "nodemon --exec \"yarn build:server && yarn build:i18n && node --inspect=0.0.0.0 build/server/index.js\" -e js --ignore build/ --ignore app/",
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
+    "postinstall": "yarn yarn-deduplicate yarn.lock",
     "heroku-postbuild": "yarn build && yarn db:migrate",
     "sequelize:migrate": "sequelize db:migrate",
     "db:create-migration": "sequelize migration:create",
@@ -119,7 +120,7 @@
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "polished": "3.6.5",
-    "query-string": "^4.3.4",
+    "query-string": "^7.0.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
@@ -201,7 +202,8 @@
     "webpack-cli": "^3.3.12",
     "webpack-manifest-plugin": "^3.0.0",
     "webpack-pwa-manifest": "^4.3.0",
-    "workbox-webpack-plugin": "^6.1.0"
+    "workbox-webpack-plugin": "^6.1.0",
+    "yarn-deduplicate": "^3.1.0"
   },
   "resolutions": {
     "prosemirror-view": "1.18.1",

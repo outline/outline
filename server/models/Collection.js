@@ -395,7 +395,11 @@ Collection.prototype.isChildDocument = function (
   let result = false;
 
   const loopChildren = (documents, input) => {
-    return documents.map((document) => {
+    if (result) {
+      return;
+    }
+
+    documents.forEach((document) => {
       let parents = [...input];
       if (document.id === documentId) {
         result = parents.includes(parentDocumentId);
@@ -403,7 +407,6 @@ Collection.prototype.isChildDocument = function (
         parents.push(document.id);
         loopChildren(document.children, parents);
       }
-      return document;
     });
   };
 

@@ -12,7 +12,7 @@ import CollectionExport from "scenes/CollectionExport";
 import CollectionPermissions from "scenes/CollectionPermissions";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import Template from "components/ContextMenu/Template";
+import Template, { filterTemplateItems } from "components/ContextMenu/Template";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -110,6 +110,52 @@ function CollectionMenu({
   );
 
   const can = policies.abilities(collection.id);
+  const items = React.useMemo(
+    () =>
+      filterTemplateItems([
+        {
+          title: t("New document"),
+          visible: can.update,
+          onClick: handleNewDocument,
+        },
+        {
+          title: t("Import document"),
+          visible: can.update,
+          onClick: handleImportDocument,
+        },
+        {
+          type: "separator",
+        },
+        {
+          title: `${t("Edit")}…`,
+          visible: can.update,
+          onClick: () => setShowCollectionEdit(true),
+        },
+        {
+          title: `${t("Permissions")}…`,
+          visible: can.update,
+          onClick: () => setShowCollectionPermissions(true),
+        },
+        {
+          title: `${t("Export")}…`,
+          visible: !!(collection && can.export),
+          onClick: () => setShowCollectionExport(true),
+        },
+        {
+          type: "separator",
+        },
+        {
+          title: `${t("Delete")}…`,
+          visible: !!(collection && can.delete),
+          onClick: () => setShowCollectionDelete(true),
+        },
+      ]),
+    [can, collection, handleNewDocument, handleImportDocument, t]
+  );
+
+  if (!items.length) {
+    return null;
+  }
 
   return (
     <>
@@ -134,47 +180,7 @@ function CollectionMenu({
         onClose={onClose}
         aria-label={t("Collection")}
       >
-        <Template
-          {...menu}
-          items={[
-            {
-              title: t("New document"),
-              visible: can.update,
-              onClick: handleNewDocument,
-            },
-            {
-              title: t("Import document"),
-              visible: can.update,
-              onClick: handleImportDocument,
-            },
-            {
-              type: "separator",
-            },
-            {
-              title: `${t("Edit")}…`,
-              visible: can.update,
-              onClick: () => setShowCollectionEdit(true),
-            },
-            {
-              title: `${t("Permissions")}…`,
-              visible: can.update,
-              onClick: () => setShowCollectionPermissions(true),
-            },
-            {
-              title: `${t("Export")}…`,
-              visible: !!(collection && can.export),
-              onClick: () => setShowCollectionExport(true),
-            },
-            {
-              type: "separator",
-            },
-            {
-              title: `${t("Delete")}…`,
-              visible: !!(collection && can.delete),
-              onClick: () => setShowCollectionDelete(true),
-            },
-          ]}
-        />
+        <Template {...menu} items={items} />
       </ContextMenu>
       {renderModals && (
         <>

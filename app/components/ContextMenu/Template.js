@@ -83,7 +83,7 @@ const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   );
 });
 
-function Template({ items, ...menu }: Props): React.Node {
+export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   let filtered = items.filter((item) => item.visible !== false);
 
   // this block literally just trims unneccessary separators
@@ -101,7 +101,11 @@ function Template({ items, ...menu }: Props): React.Node {
     return [...acc, item];
   }, []);
 
-  return filtered.map((item, index) => {
+  return filtered;
+}
+
+function Template({ items, ...menu }: Props): React.Node {
+  return filterTemplateItems(items).map((item, index) => {
     if (item.to) {
       return (
         <MenuItem
