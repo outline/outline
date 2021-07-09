@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Redirect, Link } from "react-router-dom";
-import type { Location } from "react-router-dom";
+import { Location } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
 import ButtonLarge from "components/ButtonLarge";

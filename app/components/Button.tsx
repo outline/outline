@@ -1,7 +1,7 @@
 import { ExpandedIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 import styled from "styled-components";
 
 const RealButton = styled.button`

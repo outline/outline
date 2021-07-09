@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Subheading from "components/Subheading";
 import ReferenceListItem from "./ReferenceListItem";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 
 type Props = {
   shareId: string;

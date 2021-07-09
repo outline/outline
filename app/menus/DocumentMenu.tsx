@@ -25,7 +25,7 @@ import {
   newDocumentUrl,
 } from "utils/routeHelpers";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   document: Document;

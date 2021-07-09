@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import Input from "./Input";
 
-import type { Props as InputProps } from "./Input";
+import { Props as InputProps } from "./Input";
 
-import type { ChangeEvent, KeyboardEvent } from "react";
+import { ChangeEvent, KeyboardEvent } from "react";
 
 type Props = {
   placeholder?: string;

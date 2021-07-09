@@ -4,7 +4,7 @@ import { inject, observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
-import type { Match, RouterHistory } from "react-router-dom";
+import { Match, RouterHistory } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 

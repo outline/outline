@@ -13,9 +13,9 @@ import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   node: NavigationNode;

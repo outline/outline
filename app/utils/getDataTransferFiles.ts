@@ -1,4 +1,4 @@
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 export default function getDataTransferFiles(event: SyntheticEvent): File[] {
   let dataTransferItemsList = [];
 

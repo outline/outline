@@ -4,7 +4,7 @@ import { action, runInAction } from "mobx";
 import GroupMembership from "models/GroupMembership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import type { PaginationParams } from "types";
+import { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
 
 export default class GroupMembershipsStore extends BaseStore<GroupMembership> {

@@ -2,21 +2,17 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { SyntheticEvent, ChangeEvent, KeyboardEvent } from "react";
+import { withTranslation, TFunction } from "react-i18next";
 import keydown from "react-keydown";
-import { withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { withRouter, RouteComponentProps } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Input from "./Input";
-import type { Theme } from "types";
+import { Theme } from "types";
 import { meta } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
-import type { SyntheticEvent, ChangeEvent, KeyboardEvent } from "react";
-
-type Props = {
-  history: RouterHistory;
+type Props = RouteComponentProps & {
   theme: Theme;
   source: string;
   placeholder?: string;

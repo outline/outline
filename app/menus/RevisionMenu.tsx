@@ -13,7 +13,7 @@ import CopyToClipboard from "components/CopyToClipboard";
 import useStores from "hooks/useStores";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   document: Document;

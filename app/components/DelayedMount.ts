@@ -2,7 +2,7 @@ import * as React from "react";
 
 type Props = {
   delay?: number;
-  children: React.ReactNode;
+  children: JSX.Element;
 };
 
 export default function DelayedMount({ delay = 250, children }: Props) {

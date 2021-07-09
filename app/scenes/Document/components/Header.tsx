@@ -24,7 +24,7 @@ import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 

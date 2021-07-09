@@ -2,7 +2,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
@@ -14,7 +14,7 @@ import Input from "components/Input";
 import InputSelect from "components/InputSelect";
 import Switch from "components/Switch";
 
-import type { SyntheticEvent, ChangeEvent } from "react";
+import { SyntheticEvent, ChangeEvent } from "react";
 
 type Props = {
   collection: Collection;

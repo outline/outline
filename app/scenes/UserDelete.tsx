@@ -8,7 +8,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   auth: AuthStore;

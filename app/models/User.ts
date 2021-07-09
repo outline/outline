@@ -1,5 +1,5 @@
 import { computed } from "mobx";
-import type { Rank } from "shared/types";
+import { Rank } from "shared/types";
 import BaseModel from "./BaseModel";
 
 class User extends BaseModel {

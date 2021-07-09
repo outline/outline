@@ -5,7 +5,7 @@ import styled from "styled-components";
 import Document from "models/Document";
 import NudeButton from "./NudeButton";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   document: Document;

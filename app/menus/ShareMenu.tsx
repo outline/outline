@@ -10,7 +10,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import CopyToClipboard from "components/CopyToClipboard";
 import useStores from "hooks/useStores";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   share: Share;

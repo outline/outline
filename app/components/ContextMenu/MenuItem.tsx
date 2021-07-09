@@ -4,7 +4,7 @@ import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   onClick?: (a: SyntheticEvent) => void | Promise<void>;

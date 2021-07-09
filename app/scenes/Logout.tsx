@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Redirect } from "react-router-dom";
-import useStores from "../hooks/useStores";
+import useStores from "hooks/useStores";
 
 const Logout = () => {
   const { auth } = useStores();

@@ -18,16 +18,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        loader: 'ts-loader',
-        options: {
-          transpileOnly: true
-        },
-        include: [
-          path.join(__dirname, 'app'),
-        ],
-      },
-      {
        test: /\.(j|t)sx?$/,
        loader: 'babel-loader',
        include: [

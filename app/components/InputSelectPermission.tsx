@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import InputSelect from "./InputSelect";
 
-import type { Props, Option } from "./InputSelect";
+import { Props, Option } from "./InputSelect";
 
 export default function InputSelectPermission(props: Omit<Props, "options">) {
   const { t } = useTranslation();

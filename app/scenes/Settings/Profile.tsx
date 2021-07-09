@@ -3,7 +3,7 @@ import { observer, inject } from "mobx-react";
 import { ProfileIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import styled from "styled-components";
 import { languageOptions } from "shared/i18n";
 import AuthStore from "stores/AuthStore";
@@ -18,7 +18,7 @@ import InputSelect from "components/InputSelect";
 import Scene from "components/Scene";
 import ImageUpload from "./components/ImageUpload";
 
-import type { SyntheticEvent, ChangeEvent } from "react";
+import { SyntheticEvent, ChangeEvent } from "react";
 
 type Props = {
   auth: AuthStore;

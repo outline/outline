@@ -19,7 +19,7 @@ type Props = {
   collection: Collection;
   canUpdate: boolean;
   activeDocument: Document | undefined | null;
-  prefetchDocument: (id: string) => Promise<void>;
+  prefetchDocument: (id: string) => Promise<any>;
   belowCollection: Collection | void;
   isDraggingAnyCollection: boolean;
   onChangeDragging: (dragging: boolean) => void;
@@ -204,7 +204,7 @@ function CollectionLink({
   );
 }
 
-const Draggable = styled("div")`
+const Draggable = styled.div`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
 `;

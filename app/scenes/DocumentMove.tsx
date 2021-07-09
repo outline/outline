@@ -7,7 +7,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
 import CollectionsStore from "stores/CollectionsStore";
-import type { DocumentPath } from "stores/CollectionsStore";
+import { DocumentPath } from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
@@ -16,7 +16,7 @@ import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
 import PathToDocument from "components/PathToDocument";
 
-import type { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 
 type Props = {
   document: Document;

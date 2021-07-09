@@ -3,7 +3,7 @@ import { inject, observer } from "mobx-react";
 import { LinkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { Link, withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -17,7 +17,7 @@ import Input from "components/Input";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 const MAX_INVITES = 20;
 

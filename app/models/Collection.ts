@@ -2,7 +2,7 @@ import { pick, trim } from "lodash";
 import { action, computed, observable } from "mobx";
 import BaseModel from "models/BaseModel";
 import Document from "models/Document";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 import { client } from "utils/ApiClient";
 
 export default class Collection extends BaseModel {

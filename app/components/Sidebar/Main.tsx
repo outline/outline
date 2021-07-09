@@ -29,7 +29,7 @@ import TeamButton from "./components/TeamButton";
 import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 function MainSidebar() {
   const { t } = useTranslation();

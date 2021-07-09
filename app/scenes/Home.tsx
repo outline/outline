@@ -11,7 +11,7 @@ import Scene from "components/Scene";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
-import useStores from "../hooks/useStores";
+import useStores from "hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
 function Home() {

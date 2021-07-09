@@ -4,8 +4,8 @@ import { EditIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
-import type { RouterHistory } from "react-router-dom";
+import { TFunction } from "react-i18next";
+import { RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import CollectionFilter from "scenes/Search/components/CollectionFilter";
@@ -19,7 +19,7 @@ import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import NewDocumentMenu from "menus/NewDocumentMenu";
-import type { LocationWithState } from "types";
+import { LocationWithState } from "types";
 
 type Props = {
   documents: DocumentsStore;

@@ -14,7 +14,7 @@ import Scene from "components/Scene";
 import ImageUpload from "./components/ImageUpload";
 import env from "env";
 
-import type { SyntheticEvent, ChangeEvent } from "react";
+import { SyntheticEvent, ChangeEvent } from "react";
 
 type Props = {
   auth: AuthStore;

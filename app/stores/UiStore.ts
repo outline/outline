@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { light as defaultTheme } from "shared/styles/theme";
 import Collection from "models/Collection";
 import Document from "models/Document";
-import type { Toast } from "types";
+import { Toast } from "types";
 
 const UI_STORE = "UI_STORE";
 

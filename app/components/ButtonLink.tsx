@@ -1,7 +1,6 @@
 import * as React from "react";
+import { SyntheticEvent } from "react";
 import styled from "styled-components";
-
-import type { SyntheticEvent } from "react";
 
 type Props = {
   onClick: (ev: SyntheticEvent) => void;

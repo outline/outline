@@ -3,7 +3,7 @@ import { darken } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { fadeAndScaleIn, pulse } from "shared/styles/animations";
-import type { Toast as TToast } from "types";
+import { Toast as TToast } from "types";
 
 type Props = {
   onRequestClose: () => void;

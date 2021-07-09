@@ -1,6 +1,6 @@
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import TeamLogo from "components/TeamLogo";
@@ -13,10 +13,10 @@ type Props = {
   logoUrl: string;
 };
 
-const TeamButton = React.forwardRef<any>(
+const TeamButton = React.forwardRef<HTMLButtonElement, Props>(
   ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => (
     <Wrapper>
-      <Header justify="flex-start" align="center" ref={ref} {...rest}>
+      <Header ref={ref} {...rest}>
         <TeamLogo
           alt={`${teamName} logo`}
           src={logoUrl}
@@ -24,7 +24,7 @@ const TeamButton = React.forwardRef<any>(
           height={38}
         />
         <Flex align="flex-start" column>
-          <TeamName showDisclosure>
+          <TeamName>
             {teamName} {showDisclosure && <Disclosure color="currentColor" />}
           </TeamName>
           <Subheading>{subheading}</Subheading>

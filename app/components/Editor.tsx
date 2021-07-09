@@ -1,9 +1,9 @@
 import { lighten } from "polished";
 import * as React from "react";
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { withRouter, RouterHistory } from "react-router-dom";
+
 import styled, { withTheme } from "styled-components";
 import { light } from "shared/styles/theme";
 import UiStore from "stores/UiStore";
@@ -11,7 +11,7 @@ import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
 import useMediaQuery from "hooks/useMediaQuery";
-import type { Theme } from "types";
+import { Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl } from "utils/urls";

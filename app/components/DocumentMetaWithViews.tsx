@@ -7,7 +7,7 @@ import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
 import DocumentViews from "components/DocumentViews";
 import Popover from "components/Popover";
-import useStores from "../hooks/useStores";
+import useStores from "hooks/useStores";
 
 type Props = {
   document: Document;
@@ -61,7 +61,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   );
 }
 
-const Meta = styled(DocumentMeta)`
+const Meta = styled(DocumentMeta)<{ rtl: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   margin: -12px 0 2em 0;
   font-size: 14px;

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   children: React.ReactNode;

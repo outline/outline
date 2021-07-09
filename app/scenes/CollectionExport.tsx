@@ -8,7 +8,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   collection: Collection;

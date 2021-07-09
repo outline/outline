@@ -19,7 +19,7 @@ class Mask extends React.Component<Props> {
   }
 
   constructor(props: Props) {
-    super();
+    super(props);
     this.width = randomInteger(props.minWidth || 75, props.maxWidth || 100);
   }
 

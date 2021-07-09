@@ -1,12 +1,12 @@
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-
-import AuthStore from "stores/AuthStore";
 import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
+import useStores from "hooks/useStores";
 
-const ErrorSuspended = ({ auth }: { auth: AuthStore }) => {
+const ErrorSuspended = () => {
+  const { auth } = useStores();
   const { t } = useTranslation();
 
   return (
@@ -30,4 +30,4 @@ const ErrorSuspended = ({ auth }: { auth: AuthStore }) => {
   );
 };
 
-export default inject("auth")(observer(ErrorSuspended));
+export default observer(ErrorSuspended);

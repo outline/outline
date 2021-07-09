@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 
 type Props = {
   shareId?: string;

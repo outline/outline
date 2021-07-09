@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { KeyboardEvent } from "react";
 const isMac = window.navigator.platform === "MacIntel";
 
 export const metaDisplay = isMac ? "⌘" : "Ctrl";

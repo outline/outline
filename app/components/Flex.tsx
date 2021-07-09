@@ -26,17 +26,7 @@ type Props = {
   gap?: number;
 };
 
-const Flex = React.forwardRef<HTMLDivElement>((props: Props, ref) => {
-  const { children, ...restProps } = props;
-
-  return (
-    <Container ref={ref} {...restProps}>
-      {children}
-    </Container>
-  );
-});
-
-const Container = styled.div`
+const Flex = styled.div<Props>`
   display: flex;
   flex: ${({ auto }) => (auto ? "1 1 auto" : "initial")};
   flex-direction: ${({ column }) => (column ? "column" : "row")};

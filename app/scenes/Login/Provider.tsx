@@ -6,7 +6,7 @@ import ButtonLarge from "components/ButtonLarge";
 import InputLarge from "components/InputLarge";
 import { client } from "utils/ApiClient";
 
-import type { SyntheticEvent, ChangeEvent } from "react";
+import { SyntheticEvent, ChangeEvent } from "react";
 
 type Props = {
   id: string;

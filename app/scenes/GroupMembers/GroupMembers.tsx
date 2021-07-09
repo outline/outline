@@ -3,7 +3,7 @@ import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";

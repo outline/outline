@@ -2,7 +2,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Button from "components/Button";
@@ -10,7 +10,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import { documentUrl } from "utils/routeHelpers";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   ui: UiStore;

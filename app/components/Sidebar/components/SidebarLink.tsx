@@ -1,13 +1,11 @@
 import * as React from "react";
+import { SyntheticEvent } from "react";
 import { withRouter } from "react-router-dom";
-import type { RouterHistory, Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
 import NavLink from "./NavLink";
-import type { Theme } from "types";
-
-import type { SyntheticEvent } from "react";
+import { Theme } from "types";
 
 type Props = {
   to?: string | any;
@@ -16,7 +14,6 @@ type Props = {
   onClick?: (a: SyntheticEvent) => void;
   onMouseEnter?: (a: SyntheticEvent) => void;
   className?: string;
-  children?: React.ReactNode;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
@@ -24,8 +21,6 @@ type Props = {
   iconColor?: string;
   active?: boolean;
   isActiveDrop?: boolean;
-  history: RouterHistory;
-  match: Match;
   theme: Theme;
   exact?: boolean;
   depth?: number;
@@ -34,7 +29,6 @@ type Props = {
 function SidebarLink(
   {
     icon,
-    children,
     onClick,
     onMouseEnter,
     to,
@@ -47,8 +41,6 @@ function SidebarLink(
     exact,
     href,
     depth,
-    history,
-    match,
     className,
   }: Props,
   ref
@@ -125,7 +117,7 @@ const Actions = styled(EventBoundary)`
   }
 `;
 
-const Link = styled(NavLink)`
+const Link = styled(NavLink)<{ $isActiveDrop: boolean }>`
   display: flex;
   position: relative;
   text-overflow: ellipsis;

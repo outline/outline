@@ -1,5 +1,6 @@
-import { format, formatDistanceToNow } from "date-fns";
 import {
+  format,
+  formatDistanceToNow,
   enUS,
   de,
   fr,
@@ -11,7 +12,8 @@ import {
   zhCN,
   zhTW,
   ru,
-} from "date-fns/locale";
+} from "date-fns";
+
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
@@ -63,7 +65,7 @@ function LocaleTime({
 }: Props) {
   const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
-  const callback = React.useRef();
+  const callback = React.useRef<Function>();
 
   React.useEffect(() => {
     callback.current = eachMinute(() => {

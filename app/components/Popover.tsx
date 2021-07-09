@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { fadeAndScaleIn } from "shared/styles/animations";
 
 type Props = {
+  tabIndex?: number;
   children: React.ReactNode;
   width?: number;
 };

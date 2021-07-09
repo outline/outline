@@ -10,7 +10,7 @@ import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Scene from "components/Scene";
 
-import type { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 
 type Props = {
   auth: AuthStore;

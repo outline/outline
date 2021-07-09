@@ -9,7 +9,7 @@ import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import { collectionUrl, documentUrl } from "utils/routeHelpers";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   document: Document;

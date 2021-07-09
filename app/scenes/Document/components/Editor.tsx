@@ -1,7 +1,7 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import type { ChangeEvent, KeyboardEvent } from "react";
+import { ChangeEvent, KeyboardEvent } from "react";
 import Textarea from "react-autosize-textarea";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -12,7 +12,7 @@ import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
-import type { Props as EditorProps } from "components/Editor";
+import { Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import Star, { AnimatedStar } from "components/Star";

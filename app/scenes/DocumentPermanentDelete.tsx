@@ -8,7 +8,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   document: Document;

@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
 import UiStore from "stores/UiStore";
@@ -20,7 +20,7 @@ import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
-import type { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 
 type Props = {
   ui: UiStore;

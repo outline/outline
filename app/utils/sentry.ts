@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import env from "env";
 
 export function initSentry(history: RouterHistory) {

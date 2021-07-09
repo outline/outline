@@ -16,7 +16,7 @@ import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import { uploadFile } from "utils/uploadFile";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 function ImportExport() {
   const { t } = useTranslation();

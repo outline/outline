@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import { isCustomSubdomain } from "shared/utils/domains";
 import LoadingIndicator from "components/LoadingIndicator";
-import useStores from "../hooks/useStores";
 import env from "env";
+import useStores from "hooks/useStores";
 
 type Props = {
-  children: React.ReactNode;
+  children: JSX.Element;
 };
 
 const Authenticated = ({ children }: Props) => {

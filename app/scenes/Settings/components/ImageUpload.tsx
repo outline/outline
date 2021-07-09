@@ -12,7 +12,7 @@ import Modal from "components/Modal";
 import { compressImage } from "utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
-import type { DragEvent } from "react";
+import { DragEvent } from "react";
 
 const EMPTY_OBJECT = {};
 

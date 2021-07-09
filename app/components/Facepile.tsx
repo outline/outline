@@ -5,7 +5,7 @@ import User from "models/User";
 import Avatar from "components/Avatar";
 import Flex from "components/Flex";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   users: User[];

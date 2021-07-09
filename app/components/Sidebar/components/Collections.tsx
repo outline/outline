@@ -27,8 +27,9 @@ function Collections({ onCreateCollection }: Props) {
   const team = useCurrentTeam();
   const orderedCollections = collections.orderedData;
   const can = policies.abilities(team.id);
-  const [isDraggingAnyCollection, setIsDraggingAnyCollection] =
-    React.useState(false);
+  const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
+    false
+  );
 
   React.useEffect(() => {
     async function load() {

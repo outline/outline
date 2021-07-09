@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { LabelText } from "components/Input";
 
-import type { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 
 type Props = {
   width?: number;

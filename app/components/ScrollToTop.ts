@@ -1,7 +1,7 @@
 // based on: https://reacttraining.com/react-router/web/guides/scroll-restoration
 import * as React from "react";
 import { withRouter } from "react-router-dom";
-import type { Location } from "react-router-dom";
+import { Location } from "react-router-dom";
 
 type Props = {
   location: Location;

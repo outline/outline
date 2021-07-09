@@ -2,13 +2,13 @@ import { observer } from "mobx-react";
 import { GoToIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import type { DocumentPath } from "stores/CollectionsStore";
+import { DocumentPath } from "stores/CollectionsStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   result: DocumentPath;

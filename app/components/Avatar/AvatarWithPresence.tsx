@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import styled from "styled-components";
 import User from "models/User";
 import UserProfile from "scenes/UserProfile";

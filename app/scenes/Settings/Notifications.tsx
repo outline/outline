@@ -15,7 +15,7 @@ import Subheading from "components/Subheading";
 
 import NotificationListItem from "./components/NotificationListItem";
 
-import type { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 
 type Props = {
   ui: UiStore;

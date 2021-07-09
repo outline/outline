@@ -3,9 +3,9 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import { withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
@@ -18,7 +18,7 @@ import Input from "components/Input";
 import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 
-import type { SyntheticEvent, ChangeEvent } from "react";
+import { SyntheticEvent, ChangeEvent } from "react";
 
 type Props = {
   history: RouterHistory;

@@ -1,7 +1,7 @@
 import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
-import type { Location } from "react-router-dom";
+import { Location } from "react-router-dom";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";

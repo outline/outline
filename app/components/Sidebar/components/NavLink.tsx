@@ -6,7 +6,7 @@
 import { createLocation } from "history";
 import * as React from "react";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
-import type { Location } from "react-router";
+import { Location } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 

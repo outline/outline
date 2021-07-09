@@ -2,12 +2,19 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import * as React from "react";
+import { SyntheticEvent } from "react";
 import { Helmet } from "react-helmet";
-import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { withTranslation, TFunction } from "react-i18next";
+
 import keydown from "react-keydown";
-import { Switch, Route, Redirect, withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  Redirect,
+  withRouter,
+  RouterHistory,
+} from "react-router-dom";
+
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -32,8 +39,6 @@ import {
   matchDocumentSlug as slug,
   newDocumentUrl,
 } from "utils/routeHelpers";
-
-import type { SyntheticEvent } from "react";
 
 type Props = {
   documents: DocumentsStore;

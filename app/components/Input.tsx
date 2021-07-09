@@ -6,7 +6,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "components/Flex";
 
-import type { SyntheticEvent, ChangeEvent, KeyboardEvent } from "react";
+import { SyntheticEvent, ChangeEvent, KeyboardEvent } from "react";
 
 const RealTextarea = styled.textarea`
   border: 0;

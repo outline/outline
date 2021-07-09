@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { SyntheticEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton } from "reakit/Menu";
@@ -16,8 +17,6 @@ import Modal from "components/Modal";
 import useStores from "hooks/useStores";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import { newDocumentUrl } from "utils/routeHelpers";
-
-import type { SyntheticEvent } from "react";
 
 type Props = {
   collection: Collection;
@@ -43,8 +42,10 @@ function CollectionMenu({
   const history = useHistory();
 
   const file = React.useRef<HTMLInputElement | undefined | null>();
-  const [showCollectionPermissions, setShowCollectionPermissions] =
-    React.useState(false);
+  const [
+    showCollectionPermissions,
+    setShowCollectionPermissions,
+  ] = React.useState(false);
   const [showCollectionEdit, setShowCollectionEdit] = React.useState(false);
   const [showCollectionDelete, setShowCollectionDelete] = React.useState(false);
   const [showCollectionExport, setShowCollectionExport] = React.useState(false);

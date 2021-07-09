@@ -12,7 +12,7 @@ import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type TMenuItem =
   | {

@@ -6,10 +6,10 @@ import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { withTranslation, Trans } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import keydown from "react-keydown";
 import { withRouter, Link } from "react-router-dom";
-import type { RouterHistory, Match } from "react-router-dom";
+import { RouterHistory, Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -35,12 +35,12 @@ import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
-import type { LocationWithState } from "types";
+import { LocationWithState } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 import { decodeURIComponentSafe } from "utils/urls";
 
-import type { KeyboardEvent } from "react";
+import { KeyboardEvent } from "react";
 
 type Props = {
   history: RouterHistory;

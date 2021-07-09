@@ -6,7 +6,7 @@ import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Flex from "components/Flex";
-import type { Props as TableProps } from "components/Table";
+import { Props as TableProps } from "components/Table";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import UserMenu from "menus/UserMenu";

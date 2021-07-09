@@ -4,7 +4,7 @@ import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import styled from "styled-components";
 import { settings } from "shared/utils/routeHelpers";
 import User from "models/User";

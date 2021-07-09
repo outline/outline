@@ -2,9 +2,9 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
-import type { Theme } from "types";
+import { Theme } from "types";
 
-import type { SyntheticEvent } from "react";
+import { SyntheticEvent } from "react";
 
 type Props = {
   onChange: (a: string) => void;

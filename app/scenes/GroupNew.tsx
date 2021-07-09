@@ -2,7 +2,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import GroupsStore from "stores/GroupsStore";
 import UiStore from "stores/UiStore";
 import Group from "models/Group";
@@ -13,7 +13,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
 
-import type { SyntheticEvent, ChangeEvent } from "react";
+import { SyntheticEvent, ChangeEvent } from "react";
 
 type Props = {
   history: RouterHistory;

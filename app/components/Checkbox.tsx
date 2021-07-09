@@ -3,7 +3,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
 
-import type { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 
 export type Props = {
   checked?: boolean;
