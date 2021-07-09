@@ -31,6 +31,7 @@ const scriptSrc = [
   "'unsafe-inline'",
   "'unsafe-eval'",
   "gist.github.com",
+  "www.dropbox.com/static/api/2/dropins.js",
 ];
 
 if (env.GOOGLE_ANALYTICS_ID) {
