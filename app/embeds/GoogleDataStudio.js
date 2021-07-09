@@ -38,7 +38,7 @@ export default class GoogleDataStudio extends React.Component<Props> {
           />
         }
         canonicalUrl={this.props.attrs.href}
-        title="Google DataStudio"
+        title="Google Data Studio"
         border
       />
     );
