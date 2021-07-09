@@ -151,7 +151,7 @@ export default [
   },
   {
     title: "Google DataStudio",
-    keywords: "business inteligence",
+    keywords: "business intelligence",
     icon: () => <Img src="/images/google-datastudio.png" />,
     component: GoogleDataStudio,
     matcher: matcher(GoogleDataStudio),
