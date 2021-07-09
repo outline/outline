@@ -374,6 +374,7 @@ class DocumentScene extends React.Component<Props> {
               sharedTree={this.props.sharedTree}
               goBack={this.goBack}
               onSave={this.onSave}
+              headings={headings}
             />
             <MaxWidth
               archived={document.isArchived}

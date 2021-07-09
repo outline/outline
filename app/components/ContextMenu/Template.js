@@ -9,6 +9,7 @@ import {
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
 import styled from "styled-components";
+import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
@@ -34,6 +35,7 @@ type TMenuItem =
       visible?: boolean,
       selected?: boolean,
       disabled?: boolean,
+      level?: number,
     |}
   | {|
       title: React.Node,
@@ -128,7 +130,8 @@ function Template({ items, ...menu }: Props): React.Node {
           key={index}
           disabled={item.disabled}
           selected={item.selected}
-          target="_blank"
+          level={item.level}
+          target={item.href.startsWith("#") ? undefined : "_blank"}
           {...menu}
         >
           {item.title}
@@ -165,6 +168,10 @@ function Template({ items, ...menu }: Props): React.Node {
 
     if (item.type === "separator") {
       return <Separator key={index} />;
+    }
+
+    if (item.type === "heading") {
+      return <Header>{item.title}</Header>;
     }
 
     return null;
