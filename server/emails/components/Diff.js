@@ -4,14 +4,22 @@ import theme from "../../../shared/styles/theme";
 
 type Props = {|
   children: React.Node,
+  href?: string,
 |};
 
-export default (props: Props) => {
+export default ({ children, ...rest }: Props) => {
   const style = {
     borderRadius: "4px",
     background: theme.secondaryBackground,
     padding: ".5em 1em",
+    color: theme.text,
+    display: "block",
+    textDecoration: "none",
   };
 
-  return <div width="100%" style={style} {...props} />;
+  return (
+    <a width="100%" style={style} {...rest}>
+      {children}
+    </a>
+  );
 };
