@@ -29,6 +29,10 @@ const RealInput = styled.input`
   background: none;
   color: ${(props) => props.theme.text};
   height: 30px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
 
   &:disabled,
   &::placeholder {
