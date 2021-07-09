@@ -9,6 +9,7 @@ import {
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
 import styled from "styled-components";
+import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
@@ -170,19 +171,11 @@ function Template({ items, ...menu }: Props): React.Node {
     }
 
     if (item.type === "heading") {
-      return <Heading>{item.title}</Heading>;
+      return <Header>{item.title}</Header>;
     }
 
     return null;
   });
 }
-
-const Heading = styled("h3")`
-  padding: 0 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: ${(props) => props.theme.sidebarText};
-  letter-spacing: 0.04em;
-`;
 
 export default React.memo<Props>(Template);
