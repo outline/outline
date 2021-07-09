@@ -1,9 +1,8 @@
 import * as React from "react";
+import { ChangeEvent } from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
-
-import { ChangeEvent } from "react";
 
 export type Props = {
   checked?: boolean;
@@ -18,13 +17,17 @@ export type Props = {
   small?: boolean;
 };
 
-const LabelText = styled.span`
+type LabelTextProps = { small: boolean };
+
+const LabelText = styled.span<LabelTextProps>`
   font-weight: 500;
   margin-left: ${(props) => (props.small ? "6px" : "10px")};
   ${(props) => (props.small ? `color: ${props.theme.textSecondary}` : "")};
 `;
 
-const Wrapper = styled.div`
+type WrapperProps = { small: boolean };
+
+const Wrapper = styled.div<WrapperProps>`
   padding-bottom: 8px;
   ${(props) => (props.small ? "font-size: 14px" : "")};
   width: 100%;

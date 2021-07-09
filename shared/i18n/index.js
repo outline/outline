@@ -28,7 +28,9 @@ const dashToUnderscore = (text: string) => text.replace("-", "_");
 
 export const initI18n = () => {
   const lng = underscoreToDash(
-    "DEFAULT_LANGUAGE" in process.env ? process.env.DEFAULT_LANGUAGE : "en_US"
+    "DEFAULT_LANGUAGE" in process.env
+      ? process.env.DEFAULT_LANGUAGE || ""
+      : "en_US"
   );
 
   i18n

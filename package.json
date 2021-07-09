@@ -12,6 +12,7 @@
     "start": "node ./build/server/index.js",
     "dev": "nodemon --exec \"yarn build:server && yarn build:i18n && node --inspect=0.0.0.0 build/server/index.js\" -e js --ignore build/ --ignore app/",
     "lint": "eslint app server shared",
+    "types": "tsc --noEmit",
     "deploy": "git push heroku master",
     "heroku-postbuild": "yarn build && yarn db:migrate",
     "sequelize:migrate": "sequelize db:migrate",

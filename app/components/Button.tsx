@@ -136,7 +136,7 @@ export type Props = {
 const Button = React.forwardRef<HTMLButtonElement>(
   (
     {
-      type = "text",
+      type = "button",
       icon,
       children,
       value,

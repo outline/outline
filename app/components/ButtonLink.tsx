@@ -7,11 +7,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function ButtonLink(props: Props) {
-  return <Button {...props} />;
-}
-
-const Button = styled.button`
+const ButtonLink = styled.button<Props>`
   margin: 0;
   padding: 0;
   border: 0;
@@ -21,3 +17,5 @@ const Button = styled.button`
   text-decoration: none;
   cursor: pointer;
 `;
+
+export default ButtonLink;
