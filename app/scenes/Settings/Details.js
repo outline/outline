@@ -21,8 +21,8 @@ function Details() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const form = useRef<?HTMLFormElement>();
-  const [name, setName] = useState(team?.name);
-  const [subdomain, setSubdomain] = useState(team?.subdomain);
+  const [name, setName] = useState(team.name);
+  const [subdomain, setSubdomain] = useState(team.subdomain);
   const [avatarUrl, setAvatarUrl] = useState();
 
   const handleSubmit = React.useCallback(
@@ -72,8 +72,6 @@ function Details() {
   );
 
   const isValid = form.current && form.current.checkValidity();
-
-  if (!team) return null;
 
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>

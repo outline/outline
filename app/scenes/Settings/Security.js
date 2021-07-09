@@ -9,15 +9,16 @@ import Checkbox from "components/Checkbox";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Scene from "components/Scene";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 
 function Security() {
   const { auth, ui } = useStores();
-  const team = auth.team;
+  const team = useCurrentTeam();
   const { t } = useTranslation();
-  const [sharing, setSharing] = useState(team?.documentEmbeds);
-  const [documentEmbeds, setDocumentEmbeds] = useState(team?.guestSignin);
-  const [guestSignin, setGuestSignin] = useState(team?.sharing);
+  const [sharing, setSharing] = useState(team.documentEmbeds);
+  const [documentEmbeds, setDocumentEmbeds] = useState(team.guestSignin);
+  const [guestSignin, setGuestSignin] = useState(team.sharing);
 
   const handleChange = async (ev: SyntheticInputEvent<*>) => {
     switch (ev.target.name) {

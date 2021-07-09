@@ -12,11 +12,12 @@ import Notice from "components/Notice";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import NotificationListItem from "./components/NotificationListItem";
+import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
 function Notifications() {
-  const { notificationSettings, auth, ui } = useStores();
-  const { user, team } = auth;
+  const { notificationSettings, ui } = useStores();
+  const user = useCurrentUser();
   const { t } = useTranslation();
 
   const options = [
@@ -84,8 +85,6 @@ function Notifications() {
   );
 
   const showSuccessNotice = window.location.search === "?success";
-
-  if (!team || !user) return null;
 
   return (
     <Scene title={t("Notifications")} icon={<EmailIcon color="currentColor" />}>
