@@ -20,32 +20,35 @@ function Security() {
   const [documentEmbeds, setDocumentEmbeds] = useState(team.guestSignin);
   const [guestSignin, setGuestSignin] = useState(team.sharing);
 
-  const handleChange = async (ev: SyntheticInputEvent<*>) => {
-    switch (ev.target.name) {
-      case "sharing":
-        setSharing(ev.target.checked);
-        break;
-      case "documentEmbeds":
-        setDocumentEmbeds(ev.target.checked);
-        break;
-      case "guestSignin":
-        setGuestSignin(ev.target.checked);
-        break;
-      default:
-    }
-
-    await auth.updateTeam({
-      sharing,
-      documentEmbeds,
-      guestSignin,
-    });
-
-    showSuccessMessage();
-  };
-
   const showSuccessMessage = debounce(() => {
     ui.showToast(t("Settings saved"), { type: "success" });
   }, 500);
+
+  const handleChange = React.useCallback(
+    async (ev: SyntheticInputEvent<*>) => {
+      switch (ev.target.name) {
+        case "sharing":
+          setSharing(ev.target.checked);
+          break;
+        case "documentEmbeds":
+          setDocumentEmbeds(ev.target.checked);
+          break;
+        case "guestSignin":
+          setGuestSignin(ev.target.checked);
+          break;
+        default:
+      }
+
+      await auth.updateTeam({
+        sharing,
+        documentEmbeds,
+        guestSignin,
+      });
+
+      showSuccessMessage();
+    },
+    [auth, sharing, documentEmbeds, guestSignin, showSuccessMessage]
+  );
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
