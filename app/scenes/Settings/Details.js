@@ -33,9 +33,9 @@ function Details() {
 
       try {
         await auth.updateTeam({
-          name: name,
-          avatarUrl: avatarUrl,
-          subdomain: subdomain,
+          name,
+          avatarUrl,
+          subdomain,
         });
         ui.showToast(t("Settings saved"), { type: "success" });
       } catch (err) {
