@@ -62,7 +62,7 @@ function GroupEdit({ group, onSubmit }: Props) {
       </Flex>
 
       <Button type="submit" disabled={isSaving || !name}>
-        {isSaving ? `${t("Saving")}...` : t("Save")}
+        {isSaving ? `${t("Saving")}…` : t("Save")}
       </Button>
     </form>
   );
