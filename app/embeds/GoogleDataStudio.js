@@ -21,11 +21,7 @@ export default class GoogleDataStudio extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
-        src={
-          URL_REGEX_SECONDARY
-            ? this.props.attrs.href.replace("u/0", "embed").replace("/edit", "")
-            : this.props.attrs.href
-        }
+        src={this.props.attrs.href.replace("u/0", "embed").replace("/edit", "")}
         icon={
           <Image
             src="/images/google-datastudio.png"
