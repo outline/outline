@@ -41,7 +41,8 @@ function GroupDelete({ group, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           <Trans
-            defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
+            defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> 
+            group will cause its members to lose access to collections and documents that it is associated with."
             values={{ groupName: group.name }}
             components={{ em: <strong /> }}
           />
