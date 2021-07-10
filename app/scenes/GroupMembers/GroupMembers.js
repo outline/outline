@@ -50,11 +50,13 @@ function GroupMembers({ group }: Props) {
       {can.update ? (
         <>
           <HelpText>
-            <Trans>
-              Add and remove team members in the <strong>{group.name}</strong>{" "}
+            <Trans
+              defaults="Add and remove team members in the <em>{{groupName}}</em>
               group. Adding people to the group will give them access to any
-              collections this group has been added to.
-            </Trans>
+              collections this group has been added to."
+              values={{ groupName: group.name }}
+              components={{ em: <strong /> }}
+            />
           </HelpText>
           <span>
             <Button
@@ -69,9 +71,11 @@ function GroupMembers({ group }: Props) {
         </>
       ) : (
         <HelpText>
-          <Trans>
-            Listing team members in the <strong>{group.name}</strong> group.
-          </Trans>
+          <Trans
+            defaults="Listing team members in the <em>{{groupName}}</em> group."
+            values={{ groupName: group.name }}
+            components={{ em: <strong /> }}
+          />
         </HelpText>
       )}
 

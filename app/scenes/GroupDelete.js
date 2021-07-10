@@ -40,11 +40,11 @@ function GroupDelete({ group, onSubmit }: Props) {
     <Flex column>
       <form onSubmit={handleSubmit}>
         <HelpText>
-          <Trans>
-            Are you sure about that? Deleting the <strong>{group.name}</strong>{" "}
-            group will cause its members to lose access to collections and
-            documents that it is associated with.
-          </Trans>
+          <Trans
+            defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
+            values={{ groupName: group.name }}
+            components={{ em: <strong /> }}
+          />
         </HelpText>
         <Button type="submit" danger>
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
