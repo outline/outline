@@ -11,6 +11,7 @@ import Descript from "./Descript";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GoogleColab from "./GoogleColab";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
@@ -113,6 +114,13 @@ export default [
     icon: () => <Img src="/images/github-gist.png" />,
     component: Gist,
     matcher: matcher(Gist),
+  },
+  {
+    title: "Google Colab",
+    keywords: "notebooks",
+    icon: () => <Img src="/images/google-colab.png" />,
+    component: GoogleColab,
+    matcher: matcher(GoogleColab),
   },
   {
     title: "Google Drawings",
