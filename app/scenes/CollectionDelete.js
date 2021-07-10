@@ -1,62 +1,63 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import CollectionsStore from "stores/CollectionsStore";
-import UiStore from "stores/UiStore";
+import { useTranslation, Trans } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
+import useStores from "hooks/useStores";
 import { homeUrl } from "utils/routeHelpers";
 
 type Props = {
-  history: RouterHistory,
   collection: Collection,
-  collections: CollectionsStore,
-  ui: UiStore,
   onSubmit: () => void,
 };
 
-@observer
-class CollectionDelete extends React.Component<Props> {
-  @observable isDeleting: boolean;
+function CollectionDelete({ collection, onSubmit }: Props) {
+  const [isDeleting, setIsDeleting] = React.useState();
+  const { ui } = useStores();
+  const history = useHistory();
+  const { t } = useTranslation();
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.isDeleting = true;
+  const handleSubmit = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      setIsDeleting(true);
 
-    try {
-      await this.props.collection.delete();
-      this.props.history.push(homeUrl());
-      this.props.onSubmit();
-    } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
-    } finally {
-      this.isDeleting = false;
-    }
-  };
+      try {
+        await collection.delete();
+        history.push(homeUrl());
+        onSubmit();
+      } catch (err) {
+        ui.showToast(err.message, { type: "error" });
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [ui, onSubmit, collection, history]
+  );
 
-  render() {
-    const { collection } = this.props;
-
-    return (
-      <Flex column>
-        <form onSubmit={this.handleSubmit}>
-          <HelpText>
-            Are you sure about that? Deleting the{" "}
-            <strong>{collection.name}</strong> collection is permanent and
+  return (
+    <Flex column>
+      <form onSubmit={handleSubmit}>
+        <HelpText>
+          <Trans
+            defaults="Are you sure about that? Deleting the
+            <em>{{collectionName}}</em> collection is permanent and
             cannot be restored, however documents within will be moved to the
-            trash.
-          </HelpText>
-          <Button type="submit" disabled={this.isDeleting} autoFocus danger>
-            {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
-          </Button>
-        </form>
-      </Flex>
-    );
-  }
+            trash."
+            values={{ collectionName: collection.name }}
+            components={{ em: <strong /> }}
+          />
+        </HelpText>
+        <Button type="submit" disabled={isDeleting} autoFocus danger>
+          {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
+        </Button>
+      </form>
+    </Flex>
+  );
 }
 
-export default inject("collections", "ui")(withRouter(CollectionDelete));
+export default observer(CollectionDelete);
