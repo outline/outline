@@ -16,6 +16,7 @@ import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
+import GoogleMaps from "./GoogleMaps";
 import InVision from "./InVision";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
@@ -147,6 +148,13 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Maps",
+    keywords: "maps",
+    icon: () => <Img src="/images/google-maps.png" />,
+    component: GoogleMaps,
+    matcher: matcher(GoogleMaps),
   },
   {
     title: "InVision",
