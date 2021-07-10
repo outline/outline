@@ -27,8 +27,6 @@ function GroupMembers({ group }: Props) {
   const { t } = useTranslation();
   const can = policies.abilities(group.id);
 
-  // validate user is not null
-  useCurrentUser();
 
   const handleAddModal = (state) => {
     setAddModalOpen(state);
