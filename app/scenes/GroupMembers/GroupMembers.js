@@ -14,7 +14,6 @@ import PaginatedList from "components/PaginatedList";
 import Subheading from "components/Subheading";
 import AddPeopleToGroup from "./AddPeopleToGroup";
 import GroupMemberListItem from "./components/GroupMemberListItem";
-import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
 type Props = {
@@ -26,7 +25,6 @@ function GroupMembers({ group }: Props) {
   const { users, groupMemberships, policies, ui } = useStores();
   const { t } = useTranslation();
   const can = policies.abilities(group.id);
-
 
   const handleAddModal = (state) => {
     setAddModalOpen(state);
