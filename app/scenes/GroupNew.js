@@ -17,7 +17,7 @@ type Props = {
 };
 
 function GroupNew({ groups, onSubmit }: Props) {
-  const { ui } = useStores();
+  const { ui, groups } = useStores();
   const { t } = useTranslation();
   const [name, setName] = React.useState();
   const [isSaving, setIsSaving] = React.useState();
