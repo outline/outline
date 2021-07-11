@@ -58,3 +58,44 @@ export type SearchResult = {
   context: string,
   document: Document,
 };
+
+export type MenuItem =
+  | {|
+      title: React.Node,
+      to: string,
+      visible?: boolean,
+      selected?: boolean,
+      disabled?: boolean,
+    |}
+  | {|
+      title: React.Node,
+      onClick: (event: SyntheticEvent<>) => void | Promise<void>,
+      visible?: boolean,
+      selected?: boolean,
+      disabled?: boolean,
+    |}
+  | {|
+      title: React.Node,
+      href: string,
+      visible?: boolean,
+      selected?: boolean,
+      disabled?: boolean,
+      level?: number,
+    |}
+  | {|
+      title: React.Node,
+      visible?: boolean,
+      disabled?: boolean,
+      style?: Object,
+      hover?: boolean,
+      items: MenuItem[],
+    |}
+  | {|
+      type: "separator",
+      visible?: boolean,
+    |}
+  | {|
+      type: "heading",
+      visible?: boolean,
+      title: React.Node,
+    |};
