@@ -1,5 +1,4 @@
 // @flow
-import { observer } from "mobx-react";
 import * as React from "react";
 import Document from "models/Document";
 import DocumentListItem from "components/DocumentListItem";
@@ -19,24 +18,26 @@ type Props = {|
   showTemplate?: boolean,
 |};
 
-@observer
-class PaginatedDocumentList extends React.Component<Props> {
-  render() {
-    const { empty, heading, documents, fetch, options, ...rest } = this.props;
-
-    return (
-      <PaginatedList
-        items={documents}
-        empty={empty}
-        heading={heading}
-        fetch={fetch}
-        options={options}
-        renderItem={(item) => (
-          <DocumentListItem key={item.id} document={item} {...rest} />
-        )}
-      />
-    );
-  }
-}
+const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
+  empty,
+  heading,
+  documents,
+  fetch,
+  options,
+  ...rest
+}: Props) {
+  return (
+    <PaginatedList
+      items={documents}
+      empty={empty}
+      heading={heading}
+      fetch={fetch}
+      options={options}
+      renderItem={(item) => (
+        <DocumentListItem key={item.id} document={item} {...rest} />
+      )}
+    />
+  );
+});
 
 export default PaginatedDocumentList;

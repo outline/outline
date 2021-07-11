@@ -6,14 +6,15 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import {
   fadeIn,
-  fadeAndScaleIn,
-  fadeAndSlideIn,
+  fadeAndSlideUp,
+  fadeAndSlideDown,
 } from "shared/styles/animations";
 import usePrevious from "hooks/usePrevious";
 
 type Props = {|
   "aria-label": string,
   visible?: boolean,
+  placement?: string,
   animating?: boolean,
   children: React.Node,
   onOpen?: () => void,
@@ -46,7 +47,7 @@ export default function ContextMenu({
       <Menu hideOnClickOutside preventBodyScroll {...rest}>
         {(props) => (
           <Position {...props}>
-            <Background dir="auto">
+            <Background dir="auto" placement={rest.placement}>
               {rest.visible || rest.animating ? children : null}
             </Background>
           </Position>
@@ -91,7 +92,7 @@ const Position = styled.div`
 `;
 
 const Background = styled.div`
-  animation: ${fadeAndSlideIn} 200ms ease;
+  animation: ${fadeAndSlideUp} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
   background: ${(props) => props.theme.menuBackground};
@@ -109,9 +110,9 @@ const Background = styled.div`
   }
 
   ${breakpoint("tablet")`
-    animation: ${fadeAndScaleIn} 200ms ease;
+    animation: ${fadeAndSlideDown} 200ms ease;
     transform-origin: ${(props) =>
-      props.left !== undefined ? "25%" : "75%"} 0;
+      props.placement === "bottom-end" ? "75%" : "25%"} 0;
     max-width: 276px;
     background: ${(props) => props.theme.menuBackground};
     box-shadow: ${(props) => props.theme.menuShadow};

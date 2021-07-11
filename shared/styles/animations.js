@@ -18,10 +18,22 @@ export const fadeAndScaleIn = keyframes`
   }
 `;
 
-export const fadeAndSlideIn = keyframes`
+export const fadeAndSlideDown = keyframes`
   from {
     opacity: 0;
-    transform: scale(.98) translateY(10px);
+    transform: scale(.98) translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0px);
+  }
+`;
+
+export const fadeAndSlideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(.98) translateY(10vh);
   }
 
   to {
