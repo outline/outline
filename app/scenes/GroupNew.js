@@ -2,7 +2,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import GroupsStore from "stores/GroupsStore";
 import Group from "models/Group";
 import GroupMembers from "scenes/GroupMembers";
 import Button from "components/Button";
@@ -16,7 +15,7 @@ type Props = {
   onSubmit: () => void,
 };
 
-function GroupNew({ groups, onSubmit }: Props) {
+function GroupNew({ onSubmit }: Props) {
   const { ui, groups } = useStores();
   const { t } = useTranslation();
   const [name, setName] = React.useState();
