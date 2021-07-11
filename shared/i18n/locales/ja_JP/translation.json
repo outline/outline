@@ -207,6 +207,7 @@
   "Go to document": "ドキュメントに移動",
   "Revoke link": "リンクを取り消す",
   "Table of contents": "目次",
+  "Contents": "Contents",
   "By {{ author }}": "作ったのは{{ author }}",
   "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.": "本当に{{ userName }}を管理者にしていいのか？管理者は課金情報を修正することができます。また、チームを変更することもできます。",
   "Are you sure you want to make {{ userName }} a member?": "本当に{{ userName }}をメンバーにしていいのか？",
