@@ -207,6 +207,7 @@
   "Go to document": "Go to document",
   "Revoke link": "Revoke link",
   "Table of contents": "Table of contents",
+  "Contents": "Contents",
   "By {{ author }}": "By {{ author }}",
   "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.": "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
   "Are you sure you want to make {{ userName }} a member?": "Are you sure you want to make {{ userName }} a member?",

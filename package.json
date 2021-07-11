@@ -161,8 +161,8 @@
     "styled-normalize": "^8.0.4",
     "tiny-cookie": "^2.3.1",
     "tmp": "^0.2.1",
-    "turndown": "^6.0.0",
-    "utf8": "^2.1.0",
+    "turndown": "^7.1.1",
+    "utf8": "^3.0.0",
     "uuid": "^8.3.2",
     "validator": "5.2.0"
   },
