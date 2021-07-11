@@ -13,7 +13,6 @@ import Modal from "components/Modal";
 import useStores from "hooks/useStores";
 
 type Props = {
-  groups: GroupsStore,
   onSubmit: () => void,
 };
 
