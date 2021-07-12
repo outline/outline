@@ -48,10 +48,7 @@ function DocumentTemplatize({ document, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           <Trans
-            defaults="Creating a template from <em>{{titleWithDefault}}</em>
-          is a non-destructive action – we'll make a copy of the document and
-          turn it into a template that can be used as a starting point for new
-          documents."
+            defaults="Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
             values={{ titleWithDefault: document.titleWithDefault }}
             components={{ em: <strong /> }}
           />
