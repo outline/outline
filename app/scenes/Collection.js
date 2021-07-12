@@ -39,6 +39,7 @@ import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import Collection from "../models/Collection";
 import { updateCollectionUrl } from "../utils/routeHelpers";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
@@ -54,7 +55,11 @@ function CollectionScene() {
   const team = useCurrentTeam();
   const [isFetching, setFetching] = React.useState();
   const [error, setError] = React.useState();
-  const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
+  const [
+    permissionsModalOpen,
+    handlePermissionsModalOpen,
+    handlePermissionsModalClose,
+  ] = useBoolean();
 
   const id = params.id || "";
   const collection: ?Collection =
@@ -101,14 +106,6 @@ function CollectionScene() {
     }
     load();
   }, [collections, isFetching, collection, error, id, can]);
-
-  const handlePermissionsModalOpen = React.useCallback(() => {
-    setPermissionsModalOpen(true);
-  }, []);
-
-  const handlePermissionsModalClose = React.useCallback(() => {
-    setPermissionsModalOpen(false);
-  }, []);
 
   const handleRejection = React.useCallback(() => {
     ui.showToast(
