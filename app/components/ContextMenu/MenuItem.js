@@ -87,9 +87,9 @@ const Spacer = styled.svg`
 export const MenuAnchor = styled.a`
   display: flex;
   margin: 0;
-  margin-left: ${(props) => props.level * 10}px;
   border: 0;
   padding: 12px;
+  padding-left: ${(props) => 12 + props.level * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;

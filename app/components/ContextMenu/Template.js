@@ -13,47 +13,7 @@ import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
-
-type TMenuItem =
-  | {|
-      title: React.Node,
-      to: string,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      onClick: (event: SyntheticEvent<>) => void | Promise<void>,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      href: string,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-      level?: number,
-    |}
-  | {|
-      title: React.Node,
-      visible?: boolean,
-      disabled?: boolean,
-      style?: Object,
-      hover?: boolean,
-      items: TMenuItem[],
-    |}
-  | {|
-      type: "separator",
-      visible?: boolean,
-    |}
-  | {|
-      type: "heading",
-      visible?: boolean,
-      title: React.Node,
-    |};
+import { type MenuItem as TMenuItem } from "types";
 
 type Props = {|
   items: TMenuItem[],
@@ -174,6 +134,7 @@ function Template({ items, ...menu }: Props): React.Node {
       return <Header>{item.title}</Header>;
     }
 
+    console.warn("Unrecognized menu item", item);
     return null;
   });
 }
