@@ -14,6 +14,7 @@ import Gist from "./Gist";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
+import GoogleForms from "./GoogleForms";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import InVision from "./InVision";
@@ -147,6 +148,13 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Forms",
+    keywords: "survey",
+    icon: () => <Img src="/images/google-forms.png" />,
+    component: GoogleForms,
+    matcher: matcher(GoogleForms),
   },
   {
     title: "InVision",
