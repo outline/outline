@@ -125,12 +125,10 @@ function Invite({ onSubmit }: Props) {
             values={{ signinMethods: team.signinMethods }}
           />{" "}
           {can.update && (
-            <>
-              <Trans>
-                As an admin you can also{" "}
-                <Link to="/settings/security">enable email sign-in</Link>.
-              </Trans>
-            </>
+            <Trans>
+              As an admin you can also{" "}
+              <Link to="/settings/security">enable email sign-in</Link>.
+            </Trans>
           )}
         </HelpText>
       )}

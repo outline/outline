@@ -98,7 +98,7 @@ class ErrorBoundary extends React.Component<Props> {
               defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
               values={{
                 notified: isReported
-                  ? " – our engineers have been notified"
+                  ? ` – ${t("our engineers have been notified")}`
                   : undefined,
               }}
             />
