@@ -51,9 +51,7 @@ function GroupMembers({ group }: Props) {
         <>
           <HelpText>
             <Trans
-              defaults="Add and remove team members in the <em>{{groupName}}</em>
-              group. Adding people to the group will give them access to any
-              collections this group has been added to."
+              defaults="Add and remove team members in the <em>{{groupName}}</em> group. Adding people to the group will give them access to any collections this group has been added to."
               values={{ groupName: group.name }}
               components={{ em: <strong /> }}
             />
