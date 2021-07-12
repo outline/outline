@@ -33,6 +33,18 @@ export const fadeAndSlideDown = keyframes`
 export const fadeAndSlideUp = keyframes`
   from {
     opacity: 0;
+    transform: scale(.98) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0px);
+  }
+`;
+
+export const mobileContextMenu = keyframes`
+  from {
+    opacity: 0;
     transform: scale(.98) translateY(10vh);
   }
 

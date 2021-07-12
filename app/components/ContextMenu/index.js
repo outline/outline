@@ -8,6 +8,7 @@ import {
   fadeIn,
   fadeAndSlideUp,
   fadeAndSlideDown,
+  mobileContextMenu,
 } from "shared/styles/animations";
 import usePrevious from "hooks/usePrevious";
 
@@ -45,13 +46,25 @@ export default function ContextMenu({
   return (
     <>
       <Menu hideOnClickOutside preventBodyScroll {...rest}>
-        {(props) => (
-          <Position {...props}>
-            <Background dir="auto" placement={rest.placement}>
-              {rest.visible || rest.animating ? children : null}
-            </Background>
-          </Position>
-        )}
+        {(props) => {
+          // kind of hacky, but this is an effective way of telling which way
+          // the menu will _actually_ be placed when taking into account screen
+          // positioning.
+          const topAnchor = props.style.top === "0";
+          const rightAnchor = props.placement === "bottom-end";
+
+          return (
+            <Position {...props}>
+              <Background
+                dir="auto"
+                topAnchor={topAnchor}
+                rightAnchor={rightAnchor}
+              >
+                {rest.visible || rest.animating ? children : null}
+              </Background>
+            </Position>
+          );
+        }}
       </Menu>
       {(rest.visible || rest.animating) && (
         <Portal>
@@ -92,7 +105,7 @@ const Position = styled.div`
 `;
 
 const Background = styled.div`
-  animation: ${fadeAndSlideUp} 200ms ease;
+  animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
   background: ${(props) => props.theme.menuBackground};
@@ -110,9 +123,10 @@ const Background = styled.div`
   }
 
   ${breakpoint("tablet")`
-    animation: ${fadeAndSlideDown} 200ms ease;
+    animation: ${(props) =>
+      props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
     transform-origin: ${(props) =>
-      props.placement === "bottom-end" ? "75%" : "25%"} 0;
+      props.rightAnchor === "bottom-end" ? "75%" : "25%"} 0;
     max-width: 276px;
     background: ${(props) => props.theme.menuBackground};
     box-shadow: ${(props) => props.theme.menuShadow};
