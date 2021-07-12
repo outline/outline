@@ -48,8 +48,7 @@ function UserDelete({ onRequestClose }: Props) {
           </HelpText>
           <HelpText>
             <Trans
-              defaults="<em>Note:</em> Signing back in will cause a new account to
-            be automatically reprovisioned."
+              defaults="<em>Note:</em> Signing back in will cause a new account to be automatically reprovisioned."
               components={{ em: <strong /> }}
             />
           </HelpText>
