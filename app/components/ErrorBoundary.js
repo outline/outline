@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction, Trans } from "react-i18next";
 import styled from "styled-components";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
@@ -11,10 +12,11 @@ import PageTitle from "components/PageTitle";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
 import env from "env";
 
-type Props = {
+type Props = {|
   children: React.Node,
   reloadOnChunkMissing?: boolean,
-};
+  t: TFunction,
+|};
 
 @observer
 class ErrorBoundary extends React.Component<Props> {
@@ -55,6 +57,8 @@ class ErrorBoundary extends React.Component<Props> {
   };
 
   render() {
+    const { t } = this.props;
+
     if (this.error) {
       const error = this.error;
       const isReported = !!env.SENTRY_DSN && env.DEPLOYMENT === "hosted";
@@ -63,15 +67,21 @@ class ErrorBoundary extends React.Component<Props> {
       if (isChunkError) {
         return (
           <CenteredContent>
-            <PageTitle title="Module failed to load" />
-            <h1>Loading Failed</h1>
+            <PageTitle title={t("Module failed to load")} />
+            <h1>
+              <Trans>Loading Failed</Trans>
+            </h1>
             <HelpText>
-              Sorry, part of the application failed to load. This may be because
-              it was updated since you opened the tab or because of a failed
-              network request. Please try reloading.
+              <Trans>
+                Sorry, part of the application failed to load. This may be
+                because it was updated since you opened the tab or because of a
+                failed network request. Please try reloading.
+              </Trans>
             </HelpText>
             <p>
-              <Button onClick={this.handleReload}>Reload</Button>
+              <Button onClick={this.handleReload}>
+                <Trans>Reload</Trans>
+              </Button>
             </p>
           </CenteredContent>
         );
@@ -79,23 +89,32 @@ class ErrorBoundary extends React.Component<Props> {
 
       return (
         <CenteredContent>
-          <PageTitle title="Something Unexpected Happened" />
-          <h1>Something Unexpected Happened</h1>
+          <PageTitle title={t("Something Unexpected Happened")} />
+          <h1>
+            <Trans>Something Unexpected Happened</Trans>
+          </h1>
           <HelpText>
-            Sorry, an unrecoverable error occurred
-            {isReported && " – our engineers have been notified"}. Please try
-            reloading the page, it may have been a temporary glitch.
+            <Trans
+              defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
+              values={{
+                notified: isReported
+                  ? " – our engineers have been notified"
+                  : undefined,
+              }}
+            />
           </HelpText>
           {this.showDetails && <Pre>{error.toString()}</Pre>}
           <p>
-            <Button onClick={this.handleReload}>Reload</Button>{" "}
+            <Button onClick={this.handleReload}>
+              <Trans>Reload</Trans>
+            </Button>{" "}
             {this.showDetails ? (
               <Button onClick={this.handleReportBug} neutral>
-                Report a Bug…
+                <Trans>Report a Bug</Trans>…
               </Button>
             ) : (
               <Button onClick={this.handleShowDetails} neutral>
-                Show Details…
+                <Trans>Show Detail</Trans>…
               </Button>
             )}
           </p>
@@ -114,4 +133,4 @@ const Pre = styled.pre`
   white-space: pre-wrap;
 `;
 
-export default ErrorBoundary;
+export default withTranslation()<ErrorBoundary>(ErrorBoundary);

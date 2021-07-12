@@ -1,63 +1,65 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
+import { useTranslation, Trans } from "react-i18next";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
+import useStores from "hooks/useStores";
 
-type Props = {
-  auth: AuthStore,
-  ui: UiStore,
+type Props = {|
   onRequestClose: () => void,
-};
+|};
 
-@observer
-class UserDelete extends React.Component<Props> {
-  @observable isDeleting: boolean;
+function UserDelete({ onRequestClose }: Props) {
+  const [isDeleting, setIsDeleting] = React.useState();
+  const { auth, ui } = useStores();
+  const { t } = useTranslation();
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.isDeleting = true;
+  const handleSubmit = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      setIsDeleting(true);
 
-    try {
-      await this.props.auth.deleteUser();
-      this.props.auth.logout();
-    } catch (error) {
-      this.props.ui.showToast(error.message, { type: "error" });
-    } finally {
-      this.isDeleting = false;
-    }
-  };
+      try {
+        await auth.deleteUser();
+        auth.logout();
+      } catch (error) {
+        ui.showToast(error.message, { type: "error" });
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [auth, ui]
+  );
 
-  render() {
-    const { onRequestClose } = this.props;
-
-    return (
-      <Modal isOpen title="Delete Account" onRequestClose={onRequestClose}>
-        <Flex column>
-          <form onSubmit={this.handleSubmit}>
-            <HelpText>
+  return (
+    <Modal isOpen title={t("Delete Account")} onRequestClose={onRequestClose}>
+      <Flex column>
+        <form onSubmit={handleSubmit}>
+          <HelpText>
+            <Trans>
               Are you sure? Deleting your account will destroy identifying data
               associated with your user and cannot be undone. You will be
               immediately logged out of Outline and all your API tokens will be
               revoked.
-            </HelpText>
-            <HelpText>
-              <strong>Note:</strong> Signing back in will cause a new account to
-              be automatically reprovisioned.
-            </HelpText>
-            <Button type="submit" danger>
-              {this.isDeleting ? "Deleting…" : "Delete My Account"}
-            </Button>
-          </form>
-        </Flex>
-      </Modal>
-    );
-  }
+            </Trans>
+          </HelpText>
+          <HelpText>
+            <Trans
+              defaults="<em>Note:</em> Signing back in will cause a new account to
+            be automatically reprovisioned."
+              components={{ em: <strong /> }}
+            />
+          </HelpText>
+          <Button type="submit" danger>
+            {isDeleting ? `${t("Deleting")}…` : t("Delete My Account")}
+          </Button>
+        </form>
+      </Flex>
+    </Modal>
+  );
 }
 
-export default inject("auth", "ui")(UserDelete);
+export default observer(UserDelete);
