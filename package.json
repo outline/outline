@@ -79,6 +79,7 @@
     "flow-typed": "^3.3.1",
     "focus-visible": "^5.1.0",
     "fractional-index": "^1.0.0",
+    "framer-motion": "^4.1.17",
     "fs-extra": "^4.0.2",
     "http-errors": "1.4.0",
     "i18next": "^19.8.3",

@@ -1,70 +1,71 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import UiStore from "stores/UiStore";
+import { useTranslation, Trans } from "react-i18next";
 import Group from "models/Group";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
+import useStores from "hooks/useStores";
 
 type Props = {
-  history: RouterHistory,
-  ui: UiStore,
   group: Group,
   onSubmit: () => void,
 };
 
-@observer
-class GroupEdit extends React.Component<Props> {
-  @observable name: string = this.props.group.name;
-  @observable isSaving: boolean;
+function GroupEdit({ group, onSubmit }: Props) {
+  const { ui } = useStores();
+  const { t } = useTranslation();
+  const [name, setName] = React.useState(group.name);
+  const [isSaving, setIsSaving] = React.useState();
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.isSaving = true;
+  const handleSubmit = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      setIsSaving(true);
 
-    try {
-      await this.props.group.save({ name: this.name });
-      this.props.onSubmit();
-    } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
-    } finally {
-      this.isSaving = false;
-    }
-  };
+      try {
+        await group.save({ name: name });
+        onSubmit();
+      } catch (err) {
+        ui.showToast(err.message, { type: "error" });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [group, onSubmit, ui, name]
+  );
 
-  handleNameChange = (ev: SyntheticInputEvent<*>) => {
-    this.name = ev.target.value;
-  };
+  const handleNameChange = React.useCallback((ev: SyntheticInputEvent<*>) => {
+    setName(ev.target.value);
+  }, []);
 
-  render() {
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <HelpText>
+  return (
+    <form onSubmit={handleSubmit}>
+      <HelpText>
+        <Trans>
           You can edit the name of this group at any time, however doing so too
           often might confuse your team mates.
-        </HelpText>
-        <Flex>
-          <Input
-            type="text"
-            label="Name"
-            onChange={this.handleNameChange}
-            value={this.name}
-            required
-            autoFocus
-            flex
-          />
-        </Flex>
+        </Trans>
+      </HelpText>
+      <Flex>
+        <Input
+          type="text"
+          label={t("Name")}
+          onChange={handleNameChange}
+          value={name}
+          required
+          autoFocus
+          flex
+        />
+      </Flex>
 
-        <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? "Saving…" : "Save"}
-        </Button>
-      </form>
-    );
-  }
+      <Button type="submit" disabled={isSaving || !name}>
+        {isSaving ? `${t("Saving")}…` : t("Save")}
+      </Button>
+    </form>
+  );
 }
 
-export default inject("ui")(withRouter(GroupEdit));
+export default observer(GroupEdit);

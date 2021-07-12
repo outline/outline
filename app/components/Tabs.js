@@ -1,4 +1,5 @@
 // @flow
+import { AnimateSharedLayout } from "framer-motion";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
@@ -79,11 +80,13 @@ const Tabs = ({ children }: {| children: React.Node |}) => {
   }, [width, updateShadows]);
 
   return (
-    <Sticky>
-      <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
-        {children}
-      </Nav>
-    </Sticky>
+    <AnimateSharedLayout>
+      <Sticky>
+        <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
+          {children}
+        </Nav>
+      </Sticky>
+    </AnimateSharedLayout>
   );
 };
 

@@ -1,10 +1,7 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import GroupsStore from "stores/GroupsStore";
-import UiStore from "stores/UiStore";
+import { useTranslation, Trans } from "react-i18next";
 import Group from "models/Group";
 import GroupMembers from "scenes/GroupMembers";
 import Button from "components/Button";
@@ -12,79 +9,80 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
+import useStores from "hooks/useStores";
 
 type Props = {
-  history: RouterHistory,
-  ui: UiStore,
-  groups: GroupsStore,
   onSubmit: () => void,
 };
 
-@observer
-class GroupNew extends React.Component<Props> {
-  @observable name: string = "";
-  @observable isSaving: boolean;
-  @observable group: Group;
+function GroupNew({ onSubmit }: Props) {
+  const { ui, groups } = useStores();
+  const { t } = useTranslation();
+  const [name, setName] = React.useState();
+  const [isSaving, setIsSaving] = React.useState();
+  const [group, setGroup] = React.useState();
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
+  const handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.isSaving = true;
+    setIsSaving(true);
     const group = new Group(
       {
-        name: this.name,
+        name: name,
       },
-      this.props.groups
+      groups
     );
 
     try {
-      this.group = await group.save();
+      setGroup(await group.save());
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      ui.showToast(err.message, { type: "error" });
     } finally {
-      this.isSaving = false;
+      setIsSaving(false);
     }
   };
 
-  handleNameChange = (ev: SyntheticInputEvent<*>) => {
-    this.name = ev.target.value;
+  const handleNameChange = (ev: SyntheticInputEvent<*>) => {
+    setName(ev.target.value);
   };
 
-  render() {
-    return (
-      <>
-        <form onSubmit={this.handleSubmit}>
-          <HelpText>
+  return (
+    <>
+      <form onSubmit={handleSubmit}>
+        <HelpText>
+          <Trans>
             Groups are for organizing your team. They work best when centered
             around a function or a responsibility — Support or Engineering for
             example.
-          </HelpText>
-          <Flex>
-            <Input
-              type="text"
-              label="Name"
-              onChange={this.handleNameChange}
-              value={this.name}
-              required
-              autoFocus
-              flex
-            />
-          </Flex>
-          <HelpText>You’ll be able to add people to the group next.</HelpText>
+          </Trans>
+        </HelpText>
+        <Flex>
+          <Input
+            type="text"
+            label="Name"
+            onChange={handleNameChange}
+            value={name}
+            required
+            autoFocus
+            flex
+          />
+        </Flex>
+        <HelpText>
+          <Trans>You’ll be able to add people to the group next.</Trans>
+        </HelpText>
 
-          <Button type="submit" disabled={this.isSaving || !this.name}>
-            {this.isSaving ? "Creating…" : "Continue"}
-          </Button>
-        </form>
-        <Modal
-          title="Group members"
-          onRequestClose={this.props.onSubmit}
-          isOpen={!!this.group}
-        >
-          <GroupMembers group={this.group} />
-        </Modal>
-      </>
-    );
-  }
+        <Button type="submit" disabled={isSaving || !name}>
+          {isSaving ? `${t("Creating")}…` : t("Continue")}
+        </Button>
+      </form>
+      <Modal
+        title={t("Group members")}
+        onRequestClose={onSubmit}
+        isOpen={!!group}
+      >
+        <GroupMembers group={group} />
+      </Modal>
+    </>
+  );
 }
 
-export default inject("groups", "ui")(withRouter(GroupNew));
+export default observer(GroupNew);

@@ -6,14 +6,16 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import {
   fadeIn,
-  fadeAndScaleIn,
-  fadeAndSlideIn,
+  fadeAndSlideUp,
+  fadeAndSlideDown,
+  mobileContextMenu,
 } from "shared/styles/animations";
 import usePrevious from "hooks/usePrevious";
 
 type Props = {|
   "aria-label": string,
   visible?: boolean,
+  placement?: string,
   animating?: boolean,
   children: React.Node,
   onOpen?: () => void,
@@ -44,13 +46,25 @@ export default function ContextMenu({
   return (
     <>
       <Menu hideOnClickOutside preventBodyScroll {...rest}>
-        {(props) => (
-          <Position {...props}>
-            <Background dir="auto">
-              {rest.visible || rest.animating ? children : null}
-            </Background>
-          </Position>
-        )}
+        {(props) => {
+          // kind of hacky, but this is an effective way of telling which way
+          // the menu will _actually_ be placed when taking into account screen
+          // positioning.
+          const topAnchor = props.style.top === "0";
+          const rightAnchor = props.placement === "bottom-end";
+
+          return (
+            <Position {...props}>
+              <Background
+                dir="auto"
+                topAnchor={topAnchor}
+                rightAnchor={rightAnchor}
+              >
+                {rest.visible || rest.animating ? children : null}
+              </Background>
+            </Position>
+          );
+        }}
       </Menu>
       {(rest.visible || rest.animating) && (
         <Portal>
@@ -91,7 +105,7 @@ const Position = styled.div`
 `;
 
 const Background = styled.div`
-  animation: ${fadeAndSlideIn} 200ms ease;
+  animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
   background: ${(props) => props.theme.menuBackground};
@@ -109,9 +123,10 @@ const Background = styled.div`
   }
 
   ${breakpoint("tablet")`
-    animation: ${fadeAndScaleIn} 200ms ease;
+    animation: ${(props) =>
+      props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
     transform-origin: ${(props) =>
-      props.left !== undefined ? "25%" : "75%"} 0;
+      props.rightAnchor === "bottom-end" ? "75%" : "25%"} 0;
     max-width: 276px;
     background: ${(props) => props.theme.menuBackground};
     box-shadow: ${(props) => props.theme.menuShadow};
