@@ -9,10 +9,10 @@ import Fade from "components/Fade";
 import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
-import CollectionsLoading from "./CollectionsLoading";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
+import SidebarSectionLoading from "./SidebarSectionLoading";
 import useCurrentTeam from "hooks/useCurrentTeam";
 type Props = {
   onCreateCollection: () => void,
@@ -105,7 +105,7 @@ function Collections({ onCreateCollection }: Props) {
     return (
       <Flex column>
         <Header>{t("Collections")}</Header>
-        <CollectionsLoading />
+        <SidebarSectionLoading />
       </Flex>
     );
   }

@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Mask from "components/Mask";
 
-function CollectionsLoading() {
+function SidebarSectionLoading() {
   return (
     <Wrapper>
       <Mask />
@@ -18,4 +18,4 @@ const Wrapper = styled.div`
   width: 75%;
 `;
 
-export default CollectionsLoading;
+export default SidebarSectionLoading;

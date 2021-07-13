@@ -5,7 +5,6 @@ import {
   HomeIcon,
   EditIcon,
   SearchIcon,
-  StarredIcon,
   ShapesIcon,
   TrashIcon,
   PlusIcon,
@@ -26,6 +25,7 @@ import Sidebar from "./Sidebar";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
+import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
 import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
@@ -108,12 +108,6 @@ function MainSidebar() {
                 label={t("Search")}
                 exact={false}
               />
-              <SidebarLink
-                to="/starred"
-                icon={<StarredIcon color="currentColor" />}
-                exact={false}
-                label={t("Starred")}
-              />
               {can.createDocument && (
                 <SidebarLink
                   to="/templates"
@@ -144,6 +138,9 @@ function MainSidebar() {
                   }
                 />
               )}
+            </Section>
+            <Section>
+              <Starred />
             </Section>
             <Section auto>
               <Collections
