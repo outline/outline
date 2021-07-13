@@ -5,6 +5,7 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import Header from "./Header";
@@ -23,7 +24,7 @@ function Starred() {
   const fetchResults = React.useCallback(async () => {
     setIsFetching(true);
     const results = await fetchStarred({
-      limit: 10,
+      limit: DEFAULT_PAGINATION_LIMIT,
       offset: 0,
     });
     setIsFetching(false);
@@ -43,6 +44,18 @@ function Starred() {
     [history]
   );
 
+  const content = React.useMemo(() => {
+    return starred.slice(0, 10).map((document) => {
+      return (
+        <SidebarLink
+          onClick={(ev) => handleStarred(ev, document)}
+          icon={<StarredIcon color="currentColor" />}
+          label={document.title}
+        />
+      );
+    });
+  }, [starred, handleStarred]);
+
   if (isFetching) {
     return (
       <Flex column>
@@ -55,15 +68,7 @@ function Starred() {
   return (
     <Flex column>
       <Header>{t("Starred")}</Header>
-      {starred.map((document) => {
-        return (
-          <SidebarLink
-            onClick={(ev) => handleStarred(ev, document)}
-            icon={<StarredIcon color="currentColor" />}
-            label={document.title}
-          />
-        );
-      })}
+      <>{content}</>
       {true && (
         <SidebarLink to="/starred" label={`${t("Show more")}…`} exact={false} />
       )}
