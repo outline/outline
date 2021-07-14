@@ -13,7 +13,7 @@ type Props = {|
   delay?: number,
 |};
 
-class Mask extends React.Component<Props> {
+class PlaceholderText extends React.Component<Props> {
   width = randomInteger(this.props.minWidth || 75, this.props.maxWidth || 100);
 
   shouldComponentUpdate() {
@@ -22,7 +22,7 @@ class Mask extends React.Component<Props> {
 
   render() {
     return (
-      <Redacted
+      <Mask
         width={this.width}
         height={this.props.height}
         delay={this.props.delay}
@@ -31,7 +31,7 @@ class Mask extends React.Component<Props> {
   }
 }
 
-const Redacted = styled(Flex)`
+const Mask = styled(Flex)`
   width: ${(props) => (props.header ? props.width / 2 : props.width)}%;
   height: ${(props) =>
     props.height ? props.height : props.header ? 24 : 18}px;
@@ -46,4 +46,4 @@ const Redacted = styled(Flex)`
   }
 `;
 
-export default Mask;
+export default PlaceholderText;

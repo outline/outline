@@ -28,10 +28,10 @@ import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import InputSearchPage from "components/InputSearchPage";
 import LoadingIndicator from "components/LoadingIndicator";
-import { ListPlaceholder } from "components/LoadingPlaceholder";
-import Mask from "components/Mask";
 import Modal from "components/Modal";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
+import PlaceholderList from "components/PlaceholderList";
+import PlaceholderText from "components/PlaceholderText";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import Tab from "components/Tab";
@@ -376,9 +376,9 @@ function CollectionScene() {
   ) : (
     <CenteredContent>
       <Heading>
-        <Mask height={35} />
+        <PlaceholderText height={35} />
       </Heading>
-      <ListPlaceholder count={5} />
+      <PlaceholderList count={5} />
     </CenteredContent>
   );
 }

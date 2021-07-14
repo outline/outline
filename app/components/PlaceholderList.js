@@ -4,7 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
-import Mask from "components/Mask";
+import PlaceholderText from "components/PlaceholderText";
 
 type Props = {
   count?: number,
@@ -15,8 +15,8 @@ const ListPlaceHolder = ({ count }: Props) => {
     <Fade>
       {times(count || 2, (index) => (
         <Item key={index} column auto>
-          <Mask header delay={0.2 * index} />
-          <Mask delay={0.2 * index} />
+          <PlaceholderText header delay={0.2 * index} />
+          <PlaceholderText delay={0.2 * index} />
         </Item>
       ))}
     </Fade>
