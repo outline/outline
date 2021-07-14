@@ -13,22 +13,14 @@ import SidebarLink from "./SidebarLink";
 function TrashLink({ documents }) {
   const { policies } = useStores();
   const { t } = useTranslation();
-  const [showDeleteModal, setShowDeleteModal] = useState(true);
   const [document, setDocument] = useState();
-
-  const handleModalClose = React.useCallback(() => {
-    setDocument(undefined);
-    setShowDeleteModal(false);
-  }, []);
 
   const [{ isDocumentDropping }, dropToTrashDocument] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
       setDocument(documents.get(item.id));
-      setShowDeleteModal(true);
     },
     canDrop: (item, monitor) => {
-      console.log(policies.abilities(item.id));
       return policies.abilities(item.id).delete;
     },
     collect: (monitor) => ({
@@ -44,7 +36,7 @@ function TrashLink({ documents }) {
           icon={<TrashIcon color="currentColor" open={isDocumentDropping} />}
           exact={false}
           label={t("Trash")}
-          active={documents.active ? documents.active.isDeleted : undefined}
+          active={documents.active?.isDeleted}
           isActiveDrop={isDocumentDropping}
         />
       </div>
@@ -53,10 +45,13 @@ function TrashLink({ documents }) {
           title={t("Delete {{ documentName }}", {
             documentName: document.noun,
           })}
-          onRequestClose={handleModalClose}
-          isOpen={showDeleteModal}
+          onRequestClose={() => setDocument(undefined)}
+          isOpen
         >
-          <DocumentDelete document={document} onSubmit={handleModalClose} />
+          <DocumentDelete
+            document={document}
+            onSubmit={() => setDocument(undefined)}
+          />
         </Modal>
       )}
     </>
