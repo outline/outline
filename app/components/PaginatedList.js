@@ -7,7 +7,7 @@ import * as React from "react";
 import { Waypoint } from "react-waypoint";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DelayedMount from "components/DelayedMount";
-import PlaceholderList from "components/PlaceholderList";
+import PlaceholderList from "components/List/Placeholder";
 
 type Props = {
   fetch?: (options: ?Object) => Promise<void>,

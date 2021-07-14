@@ -15,7 +15,7 @@ import RevisionsStore from "stores/RevisionsStore";
 
 import Button from "components/Button";
 import Flex from "components/Flex";
-import PlaceholderList from "components/PlaceholderList";
+import PlaceholderList from "components/List/Placeholder";
 import Revision from "./components/Revision";
 import { documentHistoryUrl, documentUrl } from "utils/routeHelpers";
 
