@@ -11,11 +11,12 @@ export default function LoadingPlaceholder(props: Object) {
     <DelayedMount>
       <Wrapper>
         <Flex column auto {...props}>
-          <Mask height={34} />
+          <Mask height={34} maxWidth={70} />
+          <Mask delay={0.2} maxWidth={40} />
           <br />
-          <Mask />
-          <Mask />
-          <Mask />
+          <Mask delay={0.2} />
+          <Mask delay={0.4} />
+          <Mask delay={0.6} />
         </Flex>
       </Wrapper>
     </DelayedMount>

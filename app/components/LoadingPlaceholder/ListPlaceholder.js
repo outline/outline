@@ -15,8 +15,8 @@ const ListPlaceHolder = ({ count }: Props) => {
     <Fade>
       {times(count || 2, (index) => (
         <Item key={index} column auto>
-          <Mask header />
-          <Mask />
+          <Mask header delay={0.2 * index} />
+          <Mask delay={0.2 * index} />
         </Item>
       ))}
     </Fade>

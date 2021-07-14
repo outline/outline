@@ -10,22 +10,24 @@ type Props = {|
   height?: number,
   minWidth?: number,
   maxWidth?: number,
+  delay?: number,
 |};
 
 class Mask extends React.Component<Props> {
-  width: number;
+  width = randomInteger(this.props.minWidth || 75, this.props.maxWidth || 100);
 
   shouldComponentUpdate() {
     return false;
   }
 
-  constructor(props: Props) {
-    super();
-    this.width = randomInteger(props.minWidth || 75, props.maxWidth || 100);
-  }
-
   render() {
-    return <Redacted width={this.width} height={this.props.height} />;
+    return (
+      <Redacted
+        width={this.width}
+        height={this.props.height}
+        delay={this.props.delay}
+      />
+    );
   }
 }
 
@@ -34,8 +36,10 @@ const Redacted = styled(Flex)`
   height: ${(props) =>
     props.height ? props.height : props.header ? 24 : 18}px;
   margin-bottom: 6px;
+  border-radius: 6px;
   background-color: ${(props) => props.theme.divider};
-  animation: ${pulsate} 1.3s infinite;
+  animation: ${pulsate} 2s infinite;
+  animation-delay: ${(props) => props.delay || 0}s;
 
   &:last-child {
     margin-bottom: 0;

@@ -7,8 +7,8 @@ function CollectionsLoading() {
   return (
     <Wrapper>
       <Mask />
-      <Mask />
-      <Mask />
+      <Mask delay={0.2} />
+      <Mask delay={0.4} />
     </Wrapper>
   );
 }
