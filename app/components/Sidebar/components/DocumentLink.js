@@ -132,7 +132,11 @@ function DocumentLink(
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      return policies.abilities(node.id).move;
+      return (
+        policies.abilities(node.id).move ||
+        policies.abilities(node.id).archive ||
+        policies.abilities(node.id).delete
+      );
     },
   });
 
