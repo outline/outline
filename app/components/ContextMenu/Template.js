@@ -9,49 +9,11 @@ import {
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
 import styled from "styled-components";
+import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
-
-type TMenuItem =
-  | {|
-      title: React.Node,
-      to: string,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      onClick: (event: SyntheticEvent<>) => void | Promise<void>,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      href: string,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-    |}
-  | {|
-      title: React.Node,
-      visible?: boolean,
-      disabled?: boolean,
-      style?: Object,
-      hover?: boolean,
-      items: TMenuItem[],
-    |}
-  | {|
-      type: "separator",
-      visible?: boolean,
-    |}
-  | {|
-      type: "heading",
-      visible?: boolean,
-      title: React.Node,
-    |};
+import { type MenuItem as TMenuItem } from "types";
 
 type Props = {|
   items: TMenuItem[],
@@ -128,7 +90,8 @@ function Template({ items, ...menu }: Props): React.Node {
           key={index}
           disabled={item.disabled}
           selected={item.selected}
-          target="_blank"
+          level={item.level}
+          target={item.href.startsWith("#") ? undefined : "_blank"}
           {...menu}
         >
           {item.title}
@@ -167,6 +130,11 @@ function Template({ items, ...menu }: Props): React.Node {
       return <Separator key={index} />;
     }
 
+    if (item.type === "heading") {
+      return <Header>{item.title}</Header>;
+    }
+
+    console.warn("Unrecognized menu item", item);
     return null;
   });
 }

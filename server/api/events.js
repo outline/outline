@@ -16,6 +16,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   let {
     sort = "createdAt",
     actorId,
+    documentId,
     collectionId,
     direction,
     name,
@@ -31,10 +32,12 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
 
   if (actorId) {
     ctx.assertUuid(actorId, "actorId must be a UUID");
-    where = {
-      ...where,
-      actorId,
-    };
+    where = { ...where, actorId };
+  }
+
+  if (documentId) {
+    ctx.assertUuid(documentId, "documentId must be a UUID");
+    where = { ...where, documentId };
   }
 
   if (collectionId) {

@@ -66,6 +66,9 @@ function DocumentListItem(props: Props, ref) {
     !document.isDraft && !document.isArchived && !document.isTemplate;
   const can = policies.abilities(currentTeam.id);
 
+  const handleMenuOpen = React.useCallback(() => setMenuOpen(true), []);
+  const handleMenuClosed = React.useCallback(() => setMenuOpen(false), []);
+
   return (
     <DocumentLink
       ref={ref}
@@ -143,8 +146,8 @@ function DocumentListItem(props: Props, ref) {
         <DocumentMenu
           document={document}
           showPin={showPin}
-          onOpen={() => setMenuOpen(true)}
-          onClose={() => setMenuOpen(false)}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClosed}
           modal={false}
         />
       </Actions>

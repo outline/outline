@@ -72,6 +72,10 @@ const Actions = styled(Flex)`
   flex-basis: 0;
   min-width: auto;
   padding-left: 8px;
+
+  ${breakpoint("tablet")`
+    position: unset;
+  `};
 `;
 
 const Wrapper = styled(Flex)`
@@ -84,12 +88,12 @@ const Wrapper = styled(Flex)`
   transform: translate3d(0, 0, 0);
   backdrop-filter: blur(20px);
   min-height: 56px;
+  justify-content: flex-start;
 
   @media print {
     display: none;
   }
 
-  justify-content: flex-start;
   ${breakpoint("tablet")`
     padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
     justify-content: "center";

@@ -1,58 +1,58 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
+import { Trans } from "react-i18next";
 import styled, { withTheme } from "styled-components";
-import UiStore from "stores/UiStore";
 import Editor from "components/Editor";
 import HelpText from "components/HelpText";
 import { LabelText, Outline } from "components/Input";
+import useStores from "hooks/useStores";
 
 type Props = {|
   label: string,
   minHeight?: number,
   maxHeight?: number,
   readOnly?: boolean,
-  ui: UiStore,
 |};
 
-@observer
-class InputRich extends React.Component<Props> {
-  @observable editorComponent: React.ComponentType<any>;
-  @observable focused: boolean = false;
+function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
+  const [focused, setFocused] = React.useState<boolean>(false);
+  const { ui } = useStores();
 
-  handleBlur = () => {
-    this.focused = false;
-  };
+  const handleBlur = React.useCallback(() => {
+    setFocused(false);
+  }, []);
 
-  handleFocus = () => {
-    this.focused = true;
-  };
+  const handleFocus = React.useCallback(() => {
+    setFocused(true);
+  }, []);
 
-  render() {
-    const { label, minHeight, maxHeight, ui, ...rest } = this.props;
-
-    return (
-      <>
-        <LabelText>{label}</LabelText>
-        <StyledOutline
-          maxHeight={maxHeight}
-          minHeight={minHeight}
-          focused={this.focused}
+  return (
+    <>
+      <LabelText>{label}</LabelText>
+      <StyledOutline
+        maxHeight={maxHeight}
+        minHeight={minHeight}
+        focused={focused}
+      >
+        <React.Suspense
+          fallback={
+            <HelpText>
+              <Trans>Loading editor</Trans>…
+            </HelpText>
+          }
         >
-          <React.Suspense fallback={<HelpText>Loading editor…</HelpText>}>
-            <Editor
-              onBlur={this.handleBlur}
-              onFocus={this.handleFocus}
-              ui={ui}
-              grow
-              {...rest}
-            />
-          </React.Suspense>
-        </StyledOutline>
-      </>
-    );
-  }
+          <Editor
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            ui={ui}
+            grow
+            {...rest}
+          />
+        </React.Suspense>
+      </StyledOutline>
+    </>
+  );
 }
 
 const StyledOutline = styled(Outline)`
@@ -67,4 +67,4 @@ const StyledOutline = styled(Outline)`
   }
 `;
 
-export default inject("ui")(withTheme(InputRich));
+export default observer(withTheme(InputRich));
