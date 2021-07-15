@@ -15,7 +15,7 @@ import RevisionsStore from "stores/RevisionsStore";
 
 import Button from "components/Button";
 import Flex from "components/Flex";
-import { ListPlaceholder } from "components/LoadingPlaceholder";
+import PlaceholderList from "components/List/Placeholder";
 import Revision from "./components/Revision";
 import { documentHistoryUrl, documentUrl } from "utils/routeHelpers";
 
@@ -120,7 +120,7 @@ class DocumentHistory extends React.Component<Props> {
           </Header>
           {showLoading ? (
             <Loading>
-              <ListPlaceholder count={5} />
+              <PlaceholderList count={5} />
             </Loading>
           ) : (
             <ArrowKeyNavigation

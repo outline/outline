@@ -45,7 +45,7 @@ const Container = styled.div`
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
   flex-shrink: ${({ shrink }) => (shrink ? 1 : "initial")};
-  gap: ${({ gap }) => `${gap}px` || "initial"};
+  gap: ${({ gap }) => (gap ? `${gap}px` : "initial")};
   min-height: 0;
   min-width: 0;
 `;

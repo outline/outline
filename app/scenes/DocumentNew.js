@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import useStores from "hooks/useStores";
 import { editDocumentUrl } from "utils/routeHelpers";
 
@@ -48,7 +48,7 @@ function DocumentNew() {
   return (
     <Flex column auto>
       <CenteredContent>
-        <LoadingPlaceholder />
+        <PlaceholderDocument />
       </CenteredContent>
     </Flex>
   );
