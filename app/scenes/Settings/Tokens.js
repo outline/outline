@@ -13,6 +13,7 @@ import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import TokenListItem from "./components/TokenListItem";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 
@@ -20,16 +21,8 @@ function Tokens() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { apiKeys, policies } = useStores();
-  const [newModalOpen, setNewModalOpen] = React.useState(false);
+  const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
   const can = policies.abilities(team.id);
-
-  const handleNewModalOpen = React.useCallback(() => {
-    setNewModalOpen(true);
-  }, []);
-
-  const handleNewModalClose = React.useCallback(() => {
-    setNewModalOpen(false);
-  }, []);
 
   return (
     <Scene

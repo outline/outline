@@ -15,6 +15,7 @@ import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
@@ -46,7 +47,7 @@ function DocumentListItem(props: Props, ref) {
   const { policies } = useStores();
   const currentUser = useCurrentUser();
   const currentTeam = useCurrentTeam();
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const {
     document,
     showNestedDocuments,
@@ -65,9 +66,6 @@ function DocumentListItem(props: Props, ref) {
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
   const can = policies.abilities(currentTeam.id);
-
-  const handleMenuOpen = React.useCallback(() => setMenuOpen(true), []);
-  const handleMenuClosed = React.useCallback(() => setMenuOpen(false), []);
 
   return (
     <DocumentLink
@@ -147,7 +145,7 @@ function DocumentListItem(props: Props, ref) {
           document={document}
           showPin={showPin}
           onOpen={handleMenuOpen}
-          onClose={handleMenuClosed}
+          onClose={handleMenuClose}
           modal={false}
         />
       </Actions>
