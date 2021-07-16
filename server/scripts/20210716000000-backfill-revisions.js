@@ -35,6 +35,9 @@ export default async function main(exit = false) {
             actorId: revision.userId,
             teamId: revision.document.teamId,
           },
+          defaults: {
+            createdAt: revision.createdAt,
+          },
         });
       } catch (err) {
         console.error(`Failed at ${revision.id}:`, err);

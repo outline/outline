@@ -19,6 +19,7 @@ describe("#work", () => {
     expect(event.modelId).toEqual(revision.id);
     expect(event.documentId).toEqual(document.id);
     expect(event.teamId).toEqual(document.teamId);
+    expect(event.createdAt).toEqual(revision.createdAt);
   });
 
   it("should create events for revisions of deleted documents", async () => {
@@ -35,6 +36,7 @@ describe("#work", () => {
     expect(event.modelId).toEqual(revision.id);
     expect(event.documentId).toEqual(document.id);
     expect(event.teamId).toEqual(document.teamId);
+    expect(event.createdAt).toEqual(revision.createdAt);
   });
 
   it("should be idempotent", async () => {
