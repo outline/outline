@@ -234,7 +234,7 @@ describe("#searchForTeam", () => {
     document.title = "change";
     await document.save();
 
-    const { totalCount } = await Document.searchForTeam(team, "change");
+    const { totalCount } = await Document.searchForTeam(team, "test number");
     expect(totalCount).toBe("1");
   });
 
@@ -326,7 +326,7 @@ describe("#searchForUser", () => {
     document.title = "change";
     await document.save();
 
-    const { totalCount } = await Document.searchForUser(user, "change");
+    const { totalCount } = await Document.searchForUser(user, "test number");
     expect(totalCount).toBe("1");
   });
 
