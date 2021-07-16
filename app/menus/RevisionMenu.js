@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState } from "reakit/Menu";
 import Document from "models/Document";
-import Revision from "models/Revision";
 import ContextMenu from "components/ContextMenu";
 import MenuItem from "components/ContextMenu/MenuItem";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
@@ -16,12 +15,12 @@ import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
-  revision: Revision,
+  revisionId: string,
   iconColor?: string,
   className?: string,
 |};
 
-function RevisionMenu({ document, revision, className, iconColor }: Props) {
+function RevisionMenu({ document, revisionId, className, iconColor }: Props) {
   const { ui } = useStores();
   const menu = useMenuState({ modal: true });
   const { t } = useTranslation();
@@ -30,11 +29,11 @@ function RevisionMenu({ document, revision, className, iconColor }: Props) {
   const handleRestore = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       ev.preventDefault();
-      await document.restore({ revisionId: revision.id });
+      await document.restore({ revisionId });
       ui.showToast(t("Document restored"), { type: "success" });
       history.push(document.url);
     },
-    [history, ui, t, document, revision]
+    [history, ui, t, document, revisionId]
   );
 
   const handleCopy = React.useCallback(() => {
@@ -43,7 +42,7 @@ function RevisionMenu({ document, revision, className, iconColor }: Props) {
 
   const url = `${window.location.origin}${documentHistoryUrl(
     document,
-    revision.id
+    revisionId
   )}`;
 
   return (

@@ -1,16 +1,18 @@
 // @flow
 import * as React from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "components/Flex";
 
-type Props = {
+type Props = {|
   image?: React.Node,
+  to?: string,
   title: React.Node,
   subtitle?: React.Node,
   actions?: React.Node,
   border?: boolean,
   small?: boolean,
-};
+|};
 
 const ListItem = ({
   image,
@@ -19,11 +21,19 @@ const ListItem = ({
   actions,
   small,
   border,
+  to,
+  ...rest
 }: Props) => {
   const compact = !subtitle;
 
   return (
-    <Wrapper compact={compact} $border={border}>
+    <Wrapper
+      compact={compact}
+      $border={border}
+      {...rest}
+      as={to ? Link : undefined}
+      to={to}
+    >
       {image && <Image>{image}</Image>}
       <Content align={compact ? "center" : undefined} column={!compact}>
         <Heading $small={small}>{title}</Heading>
@@ -34,7 +44,7 @@ const ListItem = ({
   );
 };
 
-const Wrapper = styled.li`
+const Wrapper = styled.div`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
   margin: ${(props) => (props.$border === false ? "8px 0" : 0)};
@@ -57,7 +67,7 @@ const Image = styled(Flex)`
 `;
 
 const Heading = styled.p`
-  font-size: ${(props) => (props.$small ? 15 : 16)}px;
+  font-size: ${(props) => (props.$small ? 14 : 16)}px;
   font-weight: 500;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -66,8 +76,11 @@ const Heading = styled.p`
   margin: 0;
 `;
 
-const Content = styled(Flex)`
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
+  color: ${(props) => props.theme.text};
 `;
 
 const Subtitle = styled.p`
@@ -79,6 +92,7 @@ const Subtitle = styled.p`
 
 const Actions = styled.div`
   align-self: center;
+  justify-content: center;
 `;
 
 export default ListItem;

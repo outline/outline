@@ -1,5 +1,5 @@
 // @flow
-import { format, formatDistanceToNow } from "date-fns";
+import { format as formatDate, formatDistanceToNow } from "date-fns";
 import {
   enUS,
   de,
@@ -55,6 +55,8 @@ type Props = {
   tooltipDelay?: number,
   addSuffix?: boolean,
   shorten?: boolean,
+  relative?: boolean,
+  format?: string,
 };
 
 function LocaleTime({
@@ -62,6 +64,8 @@ function LocaleTime({
   children,
   dateTime,
   shorten,
+  format,
+  relative,
   tooltipDelay,
 }: Props) {
   const userLocale = useUserLocale();
@@ -80,9 +84,10 @@ function LocaleTime({
     };
   }, []);
 
+  const locale = userLocale ? locales[userLocale] : undefined;
   let content = formatDistanceToNow(Date.parse(dateTime), {
     addSuffix,
-    locale: userLocale ? locales[userLocale] : undefined,
+    locale,
   });
 
   if (shorten) {
@@ -92,13 +97,17 @@ function LocaleTime({
       .replace("minute", "min");
   }
 
+  const tooltip = formatDate(
+    Date.parse(dateTime),
+    format || "MMMM do, yyyy h:mm a",
+    { locale }
+  );
+
   return (
-    <Tooltip
-      tooltip={format(Date.parse(dateTime), "MMMM do, yyyy h:mm a")}
-      delay={tooltipDelay}
-      placement="bottom"
-    >
-      <time dateTime={dateTime}>{children || content}</time>
+    <Tooltip tooltip={tooltip} delay={tooltipDelay} placement="bottom">
+      <time dateTime={dateTime}>
+        {children || relative ? content : tooltip}
+      </time>
     </Tooltip>
   );
 }
