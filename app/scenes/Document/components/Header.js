@@ -24,6 +24,7 @@ import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
+import TableOfContentsMenu from "menus/TableOfContentsMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
 import { type NavigationNode } from "types";
 import { metaDisplay } from "utils/keyboard";
@@ -46,6 +47,7 @@ type Props = {|
     publish?: boolean,
     autosave?: boolean,
   }) => void,
+  headings: { title: string, level: number, id: string }[],
 |};
 
 function DocumentHeader({
@@ -60,6 +62,7 @@ function DocumentHeader({
   publishingIsDisabled,
   sharedTree,
   onSave,
+  headings,
 }: Props) {
   const { t } = useTranslation();
   const { auth, ui, policies } = useStores();
@@ -153,6 +156,11 @@ function DocumentHeader({
         }
         actions={
           <>
+            {isMobile && (
+              <TocWrapper>
+                <TableOfContentsMenu headings={headings} />
+              </TocWrapper>
+            )}
             {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
             <Collaborators
               document={document}
@@ -272,6 +280,11 @@ const Status = styled(Action)`
   padding-left: 0;
   padding-right: 4px;
   color: ${(props) => props.theme.slate};
+`;
+
+const TocWrapper = styled(Action)`
+  position: absolute;
+  left: 42px;
 `;
 
 export default observer(DocumentHeader);

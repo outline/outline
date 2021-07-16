@@ -74,12 +74,9 @@ if (isProduction) {
     // display nothing to the console
     quiet: false,
 
-    // switch into lazy mode
-    // that means no watching, but recompilation on every request
-    lazy: false,
-
     watchOptions: {
-      ignored: ["node_modules"],
+      poll: 1000,
+      ignored: ["node_modules", "flow-typed", "server", "build", "__mocks__"],
     },
 
     // public path to bind the middleware to

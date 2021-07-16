@@ -15,6 +15,7 @@ type Props = {|
   target?: "_blank",
   as?: string | React.ComponentType<*>,
   hide?: () => void,
+  level?: number,
 |};
 
 const MenuItem = ({
@@ -88,6 +89,7 @@ export const MenuAnchor = styled.a`
   margin: 0;
   border: 0;
   padding: 12px;
+  padding-left: ${(props) => 12 + props.level * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;

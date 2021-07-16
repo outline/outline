@@ -19,6 +19,7 @@ import MenuItem, { MenuAnchor } from "components/ContextMenu/MenuItem";
 import Separator from "components/ContextMenu/Separator";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
+import useBoolean from "hooks/useBoolean";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
@@ -78,9 +79,11 @@ function AccountMenu(props: Props) {
   const { auth, ui } = useStores();
   const previousTheme = usePrevious(ui.theme);
   const { t } = useTranslation();
-  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
-    false
-  );
+  const [
+    keyboardShortcutsOpen,
+    handleKeyboardShortcutsOpen,
+    handleKeyboardShortcutsClose,
+  ] = useBoolean();
 
   React.useEffect(() => {
     if (ui.theme !== previousTheme) {
@@ -92,7 +95,7 @@ function AccountMenu(props: Props) {
     <>
       <Guide
         isOpen={keyboardShortcutsOpen}
-        onRequestClose={() => setKeyboardShortcutsOpen(false)}
+        onRequestClose={handleKeyboardShortcutsClose}
         title={t("Keyboard shortcuts")}
       >
         <KeyboardShortcuts />
@@ -102,7 +105,7 @@ function AccountMenu(props: Props) {
         <MenuItem {...menu} as={Link} to={settings()}>
           {t("Settings")}
         </MenuItem>
-        <MenuItem {...menu} onClick={() => setKeyboardShortcutsOpen(true)}>
+        <MenuItem {...menu} onClick={handleKeyboardShortcutsOpen}>
           {t("Keyboard shortcuts")}
         </MenuItem>
         <MenuItem {...menu} href={developers()} target="_blank">

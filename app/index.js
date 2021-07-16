@@ -1,5 +1,6 @@
 // @flow
 import "focus-visible";
+import { LazyMotion } from "framer-motion";
 import { createBrowserHistory } from "history";
 import { Provider } from "mobx-react";
 import * as React from "react";
@@ -49,6 +50,10 @@ if ("serviceWorker" in window.navigator) {
   });
 }
 
+// Make sure to return the specific export containing the feature bundle.
+const loadFeatures = () =>
+  import("./utils/motion.js").then((res) => res.default);
+
 if (element) {
   const App = () => (
     <React.StrictMode>
@@ -56,15 +61,17 @@ if (element) {
         <Analytics>
           <Theme>
             <ErrorBoundary>
-              <Router history={history}>
-                <>
-                  <PageTheme />
-                  <ScrollToTop>
-                    <Routes />
-                  </ScrollToTop>
-                  <Toasts />
-                </>
-              </Router>
+              <LazyMotion features={loadFeatures}>
+                <Router history={history}>
+                  <>
+                    <PageTheme />
+                    <ScrollToTop>
+                      <Routes />
+                    </ScrollToTop>
+                    <Toasts />
+                  </>
+                </Router>
+              </LazyMotion>
             </ErrorBoundary>
           </Theme>
         </Analytics>

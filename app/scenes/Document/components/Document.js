@@ -18,10 +18,10 @@ import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -374,6 +374,7 @@ class DocumentScene extends React.Component<Props> {
               sharedTree={this.props.sharedTree}
               goBack={this.goBack}
               onSave={this.onSave}
+              headings={headings}
             />
             <MaxWidth
               archived={document.isArchived}
@@ -409,7 +410,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <React.Suspense fallback={<LoadingPlaceholder />}>
+              <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
                   <Editor

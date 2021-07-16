@@ -8,7 +8,7 @@ import styled from "styled-components";
 import Button from "components/Button";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
-import Mask from "components/Mask";
+import PlaceholderText from "components/PlaceholderText";
 
 export type Props = {|
   data: any[],
@@ -170,7 +170,7 @@ export const Placeholder = ({
         <Row key={row}>
           {new Array(columns).fill().map((_, col) => (
             <Cell key={col}>
-              <Mask minWidth={25} maxWidth={75} />
+              <PlaceholderText minWidth={25} maxWidth={75} />
             </Cell>
           ))}
         </Row>

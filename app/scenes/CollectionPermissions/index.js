@@ -17,6 +17,7 @@ import AddGroupsToCollection from "./AddGroupsToCollection";
 import AddPeopleToCollection from "./AddPeopleToCollection";
 import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
 import MemberListItem from "./components/MemberListItem";
+import useBoolean from "hooks/useBoolean";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
@@ -34,8 +35,16 @@ function CollectionPermissions({ collection }: Props) {
     users,
     groups,
   } = useStores();
-  const [addGroupModalOpen, setAddGroupModalOpen] = React.useState(false);
-  const [addMemberModalOpen, setAddMemberModalOpen] = React.useState(false);
+  const [
+    addGroupModalOpen,
+    handleAddGroupModalOpen,
+    handleAddGroupModalClose,
+  ] = useBoolean();
+  const [
+    addMemberModalOpen,
+    handleAddMemberModalOpen,
+    handleAddMemberModalClose,
+  ] = useBoolean();
 
   const handleRemoveUser = React.useCallback(
     async (user) => {
@@ -183,7 +192,7 @@ function CollectionPermissions({ collection }: Props) {
         <Actions>
           <Button
             type="button"
-            onClick={() => setAddGroupModalOpen(true)}
+            onClick={handleAddGroupModalOpen}
             icon={<PlusIcon />}
             neutral
           >
@@ -191,7 +200,7 @@ function CollectionPermissions({ collection }: Props) {
           </Button>{" "}
           <Button
             type="button"
-            onClick={() => setAddMemberModalOpen(true)}
+            onClick={handleAddMemberModalOpen}
             icon={<PlusIcon />}
             neutral
           >
@@ -244,24 +253,24 @@ function CollectionPermissions({ collection }: Props) {
         title={t(`Add groups to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
-        onRequestClose={() => setAddGroupModalOpen(false)}
+        onRequestClose={handleAddGroupModalClose}
         isOpen={addGroupModalOpen}
       >
         <AddGroupsToCollection
           collection={collection}
-          onSubmit={() => setAddGroupModalOpen(false)}
+          onSubmit={handleAddGroupModalClose}
         />
       </Modal>
       <Modal
         title={t(`Add people to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
-        onRequestClose={() => setAddMemberModalOpen(false)}
+        onRequestClose={handleAddMemberModalClose}
         isOpen={addMemberModalOpen}
       >
         <AddPeopleToCollection
           collection={collection}
-          onSubmit={() => setAddMemberModalOpen(false)}
+          onSubmit={handleAddMemberModalClose}
         />
       </Modal>
     </Flex>

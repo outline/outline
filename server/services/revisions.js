@@ -1,6 +1,8 @@
 // @flow
+import invariant from "invariant";
+import revisionCreator from "../commands/revisionCreator";
 import type { DocumentEvent, RevisionEvent } from "../events";
-import { Revision, Document } from "../models";
+import { Revision, Document, User } from "../models";
 
 export default class Revisions {
   async on(event: DocumentEvent | RevisionEvent) {
@@ -8,7 +10,7 @@ export default class Revisions {
       case "documents.publish":
       case "documents.update.debounced": {
         const document = await Document.findByPk(event.documentId);
-        if (!document) return;
+        invariant(document, "Document should exist");
 
         const previous = await Revision.findLatest(document.id);
 
@@ -22,7 +24,10 @@ export default class Revisions {
           return;
         }
 
-        await Revision.createFromDocument(document);
+        const user = await User.findByPk(event.actorId);
+        invariant(user, "User should exist");
+
+        await revisionCreator({ user, document });
 
         break;
       }
