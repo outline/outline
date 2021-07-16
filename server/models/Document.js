@@ -39,6 +39,11 @@ const beforeSave = async (doc) => {
   // ensure documents have a title
   doc.title = doc.title || "";
 
+  if (doc.previous("title") && doc.previous("title") !== doc.title) {
+    if (!doc.previousTitles) doc.previousTitles = [];
+    doc.previousTitles = uniq(doc.previousTitles.concat(doc.previous("title")));
+  }
+
   // add the current user as a collaborator on this doc
   if (!doc.collaboratorIds) doc.collaboratorIds = [];
   doc.collaboratorIds = uniq(doc.collaboratorIds.concat(doc.lastModifiedById));
