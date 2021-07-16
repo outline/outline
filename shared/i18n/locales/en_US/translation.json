@@ -219,7 +219,6 @@
   "Contents": "Contents",
   "Headings you add to the document will appear here": "Headings you add to the document will appear here",
   "Table of contents": "Table of contents",
-  "Contents": "Contents",
   "By {{ author }}": "By {{ author }}",
   "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.": "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
   "Are you sure you want to make {{ userName }} a member?": "Are you sure you want to make {{ userName }} a member?",
