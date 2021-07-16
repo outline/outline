@@ -1,5 +1,6 @@
 // @flow
 import Router from "koa-router";
+import { uniq } from "lodash";
 import Sequelize from "sequelize";
 import { subtractDate } from "../../shared/utils/date";
 import documentCreator from "../commands/documentCreator";
@@ -1014,7 +1015,11 @@ router.post("documents.update", auth(), async (ctx) => {
   const previousTitle = document.title;
 
   // Update document
-  if (title) document.title = title;
+  if (title) {
+    document.title = title;
+    if (!document.previousTitles) document.previousTitles = [];
+    document.previousTitles = uniq(document.previousTitles.concat(title));
+  }
   if (editorVersion) document.editorVersion = editorVersion;
   if (templateId) document.templateId = templateId;
 

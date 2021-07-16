@@ -70,6 +70,7 @@ const Document = sequelize.define(
         },
       },
     },
+    previousTitles: DataTypes.ARRAY(DataTypes.STRING),
     version: DataTypes.SMALLINT,
     template: DataTypes.BOOLEAN,
     editorVersion: DataTypes.STRING,
