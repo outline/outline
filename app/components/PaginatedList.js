@@ -4,10 +4,12 @@ import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, type TFunction } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
+import { dateToHeading } from "utils/dates";
 
 type Props = {
   fetch?: (options: ?Object) => Promise<void>,
@@ -16,6 +18,8 @@ type Props = {
   empty?: React.Node,
   items: any[],
   renderItem: (any) => React.Node,
+  renderHeading: (name: React.Element<any> | string) => React.Node,
+  t: TFunction,
 };
 
 @observer
@@ -101,8 +105,9 @@ class PaginatedList extends React.Component<Props> {
   };
 
   render() {
-    const { items, heading, empty } = this.props;
+    const { items, heading, empty, renderHeading } = this.props;
 
+    let previousHeading = "";
     const showLoading =
       this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
     const showEmpty = !items.length && !showLoading;
@@ -119,7 +124,30 @@ class PaginatedList extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {items.slice(0, this.renderCount).map(this.props.renderItem)}
+              {items.slice(0, this.renderCount).map((item) => {
+                const children = this.props.renderItem(item);
+
+                if (!renderHeading) {
+                  return children;
+                }
+
+                const currentDate =
+                  item.updatedAt || item.createdAt || previousHeading;
+                const currentHeading = dateToHeading(currentDate, this.props.t);
+
+                if (!previousHeading || currentHeading !== previousHeading) {
+                  previousHeading = currentHeading;
+
+                  return (
+                    <React.Fragment key={item.id}>
+                      {renderHeading(currentHeading)}
+                      {children}
+                    </React.Fragment>
+                  );
+                }
+
+                return children;
+              })}
             </ArrowKeyNavigation>
             {this.allowLoadMore && (
               <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
@@ -136,4 +164,4 @@ class PaginatedList extends React.Component<Props> {
   }
 }
 
-export default PaginatedList;
+export default withTranslation()<PaginatedList>(PaginatedList);

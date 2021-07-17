@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import styled from "styled-components";
 import Document from "models/Document";
 import Event from "models/Event";
 import PaginatedList from "components/PaginatedList";
@@ -38,8 +39,14 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
           {...rest}
         />
       )}
+      renderHeading={(name) => <Heading>{name}</Heading>}
     />
   );
 });
+
+const Heading = styled("h3")`
+  font-size: 14px;
+  padding: 0 12px;
+`;
 
 export default PaginatedEventList;

@@ -2,11 +2,12 @@
 import { observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-
 import breakpoint from "styled-components-breakpoint";
 import Button from "components/Button";
+import Empty from "components/Empty";
 import Flex from "components/Flex";
 import PaginatedEventList from "components/PaginatedEventList";
 import Scrollable from "components/Scrollable";
@@ -15,6 +16,7 @@ import { documentUrl } from "utils/routeHelpers";
 
 function DocumentHistory() {
   const { events, documents } = useStores();
+  const { t } = useTranslation();
   const match = useRouteMatch();
   const history = useHistory();
 
@@ -24,31 +26,30 @@ function DocumentHistory() {
     history.push(documentUrl(document));
   };
 
-  if (!document) {
-    return null;
-  }
-
   return (
     <Sidebar>
-      <Position column>
-        <Header>
-          <Title>History</Title>
-          <Button
-            icon={<CloseIcon />}
-            onClick={onCloseHistory}
-            borderOnHover
-            neutral
-          />
-        </Header>
-        <Scrollable topShadow>
-          <PaginatedEventList
-            fetch={events.fetchPage}
-            events={events.inDocument(document.id)}
-            options={{ documentId: document.id }}
-            document={document}
-          />
-        </Scrollable>
-      </Position>
+      {document ? (
+        <Position column>
+          <Header>
+            <Title>{t("History")}</Title>
+            <Button
+              icon={<CloseIcon />}
+              onClick={onCloseHistory}
+              borderOnHover
+              neutral
+            />
+          </Header>
+          <Scrollable topShadow>
+            <PaginatedEventList
+              fetch={events.fetchPage}
+              events={events.inDocument(document.id)}
+              options={{ documentId: document.id }}
+              document={document}
+              empty={<Empty>{t("Oh weird, there's nothing here")}</Empty>}
+            />
+          </Scrollable>
+        </Position>
+      ) : null}
     </Sidebar>
   );
 }
@@ -57,12 +58,13 @@ const Position = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
-  right: 0;
   width: ${(props) => props.theme.sidebarWidth}px;
 `;
 
 const Sidebar = styled(Flex)`
   display: none;
+  position: relative;
+  flex-shrink: 0;
   background: ${(props) => props.theme.background};
   width: ${(props) => props.theme.sidebarWidth}px;
   border-left: 1px solid ${(props) => props.theme.divider};
