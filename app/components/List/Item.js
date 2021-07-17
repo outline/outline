@@ -14,20 +14,15 @@ type Props = {|
   small?: boolean,
 |};
 
-const ListItem = ({
-  image,
-  title,
-  subtitle,
-  actions,
-  small,
-  border,
-  to,
-  ...rest
-}: Props) => {
+const ListItem = (
+  { image, title, subtitle, actions, small, border, to, ...rest }: Props,
+  ref
+) => {
   const compact = !subtitle;
 
   return (
     <Wrapper
+      ref={ref}
       compact={compact}
       $border={border}
       {...rest}
@@ -72,7 +67,7 @@ const Heading = styled.p`
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  line-height: 1.2;
+  line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
 `;
 
@@ -95,4 +90,4 @@ const Actions = styled.div`
   justify-content: center;
 `;
 
-export default ListItem;
+export default React.forwardRef<Props, HTMLDivElement>(ListItem);

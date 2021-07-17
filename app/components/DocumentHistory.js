@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import Event from "models/Event";
 import Button from "components/Button";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
@@ -14,6 +15,8 @@ import Scrollable from "components/Scrollable";
 import useStores from "hooks/useStores";
 import { documentUrl } from "utils/routeHelpers";
 
+const EMPTY_ARRAY = [];
+
 function DocumentHistory() {
   const { events, documents } = useStores();
   const { t } = useTranslation();
@@ -21,10 +24,32 @@ function DocumentHistory() {
   const history = useHistory();
 
   const document = documents.getByUrl(match.params.documentSlug);
+  const eventsInDocument = document
+    ? events.inDocument(document.id)
+    : EMPTY_ARRAY;
 
   const onCloseHistory = () => {
     history.push(documentUrl(document));
   };
+
+  const items = React.useMemo(() => {
+    if (
+      eventsInDocument[0] &&
+      document &&
+      eventsInDocument[0].updatedAt !== document.updatedAt
+    ) {
+      eventsInDocument.unshift(
+        new Event({
+          name: "documents.current_version",
+          documentId: document.id,
+          createdAt: document.updatedAt,
+          actor: document.updatedBy,
+        })
+      );
+    }
+
+    return eventsInDocument;
+  }, [eventsInDocument, document]);
 
   return (
     <Sidebar>
@@ -42,7 +67,7 @@ function DocumentHistory() {
           <Scrollable topShadow>
             <PaginatedEventList
               fetch={events.fetchPage}
-              events={events.inDocument(document.id)}
+              events={items}
               options={{ documentId: document.id }}
               document={document}
               empty={<Empty>{t("Oh weird, there's nothing here")}</Empty>}

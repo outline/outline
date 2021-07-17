@@ -27,6 +27,7 @@ export default async function revisionCreator({
         modelId: revision.id,
         teamId: document.teamId,
         actorId: user.id,
+        createdAt: document.createdAt,
         ip: ip || user.lastActiveIp,
       },
       { transaction }

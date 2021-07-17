@@ -19,14 +19,19 @@ const EventListItem = ({ event, document }: Props) => {
   const { t } = useTranslation();
   const opts = { userName: event.actor.name };
   const isRevision = event.name === "revisions.create";
-  let meta;
+  let meta, to;
 
   switch (event.name) {
     case "revisions.create":
       meta = t("{{userName}} edited", opts);
+      to = documentHistoryUrl(document, event.modelId || "");
       break;
     case "documents.archive":
       meta = t("{{userName}} archived", opts);
+      break;
+    case "documents.current_version":
+      meta = t("Current version");
+      to = documentHistoryUrl(document);
       break;
     case "documents.unarchive":
       meta = t("{{userName}} restored", opts);
@@ -54,11 +59,7 @@ const EventListItem = ({ event, document }: Props) => {
   return (
     <ListItem
       small
-      to={
-        isRevision && event.modelId
-          ? documentHistoryUrl(document, event.modelId)
-          : undefined
-      }
+      to={to}
       title={
         <Time
           dateTime={event.createdAt}
