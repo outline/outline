@@ -1,6 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PlusIcon, QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -13,6 +13,7 @@ import DocumentMeta from "components/DocumentMeta";
 import EventBoundary from "components/EventBoundary";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
+import NudeButton from "components/NudeButton";
 import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
 import useBoolean from "hooks/useBoolean";
@@ -63,6 +64,10 @@ function DocumentListItem(props: Props, ref) {
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
+  const queryIsInContext =
+    !!highlight && !!context?.toLowerCase().includes(highlight?.toLowerCase());
+  const showPreviousTitleTip =
+    highlight && !queryIsInTitle && !queryIsInContext;
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
   const can = policies.abilities(currentTeam.id);
@@ -87,6 +92,17 @@ function DocumentListItem(props: Props, ref) {
           />
           {document.isNew && document.createdBy.id !== currentUser.id && (
             <Badge yellow>{t("New")}</Badge>
+          )}
+          {showPreviousTitleTip && (
+            <Tooltip
+              tooltip={t("A previous title matches your search")}
+              delay={500}
+              placement="bottom"
+            >
+              <IconButton>
+                <QuestionMarkIcon />
+              </IconButton>
+            </Tooltip>
           )}
           {canStar && (
             <StarPositioner>
@@ -257,6 +273,12 @@ const ResultContext = styled(Highlight)`
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
+`;
+
+const IconButton = styled(NudeButton)`
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
 `;
 
 export default observer(React.forwardRef(DocumentListItem));
