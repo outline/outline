@@ -18,7 +18,7 @@ type Props = {
   empty?: React.Node,
   items: any[],
   renderItem: (any) => React.Node,
-  renderHeading: (name: React.Element<any> | string) => React.Node,
+  renderHeading?: (name: React.Element<any> | string) => React.Node,
   t: TFunction,
 };
 
@@ -127,14 +127,21 @@ class PaginatedList extends React.Component<Props> {
               {items.slice(0, this.renderCount).map((item) => {
                 const children = this.props.renderItem(item);
 
+                // If there is no renderHeading method passed then no date
+                // headings are rendered
                 if (!renderHeading) {
                   return children;
                 }
 
+                // Our models have standard date fields, updatedAt > createdAt.
+                // Get what a heading would look like for this item
                 const currentDate =
                   item.updatedAt || item.createdAt || previousHeading;
                 const currentHeading = dateToHeading(currentDate, this.props.t);
 
+                // If the heading is different to any previous heading then we
+                // should render it, otherwise the item can go under the previous
+                // heading
                 if (!previousHeading || currentHeading !== previousHeading) {
                   previousHeading = currentHeading;
 
@@ -163,5 +170,7 @@ class PaginatedList extends React.Component<Props> {
     );
   }
 }
+
+export const Component = PaginatedList;
 
 export default withTranslation()<PaginatedList>(PaginatedList);
