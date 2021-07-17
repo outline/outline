@@ -1,23 +1,43 @@
-FROM node:14-alpine
+# syntax=docker/dockerfile:1.2
+FROM node:14-alpine AS deps-common
 
-ENV APP_PATH /opt/outline
-RUN mkdir -p $APP_PATH
+ARG APP_PATH /opt/outline
+WORKDIR $APP_PATH
+COPY ./package.json ./yarn.lock ./
 
+# ---
+FROM deps-common AS deps-dev
+RUN yarn install --no-optional --frozen-lockfile && \
+  yarn cache clean
+
+# ---
+FROM deps-common AS deps-prod
+RUN yarn install --production=true --frozen-lockfile && \
+  yarn cache clean
+
+# ---
+FROM node:14-alpine AS builder
 WORKDIR $APP_PATH
 
-COPY package.json ./
-COPY yarn.lock ./
-
-RUN yarn --pure-lockfile
-
 COPY . .
+COPY --from=deps-dev $APP_PATH/node_modules ./node_modules
+RUN yarn build
 
-RUN yarn build && \
-  yarn --production --ignore-scripts --prefer-offline && \
-  rm -rf shared && \
-  rm -rf app
+# ---
+FROM node:14-alpine AS runner
 
+WORKDIR $APP_PATH
 ENV NODE_ENV production
-CMD yarn start
+
+COPY --from=builder $APP_PATH/build ./build
+COPY --from=deps-prod $APP_PATH/node_modules ./node_modules
+COPY --from=builder $APP_PATH/package.json ./package.json
+
+RUN addgroup -g 1001 -S nodejs && \
+  adduser -S nodejs -u 1001 && \
+  chown -R nodejs:nodejs $APP_PATH/build
+
+USER nodejs
 
 EXPOSE 3000
+CMD ["yarn", "start"]
