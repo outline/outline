@@ -23,5 +23,6 @@ describe("revisionCreator", () => {
     expect(revision.userId).toEqual(user.id);
     expect(event.name).toEqual("revisions.create");
     expect(event.modelId).toEqual(revision.id);
+    expect(event.createdAt).toEqual(document.updatedAt);
   });
 });

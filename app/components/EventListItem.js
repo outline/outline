@@ -5,7 +5,7 @@ import styled from "styled-components";
 import Document from "models/Document";
 import Event from "models/Event";
 import Avatar from "components/Avatar";
-import Item from "components/List/Item";
+import Item, { Actions } from "components/List/Item";
 import Time from "components/Time";
 import RevisionMenu from "menus/RevisionMenu";
 import { documentHistoryUrl } from "utils/routeHelpers";
@@ -107,6 +107,17 @@ const ListItem = styled(Item)`
 
   &:first-child:last-child::before {
     display: none;
+  }
+
+  ${Actions} {
+    opacity: 0;
+    transition: opacity 100ms ease-in-out;
+  }
+
+  &:hover {
+    ${Actions} {
+      opacity: 1;
+    }
   }
 `;
 

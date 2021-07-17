@@ -85,7 +85,7 @@ const Subtitle = styled.p`
   margin-top: -2px;
 `;
 
-const Actions = styled.div`
+export const Actions = styled.div`
   align-self: center;
   justify-content: center;
 `;
