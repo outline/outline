@@ -36,7 +36,7 @@ function DocumentHistory() {
     if (
       eventsInDocument[0] &&
       document &&
-      eventsInDocument[0].updatedAt !== document.updatedAt
+      eventsInDocument[0].createdAt !== document.updatedAt
     ) {
       eventsInDocument.unshift(
         new Event({
