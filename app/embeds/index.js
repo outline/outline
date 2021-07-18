@@ -21,6 +21,7 @@ import InVision from "./InVision";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
 import Marvel from "./Marvel";
+import MicrosoftStream from "./MicrosoftStream";
 import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
@@ -184,6 +185,13 @@ export default [
     icon: () => <Img src="/images/marvel.png" />,
     component: Marvel,
     matcher: matcher(Marvel),
+  },
+  {
+    title: "Microsoft Stream",
+    keywords: "microsoft video",
+    icon: () => <Img src="/images/microsoft-stream.png" />,
+    component: MicrosoftStream,
+    matcher: matcher(MicrosoftStream),
   },
   {
     title: "Mindmeister",
