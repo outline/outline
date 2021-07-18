@@ -391,28 +391,22 @@ class DocumentScene extends React.Component<Props> {
               )}
               {document.archivedAt && !document.deletedAt && (
                 <Notice muted>
-                  <Trans
-                    defaults="Archived by {{ userName }} <time> ago"
-                    values={{ userName: document.updatedBy.name }}
-                    components={{
-                      time: <Time dateTime={document.archivedAt} />,
-                    }}
-                  />
+                  <Trans>
+                    Archived by {document.updatedBy.name}{" "}
+                    <Time dateTime={document.archivedAt} /> ago
+                  </Trans>
                 </Notice>
               )}
               {document.deletedAt && (
                 <Notice muted>
-                  <Trans
-                    defaults="Deleted by {{ userName }} <time> ago"
-                    values={{ userName: document.updatedBy.name }}
-                    components={{
-                      time: <Time dateTime={document.deletedAt} />,
-                    }}
-                  />
+                  <Trans>
+                    Deleted by {document.updatedBy.name}{" "}
+                    <Time dateTime={document.deletedAt} /> ago
+                  </Trans>
                   {document.permanentlyDeletedAt && (
                     <>
                       <br />
-                     {document.template ? (
+                      {document.template ? (
                         <Trans>
                           This template will be permanently deleted in{" "}
                           <Time dateTime={document.permanentlyDeletedAt} />{" "}
