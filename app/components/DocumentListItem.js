@@ -66,6 +66,8 @@ function DocumentListItem(props: Props, ref) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const queryIsInContext =
     !!highlight && !!context?.toLowerCase().includes(highlight?.toLowerCase());
+
+  // Is used to show tooltip when the highlight isn't present in the title and context.
   const showPreviousTitleTip =
     highlight && !queryIsInTitle && !queryIsInContext;
   const canStar =
