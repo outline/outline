@@ -412,18 +412,19 @@ class DocumentScene extends React.Component<Props> {
                   {document.permanentlyDeletedAt && (
                     <>
                       <br />
-                      <Trans
-                        defaults="This {{ documentName }} will be permanently deleted in <time> unless restored."
-                        values={{
-                          userName: document.updatedBy.name,
-                          documentName: document.noun,
-                        }}
-                        components={{
-                          time: (
-                            <Time dateTime={document.permanentlyDeletedAt} />
-                          ),
-                        }}
-                      />
+                     {document.template ? (
+                        <Trans>
+                          This template will be permanently deleted in{" "}
+                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
+                          unless restored.
+                        </Trans>
+                      ) : (
+                        <Trans>
+                          This document will be permanently deleted in{" "}
+                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
+                          unless restored.
+                        </Trans>
+                      )}
                     </>
                   )}
                 </Notice>
