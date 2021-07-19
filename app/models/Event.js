@@ -20,20 +20,6 @@ class Event extends BaseModel {
     published: boolean,
     templateId: string,
   };
-
-  get model() {
-    return this.name.split(".")[0];
-  }
-
-  get verb() {
-    return this.name.split(".")[1];
-  }
-
-  get verbPastTense() {
-    const v = this.verb;
-    if (v.endsWith("e")) return `${v}d`;
-    return `${v}ed`;
-  }
 }
 
 export default Event;

@@ -11,6 +11,7 @@ type Props = {
   children?: React.Node,
   tooltipDelay?: number,
   addSuffix?: boolean,
+  format?: string,
   shorten?: boolean,
 };
 
