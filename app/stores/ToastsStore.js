@@ -2,7 +2,7 @@
 import { orderBy } from "lodash";
 import { observable, action, computed } from "mobx";
 import { v4 as uuidv4 } from "uuid";
-import type { Toast } from "types";
+import type { Toast, ToastOptions } from "types";
 
 export default class ToastsStore {
   @observable toasts: Map<string, Toast> = new Map();
@@ -11,14 +11,7 @@ export default class ToastsStore {
   @action
   showToast = (
     message: string,
-    options: {
-      type: "warning" | "error" | "info" | "success",
-      timeout?: number,
-      action?: {
-        text: string,
-        onClick: () => void,
-      },
-    } = {
+    options: ToastOptions = {
       type: "info",
     }
   ) => {
@@ -30,7 +23,7 @@ export default class ToastsStore {
         ...lastToast,
         reoccurring: lastToast.reoccurring ? ++lastToast.reoccurring : 1,
       });
-      return;
+      return this.lastToastId;
     }
 
     const id = uuidv4();
