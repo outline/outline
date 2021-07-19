@@ -141,7 +141,6 @@ function MainSidebar() {
               />
             </Section>
             <Section>
-              <ArchiveLink documents={documents} />
               {can.createDocument && (
                 <>
                   <SidebarLink
