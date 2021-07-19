@@ -116,17 +116,6 @@ function MainSidebar() {
               />
               {can.createDocument && (
                 <SidebarLink
-                  to="/templates"
-                  icon={<ShapesIcon color="currentColor" />}
-                  exact={false}
-                  label={t("Templates")}
-                  active={
-                    documents.active ? documents.active.template : undefined
-                  }
-                />
-              )}
-              {can.createDocument && (
-                <SidebarLink
                   to="/drafts"
                   icon={<EditIcon color="currentColor" />}
                   label={
@@ -151,26 +140,40 @@ function MainSidebar() {
               />
             </Section>
             <Section>
-              <SidebarLink
-                to="/archive"
-                icon={<ArchiveIcon color="currentColor" />}
-                exact={false}
-                label={t("Archive")}
-                active={
-                  documents.active
-                    ? documents.active.isArchived && !documents.active.isDeleted
-                    : undefined
-                }
-              />
-              <SidebarLink
-                to="/trash"
-                icon={<TrashIcon color="currentColor" />}
-                exact={false}
-                label={t("Trash")}
-                active={
-                  documents.active ? documents.active.isDeleted : undefined
-                }
-              />
+              {can.createDocument && (
+                <>
+                  <SidebarLink
+                    to="/templates"
+                    icon={<ShapesIcon color="currentColor" />}
+                    exact={false}
+                    label={t("Templates")}
+                    active={
+                      documents.active ? documents.active.template : undefined
+                    }
+                  />
+                  <SidebarLink
+                    to="/archive"
+                    icon={<ArchiveIcon color="currentColor" />}
+                    exact={false}
+                    label={t("Archive")}
+                    active={
+                      documents.active
+                        ? documents.active.isArchived &&
+                          !documents.active.isDeleted
+                        : undefined
+                    }
+                  />
+                  <SidebarLink
+                    to="/trash"
+                    icon={<TrashIcon color="currentColor" />}
+                    exact={false}
+                    label={t("Trash")}
+                    active={
+                      documents.active ? documents.active.isDeleted : undefined
+                    }
+                  />
+                </>
+              )}
               <SidebarLink
                 to="/settings"
                 icon={<SettingsIcon color="currentColor" />}

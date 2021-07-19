@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
+import { type TFunction, withTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "shared/constants";
@@ -28,6 +29,7 @@ type Props = {|
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
   children: React.Node,
+  t: TFunction,
 |};
 
 @observer
@@ -102,6 +104,7 @@ class DocumentEditor extends React.Component<Props> {
       readOnly,
       innerRef,
       children,
+      t,
       ...rest
     } = this.props;
 
@@ -129,7 +132,11 @@ class DocumentEditor extends React.Component<Props> {
             ref={this.ref}
             onChange={onChangeTitle}
             onKeyDown={this.handleTitleKeyDown}
-            placeholder={document.placeholder}
+            placeholder={
+              document.isTemplate
+                ? t("Start your template…")
+                : t("Start with a title…")
+            }
             value={normalizedTitle}
             $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
             autoFocus={!title}
@@ -152,7 +159,7 @@ class DocumentEditor extends React.Component<Props> {
         <Editor
           ref={innerRef}
           autoFocus={!!title && !this.props.defaultValue}
-          placeholder="…the rest is up to you"
+          placeholder={t("…the rest is up to you")}
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
           readOnly={readOnly}
@@ -224,4 +231,4 @@ const Title = styled(Textarea)`
   }
 `;
 
-export default DocumentEditor;
+export default withTranslation()<DocumentEditor>(DocumentEditor);
