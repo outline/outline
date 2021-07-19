@@ -6,7 +6,7 @@ import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
-import UiStore from "stores/UiStore";
+import ToastsStore from "stores/ToastsStore";
 import UsersStore from "stores/UsersStore";
 import Group from "models/Group";
 import User from "models/User";
@@ -21,7 +21,7 @@ import PaginatedList from "components/PaginatedList";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
 type Props = {
-  ui: UiStore,
+  toasts: ToastsStore,
   auth: AuthStore,
   group: Group,
   groupMemberships: GroupMembershipsStore,
@@ -62,12 +62,12 @@ class AddPeopleToGroup extends React.Component<Props> {
         groupId: this.props.group.id,
         userId: user.id,
       });
-      this.props.ui.showToast(
+      this.props.toasts.showToast(
         t(`{{userName}} was added to the group`, { userName: user.name }),
         { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not add user"), { type: "error" });
+      this.props.toasts.showToast(t("Could not add user"), { type: "error" });
     }
   };
 
@@ -128,5 +128,5 @@ class AddPeopleToGroup extends React.Component<Props> {
 }
 
 export default withTranslation()<AddPeopleToGroup>(
-  inject("auth", "users", "groupMemberships", "ui")(AddPeopleToGroup)
+  inject("auth", "users", "groupMemberships", "toasts")(AddPeopleToGroup)
 );

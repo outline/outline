@@ -6,19 +6,15 @@ import Toast from "components/Toast";
 import useStores from "hooks/useStores";
 
 function Toasts() {
-  const { ui, toasts } = useStores();
+  const { toasts } = useStores();
 
-  const mergeToasts = [...ui.orderedToasts, ...toasts.orderedToasts];
   return (
     <List>
-      {mergeToasts.map((toast) => (
+      {toasts.orderedToasts.map((toast) => (
         <Toast
           key={toast.id}
           toast={toast}
-          onRequestClose={() => {
-            ui.removeToast(toast.id);
-            toasts.removeToast(toast.id);
-          }}
+          onRequestClose={() => toasts.removeToast(toast.id)}
         />
       ))}
     </List>

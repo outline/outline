@@ -10,6 +10,7 @@ import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
+import ToastsStore from "stores/ToastsStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
@@ -67,6 +68,7 @@ type Props = {
   theme: Theme,
   auth: AuthStore,
   ui: UiStore,
+  toasts: ToastsStore,
 };
 
 @observer
@@ -96,7 +98,7 @@ class DocumentScene extends React.Component<Props> {
       }
     } else if (prevProps.document.revision !== this.lastRevision) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
-        this.props.ui.showToast(
+        this.props.toasts.showToast(
           `Document updated by ${document.updatedBy.name}`,
           {
             timeout: 30 * 1000,
@@ -237,7 +239,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      this.props.toasts.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
       this.isPublishing = false;
@@ -508,5 +510,5 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject("ui", "auth", "policies", "revisions")(DocumentScene)
+  inject("ui", "auth", "policies", "revisions", "toasts")(DocumentScene)
 );
