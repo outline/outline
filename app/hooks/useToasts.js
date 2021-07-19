@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import useStores from "./useStores";
 
 export default function useToasts() {
-  const { ui } = useStores();
+  const { toasts } = useStores();
 
   const showToast = useCallback(
     (
@@ -17,18 +17,18 @@ export default function useToasts() {
         },
       }
     ) => {
-      if (ui) {
-        ui.showToast(message, options);
+      if (toasts) {
+        toasts.showToast(message, options);
       }
     },
-    [ui]
+    [toasts]
   );
 
   const hideToast = useCallback(
     (toastId: string) => {
-      ui.removeToast(toastId);
+      toasts.removeToast(toastId);
     },
-    [ui]
+    [toasts]
   );
 
   return { showToast, hideToast };
