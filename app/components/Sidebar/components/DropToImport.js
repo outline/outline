@@ -7,6 +7,7 @@ import styled, { css } from "styled-components";
 import LoadingIndicator from "components/LoadingIndicator";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   children: React.Node,
@@ -18,7 +19,8 @@ type Props = {|
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const { t } = useTranslation();
-  const { ui, documents, policies } = useStores();
+  const { documents, policies } = useStores();
+  const { showToast } = useToasts();
   const { handleFiles, isImporting } = useImportDocument(
     collectionId,
     documentId
@@ -27,11 +29,11 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const can = policies.abilities(collectionId);
 
   const handleRejection = React.useCallback(() => {
-    ui.showToast(
+    showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),
       { type: "error" }
     );
-  }, [t, ui]);
+  }, [t, showToast]);
 
   if (disabled || !can.update) {
     return children;

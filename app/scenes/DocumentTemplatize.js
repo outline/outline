@@ -8,7 +8,7 @@ import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import { documentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
 function DocumentTemplatize({ document, onSubmit }: Props) {
   const [isSaving, setIsSaving] = useState();
   const history = useHistory();
-  const { ui } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(
@@ -30,17 +30,17 @@ function DocumentTemplatize({ document, onSubmit }: Props) {
       try {
         const template = await document.templatize();
         history.push(documentUrl(template));
-        ui.showToast(t("Template created, go ahead and customize it"), {
+        showToast(t("Template created, go ahead and customize it"), {
           type: "info",
         });
         onSubmit();
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       } finally {
         setIsSaving(false);
       }
     },
-    [document, ui, history, onSubmit, t]
+    [document, showToast, history, onSubmit, t]
   );
 
   return (

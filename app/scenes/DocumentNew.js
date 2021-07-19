@@ -9,6 +9,7 @@ import CenteredContent from "components/CenteredContent";
 import Flex from "components/Flex";
 import PlaceholderDocument from "components/PlaceholderDocument";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import { editDocumentUrl } from "utils/routeHelpers";
 
 function DocumentNew() {
@@ -16,7 +17,8 @@ function DocumentNew() {
   const location = useLocation();
   const match = useRouteMatch();
   const { t } = useTranslation();
-  const { documents, ui, collections } = useStores();
+  const { documents, collections } = useStores();
+  const { showToast } = useToasts();
   const id = match.params.id || "";
 
   useEffect(() => {
@@ -36,7 +38,7 @@ function DocumentNew() {
 
         history.replace(editDocumentUrl(document));
       } catch (err) {
-        ui.showToast(t("Couldn’t create the document, try again?"), {
+        showToast(t("Couldn’t create the document, try again?"), {
           type: "error",
         });
         history.goBack();

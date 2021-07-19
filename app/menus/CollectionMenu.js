@@ -15,6 +15,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template, { filterTemplateItems } from "components/ContextMenu/Template";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import { newDocumentUrl } from "utils/routeHelpers";
 
@@ -37,7 +38,8 @@ function CollectionMenu({
 }: Props) {
   const menu = useMenuState({ modal, placement });
   const [renderModals, setRenderModals] = React.useState(false);
-  const { ui, documents, policies } = useStores();
+  const { documents, policies } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
 
@@ -99,14 +101,14 @@ function CollectionMenu({
         });
         history.push(document.url);
       } catch (err) {
-        ui.showToast(err.message, {
+        showToast(err.message, {
           type: "error",
         });
 
         throw err;
       }
     },
-    [history, ui, collection.id, documents]
+    [history, showToast, collection.id, documents]
   );
 
   const can = policies.abilities(collection.id);
