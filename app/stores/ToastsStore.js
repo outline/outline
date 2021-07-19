@@ -41,12 +41,12 @@ export default class ToastsStore {
   };
 
   @action
-  removeToast = (id: string) => {
+  hideToast = (id: string) => {
     this.toasts.delete(id);
   };
 
   @computed
-  get orderedToasts(): Toast[] {
+  get orderedData(): Toast[] {
     return orderBy(Array.from(this.toasts.values()), "createdAt", "desc");
   }
 }

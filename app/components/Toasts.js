@@ -10,11 +10,11 @@ function Toasts() {
 
   return (
     <List>
-      {toasts.orderedToasts.map((toast) => (
+      {toasts.orderedData.map((toast) => (
         <Toast
           key={toast.id}
           toast={toast}
-          onRequestClose={() => toasts.removeToast(toast.id)}
+          onRequestClose={() => toasts.hideToast(toast.id)}
         />
       ))}
     </List>
