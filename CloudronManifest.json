@@ -1,0 +1,21 @@
+{
+  "id": "com.tokilabs.outline",
+  "title": "Outline Knowledge Base",
+  "author": "Saulo Vallory <saulo@toki.life>",
+  "description": "file://cloudron/DESCRIPTION.md",
+  "tagline": "Your team’s knowledge base",
+  "version": "0.56.0",
+  "healthCheckPath": "/",
+  "httpPort": 3000,
+  "addons": {
+    "localstorage": {},
+    "redis": { "noPassword": true },
+    "postgresql": {}
+  },
+  "manifestVersion": 2,
+  "website": "https://www.getoutline.com",
+  "contactEmail": "saulo@toki.life",
+  "icon": "file://public/icon-1024.png",
+  "tags": [ "knowledge", "wiki", "team", "collaboration" ],
+  "mediaLinks": [ "https://user-images.githubusercontent.com/380914/110356468-26374600-7fef-11eb-9f6a-f2cc2c8c6590.png" ]
+}
