@@ -392,18 +392,20 @@ class DocumentScene extends React.Component<Props> {
               )}
               {document.archivedAt && !document.deletedAt && (
                 <Notice muted>
-                  <Trans>
-                    Archived by {document.updatedBy.name}{" "}
-                    <Time dateTime={document.archivedAt} /> ago
-                  </Trans>
+                  {t("Archived by {{userName}}", {
+                    userName: document.updatedBy.name,
+                  })}{" "}
+                  <Time dateTime={document.updatedAt} addSuffix />
                 </Notice>
               )}
               {document.deletedAt && (
                 <Notice muted>
-                  <Trans>
-                    Deleted by {document.updatedBy.name}{" "}
-                    <Time dateTime={document.deletedAt} /> ago
-                  </Trans>
+                  <strong>
+                    {t("Deleted by {{userName}}", {
+                      userName: document.updatedBy.name,
+                    })}{" "}
+                    <Time dateTime={document.deletedAt || ""} addSuffix />
+                  </strong>
                   {document.permanentlyDeletedAt && (
                     <>
                       <br />
