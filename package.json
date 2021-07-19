@@ -165,8 +165,7 @@
     "turndown": "^7.1.1",
     "utf8": "^3.0.0",
     "uuid": "^8.3.2",
-    "validator": "5.2.0",
-    "yarn-deduplicate": "^3.1.0"
+    "validator": "5.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
@@ -204,7 +203,8 @@
     "webpack-cli": "^3.3.12",
     "webpack-manifest-plugin": "^3.0.0",
     "webpack-pwa-manifest": "^4.3.0",
-    "workbox-webpack-plugin": "^6.1.0"
+    "workbox-webpack-plugin": "^6.1.0",
+    "yarn-deduplicate": "^3.1.0"
   },
   "resolutions": {
     "prosemirror-view": "1.18.1",
