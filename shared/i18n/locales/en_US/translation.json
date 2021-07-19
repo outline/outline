@@ -106,9 +106,9 @@
   "our engineers have been notified": "our engineers have been notified",
   "Report a Bug": "Report a Bug",
   "Show Detail": "Show Detail",
+  "Latest version": "Latest version",
   "{{userName}} edited": "{{userName}} edited",
   "{{userName}} archived": "{{userName}} archived",
-  "Current version": "Current version",
   "{{userName}} restored": "{{userName}} restored",
   "{{userName}} deleted": "{{userName}} deleted",
   "{{userName}} moved from trash": "{{userName}} moved from trash",
@@ -532,5 +532,8 @@
   "{{ userName }} hasn’t updated any documents yet.": "{{ userName }} hasn’t updated any documents yet.",
   "Today": "Today",
   "Yesterday": "Yesterday",
-  "Last week": "Last week"
+  "Last week": "Last week",
+  "This month": "This month",
+  "Last month": "Last month",
+  "This year": "This year"
 }
