@@ -13,9 +13,10 @@ import { documentHistoryUrl } from "utils/routeHelpers";
 type Props = {|
   document: Document,
   event: Event,
+  latest?: boolean,
 |};
 
-const EventListItem = ({ event, document }: Props) => {
+const EventListItem = ({ event, latest, document }: Props) => {
   const { t } = useTranslation();
   const opts = { userName: event.actor.name };
   const isRevision = event.name === "revisions.create";
@@ -23,15 +24,19 @@ const EventListItem = ({ event, document }: Props) => {
 
   switch (event.name) {
     case "revisions.create":
-      meta = t("{{userName}} edited", opts);
-      to = documentHistoryUrl(document, event.modelId || "");
-      break;
+    case "documents.latest_version": {
+      if (latest) {
+        meta = t("Latest version");
+        to = documentHistoryUrl(document);
+        break;
+      } else {
+        meta = t("{{userName}} edited", opts);
+        to = documentHistoryUrl(document, event.modelId || "");
+        break;
+      }
+    }
     case "documents.archive":
       meta = t("{{userName}} archived", opts);
-      break;
-    case "documents.current_version":
-      meta = t("Current version");
-      to = documentHistoryUrl(document);
       break;
     case "documents.unarchive":
       meta = t("{{userName}} restored", opts);
@@ -59,6 +64,7 @@ const EventListItem = ({ event, document }: Props) => {
   return (
     <ListItem
       small
+      exact
       to={to}
       title={
         <Time
@@ -83,20 +89,27 @@ const EventListItem = ({ event, document }: Props) => {
 const ListItem = styled(Item)`
   border: 0;
   position: relative;
-  padding: 12px;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 8px;
+
+  img {
+    border-color: transparent;
+  }
 
   &::before {
     content: "";
     display: block;
     position: absolute;
-    top: 0;
-    left: 27px;
+    top: -4px;
+    left: 23px;
     width: 2px;
-    height: 100%;
-    background: ${(props) => props.theme.divider};
+    height: calc(100% + 4px);
+    background: ${(props) => props.theme.textSecondary};
+    opacity: 0.25;
   }
 
-  &:first-child::before {
+  &:nth-child(2)::before {
     height: 50%;
     top: 50%;
   }
@@ -110,7 +123,7 @@ const ListItem = styled(Item)`
   }
 
   ${Actions} {
-    opacity: 0;
+    opacity: 0.25;
     transition: opacity 100ms ease-in-out;
   }
 

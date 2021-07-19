@@ -40,7 +40,7 @@ function DocumentHistory() {
     ) {
       eventsInDocument.unshift(
         new Event({
-          name: "documents.current_version",
+          name: "documents.latest_version",
           documentId: document.id,
           createdAt: document.updatedAt,
           actor: document.updatedBy,

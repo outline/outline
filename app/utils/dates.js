@@ -1,6 +1,5 @@
 // @flow
 import {
-  isThisWeek,
   isToday,
   isYesterday,
   differenceInCalendarWeeks,
@@ -22,6 +21,9 @@ export function dateToHeading(dateTime: string, t: TFunction) {
     return t("Yesterday");
   }
 
+  // If the current calendar week but not today or yesterday then return the day
+  // of the week as a string. We use the LocaleTime component here to gain
+  // async bundle loading of languages
   const weekDiff = differenceInCalendarWeeks(now, date);
   if (weekDiff === 0) {
     return <LocaleTime dateTime={dateTime} tooltip={false} format="iiii" />;
@@ -44,9 +46,6 @@ export function dateToHeading(dateTime: string, t: TFunction) {
     return t("This year");
   }
 
-  if (monthDiff <= 24) {
-    return t("Last year");
-  }
-
-  return <LocaleTime dateTime={dateTime} tooltip={false} />;
+  // If older than the current calendar year then just print the year e.g 2020
+  return <LocaleTime dateTime={dateTime} tooltip={false} format="y" />;
 }

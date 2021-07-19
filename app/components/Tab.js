@@ -1,24 +1,12 @@
 // @flow
 import { m } from "framer-motion";
 import * as React from "react";
-import { NavLink, Route } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
-import { type Theme } from "types";
+import styled, { useTheme } from "styled-components";
+import NavLinkWithChildrenFunc from "components/NavLink";
 
 type Props = {
-  theme: Theme,
   children: React.Node,
 };
-
-const NavLinkWithChildrenFunc = ({ to, exact = false, children, ...rest }) => (
-  <Route path={to} exact={exact}>
-    {({ match }) => (
-      <NavLink to={to} {...rest}>
-        {children(match)}
-      </NavLink>
-    )}
-  </Route>
-);
 
 const TabLink = styled(NavLinkWithChildrenFunc)`
   position: relative;
@@ -53,7 +41,8 @@ const transition = {
   damping: 30,
 };
 
-function Tab({ theme, children, ...rest }: Props) {
+export default function Tab({ children, ...rest }: Props) {
+  const theme = useTheme();
   const activeStyle = {
     color: theme.textSecondary,
   };
@@ -75,5 +64,3 @@ function Tab({ theme, children, ...rest }: Props) {
     </TabLink>
   );
 }
-
-export default withTheme(Tab);

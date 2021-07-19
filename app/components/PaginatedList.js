@@ -17,7 +17,7 @@ type Props = {
   heading?: React.Node,
   empty?: React.Node,
   items: any[],
-  renderItem: (any) => React.Node,
+  renderItem: (any, index: number) => React.Node,
   renderHeading?: (name: React.Element<any> | string) => React.Node,
   t: TFunction,
 };
@@ -124,8 +124,8 @@ class PaginatedList extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {items.slice(0, this.renderCount).map((item) => {
-                const children = this.props.renderItem(item);
+              {items.slice(0, this.renderCount).map((item, index) => {
+                const children = this.props.renderItem(item, index);
 
                 // If there is no renderHeading method passed then no date
                 // headings are rendered

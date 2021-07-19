@@ -1,8 +1,8 @@
 // @flow
 import * as React from "react";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Flex from "components/Flex";
+import NavLink from "components/NavLink";
 
 type Props = {|
   image?: React.Node,
@@ -18,29 +18,45 @@ const ListItem = (
   { image, title, subtitle, actions, small, border, to, ...rest }: Props,
   ref
 ) => {
+  const theme = useTheme();
   const compact = !subtitle;
+
+  const content = (selected) => (
+    <>
+      {image && <Image>{image}</Image>}
+      <Content
+        align={compact ? "center" : undefined}
+        column={!compact}
+        $selected={selected}
+      >
+        <Heading $small={small}>{title}</Heading>
+        {subtitle && (
+          <Subtitle $small={small} $selected={selected}>
+            {subtitle}
+          </Subtitle>
+        )}
+      </Content>
+      {actions && <Actions $selected={selected}>{actions}</Actions>}
+    </>
+  );
 
   return (
     <Wrapper
       ref={ref}
-      compact={compact}
       $border={border}
+      activeStyle={{ background: theme.primary }}
       {...rest}
-      as={to ? Link : undefined}
+      as={to ? NavLink : undefined}
       to={to}
     >
-      {image && <Image>{image}</Image>}
-      <Content align={compact ? "center" : undefined} column={!compact}>
-        <Heading $small={small}>{title}</Heading>
-        {subtitle && <Subtitle $small={small}>{subtitle}</Subtitle>}
-      </Content>
-      {actions && <Actions>{actions}</Actions>}
+      {to ? content : content(false)}
     </Wrapper>
   );
 };
 
 const Wrapper = styled.div`
   display: flex;
+  user-select: none;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
   margin: ${(props) => (props.$border === false ? "8px 0" : 0)};
   border-bottom: 1px solid
@@ -75,19 +91,23 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  color: ${(props) => props.theme.text};
+  color: ${(props) => (props.$selected ? props.theme.white : props.theme.text)};
 `;
 
 const Subtitle = styled.p`
   margin: 0;
   font-size: ${(props) => (props.$small ? 13 : 14)}px;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${(props) =>
+    props.$selected ? props.theme.white50 : props.theme.textTertiary};
   margin-top: -2px;
 `;
 
-export const Actions = styled.div`
+export const Actions = styled(Flex)`
   align-self: center;
   justify-content: center;
+  margin-right: 4px;
+  color: ${(props) =>
+    props.$selected ? props.theme.white : props.theme.textSecondary};
 `;
 
 export default React.forwardRef<Props, HTMLDivElement>(ListItem);

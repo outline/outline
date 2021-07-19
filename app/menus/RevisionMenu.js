@@ -16,11 +16,10 @@ import { documentHistoryUrl } from "utils/routeHelpers";
 type Props = {|
   document: Document,
   revisionId: string,
-  iconColor?: string,
   className?: string,
 |};
 
-function RevisionMenu({ document, revisionId, className, iconColor }: Props) {
+function RevisionMenu({ document, revisionId, className }: Props) {
   const { ui } = useStores();
   const menu = useMenuState({ modal: true });
   const { t } = useTranslation();
@@ -49,7 +48,7 @@ function RevisionMenu({ document, revisionId, className, iconColor }: Props) {
     <>
       <OverflowMenuButton
         className={className}
-        iconColor={iconColor}
+        iconColor="currentColor"
         aria-label={t("Show menu")}
         {...menu}
       />
