@@ -14,6 +14,7 @@ import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import GroupMenu from "menus/GroupMenu";
@@ -23,15 +24,11 @@ function Groups() {
   const { policies, groups } = useStores();
   const team = useCurrentTeam();
   const can = policies.abilities(team.id);
-  const [newGroupModalOpen, setNewGroupModalOpen] = React.useState(false);
-
-  const handleNewGroupModalOpen = React.useCallback(() => {
-    setNewGroupModalOpen(true);
-  }, []);
-
-  const handleNewGroupModalClose = React.useCallback(() => {
-    setNewGroupModalOpen(false);
-  }, []);
+  const [
+    newGroupModalOpen,
+    handleNewGroupModalOpen,
+    handleNewGroupModalClose,
+  ] = useBoolean();
 
   return (
     <Scene

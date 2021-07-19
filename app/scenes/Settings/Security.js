@@ -1,97 +1,94 @@
 // @flow
 import { debounce } from "lodash";
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { PadlockIcon } from "outline-icons";
 import * as React from "react";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
+import { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import Checkbox from "components/Checkbox";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Scene from "components/Scene";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useStores from "hooks/useStores";
 
-type Props = {
-  auth: AuthStore,
-  ui: UiStore,
-};
+function Security() {
+  const { auth, ui } = useStores();
+  const team = useCurrentTeam();
+  const { t } = useTranslation();
+  const [sharing, setSharing] = useState(team.documentEmbeds);
+  const [documentEmbeds, setDocumentEmbeds] = useState(team.guestSignin);
+  const [guestSignin, setGuestSignin] = useState(team.sharing);
 
-@observer
-class Security extends React.Component<Props> {
-  form: ?HTMLFormElement;
-
-  @observable sharing: boolean;
-  @observable documentEmbeds: boolean;
-  @observable guestSignin: boolean;
-
-  componentDidMount() {
-    const { auth } = this.props;
-    if (auth.team) {
-      this.documentEmbeds = auth.team.documentEmbeds;
-      this.guestSignin = auth.team.guestSignin;
-      this.sharing = auth.team.sharing;
-    }
-  }
-
-  handleChange = async (ev: SyntheticInputEvent<*>) => {
-    switch (ev.target.name) {
-      case "sharing":
-        this.sharing = ev.target.checked;
-        break;
-      case "documentEmbeds":
-        this.documentEmbeds = ev.target.checked;
-        break;
-      case "guestSignin":
-        this.guestSignin = ev.target.checked;
-        break;
-      default:
-    }
-
-    await this.props.auth.updateTeam({
-      sharing: this.sharing,
-      documentEmbeds: this.documentEmbeds,
-      guestSignin: this.guestSignin,
-    });
-    this.showSuccessMessage();
-  };
-
-  showSuccessMessage = debounce(() => {
-    this.props.ui.showToast("Settings saved", { type: "success" });
+  const showSuccessMessage = debounce(() => {
+    ui.showToast(t("Settings saved"), { type: "success" });
   }, 500);
 
-  render() {
-    return (
-      <Scene title="Security" icon={<PadlockIcon color="currentColor" />}>
-        <Heading>Security</Heading>
-        <HelpText>
+  const handleChange = React.useCallback(
+    async (ev: SyntheticInputEvent<*>) => {
+      switch (ev.target.name) {
+        case "sharing":
+          setSharing(ev.target.checked);
+          break;
+        case "documentEmbeds":
+          setDocumentEmbeds(ev.target.checked);
+          break;
+        case "guestSignin":
+          setGuestSignin(ev.target.checked);
+          break;
+        default:
+      }
+
+      await auth.updateTeam({
+        sharing,
+        documentEmbeds,
+        guestSignin,
+      });
+
+      showSuccessMessage();
+    },
+    [auth, sharing, documentEmbeds, guestSignin, showSuccessMessage]
+  );
+
+  return (
+    <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
+      <Heading>
+        <Trans>Security</Trans>
+      </Heading>
+      <HelpText>
+        <Trans>
           Settings that impact the access, security, and content of your
           knowledge base.
-        </HelpText>
+        </Trans>
+      </HelpText>
 
-        <Checkbox
-          label="Allow email authentication"
-          name="guestSignin"
-          checked={this.guestSignin}
-          onChange={this.handleChange}
-          note="When enabled, users can sign-in using their email address"
-        />
-        <Checkbox
-          label="Public document sharing"
-          name="sharing"
-          checked={this.sharing}
-          onChange={this.handleChange}
-          note="When enabled, documents can be shared publicly on the internet by any team member"
-        />
-        <Checkbox
-          label="Rich service embeds"
-          name="documentEmbeds"
-          checked={this.documentEmbeds}
-          onChange={this.handleChange}
-          note="Links to supported services are shown as rich embeds within your documents"
-        />
-      </Scene>
-    );
-  }
+      <Checkbox
+        label={t("Allow email authentication")}
+        name="guestSignin"
+        checked={guestSignin}
+        onChange={handleChange}
+        note={t("When enabled, users can sign-in using their email address")}
+      />
+      <Checkbox
+        label={t("Public document sharing")}
+        name="sharing"
+        checked={sharing}
+        onChange={handleChange}
+        note={t(
+          "When enabled, documents can be shared publicly on the internet by any team member"
+        )}
+      />
+      <Checkbox
+        label={t("Rich service embeds")}
+        name="documentEmbeds"
+        checked={documentEmbeds}
+        onChange={handleChange}
+        note={t(
+          "Links to supported services are shown as rich embeds within your documents"
+        )}
+      />
+    </Scene>
+  );
 }
 
-export default inject("auth", "ui")(Security);
+export default observer(Security);

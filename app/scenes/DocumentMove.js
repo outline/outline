@@ -1,37 +1,32 @@
 // @flow
 import { Search } from "js-search";
 import { last } from "lodash";
-import { observable, computed } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
-import CollectionsStore, { type DocumentPath } from "stores/CollectionsStore";
-import DocumentsStore from "stores/DocumentsStore";
-import UiStore from "stores/UiStore";
+import { type DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
 import Flex from "components/Flex";
 import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
 import PathToDocument from "components/PathToDocument";
+import useStores from "hooks/useStores";
 
 type Props = {|
   document: Document,
-  documents: DocumentsStore,
-  collections: CollectionsStore,
-  ui: UiStore,
   onRequestClose: () => void,
 |};
 
-@observer
-class DocumentMove extends React.Component<Props> {
-  @observable searchTerm: ?string;
-  @observable isSaving: boolean;
+function DocumentMove({ document, onRequestClose }: Props) {
+  const [searchTerm, setSearchTerm] = useState();
+  const { ui, collections, documents } = useStores();
+  const { t } = useTranslation();
 
-  @computed
-  get searchIndex() {
-    const { collections, documents } = this.props;
+  const searchIndex = useMemo(() => {
     const paths = collections.pathsToDocuments;
     const index = new Search("id");
     index.addIndex("title");
@@ -47,19 +42,16 @@ class DocumentMove extends React.Component<Props> {
     index.addDocuments(indexeableDocuments);
 
     return index;
-  }
+  }, [documents, collections.pathsToDocuments]);
 
-  @computed
-  get results(): DocumentPath[] {
-    const { document, collections } = this.props;
+  const results: DocumentPath[] = useMemo(() => {
     const onlyShowCollections = document.isTemplate;
-
     let results = [];
     if (collections.isLoaded) {
-      if (this.searchTerm) {
-        results = this.searchIndex.search(this.searchTerm);
+      if (searchTerm) {
+        results = searchIndex.search(searchTerm);
       } else {
-        results = this.searchIndex._documents;
+        results = searchIndex._documents;
       }
     }
 
@@ -82,19 +74,18 @@ class DocumentMove extends React.Component<Props> {
     }
 
     return results;
-  }
+  }, [document, collections, searchTerm, searchIndex]);
 
-  handleSuccess = () => {
-    this.props.ui.showToast("Document moved", { type: "info" });
-    this.props.onRequestClose();
+  const handleSuccess = () => {
+    ui.showToast(t("Document moved"), { type: "info" });
+    onRequestClose();
   };
 
-  handleFilter = (ev: SyntheticInputEvent<*>) => {
-    this.searchTerm = ev.target.value;
+  const handleFilter = (ev: SyntheticInputEvent<*>) => {
+    setSearchTerm(ev.target.value);
   };
 
-  renderPathToCurrentDocument() {
-    const { collections, document } = this.props;
+  const renderPathToCurrentDocument = () => {
     const result = collections.getPathForDocument(document.id);
 
     if (result) {
@@ -105,75 +96,71 @@ class DocumentMove extends React.Component<Props> {
         />
       );
     }
-  }
+  };
 
-  row = ({ index, data, style }) => {
+  const row = ({ index, data, style }) => {
     const result = data[index];
-    const { document, collections } = this.props;
 
     return (
       <PathToDocument
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}
-        onSuccess={this.handleSuccess}
+        onSuccess={handleSuccess}
         style={style}
       />
     );
   };
 
-  render() {
-    const { document, collections } = this.props;
-    const data = this.results;
+  const data = results;
 
-    if (!document || !collections.isLoaded) {
-      return null;
-    }
-
-    return (
-      <Flex column>
-        <Section>
-          <Labeled label="Current location">
-            {this.renderPathToCurrentDocument()}
-          </Labeled>
-        </Section>
-
-        <Section column>
-          <Labeled label="Choose a new location" />
-          <NewLocation>
-            <InputWrapper>
-              <Input
-                type="search"
-                placeholder="Search collections & documents…"
-                onChange={this.handleFilter}
-                required
-                autoFocus
-              />
-            </InputWrapper>
-            <Results>
-              <AutoSizer>
-                {({ width, height }) => (
-                  <Flex role="listbox" column>
-                    <List
-                      key={data.length}
-                      width={width}
-                      height={height}
-                      itemData={data}
-                      itemCount={data.length}
-                      itemSize={40}
-                      itemKey={(index, data) => data[index].id}
-                    >
-                      {this.row}
-                    </List>
-                  </Flex>
-                )}
-              </AutoSizer>
-            </Results>
-          </NewLocation>
-        </Section>
-      </Flex>
-    );
+  if (!document || !collections.isLoaded) {
+    return null;
   }
+
+  return (
+    <Flex column>
+      <Section>
+        <Labeled label={t("Current location")}>
+          {renderPathToCurrentDocument()}
+        </Labeled>
+      </Section>
+
+      <Section column>
+        <Labeled label={t("Choose a new location")} />
+        <NewLocation>
+          <InputWrapper>
+            <Input
+              type="search"
+              placeholder={`${t("Search collections & documents")}…`}
+              onChange={handleFilter}
+              required
+              autoFocus
+            />
+          </InputWrapper>
+          <Results>
+            <AutoSizer>
+              {({ width, height }) => (
+                <Flex role="listbox" column>
+                  <List
+                    key={data.length}
+                    width={width}
+                    height={height}
+                    itemData={data}
+                    itemCount={data.length}
+                    itemSize={40}
+                    itemKey={(index, data) => data[index].id}
+                  >
+                    {row}
+                  </List>
+                </Flex>
+              )}
+            </AutoSizer>
+          </Results>
+        </NewLocation>
+      </Section>
+    </Flex>
+  );
 }
 
 const InputWrapper = styled("div")`
@@ -210,4 +197,4 @@ const Section = styled(Flex)`
   margin-bottom: 24px;
 `;
 
-export default inject("documents", "collections", "ui")(DocumentMove);
+export default observer(DocumentMove);

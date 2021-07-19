@@ -27,11 +27,11 @@ import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import InputSearchPage from "components/InputSearchPage";
+import PlaceholderList from "components/List/Placeholder";
 import LoadingIndicator from "components/LoadingIndicator";
-import { ListPlaceholder } from "components/LoadingPlaceholder";
-import Mask from "components/Mask";
 import Modal from "components/Modal";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
+import PlaceholderText from "components/PlaceholderText";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import Tab from "components/Tab";
@@ -39,6 +39,7 @@ import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import Collection from "../models/Collection";
 import { updateCollectionUrl } from "../utils/routeHelpers";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
@@ -54,7 +55,11 @@ function CollectionScene() {
   const team = useCurrentTeam();
   const [isFetching, setFetching] = React.useState();
   const [error, setError] = React.useState();
-  const [permissionsModalOpen, setPermissionsModalOpen] = React.useState(false);
+  const [
+    permissionsModalOpen,
+    handlePermissionsModalOpen,
+    handlePermissionsModalClose,
+  ] = useBoolean();
 
   const id = params.id || "";
   const collection: ?Collection =
@@ -101,14 +106,6 @@ function CollectionScene() {
     }
     load();
   }, [collections, isFetching, collection, error, id, can]);
-
-  const handlePermissionsModalOpen = React.useCallback(() => {
-    setPermissionsModalOpen(true);
-  }, []);
-
-  const handlePermissionsModalClose = React.useCallback(() => {
-    setPermissionsModalOpen(false);
-  }, []);
 
   const handleRejection = React.useCallback(() => {
     ui.showToast(
@@ -376,9 +373,9 @@ function CollectionScene() {
   ) : (
     <CenteredContent>
       <Heading>
-        <Mask height={35} />
+        <PlaceholderText height={35} />
       </Heading>
-      <ListPlaceholder count={5} />
+      <PlaceholderList count={5} />
     </CenteredContent>
   );
 }

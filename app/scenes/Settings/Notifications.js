@@ -1,137 +1,140 @@
 // @flow
 import { debounce } from "lodash";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import NotificationSettingsStore from "stores/NotificationSettingsStore";
-import UiStore from "stores/UiStore";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Notice from "components/Notice";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
-
 import NotificationListItem from "./components/NotificationListItem";
+import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 
-type Props = {
-  ui: UiStore,
-  auth: AuthStore,
-  notificationSettings: NotificationSettingsStore,
-};
+function Notifications() {
+  const { notificationSettings, ui } = useStores();
+  const user = useCurrentUser();
+  const { t } = useTranslation();
 
-const options = [
-  {
-    event: "documents.publish",
-    title: "Document published",
-    description: "Receive a notification whenever a new document is published",
-  },
-  {
-    event: "documents.update",
-    title: "Document updated",
-    description: "Receive a notification when a document you created is edited",
-  },
-  {
-    event: "collections.create",
-    title: "Collection created",
-    description: "Receive a notification whenever a new collection is created",
-  },
-  {
-    separator: true,
-  },
-  {
-    event: "emails.onboarding",
-    title: "Getting started",
-    description:
-      "Tips on getting started with Outline`s features and functionality",
-  },
-  {
-    event: "emails.features",
-    title: "New features",
-    description: "Receive an email when new features of note are added",
-  },
-];
+  const options = [
+    {
+      event: "documents.publish",
+      title: t("Document published"),
+      description: t(
+        "Receive a notification whenever a new document is published"
+      ),
+    },
+    {
+      event: "documents.update",
+      title: t("Document updated"),
+      description: t(
+        "Receive a notification when a document you created is edited"
+      ),
+    },
+    {
+      event: "collections.create",
+      title: t("Collection created"),
+      description: t(
+        "Receive a notification whenever a new collection is created"
+      ),
+    },
+    {
+      separator: true,
+    },
+    {
+      event: "emails.onboarding",
+      title: t("Getting started"),
+      description: t(
+        "Tips on getting started with Outline`s features and functionality"
+      ),
+    },
+    {
+      event: "emails.features",
+      title: t("New features"),
+      description: t("Receive an email when new features of note are added"),
+    },
+  ];
 
-@observer
-class Notifications extends React.Component<Props> {
-  componentDidMount() {
-    this.props.notificationSettings.fetchPage();
-  }
+  React.useEffect(() => {
+    notificationSettings.fetchPage();
+  }, [notificationSettings]);
 
-  handleChange = async (ev: SyntheticInputEvent<>) => {
-    const { notificationSettings } = this.props;
-    const setting = notificationSettings.getByEvent(ev.target.name);
-
-    if (ev.target.checked) {
-      await notificationSettings.save({
-        event: ev.target.name,
-      });
-    } else if (setting) {
-      await notificationSettings.delete(setting);
-    }
-
-    this.showSuccessMessage();
-  };
-
-  showSuccessMessage = debounce(() => {
-    this.props.ui.showToast("Notifications saved", { type: "success" });
+  const showSuccessMessage = debounce(() => {
+    ui.showToast(t("Notifications saved"), { type: "success" });
   }, 500);
 
-  render() {
-    const { notificationSettings, auth } = this.props;
-    const showSuccessNotice = window.location.search === "?success";
-    const { user, team } = auth;
-    if (!team || !user) return null;
+  const handleChange = React.useCallback(
+    async (ev: SyntheticInputEvent<>) => {
+      const setting = notificationSettings.getByEvent(ev.target.name);
 
-    return (
-      <Scene title="Notifications" icon={<EmailIcon color="currentColor" />}>
-        {showSuccessNotice && (
-          <Notice>
+      if (ev.target.checked) {
+        await notificationSettings.save({
+          event: ev.target.name,
+        });
+      } else if (setting) {
+        await notificationSettings.delete(setting);
+      }
+
+      showSuccessMessage();
+    },
+    [notificationSettings, showSuccessMessage]
+  );
+
+  const showSuccessNotice = window.location.search === "?success";
+
+  return (
+    <Scene title={t("Notifications")} icon={<EmailIcon color="currentColor" />}>
+      {showSuccessNotice && (
+        <Notice>
+          <Trans>
             Unsubscription successful. Your notification settings were updated
-          </Notice>
-        )}
-        <Heading>Notifications</Heading>
-        <HelpText>
+          </Trans>
+        </Notice>
+      )}
+      <Heading>{t("Notifications")}</Heading>
+      <HelpText>
+        <Trans>
           Manage when and where you receive email notifications from Outline.
           Your email address can be updated in your SSO provider.
-        </HelpText>
+        </Trans>
+      </HelpText>
+      <Input
+        type="email"
+        value={user.email}
+        label={t("Email address")}
+        readOnly
+        short
+      />
 
-        <Input
-          type="email"
-          value={user.email}
-          label="Email address"
-          readOnly
-          short
-        />
+      <Subheading>{t("Notifications")}</Subheading>
 
-        <Subheading>Notifications</Subheading>
+      {options.map((option, index) => {
+        if (option.separator) return <Separator key={`separator-${index}`} />;
 
-        {options.map((option, index) => {
-          if (option.separator) return <Separator key={`separator-${index}`} />;
+        const setting = notificationSettings.getByEvent(option.event);
 
-          const setting = notificationSettings.getByEvent(option.event);
-
-          return (
-            <NotificationListItem
-              key={option.event}
-              onChange={this.handleChange}
-              setting={setting}
-              disabled={
-                (setting && setting.isSaving) || notificationSettings.isFetching
-              }
-              {...option}
-            />
-          );
-        })}
-      </Scene>
-    );
-  }
+        return (
+          <NotificationListItem
+            key={option.event}
+            onChange={handleChange}
+            setting={setting}
+            disabled={
+              (setting && setting.isSaving) || notificationSettings.isFetching
+            }
+            {...option}
+          />
+        );
+      })}
+    </Scene>
+  );
 }
 
 const Separator = styled.hr`
   padding-bottom: 12px;
 `;
 
-export default inject("notificationSettings", "auth", "ui")(Notifications);
+export default observer(Notifications);

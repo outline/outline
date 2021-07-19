@@ -11,6 +11,7 @@ import Descript from "./Descript";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
@@ -147,6 +148,13 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Data Studio",
+    keywords: "business intelligence",
+    icon: () => <Img src="/images/google-datastudio.png" />,
+    component: GoogleDataStudio,
+    matcher: matcher(GoogleDataStudio),
   },
   {
     title: "InVision",

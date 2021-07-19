@@ -12,6 +12,7 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
@@ -120,7 +121,7 @@ function DocumentLink(
     [documents, document]
   );
 
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
 
@@ -249,8 +250,8 @@ function DocumentLink(
                     <Fade>
                       <DocumentMenu
                         document={document}
-                        onOpen={() => setMenuOpen(true)}
-                        onClose={() => setMenuOpen(false)}
+                        onOpen={handleMenuOpen}
+                        onClose={handleMenuClose}
                       />
                     </Fade>
                   ) : undefined
