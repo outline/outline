@@ -17,12 +17,13 @@ function TrashLink({ documents }) {
 
   const [{ isDocumentDropping }, dropToTrashDocument] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
-      setDocument(documents.get(item.id));
+    drop: (item, monitor) => {
+      const doc = documents.get(item.id);
+      // without setTimeout it was not working in firefox v89.0.2-ubuntu
+      // on dropping mouseup is considered as clicking outside the modal, and it immediately closes
+      setTimeout(() => setDocument(doc), 1);
     },
-    canDrop: (item, monitor) => {
-      return policies.abilities(item.id).delete;
-    },
+    canDrop: (item, monitor) => policies.abilities(item.id).delete,
     collect: (monitor) => ({
       isDocumentDropping: monitor.isOver(),
     }),
