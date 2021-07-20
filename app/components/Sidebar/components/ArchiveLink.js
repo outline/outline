@@ -6,17 +6,19 @@ import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import useStores from "../../../hooks/useStores";
 import SidebarLink from "./SidebarLink";
+import useToasts from "hooks/useToasts";
 
 function ArchiveLink({ documents }) {
-  const { policies, toasts } = useStores();
+  const { policies } = useStores();
   const { t } = useTranslation();
+  const { showToast } = useToasts();
 
   const [{ isDocumentDropping }, dropToArchiveDocument] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {
       const document = documents.get(item.id);
       await document.archive();
-      toasts.showToast(t("Document archived"), { type: "success" });
+      showToast(t("Document archived"), { type: "success" });
     },
     canDrop: (item, monitor) => policies.abilities(item.id).archive,
     collect: (monitor) => ({
