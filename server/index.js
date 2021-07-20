@@ -2,7 +2,6 @@
 require("dotenv").config({ silent: true });
 
 const errors = [];
-const boxen = require("boxen");
 const chalk = require("chalk");
 const throng = require("throng");
 
@@ -96,11 +95,10 @@ if (errors.length) {
 
 if (process.env.NODE_ENV === "production") {
   console.log(
-    boxen(
+    chalk.green(
       `
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
-`,
-      { padding: 1, margin: 1, borderStyle: "double", borderColor: "green" }
+`
     )
   );
 } else if (process.env.NODE_ENV === "development") {
