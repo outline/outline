@@ -221,6 +221,41 @@ describe("#searchForTeam", () => {
     const { totalCount } = await Document.searchForTeam(team, "test");
     expect(totalCount).toBe("2");
   });
+
+  test("should return the document when searched with their previous titles", async () => {
+    const team = await buildTeam();
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForTeam(team, "test number");
+    expect(totalCount).toBe("1");
+  });
+
+  test("should not return the document when searched with neither the titles nor the previous titles", async () => {
+    const team = await buildTeam();
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForTeam(
+      team,
+      "title doesn't exist"
+    );
+    expect(totalCount).toBe("0");
+  });
 });
 
 describe("#searchForUser", () => {
@@ -273,6 +308,51 @@ describe("#searchForUser", () => {
     const { totalCount } = await Document.searchForUser(user, "test");
     expect(totalCount).toBe("2");
   });
+
+  test("should return the document when searched with their previous titles", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForUser(user, "test number");
+    expect(totalCount).toBe("1");
+  });
+
+  test("should not return the document when searched with neither the titles nor the previous titles", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForUser(
+      user,
+      "title doesn't exist"
+    );
+    expect(totalCount).toBe("0");
+  });
 });
 
 describe("#delete", () => {
@@ -306,6 +386,37 @@ describe("#delete", () => {
     document = await Document.findByPk(document.id, { paranoid: false });
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
+  });
+});
+
+describe("#save", () => {
+  test("should have empty previousTitles by default", async () => {
+    const document = await buildDocument();
+    expect(document.previousTitles).toBe(null);
+  });
+
+  test("should include previousTitles on save", async () => {
+    const document = await buildDocument();
+
+    document.title = "test";
+    await document.save();
+
+    expect(document.previousTitles.length).toBe(1);
+  });
+
+  test("should not duplicate previousTitles", async () => {
+    const document = await buildDocument();
+
+    document.title = "test";
+    await document.save();
+
+    document.title = "example";
+    await document.save();
+
+    document.title = "test";
+    await document.save();
+
+    expect(document.previousTitles.length).toBe(3);
   });
 });
 
