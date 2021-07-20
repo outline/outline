@@ -389,6 +389,37 @@ describe("#delete", () => {
   });
 });
 
+describe("#save", () => {
+  test("should have empty previousTitles by default", async () => {
+    const document = await buildDocument();
+    expect(document.previousTitles).toBe(null);
+  });
+
+  test("should include previousTitles on save", async () => {
+    const document = await buildDocument();
+
+    document.title = "test";
+    await document.save();
+
+    expect(document.previousTitles.length).toBe(1);
+  });
+
+  test("should not duplicate previousTitles", async () => {
+    const document = await buildDocument();
+
+    document.title = "test";
+    await document.save();
+
+    document.title = "example";
+    await document.save();
+
+    document.title = "test";
+    await document.save();
+
+    expect(document.previousTitles.length).toBe(3);
+  });
+});
+
 describe("#findByPk", () => {
   test("should return document when urlId is correct", async () => {
     const { document } = await seed();
