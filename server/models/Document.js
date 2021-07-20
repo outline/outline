@@ -18,6 +18,8 @@ const Op = Sequelize.Op;
 const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
+const TICKED_CHECKBOX_REGEX = /\[(x)\]\s/g;
+const CHECKBOX_REGEX = /\[(x|\s|)\]\s/g;
 
 const createUrlId = (doc) => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
@@ -99,6 +101,20 @@ const Document = sequelize.define(
 
         const slugifiedTitle = slugify(this.title);
         return `/doc/${slugifiedTitle}-${this.urlId}`;
+      },
+      tasks: function () {
+        if (!this.text) {
+          return [];
+        }
+
+        let countCheckbox = (this.text.match(CHECKBOX_REGEX) || []).length;
+        if (!countCheckbox) {
+          return [];
+        }
+
+        let countTicked = (this.text.match(TICKED_CHECKBOX_REGEX) || []).length;
+
+        return [countTicked, countCheckbox];
       },
     },
   }
