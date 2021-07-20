@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import { bounceIn } from "shared/styles/animations";
+import { bounceIn } from "styles/animations";
 
 type Props = {|
   count: number,

@@ -2,10 +2,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { ThemeProvider } from "styled-components";
-import GlobalStyles from "shared/styles/globals";
-import { dark, light, lightMobile, darkMobile } from "shared/styles/theme";
+import { dark, light, lightMobile, darkMobile } from "shared/theme";
 import useMediaQuery from "hooks/useMediaQuery";
 import useStores from "hooks/useStores";
+import GlobalStyles from "styles/globals";
 
 const empty = {};
 
