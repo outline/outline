@@ -4,6 +4,7 @@ require("dotenv").config({ silent: true });
 const errors = [];
 const boxen = require("boxen");
 const chalk = require("chalk");
+const throng = require("throng");
 
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer
@@ -112,4 +113,9 @@ Is your team enjoying Outline? Consider supporting future development by sponsor
   );
 }
 
-require("./main");
+const { start } = require("./main");
+
+throng({
+  worker: start,
+  count: process.env.WEB_CONCURRENCY || 1,
+});
