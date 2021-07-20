@@ -11,7 +11,7 @@ import DocumentsStore from "stores/DocumentsStore";
 import GroupsStore from "stores/GroupsStore";
 import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
-import UiStore from "stores/UiStore";
+import ToastsStore from "stores/ToastsStore";
 import ViewsStore from "stores/ViewsStore";
 import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
 
@@ -27,7 +27,7 @@ type Props = {
   policies: PoliciesStore,
   views: ViewsStore,
   auth: AuthStore,
-  ui: UiStore,
+  toasts: ToastsStore,
 };
 
 @observer
@@ -72,7 +72,7 @@ class SocketProvider extends React.Component<Props> {
 
     const {
       auth,
-      ui,
+      toasts,
       documents,
       collections,
       groups,
@@ -113,7 +113,7 @@ class SocketProvider extends React.Component<Props> {
 
     this.socket.on("unauthorized", (err) => {
       this.socket.authenticated = false;
-      ui.showToast(err.message, {
+      toasts.showToast(err.message, {
         type: "error",
       });
       throw err;
@@ -338,7 +338,7 @@ class SocketProvider extends React.Component<Props> {
 
 export default inject(
   "auth",
-  "ui",
+  "toasts",
   "documents",
   "collections",
   "groups",

@@ -13,6 +13,7 @@ import NotificationSettingsStore from "./NotificationSettingsStore";
 import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
 import SharesStore from "./SharesStore";
+import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
@@ -35,6 +36,7 @@ export default class RootStore {
   ui: UiStore;
   users: UsersStore;
   views: ViewsStore;
+  toasts: ToastsStore;
 
   constructor() {
     this.apiKeys = new ApiKeysStore(this);
@@ -54,6 +56,7 @@ export default class RootStore {
     this.ui = new UiStore();
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
+    this.toasts = new ToastsStore();
   }
 
   logout() {
