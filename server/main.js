@@ -234,10 +234,12 @@ server.on("listening", () => {
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
-(async () => {
+export async function start(id: string) {
+  console.log(`Started worker ${id}`);
+
   await checkMigrations();
   server.listen(process.env.PORT || "3000");
-})();
+}
 
 export const socketio = io;
 

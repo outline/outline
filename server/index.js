@@ -2,8 +2,8 @@
 require("dotenv").config({ silent: true });
 
 const errors = [];
-const boxen = require("boxen");
 const chalk = require("chalk");
+const throng = require("throng");
 
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer
@@ -66,7 +66,7 @@ if (!process.env.URL) {
   );
 }
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL && !process.env.DATABASE_CONNECTION_POOL_URL) {
   errors.push(
     `The ${chalk.bold(
       "DATABASE_URL"
@@ -95,11 +95,10 @@ if (errors.length) {
 
 if (process.env.NODE_ENV === "production") {
   console.log(
-    boxen(
+    chalk.green(
       `
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
-`,
-      { padding: 1, margin: 1, borderStyle: "double", borderColor: "green" }
+`
     )
   );
 } else if (process.env.NODE_ENV === "development") {
@@ -112,4 +111,11 @@ Is your team enjoying Outline? Consider supporting future development by sponsor
   );
 }
 
-require("./main");
+const { start } = require("./main");
+
+throng({
+  worker: start,
+
+  // The number of workers to run, defaults to the number of CPUs available
+  count: process.env.WEB_CONCURRENCY || undefined,
+});
