@@ -1,6 +1,6 @@
 // @flow
 import { type Location } from "react-router-dom";
-import theme from "shared/styles/theme";
+import theme from "shared/theme";
 import Document from "models/Document";
 
 export type Theme = typeof theme;
