@@ -92,7 +92,9 @@ class DocumentScene extends React.Component<Props> {
     } else if (prevProps.document.revision !== this.lastRevision) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
         this.props.toasts.showToast(
-          t(`Document updated by {{userName}}`, { userName: document.updatedBy.name }),
+          t(`Document updated by {{userName}}`, {
+            userName: document.updatedBy.name,
+          }),
           {
             timeout: 30 * 1000,
             type: "warning",
