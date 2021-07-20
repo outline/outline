@@ -66,7 +66,7 @@ if (!process.env.URL) {
   );
 }
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL && !process.env.DATABASE_CONNECTION_POOL_URL) {
   errors.push(
     `The ${chalk.bold(
       "DATABASE_URL"
