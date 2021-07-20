@@ -44,6 +44,7 @@ export default async function present(document: Document, options: ?Options) {
     title: document.title,
     text,
     emoji: document.emoji,
+    tasks: document.tasks,
     createdAt: document.createdAt,
     createdBy: undefined,
     updatedAt: document.updatedAt,

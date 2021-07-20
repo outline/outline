@@ -7,6 +7,7 @@ import styled from "styled-components";
 import Document from "models/Document";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Flex from "components/Flex";
+import Pie from "components/Pie";
 import Time from "components/Time";
 import useStores from "hooks/useStores";
 
@@ -61,6 +62,9 @@ function DocumentMeta({
     deletedAt,
     isDraft,
     lastViewedAt,
+    isTasks,
+    tasksPercentage,
+    tasksMessage,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -131,6 +135,15 @@ function DocumentMeta({
     );
   };
 
+  const progressBar = (tasks) => {
+    return (
+      <>
+        <Pie percentage={tasksPercentage} />
+        &nbsp;{tasksMessage}
+      </>
+    );
+  };
+
   const nestedDocumentsCount = collection
     ? collection.getDocumentChildren(document.id).length
     : 0;
@@ -154,6 +167,7 @@ function DocumentMeta({
         </span>
       )}
       &nbsp;{timeSinceNow()}
+      {isTasks && <>&nbsp;•&nbsp;{progressBar()}</>}
       {children}
     </Container>
   );
