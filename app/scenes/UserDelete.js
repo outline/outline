@@ -7,6 +7,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   onRequestClose: () => void,
@@ -14,7 +15,8 @@ type Props = {|
 
 function UserDelete({ onRequestClose }: Props) {
   const [isDeleting, setIsDeleting] = React.useState();
-  const { auth, ui } = useStores();
+  const { auth } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(
@@ -26,12 +28,12 @@ function UserDelete({ onRequestClose }: Props) {
         await auth.deleteUser();
         auth.logout();
       } catch (error) {
-        ui.showToast(error.message, { type: "error" });
+        showToast(error.message, { type: "error" });
       } finally {
         setIsDeleting(false);
       }
     },
-    [auth, ui]
+    [auth, showToast]
   );
 
   return (

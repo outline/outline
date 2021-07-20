@@ -8,7 +8,7 @@ import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
 import GroupsStore from "stores/GroupsStore";
-import UiStore from "stores/UiStore";
+import ToastsStore from "stores/ToastsStore";
 import Collection from "models/Collection";
 import Group from "models/Group";
 import GroupNew from "scenes/GroupNew";
@@ -23,7 +23,7 @@ import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 
 type Props = {
-  ui: UiStore,
+  toasts: ToastsStore,
   auth: AuthStore,
   collection: Collection,
   collectionGroupMemberships: CollectionGroupMembershipsStore,
@@ -65,14 +65,14 @@ class AddGroupsToCollection extends React.Component<Props> {
         groupId: group.id,
         permission: "read_write",
       });
-      this.props.ui.showToast(
+      this.props.toasts.showToast(
         t("{{ groupName }} was added to the collection", {
           groupName: group.name,
         }),
         { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not add user"), { type: "error" });
+      this.props.toasts.showToast(t("Could not add user"), { type: "error" });
       console.error(err);
     }
   };
@@ -147,6 +147,6 @@ export default withTranslation()<AddGroupsToCollection>(
     "auth",
     "groups",
     "collectionGroupMemberships",
-    "ui"
+    "toasts"
   )(AddGroupsToCollection)
 );

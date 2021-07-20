@@ -99,3 +99,12 @@ export type MenuItem =
       visible?: boolean,
       title: React.Node,
     |};
+
+export type ToastOptions = {|
+  type: "warning" | "error" | "info" | "success",
+  timeout?: number,
+  action?: {
+    text: string,
+    onClick: () => void,
+  },
+|};
