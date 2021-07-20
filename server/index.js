@@ -115,5 +115,7 @@ const { start } = require("./main");
 
 throng({
   worker: start,
-  count: process.env.WEB_CONCURRENCY || 1,
+
+  // The number of workers to run, defaults to the number of CPUs available
+  count: process.env.WEB_CONCURRENCY || undefined,
 });
