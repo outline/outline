@@ -8,7 +8,7 @@ import useStores from "../../../hooks/useStores";
 import SidebarLink from "./SidebarLink";
 
 function ArchiveLink({ documents }) {
-  const { policies, ui } = useStores();
+  const { policies, toasts } = useStores();
   const { t } = useTranslation();
 
   const [{ isDocumentDropping }, dropToArchiveDocument] = useDrop({
@@ -16,7 +16,7 @@ function ArchiveLink({ documents }) {
     drop: async (item, monitor) => {
       const document = documents.get(item.id);
       await document.archive();
-      ui.showToast(t("Document archived"), { type: "success" });
+      toasts.showToast(t("Document archived"), { type: "success" });
     },
     canDrop: (item, monitor) => policies.abilities(item.id).archive,
     collect: (monitor) => ({
