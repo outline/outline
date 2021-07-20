@@ -28,6 +28,17 @@ export default function Notices() {
           an allowed team domain.
         </NoticeAlert>
       )}
+      {notice === "gitea-org-api" && (
+        <NoticeAlert>
+          Gitea API failed to respond / Invalid Response
+        </NoticeAlert>
+      )}
+      {notice === "no-gitea-org" && (
+        <NoticeAlert>
+          User must be a part of at least one Organisation. Website must be set
+          for that Organisation.
+        </NoticeAlert>
+      )}
       {notice === "email-auth-required" && (
         <NoticeAlert>
           Your account uses email sign-in, please sign-in with email to
