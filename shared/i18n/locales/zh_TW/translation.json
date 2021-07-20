@@ -305,6 +305,7 @@
   "Add specific access for individual groups and team members": "為個別群組和團隊成員增加特定的存取權限",
   "Add groups to {{ collectionName }}": "將群組加入到 {{ collectionName }}",
   "Add people to {{ collectionName }}": "將人員加入到 {{ collectionName }}",
+  "Document updated by {{userName}}": "Document updated by {{userName}}",
   "You have unsaved changes.\nAre you sure you want to discard them?": "You have unsaved changes.\nAre you sure you want to discard them?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Images are still uploading.\nAre you sure you want to discard them?",
   "You’re editing a template. Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents from this template.": "You’re editing a template. Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents from this template.",
