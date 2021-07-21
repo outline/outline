@@ -39,6 +39,8 @@ export default class RootStore {
   toasts: ToastsStore;
 
   constructor() {
+    // PoliciesStore must be initialized before AuthStore
+    this.policies = new PoliciesStore(this);
     this.apiKeys = new ApiKeysStore(this);
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
@@ -50,7 +52,6 @@ export default class RootStore {
     this.memberships = new MembershipsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
     this.presence = new DocumentPresenceStore();
-    this.policies = new PoliciesStore(this);
     this.revisions = new RevisionsStore(this);
     this.shares = new SharesStore(this);
     this.ui = new UiStore();
