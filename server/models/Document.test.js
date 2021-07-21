@@ -319,3 +319,65 @@ describe("#findByPk", () => {
     expect(response.id).toBe(document.id);
   });
 });
+
+describe("tasks", () => {
+  test("should return tasks keys set to 0 if checkItems isn't present", async () => {
+    const document = await buildDocument({
+      text: `text`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(0);
+    expect(tasks.total).toBe(0);
+  });
+
+  test("should return tasks keys set to 0 if the text contains broken checkItems", async () => {
+    const document = await buildDocument({
+      text: `- [x ] test
+      - [ x ] test
+      - [X] test
+      - [  ] test`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(0);
+    expect(tasks.total).toBe(0);
+  });
+
+  test("should return tasks", async () => {
+    const document = await buildDocument({
+      text: `- [x] list item
+      - [ ] list item`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(1);
+    expect(tasks.total).toBe(2);
+  });
+
+  test("should update tasks on save", async () => {
+    const document = await buildDocument({
+      text: `- [x] list item
+      - [ ] list item`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(1);
+    expect(tasks.total).toBe(2);
+
+    document.text = `- [x] list item
+    - [ ] list item
+    - [ ] list item`;
+
+    await document.save();
+
+    const newTasks = document.tasks;
+
+    expect(newTasks.completed).toBe(1);
+    expect(newTasks.total).toBe(3);
+  });
+});
