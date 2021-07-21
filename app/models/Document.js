@@ -1,7 +1,7 @@
 // @flow
 import { addDays, differenceInDays } from "date-fns";
 import invariant from "invariant";
-import { floor } from "lodash-es";
+import { floor } from "lodash";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";

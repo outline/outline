@@ -6,6 +6,7 @@ import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
+import getTasks from "../../shared/utils/getTasks";
 import parseTitle from "../../shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import unescape from "../../shared/utils/unescape";
@@ -18,8 +19,6 @@ const Op = Sequelize.Op;
 const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
-const TICKED_CHECKBOX_REGEX = /\[(x)\]\s/g;
-const CHECKBOX_REGEX = /\[(x|\s|)\]\s/g;
 
 const createUrlId = (doc) => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
@@ -103,24 +102,7 @@ const Document = sequelize.define(
         return `/doc/${slugifiedTitle}-${this.urlId}`;
       },
       tasks: function () {
-        if (!this.text) {
-          return {
-            completed: 0,
-            total: 0,
-          };
-        }
-
-        let total = (this.text.match(CHECKBOX_REGEX) || []).length;
-        if (!total) {
-          return {
-            completed: 0,
-            total: 0,
-          };
-        }
-
-        let completed = (this.text.match(TICKED_CHECKBOX_REGEX) || []).length;
-
-        return { completed, total };
+        return getTasks(this.text || "");
       },
     },
   }
