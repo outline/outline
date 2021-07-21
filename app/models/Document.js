@@ -44,7 +44,7 @@ export default class Document extends BaseModel {
   deletedAt: ?string;
   url: string;
   urlId: string;
-  tasks: number[];
+  tasks: { completed: number, total: number };
   revision: number;
 
   constructor(fields: Object, store: DocumentsStore) {
@@ -154,20 +154,20 @@ export default class Document extends BaseModel {
 
   @computed
   get isTasks(): boolean {
-    return this.tasks.length === 2;
+    return !!this.tasks.total;
   }
 
   @computed
   get tasksPercentage(): number {
-    if (this.tasks.length === 0) {
+    if (!this.isTasks) {
       return 0;
     }
-    return floor((this.tasks[0] / this.tasks[1]) * 100);
+    return floor((this.tasks.completed / this.tasks.total) * 100);
   }
 
   @computed
   get tasksMessage(): string {
-    return `${this.tasks[0]}/${this.tasks[1]}`;
+    return `${this.tasks.completed}/${this.tasks.total}`;
   }
 
   @action

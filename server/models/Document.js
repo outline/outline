@@ -104,17 +104,23 @@ const Document = sequelize.define(
       },
       tasks: function () {
         if (!this.text) {
-          return [];
+          return {
+            completed: 0,
+            total: 0,
+          };
         }
 
-        let countCheckbox = (this.text.match(CHECKBOX_REGEX) || []).length;
-        if (!countCheckbox) {
-          return [];
+        let total = (this.text.match(CHECKBOX_REGEX) || []).length;
+        if (!total) {
+          return {
+            completed: 0,
+            total: 0,
+          };
         }
 
-        let countTicked = (this.text.match(TICKED_CHECKBOX_REGEX) || []).length;
+        let completed = (this.text.match(TICKED_CHECKBOX_REGEX) || []).length;
 
-        return [countTicked, countCheckbox];
+        return { completed, total };
       },
     },
   }
