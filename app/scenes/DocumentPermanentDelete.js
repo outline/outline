@@ -8,6 +8,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   document: Document,
@@ -17,8 +18,8 @@ type Props = {|
 function DocumentPermanentDelete({ document, onSubmit }: Props) {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { t } = useTranslation();
-  const { ui, documents } = useStores();
-  const { showToast } = ui;
+  const { documents } = useStores();
+  const { showToast } = useToasts();
   const history = useHistory();
 
   const handleSubmit = React.useCallback(

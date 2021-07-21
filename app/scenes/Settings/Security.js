@@ -11,17 +11,19 @@ import HelpText from "components/HelpText";
 import Scene from "components/Scene";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 function Security() {
-  const { auth, ui } = useStores();
+  const { auth } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const { showToast } = useToasts();
   const [sharing, setSharing] = useState(team.documentEmbeds);
   const [documentEmbeds, setDocumentEmbeds] = useState(team.guestSignin);
   const [guestSignin, setGuestSignin] = useState(team.sharing);
 
   const showSuccessMessage = debounce(() => {
-    ui.showToast(t("Settings saved"), { type: "success" });
+    showToast(t("Settings saved"), { type: "success" });
   }, 500);
 
   const handleChange = React.useCallback(

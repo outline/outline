@@ -14,6 +14,8 @@ import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 import useCurrentTeam from "hooks/useCurrentTeam";
+import useToasts from "hooks/useToasts";
+
 type Props = {
   onCreateCollection: () => void,
 };
@@ -22,6 +24,7 @@ function Collections({ onCreateCollection }: Props) {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
+  const { showToast } = useToasts();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const team = useCurrentTeam();
@@ -38,7 +41,7 @@ function Collections({ onCreateCollection }: Props) {
           setFetching(true);
           await collections.fetchPage({ limit: 100 });
         } catch (error) {
-          ui.showToast(
+          showToast(
             t("Collections could not be loaded, please reload the app"),
             {
               type: "error",
@@ -51,7 +54,7 @@ function Collections({ onCreateCollection }: Props) {
       }
     }
     load();
-  }, [collections, isFetching, ui, fetchError, t]);
+  }, [collections, isFetching, showToast, fetchError, t]);
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",

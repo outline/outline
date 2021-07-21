@@ -15,9 +15,11 @@ import ImageUpload from "./components/ImageUpload";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 function Details() {
-  const { auth, ui } = useStores();
+  const { auth } = useStores();
+  const { showToast } = useToasts();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const form = useRef<?HTMLFormElement>();
@@ -37,12 +39,12 @@ function Details() {
           avatarUrl,
           subdomain,
         });
-        ui.showToast(t("Settings saved"), { type: "success" });
+        showToast(t("Settings saved"), { type: "success" });
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       }
     },
-    [auth, ui, name, avatarUrl, subdomain, t]
+    [auth, showToast, name, avatarUrl, subdomain, t]
   );
 
   const handleNameChange = React.useCallback((ev: SyntheticInputEvent<*>) => {
@@ -66,9 +68,9 @@ function Details() {
 
   const handleAvatarError = React.useCallback(
     (error: ?string) => {
-      ui.showToast(error || t("Unable to upload new logo"));
+      showToast(error || t("Unable to upload new logo"));
     },
-    [ui, t]
+    [showToast, t]
   );
 
   const isValid = form.current && form.current.checkValidity();

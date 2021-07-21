@@ -15,6 +15,7 @@ import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
 import PathToDocument from "components/PathToDocument";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   document: Document,
@@ -23,7 +24,8 @@ type Props = {|
 
 function DocumentMove({ document, onRequestClose }: Props) {
   const [searchTerm, setSearchTerm] = useState();
-  const { ui, collections, documents } = useStores();
+  const { collections, documents } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const searchIndex = useMemo(() => {
@@ -77,7 +79,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
   }, [document, collections, searchTerm, searchIndex]);
 
   const handleSuccess = () => {
-    ui.showToast(t("Document moved"), { type: "info" });
+    showToast(t("Document moved"), { type: "info" });
     onRequestClose();
   };
 

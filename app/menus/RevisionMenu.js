@@ -10,7 +10,7 @@ import MenuItem from "components/ContextMenu/MenuItem";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Separator from "components/ContextMenu/Separator";
 import CopyToClipboard from "components/CopyToClipboard";
-import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {|
@@ -20,7 +20,7 @@ type Props = {|
 |};
 
 function RevisionMenu({ document, revisionId, className }: Props) {
-  const { ui } = useStores();
+  const { showToast } = useToasts();
   const menu = useMenuState({ modal: true });
   const { t } = useTranslation();
   const history = useHistory();
@@ -29,15 +29,15 @@ function RevisionMenu({ document, revisionId, className }: Props) {
     async (ev: SyntheticEvent<>) => {
       ev.preventDefault();
       await document.restore({ revisionId });
-      ui.showToast(t("Document restored"), { type: "success" });
+      showToast(t("Document restored"), { type: "success" });
       history.push(document.url);
     },
-    [history, ui, t, document, revisionId]
+    [history, showToast, t, document, revisionId]
   );
 
   const handleCopy = React.useCallback(() => {
-    ui.showToast(t("Link copied"), { type: "info" });
-  }, [ui, t]);
+    showToast(t("Link copied"), { type: "info" });
+  }, [showToast, t]);
 
   const url = `${window.location.origin}${documentHistoryUrl(
     document,

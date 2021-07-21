@@ -18,6 +18,7 @@ import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import {
   documentHistoryUrl,
@@ -51,7 +52,8 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const { policies, collections, ui, documents } = useStores();
+  const { policies, collections, documents } = useStores();
+  const { showToast } = useToasts();
   const menu = useMenuState({
     modal,
     unstable_preventOverflow: true,
@@ -83,33 +85,33 @@ function DocumentMenu({
 
       // when duplicating, go straight to the duplicated document content
       history.push(duped.url);
-      ui.showToast(t("Document duplicated"), { type: "success" });
+      showToast(t("Document duplicated"), { type: "success" });
     },
-    [ui, t, history, document]
+    [t, history, showToast, document]
   );
 
   const handleArchive = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       await document.archive();
-      ui.showToast(t("Document archived"), { type: "success" });
+      showToast(t("Document archived"), { type: "success" });
     },
-    [ui, t, document]
+    [showToast, t, document]
   );
 
   const handleRestore = React.useCallback(
     async (ev: SyntheticEvent<>, options?: { collectionId: string }) => {
       await document.restore(options);
-      ui.showToast(t("Document restored"), { type: "success" });
+      showToast(t("Document restored"), { type: "success" });
     },
-    [ui, t, document]
+    [showToast, t, document]
   );
 
   const handleUnpublish = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       await document.unpublish();
-      ui.showToast(t("Document unpublished"), { type: "success" });
+      showToast(t("Document unpublished"), { type: "success" });
     },
-    [ui, t, document]
+    [showToast, t, document]
   );
 
   const handlePrint = React.useCallback((ev: SyntheticEvent<>) => {
@@ -181,14 +183,14 @@ function DocumentMenu({
         );
         history.push(importedDocument.url);
       } catch (err) {
-        ui.showToast(err.message, {
+        showToast(err.message, {
           type: "error",
         });
 
         throw err;
       }
     },
-    [history, ui, collection, documents, document.id]
+    [history, showToast, collection, documents, document.id]
   );
 
   return (

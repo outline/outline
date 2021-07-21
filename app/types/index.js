@@ -1,6 +1,6 @@
 // @flow
 import { type Location } from "react-router-dom";
-import theme from "shared/styles/theme";
+import theme from "shared/theme";
 import Document from "models/Document";
 
 export type Theme = typeof theme;
@@ -99,3 +99,12 @@ export type MenuItem =
       visible?: boolean,
       title: React.Node,
     |};
+
+export type ToastOptions = {|
+  type: "warning" | "error" | "info" | "success",
+  timeout?: number,
+  action?: {
+    text: string,
+    onClick: () => void,
+  },
+|};

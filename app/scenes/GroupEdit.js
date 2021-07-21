@@ -7,7 +7,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
-import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {
   group: Group,
@@ -15,7 +15,7 @@ type Props = {
 };
 
 function GroupEdit({ group, onSubmit }: Props) {
-  const { ui } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
   const [isSaving, setIsSaving] = React.useState();
@@ -29,12 +29,12 @@ function GroupEdit({ group, onSubmit }: Props) {
         await group.save({ name: name });
         onSubmit();
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       } finally {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, ui, name]
+    [group, onSubmit, showToast, name]
   );
 
   const handleNameChange = React.useCallback((ev: SyntheticInputEvent<*>) => {

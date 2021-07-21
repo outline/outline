@@ -3,6 +3,7 @@ import { format as formatDate, formatDistanceToNow } from "date-fns";
 import {
   enUS,
   de,
+  faIR,
   fr,
   es,
   it,
@@ -22,6 +23,7 @@ const locales = {
   en_US: enUS,
   de_DE: de,
   es_ES: es,
+  fa_IR: faIR,
   fr_FR: fr,
   it_IT: it,
   ja_JP: ja,

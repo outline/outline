@@ -149,12 +149,6 @@ export default class Document extends BaseModel {
   get isFromTemplate(): boolean {
     return !!this.templateId;
   }
-
-  @computed
-  get placeholder(): ?string {
-    return this.isTemplate ? "Start your template…" : "Start with a title…";
-  }
-
   @action
   share = async () => {
     return this.store.rootStore.shares.create({ documentId: this.id });

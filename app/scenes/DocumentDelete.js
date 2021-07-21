@@ -8,6 +8,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import { collectionUrl, documentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -21,7 +22,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
-  const { showToast } = ui;
+  const { showToast } = useToasts();
   const canArchive = !document.isDraft && !document.isArchived;
   const collection = collections.get(document.collectionId);
 
