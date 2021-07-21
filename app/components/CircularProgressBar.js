@@ -11,7 +11,12 @@ const cleanPercentage = (percentage) => {
 const Circle = ({ colour, pct }: { colour: string, pct?: number }) => {
   const r = 6.25;
   const circ = 2 * Math.PI * r;
-  const strokePct = pct ? ((100 - pct) * circ) / 100 : 0;
+  let strokePct;
+  if (pct) {
+    // because the circle is so small, anything greater than 85% appears like 100%
+    pct = pct > 85 && pct < 100 ? 85 : pct;
+    strokePct = pct ? ((100 - pct) * circ) / 100 : 0;
+  }
 
   return (
     <circle
@@ -29,7 +34,7 @@ const Circle = ({ colour, pct }: { colour: string, pct?: number }) => {
   );
 };
 
-const Pie = ({ percentage }: { percentage: number }) => {
+const CircularProgressBar = ({ percentage }: { percentage: number }) => {
   const theme = useTheme();
   const pct = cleanPercentage(percentage);
   return (
@@ -42,4 +47,4 @@ const Pie = ({ percentage }: { percentage: number }) => {
   );
 };
 
-export default Pie;
+export default CircularProgressBar;
