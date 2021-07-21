@@ -67,17 +67,14 @@ function DocumentMeta({
     tasksMessage,
   } = document;
 
-  const progressBar = React.useMemo(
-    (tasks) => {
-      return (
-        <>
-          <CircularProgressBar percentage={tasksPercentage} />
-          &nbsp;{tasksMessage}
-        </>
-      );
-    },
-    [tasksMessage, tasksPercentage]
-  );
+  const progressBar = React.useMemo(() => {
+    return (
+      <>
+        <CircularProgressBar percentage={tasksPercentage} />
+        &nbsp;{tasksMessage}
+      </>
+    );
+  }, [tasksMessage, tasksPercentage]);
 
   // Prevent meta information from displaying if updatedBy is not available.
   // Currently the situation where this is true is rendering share links.
