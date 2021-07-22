@@ -1,17 +1,21 @@
 // @flow
 
-const TICKED_CHECKBOX_REGEX = /\[(x)\]\s/g;
-const CHECKBOX_REGEX = /\[(x|\s|)\]\s/g;
+const CHECKBOX_REGEX = /\[(X|\s|_|-)\]\s(.*)?/gi;
 
 export default function getTasks(text: string) {
-  let total = (text.match(CHECKBOX_REGEX) || []).length;
+  const matches = [...text.matchAll(CHECKBOX_REGEX)];
+  let total = matches.length;
   if (!total) {
     return {
       completed: 0,
       total: 0,
     };
   } else {
-    let completed = (text.match(TICKED_CHECKBOX_REGEX) || []).length;
-    return { completed, total };
+    const notCompleted = matches.reduce(
+      (accumulator, match) =>
+        match[1] === " " ? accumulator + 1 : accumulator,
+      0
+    );
+    return { completed: total - notCompleted, total };
   }
 }
