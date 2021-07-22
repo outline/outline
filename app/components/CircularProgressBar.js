@@ -58,7 +58,7 @@ const CircularProgressBar = ({
   return (
     <svg width={size} height={size}>
       <g transform={`rotate(-90 ${offset} ${offset})`}>
-        <Circle color={theme.slateLight} offset={offset} />
+        <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (
           <Circle
             color={theme.primary}

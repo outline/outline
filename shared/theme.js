@@ -179,6 +179,7 @@ export const light = {
 
   noticeInfoBackground: colors.warmGrey,
   noticeInfoText: colors.almostBlack,
+  progressBarBackground: colors.slateLight,
 
   scrollbarBackground: colors.smoke,
   scrollbarThumb: darken(0.15, colors.smokeDark),
@@ -241,6 +242,7 @@ export const dark = {
 
   noticeInfoBackground: colors.white10,
   noticeInfoText: colors.almostWhite,
+  progressBarBackground: colors.slate,
 
   scrollbarBackground: colors.black,
   scrollbarThumb: colors.lightBlack,
