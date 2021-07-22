@@ -165,11 +165,6 @@ export default class Document extends BaseModel {
     return floor((this.tasks.completed / this.tasks.total) * 100);
   }
 
-  @computed
-  get tasksMessage(): string {
-    return `${this.tasks.completed}/${this.tasks.total}`;
-  }
-
   @action
   share = async () => {
     return this.store.rootStore.shares.create({ documentId: this.id });

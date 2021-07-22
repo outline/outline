@@ -5,10 +5,10 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
-import CircularProgressBar from "components/CircularProgressBar";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Flex from "components/Flex";
 import Time from "components/Time";
+import ProgressBar from "./ProgressBar";
 import useStores from "hooks/useStores";
 
 const Container = styled(Flex)`
@@ -63,18 +63,8 @@ function DocumentMeta({
     isDraft,
     lastViewedAt,
     isTasks,
-    tasksPercentage,
-    tasksMessage,
+    isTemplate,
   } = document;
-
-  const progressBar = React.useMemo(() => {
-    return (
-      <>
-        <CircularProgressBar percentage={tasksPercentage} />
-        &nbsp;{tasksMessage}
-      </>
-    );
-  }, [tasksMessage, tasksPercentage]);
 
   // Prevent meta information from displaying if updatedBy is not available.
   // Currently the situation where this is true is rendering share links.
@@ -124,6 +114,10 @@ function DocumentMeta({
 
   const collection = collections.get(document.collectionId);
   const updatedByMe = auth.user && auth.user.id === updatedBy.id;
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
+  const canShowProgressBar = isTasks && !isTemplate;
 
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
@@ -144,10 +138,6 @@ function DocumentMeta({
     );
   };
 
-  const nestedDocumentsCount = collection
-    ? collection.getDocumentChildren(document.id).length
-    : 0;
-
   return (
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {updatedByMe ? t("You") : updatedBy.name}&nbsp;
@@ -167,7 +157,12 @@ function DocumentMeta({
         </span>
       )}
       &nbsp;{timeSinceNow()}
-      {isTasks && <>&nbsp;•&nbsp;{progressBar}</>}
+      {canShowProgressBar && (
+        <>
+          &nbsp;•&nbsp;
+          <ProgressBar document={document} />
+        </>
+      )}
       {children}
     </Container>
   );
