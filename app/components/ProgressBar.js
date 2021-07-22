@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import CircularProgressBar from "components/CircularProgressBar";
 import Document from "../models/Document";
 
@@ -9,12 +10,17 @@ type Props = {|
 
 function ProgressBar({ document }: Props) {
   const { tasks, tasksPercentage } = document;
+  const { t } = useTranslation();
+  const { completed, total } = tasks;
   const message =
-    tasks.completed === 0
-      ? `${tasks.total} tasks`
-      : tasks.completed === tasks.total
-      ? `${tasks.completed} tasks done`
-      : `${tasks.completed} of ${tasks.total} tasks`;
+    completed === 0
+      ? t(`{{ total }} tasks`, { total })
+      : completed === total
+      ? t(`{{ completed }} tasks done`, { completed })
+      : t(`{{ completed }} of {{ total }} tasks`, {
+          total,
+          completed,
+        });
 
   return (
     <>
