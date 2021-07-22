@@ -8,40 +8,62 @@ const cleanPercentage = (percentage) => {
   return tooLow ? 0 : tooHigh ? 100 : +percentage;
 };
 
-const Circle = ({ colour, pct }: { colour: string, pct?: number }) => {
-  const r = 6.25;
+const Circle = ({
+  color,
+  percentage,
+  offset,
+}: {
+  color: string,
+  percentage?: number,
+  offset: number,
+}) => {
+  const r = offset * 0.7;
   const circ = 2 * Math.PI * r;
   let strokePct;
-  if (pct) {
+  if (percentage) {
     // because the circle is so small, anything greater than 85% appears like 100%
-    pct = pct > 85 && pct < 100 ? 85 : pct;
-    strokePct = pct ? ((100 - pct) * circ) / 100 : 0;
+    percentage = percentage > 85 && percentage < 100 ? 85 : percentage;
+    strokePct = percentage ? ((100 - percentage) * circ) / 100 : 0;
   }
 
   return (
     <circle
       r={r}
-      cx={9}
-      cy={9}
+      cx={offset}
+      cy={offset}
       fill="none"
-      stroke={strokePct !== circ ? colour : ""}
+      stroke={strokePct !== circ ? color : ""}
       strokeWidth={2.5}
       strokeDasharray={circ}
-      strokeDashoffset={pct ? strokePct : 0}
+      strokeDashoffset={percentage ? strokePct : 0}
       strokeLinecap="round"
       style={{ transition: "stroke-dashoffset 0.6s ease 0s" }}
     ></circle>
   );
 };
 
-const CircularProgressBar = ({ percentage }: { percentage: number }) => {
+const CircularProgressBar = ({
+  percentage,
+  size = 16,
+}: {
+  percentage: number,
+  size: number,
+}) => {
   const theme = useTheme();
-  const pct = cleanPercentage(percentage);
+  percentage = cleanPercentage(percentage);
+  const offset = Math.floor(size / 2);
+
   return (
-    <svg width={18} height={18}>
-      <g transform={`rotate(-90 9 9)`}>
-        <Circle colour={theme.slate} />
-        {pct > 0 && <Circle colour={theme.primary} pct={pct} />}
+    <svg width={size} height={size}>
+      <g transform={`rotate(-90 ${offset} ${offset})`}>
+        <Circle color={theme.slate} offset={offset} />
+        {percentage > 0 && (
+          <Circle
+            color={theme.primary}
+            percentage={percentage}
+            offset={offset}
+          />
+        )}
       </g>
     </svg>
   );

@@ -24,7 +24,7 @@ function ProgressBar({ document }: Props) {
 
   return (
     <>
-      <CircularProgressBar percentage={tasksPercentage} />
+      <CircularProgressBar percentage={tasksPercentage} size={18} />
       &nbsp;{message}
     </>
   );
