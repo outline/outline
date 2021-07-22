@@ -4,10 +4,10 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import { fadeAndSlideDown } from "shared/styles/animations";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
+import { fadeAndSlideDown } from "styles/animations";
 import { isInternalUrl } from "utils/urls";
 
 const DELAY_OPEN = 300;

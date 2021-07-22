@@ -15,6 +15,7 @@ import Subheading from "components/Subheading";
 import AddPeopleToGroup from "./AddPeopleToGroup";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {
   group: Group,
@@ -22,7 +23,8 @@ type Props = {
 
 function GroupMembers({ group }: Props) {
   const [addModalOpen, setAddModalOpen] = React.useState();
-  const { users, groupMemberships, policies, ui } = useStores();
+  const { users, groupMemberships, policies } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const can = policies.abilities(group.id);
 
@@ -36,12 +38,12 @@ function GroupMembers({ group }: Props) {
         groupId: group.id,
         userId: user.id,
       });
-      ui.showToast(
+      showToast(
         t(`{{userName}} was removed from the group`, { userName: user.name }),
         { type: "success" }
       );
     } catch (err) {
-      ui.showToast(t("Could not remove user"), { type: "error" });
+      showToast(t("Could not remove user"), { type: "error" });
     }
   };
 

@@ -43,6 +43,7 @@ import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import CollectionMenu from "menus/CollectionMenu";
 import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
@@ -52,6 +53,7 @@ function CollectionScene() {
   const match = useRouteMatch();
   const { t } = useTranslation();
   const { documents, policies, collections, ui } = useStores();
+  const { showToast } = useToasts();
   const team = useCurrentTeam();
   const [isFetching, setFetching] = React.useState();
   const [error, setError] = React.useState();
@@ -108,11 +110,11 @@ function CollectionScene() {
   }, [collections, isFetching, collection, error, id, can]);
 
   const handleRejection = React.useCallback(() => {
-    ui.showToast(
+    showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),
       { type: "error" }
     );
-  }, [t, ui]);
+  }, [t, showToast]);
 
   if (!collection && error) {
     return <Search notFound />;

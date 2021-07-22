@@ -14,9 +14,11 @@ import Subheading from "components/Subheading";
 import NotificationListItem from "./components/NotificationListItem";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 function Notifications() {
-  const { notificationSettings, ui } = useStores();
+  const { notificationSettings } = useStores();
+  const { showToast } = useToasts();
   const user = useCurrentUser();
   const { t } = useTranslation();
 
@@ -64,7 +66,7 @@ function Notifications() {
   }, [notificationSettings]);
 
   const showSuccessMessage = debounce(() => {
-    ui.showToast(t("Notifications saved"), { type: "success" });
+    showToast(t("Notifications saved"), { type: "success" });
   }, 500);
 
   const handleChange = React.useCallback(

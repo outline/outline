@@ -11,6 +11,7 @@ export const languageOptions = [
   { label: "繁體中文 (Chinese, Traditional)", value: "zh_TW" },
   { label: "Deutsch (Deutschland)", value: "de_DE" },
   { label: "Español (España)", value: "es_ES" },
+  { label: "فارسی (Persian)", value: "fa_IR" },
   { label: "Français (France)", value: "fr_FR" },
   { label: "Italiano (Italia)", value: "it_IT" },
   { label: "日本語 (Japanese)", value: "ja_JP" },

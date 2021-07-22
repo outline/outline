@@ -20,6 +20,7 @@ import MemberListItem from "./components/MemberListItem";
 import useBoolean from "hooks/useBoolean";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   collection: Collection,
@@ -29,12 +30,12 @@ function CollectionPermissions({ collection }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const {
-    ui,
     memberships,
     collectionGroupMemberships,
     users,
     groups,
   } = useStores();
+  const { showToast } = useToasts();
   const [
     addGroupModalOpen,
     handleAddGroupModalOpen,
@@ -53,7 +54,7 @@ function CollectionPermissions({ collection }: Props) {
           collectionId: collection.id,
           userId: user.id,
         });
-        ui.showToast(
+        showToast(
           t(`{{ userName }} was removed from the collection`, {
             userName: user.name,
           }),
@@ -62,10 +63,10 @@ function CollectionPermissions({ collection }: Props) {
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not remove user"), { type: "error" });
+        showToast(t("Could not remove user"), { type: "error" });
       }
     },
-    [memberships, ui, collection, t]
+    [memberships, showToast, collection, t]
   );
 
   const handleUpdateUser = React.useCallback(
@@ -76,17 +77,17 @@ function CollectionPermissions({ collection }: Props) {
           userId: user.id,
           permission,
         });
-        ui.showToast(
+        showToast(
           t(`{{ userName }} permissions were updated`, { userName: user.name }),
           {
             type: "success",
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not update user"), { type: "error" });
+        showToast(t("Could not update user"), { type: "error" });
       }
     },
-    [memberships, ui, collection, t]
+    [memberships, showToast, collection, t]
   );
 
   const handleRemoveGroup = React.useCallback(
@@ -96,7 +97,7 @@ function CollectionPermissions({ collection }: Props) {
           collectionId: collection.id,
           groupId: group.id,
         });
-        ui.showToast(
+        showToast(
           t(`The {{ groupName }} group was removed from the collection`, {
             groupName: group.name,
           }),
@@ -105,10 +106,10 @@ function CollectionPermissions({ collection }: Props) {
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not remove group"), { type: "error" });
+        showToast(t("Could not remove group"), { type: "error" });
       }
     },
-    [collectionGroupMemberships, ui, collection, t]
+    [collectionGroupMemberships, showToast, collection, t]
   );
 
   const handleUpdateGroup = React.useCallback(
@@ -119,7 +120,7 @@ function CollectionPermissions({ collection }: Props) {
           groupId: group.id,
           permission,
         });
-        ui.showToast(
+        showToast(
           t(`{{ groupName }} permissions were updated`, {
             groupName: group.name,
           }),
@@ -128,24 +129,24 @@ function CollectionPermissions({ collection }: Props) {
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not update user"), { type: "error" });
+        showToast(t("Could not update user"), { type: "error" });
       }
     },
-    [collectionGroupMemberships, ui, collection, t]
+    [collectionGroupMemberships, showToast, collection, t]
   );
 
   const handleChangePermission = React.useCallback(
     async (ev) => {
       try {
         await collection.save({ permission: ev.target.value });
-        ui.showToast(t("Default access permissions were updated"), {
+        showToast(t("Default access permissions were updated"), {
           type: "success",
         });
       } catch (err) {
-        ui.showToast(t("Could not update permissions"), { type: "error" });
+        showToast(t("Could not update permissions"), { type: "error" });
       }
     },
-    [collection, ui, t]
+    [collection, showToast, t]
   );
 
   const fetchOptions = React.useMemo(() => ({ id: collection.id }), [

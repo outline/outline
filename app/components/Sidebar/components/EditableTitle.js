@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   onSubmit: (title: string) => Promise<void>,
@@ -13,8 +13,7 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
-  const { ui } = useStores();
-
+  const { showToast } = useToasts();
   React.useEffect(() => {
     setValue(title);
   }, [title]);
@@ -52,13 +51,13 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
         setOriginalValue(value);
       } catch (error) {
         setValue(originalValue);
-        ui.showToast(error.message, {
+        showToast(error.message, {
           type: "error",
         });
         throw error;
       }
     }
-  }, [ui, originalValue, value, onSubmit]);
+  }, [originalValue, showToast, value, onSubmit]);
 
   return (
     <>

@@ -1,11 +1,8 @@
 // @flow
-import { orderBy } from "lodash";
-import { observable, action, autorun, computed } from "mobx";
-import { v4 as uuidv4 } from "uuid";
-import { light as defaultTheme } from "shared/styles/theme";
+import { action, autorun, computed, observable } from "mobx";
+import { light as defaultTheme } from "shared/theme";
 import Collection from "models/Collection";
 import Document from "models/Document";
-import type { Toast } from "types";
 
 const UI_STORE = "UI_STORE";
 
@@ -27,8 +24,6 @@ class UiStore {
   @observable sidebarWidth: number;
   @observable sidebarCollapsed: boolean = false;
   @observable sidebarIsResizing: boolean = false;
-  @observable toasts: Map<string, Toast> = new Map();
-  lastToastId: string;
 
   constructor() {
     // Rehydrate
@@ -173,50 +168,6 @@ class UiStore {
     this.mobileSidebarVisible = false;
   };
 
-  @action
-  showToast = (
-    message: string,
-    options: {
-      type: "warning" | "error" | "info" | "success",
-      timeout?: number,
-      action?: {
-        text: string,
-        onClick: () => void,
-      },
-    } = {
-      type: "info",
-    }
-  ) => {
-    if (!message) return;
-
-    const lastToast = this.toasts.get(this.lastToastId);
-    if (lastToast && lastToast.message === message) {
-      this.toasts.set(this.lastToastId, {
-        ...lastToast,
-        reoccurring: lastToast.reoccurring ? ++lastToast.reoccurring : 1,
-      });
-      return;
-    }
-
-    const id = uuidv4();
-    const createdAt = new Date().toISOString();
-    this.toasts.set(id, {
-      id,
-      message,
-      createdAt,
-      type: options.type,
-      timeout: options.timeout,
-      action: options.action,
-    });
-    this.lastToastId = id;
-    return id;
-  };
-
-  @action
-  removeToast = (id: string) => {
-    this.toasts.delete(id);
-  };
-
   @computed
   get resolvedTheme(): "dark" | "light" {
     if (this.theme === "system") {
@@ -224,11 +175,6 @@ class UiStore {
     }
 
     return this.theme;
-  }
-
-  @computed
-  get orderedToasts(): Toast[] {
-    return orderBy(Array.from(this.toasts.values()), "createdAt", "desc");
   }
 
   @computed
