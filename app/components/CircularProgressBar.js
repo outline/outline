@@ -17,25 +17,27 @@ const Circle = ({
   percentage?: number,
   offset: number,
 }) => {
-  const r = offset * 0.7;
-  const circ = 2 * Math.PI * r;
-  let strokePct;
+  const radius = offset * 0.7;
+  const circumference = 2 * Math.PI * radius;
+  let strokePercentage;
   if (percentage) {
     // because the circle is so small, anything greater than 85% appears like 100%
     percentage = percentage > 85 && percentage < 100 ? 85 : percentage;
-    strokePct = percentage ? ((100 - percentage) * circ) / 100 : 0;
+    strokePercentage = percentage
+      ? ((100 - percentage) * circumference) / 100
+      : 0;
   }
 
   return (
     <circle
-      r={r}
+      r={radius}
       cx={offset}
       cy={offset}
       fill="none"
-      stroke={strokePct !== circ ? color : ""}
+      stroke={strokePercentage !== circumference ? color : ""}
       strokeWidth={2.5}
-      strokeDasharray={circ}
-      strokeDashoffset={percentage ? strokePct : 0}
+      strokeDasharray={circumference}
+      strokeDashoffset={percentage ? strokePercentage : 0}
       strokeLinecap="round"
       style={{ transition: "stroke-dashoffset 0.6s ease 0s" }}
     ></circle>
