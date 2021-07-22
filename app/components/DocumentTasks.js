@@ -8,7 +8,7 @@ type Props = {|
   document: Document,
 |};
 
-function ProgressBar({ document }: Props) {
+function DocumentTasks({ document }: Props) {
   const { tasks, tasksPercentage } = document;
   const { t } = useTranslation();
   const { completed, total } = tasks;
@@ -24,10 +24,10 @@ function ProgressBar({ document }: Props) {
 
   return (
     <>
-      <CircularProgressBar percentage={tasksPercentage} size={18} />
+      <CircularProgressBar percentage={tasksPercentage} />
       &nbsp;{message}
     </>
   );
 }
 
-export default ProgressBar;
+export default DocumentTasks;

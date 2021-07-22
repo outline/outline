@@ -49,7 +49,7 @@ const CircularProgressBar = ({
   size = 16,
 }: {
   percentage: number,
-  size: number,
+  size?: number,
 }) => {
   const theme = useTheme();
   percentage = cleanPercentage(percentage);
@@ -58,7 +58,7 @@ const CircularProgressBar = ({
   return (
     <svg width={size} height={size}>
       <g transform={`rotate(-90 ${offset} ${offset})`}>
-        <Circle color={theme.slate} offset={offset} />
+        <Circle color={theme.slateLight} offset={offset} />
         {percentage > 0 && (
           <Circle
             color={theme.primary}

@@ -6,9 +6,9 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
+import DocumentTasks from "components/DocumentTasks";
 import Flex from "components/Flex";
 import Time from "components/Time";
-import ProgressBar from "./ProgressBar";
 import useStores from "hooks/useStores";
 
 const Container = styled(Flex)`
@@ -160,7 +160,7 @@ function DocumentMeta({
       {canShowProgressBar && (
         <>
           &nbsp;•&nbsp;
-          <ProgressBar document={document} />
+          <DocumentTasks document={document} />
         </>
       )}
       {children}
