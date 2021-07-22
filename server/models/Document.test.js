@@ -321,6 +321,21 @@ describe("#findByPk", () => {
 });
 
 describe("tasks", () => {
+  test("should consider all the possible checkTtems", async () => {
+    const document = await buildDocument({
+      text: `- [x] test
+      - [X] test
+      - [ ] test
+      - [-] test
+      - [_] test`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(4);
+    expect(tasks.total).toBe(5);
+  });
+
   test("should return tasks keys set to 0 if checkItems isn't present", async () => {
     const document = await buildDocument({
       text: `text`,
@@ -336,7 +351,6 @@ describe("tasks", () => {
     const document = await buildDocument({
       text: `- [x ] test
       - [ x ] test
-      - [X] test
       - [  ] test`,
     });
 
