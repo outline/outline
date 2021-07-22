@@ -9817,10 +9817,10 @@ os-name@^3.1.0:
     macos-release "^2.2.0"
     windows-release "^3.1.0"
 
-outline-icons@^1.26.1, outline-icons@^1.27.2:
-  version "1.27.2"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.27.2.tgz#9ff2ba209ba77a94f6a2a19ae0cbee403973d7c2"
-  integrity sha512-cvvJ3Ockcqsj5zphTCK5OzKGBMXmFVCe0OhuiNdtt1gVS+/yAE2fIs93RlW2ERIEIDsAlWrK6oBvDFpIgEHiQw==
+outline-icons@^1.26.1, outline-icons@^1.28.0:
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.28.0.tgz#09cb54b192eb8dab37590e0789679d510f041fb0"
+  integrity sha512-WcZWeNQXOss6A5SddvPTaLb+oDRY+FSviiqgunb05RyQrG/abVSfkKoW9Tiu8S/SGBYNAco1gAIR4KjEZz/vGg==
 
 oy-vey@^0.10.0:
   version "0.10.0"
