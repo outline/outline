@@ -117,6 +117,7 @@ class DocumentScene extends React.Component<Props> {
       document.injectTemplate = false;
       this.title = document.title;
       this.isDirty = true;
+      this.updateIsDirty();
     }
   }
 
