@@ -76,6 +76,10 @@ class DocumentScene extends React.Component<Props> {
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
 
+  componentDidMount() {
+    this.updateIsDirty();
+  }
+
   componentDidUpdate(prevProps) {
     const { auth, document, t } = this.props;
 
