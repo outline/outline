@@ -77,6 +77,10 @@ class DocumentScene extends React.Component<Props> {
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
 
+  componentDidMount() {
+    this.updateIsDirty();
+  }
+
   componentDidUpdate(prevProps) {
     const { auth, document, t } = this.props;
 
@@ -114,6 +118,7 @@ class DocumentScene extends React.Component<Props> {
       document.injectTemplate = false;
       this.title = document.title;
       this.isDirty = true;
+      this.updateIsDirty();
     }
   }
 
@@ -532,6 +537,6 @@ const MaxWidth = styled(Flex)`
 
 export default withRouter(
   withTranslation()<DocumentScene>(
-    inject("ui", "auth", "policies", "revisions", "toasts")(DocumentScene)
+    inject("ui", "auth", "toasts")(DocumentScene)
   )
 );

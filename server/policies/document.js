@@ -23,7 +23,6 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
-  if (!document.publishedAt) return false;
 
   invariant(
     document.collection,

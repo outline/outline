@@ -70,16 +70,18 @@ export default class AuthStore {
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
       if (event.key === AUTH_STORE) {
-        // data may be null if key is deleted in localStorage
         const data: ?PersistedData = JSON.parse(event.newValue);
+
+        // data may be null if key is deleted in localStorage
         if (!data) return;
 
-        // if there is no user on the new data then we know the other tab
-        // signed out and we should do the same. Otherwise, if we're not
-        // signed in then hydrate from the received data
-        if (this.token && data.user === null) {
-          this.logout();
-        } else if (!this.token) {
+        // If we're not signed in then hydrate from the received data, otherwise if
+        // we are signed in and the received data contains no user then sign out
+        if (this.authenticated) {
+          if (data.user === null) {
+            this.logout();
+          }
+        } else {
           this.rehydrate(data);
         }
       }
