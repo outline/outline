@@ -82,7 +82,7 @@ const renderShare = async (ctx, next) => {
   // Allow shares to be embedded in iframes on other websites
   ctx.remove("X-Frame-Options");
 
-  return renderApp(ctx, next, share ? share.document.title : undefined);
+  return renderApp(ctx, next, share?.document?.title);
 };
 
 // serve static assets
