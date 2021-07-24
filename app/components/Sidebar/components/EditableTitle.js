@@ -25,6 +25,7 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
 
   const handleDoubleClick = React.useCallback((event) => {
     event.preventDefault();
+    event.stopPropagation();
     setIsEditing(true);
   }, []);
 
