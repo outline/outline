@@ -4,7 +4,7 @@ import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
+import ToastsStore from "stores/ToastsStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
@@ -16,7 +16,7 @@ import Switch from "components/Switch";
 
 type Props = {
   collection: Collection,
-  ui: UiStore,
+  toasts: ToastsStore,
   auth: AuthStore,
   onSubmit: () => void,
   t: TFunction,
@@ -46,11 +46,11 @@ class CollectionEdit extends React.Component<Props> {
         sort: this.sort,
       });
       this.props.onSubmit();
-      this.props.ui.showToast(t("The collection was updated"), {
+      this.props.toasts.showToast(t("The collection was updated"), {
         type: "success",
       });
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      this.props.toasts.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }
@@ -148,5 +148,5 @@ class CollectionEdit extends React.Component<Props> {
 }
 
 export default withTranslation()<CollectionEdit>(
-  inject("ui", "auth")(CollectionEdit)
+  inject("toasts", "auth")(CollectionEdit)
 );

@@ -1,12 +1,10 @@
 // @flow
 import { observer } from "mobx-react";
 import {
-  ArchiveIcon,
-  HomeIcon,
   EditIcon,
   SearchIcon,
   ShapesIcon,
-  TrashIcon,
+  HomeIcon,
   PlusIcon,
   SettingsIcon,
 } from "outline-icons";
@@ -22,17 +20,23 @@ import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Scrollable from "components/Scrollable";
 import Sidebar from "./Sidebar";
+import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
+import TrashLink from "./components/TrashLink";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
 
 function MainSidebar() {
   const { t } = useTranslation();
-  const { policies, auth, documents } = useStores();
+  const { policies, documents } = useStores();
+  const team = useCurrentTeam();
+  const user = useCurrentUser();
   const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
   const [
     createCollectionModalOpen,
@@ -71,9 +75,6 @@ function MainSidebar() {
     dndArea,
   ]);
 
-  const { user, team } = auth;
-  if (!user || !team) return null;
-
   const can = policies.abilities(team.id);
 
   return (
@@ -110,17 +111,6 @@ function MainSidebar() {
               />
               {can.createDocument && (
                 <SidebarLink
-                  to="/templates"
-                  icon={<ShapesIcon color="currentColor" />}
-                  exact={false}
-                  label={t("Templates")}
-                  active={
-                    documents.active ? documents.active.template : undefined
-                  }
-                />
-              )}
-              {can.createDocument && (
-                <SidebarLink
                   to="/drafts"
                   icon={<EditIcon color="currentColor" />}
                   label={
@@ -148,26 +138,21 @@ function MainSidebar() {
               />
             </Section>
             <Section>
-              <SidebarLink
-                to="/archive"
-                icon={<ArchiveIcon color="currentColor" />}
-                exact={false}
-                label={t("Archive")}
-                active={
-                  documents.active
-                    ? documents.active.isArchived && !documents.active.isDeleted
-                    : undefined
-                }
-              />
-              <SidebarLink
-                to="/trash"
-                icon={<TrashIcon color="currentColor" />}
-                exact={false}
-                label={t("Trash")}
-                active={
-                  documents.active ? documents.active.isDeleted : undefined
-                }
-              />
+              {can.createDocument && (
+                <>
+                  <SidebarLink
+                    to="/templates"
+                    icon={<ShapesIcon color="currentColor" />}
+                    exact={false}
+                    label={t("Templates")}
+                    active={
+                      documents.active ? documents.active.template : undefined
+                    }
+                  />
+                  <ArchiveLink documents={documents} />
+                  <TrashLink documents={documents} />
+                </>
+              )}
               <SidebarLink
                 to="/settings"
                 icon={<SettingsIcon color="currentColor" />}

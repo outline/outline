@@ -4,13 +4,13 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import usePrevious from "hooks/usePrevious";
 import {
   fadeIn,
   fadeAndSlideUp,
   fadeAndSlideDown,
   mobileContextMenu,
-} from "shared/styles/animations";
-import usePrevious from "hooks/usePrevious";
+} from "styles/animations";
 
 type Props = {|
   "aria-label": string,

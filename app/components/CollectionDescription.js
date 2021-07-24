@@ -12,13 +12,15 @@ import LoadingIndicator from "components/LoadingIndicator";
 import NudeButton from "components/NudeButton";
 import useDebouncedCallback from "hooks/useDebouncedCallback";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   collection: Collection,
 |};
 
 function CollectionDescription({ collection }: Props) {
-  const { collections, ui, policies } = useStores();
+  const { collections, policies } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const [isExpanded, setExpanded] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
@@ -53,7 +55,7 @@ function CollectionDescription({ collection }: Props) {
       });
       setDirty(false);
     } catch (err) {
-      ui.showToast(
+      showToast(
         t("Sorry, an error occurred saving the collection", {
           type: "error",
         })

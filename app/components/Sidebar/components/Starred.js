@@ -4,11 +4,12 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "components/Flex";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import useStores from "../../../hooks/useStores";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
-import SidebarSectionLoading from "./SidebarSectionLoading";
 import StarredLink from "./StarredLink";
+import useToasts from "hooks/useToasts";
 
 const STARRED_PAGINATION_LIMIT = 10;
 
@@ -17,7 +18,8 @@ function Starred() {
   const [fetchError, setFetchError] = React.useState();
   const [showMore, setShowMore] = React.useState(true);
   const [offset, setOffset] = React.useState(0);
-  const { documents, ui } = useStores();
+  const { showToast } = useToasts();
+  const { documents } = useStores();
   const { t } = useTranslation();
   const { fetchStarred, starred } = documents;
 
@@ -36,14 +38,14 @@ function Starred() {
         setOffset((prevOffset) => prevOffset + STARRED_PAGINATION_LIMIT);
       }
     } catch (error) {
-      ui.showToast(t("Starred documents could not be loaded"), {
+      showToast(t("Starred documents could not be loaded"), {
         type: "error",
       });
       setFetchError(error);
     } finally {
       setIsFetching(false);
     }
-  }, [fetchStarred, offset, t, ui]);
+  }, [fetchStarred, offset, showToast, t]);
 
   useEffect(() => {
     if (offset === 0) {
@@ -92,7 +94,7 @@ function Starred() {
         )}
         {(isFetching || fetchError) && (
           <Flex column>
-            <SidebarSectionLoading />
+            <PlaceholderDocument />
           </Flex>
         )}
       </>

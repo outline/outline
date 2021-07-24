@@ -6,6 +6,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   onSubmit: () => void,
@@ -14,7 +15,8 @@ type Props = {|
 function APITokenNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
-  const { apiKeys, ui } = useStores();
+  const { apiKeys } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(async () => {
@@ -22,14 +24,14 @@ function APITokenNew({ onSubmit }: Props) {
 
     try {
       await apiKeys.create({ name });
-      ui.showToast(t("API token created", { type: "success" }));
+      showToast(t("API token created", { type: "success" }));
       onSubmit();
     } catch (err) {
-      ui.showToast(err.message, { type: "error" });
+      showToast(err.message, { type: "error" });
     } finally {
       setIsSaving(false);
     }
-  }, [t, ui, name, onSubmit, apiKeys]);
+  }, [t, showToast, name, onSubmit, apiKeys]);
 
   const handleNameChange = React.useCallback((event) => {
     setName(event.target.value);

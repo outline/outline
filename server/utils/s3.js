@@ -147,7 +147,11 @@ export const uploadToS3FromUrl = async (
     return `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err);
+      Sentry.captureException(err, {
+        extra: {
+          url,
+        },
+      });
     } else {
       throw err;
     }

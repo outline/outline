@@ -1,11 +1,10 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { TeamIcon } from "outline-icons";
 import * as React from "react";
+import { useRef, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
@@ -14,137 +13,130 @@ import Input, { LabelText } from "components/Input";
 import Scene from "components/Scene";
 import ImageUpload from "./components/ImageUpload";
 import env from "env";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
-type Props = {
-  auth: AuthStore,
-  ui: UiStore,
-};
+function Details() {
+  const { auth } = useStores();
+  const { showToast } = useToasts();
+  const team = useCurrentTeam();
+  const { t } = useTranslation();
+  const form = useRef<?HTMLFormElement>();
+  const [name, setName] = useState(team.name);
+  const [subdomain, setSubdomain] = useState(team.subdomain);
+  const [avatarUrl, setAvatarUrl] = useState();
 
-@observer
-class Details extends React.Component<Props> {
-  timeout: TimeoutID;
-  form: ?HTMLFormElement;
+  const handleSubmit = React.useCallback(
+    async (event: ?SyntheticEvent<>) => {
+      if (event) {
+        event.preventDefault();
+      }
 
-  @observable name: string;
-  @observable subdomain: ?string;
-  @observable avatarUrl: ?string;
+      try {
+        await auth.updateTeam({
+          name,
+          avatarUrl,
+          subdomain,
+        });
+        showToast(t("Settings saved"), { type: "success" });
+      } catch (err) {
+        showToast(err.message, { type: "error" });
+      }
+    },
+    [auth, showToast, name, avatarUrl, subdomain, t]
+  );
 
-  componentDidMount() {
-    const { team } = this.props.auth;
-    if (team) {
-      this.name = team.name;
-      this.subdomain = team.subdomain;
-    }
-  }
+  const handleNameChange = React.useCallback((ev: SyntheticInputEvent<*>) => {
+    setName(ev.target.value);
+  }, []);
 
-  componentWillUnmount() {
-    clearTimeout(this.timeout);
-  }
+  const handleSubdomainChange = React.useCallback(
+    (ev: SyntheticInputEvent<*>) => {
+      setSubdomain(ev.target.value.toLowerCase());
+    },
+    []
+  );
 
-  handleSubmit = async (event: ?SyntheticEvent<>) => {
-    if (event) {
-      event.preventDefault();
-    }
+  const handleAvatarUpload = React.useCallback(
+    (avatarUrl: string) => {
+      setAvatarUrl(avatarUrl);
+      handleSubmit();
+    },
+    [handleSubmit]
+  );
 
-    try {
-      await this.props.auth.updateTeam({
-        name: this.name,
-        avatarUrl: this.avatarUrl,
-        subdomain: this.subdomain,
-      });
-      this.props.ui.showToast("Settings saved", { type: "success" });
-    } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
-    }
-  };
+  const handleAvatarError = React.useCallback(
+    (error: ?string) => {
+      showToast(error || t("Unable to upload new logo"));
+    },
+    [showToast, t]
+  );
 
-  handleNameChange = (ev: SyntheticInputEvent<*>) => {
-    this.name = ev.target.value;
-  };
+  const isValid = form.current && form.current.checkValidity();
 
-  handleSubdomainChange = (ev: SyntheticInputEvent<*>) => {
-    this.subdomain = ev.target.value.toLowerCase();
-  };
-
-  handleAvatarUpload = (avatarUrl: string) => {
-    this.avatarUrl = avatarUrl;
-    this.handleSubmit();
-  };
-
-  handleAvatarError = (error: ?string) => {
-    this.props.ui.showToast(error || "Unable to upload new logo");
-  };
-
-  get isValid() {
-    return this.form && this.form.checkValidity();
-  }
-
-  render() {
-    const { team, isSaving } = this.props.auth;
-    if (!team) return null;
-    const avatarUrl = this.avatarUrl || team.avatarUrl;
-
-    return (
-      <Scene title="Details" icon={<TeamIcon color="currentColor" />}>
-        <Heading>Details</Heading>
-        <HelpText>
+  return (
+    <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
+      <Heading>{t("Details")}</Heading>
+      <HelpText>
+        <Trans>
           These details affect the way that your Outline appears to everyone on
           the team.
-        </HelpText>
+        </Trans>
+      </HelpText>
 
-        <ProfilePicture column>
-          <LabelText>Logo</LabelText>
-          <AvatarContainer>
-            <ImageUpload
-              onSuccess={this.handleAvatarUpload}
-              onError={this.handleAvatarError}
-              submitText="Crop logo"
-              borderRadius={0}
-            >
-              <Avatar src={avatarUrl} />
-              <Flex auto align="center" justify="center">
-                Upload
-              </Flex>
-            </ImageUpload>
-          </AvatarContainer>
-        </ProfilePicture>
-        <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
-          <Input
-            label="Name"
-            name="name"
-            autoComplete="organization"
-            value={this.name}
-            onChange={this.handleNameChange}
-            required
-            short
-          />
-          {env.SUBDOMAINS_ENABLED && (
-            <>
-              <Input
-                label="Subdomain"
-                name="subdomain"
-                value={this.subdomain || ""}
-                onChange={this.handleSubdomainChange}
-                autoComplete="off"
-                minLength={4}
-                maxLength={32}
-                short
-              />
-              {this.subdomain && (
-                <HelpText small>
-                  Your knowledge base will be accessible at{" "}
-                  <strong>{this.subdomain}.getoutline.com</strong>
-                </HelpText>
-              )}
-            </>
-          )}
-          <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? "Saving…" : "Save"}
-          </Button>
-        </form>
-      </Scene>
-    );
-  }
+      <ProfilePicture column>
+        <LabelText>{t("Logo")}</LabelText>
+        <AvatarContainer>
+          <ImageUpload
+            onSuccess={handleAvatarUpload}
+            onError={handleAvatarError}
+            submitText={t("Crop logo")}
+            borderRadius={0}
+          >
+            <Avatar src={avatarUrl} />
+            <Flex auto align="center" justify="center">
+              <Trans>Upload</Trans>
+            </Flex>
+          </ImageUpload>
+        </AvatarContainer>
+      </ProfilePicture>
+      <form onSubmit={handleSubmit} ref={form}>
+        <Input
+          label={t("Name")}
+          name="name"
+          autoComplete="organization"
+          value={name}
+          onChange={handleNameChange}
+          required
+          short
+        />
+        {env.SUBDOMAINS_ENABLED && (
+          <>
+            <Input
+              label={t("Subdomain")}
+              name="subdomain"
+              value={subdomain || ""}
+              onChange={handleSubdomainChange}
+              autoComplete="off"
+              minLength={4}
+              maxLength={32}
+              short
+            />
+            {subdomain && (
+              <HelpText small>
+                <Trans>Your knowledge base will be accessible at</Trans>{" "}
+                <strong>{subdomain}.getoutline.com</strong>
+              </HelpText>
+            )}
+          </>
+        )}
+        <Button type="submit" disabled={auth.isSaving || !isValid}>
+          {auth.isSaving ? `${t("Saving")}…` : t("Save")}
+        </Button>
+      </form>
+    </Scene>
+  );
 }
 
 const ProfilePicture = styled(Flex)`
@@ -186,4 +178,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default inject("auth", "ui")(Details);
+export default observer(Details);

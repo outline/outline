@@ -14,7 +14,7 @@ import Trash from "scenes/Trash";
 
 import CenteredContent from "components/CenteredContent";
 import Layout from "components/Layout";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import Route from "components/ProfiledRoute";
 import SocketProvider from "components/SocketProvider";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
@@ -43,7 +43,7 @@ export default function AuthenticatedRoutes() {
         <React.Suspense
           fallback={
             <CenteredContent>
-              <LoadingPlaceholder />
+              <PlaceholderDocument />
             </CenteredContent>
           }
         >
