@@ -129,6 +129,7 @@ const Link = styled(NavLink)`
   position: relative;
   text-overflow: ellipsis;
   padding: 6px 16px;
+  margin: 1px;
   border-radius: 4px;
   transition: background 50ms, color 50ms;
   background: ${(props) =>
@@ -156,20 +157,18 @@ const Link = styled(NavLink)`
   `}
 
   @media (hover: hover) {
-    &:hover + ${Actions},
-    &:active + ${Actions} {
-        display: inline-flex;
+    &:hover + ${Actions}, &:active + ${Actions} {
+      display: inline-flex;
 
-        svg {
-          opacity: 0.75;
-        }
+      svg {
+        opacity: 0.75;
       }
     }
+  }
 
-    &:hover {
-      color: ${(props) =>
-        props.$isActiveDrop ? props.theme.white : props.theme.text};
-    }
+  &:hover {
+    color: ${(props) =>
+      props.$isActiveDrop ? props.theme.white : props.theme.text};
   }
 `;
 
