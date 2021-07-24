@@ -1,6 +1,5 @@
 // @flow
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -8,6 +7,7 @@ import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import Fade from "components/Fade";
+import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
@@ -283,14 +283,6 @@ function DocumentLink(
 const Draggable = styled("div")`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
-`;
-
-const Disclosure = styled(CollapsedIcon)`
-  transition: transform 100ms ease, fill 50ms !important;
-  position: absolute;
-  left: -24px;
-
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
