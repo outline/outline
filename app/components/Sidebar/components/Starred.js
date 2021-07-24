@@ -4,9 +4,9 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "components/Flex";
-import PlaceholderDocument from "components/PlaceholderDocument";
 import useStores from "../../../hooks/useStores";
 import Header from "./Header";
+import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
 import useToasts from "hooks/useToasts";
@@ -94,7 +94,7 @@ function Starred() {
         )}
         {(isFetching || fetchError) && (
           <Flex column>
-            <PlaceholderDocument />
+            <PlaceholderCollections />
           </Flex>
         )}
       </>
