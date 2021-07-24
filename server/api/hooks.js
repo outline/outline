@@ -56,12 +56,16 @@ router.post("hooks.unfurl", async (ctx) => {
     };
   }
 
-  await Slack.post("chat.unfurl", {
+  const data = await Slack.post("chat.unfurl", {
     token: auth.token,
     channel: event.channel,
     ts: event.message_ts,
     unfurls,
   });
+
+  if (!data.ok) {
+    throw new InvalidRequestError(data.error);
+  }
 });
 
 // triggered by interactions with actions, dialogs, message buttons in Slack

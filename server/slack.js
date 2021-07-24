@@ -14,7 +14,7 @@ export async function post(endpoint: string, body: Object) {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json; charset=utf-8",
       },
       body: JSON.stringify(body),
     });
@@ -22,7 +22,30 @@ export async function post(endpoint: string, body: Object) {
   } catch (err) {
     throw new InvalidRequestError(err.message);
   }
-  if (!data.ok) throw new InvalidRequestError(data.error);
+
+  return data;
+}
+
+export async function postUrlEncodedForm(endpoint: string, body: Object) {
+  let data;
+  const newBody = Object.keys(body)
+    .map((key) => {
+      return encodeURIComponent(key) + "=" + encodeURIComponent(body[key]);
+    })
+    .join("&");
+
+  try {
+    const response = await fetch(`${SLACK_API_URL}/${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: newBody,
+    });
+    data = await response.json();
+  } catch (err) {
+    throw new InvalidRequestError(err.message);
+  }
 
   return data;
 }

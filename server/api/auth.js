@@ -3,9 +3,11 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
 import providers from "../auth/providers";
+import { AuthenticationError } from "../errors";
 import auth from "../middlewares/authentication";
-import { Team } from "../models";
+import { AuthenticationProvider, Team, UserAuthentication } from "../models";
 import { presentUser, presentTeam, presentPolicies } from "../presenters";
+import * as Slack from "../slack";
 import { isCustomDomain } from "../utils/domains";
 
 const router = new Router();
@@ -104,6 +106,47 @@ router.post("auth.config", async (ctx) => {
 router.post("auth.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
+
+  const authenticationProvider = await AuthenticationProvider.findOne({
+    where: {
+      teamId: team.id,
+    },
+  });
+
+  const userAuthentication = await UserAuthentication.findOne({
+    where: {
+      userId: user.id,
+      authenticationProviderId: authenticationProvider.id,
+    },
+  });
+
+  if (!userAuthentication.accessToken || !userAuthentication.refreshToken) {
+    throw new AuthenticationError("Tokens are not provided");
+  }
+
+  if (authenticationProvider.name === "slack") {
+    const data = await Slack.post("auth.test", {
+      token: userAuthentication.accessToken,
+    });
+
+    if (!data.ok) {
+      const data = await Slack.postUrlEncodedForm("oauth.v2.access", {
+        client_id: process.env.SLACK_KEY,
+        client_secret: process.env.SLACK_SECRET,
+        grant_type: "refresh_token",
+        refresh_token: userAuthentication.refreshToken,
+      });
+
+      if (!data.ok) {
+        throw new AuthenticationError(data.error);
+      }
+
+      userAuthentication.accessToken = data.access_token;
+      userAuthentication.refreshToken = data.refresh_token;
+      await userAuthentication.save();
+    }
+  } else if (authenticationProvider.name === "google") {
+  }
 
   ctx.body = {
     data: {
