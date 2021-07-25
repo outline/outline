@@ -10,7 +10,6 @@ import {
 } from "../../errors";
 import passportMiddleware from "../../middlewares/passport";
 import { getAllowedDomains } from "../../utils/authentication";
-import { StateStore } from "../../utils/passport";
 
 const router = new Router();
 const providerName = "oauth2";
@@ -61,8 +60,8 @@ if (OIDC_CLIENT_ID) {
         callbackURL: `${env.URL}/auth/${providerName}.callback`,
         passReqToCallback: true,
         scope: OIDC_SCOPES,
-        store: new StateStore(),
-        pkce: false,
+        state: true,
+        pkce: true,
       },
       async function (req, accessToken, refreshToken, profile, done) {
         try {
