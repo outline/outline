@@ -100,6 +100,12 @@ export function GoogleWorkspaceInvalidError(
   return httpErrors(400, message, { id: "hd_not_allowed" });
 }
 
+export function OAuth2MalformedUserInfoError(
+  message: string = "User profile information malformed"
+) {
+  return httpErrors(400, message, { id: "malformed_user_info" });
+}
+
 export function AuthenticationProviderDisabledError(
   message: string = "Authentication method has been disabled by an admin",
   redirectUrl: string = env.URL
