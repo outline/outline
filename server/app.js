@@ -11,6 +11,7 @@ import helmet, {
 import logger from "koa-logger";
 import mount from "koa-mount";
 import onerror from "koa-onerror";
+import session from "koa-session";
 import enforceHttps from "koa-sslify";
 import api from "./api";
 import auth from "./auth";
@@ -41,7 +42,10 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
+app.keys = [process.env.COOKIE_SECRET];
+
 app.use(compress());
+app.use(session({}, app));
 
 if (isProduction) {
   // Force redirect to HTTPS protocol unless explicitly disabled

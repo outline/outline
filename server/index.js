@@ -16,6 +16,19 @@ if (process.env.DD_API_KEY) {
 }
 
 if (
+  !process.env.COOKIE_SECRET ||
+  process.env.COOKIE_SECRET === "generate_a_new_key"
+) {
+  errors.push(
+    `The ${chalk.bold(
+      "COOKIE_SECRET"
+    )} env variable must be set with the output of ${chalk.bold(
+      "$ openssl rand -hex 32"
+    )}`
+  );
+}
+
+if (
   !process.env.SECRET_KEY ||
   process.env.SECRET_KEY === "generate_a_new_key"
 ) {
