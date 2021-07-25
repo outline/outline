@@ -4,12 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
-import { light } from "shared/styles/theme";
+import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
 import useMediaQuery from "hooks/useMediaQuery";
+import useToasts from "hooks/useToasts";
 import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
@@ -58,8 +59,9 @@ type PropsWithRef = Props & {
 };
 
 function Editor(props: PropsWithRef) {
-  const { id, ui, shareId, history } = props;
+  const { id, shareId, history } = props;
   const { t } = useTranslation();
+  const { showToast } = useToasts();
   const isPrinting = useMediaQuery("print");
 
   const onUploadImage = React.useCallback(
@@ -106,11 +108,9 @@ function Editor(props: PropsWithRef) {
 
   const onShowToast = React.useCallback(
     (message: string) => {
-      if (ui) {
-        ui.showToast(message);
-      }
+      showToast(message);
     },
-    [ui]
+    [showToast]
   );
 
   const dictionary = React.useMemo(() => {

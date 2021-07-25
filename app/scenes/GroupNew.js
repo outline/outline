@@ -10,14 +10,16 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {
   onSubmit: () => void,
 };
 
 function GroupNew({ onSubmit }: Props) {
-  const { ui, groups } = useStores();
+  const { groups } = useStores();
   const { t } = useTranslation();
+  const { showToast } = useToasts();
   const [name, setName] = React.useState();
   const [isSaving, setIsSaving] = React.useState();
   const [group, setGroup] = React.useState();
@@ -35,7 +37,7 @@ function GroupNew({ onSubmit }: Props) {
     try {
       setGroup(await group.save());
     } catch (err) {
-      ui.showToast(err.message, { type: "error" });
+      showToast(err.message, { type: "error" });
     } finally {
       setIsSaving(false);
     }

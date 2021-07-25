@@ -15,6 +15,7 @@ import Tooltip from "components/Tooltip";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 const MAX_INVITES = 20;
 
@@ -36,7 +37,8 @@ function Invite({ onSubmit }: Props) {
     { email: "", name: "" },
   ]);
 
-  const { users, policies, ui } = useStores();
+  const { users, policies } = useStores();
+  const { showToast } = useToasts();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
@@ -52,14 +54,14 @@ function Invite({ onSubmit }: Props) {
       try {
         await users.invite(invites);
         onSubmit();
-        ui.showToast(t("We sent out your invites!"), { type: "success" });
+        showToast(t("We sent out your invites!"), { type: "success" });
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       } finally {
         setIsSaving(false);
       }
     },
-    [onSubmit, ui, invites, t, users]
+    [onSubmit, showToast, invites, t, users]
   );
 
   const handleChange = React.useCallback((ev, index) => {
@@ -72,7 +74,7 @@ function Invite({ onSubmit }: Props) {
 
   const handleAdd = React.useCallback(() => {
     if (invites.length >= MAX_INVITES) {
-      ui.showToast(
+      showToast(
         t("Sorry, you can only send {{MAX_INVITES}} invites at a time", {
           MAX_INVITES,
         }),
@@ -85,7 +87,7 @@ function Invite({ onSubmit }: Props) {
       newInvites.push({ email: "", name: "" });
       return newInvites;
     });
-  }, [ui, invites, t]);
+  }, [showToast, invites, t]);
 
   const handleRemove = React.useCallback(
     (ev: SyntheticEvent<>, index: number) => {
@@ -102,10 +104,10 @@ function Invite({ onSubmit }: Props) {
 
   const handleCopy = React.useCallback(() => {
     setLinkCopied(true);
-    ui.showToast(t("Share link copied"), {
+    showToast(t("Share link copied"), {
       type: "success",
     });
-  }, [ui, t]);
+  }, [showToast, t]);
 
   return (
     <form onSubmit={handleSubmit}>

@@ -6,7 +6,7 @@ import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import MembershipsStore from "stores/MembershipsStore";
-import UiStore from "stores/UiStore";
+import ToastsStore from "stores/ToastsStore";
 import UsersStore from "stores/UsersStore";
 import Collection from "models/Collection";
 import User from "models/User";
@@ -21,7 +21,7 @@ import PaginatedList from "components/PaginatedList";
 import MemberListItem from "./components/MemberListItem";
 
 type Props = {
-  ui: UiStore,
+  toasts: ToastsStore,
   auth: AuthStore,
   collection: Collection,
   memberships: MembershipsStore,
@@ -62,14 +62,14 @@ class AddPeopleToCollection extends React.Component<Props> {
         userId: user.id,
         permission: "read_write",
       });
-      this.props.ui.showToast(
+      this.props.toasts.showToast(
         t("{{ userName }} was added to the collection", {
           userName: user.name,
         }),
         { type: "success" }
       );
     } catch (err) {
-      this.props.ui.showToast(t("Could not add user"), { type: "error" });
+      this.props.toasts.showToast(t("Could not add user"), { type: "error" });
     }
   };
 
@@ -130,5 +130,5 @@ class AddPeopleToCollection extends React.Component<Props> {
 }
 
 export default withTranslation()<AddPeopleToCollection>(
-  inject("auth", "users", "memberships", "ui")(AddPeopleToCollection)
+  inject("auth", "users", "memberships", "toasts")(AddPeopleToCollection)
 );

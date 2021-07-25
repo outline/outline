@@ -7,7 +7,7 @@ import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import { homeUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
 
 function CollectionDelete({ collection, onSubmit }: Props) {
   const [isDeleting, setIsDeleting] = React.useState();
-  const { ui } = useStores();
+  const { showToast } = useToasts();
   const history = useHistory();
   const { t } = useTranslation();
 
@@ -31,12 +31,12 @@ function CollectionDelete({ collection, onSubmit }: Props) {
         history.push(homeUrl());
         onSubmit();
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       } finally {
         setIsDeleting(false);
       }
     },
-    [ui, onSubmit, collection, history]
+    [showToast, onSubmit, collection, history]
   );
 
   return (

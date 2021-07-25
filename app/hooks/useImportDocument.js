@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 let importingLock = false;
 
@@ -11,7 +12,8 @@ export default function useImportDocument(
   collectionId: string,
   documentId?: string
 ): {| handleFiles: (files: File[]) => Promise<void>, isImporting: boolean |} {
-  const { documents, ui } = useStores();
+  const { documents } = useStores();
+  const { showToast } = useToasts();
   const [isImporting, setImporting] = React.useState(false);
   const { t } = useTranslation();
   const history = useHistory();
@@ -51,7 +53,7 @@ export default function useImportDocument(
           }
         }
       } catch (err) {
-        ui.showToast(`${t("Could not import file")}. ${err.message}`, {
+        showToast(`${t("Could not import file")}. ${err.message}`, {
           type: "error",
         });
       } finally {
@@ -59,7 +61,7 @@ export default function useImportDocument(
         importingLock = false;
       }
     },
-    [t, ui, documents, history, collectionId, documentId]
+    [t, documents, history, showToast, collectionId, documentId]
   );
 
   return {

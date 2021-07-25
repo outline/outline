@@ -10,6 +10,7 @@ import MenuItem from "components/ContextMenu/MenuItem";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import CopyToClipboard from "components/CopyToClipboard";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {
   share: Share,
@@ -17,7 +18,8 @@ type Props = {
 
 function ShareMenu({ share }: Props) {
   const menu = useMenuState({ modal: true });
-  const { ui, shares, policies } = useStores();
+  const { shares, policies } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
   const can = policies.abilities(share.id);
@@ -36,17 +38,17 @@ function ShareMenu({ share }: Props) {
 
       try {
         await shares.revoke(share);
-        ui.showToast(t("Share link revoked"), { type: "info" });
+        showToast(t("Share link revoked"), { type: "info" });
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       }
     },
-    [t, shares, share, ui]
+    [t, shares, share, showToast]
   );
 
   const handleCopy = React.useCallback(() => {
-    ui.showToast(t("Share link copied"), { type: "info" });
-  }, [t, ui]);
+    showToast(t("Share link copied"), { type: "info" });
+  }, [t, showToast]);
 
   return (
     <>

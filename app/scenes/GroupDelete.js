@@ -8,7 +8,7 @@ import Group from "models/Group";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   group: Group,
@@ -16,8 +16,8 @@ type Props = {|
 |};
 
 function GroupDelete({ group, onSubmit }: Props) {
-  const { ui } = useStores();
   const { t } = useTranslation();
+  const { showToast } = useToasts();
   const history = useHistory();
   const [isDeleting, setIsDeleting] = React.useState();
 
@@ -30,7 +30,7 @@ function GroupDelete({ group, onSubmit }: Props) {
       history.push(groupSettings());
       onSubmit();
     } catch (err) {
-      ui.showToast(err.message, { type: "error" });
+      showToast(err.message, { type: "error" });
     } finally {
       setIsDeleting(false);
     }

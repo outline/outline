@@ -900,6 +900,7 @@ describe("#documents.search", () => {
       userId: user.id,
       teamId: user.teamId,
     });
+
     const secondResult = await buildDocument({
       title: "random text",
       text: "search term",
@@ -907,15 +908,26 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
 
+    const thirdResult = await buildDocument({
+      title: "search term",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    thirdResult.title = "change";
+    await thirdResult.save();
+
     const res = await server.post("/api/documents.search", {
       body: { token: user.getJwtToken(), query: "search term" },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(3);
     expect(body.data[0].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
+    expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
 
   it("should return partial results in ranked order", async () => {
@@ -933,15 +945,26 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
 
+    const thirdResult = await buildDocument({
+      title: "search term",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    thirdResult.title = "change";
+    await thirdResult.save();
+
     const res = await server.post("/api/documents.search", {
       body: { token: user.getJwtToken(), query: "sear &" },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(3);
     expect(body.data[0].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
+    expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
 
   it("should strip junk from search term", async () => {
