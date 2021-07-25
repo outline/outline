@@ -106,7 +106,7 @@ class Provider extends React.Component<Props, State> {
           icon={<AuthLogo providerName={id} />}
           fullwidth
         >
-          {t("Continue with {{ name }}", { name: name })}
+          {t("Continue with {{ authProviderName }}", { authProviderName: name })}
         </ButtonLarge>
       </Wrapper>
     );

@@ -193,12 +193,9 @@ function Login({ location, t }: Props) {
 
         {isCreate && (
           <Note>
-            <Trans
-              defaults="Already have an account? Go to <link>."
-              components={{
-                link: <Link to="/">login</Link>,
-              }}
-            />
+            <Trans>
+              Already have an account? Go to <Link to="/">login</Link>.
+            </Trans>
           </Note>
         )}
       </Centered>
