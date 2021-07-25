@@ -42,7 +42,7 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-app.keys = [(process.env.COOKIE_SECRET: string)];
+(app.keys: Array<string>) = [process.env.COOKIE_SECRET];
 
 app.use(compress());
 app.use(session({}, app));
