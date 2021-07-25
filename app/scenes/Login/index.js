@@ -89,15 +89,11 @@ function Login({ location, t }: Props) {
     env.DEPLOYMENT === "hosted" &&
     (config.hostname ? (
       <Back href={env.URL}>
-        <Trans>
-          <BackIcon color="currentColor" /> Back to home
-        </Trans>
+        <BackIcon color="currentColor" /> {t("Back to home")}
       </Back>
     ) : (
       <Back href="https://www.getoutline.com">
-        <Trans>
-          <BackIcon color="currentColor" /> Back to website
-        </Trans>
+        <BackIcon color="currentColor" /> {t("Back to website")}
       </Back>
     ));
 
@@ -108,7 +104,6 @@ function Login({ location, t }: Props) {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Check your email" />
           <CheckEmailIcon size={38} color="currentColor" />
-
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans
@@ -150,7 +145,9 @@ function Login({ location, t }: Props) {
           </>
         ) : (
           <Heading centered>
-            {t("Login to {{ name }}", { name: config.name || "Outline" })}
+            {t("Login to {{ provider }}", {
+              provider: config.name || "Outline",
+            })}
           </Heading>
         )}
 
