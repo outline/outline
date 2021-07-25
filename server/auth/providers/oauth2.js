@@ -20,6 +20,9 @@ const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
+const OIDC_TEAM_CLAIM = process.env.OIDC_TEAM_CLAIM || "team_name";
+const OIDC_USERNAME_CLAIM =
+  process.env.OIDC_USERNAME_CLAIM || "preferred_username";
 const allowedDomains = getAllowedDomains();
 
 export const config = {
@@ -44,7 +47,7 @@ Strategy.prototype.userProfile = async function (accessToken, done) {
       return done(new Error("Failed to parse user profile"));
     }
   } catch (err) {
-    return done(new Error("Failed to fetch user profile", err));
+    return done(new Error(`Failed to fetch user profile. ${err.message}`));
   }
 };
 
@@ -83,13 +86,13 @@ if (OIDC_CLIENT_ID) {
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
-              name: profile.team_name,
+              name: profile[OIDC_TEAM_CLAIM],
               domain,
               subdomain,
             },
             user: {
               name: profile.name,
-              username: profile.preferred_username,
+              // username: profile[OIDC_USERNAME_CLAIM],
               email: profile.email,
               avatarUrl: profile.picture,
             },
