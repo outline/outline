@@ -145,8 +145,8 @@ function Login({ location, t }: Props) {
           </>
         ) : (
           <Heading centered>
-            {t("Login to {{ provider }}", {
-              provider: config.name || "Outline",
+            {t("Login to {{ authProviderName }}", {
+              authProviderName: config.name || "Outline",
             })}
           </Heading>
         )}
@@ -163,8 +163,8 @@ function Login({ location, t }: Props) {
             {hasMultipleProviders && (
               <>
                 <Note>
-                  {t("You signed in with {{ provider }} last time.", {
-                    provider: defaultProvider.name,
+                  {t("You signed in with {{ authProviderName }} last time.", {
+                    authProviderName: defaultProvider.name,
                   })}
                 </Note>
                 <Or />
