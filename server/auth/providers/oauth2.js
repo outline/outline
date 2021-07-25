@@ -20,6 +20,7 @@ const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
+const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const allowedDomains = getAllowedDomains();
 
 export const config = {
@@ -27,7 +28,7 @@ export const config = {
   enabled: !!OIDC_CLIENT_ID,
 };
 
-const scopes = ["openid", "profile", "email"];
+const scopes = OIDC_SCOPES.split(" ");
 
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
@@ -59,7 +60,7 @@ if (OIDC_CLIENT_ID) {
         clientSecret: OIDC_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/${providerName}.callback`,
         passReqToCallback: true,
-        scope: scopes.join(" "),
+        scope: OIDC_SCOPES,
         store: new StateStore(),
         pkce: false,
       },
