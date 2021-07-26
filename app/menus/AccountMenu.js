@@ -101,7 +101,6 @@ function AccountMenu(props: Props) {
       },
       {
         title: <AppearanceTitle />,
-        icon: ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
         items: [
           {
             title: t("System"),

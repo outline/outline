@@ -118,14 +118,12 @@ function Template({ items, ...menu }: Props): React.Node {
     }
 
     if (item.items) {
-      console.log(item.icon);
       return (
         <BaseMenuItem
           key={index}
           as={Submenu}
           templateItems={item.items}
           title={item.title}
-          disclosure={false}
           {...menu}
         />
       );
