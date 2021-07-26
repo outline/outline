@@ -3,12 +3,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import Empty from "components/Empty";
 import Flex from "components/Flex";
-import useStores from "../../../hooks/useStores";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
+import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
 const STARRED_PAGINATION_LIMIT = 10;
@@ -16,8 +18,9 @@ const STARRED_PAGINATION_LIMIT = 10;
 function Starred() {
   const [isFetching, setIsFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const [showMore, setShowMore] = React.useState(true);
+  const [show, setShow] = React.useState("Nothing");
   const [offset, setOffset] = React.useState(0);
+  const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
   const { documents } = useStores();
   const { t } = useTranslation();
@@ -26,17 +29,10 @@ function Starred() {
   const fetchResults = React.useCallback(async () => {
     try {
       setIsFetching(true);
-      const results = await fetchStarred({
+      await fetchStarred({
         limit: STARRED_PAGINATION_LIMIT,
         offset,
       });
-
-      if (results && results.length < STARRED_PAGINATION_LIMIT) {
-        setShowMore(false);
-        setOffset((prevOffset) => prevOffset + results.length);
-      } else {
-        setOffset((prevOffset) => prevOffset + STARRED_PAGINATION_LIMIT);
-      }
     } catch (error) {
       showToast(t("Starred documents could not be loaded"), {
         type: "error",
@@ -48,6 +44,17 @@ function Starred() {
   }, [fetchStarred, offset, showToast, t]);
 
   useEffect(() => {
+    setOffset(starred.length);
+    if (starred.length < STARRED_PAGINATION_LIMIT) {
+      setShow("Nothing");
+    } else if (starred.length >= upperBound) {
+      setShow("More");
+    } else if (starred.length < upperBound) {
+      setShow("Less");
+    }
+  }, [starred, upperBound]);
+
+  useEffect(() => {
     if (offset === 0) {
       fetchResults();
     }
@@ -55,41 +62,53 @@ function Starred() {
 
   const handleShowMore = React.useCallback(
     async (ev) => {
+      setUpperBound(
+        (previousUpperBound) => previousUpperBound + STARRED_PAGINATION_LIMIT
+      );
       await fetchResults();
     },
     [fetchResults]
   );
 
   const handleShowLess = React.useCallback((ev) => {
-    setOffset(STARRED_PAGINATION_LIMIT);
-    setShowMore(true);
+    setUpperBound(STARRED_PAGINATION_LIMIT);
+    setShow("More");
   }, []);
 
-  const content = React.useMemo(() => {
-    return starred.slice(0, offset).map((document) => {
-      return (
-        <StarredLink
-          key={document.id}
-          documentId={document.id}
-          collectionId={document.collectionId}
-          to={document.url}
-          title={document.title}
-          url={document.url}
-          depth={1}
-        />
-      );
-    });
-  }, [starred, offset]);
+  const content = starred.slice(0, upperBound).map((document, index) => {
+    return (
+      <StarredLink
+        key={document.id}
+        documentId={document.id}
+        collectionId={document.collectionId}
+        to={document.url}
+        title={document.title}
+        url={document.url}
+        depth={1}
+      />
+    );
+  });
+
+  if (!starred.length && !isFetching) {
+    return (
+      <>
+        <Header>{t("Starred")}</Header>
+        <EmptyWrapper column>
+          <Empty>{t("You’ve not starred any documents yet.")}</Empty>
+        </EmptyWrapper>
+      </>
+    );
+  }
 
   return (
     <Flex column>
       <>
         <Header>{t("Starred")}</Header>
         {content}
-        {showMore && !isFetching && (
+        {show === "More" && !isFetching && (
           <SidebarLink onClick={handleShowMore} label={`${t("Show more")}…`} />
         )}
-        {!showMore && !isFetching && (
+        {show === "Less" && !isFetching && (
           <SidebarLink onClick={handleShowLess} label={`${t("Show less")}…`} />
         )}
         {(isFetching || fetchError) && (
@@ -101,5 +120,10 @@ function Starred() {
     </Flex>
   );
 }
+
+const EmptyWrapper = styled(Flex)`
+  margin: 0 16px;
+  font-size: 15px;
+`;
 
 export default observer(Starred);
