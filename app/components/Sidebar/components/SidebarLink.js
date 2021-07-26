@@ -164,11 +164,11 @@ const Link = styled(NavLink)`
         opacity: 0.75;
       }
     }
-  }
 
-  &:hover {
-    color: ${(props) =>
-      props.$isActiveDrop ? props.theme.white : props.theme.text};
+    &:hover {
+      color: ${(props) =>
+        props.$isActiveDrop ? props.theme.white : props.theme.text};
+    }
   }
 `;
 
