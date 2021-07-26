@@ -1,5 +1,22 @@
 // @flow
 import { observer } from "mobx-react";
+import {
+  EditIcon,
+  PinIcon,
+  StarredIcon,
+  UnstarredIcon,
+  DuplicateIcon,
+  ArchiveIcon,
+  TrashIcon,
+  MoveIcon,
+  HistoryIcon,
+  UnpublishIcon,
+  ShapesIcon,
+  PrintIcon,
+  ImportIcon,
+  NewDocumentIcon,
+  DownloadIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -263,21 +280,25 @@ function DocumentMenu({
               title: t("Unpin"),
               onClick: document.unpin,
               visible: !!(showPin && document.pinned && can.unpin),
+              icon: <PinIcon />,
             },
             {
               title: t("Pin to collection"),
               onClick: document.pin,
               visible: !!(showPin && !document.pinned && can.pin),
+              icon: <PinIcon />,
             },
             {
               title: t("Unstar"),
               onClick: handleUnstar,
               visible: document.isStarred && !!can.unstar,
+              icon: <UnstarredIcon />,
             },
             {
               title: t("Star"),
               onClick: handleStar,
               visible: !document.isStarred && !!can.star,
+              icon: <StarredIcon />,
             },
             {
               title: t("Enable embeds"),
@@ -298,41 +319,49 @@ function DocumentMenu({
                 parentDocumentId: document.id,
               }),
               visible: !!can.createChildDocument,
+              icon: <NewDocumentIcon />,
             },
             {
               title: t("Import document"),
               visible: can.createChildDocument,
               onClick: handleImportDocument,
+              icon: <ImportIcon />,
             },
             {
               title: `${t("Create template")}…`,
               onClick: () => setShowTemplateModal(true),
               visible: !!can.update && !document.isTemplate,
+              icon: <ShapesIcon />,
             },
             {
               title: t("Edit"),
               to: editDocumentUrl(document),
               visible: !!can.update,
+              icon: <EditIcon />,
             },
             {
               title: t("Duplicate"),
               onClick: handleDuplicate,
               visible: !!can.update,
+              icon: <DuplicateIcon />,
             },
             {
               title: t("Unpublish"),
               onClick: handleUnpublish,
               visible: !!can.unpublish,
+              icon: <UnpublishIcon />,
             },
             {
               title: t("Archive"),
               onClick: handleArchive,
               visible: !!can.archive,
+              icon: <ArchiveIcon />,
             },
             {
               title: `${t("Delete")}…`,
               onClick: () => setShowDeleteModal(true),
               visible: !!can.delete,
+              icon: <TrashIcon />,
             },
             {
               title: `${t("Permanently delete")}…`,
@@ -343,6 +372,7 @@ function DocumentMenu({
               title: `${t("Move")}…`,
               onClick: () => setShowMoveModal(true),
               visible: !!can.move,
+              icon: <MoveIcon />,
             },
             {
               type: "separator",
@@ -353,16 +383,19 @@ function DocumentMenu({
                 ? documentUrl(document)
                 : documentHistoryUrl(document),
               visible: canViewHistory,
+              icon: <HistoryIcon />,
             },
             {
               title: t("Download"),
               onClick: document.download,
               visible: !!can.download,
+              icon: <DownloadIcon />,
             },
             {
               title: t("Print"),
               onClick: handlePrint,
               visible: !!showPrint,
+              icon: <PrintIcon />,
             },
           ]}
         />

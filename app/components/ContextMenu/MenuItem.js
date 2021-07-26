@@ -16,6 +16,7 @@ type Props = {|
   as?: string | React.ComponentType<*>,
   hide?: () => void,
   level?: number,
+  icon?: React.Node,
 |};
 
 const MenuItem = ({
@@ -25,6 +26,7 @@ const MenuItem = ({
   disabled,
   as,
   hide,
+  icon,
   ...rest
 }: Props) => {
   const handleClick = React.useCallback(
@@ -71,12 +73,21 @@ const MenuItem = ({
               &nbsp;
             </>
           )}
+          {icon && <IconWrapper>{icon}</IconWrapper>}
           {children}
         </MenuAnchor>
       )}
     </BaseMenuItem>
   );
 };
+
+const IconWrapper = styled.span`
+  position: relative;
+  color: ${(props) => props.theme.textSecondary};
+  width: 24px;
+  height: 24px;
+  right: 4px;
+`;
 
 const Spacer = styled.svg`
   width: 24px;

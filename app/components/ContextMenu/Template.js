@@ -76,6 +76,7 @@ function Template({ items, ...menu }: Props): React.Node {
           key={index}
           disabled={item.disabled}
           selected={item.selected}
+          icon={item.icon}
           {...menu}
         >
           {item.title}
@@ -92,6 +93,7 @@ function Template({ items, ...menu }: Props): React.Node {
           selected={item.selected}
           level={item.level}
           target={item.href.startsWith("#") ? undefined : "_blank"}
+          icon={item.icon}
           {...menu}
         >
           {item.title}
@@ -107,6 +109,7 @@ function Template({ items, ...menu }: Props): React.Node {
           disabled={item.disabled}
           selected={item.selected}
           key={index}
+          icon={item.icon}
           {...menu}
         >
           {item.title}
@@ -115,12 +118,14 @@ function Template({ items, ...menu }: Props): React.Node {
     }
 
     if (item.items) {
+      console.log(item.icon);
       return (
         <BaseMenuItem
           key={index}
           as={Submenu}
           templateItems={item.items}
           title={item.title}
+          disclosure={false}
           {...menu}
         />
       );
