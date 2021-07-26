@@ -189,7 +189,8 @@ describe("accountProvisioner", () => {
     expect(isNewUser).toEqual(true);
     expect(sendEmail).toHaveBeenCalled();
 
+    // should provision welcome collection
     const collectionCount = await Collection.count();
-    expect(collectionCount).toEqual(0);
+    expect(collectionCount).toEqual(1);
   });
 });

@@ -7,7 +7,7 @@ import {
   AuthenticationProviderDisabledError,
 } from "../errors";
 import { sendEmail } from "../mailer";
-import { Team, User } from "../models";
+import { Collection, Team, User } from "../models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
 
@@ -90,8 +90,20 @@ export default async function accountProvisioner({
       sendEmail("welcome", user.email, { teamUrl: team.url });
     }
 
-    if (isNewTeam) {
-      await team.provisionFirstCollection(user.id);
+    if (isNewUser || isNewTeam) {
+      let provision = isNewTeam;
+
+      // accounts for the case where a team is provisioned, but the user creation
+      // failed. In this case we have a valid previously created team but no
+      // onboarding collection.
+      if (!isNewTeam) {
+        const count = await Collection.count({ where: { teamId: team.id } });
+        provision = count === 0;
+      }
+
+      if (provision) {
+        await team.provisionFirstCollection(user.id);
+      }
     }
 
     return {
