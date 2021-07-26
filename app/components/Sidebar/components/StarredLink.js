@@ -60,7 +60,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
   return (
     <>
       <SidebarLink
-        depth={depth}
+        depth={hasChildDocuments ? depth : depth - 1}
         to={to}
         label={
           <>
