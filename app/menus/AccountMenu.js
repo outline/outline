@@ -14,9 +14,7 @@ import {
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template, { filterTemplateItems } from "components/ContextMenu/Template";
-import Flex from "components/Flex";
 import Guide from "components/Guide";
-import MenuIconWrapper from "components/MenuIconWrapper";
 import useBoolean from "hooks/useBoolean";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
@@ -45,16 +43,6 @@ function AccountMenu(props: Props) {
     }
   }, [menu, ui.theme, previousTheme]);
 
-  const AppearanceTitle = () => {
-    return (
-      <Flex align="center">
-        <MenuIconWrapper>
-          {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}{" "}
-        </MenuIconWrapper>
-        {t("Appearance")}
-      </Flex>
-    );
-  };
   const items = () =>
     filterTemplateItems([
       {
@@ -85,7 +73,8 @@ function AccountMenu(props: Props) {
         href: githubIssuesUrl(),
       },
       {
-        title: <AppearanceTitle />,
+        title: t("Appearance"),
+        icon: ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
         items: [
           {
             title: t("System"),

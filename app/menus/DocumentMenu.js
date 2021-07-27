@@ -17,6 +17,8 @@ import {
   NewDocumentIcon,
   DownloadIcon,
   BuildingBlocksIcon,
+  RestoreIcon,
+  CrossIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -245,6 +247,7 @@ function DocumentMenu({
               title: t("Restore"),
               visible: (!!collection && can.restore) || can.unarchive,
               onClick: handleRestore,
+              icon: <RestoreIcon />,
             },
             {
               title: t("Restore"),
@@ -254,6 +257,7 @@ function DocumentMenu({
                 position: "relative",
                 top: -40,
               },
+              icon: <RestoreIcon />,
               hover: true,
               items: [
                 {
@@ -370,6 +374,7 @@ function DocumentMenu({
               title: `${t("Permanently delete")}…`,
               onClick: () => setShowPermanentDeleteModal(true),
               visible: can.permanentDelete,
+              icon: <CrossIcon />,
             },
             {
               title: `${t("Move")}…`,

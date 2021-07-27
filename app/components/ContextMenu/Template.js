@@ -9,6 +9,8 @@ import {
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
 import styled from "styled-components";
+import Flex from "components/Flex";
+import MenuIconWrapper from "components/MenuIconWrapper";
 import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
@@ -123,7 +125,7 @@ function Template({ items, ...menu }: Props): React.Node {
           key={index}
           as={Submenu}
           templateItems={item.items}
-          title={item.title}
+          title={<Title title={item.title} icon={item.icon} />}
           {...menu}
         />
       );
@@ -140,6 +142,15 @@ function Template({ items, ...menu }: Props): React.Node {
     console.warn("Unrecognized menu item", item);
     return null;
   });
+}
+
+function Title({ title, icon }) {
+  return (
+    <Flex align="center">
+      {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
+      {title}
+    </Flex>
+  );
 }
 
 export default React.memo<Props>(Template);

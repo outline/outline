@@ -1,7 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-import HistoryIcon from "outline-icons/lib/components/HistoryIcon";
-import LinkIcon from "outline-icons/lib/components/LinkIcon";
+import { RestoreIcon, LinkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -60,7 +59,7 @@ function RevisionMenu({ document, revision, className, iconColor }: Props) {
       <ContextMenu {...menu} aria-label={t("Revision options")}>
         <MenuItem {...menu} onClick={handleRestore}>
           <MenuIconWrapper>
-            <HistoryIcon />
+            <RestoreIcon />
           </MenuIconWrapper>
           {t("Restore version")}
         </MenuItem>
