@@ -1,22 +1,13 @@
 // @flow
 import { observer } from "mobx-react";
-import {
-  SunIcon,
-  MoonIcon,
-  SettingsIcon,
-  KeyboardIcon,
-  NotepadIcon,
-  EmailIcon,
-  BugIcon,
-} from "outline-icons";
-import JournalIcon from "outline-icons/lib/components/JournalIcon";
+import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState, MenuButton } from "reakit/Menu";
+import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import {
-  developers,
   changelog,
+  developers,
   githubIssuesUrl,
   mailToUrl,
   settings,
@@ -69,17 +60,14 @@ function AccountMenu(props: Props) {
       {
         title: t("Settings"),
         to: settings(),
-        icon: <SettingsIcon />,
       },
       {
         title: t("Keyboard shortcuts"),
         onClick: handleKeyboardShortcutsOpen,
-        icon: <KeyboardIcon />,
       },
       {
         title: t("API documentation"),
         href: developers(),
-        icon: <JournalIcon />,
       },
       {
         type: "separator",
@@ -87,17 +75,14 @@ function AccountMenu(props: Props) {
       {
         title: t("Changelog"),
         href: changelog(),
-        icon: <NotepadIcon />,
       },
       {
         title: t("Send us feedback"),
         href: mailToUrl(),
-        icon: <EmailIcon />,
       },
       {
         title: t("Report a bug"),
         href: githubIssuesUrl(),
-        icon: <BugIcon />,
       },
       {
         title: <AppearanceTitle />,
