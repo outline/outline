@@ -1,12 +1,12 @@
 // @flow
-import { inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
+import useStores from "hooks/useStores";
 import { fadeAndSlideDown } from "styles/animations";
 import { isInternalUrl } from "utils/urls";
 
@@ -16,25 +16,24 @@ const DELAY_CLOSE = 300;
 type Props = {
   node: HTMLAnchorElement,
   event: MouseEvent,
-  documents: DocumentsStore,
   onClose: () => void,
 };
 
-function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
+function HoverPreviewInternal({ node, onClose, event }: Props) {
   const slug = parseDocumentSlug(node.href);
-
+  const { documents } = useStores();
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef();
   const timerOpen = React.useRef();
   const cardRef = React.useRef<?HTMLDivElement>();
 
-  const startCloseTimer = () => {
+  const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
     timerClose.current = setTimeout(() => {
       if (isVisible) setVisible(false);
       onClose();
     }, DELAY_CLOSE);
-  };
+  }, [isVisible, onClose]);
 
   const stopCloseTimer = () => {
     if (timerClose.current) {
@@ -61,11 +60,12 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
 
     startOpenTimer();
 
-    if (cardRef.current) {
-      cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+    const currentCardRef = cardRef.current;
+    if (currentCardRef) {
+      currentCardRef.addEventListener("mouseenter", stopCloseTimer);
     }
-    if (cardRef.current) {
-      cardRef.current.addEventListener("mouseleave", startCloseTimer);
+    if (currentCardRef) {
+      currentCardRef.addEventListener("mouseleave", startCloseTimer);
     }
 
     node.addEventListener("mouseout", startCloseTimer);
@@ -77,18 +77,18 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
       node.removeEventListener("mouseover", stopCloseTimer);
       node.removeEventListener("mouseover", startOpenTimer);
 
-      if (cardRef.current) {
-        cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
+      if (currentCardRef) {
+        currentCardRef.removeEventListener("mouseenter", stopCloseTimer);
       }
-      if (cardRef.current) {
-        cardRef.current.removeEventListener("mouseleave", startCloseTimer);
+      if (currentCardRef) {
+        currentCardRef.removeEventListener("mouseleave", startCloseTimer);
       }
 
       if (timerClose.current) {
         clearTimeout(timerClose.current);
       }
     };
-  }, [node]);
+  }, [documents, node, slug, startCloseTimer]);
 
   const anchorBounds = node.getBoundingClientRect();
   const cardBounds = cardRef.current
@@ -240,4 +240,4 @@ const Pointer = styled.div`
   }
 `;
 
-export default inject("documents")(HoverPreview);
+export default observer(HoverPreview);
