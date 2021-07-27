@@ -4,6 +4,7 @@ import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {|
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
@@ -73,21 +74,13 @@ const MenuItem = ({
               &nbsp;
             </>
           )}
-          {icon && <IconWrapper>{icon}</IconWrapper>}
+          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
           {children}
         </MenuAnchor>
       )}
     </BaseMenuItem>
   );
 };
-
-const IconWrapper = styled.span`
-  position: relative;
-  color: ${(props) => props.theme.textSecondary};
-  width: 24px;
-  height: 24px;
-  right: 4px;
-`;
 
 const Spacer = styled.svg`
   width: 24px;

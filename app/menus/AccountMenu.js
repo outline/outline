@@ -16,7 +16,7 @@ import ContextMenu from "components/ContextMenu";
 import Template, { filterTemplateItems } from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
-import IconWrapper from "components/IconWrapper";
+import MenuIconWrapper from "components/MenuIconWrapper";
 import useBoolean from "hooks/useBoolean";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
@@ -48,9 +48,9 @@ function AccountMenu(props: Props) {
   const AppearanceTitle = () => {
     return (
       <Flex align="center">
-        <IconWrapper>
+        <MenuIconWrapper>
           {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}{" "}
-        </IconWrapper>
+        </MenuIconWrapper>
         {t("Appearance")}
       </Flex>
     );
