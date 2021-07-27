@@ -1,6 +1,6 @@
 // @flow
 import React from "react";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 
 const cleanPercentage = (percentage) => {
   const tooLow = !Number.isFinite(+percentage) || percentage < 0;
@@ -56,7 +56,7 @@ const CircularProgressBar = ({
   const offset = Math.floor(size / 2);
 
   return (
-    <svg width={size} height={size}>
+    <SVG width={size} height={size}>
       <g transform={`rotate(-90 ${offset} ${offset})`}>
         <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (
@@ -67,8 +67,12 @@ const CircularProgressBar = ({
           />
         )}
       </g>
-    </svg>
+    </SVG>
   );
 };
+
+const SVG = styled.svg`
+  flex-shrink: 0;
+`;
 
 export default CircularProgressBar;
