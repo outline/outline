@@ -6,6 +6,7 @@ import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
+import getTasks from "../../shared/utils/getTasks";
 import parseTitle from "../../shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import unescape from "../../shared/utils/unescape";
@@ -105,6 +106,9 @@ const Document = sequelize.define(
 
         const slugifiedTitle = slugify(this.title);
         return `/doc/${slugifiedTitle}-${this.urlId}`;
+      },
+      tasks: function () {
+        return getTasks(this.text || "");
       },
     },
   }
