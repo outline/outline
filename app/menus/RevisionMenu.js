@@ -1,5 +1,7 @@
 // @flow
 import { observer } from "mobx-react";
+import HistoryIcon from "outline-icons/lib/components/HistoryIcon";
+import LinkIcon from "outline-icons/lib/components/LinkIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -11,6 +13,7 @@ import MenuItem from "components/ContextMenu/MenuItem";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Separator from "components/ContextMenu/Separator";
 import CopyToClipboard from "components/CopyToClipboard";
+import IconWrapper from "components/IconWrapper";
 import useToasts from "hooks/useToasts";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
@@ -56,11 +59,19 @@ function RevisionMenu({ document, revision, className, iconColor }: Props) {
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>
         <MenuItem {...menu} onClick={handleRestore}>
+          <IconWrapper>
+            <HistoryIcon />
+          </IconWrapper>
           {t("Restore version")}
         </MenuItem>
         <Separator />
         <CopyToClipboard text={url} onCopy={handleCopy}>
-          <MenuItem {...menu}>{t("Copy link")}</MenuItem>
+          <MenuItem {...menu}>
+            <IconWrapper>
+              <LinkIcon />
+            </IconWrapper>
+            {t("Copy link")}
+          </MenuItem>
         </CopyToClipboard>
       </ContextMenu>
     </>

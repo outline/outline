@@ -4,7 +4,6 @@ import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
-import styled from "styled-components";
 import {
   changelog,
   developers,
@@ -17,6 +16,7 @@ import ContextMenu from "components/ContextMenu";
 import Template, { filterTemplateItems } from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
+import IconWrapper from "components/IconWrapper";
 import useBoolean from "hooks/useBoolean";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
@@ -129,13 +129,5 @@ function AccountMenu(props: Props) {
     </>
   );
 }
-
-const IconWrapper = styled.span`
-  margin-left: -4px;
-  margin-right: 4px;
-  height: 24px;
-  overflow: hidden;
-  flex-shrink: 0;
-`;
 
 export default observer(AccountMenu);
