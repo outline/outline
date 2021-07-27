@@ -9822,10 +9822,10 @@ outline-icons@^1.26.1:
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.27.2.tgz#9ff2ba209ba77a94f6a2a19ae0cbee403973d7c2"
   integrity sha512-cvvJ3Ockcqsj5zphTCK5OzKGBMXmFVCe0OhuiNdtt1gVS+/yAE2fIs93RlW2ERIEIDsAlWrK6oBvDFpIgEHiQw==
 
-outline-icons@^1.28.0:
-  version "1.28.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.28.0.tgz#09cb54b192eb8dab37590e0789679d510f041fb0"
-  integrity sha512-WcZWeNQXOss6A5SddvPTaLb+oDRY+FSviiqgunb05RyQrG/abVSfkKoW9Tiu8S/SGBYNAco1gAIR4KjEZz/vGg==
+outline-icons@^1.29.0:
+  version "1.29.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.29.0.tgz#ae6f53168f299cc80b8fe77f7ae7e4ce1be9770c"
+  integrity sha512-AZphys5ilXWWjlCdrwt3UraeQF0GW7j+BS+zAqQCL0JooUCHId8/WyEImTstw6Nc2bzLavV7rIBxLZ4qQ3p/GA==
 
 oy-vey@^0.10.0:
   version "0.10.0"
