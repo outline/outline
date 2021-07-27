@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
+import Disclosure from "./Disclosure";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
@@ -18,6 +19,7 @@ const STARRED_PAGINATION_LIMIT = 10;
 function Starred() {
   const [isFetching, setIsFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
+  const [expanded, setExpanded] = React.useState(false);
   const [show, setShow] = React.useState("Nothing");
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
@@ -59,6 +61,15 @@ function Starred() {
       fetchResults();
     }
   }, [fetchResults, offset]);
+
+  const handleDisclosureClick = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setExpanded(!expanded);
+    },
+    [expanded]
+  );
 
   const handleShowMore = React.useCallback(
     async (ev) => {
@@ -103,23 +114,47 @@ function Starred() {
   return (
     <Flex column>
       <>
-        <Header>{t("Bookmarked")}</Header>
-        {content}
-        {show === "More" && !isFetching && (
-          <SidebarLink onClick={handleShowMore} label={`${t("Show more")}…`} />
-        )}
-        {show === "Less" && !isFetching && (
-          <SidebarLink onClick={handleShowLess} label={`${t("Show less")}…`} />
-        )}
-        {(isFetching || fetchError) && (
-          <Flex column>
-            <PlaceholderCollections />
-          </Flex>
+        <Wrapper>
+          <StarredDisclosure
+            expanded={expanded}
+            onClick={handleDisclosureClick}
+          />
+          <Header>{t("Bookmarked")}</Header>
+        </Wrapper>
+        {expanded && (
+          <>
+            {content}
+            {show === "More" && !isFetching && (
+              <SidebarLink
+                onClick={handleShowMore}
+                label={`${t("Show more")}…`}
+              />
+            )}
+            {show === "Less" && !isFetching && (
+              <SidebarLink
+                onClick={handleShowLess}
+                label={`${t("Show less")}…`}
+              />
+            )}
+            {(isFetching || fetchError) && (
+              <Flex column>
+                <PlaceholderCollections />
+              </Flex>
+            )}
+          </>
         )}
       </>
     </Flex>
   );
 }
+
+const Wrapper = styled(Flex)`
+  margin: 4px 16px;
+`;
+
+const StarredDisclosure = styled(Disclosure)`
+  left: 10px;
+`;
 
 const EmptyWrapper = styled(Flex)`
   margin: 0 16px;
