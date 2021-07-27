@@ -34,7 +34,7 @@ function Starred() {
         offset,
       });
     } catch (error) {
-      showToast(t("Starred documents could not be loaded"), {
+      showToast(t("Bookmarked documents could not be loaded"), {
         type: "error",
       });
       setFetchError(error);
@@ -94,7 +94,7 @@ function Starred() {
       <>
         <Header>{t("Starred")}</Header>
         <EmptyWrapper column>
-          <Empty>{t("You’ve not starred any documents yet.")}</Empty>
+          <Empty>{t("You’ve not bookmarked any documents yet.")}</Empty>
         </EmptyWrapper>
       </>
     );
@@ -103,7 +103,7 @@ function Starred() {
   return (
     <Flex column>
       <>
-        <Header>{t("Starred")}</Header>
+        <Header>{t("Bookmarked")}</Header>
         {content}
         {show === "More" && !isFetching && (
           <SidebarLink onClick={handleShowMore} label={`${t("Show more")}…`} />

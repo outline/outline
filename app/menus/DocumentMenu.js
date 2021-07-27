@@ -270,12 +270,12 @@ function DocumentMenu({
               visible: !!(showPin && !document.pinned && can.pin),
             },
             {
-              title: t("Unstar"),
+              title: t("Unbookmark"),
               onClick: handleUnstar,
               visible: document.isStarred && !!can.unstar,
             },
             {
-              title: t("Star"),
+              title: t("Bookmark"),
               onClick: handleStar,
               visible: !document.isStarred && !!can.star,
             },

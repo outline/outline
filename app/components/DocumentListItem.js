@@ -8,12 +8,12 @@ import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "models/Document";
 import Badge from "components/Badge";
+import BookmarkButton, { AnimatedBookmark } from "components/Bookmark";
 import Button from "components/Button";
 import DocumentMeta from "components/DocumentMeta";
 import EventBoundary from "components/EventBoundary";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
-import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -89,9 +89,9 @@ function DocumentListItem(props: Props, ref) {
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (
-            <StarPositioner>
-              <StarButton document={document} />
-            </StarPositioner>
+            <BookmarkPositioner>
+              <BookmarkButton document={document} />
+            </BookmarkPositioner>
           )}
           {document.isDraft && showDraft && (
             <Tooltip
@@ -188,7 +188,7 @@ const DocumentLink = styled(Link)`
     opacity: 0;
   }
 
-  ${AnimatedStar} {
+  ${AnimatedBookmark} {
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
@@ -202,7 +202,7 @@ const DocumentLink = styled(Link)`
       opacity: 1;
     }
 
-    ${AnimatedStar} {
+    ${AnimatedBookmark} {
       opacity: 0.5;
 
       &:hover {
@@ -220,7 +220,7 @@ const DocumentLink = styled(Link)`
         opacity: 1;
       }
 
-      ${AnimatedStar} {
+      ${AnimatedBookmark} {
         opacity: 0.5;
       }
     `}
@@ -240,7 +240,7 @@ const Heading = styled.h3`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
-const StarPositioner = styled(Flex)`
+const BookmarkPositioner = styled(Flex)`
   margin-left: 4px;
   align-items: center;
 `;
