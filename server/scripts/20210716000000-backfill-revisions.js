@@ -1,15 +1,13 @@
 // @flow
 import "./bootstrap";
-import debug from "debug";
 import { Revision, Document, Event } from "../models";
 
-const log = debug("server");
-let page = 0;
+let page = parseInt(process.argv[2] || "0", 10);
 let limit = 100;
 
 export default async function main(exit = false) {
   const work = async (page: number) => {
-    log(`Backfill revision events… page ${page}`);
+    console.log(`Backfill revision events… page ${page}`);
 
     const revisions = await Revision.findAll({
       limit,
@@ -51,7 +49,7 @@ export default async function main(exit = false) {
   await work(page);
 
   if (exit) {
-    log("Backfill complete");
+    console.log("Backfill complete");
     process.exit(0);
   }
 }
