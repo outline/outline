@@ -16,6 +16,7 @@ import {
   ImportIcon,
   NewDocumentIcon,
   DownloadIcon,
+  BuildingBlocksIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -304,11 +305,13 @@ function DocumentMenu({
               title: t("Enable embeds"),
               onClick: document.enableEmbeds,
               visible: !!showToggleEmbeds && document.embedsDisabled,
+              icon: <BuildingBlocksIcon />,
             },
             {
               title: t("Disable embeds"),
               onClick: document.disableEmbeds,
               visible: !!showToggleEmbeds && !document.embedsDisabled,
+              icon: <BuildingBlocksIcon />,
             },
             {
               type: "separator",
