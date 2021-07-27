@@ -10,6 +10,7 @@ import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import getTasks from "shared/utils/getTasks";
 import AuthStore from "stores/AuthStore";
 import ToastsStore from "stores/ToastsStore";
 import UiStore from "stores/UiStore";
@@ -222,6 +223,8 @@ class DocumentScene extends React.Component<Props> {
     let isNew = !document.id;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
+
+    document.tasks = getTasks(document.text);
 
     try {
       const savedDocument = await document.save({
