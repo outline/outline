@@ -144,6 +144,11 @@ export const MenuAnchor = styled.a`
     padding: ${(props) => (props.$toggleable ? "4px 12px" : "6px 12px")};
     font-size: 15px;
   `};
+
+  ${breakpoint("desktop")`
+    padding: 4px 12px;
+    font-size: 14px;
+  `}
 `;
 
 export default MenuItem;
