@@ -155,7 +155,7 @@ function DocumentMeta({
       )}
       {showNestedDocuments && nestedDocumentsCount > 0 && (
         <span>
-          &nbsp;&middot; {nestedDocumentsCount}{" "}
+          &nbsp;• {nestedDocumentsCount}{" "}
           {t("nested document", { count: nestedDocumentsCount })}
         </span>
       )}
