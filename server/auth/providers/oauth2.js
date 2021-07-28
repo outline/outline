@@ -91,7 +91,6 @@ if (OIDC_CLIENT_ID) {
             },
             user: {
               name: profile.name,
-              username: profile.preferred_username,
               email: profile.email,
               avatarUrl: profile.picture,
             },
