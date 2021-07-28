@@ -1,8 +1,12 @@
 // @flow
+import { DoneIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import styled, { useTheme } from "styled-components";
 import CircularProgressBar from "components/CircularProgressBar";
+import usePrevious from "../hooks/usePrevious";
 import Document from "../models/Document";
+import { bounceIn } from "styles/animations";
 
 type Props = {|
   document: Document,
@@ -24,16 +28,32 @@ function getMessage(t, total, completed) {
 function DocumentTasks({ document }: Props) {
   const { tasks, tasksPercentage } = document;
   const { t } = useTranslation();
+  const theme = useTheme();
   const { completed, total } = tasks;
-
+  const done = completed === total;
+  const previousDone = usePrevious(done);
   const message = getMessage(t, total, completed);
 
   return (
     <>
-      <CircularProgressBar percentage={tasksPercentage} />
+      {completed === total ? (
+        <Done
+          color={theme.primary}
+          size={20}
+          $animated={done && previousDone === false}
+        />
+      ) : (
+        <CircularProgressBar percentage={tasksPercentage} />
+      )}
       &nbsp;{message}
     </>
   );
 }
+
+const Done = styled(DoneIcon)`
+  margin: -1px;
+  animation: ${(props) => (props.$animated ? bounceIn : "none")} 600ms;
+  transform-origin: center center;
+`;
 
 export default DocumentTasks;
