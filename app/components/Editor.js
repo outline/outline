@@ -148,6 +148,7 @@ function Editor(props: PropsWithRef) {
       hr: t("Divider"),
       image: t("Image"),
       imageUploadError: t("Sorry, an error occurred uploading the image"),
+      imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),
       link: t("Link"),
