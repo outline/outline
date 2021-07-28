@@ -10,15 +10,9 @@ type Props = {|
 
 function getMessage(t, total, completed) {
   if (completed === 0) {
-    if (total === 1) {
-      return t(`{{ total }} task`, { total });
-    }
-    return t(`{{ total }} tasks`, { total });
+    return t(`{{ total }} task`, { total, count: total });
   } else if (completed === total) {
-    if (total === 1) {
-      return t(`{{ completed }} task done`, { completed });
-    }
-    return t(`{{ completed }} tasks done`, { completed });
+    return t(`{{ completed }} task done`, { completed, count: completed });
   } else {
     return t(`{{ completed }} of {{ total }} tasks`, {
       total,
