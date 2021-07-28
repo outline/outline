@@ -8,19 +8,25 @@ type Props = {|
   document: Document,
 |};
 
+function getMessage(t, total, completed) {
+  if (completed === 0) {
+    return t(`{{ total }} task`, { total, count: total });
+  } else if (completed === total) {
+    return t(`{{ completed }} task done`, { completed, count: completed });
+  } else {
+    return t(`{{ completed }} of {{ total }} tasks`, {
+      total,
+      completed,
+    });
+  }
+}
+
 function DocumentTasks({ document }: Props) {
   const { tasks, tasksPercentage } = document;
   const { t } = useTranslation();
   const { completed, total } = tasks;
-  const message =
-    completed === 0
-      ? t(`{{ total }} tasks`, { total })
-      : completed === total
-      ? t(`{{ completed }} tasks done`, { completed })
-      : t(`{{ completed }} of {{ total }} tasks`, {
-          total,
-          completed,
-        });
+
+  const message = getMessage(t, total, completed);
 
   return (
     <>
