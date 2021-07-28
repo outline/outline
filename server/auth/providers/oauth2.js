@@ -62,6 +62,7 @@ if (OIDC_CLIENT_ID) {
         passReqToCallback: true,
         scope: OIDC_SCOPES,
         store: new StateStore(),
+        state: true,
         pkce: false,
       },
       async function (req, accessToken, refreshToken, profile, done) {
