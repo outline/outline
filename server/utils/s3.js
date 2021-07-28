@@ -130,7 +130,7 @@ export const uploadToS3FromUrl = async (
 ) => {
   try {
     // $FlowIssue https://github.com/facebook/flow/issues/2171
-    const res = await fetch(new URL(url));
+    const res = await fetch(url);
     const buffer = await res.buffer();
     await s3
       .putObject({

@@ -39,3 +39,13 @@ it("should return tiley url if name not provided", async () => {
     "https://tiley.herokuapp.com/avatar/bbdefa2950f49882f295b1285d4fa9dec45fc4144bfb07ee6acc68762d12c2e3/U.png"
   );
 });
+
+it("should return tiley url with encoded name", async () => {
+  const url = await generateAvatarUrl({
+    id: "google",
+    name: "株",
+  });
+  expect(url).toBe(
+    "https://tiley.herokuapp.com/avatar/bbdefa2950f49882f295b1285d4fa9dec45fc4144bfb07ee6acc68762d12c2e3/%E6%A0%AA.png"
+  );
+});
