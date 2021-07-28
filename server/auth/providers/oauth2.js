@@ -45,7 +45,7 @@ Strategy.prototype.userProfile = async function (accessToken, done) {
       return done(new Error("Failed to parse user profile"));
     }
   } catch (err) {
-    return done(new Error("Failed to fetch user profile", err));
+    return done(new Error("Failed to fetch user profile"));
   }
 };
 
