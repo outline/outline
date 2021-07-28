@@ -69,7 +69,15 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
 }
 
 function Template({ items, ...menu }: Props): React.Node {
-  return filterTemplateItems(items).map((item, index) => {
+  const filteredTemplates = filterTemplateItems(items);
+  const iconIsPresentInAnyMenuItem = filteredTemplates.find(
+    (item) => !!item.icon
+  );
+
+  return filteredTemplates.map((item, index) => {
+    if (iconIsPresentInAnyMenuItem)
+      item.icon = item.icon ? item.icon : <MenuIconWrapper />;
+
     if (item.to) {
       return (
         <MenuItem
