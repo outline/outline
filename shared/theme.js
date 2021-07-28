@@ -118,9 +118,9 @@ export const base = {
     modal: 3000,
     menu: 4000,
     toasts: 5000,
-    loadingIndicatorBar: 6000,
     popover: 9000,
     titleBarDivider: 10000,
+    loadingIndicatorBar: 20000,
   },
 };
 
