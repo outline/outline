@@ -1,5 +1,6 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
+import fetch from "fetch-with-proxy";
 import Router from "koa-router";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../commands/accountProvisioner";
