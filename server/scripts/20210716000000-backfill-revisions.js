@@ -2,8 +2,9 @@
 import "./bootstrap";
 import { Revision, Document, Event } from "../models";
 
-let page = parseInt(process.argv[2] || "0", 10);
 let limit = 100;
+let page = parseInt(process.argv[2], 10);
+page = Number.isNaN(page) ? 0 : page;
 
 export default async function main(exit = false) {
   const work = async (page: number) => {
