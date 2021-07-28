@@ -104,7 +104,7 @@ function Starred() {
   if (!starred.length && !isFetching) {
     return (
       <>
-        <Header>{t("Starred")}</Header>
+        <Header>{t("Bookmarked")}</Header>
         <EmptyWrapper column>
           <Empty>{t("You’ve not bookmarked any documents yet.")}</Empty>
         </EmptyWrapper>
