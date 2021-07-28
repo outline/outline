@@ -160,7 +160,7 @@ const StarredDisclosure = styled(Disclosure)`
 `;
 
 const EmptyWrapper = styled(Flex)`
-  margin: 0 16px;
+  margin: 0 16px 0px 40px;
   font-size: 15px;
 `;
 
