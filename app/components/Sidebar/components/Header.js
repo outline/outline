@@ -3,6 +3,8 @@ import styled from "styled-components";
 import Flex from "components/Flex";
 
 const Header = styled(Flex)`
+  position: relative;
+  left: 24px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;

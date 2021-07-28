@@ -22,6 +22,7 @@ function Starred() {
   const [expanded, setExpanded] = React.useState(false);
   const [show, setShow] = React.useState("Nothing");
   const [offset, setOffset] = React.useState(0);
+  const [showDisclosure, setShowDisclosure] = React.useState(false);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
   const { documents } = useStores();
@@ -95,7 +96,7 @@ function Starred() {
         to={document.url}
         title={document.title}
         url={document.url}
-        depth={1}
+        depth={1.5}
       />
     );
   });
@@ -114,13 +115,19 @@ function Starred() {
   return (
     <Flex column>
       <>
-        <Wrapper>
-          <StarredDisclosure
-            expanded={expanded}
-            onClick={handleDisclosureClick}
-          />
+        <div
+          onMouseOver={() => setShowDisclosure(true)}
+          onMouseLeave={() => setShowDisclosure(false)}
+        >
+          {(showDisclosure || expanded) && (
+            <StarredDisclosure
+              expanded={expanded}
+              onClick={handleDisclosureClick}
+            />
+          )}
           <Header>{t("Bookmarked")}</Header>
-        </Wrapper>
+        </div>
+
         {expanded && (
           <>
             {content}
@@ -147,10 +154,6 @@ function Starred() {
     </Flex>
   );
 }
-
-const Wrapper = styled(Flex)`
-  margin: 4px 16px;
-`;
 
 const StarredDisclosure = styled(Disclosure)`
   left: 10px;
