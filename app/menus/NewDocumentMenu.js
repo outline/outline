@@ -44,7 +44,7 @@ function NewDocumentMenu() {
       <MenuButton {...menu}>
         {(props) => (
           <Button icon={<PlusIcon />} {...props} small>
-            {`${t("New doc")}`}
+            {`${t("New doc")}…`}
           </Button>
         )}
       </MenuButton>
