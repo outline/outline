@@ -1,6 +1,7 @@
 // @flow
 import { addDays, differenceInDays } from "date-fns";
 import invariant from "invariant";
+import { floor } from "lodash";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
@@ -43,6 +44,7 @@ export default class Document extends BaseModel {
   deletedAt: ?string;
   url: string;
   urlId: string;
+  tasks: { completed: number, total: number };
   revision: number;
 
   constructor(fields: Object, store: DocumentsStore) {
@@ -149,6 +151,20 @@ export default class Document extends BaseModel {
   get isFromTemplate(): boolean {
     return !!this.templateId;
   }
+
+  @computed
+  get isTasks(): boolean {
+    return !!this.tasks.total;
+  }
+
+  @computed
+  get tasksPercentage(): number {
+    if (!this.isTasks) {
+      return 0;
+    }
+    return floor((this.tasks.completed / this.tasks.total) * 100);
+  }
+
   @action
   share = async () => {
     return this.store.rootStore.shares.create({ documentId: this.id });

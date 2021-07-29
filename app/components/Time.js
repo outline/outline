@@ -32,7 +32,7 @@ function Time(props: Props) {
         <time dateTime={props.dateTime}>{props.children || content}</time>
       }
     >
-      <LocaleTime {...props} />
+      <LocaleTime tooltipDelay={250} {...props} />
     </React.Suspense>
   );
 }
