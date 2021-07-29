@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
-import { light } from "shared/styles/theme";
+import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
@@ -148,6 +148,7 @@ function Editor(props: PropsWithRef) {
       hr: t("Divider"),
       image: t("Image"),
       imageUploadError: t("Sorry, an error occurred uploading the image"),
+      imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),
       link: t("Link"),

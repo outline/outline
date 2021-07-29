@@ -2,8 +2,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { randomInteger } from "shared/random";
-import { pulsate } from "shared/styles/animations";
 import Flex from "components/Flex";
+import { pulsate } from "styles/animations";
 
 type Props = {|
   header?: boolean,

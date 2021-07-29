@@ -3,7 +3,13 @@ import { find } from "lodash";
 import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
-import { Redirect, Link, type Location } from "react-router-dom";
+import {
+  Trans,
+  withTranslation,
+  type TFunction,
+  useTranslation,
+} from "react-i18next";
+import { Link, type Location, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
 import ButtonLarge from "components/ButtonLarge";
@@ -14,6 +20,7 @@ import HelpText from "components/HelpText";
 import OutlineLogo from "components/OutlineLogo";
 import PageTitle from "components/PageTitle";
 import TeamLogo from "components/TeamLogo";
+import { changeLanguage, detectLanguage } from "../../utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
 import env from "env";
@@ -22,10 +29,12 @@ import useStores from "hooks/useStores";
 
 type Props = {|
   location: Location,
+  t: TFunction,
 |};
 
-function Login({ location }: Props) {
+function Login({ location, t }: Props) {
   const query = useQuery();
+  const { i18n } = useTranslation();
   const { auth } = useStores();
   const { config } = auth;
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
@@ -42,6 +51,13 @@ function Login({ location }: Props) {
   React.useEffect(() => {
     auth.fetchConfig();
   }, [auth]);
+
+  // TODO: Persist detected language to new user
+  // Try to detect the user's language and show the login page on its idiom
+  // if translation is available
+  React.useEffect(() => {
+    changeLanguage(detectLanguage(), i18n);
+  }, [i18n]);
 
   React.useEffect(() => {
     const entries = Object.fromEntries(query.entries());
@@ -73,11 +89,11 @@ function Login({ location }: Props) {
     env.DEPLOYMENT === "hosted" &&
     (config.hostname ? (
       <Back href={env.URL}>
-        <BackIcon color="currentColor" /> Back to home
+        <BackIcon color="currentColor" /> {t("Back to home")}
       </Back>
     ) : (
       <Back href="https://www.getoutline.com">
-        <BackIcon color="currentColor" /> Back to website
+        <BackIcon color="currentColor" /> {t("Back to website")}
       </Back>
     ));
 
@@ -88,15 +104,17 @@ function Login({ location }: Props) {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Check your email" />
           <CheckEmailIcon size={38} color="currentColor" />
-
-          <Heading centered>Check your email</Heading>
+          <Heading centered>{t("Check your email")}</Heading>
           <Note>
-            A magic sign-in link has been sent to the email{" "}
-            <em>{emailLinkSentTo}</em>, no password needed.
+            <Trans
+              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed."
+              values={{ emailLinkSentTo: emailLinkSentTo }}
+              components={{ em: <em /> }}
+            />
           </Note>
           <br />
           <ButtonLarge onClick={handleReset} fullwidth neutral>
-            Back to login
+            {t("Back to login")}
           </ButtonLarge>
         </Centered>
       </Background>
@@ -118,13 +136,19 @@ function Login({ location }: Props) {
 
         {isCreate ? (
           <>
-            <Heading centered>Create an account</Heading>
+            <Heading centered>{t("Create an account")}</Heading>
             <GetStarted>
-              Get started by choosing a sign-in method for your new team below…
+              {t(
+                "Get started by choosing a sign-in method for your new team below…"
+              )}
             </GetStarted>
           </>
         ) : (
-          <Heading centered>Login to {config.name || "Outline"}</Heading>
+          <Heading centered>
+            {t("Login to {{ authProviderName }}", {
+              authProviderName: config.name || "Outline",
+            })}
+          </Heading>
         )}
 
         <Notices />
@@ -139,7 +163,9 @@ function Login({ location }: Props) {
             {hasMultipleProviders && (
               <>
                 <Note>
-                  You signed in with {defaultProvider.name} last time.
+                  {t("You signed in with {{ authProviderName }} last time.", {
+                    authProviderName: defaultProvider.name,
+                  })}
                 </Note>
                 <Or />
               </>
@@ -164,7 +190,9 @@ function Login({ location }: Props) {
 
         {isCreate && (
           <Note>
-            Already have an account? Go to <Link to="/">login</Link>.
+            <Trans>
+              Already have an account? Go to <Link to="/">login</Link>.
+            </Trans>
           </Note>
         )}
       </Centered>
@@ -250,4 +278,4 @@ const Centered = styled(Flex)`
   margin: 0 auto;
 `;
 
-export default observer(Login);
+export default withTranslation()<Login>(observer(Login));

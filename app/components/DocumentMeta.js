@@ -6,8 +6,10 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
+import DocumentTasks from "components/DocumentTasks";
 import Flex from "components/Flex";
 import Time from "components/Time";
+import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
 const Container = styled(Flex)`
@@ -50,7 +52,9 @@ function DocumentMeta({
   ...rest
 }: Props) {
   const { t } = useTranslation();
-  const { collections, auth } = useStores();
+  const { collections } = useStores();
+  const user = useCurrentUser();
+
   const {
     modifiedSinceViewed,
     updatedAt,
@@ -61,6 +65,8 @@ function DocumentMeta({
     deletedAt,
     isDraft,
     lastViewedAt,
+    isTasks,
+    isTemplate,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -69,6 +75,8 @@ function DocumentMeta({
     return null;
   }
 
+  const collection = collections.get(document.collectionId);
+  const lastUpdatedByCurrentUser = user.id === updatedBy.id;
   let content;
 
   if (deletedAt) {
@@ -103,14 +111,16 @@ function DocumentMeta({
     );
   } else {
     content = (
-      <Modified highlight={modifiedSinceViewed}>
+      <Modified highlight={modifiedSinceViewed && !lastUpdatedByCurrentUser}>
         {t("updated")} <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
   }
 
-  const collection = collections.get(document.collectionId);
-  const updatedByMe = auth.user && auth.user.id === updatedBy.id;
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
+  const canShowProgressBar = isTasks && !isTemplate;
 
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
@@ -131,13 +141,9 @@ function DocumentMeta({
     );
   };
 
-  const nestedDocumentsCount = collection
-    ? collection.getDocumentChildren(document.id).length
-    : 0;
-
   return (
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
-      {updatedByMe ? t("You") : updatedBy.name}&nbsp;
+      {lastUpdatedByCurrentUser ? t("You") : updatedBy.name}&nbsp;
       {to ? <Link to={to}>{content}</Link> : content}
       {showCollection && collection && (
         <span>
@@ -149,11 +155,17 @@ function DocumentMeta({
       )}
       {showNestedDocuments && nestedDocumentsCount > 0 && (
         <span>
-          &nbsp;&middot; {nestedDocumentsCount}{" "}
+          &nbsp;• {nestedDocumentsCount}{" "}
           {t("nested document", { count: nestedDocumentsCount })}
         </span>
       )}
       &nbsp;{timeSinceNow()}
+      {canShowProgressBar && (
+        <>
+          &nbsp;•&nbsp;
+          <DocumentTasks document={document} />
+        </>
+      )}
       {children}
     </Container>
   );

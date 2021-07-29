@@ -1,6 +1,6 @@
 // @flow
 import { action, autorun, computed, observable } from "mobx";
-import { light as defaultTheme } from "shared/styles/theme";
+import { light as defaultTheme } from "shared/theme";
 import Collection from "models/Collection";
 import Document from "models/Document";
 

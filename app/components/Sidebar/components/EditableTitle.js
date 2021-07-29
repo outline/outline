@@ -14,6 +14,7 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
   const { showToast } = useToasts();
+
   React.useEffect(() => {
     setValue(title);
   }, [title]);
@@ -38,26 +39,33 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
     [originalValue]
   );
 
-  const handleSave = React.useCallback(async () => {
-    setIsEditing(false);
+  const handleSave = React.useCallback(
+    async (ev) => {
+      ev.preventDefault();
 
-    if (value === originalValue) {
-      return;
-    }
+      setIsEditing(false);
 
-    if (document) {
-      try {
-        await onSubmit(value);
-        setOriginalValue(value);
-      } catch (error) {
+      const trimmedValue = value.trim();
+      if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
-        showToast(error.message, {
-          type: "error",
-        });
-        throw error;
+        return;
       }
-    }
-  }, [originalValue, showToast, value, onSubmit]);
+
+      if (document) {
+        try {
+          await onSubmit(trimmedValue);
+          setOriginalValue(trimmedValue);
+        } catch (error) {
+          setValue(originalValue);
+          showToast(error.message, {
+            type: "error",
+          });
+          throw error;
+        }
+      }
+    },
+    [originalValue, showToast, value, onSubmit]
+  );
 
   return (
     <>

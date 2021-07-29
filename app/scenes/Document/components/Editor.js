@@ -1,14 +1,15 @@
 // @flow
 import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { inject, observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
 import { type TFunction, withTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "shared/constants";
-import { light } from "shared/styles/theme";
+import { light } from "shared/theme";
 import parseTitle from "shared/utils/parseTitle";
+import PoliciesStore from "stores/PoliciesStore";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
@@ -29,6 +30,7 @@ type Props = {|
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
   children: React.Node,
+  policies: PoliciesStore,
   t: TFunction,
 |};
 
@@ -104,10 +106,12 @@ class DocumentEditor extends React.Component<Props> {
       readOnly,
       innerRef,
       children,
+      policies,
       t,
       ...rest
     } = this.props;
 
+    const can = policies.abilities(document.id);
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
     const normalizedTitle =
@@ -124,7 +128,9 @@ class DocumentEditor extends React.Component<Props> {
             dir="auto"
           >
             <span>{normalizedTitle}</span>{" "}
-            {!shareId && <StarButton document={document} size={32} />}
+            {(can.star || can.unstar) && (
+              <StarButton document={document} size={32} />
+            )}
           </Title>
         ) : (
           <Title
@@ -231,4 +237,6 @@ const Title = styled(Textarea)`
   }
 `;
 
-export default withTranslation()<DocumentEditor>(DocumentEditor);
+export default withTranslation()<DocumentEditor>(
+  inject("policies")(DocumentEditor)
+);

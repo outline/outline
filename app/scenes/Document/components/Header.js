@@ -76,7 +76,7 @@ function DocumentHeader({
     onSave({ done: true, publish: true });
   }, [onSave]);
 
-  const isNew = document.isNew;
+  const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
   const canShareDocument = auth.team && auth.team.sharing && can.share;
