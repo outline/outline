@@ -8,6 +8,7 @@ import Drafts from "scenes/Drafts";
 import Error404 from "scenes/Error404";
 import Home from "scenes/Home";
 import Search from "scenes/Search";
+import Starred from "scenes/Starred";
 import Templates from "scenes/Templates";
 import Trash from "scenes/Trash";
 
@@ -50,6 +51,8 @@ export default function AuthenticatedRoutes() {
             <Redirect from="/dashboard" to="/home" />
             <Route path="/home/:tab" component={Home} />
             <Route path="/home" component={Home} />
+            <Route exact path="/starred" component={Starred} />
+            <Route exact path="/starred/:sort" component={Starred} />
             <Route exact path="/templates" component={Templates} />
             <Route exact path="/templates/:sort" component={Templates} />
             <Route exact path="/drafts" component={Drafts} />

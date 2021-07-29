@@ -11,12 +11,12 @@ import { light } from "shared/theme";
 import parseTitle from "shared/utils/parseTitle";
 import PoliciesStore from "stores/PoliciesStore";
 import Document from "models/Document";
-import Bookmark, { AnimatedBookmark } from "components/Bookmark";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor, { type Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
+import Star, { AnimatedStar } from "components/Star";
 import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
@@ -129,7 +129,7 @@ class DocumentEditor extends React.Component<Props> {
           >
             <span>{normalizedTitle}</span>{" "}
             {(can.star || can.unstar) && (
-              <BookmarkButton document={document} size={32} />
+              <StarButton document={document} size={32} />
             )}
           </Title>
         ) : (
@@ -187,7 +187,7 @@ class DocumentEditor extends React.Component<Props> {
   }
 }
 
-const BookmarkButton = styled(Bookmark)`
+const StarButton = styled(Star)`
   position: relative;
   top: 4px;
 `;
@@ -216,12 +216,12 @@ const Title = styled(Textarea)`
     margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
   `};
 
-  ${AnimatedBookmark} {
+  ${AnimatedStar} {
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
   &:hover {
-    ${AnimatedBookmark} {
+    ${AnimatedStar} {
       opacity: 0.5;
 
       &:hover {

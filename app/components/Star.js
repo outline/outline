@@ -1,5 +1,5 @@
 // @flow
-import { BookmarkedIcon, BookmarkIcon } from "outline-icons";
+import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -11,7 +11,7 @@ type Props = {|
   size?: number,
 |};
 
-function Bookmark({ size, document, ...rest }: Props) {
+function Star({ size, document, ...rest }: Props) {
   const { t } = useTranslation();
   const handleClick = React.useCallback(
     (ev: SyntheticEvent<>) => {
@@ -35,13 +35,13 @@ function Bookmark({ size, document, ...rest }: Props) {
     <Button
       onClick={handleClick}
       size={size}
-      aria-label={document.isStarred ? t("Unbookmark") : t("Bookmark")}
+      aria-label={document.isStarred ? t("Unstar") : t("Star")}
       {...rest}
     >
       {document.isStarred ? (
-        <AnimatedBookmark size={size} color="currentColor" />
+        <AnimatedStar size={size} color="currentColor" />
       ) : (
-        <AnimatedBookmark size={size} color="currentColor" as={BookmarkIcon} />
+        <AnimatedStar size={size} color="currentColor" as={UnstarredIcon} />
       )}
     </Button>
   );
@@ -51,7 +51,7 @@ const Button = styled(NudeButton)`
   color: ${(props) => props.theme.text};
 `;
 
-export const AnimatedBookmark = styled(BookmarkedIcon)`
+export const AnimatedStar = styled(StarredIcon)`
   flex-shrink: 0;
   transition: all 100ms ease-in-out;
 
@@ -67,4 +67,4 @@ export const AnimatedBookmark = styled(BookmarkedIcon)`
   }
 `;
 
-export default Bookmark;
+export default Star;

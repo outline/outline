@@ -37,7 +37,7 @@ function Starred() {
         offset,
       });
     } catch (error) {
-      showToast(t("Bookmarked documents could not be loaded"), {
+      showToast(t("Starred documents could not be loaded"), {
         type: "error",
       });
       setFetchError(error);
@@ -106,7 +106,7 @@ function Starred() {
       <>
         <Header>{t("Starred")}</Header>
         <EmptyWrapper column>
-          <Empty>{t("You’ve not bookmarked any documents yet.")}</Empty>
+          <Empty>{t("You’ve not starred any documents yet.")}</Empty>
         </EmptyWrapper>
       </>
     );
@@ -125,7 +125,7 @@ function Starred() {
               onClick={handleDisclosureClick}
             />
           )}
-          <Header>{t("Bookmarked")}</Header>
+          <Header>{t("Starred")}</Header>
         </div>
 
         {expanded && (
