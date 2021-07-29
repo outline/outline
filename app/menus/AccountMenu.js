@@ -13,7 +13,7 @@ import {
 } from "shared/utils/routeHelpers";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
-import Template, { filterTemplateItems } from "components/ContextMenu/Template";
+import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
 import useBoolean from "hooks/useBoolean";
 import usePrevious from "hooks/usePrevious";
@@ -43,8 +43,8 @@ function AccountMenu(props: Props) {
     }
   }, [menu, ui.theme, previousTheme]);
 
-  const items = () =>
-    filterTemplateItems([
+  const items = React.useMemo(
+    () => [
       {
         title: t("Settings"),
         to: settings(),
@@ -100,7 +100,9 @@ function AccountMenu(props: Props) {
         title: t("Log out"),
         onClick: auth.logout,
       },
-    ]);
+    ],
+    [auth.logout, handleKeyboardShortcutsOpen, t, ui]
+  );
 
   return (
     <>
@@ -113,7 +115,7 @@ function AccountMenu(props: Props) {
       </Guide>
       <MenuButton {...menu}>{props.children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <Template {...menu} items={items()} />
+        <Template {...menu} items={items} />
       </ContextMenu>
     </>
   );
