@@ -36,7 +36,6 @@ if (GOOGLE_CLIENT_ID) {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/google.callback`,
-        prompt: "select_account consent",
         passReqToCallback: true,
         store: new StateStore(),
         scope: scopes,
@@ -91,7 +90,7 @@ if (GOOGLE_CLIENT_ID) {
     "google",
     passport.authenticate(providerName, {
       accessType: "offline",
-      prompt: "consent",
+      prompt: "select_account consent",
     })
   );
 
