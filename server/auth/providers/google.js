@@ -87,7 +87,13 @@ if (GOOGLE_CLIENT_ID) {
     )
   );
 
-  router.get("google", passport.authenticate(providerName));
+  router.get(
+    "google",
+    passport.authenticate(providerName, {
+      accessType: "offline",
+      prompt: "consent",
+    })
+  );
 
   router.get("google.callback", passportMiddleware(providerName));
 }
