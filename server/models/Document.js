@@ -197,13 +197,25 @@ Document.associate = (models) => {
 
     return {
       include: [
-        { model: models.View, as: "views", where: { userId }, required: false },
+        {
+          model: models.View,
+          as: "views",
+          where: { userId },
+          required: false,
+          separate: true,
+        },
       ],
     };
   });
   Document.addScope("withStarred", (userId) => ({
     include: [
-      { model: models.Star, as: "starred", where: { userId }, required: false },
+      {
+        model: models.Star,
+        as: "starred",
+        where: { userId },
+        required: false,
+        separate: true,
+      },
     ],
   }));
 };
