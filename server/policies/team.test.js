@@ -1,7 +1,7 @@
 // @flow
 import { buildUser, buildTeam, buildAdmin } from "../test/factories";
 import { flushdb } from "../test/support";
-import { serialize } from "./index";
+import serialize from "./serializer";
 
 beforeEach(() => flushdb());
 
