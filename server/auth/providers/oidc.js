@@ -14,8 +14,8 @@ import { getAllowedDomains } from "../../utils/authentication";
 import { StateStore } from "../../utils/passport";
 
 const router = new Router();
-const providerName = "oauth2";
-const OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME || "OAuth2";
+const providerName = "oidc";
+const OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME || "OpenID Connect";
 const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID;
 const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
