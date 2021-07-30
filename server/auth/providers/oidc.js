@@ -5,10 +5,7 @@ import Router from "koa-router";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
-import {
-  OAuth2MalformedUserInfoError,
-  AuthenticationError,
-} from "../../errors";
+import { OIDCMalformedUserInfoError, AuthenticationError } from "../../errors";
 import passportMiddleware from "../../middlewares/passport";
 import { getAllowedDomains } from "../../utils/authentication";
 import { StateStore } from "../../utils/passport";
@@ -81,7 +78,7 @@ if (OIDC_CLIENT_ID) {
           const domain = parts.length && parts[1];
 
           if (!domain) {
-            throw new OAuth2MalformedUserInfoError();
+            throw new OIDCMalformedUserInfoError();
           }
 
           if (allowedDomains.length && !allowedDomains.includes(domain)) {

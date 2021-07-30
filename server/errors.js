@@ -100,7 +100,7 @@ export function GoogleWorkspaceInvalidError(
   return httpErrors(400, message, { id: "hd_not_allowed" });
 }
 
-export function OAuth2MalformedUserInfoError(
+export function OIDCMalformedUserInfoError(
   message: string = "User profile information malformed"
 ) {
   return httpErrors(400, message, { id: "malformed_user_info" });
