@@ -42,11 +42,11 @@ Strategy.prototype.userProfile = async function (accessToken, done) {
 
     try {
       return done(null, await response.json());
-    } catch (ex) {
-      return done(new Error("Failed to parse user profile"));
+    } catch (err) {
+      return done(err);
     }
   } catch (err) {
-    return done(new Error("Failed to fetch user profile"));
+    return done(err);
   }
 };
 
