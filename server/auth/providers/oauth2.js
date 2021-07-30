@@ -21,6 +21,7 @@ const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
+const OIDC_TEAM_CLAIM = process.env.OIDC_TEAM_CLAIM || "team_name";
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const allowedDomains = getAllowedDomains();
 
@@ -94,7 +95,7 @@ if (OIDC_CLIENT_ID) {
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
-              name: profile.team_name,
+              name: profile[OIDC_TEAM_CLAIM],
               domain,
               subdomain,
             },
