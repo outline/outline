@@ -66,6 +66,14 @@ if (OIDC_CLIENT_ID) {
         state: true,
         pkce: false,
       },
+
+      // OpenID Connect standard profile claims can be found in the official
+      // specification.
+      // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+
+      // Non-standard claims may be configured by individual identity providers.
+      // Any claim supplied in response to the userinfo request will be
+      // available on the `profile` parameter
       async function (req, accessToken, refreshToken, profile, done) {
         try {
           const parts = profile.email.split("@");
