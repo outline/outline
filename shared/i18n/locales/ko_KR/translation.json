@@ -381,6 +381,8 @@
   "Group members": "Group members",
   "Recently viewed": "최근에 조회됨",
   "Created by me": "나에 의해 생성됨",
+  "Weird, this shouldn’t ever be empty": "Weird, this shouldn’t ever be empty",
+  "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "We sent out your invites!",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Sorry, you can only send {{MAX_INVITES}} invites at a time",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.",
