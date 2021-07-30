@@ -6,6 +6,8 @@ import {
   buildCollection,
 } from "../test/factories";
 import { flushdb } from "../test/support";
+
+import "./";
 import serialize from "./serializer";
 
 beforeEach(() => flushdb());
