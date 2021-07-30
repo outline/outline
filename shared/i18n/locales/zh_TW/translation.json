@@ -381,6 +381,8 @@
   "Group members": "群組成員",
   "Recently viewed": "最近瀏覽",
   "Created by me": "由我建立的",
+  "Weird, this shouldn’t ever be empty": "Weird, this shouldn’t ever be empty",
+  "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "我們發出了您的邀請！",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "抱歉，您一次最多只能發送 {{MAX_INVITES}} 個邀請",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "邀請團隊成員或訪客加入您的 Knowledge Base。團隊成員可以使用 {{signinMethods}} 或 email 進行登入。",
