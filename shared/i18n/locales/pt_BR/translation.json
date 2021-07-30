@@ -381,6 +381,8 @@
   "Group members": "Membros do grupo",
   "Recently viewed": "Visualizado recentemente",
   "Created by me": "Criado por mim",
+  "Weird, this shouldn’t ever be empty": "Weird, this shouldn’t ever be empty",
+  "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "Enviamos seus convites!",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Desculpe, você só pode enviar {{MAX_INVITES}} convites por vez",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "Convide membros da equipe ou convidados para se juntarem à sua base de conhecimento. Os membros da equipe podem entrar com {{signinMethods}} ou usar seu endereço de email.",
