@@ -41,7 +41,7 @@ async function exportAndEmailCollections(
     state,
     key,
     url: null,
-    size: 1234,
+    size: 0,
     userId,
     teamId,
   });
@@ -50,12 +50,13 @@ async function exportAndEmailCollections(
 
   log("Archive path", filePath);
 
-  const readBuffer = fs.readFileSync(filePath);
+  const readBuffer = await fs.promises.readFile(filePath);
   let url;
   try {
     state = "uploading";
     exportData.state = state;
-
+    const stat = await fs.promises.stat(filePath);
+    exportData.size = stat.size;
     await exportData.save();
 
     url = await uploadToS3FromBuffer(readBuffer, "application/zip", key, acl);
