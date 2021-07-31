@@ -8,13 +8,19 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-export const exportEmailText = `
+export const exportEmailSuccessText = `
 Your Data Export
 
-Your requested data export is attached as a zip file to this email.
+Your requested data export is completed, please visit the export section to find the zip file.
 `;
 
-export const ExportEmail = () => {
+export const exportEmailErrorText = `
+Your Data Export
+
+Your requested data export is failed, please visit the export section to know more and try again.
+`;
+
+export const ExportEmail = ({ id, state }: { id: string, state: string }) => {
   return (
     <EmailTemplate>
       <Header />
@@ -22,11 +28,15 @@ export const ExportEmail = () => {
       <Body>
         <Heading>Your Data Export</Heading>
         <p>
-          Your requested data export is attached as a zip file to this email.
+          {state === "complete"
+            ? "Your requested data export is completed, please visit the export section to find the zip file."
+            : "Your requested data export is failed, please visit the export section to know more and try again."}
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}/home`}>Go to dashboard</Button>
+          <Button href={`${process.env.URL}/settings/import-export?key=${id}`}>
+            View my export
+          </Button>
         </p>
       </Body>
 

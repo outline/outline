@@ -501,7 +501,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
     ctx.body = fs.createReadStream(filePath);
   } else {
     // async operation to create zip archive and email user
-    exportCollections(user.teamId, user.email);
+    exportCollections(user.teamId, user.id, user.email);
 
     ctx.body = {
       success: true,
