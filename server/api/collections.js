@@ -14,6 +14,7 @@ import {
   User,
   Group,
   Attachment,
+  Export,
 } from "../models";
 import policy from "../policies";
 import {
@@ -28,7 +29,7 @@ import { Op, sequelize } from "../sequelize";
 
 import collectionIndexing from "../utils/collectionIndexing";
 import removeIndexCollision from "../utils/removeIndexCollision";
-import { archiveCollection, archiveCollections } from "../utils/zip";
+import { archiveCollections } from "../utils/zip";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -454,12 +455,23 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "export", collection);
 
-  const filePath = await archiveCollection(collection);
+  const filePath = await archiveCollections([collection]);
+
+  const stat = await fs.promises.stat(filePath);
+
+  await Export.create({
+    state: "complete",
+    collectionId: collection.id,
+    size: stat.size,
+    userId: user.id,
+    teamId: team.id,
+  });
 
   await Event.create({
     name: "collections.export",

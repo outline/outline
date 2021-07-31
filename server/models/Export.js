@@ -17,7 +17,6 @@ const Export = sequelize.define("export", {
   },
   key: {
     type: DataTypes.STRING,
-    allowNull: false,
   },
   url: {
     type: DataTypes.STRING,
