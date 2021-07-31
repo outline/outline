@@ -2,6 +2,7 @@
 import passport from "@outlinewiki/koa-passport";
 import fetch from "fetch-with-proxy";
 import Router from "koa-router";
+import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
@@ -92,7 +93,7 @@ if (OIDC_CLIENT_ID) {
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
-              name: profile[OIDC_TEAM_CLAIM],
+              name: get(profile, OIDC_TEAM_CLAIM),
               domain,
               subdomain,
             },
