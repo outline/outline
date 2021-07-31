@@ -17,7 +17,6 @@ module.exports = {
       },
       key: {
         type: Sequelize.STRING,
-        allowNull: false,
       },
       url: {
         type: Sequelize.STRING,
