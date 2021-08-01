@@ -1,5 +1,3 @@
-# Getting Started
-
 Some ideas to get you and your team started with learning the basics of Outline, feel free to check them off as you go!
 
 ## Learn the basics
