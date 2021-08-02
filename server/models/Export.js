@@ -28,7 +28,9 @@ const Export = sequelize.define("export", {
 });
 
 Export.beforeDestroy(async (model) => {
-  await deleteFromS3(model.key);
+  if (model.key) {
+    await deleteFromS3(model.key);
+  }
 });
 
 Export.associate = (models) => {

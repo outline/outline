@@ -12,6 +12,7 @@ import "./share";
 import "./user";
 import "./team";
 import "./group";
+import "./export";
 
 const { can, abilities } = policy;
 

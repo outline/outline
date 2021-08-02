@@ -9,7 +9,7 @@ import pagination from "./middlewares/pagination";
 const { authorize } = policy;
 const router = new Router();
 
-router.get("exports.list", auth(), pagination(), async (ctx) => {
+router.post("exports.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
 
   const exports = await Export.findAll({
@@ -50,3 +50,5 @@ router.post("exports.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
+export default router;
