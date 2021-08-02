@@ -267,7 +267,7 @@
   "Saving": "Speichert",
   "Save": "Speichern",
   "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be downloaded as a zip of folders with files in Markdown format.": "Der Export der Sammlung <em>{{collectionName}}</em> kann einige Sekunden dauern. Ihre Dokumente werden als ZIP-Datei mit Markdown Textdateien heruntergeladen.",
-  "Exporting": "Wird exportiert...",
+  "Exporting": "Wird exportiert",
   "Export Collection": "Sammlung exportieren",
   "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.": "Sammlungen dienen zur Gruppierung von Dokumenten. Sie funktionieren am besten, wenn sie nach einem Thema oder nach internen Teams organisiert sind — z. B. Produkt oder Entwicklung.",
   "This is the default level of access given to team members, you can give specific users or groups more access once the collection is created.": "Dies ist die Standardstufe des Zugriffs für Teammitglieder. Du kannst bestimmten Nutzern oder Gruppen mehr Zugriff geben, sobald die Sammlung erstellt wurde.",
