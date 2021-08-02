@@ -28,7 +28,7 @@ function Security() {
     debounce(() => {
       showToast(t("Settings saved"), { type: "success" });
     }, 250),
-    []
+    [t, showToast]
   );
 
   const handleChange = React.useCallback(
