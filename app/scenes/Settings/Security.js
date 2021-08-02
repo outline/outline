@@ -18,29 +18,34 @@ function Security() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
-  const [sharing, setSharing] = useState(team.documentEmbeds);
-  const [documentEmbeds, setDocumentEmbeds] = useState(team.guestSignin);
-  const [guestSignin, setGuestSignin] = useState(team.sharing);
+  const [sharing, setSharing] = useState(team.sharing);
+  const [documentEmbeds, setDocumentEmbeds] = useState(team.documentEmbeds);
+  const [guestSignin, setGuestSignin] = useState(team.guestSignin);
 
-  const showSuccessMessage = debounce(() => {
-    showToast(t("Settings saved"), { type: "success" });
-  }, 500);
+  const showSuccessMessage = React.useCallback(
+    debounce(() => {
+      showToast(t("Settings saved"), { type: "success" });
+    }, 250),
+    []
+  );
 
-  const handleChange = React.useCallback(
-    async (ev: SyntheticInputEvent<*>) => {
-      switch (ev.target.name) {
-        case "sharing":
-          setSharing(ev.target.checked);
-          break;
-        case "documentEmbeds":
-          setDocumentEmbeds(ev.target.checked);
-          break;
-        case "guestSignin":
-          setGuestSignin(ev.target.checked);
-          break;
-        default:
-      }
+  const handleChange = React.useCallback(async (ev: SyntheticInputEvent<*>) => {
+    switch (ev.target.name) {
+      case "sharing":
+        setSharing(ev.target.checked);
+        break;
+      case "documentEmbeds":
+        setDocumentEmbeds(ev.target.checked);
+        break;
+      case "guestSignin":
+        setGuestSignin(ev.target.checked);
+        break;
+      default:
+    }
+  }, []);
 
+  React.useEffect(() => {
+    async function save() {
       await auth.updateTeam({
         sharing,
         documentEmbeds,
@@ -48,9 +53,16 @@ function Security() {
       });
 
       showSuccessMessage();
-    },
-    [auth, sharing, documentEmbeds, guestSignin, showSuccessMessage]
-  );
+    }
+
+    if (
+      team.sharing !== sharing ||
+      team.documentEmbeds !== documentEmbeds ||
+      team.guestSignin !== guestSignin
+    ) {
+      save();
+    }
+  }, [auth, team, sharing, documentEmbeds, guestSignin, showSuccessMessage]);
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
