@@ -2,7 +2,6 @@
 import passport from "@outlinewiki/koa-passport";
 import fetch from "fetch-with-proxy";
 import Router from "koa-router";
-import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../commands/accountProvisioner";
 import env from "../../env";
@@ -19,7 +18,6 @@ const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
-const OIDC_TEAM_CLAIM = process.env.OIDC_TEAM_CLAIM || "team_name";
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const allowedDomains = getAllowedDomains();
 
@@ -93,7 +91,8 @@ if (OIDC_CLIENT_ID) {
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
-              name: get(profile, OIDC_TEAM_CLAIM),
+              // https://github.com/outline/outline/pull/2388#discussion_r681120223
+              name: "Wiki",
               domain,
               subdomain,
             },
