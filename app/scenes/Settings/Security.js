@@ -18,38 +18,29 @@ function Security() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
-  const [sharing, setSharing] = useState(team.documentEmbeds);
-  const [documentEmbeds, setDocumentEmbeds] = useState(team.guestSignin);
-  const [guestSignin, setGuestSignin] = useState(team.sharing);
+  const [data, setData] = useState({
+    sharing: team.sharing,
+    documentEmbeds: team.documentEmbeds,
+    guestSignin: team.guestSignin,
+  });
 
-  const showSuccessMessage = debounce(() => {
-    showToast(t("Settings saved"), { type: "success" });
-  }, 500);
+  const showSuccessMessage = React.useCallback(
+    debounce(() => {
+      showToast(t("Settings saved"), { type: "success" });
+    }, 250),
+    [t, showToast]
+  );
 
   const handleChange = React.useCallback(
     async (ev: SyntheticInputEvent<*>) => {
-      switch (ev.target.name) {
-        case "sharing":
-          setSharing(ev.target.checked);
-          break;
-        case "documentEmbeds":
-          setDocumentEmbeds(ev.target.checked);
-          break;
-        case "guestSignin":
-          setGuestSignin(ev.target.checked);
-          break;
-        default:
-      }
+      const newData = { ...data, [ev.target.name]: ev.target.checked };
+      setData(newData);
 
-      await auth.updateTeam({
-        sharing,
-        documentEmbeds,
-        guestSignin,
-      });
+      await auth.updateTeam(newData);
 
       showSuccessMessage();
     },
-    [auth, sharing, documentEmbeds, guestSignin, showSuccessMessage]
+    [auth, data, showSuccessMessage]
   );
 
   return (
@@ -67,14 +58,14 @@ function Security() {
       <Checkbox
         label={t("Allow email authentication")}
         name="guestSignin"
-        checked={guestSignin}
+        checked={data.guestSignin}
         onChange={handleChange}
         note={t("When enabled, users can sign-in using their email address")}
       />
       <Checkbox
         label={t("Public document sharing")}
         name="sharing"
-        checked={sharing}
+        checked={data.sharing}
         onChange={handleChange}
         note={t(
           "When enabled, documents can be shared publicly on the internet by any team member"
@@ -83,7 +74,7 @@ function Security() {
       <Checkbox
         label={t("Rich service embeds")}
         name="documentEmbeds"
-        checked={documentEmbeds}
+        checked={data.documentEmbeds}
         onChange={handleChange}
         note={t(
           "Links to supported services are shown as rich embeds within your documents"

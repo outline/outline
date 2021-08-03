@@ -97,10 +97,12 @@ export const base = {
   blockToolbarIcon: undefined,
   blockToolbarIconSelected: colors.black,
 
-  noticeTipBackground: colors.brand.purple,
-  noticeTipText: colors.white,
-  noticeWarningBackground: colors.danger,
-  noticeWarningText: colors.white,
+  noticeInfoBackground: colors.warmGrey,
+  noticeInfoText: colors.almostBlack,
+  noticeTipBackground: "#fce5bb",
+  noticeTipText: colors.almostBlack,
+  noticeWarningBackground: "#ffadbf",
+  noticeWarningText: colors.almostBlack,
 
   breakpoints: {
     mobile: 0, // targeting all devices
@@ -177,8 +179,6 @@ export const light = {
   embedBorder: colors.slateLight,
   horizontalRule: colors.smokeDark,
 
-  noticeInfoBackground: colors.warmGrey,
-  noticeInfoText: colors.almostBlack,
   progressBarBackground: colors.slateLight,
 
   scrollbarBackground: colors.smoke,
@@ -240,8 +240,13 @@ export const dark = {
   embedBorder: colors.black50,
   horizontalRule: lighten(0.1, colors.almostBlack),
 
-  noticeInfoBackground: colors.white10,
-  noticeInfoText: colors.almostWhite,
+  noticeInfoBackground: "#252a37",
+  noticeInfoText: colors.white,
+  noticeTipBackground: "#a3840a",
+  noticeTipText: colors.white,
+  noticeWarningBackground: "#7a001b",
+  noticeWarningText: colors.white,
+
   progressBarBackground: colors.slate,
 
   scrollbarBackground: colors.black,

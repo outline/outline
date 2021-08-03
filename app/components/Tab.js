@@ -13,7 +13,7 @@ type Props = {
 const NavLinkWithChildrenFunc = ({ to, exact = false, children, ...rest }) => (
   <Route path={to} exact={exact}>
     {({ match }) => (
-      <NavLink to={to} {...rest}>
+      <NavLink to={to} exact={exact} {...rest}>
         {children(match)}
       </NavLink>
     )}
