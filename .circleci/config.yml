@@ -3,7 +3,7 @@ version: 2.1
 executors:
   docker-publisher:
     environment:
-      IMAGE_NAME: outline
+      IMAGE_NAME: outlinewiki/outline
     docker:
       - image: circleci/buildpack-deps:stretch
 
