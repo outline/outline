@@ -65,7 +65,7 @@ jobs:
           root: .
           paths:
             - ./image.tar
-  publish-image:
+  publish-latest:
     executor: docker-publisher
     steps:
       - attach_workspace:
@@ -82,6 +82,23 @@ jobs:
             IMAGE_TAG=version-${CIRCLE_TAG/v/''}
             docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
             docker push $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:$IMAGE_TAG
+  publish-tag:
+    executor: docker-publisher
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 20.10.6
+      - run:
+          name: Load archived Docker image
+          command: docker load -i /tmp/workspace/image.tar
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            IMAGE_TAG=version-${CIRCLE_TAG/v/''}
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
             docker push $IMAGE_NAME:$IMAGE_TAG
 
 workflows:
@@ -100,11 +117,19 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - publish-image:
+      - publish-latest:
           requires:
             - build-image
           filters:
             tags:
-              only: /^v.*/
+              only: /^v\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
+      - publish-tag:
+          requires:
+            - build-image
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+-.*$/
             branches:
               ignore: /.*/
