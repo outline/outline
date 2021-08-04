@@ -12,9 +12,7 @@ module.exports = {
         type: Sequelize.ENUM("creating", "uploading", "complete", "error"),
         allowNull: false,
       },
-      collectionId: {
-        type: Sequelize.UUID
-      },
+      
       key: {
         type: Sequelize.STRING,
       },
@@ -30,6 +28,12 @@ module.exports = {
         allowNull: false,
         references: {
           model: "users"
+        }
+      },
+      collectionId: {
+        type: Sequelize.UUID,       
+        references: {
+          model: "collections"
         }
       },
       teamId: {

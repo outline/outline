@@ -12,9 +12,6 @@ const Export = sequelize.define("export", {
     type: DataTypes.ENUM("creating", "uploading", "complete", "error"),
     allowNull: false,
   },
-  collectionId: {
-    type: DataTypes.UUID,
-  },
   key: {
     type: DataTypes.STRING,
   },
@@ -37,6 +34,10 @@ Export.associate = (models) => {
   Export.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",
+  });
+  Export.belongsTo(models.Collection, {
+    as: "collection",
+    foreignKey: "collectionId",
   });
   Export.belongsTo(models.Team, {
     as: "team",
