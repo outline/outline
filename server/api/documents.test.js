@@ -1349,6 +1349,7 @@ describe("#documents.viewed", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("should not return recently viewed but deleted documents", async () => {
