@@ -3,12 +3,7 @@ import { find } from "lodash";
 import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
-import {
-  Trans,
-  withTranslation,
-  type TFunction,
-  useTranslation,
-} from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Link, type Location, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
@@ -29,12 +24,11 @@ import useStores from "hooks/useStores";
 
 type Props = {|
   location: Location,
-  t: TFunction,
 |};
 
-function Login({ location, t }: Props) {
+function Login({ location }: Props) {
   const query = useQuery();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { auth } = useStores();
   const { config } = auth;
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
@@ -278,4 +272,4 @@ const Centered = styled(Flex)`
   margin: 0 auto;
 `;
 
-export default withTranslation()<Login>(observer(Login));
+export default observer(Login);

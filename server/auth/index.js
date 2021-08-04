@@ -8,7 +8,7 @@ import Router from "koa-router";
 import { AuthenticationError } from "../errors";
 import auth from "../middlewares/authentication";
 import validation from "../middlewares/validation";
-import { Team } from "../models";
+import { Collection, Team, View } from "../models";
 import providers from "./providers";
 
 const log = debug("server");
@@ -41,8 +41,23 @@ router.get("/redirect", auth(), async (ctx) => {
     expires: addMonths(new Date(), 3),
   });
 
-  const team = await Team.findByPk(user.teamId);
-  ctx.redirect(`${team.url}/home`);
+  const [team, collection, view] = await Promise.all([
+    Team.findByPk(user.teamId),
+    Collection.findOne({
+      where: { teamId: user.teamId },
+    }),
+    View.findOne({
+      where: { userId: user.id },
+    }),
+  ]);
+
+  const hasViewedDocuments = !!view;
+
+  ctx.redirect(
+    !hasViewedDocuments && collection
+      ? `${team.url}${collection.url}`
+      : `${team.url}/home`
+  );
 });
 
 app.use(bodyParser());

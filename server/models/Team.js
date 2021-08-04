@@ -170,9 +170,9 @@ Team.prototype.provisionFirstCollection = async function (userId) {
   // For the first collection we go ahead and create some intitial documents to get
   // the team started. You can edit these in /server/onboarding/x.md
   const onboardingDocs = [
-    "Support",
     "Integrations & API",
     "Our Editor",
+    "Getting Started",
     "What is Outline",
   ];
 
@@ -182,7 +182,7 @@ Team.prototype.provisionFirstCollection = async function (userId) {
       "utf8"
     );
     const document = await Document.create({
-      version: 1,
+      version: 2,
       isWelcome: true,
       parentDocumentId: null,
       collectionId: collection.id,
