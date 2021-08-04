@@ -310,9 +310,10 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
 
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
+  const userId = user.id;
 
   const views = await View.findAll({
-    where: { userId: user.id },
+    where: { userId },
     order: [[sort, direction]],
     include: [
       {
@@ -325,8 +326,15 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
           {
             model: Star,
             as: "starred",
-            where: { userId: user.id },
+            where: { userId },
+            separate: true,
             required: false,
+          },
+          {
+            model: Collection.scope({
+              method: ["withMembership", userId],
+            }),
+            as: "collection",
           },
         ],
       },
