@@ -124,7 +124,7 @@ function Table({
                       },
                     ])}
                   >
-                    {cell.render("Cell")}
+                    <CellWrapper>{cell.render("Cell")}</CellWrapper>
                   </Cell>
                 ))}
               </Row>
@@ -223,6 +223,10 @@ const Cell = styled.td`
     text-align: right;
     vertical-align: bottom;
   }
+`;
+
+const CellWrapper = styled(Flex)`
+  margin: 4px;
 `;
 
 const Row = styled.tr`
