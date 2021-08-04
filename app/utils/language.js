@@ -6,7 +6,7 @@ export function detectLanguage() {
   return `${ln}_${region}`;
 }
 
-export function changeLanguage(toLanguageString, i18n) {
+export function changeLanguage(toLanguageString: ?string, i18n: any) {
   if (toLanguageString && i18n.language !== toLanguageString) {
     // Languages are stored in en_US format in the database, however the
     // frontend translation framework (i18next) expects en-US
