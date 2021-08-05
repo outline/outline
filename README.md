@@ -95,11 +95,29 @@ For contributing features and fixes you can quickly get an environment running u
     1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
     1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-1. Configure your Slack app's Oauth & Permissions settings 
+    1. `URL` (set to your public ngrok `https` forwarding URL - see below)
+1. Configure your Slack app's _Features/Oauth & Permissions_ settings:
     1. Slack recently prevented the use of `http` protocol for localhost. For local development, you can use a tool like [ngrok](https://ngrok.com) or a package like `mkcert`. ([How to use HTTPS for local development](https://web.dev/how-to-use-local-https/))
-    1. Add `https://my_ngrok_address/auth/slack.callback` as an Oauth redirect URL
-    1. Ensure that the bot token scope contains at least `users:read`
-1. Run `make up`. This will download dependencies, build and launch a development version of Outline
+    1. For `ngrok` run the following command in a new terminal to start a public http/s tunnel to our local development server.
+       ```
+       ngrok http 3000
+       ```
+    1. Use the generated ngrok `https` forwarding url from terminal output to:
+       * configure the `URL` in .env file mentioned above:
+          ```
+          URL=https://<my_host>.ngrok.io
+          ``` 
+       * In _Redirect URLs_, add an Oauth redirect URL to your Slack app configuration based on the forwarding url root.
+          ```
+          https://<my_host>.ngrok.io/auth/slack.callback
+          ``` 
+         **NOTE**: The free ngrok account generates a new random URL every time you run ngrok from the terminal,
+         so you will also need to update the configuration above each time it changes.
+    1. In your Slack app's _Bot Token Scopes_ add an OAuth Scope  `users:read`. 
+1. Run `make up`. This will download dependencies, build and launch a development version of Outline. The required redis, posgres and a fake S3 service are started in a `docker-compose` app.
+1. Open your browser to the configured URL (ie. if using ngrok, your public `https` forwarding URL )
+1. You should be able to Login using the 'continue with Slack' authentication option which will progress through Slack's permission workflow.
+1. To stop, type `Ctrl-c`. You can also stop the redis, postgres and fake S3 services with command `docker-compose stop`
 
 
 # Contributing
