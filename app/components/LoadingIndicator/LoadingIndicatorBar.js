@@ -11,16 +11,14 @@ const LoadingIndicatorBar = () => {
 };
 
 const loadingFrame = keyframes`
-  from {margin-left: -100%; z-index:100;}
-  to {margin-left: 100%; }
+  from { margin-left: -100%; }
+  to { margin-left: 100%; }
 `;
 
 const Container = styled.div`
   position: fixed;
   top: 0;
   z-index: ${(props) => props.theme.depths.loadingIndicatorBar};
-
-  background-color: #03a9f4;
   width: 100%;
   animation: ${loadingFrame} 4s ease-in-out infinite;
   animation-delay: 250ms;
@@ -30,7 +28,7 @@ const Container = styled.div`
 const Loader = styled.div`
   width: 100%;
   height: 2px;
-  background-color: #03a9f4;
+  background-color: ${(props) => props.theme.primary};
 `;
 
 export default LoadingIndicatorBar;

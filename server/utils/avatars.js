@@ -29,6 +29,8 @@ export async function generateAvatarUrl({
     }
   }
 
-  const tileyUrl = `${DEFAULT_AVATAR_HOST}/avatar/${hashedId}/${name[0]}.png`;
+  const tileyUrl = `${DEFAULT_AVATAR_HOST}/avatar/${hashedId}/${encodeURIComponent(
+    name[0]
+  )}.png`;
   return cbUrl && cbResponse && cbResponse.status === 200 ? cbUrl : tileyUrl;
 }
