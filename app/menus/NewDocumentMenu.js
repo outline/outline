@@ -53,16 +53,22 @@ function NewDocumentMenu() {
         <Header>{t("Choose a collection")}</Header>
         <Template
           {...menu}
-          items={collections.orderedData.map((collection) => ({
-            to: newDocumentUrl(collection.id),
-            disabled: !policies.abilities(collection.id).update,
-            title: (
-              <Flex align="center">
-                <CollectionIcon collection={collection} />
-                <CollectionName>{collection.name}</CollectionName>
-              </Flex>
-            ),
-          }))}
+          items={collections.orderedData.reduce((filtered, collection) => {
+            const can = policies.abilities(collection.id);
+
+            if (can.update) {
+              filtered.push({
+                to: newDocumentUrl(collection.id),
+                title: (
+                  <Flex align="center">
+                    <CollectionIcon collection={collection} />
+                    <CollectionName>{collection.name}</CollectionName>
+                  </Flex>
+                ),
+              });
+            }
+            return filtered;
+          }, [])}
         />
       </ContextMenu>
     </>

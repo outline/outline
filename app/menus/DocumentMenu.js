@@ -242,21 +242,23 @@ function DocumentMenu({
                   type: "heading",
                   title: t("Choose a collection"),
                 },
-                ...collections.orderedData.map((collection) => {
+                ...collections.orderedData.reduce((filtered, collection) => {
                   const can = policies.abilities(collection.id);
 
-                  return {
-                    title: (
-                      <Flex align="center">
-                        <CollectionIcon collection={collection} />
-                        <CollectionName>{collection.name}</CollectionName>
-                      </Flex>
-                    ),
-                    onClick: (ev) =>
-                      handleRestore(ev, { collectionId: collection.id }),
-                    disabled: !can.update,
-                  };
-                }),
+                  if (can.update) {
+                    filtered.push({
+                      onClick: (ev) =>
+                        handleRestore(ev, { collectionId: collection.id }),
+                      title: (
+                        <Flex align="center">
+                          <CollectionIcon collection={collection} />
+                          <CollectionName>{collection.name}</CollectionName>
+                        </Flex>
+                      ),
+                    });
+                  }
+                  return filtered;
+                }, []),
               ],
             },
             {
