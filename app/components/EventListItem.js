@@ -115,7 +115,7 @@ const Subtitle = styled.span`
 const ListItem = styled(Item)`
   border: 0;
   position: relative;
-  margin: 4px;
+  margin: 8px;
   padding: 8px;
   border-radius: 8px;
 
@@ -130,7 +130,7 @@ const ListItem = styled(Item)`
     top: -4px;
     left: 23px;
     width: 2px;
-    height: calc(100% + 4px);
+    height: calc(100% + 8px);
     background: ${(props) => props.theme.textSecondary};
     opacity: 0.25;
   }
