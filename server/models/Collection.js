@@ -197,14 +197,43 @@ Collection.associate = (models) => {
 };
 
 Collection.addHook("afterDestroy", async (model: Collection) => {
+  // sets deletedAt attribute of archived, templates and normal documents
   await Document.destroy({
     where: {
       collectionId: model.id,
-      archivedAt: {
-        [Op.eq]: null,
-      },
     },
   });
+
+  // updating the documents that moved to deleted state from archived state
+  await Document.update(
+    {
+      archivedAt: null,
+    },
+    {
+      where: {
+        deletedAt: {
+          [Op.ne]: null,
+        },
+      },
+      paranoid: false,
+    }
+  );
+
+  // updating the drafts to have no collection
+  await Document.unscoped().update(
+    {
+      collectionId: null,
+      parentDocumentId: null,
+    },
+    {
+      where: {
+        publishedAt: {
+          [Op.eq]: null,
+        },
+        collectionId: model.id,
+      },
+    }
+  );
 });
 
 Collection.addHook("afterCreate", (model: Collection, options) => {

@@ -431,13 +431,8 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     authorize(user, "read", collection);
   }
 
-  const collectionIds = !!collectionId
-    ? [collectionId]
-    : await user.collectionIds();
-
   const whereConditions = {
     userId: user.id,
-    collectionId: collectionIds,
     publishedAt: { [Op.eq]: null },
     updatedAt: undefined,
   };
@@ -1039,6 +1034,7 @@ router.post("documents.update", auth(), async (ctx) => {
     transaction = await sequelize.transaction();
 
     if (publish) {
+      ctx.assertPresent(collection, "Collection should be present");
       await document.publish(user.id, { transaction });
     } else {
       await document.save({ autosave, transaction });
@@ -1194,7 +1190,8 @@ router.post("documents.delete", auth(), async (ctx) => {
     });
     authorize(user, "permanentDelete", document);
 
-    await Document.update(
+    //unscoping to apply on drafts documents
+    await Document.unscoped().update(
       { parentDocumentId: null },
       {
         where: {
@@ -1346,7 +1343,9 @@ router.post("documents.create", auth(), async (ctx) => {
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
 
-  ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  if (collectionId) {
+    ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  }
   if (parentDocumentId) {
     ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
   }
@@ -1356,31 +1355,38 @@ router.post("documents.create", auth(), async (ctx) => {
   const user = ctx.state.user;
   authorize(user, "createDocument", user.team);
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findOne({
-    where: {
-      id: collectionId,
-      teamId: user.teamId,
-    },
-  });
-  authorize(user, "publish", collection);
-
+  let collection;
   let parentDocument;
-  if (parentDocumentId) {
-    parentDocument = await Document.findOne({
+  let templateDocument;
+
+  if (collectionId) {
+    collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findOne({
       where: {
-        id: parentDocumentId,
-        collectionId: collection.id,
+        id: collectionId,
+        teamId: user.teamId,
       },
     });
-    authorize(user, "read", parentDocument, { collection });
-  }
 
-  let templateDocument;
-  if (templateId) {
-    templateDocument = await Document.findByPk(templateId, { userId: user.id });
-    authorize(user, "read", templateDocument);
+    authorize(user, "publish", collection);
+
+    if (parentDocumentId) {
+      parentDocument = await Document.findOne({
+        where: {
+          id: parentDocumentId,
+          collectionId: collection.id,
+        },
+      });
+      authorize(user, "read", parentDocument, { collection });
+    }
+
+    if (templateId) {
+      templateDocument = await Document.findByPk(templateId, {
+        userId: user.id,
+      });
+      authorize(user, "read", templateDocument);
+    }
   }
 
   const document = await documentCreator({
