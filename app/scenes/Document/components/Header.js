@@ -16,6 +16,7 @@ import Badge from "components/Badge";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
+import FilterOptions from "components/FilterOptions";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -65,7 +66,7 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { auth, ui, policies } = useStores();
+  const { auth, ui, policies, collections, documents } = useStores();
   const isMobile = useMobile();
 
   const handleSave = React.useCallback(() => {
@@ -82,6 +83,38 @@ function DocumentHeader({
   const canShareDocument = auth.team && auth.team.sharing && can.share;
   const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
   const canEdit = can.update && !isEditing;
+  const hasCollection = collections.get(document.computedCollectionId);
+  const [chosenCollection, setChosenCollection] = React.useState("");
+
+  const updateCollection = React.useCallback(async () => {
+    if (!chosenCollection) {
+      return;
+    }
+
+    const result = await documents.restore(document, {
+      collectionId: chosenCollection,
+    });
+    console.log(result);
+  }, [chosenCollection, document, documents]);
+
+  React.useEffect(() => {
+    updateCollection();
+  }, [updateCollection]);
+
+  const options = React.useMemo(() => {
+    const collectionOptions = collections.orderedData.map((collection) => ({
+      key: collection.id,
+      label: collection.name,
+    }));
+
+    return [
+      {
+        key: "",
+        label: t("Choose collection"),
+      },
+      ...collectionOptions,
+    ];
+  }, [collections.orderedData, t]);
 
   const toc = (
     <Tooltip
@@ -176,6 +209,17 @@ function DocumentHeader({
                 <ShareButton document={document} />
               </Action>
             )}
+            {can.update && isDraft && !isRevision && !hasCollection && (
+              <Action>
+                <FilterOptions
+                  options={options}
+                  activeKey={options[0].key}
+                  onSelect={(key) => setChosenCollection(key)}
+                  defaultLabel={t("Choose collection")}
+                  selectedPrefix={`${t("Collection")}:`}
+                />
+              </Action>
+            )}
             {isEditing && (
               <>
                 <Action>
@@ -230,7 +274,7 @@ function DocumentHeader({
                 </Button>
               </Action>
             )}
-            {can.update && isDraft && !isRevision && (
+            {can.update && isDraft && !isRevision && hasCollection && (
               <Action>
                 <Tooltip
                   tooltip={t("Publish")}

@@ -16,9 +16,9 @@ function CollectionFilter(props: Props) {
   const { onSelect, collectionId } = props;
 
   const options = React.useMemo(() => {
-    const collectionOptions = collections.orderedData.map((user) => ({
-      key: user.id,
-      label: user.name,
+    const collectionOptions = collections.orderedData.map((collection) => ({
+      key: collection.id,
+      label: collection.name,
     }));
 
     return [

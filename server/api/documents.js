@@ -709,6 +709,8 @@ router.post("documents.restore", auth(), async (ctx) => {
       data: { title: document.title },
       ip: ctx.request.ip,
     });
+  } else if (!document.publishedAt) {
+    await document.save();
   } else {
     ctx.assertPresent(revisionId, "revisionId is required");
   }
