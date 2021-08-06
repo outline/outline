@@ -2,6 +2,7 @@
 declare var process: {
   exit: (code?: number) => void,
   cwd: () => string,
+  argv: Array<string>,
   env: {
     [string]: string,
   },

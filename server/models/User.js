@@ -7,6 +7,7 @@ import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
+import { palette } from "../utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import {
   UserAuthentication,
@@ -73,6 +74,11 @@ const User = sequelize.define(
           .update(this.email || "")
           .digest("hex");
         return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png`;
+      },
+      color() {
+        const idAsHex = crypto.createHash("md5").update(this.id).digest("hex");
+        const idAsNumber = parseInt(idAsHex, 16);
+        return palette[idAsNumber % palette.length];
       },
     },
   }

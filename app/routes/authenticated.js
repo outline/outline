@@ -22,10 +22,8 @@ import { matchDocumentSlug as slug } from "utils/routeHelpers";
 const SettingsRoutes = React.lazy(() =>
   import(/* webpackChunkName: "settings" */ "./settings")
 );
-const KeyedDocument = React.lazy(() =>
-  import(
-    /* webpackChunkName: "keyed-document" */ "scenes/Document/KeyedDocument"
-  )
+const Document = React.lazy(() =>
+  import(/* webpackChunkName: "document" */ "scenes/Document")
 );
 const NotFound = () => <Search notFound />;
 const RedirectDocument = ({ match }: { match: Match }) => (
@@ -66,10 +64,10 @@ export default function AuthenticatedRoutes() {
             <Route
               exact
               path={`/doc/${slug}/history/:revisionId?`}
-              component={KeyedDocument}
+              component={Document}
             />
-            <Route exact path={`/doc/${slug}/edit`} component={KeyedDocument} />
-            <Route path={`/doc/${slug}`} component={KeyedDocument} />
+            <Route exact path={`/doc/${slug}/edit`} component={Document} />
+            <Route path={`/doc/${slug}`} component={Document} />
             <Route exact path="/search" component={Search} />
             <Route exact path="/search/:term" component={Search} />
             <Route path="/404" component={Error404} />

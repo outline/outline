@@ -111,11 +111,22 @@ Is your team enjoying Outline? Consider supporting future development by sponsor
   );
 }
 
-const { start } = require("./main");
+const isMultiplayer = process.argv.includes("--multiplayer");
 
-throng({
-  worker: start,
+if (isMultiplayer) {
+  Error.stackTraceLimit = Infinity;
 
-  // The number of workers to run, defaults to the number of CPUs available
-  count: process.env.WEB_CONCURRENCY || undefined,
-});
+  const { start } = require("./multiplayer");
+
+  // TODO: Not using throng until multiplayer server has multi-process support
+  start();
+} else {
+  const { start } = require("./main");
+
+  throng({
+    worker: start,
+
+    // The number of workers to run, defaults to the number of CPUs available
+    count: process.env.WEB_CONCURRENCY || undefined,
+  });
+}

@@ -1,19 +1,26 @@
 // @flow
 import { Logger } from "@hocuspocus/extension-logger";
-import { RocksDB } from "@hocuspocus/extension-rocksdb";
 import { Server } from "@hocuspocus/server";
-import { AuthenticationError } from "../server/errors";
-import { Document } from "../server/models";
-import policy from "../server/policies";
-import { getUserForJWT } from "../server/utils/jwt";
+import debug from "debug";
+//import { RocksDB } from "@hocuspocus/extension-rocksdb";
+import { AuthenticationError } from "../errors";
+//import policy from "../policies";
+import { Document } from "../models";
+import { getUserForJWT } from "../utils/jwt";
 
-const { can } = policy;
+const isProduction = process.env.NODE_ENV === "production";
+const log = debug("multiplayer");
+//const { can } = policy;
+const can = () => true;
 
 const server = Server.configure({
   port: process.env.MULTIPLAYER_PORT || process.env.PORT || 80,
 
   async onConnect(data) {
-    const { requestParameters, documentName: documentId } = data;
+    const { requestParameters, documentName } = data;
+
+    // allows for different entity types to use this multiplayer provider later
+    const [, documentId] = documentName.split(".");
     const { token } = requestParameters;
 
     if (!token) {
@@ -43,15 +50,15 @@ const server = Server.configure({
 
   extensions: [
     new Logger(),
-    new RocksDB({
-      path: "./database",
+    // new RocksDB({
+    //   path: "./database",
 
-      options: {
-        // see available options:
-        // https://www.npmjs.com/package/leveldown#options
-        createIfMissing: true,
-      },
-    }),
+    //   options: {
+    //     // see available options:
+    //     // https://www.npmjs.com/package/leveldown#options
+    //     createIfMissing: true,
+    //   },
+    // }),
   ],
 });
 

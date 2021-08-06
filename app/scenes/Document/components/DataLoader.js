@@ -18,16 +18,15 @@ import Document from "models/Document";
 import Revision from "models/Revision";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
-import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
-import SocketPresence from "./SocketPresence";
 import { type LocationWithState, type NavigationNode } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 import { isInternalUrl } from "utils/urls";
 type Props = {|
   match: Match,
+  auth: AuthStore,
   location: LocationWithState,
   shares: SharesStore,
   documents: DocumentsStore,
@@ -36,6 +35,7 @@ type Props = {|
   auth: AuthStore,
   ui: UiStore,
   history: RouterHistory,
+  children: (any) => React.Node,
 |};
 
 const sharedTreeCache = {};
@@ -223,7 +223,7 @@ class DataLoader extends React.Component<Props> {
   };
 
   render() {
-    const { location, policies, ui } = this.props;
+    const { location, policies, auth, ui } = this.props;
 
     if (this.error) {
       return this.error instanceof OfflineError ? (
@@ -233,10 +233,11 @@ class DataLoader extends React.Component<Props> {
       );
     }
 
+    const team = auth.team;
     const document = this.document;
     const revision = this.revision;
 
-    if (!document) {
+    if (!document || !team) {
       return (
         <>
           <Loading location={location} />
@@ -247,20 +248,26 @@ class DataLoader extends React.Component<Props> {
 
     const abilities = policies.abilities(document.id);
 
+    const key = team.multiplayerEditor
+      ? ""
+      : this.isEditing
+      ? "editing"
+      : "read-only";
+
     return (
-      <SocketPresence documentId={document.id} isEditing={this.isEditing}>
+      <React.Fragment key={key}>
         {this.isEditing && <HideSidebar ui={ui} />}
-        <DocumentComponent
-          document={document}
-          revision={revision}
-          abilities={abilities}
-          location={location}
-          readOnly={!this.isEditing || !abilities.update || document.isArchived}
-          onSearchLink={this.onSearchLink}
-          onCreateLink={this.onCreateLink}
-          sharedTree={this.sharedTree}
-        />
-      </SocketPresence>
+        {this.props.children({
+          document,
+          revision,
+          abilities,
+          isEditing: this.isEditing,
+          readOnly: !this.isEditing || !abilities.update || document.isArchived,
+          onSearchLink: this.onSearchLink,
+          onCreateLink: this.onCreateLink,
+          sharedTree: this.sharedTree,
+        })}
+      </React.Fragment>
     );
   }
 }

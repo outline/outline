@@ -197,7 +197,7 @@ class DocumentScene extends React.Component<Props> {
       autosave?: boolean,
     } = {}
   ) => {
-    const { document } = this.props;
+    const { document, auth } = this.props;
 
     // prevent saves when we are already saving
     if (document.isSaving) return;
@@ -227,10 +227,22 @@ class DocumentScene extends React.Component<Props> {
     document.tasks = getTasks(document.text);
 
     try {
-      const savedDocument = await document.save({
-        ...options,
-        lastRevision: this.lastRevision,
-      });
+      let savedDocument = document;
+      if (auth.team && auth.team.multiplayerEditor) {
+        // update does not send "text" field to the API, this is a workaround
+        // while the multiplayer editor is toggleable. Once it's finalized
+        // this can be cleaned up to single code path
+        savedDocument = await document.update({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      } else {
+        savedDocument = await document.save({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      }
+
       this.isDirty = false;
       this.lastRevision = savedDocument.revision;
 
@@ -275,6 +287,11 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChange = (getEditorText) => {
+    const { auth } = this.props;
+    if (auth.team?.multiplayerEditor) {
+      return;
+    }
+
     this.getEditorText = getEditorText;
 
     // document change while read only is presumed to be a checkbox edit,
@@ -332,7 +349,7 @@ class DocumentScene extends React.Component<Props> {
           auto
         >
           <Route
-            path={`${match.url}/move`}
+            path={`${document.url}/move`}
             component={() => (
               <Modal
                 title={`Move ${document.noun}`}
@@ -356,7 +373,11 @@ class DocumentScene extends React.Component<Props> {
             {!readOnly && (
               <>
                 <Prompt
-                  when={this.isDirty && !this.isUploading}
+                  when={
+                    this.isDirty &&
+                    !this.isUploading &&
+                    !team?.multiplayerEditor
+                  }
                   message={t(
                     `You have unsaved changes.\nAre you sure you want to discard them?`
                   )}
@@ -444,6 +465,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
+                    multiplayer={team?.multiplayerEditor}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}

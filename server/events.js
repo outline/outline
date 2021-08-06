@@ -1,7 +1,6 @@
 // @flow
 import * as Sentry from "@sentry/node";
 import debug from "debug";
-import services from "./services";
 import { createQueue } from "./utils/queue";
 
 const log = debug("services");
@@ -195,39 +194,44 @@ export type Event =
 const globalEventsQueue = createQueue("global events");
 const serviceEventsQueue = createQueue("service events");
 
-// this queue processes global events and hands them off to service hooks
-globalEventsQueue.process(async (job) => {
-  const names = Object.keys(services);
-  names.forEach((name) => {
-    const service = services[name];
-    if (service.on) {
-      serviceEventsQueue.add(
-        { ...job.data, service: name },
-        { removeOnComplete: true }
-      );
-    }
-  });
-});
+// TODO: This is a hack to prevent a require loop from models -> Event -> services -> main
+if (!process.argv.includes("--multiplayer")) {
+  const services = require("./services");
 
-// this queue processes an individual event for a specific service
-serviceEventsQueue.process(async (job) => {
-  const event = job.data;
-  const service = services[event.service];
-
-  if (service.on) {
-    log(`${event.service} processing ${event.name}`);
-
-    service.on(event).catch((error) => {
-      if (process.env.SENTRY_DSN) {
-        Sentry.withScope(function (scope) {
-          scope.setExtra("event", event);
-          Sentry.captureException(error);
-        });
-      } else {
-        throw error;
+  // this queue processes global events and hands them off to service hooks
+  globalEventsQueue.process(async (job) => {
+    const names = Object.keys(services);
+    names.forEach((name) => {
+      const service = services[name];
+      if (service.on) {
+        serviceEventsQueue.add(
+          { ...job.data, service: name },
+          { removeOnComplete: true }
+        );
       }
     });
-  }
-});
+  });
+
+  // this queue processes an individual event for a specific service
+  serviceEventsQueue.process(async (job) => {
+    const event = job.data;
+    const service = services[event.service];
+
+    if (service.on) {
+      log(`${event.service} processing ${event.name}`);
+
+      service.on(event).catch((error) => {
+        if (process.env.SENTRY_DSN) {
+          Sentry.withScope(function (scope) {
+            scope.setExtra("event", event);
+            Sentry.captureException(error);
+          });
+        } else {
+          throw error;
+        }
+      });
+    }
+  });
+}
 
 export default globalEventsQueue;

@@ -1,4 +1,5 @@
 // @flow
+import env from "../env";
 import { Team } from "../models";
 
 export default function present(team: Team) {
@@ -7,6 +8,7 @@ export default function present(team: Team) {
     name: team.name,
     avatarUrl: team.logoUrl,
     sharing: team.sharing,
+    multiplayerEditor: team.multiplayerEditor && env.MULTIPLAYER_URL,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
     subdomain: team.subdomain,

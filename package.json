@@ -7,10 +7,13 @@
     "clean": "rimraf build",
     "build:i18n": "i18next 'app/**/*.js' 'server/**/*.js' && mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
     "build:server": "babel -d ./build/server ./server && babel -d ./build/shared ./shared && cp package.json ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
+    "build:multiplayer": "babel -d ./build/multiplayer ./multiplayer",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
+    "start:multiplayer": "node ./build/multiplayer/index.js",
     "dev": "nodemon --exec \"yarn build:server && yarn build:i18n && node --inspect=0.0.0.0 build/server/index.js\" -e js --ignore build/ --ignore app/ --ignore flow-typed/",
+    "dev:multiplayer": "nodemon --exec \"yarn build:server && node --inspect=0.0.0.0 build/server/index.js --multiplayer\" -e js --ignore build/ --ignore app/ --ignore flow-typed/",
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
     "prepare": "yarn yarn-deduplicate yarn.lock",
@@ -46,6 +49,7 @@
     "@babel/preset-flow": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
     "@hocuspocus/extension-logger": "^1.0.0-alpha.35",
+    "@hocuspocus/provider": "^1.0.0-alpha.8",
     "@hocuspocus/server": "^1.0.0-alpha.60",
     "@outlinewiki/koa-passport": "^4.1.4",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
@@ -167,7 +171,9 @@
     "turndown": "^7.1.1",
     "utf8": "^3.0.0",
     "uuid": "^8.3.2",
-    "validator": "5.2.0"
+    "validator": "5.2.0",
+    "y-prosemirror": "^1.0.9",
+    "yjs": "^13.5.12"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
