@@ -26,7 +26,7 @@ class References extends React.Component<Props> {
   render() {
     const { documents, collections, document } = this.props;
     const backlinks = documents.getBacklinedDocuments(document.id);
-    const collection = collections.get(document.collectionId);
+    const collection = collections.get(document.computedCollectionId);
     const children = collection
       ? collection.getDocumentChildren(document.id)
       : [];

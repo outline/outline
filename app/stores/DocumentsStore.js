@@ -714,6 +714,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   getCollectionForDocument(document: Document) {
-    return this.rootStore.collections.data.get(document.collectionId);
+    return this.rootStore.collections.data.get(document.computedCollectionId);
   }
 }

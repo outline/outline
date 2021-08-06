@@ -136,7 +136,8 @@ function DocumentMenu({
     [document]
   );
 
-  const collection = collections.get(document.collectionId);
+  const collectionId = document.computedCollectionId;
+  const collection = collections.get(collectionId);
   const can = policies.abilities(document.id);
   const canViewHistory = can.read && !can.restore;
 
@@ -294,7 +295,7 @@ function DocumentMenu({
             },
             {
               title: t("New nested document"),
-              to: newDocumentUrl(document.collectionId, {
+              to: newDocumentUrl(collectionId, {
                 parentDocumentId: document.id,
               }),
               visible: !!can.createChildDocument,

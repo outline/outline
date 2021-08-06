@@ -18,8 +18,12 @@ function NewChildDocumentMenu({ document, label }: Props) {
   const menu = useMenuState({ modal: true });
   const { collections } = useStores();
   const { t } = useTranslation();
-  const collection = collections.get(document.collectionId);
+  const collection = collections.get(document.computedCollectionId);
   const collectionName = collection ? collection.name : t("collection");
+
+  if (!collection) {
+    return null;
+  }
 
   return (
     <>
@@ -38,11 +42,11 @@ function NewChildDocumentMenu({ document, label }: Props) {
                   />
                 </span>
               ),
-              to: newDocumentUrl(document.collectionId),
+              to: newDocumentUrl(collection.id),
             },
             {
               title: t("New nested document"),
-              to: newDocumentUrl(document.collectionId, {
+              to: newDocumentUrl(collection.id, {
                 parentDocumentId: document.id,
               }),
             },

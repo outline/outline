@@ -221,7 +221,7 @@ function DocumentHeader({
                 <Button
                   icon={<PlusIcon />}
                   as={Link}
-                  to={newDocumentUrl(document.collectionId, {
+                  to={newDocumentUrl(document.computedCollectionId, {
                     templateId: document.id,
                   })}
                   primary
