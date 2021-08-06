@@ -4,7 +4,7 @@ import { shallow } from "enzyme";
 import * as React from "react";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import { runAllPromises } from "../test/support";
-import PaginatedList from "./PaginatedList";
+import { Component as PaginatedList } from "./PaginatedList";
 
 describe("PaginatedList", () => {
   const render = () => null;

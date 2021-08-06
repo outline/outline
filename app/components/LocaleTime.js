@@ -1,5 +1,5 @@
 // @flow
-import { format, formatDistanceToNow } from "date-fns";
+import { format as formatDate, formatDistanceToNow } from "date-fns";
 import {
   enUS,
   de,
@@ -57,6 +57,9 @@ type Props = {
   tooltipDelay?: number,
   addSuffix?: boolean,
   shorten?: boolean,
+  relative?: boolean,
+  format?: string,
+  tooltip?: boolean,
 };
 
 function LocaleTime({
@@ -64,7 +67,10 @@ function LocaleTime({
   children,
   dateTime,
   shorten,
+  format,
+  relative,
   tooltipDelay,
+  tooltip,
 }: Props) {
   const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
@@ -82,25 +88,34 @@ function LocaleTime({
     };
   }, []);
 
-  let content = formatDistanceToNow(Date.parse(dateTime), {
+  const locale = userLocale ? locales[userLocale] : undefined;
+  let relativeContent = formatDistanceToNow(Date.parse(dateTime), {
     addSuffix,
-    locale: userLocale ? locales[userLocale] : undefined,
+    locale,
   });
 
   if (shorten) {
-    content = content
+    relativeContent = relativeContent
       .replace("about", "")
       .replace("less than a minute ago", "just now")
       .replace("minute", "min");
   }
 
+  const tooltipContent = formatDate(
+    Date.parse(dateTime),
+    format || "MMMM do, yyyy h:mm a",
+    { locale }
+  );
+
+  const content = children || relative ? relativeContent : tooltipContent;
+
+  if (!tooltip) {
+    return content;
+  }
+
   return (
-    <Tooltip
-      tooltip={format(Date.parse(dateTime), "MMMM do, yyyy h:mm a")}
-      delay={tooltipDelay}
-      placement="bottom"
-    >
-      <time dateTime={dateTime}>{children || content}</time>
+    <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
+      <time dateTime={dateTime}>{content}</time>
     </Tooltip>
   );
 }

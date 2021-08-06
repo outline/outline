@@ -35,6 +35,7 @@ ENV NODE_ENV production
 
 COPY --from=builder $APP_PATH/build ./build
 COPY --from=builder $APP_PATH/server ./server
+COPY --from=builder $APP_PATH/public ./public
 COPY --from=builder $APP_PATH/.sequelizerc ./.sequelizerc
 COPY --from=deps-prod $APP_PATH/node_modules ./node_modules
 COPY --from=builder $APP_PATH/package.json ./package.json
