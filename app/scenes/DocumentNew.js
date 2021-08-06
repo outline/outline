@@ -19,16 +19,17 @@ function DocumentNew() {
   const { t } = useTranslation();
   const { documents, collections } = useStores();
   const { showToast } = useToasts();
-  const id = match.params.id || "";
+  const id = match.params.id;
 
   useEffect(() => {
     async function createDocument() {
       const params = queryString.parse(location.search);
       try {
-        const collection = await collections.fetch(id);
+        let collection;
+        if (id) collection = await collections.fetch(id);
 
         const document = await documents.create({
-          collectionId: collection.id,
+          collectionId: collection ? collection.id : null,
           parentDocumentId: params.parentDocumentId,
           templateId: params.templateId,
           template: params.template,

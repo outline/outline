@@ -58,18 +58,9 @@ function useCategory(document) {
 
 const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   const { collections } = useStores();
-  const { t } = useTranslation();
   const category = useCategory(document);
 
-  let collection = collections.get(document.collectionId);
-  if (!collection) {
-    collection = {
-      id: document.collectionId,
-      name: t("Deleted Collection"),
-      color: "currentColor",
-      url: "deleted-collection",
-    };
-  }
+  let collection = collections.get(document.computedCollectionId);
 
   const path = React.useMemo(
     () =>
@@ -111,7 +102,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   if (onlyText === true) {
     return (
       <>
-        {collection.name}
+        {collection && collection.name}
         {path.map((n) => (
           <React.Fragment key={n.id}>
             <SmallSlash />

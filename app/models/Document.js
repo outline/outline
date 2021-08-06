@@ -25,7 +25,7 @@ export default class Document extends BaseModel {
   store: DocumentsStore;
 
   collaboratorIds: string[];
-  collectionId: string;
+  collectionId: ?string;
   createdAt: string;
   createdBy: User;
   updatedAt: string;
@@ -163,6 +163,11 @@ export default class Document extends BaseModel {
       return 0;
     }
     return floor((this.tasks.completed / this.tasks.total) * 100);
+  }
+
+  @computed
+  get computedCollectionId(): string {
+    return this.collectionId || "";
   }
 
   @action

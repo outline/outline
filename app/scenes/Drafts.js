@@ -18,7 +18,7 @@ import InputSearchPage from "components/InputSearchPage";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
-import NewDocumentMenu from "menus/NewDocumentMenu";
+import NewDocumentButton from "../components/NewDocumentButton";
 import { type LocationWithState } from "types";
 
 type Props = {|
@@ -89,7 +89,7 @@ class Drafts extends React.Component<Props> {
               <InputSearchPage source="drafts" label={t("Search documents")} />
             </Action>
             <Action>
-              <NewDocumentMenu />
+              <NewDocumentButton />
             </Action>
           </>
         }

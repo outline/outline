@@ -68,6 +68,7 @@ export default function AuthenticatedRoutes() {
               path={`/doc/${slug}/history/:revisionId?`}
               component={KeyedDocument}
             />
+            <Route exact path="/doc/new" component={DocumentNew} />
             <Route exact path={`/doc/${slug}/edit`} component={KeyedDocument} />
             <Route path={`/doc/${slug}`} component={KeyedDocument} />
             <Route exact path="/search" component={Search} />
