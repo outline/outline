@@ -1,19 +1,6 @@
 // @flow
-import { RocksDB } from "@hocuspocus/extension-rocksdb";
-import { Server } from "@hocuspocus/server";
+require("dotenv").config({ silent: true });
 
-const server = Server.configure({
-  port: process.env.PORT || 80,
+const { start } = require("./main");
 
-  async onConnect() {
-    console.log("🔮");
-  },
-
-  extensions: [
-    new RocksDB({
-      path: "./database",
-    }),
-  ],
-});
-
-server.listen();
+start();

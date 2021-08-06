@@ -45,6 +45,7 @@
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-flow": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
+    "@hocuspocus/extension-logger": "^1.0.0-alpha.35",
     "@hocuspocus/server": "^1.0.0-alpha.60",
     "@outlinewiki/koa-passport": "^4.1.4",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",

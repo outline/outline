@@ -1116,6 +1116,13 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
+"@hocuspocus/extension-logger@^1.0.0-alpha.35":
+  version "1.0.0-alpha.35"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-logger/-/extension-logger-1.0.0-alpha.35.tgz#1d13c82b5da9eb91442e121f374f0a7609cd11fd"
+  integrity sha512-yZ0pEmUvsfor9QhztAVnLOoY1LZpxA8UXJ0ZHr94oYgnmKo+aEK2P7xeiPT7GMH2t+ZYZn5UKoG3z4aaAEt6jg==
+  dependencies:
+    "@hocuspocus/server" "^1.0.0-alpha.60"
+
 "@hocuspocus/server@^1.0.0-alpha.60":
   version "1.0.0-alpha.60"
   resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.60.tgz#28221dfc8e5fa27d4b4e17e377ab766edde2a26e"
