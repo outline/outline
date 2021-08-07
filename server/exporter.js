@@ -3,7 +3,7 @@ import fs from "fs";
 import debug from "debug";
 import { v4 as uuidv4 } from "uuid";
 import mailer from "./mailer";
-import { Export, Collection, Team } from "./models";
+import { Export, Collection, Team, Event } from "./models";
 
 import { createQueue } from "./utils/queue";
 import { uploadToS3FromBuffer } from "./utils/s3";
@@ -18,6 +18,22 @@ const queueOptions = {
     delay: 60 * 1000,
   },
 };
+
+async function eventCreate(teamId, userId, exportData) {
+  await Event.create({
+    name: "collections.export_all",
+    teamId: teamId,
+    actorId: userId,
+    data: {
+      id: exportData.id,
+      state: exportData.state,
+      key: exportData.key,
+      url: exportData.url,
+      size: exportData.size,
+      createdAt: exportData.createdAt,
+    },
+  });
+}
 
 async function exportAndEmailCollections(
   teamId: string,
@@ -46,6 +62,8 @@ async function exportAndEmailCollections(
     teamId,
   });
 
+  await eventCreate(teamId, userId, exportData);
+
   const filePath = await archiveCollections(collections);
 
   log("Archive path", filePath);
@@ -57,7 +75,9 @@ async function exportAndEmailCollections(
     exportData.state = state;
     const stat = await fs.promises.stat(filePath);
     exportData.size = stat.size;
+
     await exportData.save();
+    await eventCreate(teamId, userId, exportData);
 
     url = await uploadToS3FromBuffer(readBuffer, "application/zip", key, acl);
 
@@ -69,6 +89,8 @@ async function exportAndEmailCollections(
     exportData.state = state;
     exportData.url = url;
     await exportData.save();
+
+    await eventCreate(teamId, userId, exportData);
 
     mailer.export({
       to: email,

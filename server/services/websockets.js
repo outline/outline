@@ -215,6 +215,19 @@ export default class Websockets {
           });
       }
 
+      case "collections.export_all": {
+        return socketio
+          .to(`user-${event.actorId}`)
+          .emit("collections.export_all", {
+            id: event.data.id,
+            url: event.data.url,
+            state: event.data.state,
+            size: event.data.size,
+            key: event.data.key,
+            createdAt: event.data.createdAt,
+          });
+      }
+
       case "collections.add_user": {
         // the user being added isn't yet in the websocket channel for the collection
         // so they need to be notified separately

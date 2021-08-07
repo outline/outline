@@ -103,7 +103,9 @@ function ImportExport() {
         id: "size",
         Header: t("Size"),
         accessor: "size",
-        Cell: observer(({ value }) => (value / 1024).toPrecision(2) + "KB"),
+        Cell: observer(
+          ({ value }) => (value / (1024 * 1024)).toPrecision(2) + "MB"
+        ),
       },
       {
         id: "createdAt",
@@ -117,23 +119,23 @@ function ImportExport() {
     [t, isMobile, currentUser.id]
   );
 
-  const fetchData = React.useCallback(async () => {
-    setExportDataLoading(true);
-    try {
-      const response = await exports.fetchPage({
-        offset: page * limit,
-        limit,
-      });
-
-      setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
-    } finally {
-      setExportDataLoading(false);
-    }
-  }, [exports, page]);
-
   React.useEffect(() => {
+    const fetchData = async () => {
+      setExportDataLoading(true);
+      try {
+        const response = await exports.fetchPage({
+          offset: page * limit,
+          limit,
+        });
+
+        setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+      } finally {
+        setExportDataLoading(false);
+      }
+    };
+
     fetchData();
-  }, [fetchData]);
+  }, [exports, page]);
 
   const handleChangePage = React.useCallback(
     (page) => {
@@ -219,12 +221,11 @@ function ImportExport() {
         await collections.export();
         setExporting(true);
         showToast(t("Export in progress…"));
-        await fetchData();
       } finally {
         setLoading(false);
       }
     },
-    [t, collections, showToast, fetchData]
+    [t, collections, showToast]
   );
 
   const hasCollections = importDetails
@@ -328,7 +329,7 @@ function ImportExport() {
           : t("Export Data")}
       </Button>
       <Heading>
-        <Trans>Export Table</Trans>
+        <Trans>Exports</Trans>
       </Heading>
       <Table
         columns={columns}

@@ -8,6 +8,7 @@ import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentPresenceStore from "stores/DocumentPresenceStore";
 import DocumentsStore from "stores/DocumentsStore";
+import ExportsStore from "stores/ExportsStore";
 import GroupsStore from "stores/GroupsStore";
 import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -28,6 +29,7 @@ type Props = {
   views: ViewsStore,
   auth: AuthStore,
   toasts: ToastsStore,
+  exports: ExportsStore,
 };
 
 @observer
@@ -80,6 +82,7 @@ class SocketProvider extends React.Component<Props> {
       policies,
       presence,
       views,
+      exports,
     } = this.props;
     if (!auth.token) return;
 
@@ -287,6 +290,16 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("collections.export_all", (event) => {
+      const user = auth.user;
+      if (user) {
+        exports.data.set(event.id, {
+          ...event,
+          user: { name: user.name, id: user.id, avatarUrl: user.avatarUrl },
+        });
+      }
+    });
+
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
     this.socket.on("join", (event) => {
@@ -345,5 +358,6 @@ export default inject(
   "memberships",
   "presence",
   "policies",
-  "views"
+  "views",
+  "exports"
 )(SocketProvider);

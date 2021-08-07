@@ -145,6 +145,19 @@ export type CollectionEvent =
       actorId: string,
       data: { index: string },
       ip: string,
+    }
+  | {
+      name: "collections.export_all",
+      teamId: string,
+      actorId: string,
+      data: {
+        url: string,
+        state: string,
+        id: string,
+        key: string,
+        size: number,
+        createdAt: string,
+      },
     };
 
 export type GroupEvent =
