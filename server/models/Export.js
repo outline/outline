@@ -1,6 +1,5 @@
 // @flow
 import { DataTypes, sequelize } from "../sequelize";
-import { deleteFromS3 } from "../utils/s3";
 
 const Export = sequelize.define("export", {
   id: {
@@ -9,7 +8,13 @@ const Export = sequelize.define("export", {
     primaryKey: true,
   },
   state: {
-    type: DataTypes.ENUM("creating", "uploading", "complete", "error"),
+    type: DataTypes.ENUM(
+      "creating",
+      "uploading",
+      "complete",
+      "error",
+      "expired"
+    ),
     allowNull: false,
   },
   key: {
@@ -22,12 +27,6 @@ const Export = sequelize.define("export", {
     type: DataTypes.BIGINT,
     allowNull: false,
   },
-});
-
-Export.beforeDestroy(async (model) => {
-  if (model.key) {
-    await deleteFromS3(model.key);
-  }
 });
 
 Export.associate = (models) => {

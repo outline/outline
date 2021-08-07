@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
       },
       state: {
-        type: Sequelize.ENUM("creating", "uploading", "complete", "error"),
+        type: Sequelize.ENUM("creating", "uploading", "complete", "error","expired"),
         allowNull: false,
       },
       
