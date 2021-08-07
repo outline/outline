@@ -5,6 +5,7 @@ import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
+import EventsStore from "./EventsStore";
 import ExportsStore from "./ExportsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupsStore from "./GroupsStore";
@@ -25,6 +26,7 @@ export default class RootStore {
   collections: CollectionsStore;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   documents: DocumentsStore;
+  events: EventsStore;
   groups: GroupsStore;
   groupMemberships: GroupMembershipsStore;
   integrations: IntegrationsStore;
@@ -48,6 +50,7 @@ export default class RootStore {
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
+    this.events = new EventsStore(this);
     this.groups = new GroupsStore(this);
     this.groupMemberships = new GroupMembershipsStore(this);
     this.integrations = new IntegrationsStore(this);
@@ -69,6 +72,7 @@ export default class RootStore {
     this.collections.clear();
     this.collectionGroupMemberships.clear();
     this.documents.clear();
+    this.events.clear();
     this.groups.clear();
     this.groupMemberships.clear();
     this.integrations.clear();
