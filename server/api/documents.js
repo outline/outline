@@ -575,6 +575,18 @@ async function loadDocument({
     }
 
     if (document.deletedAt) {
+      // if the doc collection is deleted, we check if the current user was present in the collection.
+      if (document.collectionId && !document.collection) {
+        const collectionIds = await user.collectionIds({ paranoid: false });
+
+        if (
+          !collectionIds.find(
+            (collectionId) => collectionId === document.collectionId
+          )
+        ) {
+          throw new AuthorizationError();
+        }
+      }
       authorize(user, "restore", document);
     } else {
       authorize(user, "read", document);
