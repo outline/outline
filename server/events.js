@@ -111,6 +111,20 @@ export type CollectionImportEvent = {
   ip: string,
 };
 
+export type CollectionExportAll = {
+  name: "collections.export_all",
+  teamId: string,
+  actorId: string,
+  data: {
+    url: string,
+    state: string,
+    id: string,
+    key: string,
+    size: number,
+    createdAt: string,
+  },
+};
+
 export type CollectionEvent =
   | {
   name: | "collections.create" // eslint-disable-line
@@ -145,19 +159,6 @@ export type CollectionEvent =
       actorId: string,
       data: { index: string },
       ip: string,
-    }
-  | {
-      name: "collections.export_all",
-      teamId: string,
-      actorId: string,
-      data: {
-        url: string,
-        state: string,
-        id: string,
-        key: string,
-        size: number,
-        createdAt: string,
-      },
     };
 
 export type GroupEvent =
@@ -200,6 +201,7 @@ export type Event =
   | DocumentEvent
   | CollectionEvent
   | CollectionImportEvent
+  | CollectionExportAll
   | IntegrationEvent
   | GroupEvent
   | RevisionEvent
