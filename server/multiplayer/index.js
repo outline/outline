@@ -4,14 +4,13 @@ import { Server } from "@hocuspocus/server";
 import debug from "debug";
 //import { RocksDB } from "@hocuspocus/extension-rocksdb";
 import { AuthenticationError } from "../errors";
-//import policy from "../policies";
 import { Document } from "../models";
+import policy from "../policies";
 import { getUserForJWT } from "../utils/jwt";
 
-const isProduction = process.env.NODE_ENV === "production";
-const log = debug("multiplayer");
-//const { can } = policy;
-const can = () => true;
+// const isProduction = process.env.NODE_ENV === "production";
+// const log = debug("multiplayer");
+const { can } = policy;
 
 const server = Server.configure({
   port: process.env.MULTIPLAYER_PORT || process.env.PORT || 80,
@@ -21,7 +20,9 @@ const server = Server.configure({
 
     // allows for different entity types to use this multiplayer provider later
     const [, documentId] = documentName.split(".");
-    const { token } = requestParameters;
+
+    // TODO: https://github.com/ueberdosis/hocuspocus/issues/145
+    const token = requestParameters.get("token");
 
     if (!token) {
       throw new AuthenticationError("Authentication required");

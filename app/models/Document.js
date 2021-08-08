@@ -262,7 +262,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  update = async (options: SaveOptions & { title: string }) => {
+  update = async (options: {| ...SaveOptions, title: string |}) => {
     if (this.isSaving) return this;
     this.isSaving = true;
 
@@ -283,7 +283,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: SaveOptions = {}) => {
+  save = async (options: ?SaveOptions = {}) => {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;

@@ -4,33 +4,57 @@ import * as React from "react";
 import * as Y from "yjs";
 import Editor from "components/Editor";
 import env from "env";
+import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 
+const style = { position: "absolute", width: "100%" };
+
 // TODO: typing
-export default function MultiplayerEditor(props: any) {
-  const user = useCurrentUser();
+function MultiplayerEditor(props: any, ref) {
+  const currentUser = useCurrentUser();
+  const token = useCurrentToken();
+  const [showCachedDocument, setShowCachedDocument] = React.useState(true);
+  const [isRemoteSynced, setRemoteSynced] = React.useState(true);
 
-  // TODO
-  //const [showCachedDocument, setShowCachedDocument] = React.useState(true);
+  React.useEffect(() => {
+    console.log("mount");
+  }, []);
 
-  // React.useEffect(() => {
-  //   if (isRemoteSynced) {
-  //     setTimeout(() => setShowCachedDocument(false), 100);
-  //   }
-  // }, [showCachedDocument, isRemoteSynced]);
+  React.useEffect(() => {
+    if (isRemoteSynced) {
+      setTimeout(() => setShowCachedDocument(false), 100);
+    }
+  }, [isRemoteSynced]);
+
+  const user = React.useMemo(() => {
+    return {
+      id: currentUser.id,
+      name: currentUser.name,
+      color: currentUser.color,
+    };
+  }, [currentUser.id, currentUser.color, currentUser.name]);
 
   const extensions = React.useMemo(() => {
-    console.log("extensions");
-
     const ydoc = new Y.Doc();
+    console.log("new HocuspocusProvider", ydoc);
+
     const provider = new HocuspocusProvider({
       url: env.MULTIPLAYER_URL,
-
-      // TODO: pipe documentId
-      name: "example-document",
+      debug: env.ENVIRONMENT === "development",
+      name: `document.${props.id}`,
       document: ydoc,
+      parameters: {
+        token,
+      },
     });
+
+    const handleSynced = () => {
+      setRemoteSynced(true);
+      provider.off("sync", handleSynced);
+    };
+
+    provider.on("sync", handleSynced);
 
     return [
       new MultiplayerExtension({
@@ -39,27 +63,25 @@ export default function MultiplayerEditor(props: any) {
         document: ydoc,
       }),
     ];
-  }, [user]);
+  }, [user, token, props.id]);
 
   return (
     <span style={{ position: "relative" }}>
-      {true && (
+      {isRemoteSynced && (
         <Editor
           {...props}
-          key="multiplayer"
           defaultValue={undefined}
           value={undefined}
           extensions={extensions}
-          style={{ position: "absolute", width: "100%" }}
+          style={style}
+          ref={ref}
         />
       )}
-      {/* {showCachedDocument && (
-        <Editor
-          {...props}
-          style={{ position: "absolute", width: "100%" }}
-          readOnly
-        />
-      )} */}
+      {/* {showCachedDocument && <Editor {...props} style={style} readOnly />} */}
     </span>
   );
 }
+
+export default React.forwardRef<any, typeof MultiplayerEditor>(
+  MultiplayerEditor
+);
