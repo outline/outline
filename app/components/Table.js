@@ -24,6 +24,7 @@ export type Props = {|
   onChangePage: (index: number) => void,
   onChangeSort: (sort: ?string, direction: "ASC" | "DESC") => void,
   columns: any,
+  defaultSortDirection: "ASC" | "DESC",
 |};
 
 function Table({
@@ -39,6 +40,7 @@ function Table({
   topRef,
   onChangeSort,
   onChangePage,
+  defaultSortDirection,
 }: Props) {
   const { t } = useTranslation();
   const {
@@ -51,7 +53,7 @@ function Table({
     nextPage,
     canPreviousPage,
     previousPage,
-    state: { pageIndex, sortBy },
+    state: { pageIndex },
   } = useTable(
     {
       columns,
@@ -62,31 +64,46 @@ function Table({
       autoResetPage: false,
       pageCount: totalPages,
       initialState: {
-        sortBy: [{ id: defaultSort, desc: false }],
+        sortBy: [
+          {
+            id: defaultSort,
+            desc: defaultSortDirection === "DESC" ? true : false,
+          },
+        ],
         pageSize,
         pageIndex: page,
+      },
+      stateReducer: (newState, action, prevState) => {
+        if (prevState.sortBy !== newState.sortBy) {
+          onChangePage(0);
+          onChangeSort(
+            newState.sortBy.length ? newState.sortBy[0].id : undefined,
+            !newState.sortBy.length
+              ? defaultSortDirection
+              : newState.sortBy[0].desc
+              ? "DESC"
+              : "ASC"
+          );
+          return { ...newState, pageIndex: 0 };
+        }
       },
     },
     useSortBy,
     usePagination
   );
 
-  React.useEffect(() => {
-    onChangePage(pageIndex);
-  }, [pageIndex]);
+  const handleNextPage = () => {
+    nextPage();
+    onChangePage(pageIndex + 1);
+  };
 
-  React.useEffect(() => {
-    onChangePage(0);
-    onChangeSort(
-      sortBy.length ? sortBy[0].id : undefined,
-      sortBy.length && sortBy[0].desc ? "DESC" : "ASC"
-    );
-  }, [sortBy]);
+  const handlePreviousPage = () => {
+    previousPage();
+    onChangePage(pageIndex - 1);
+  };
 
   const isEmpty = !isLoading && data.length === 0;
   const showPlaceholder = isLoading && data.length === 0;
-
-  console.log({ canNextPage, pageIndex, totalPages, rows, data });
 
   return (
     <>
@@ -142,12 +159,12 @@ function Table({
         >
           {/* Note: the page > 0 check shouldn't be needed here but is */}
           {canPreviousPage && page > 0 && (
-            <Button onClick={previousPage} neutral>
+            <Button onClick={handlePreviousPage} neutral>
               {t("Previous page")}
             </Button>
           )}
           {canNextPage && (
-            <Button onClick={nextPage} neutral>
+            <Button onClick={handleNextPage} neutral>
               {t("Next page")}
             </Button>
           )}
