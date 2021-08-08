@@ -13,6 +13,7 @@ import {
   IntegrationAuthentication,
   Integration,
   AuthenticationProvider,
+  Export,
 } from "../models";
 
 let count = 1;
@@ -251,6 +252,38 @@ export async function buildDocument(overrides: Object = {}) {
     publishedAt: new Date(),
     lastModifiedById: overrides.userId,
     createdById: overrides.userId,
+    ...overrides,
+  });
+}
+
+export async function buildExport(overrides: Object = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({ teamId: overrides.teamId });
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.state) {
+    overrides.state = "creating";
+  }
+
+  if (!overrides.size) {
+    overrides.size = 0;
+  }
+
+  if (!overrides.key) {
+    overrides.key = "key/to/aws/file.zip";
+  }
+
+  if (!overrides.url) {
+    overrides.url = "https://www.urltos3file.com/file.zip";
+  }
+
+  return Export.create({
     ...overrides,
   });
 }
