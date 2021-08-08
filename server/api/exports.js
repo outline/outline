@@ -10,6 +10,9 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("exports.list", auth(), pagination(), async (ctx) => {
+  let { sort = "createdAt", direction } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
+
   const user = ctx.state.user;
 
   const where = {
@@ -32,7 +35,7 @@ router.post("exports.list", auth(), pagination(), async (ctx) => {
           as: "collection",
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     }),

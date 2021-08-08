@@ -1,5 +1,6 @@
 // @flow
 import invariant from "invariant";
+import { orderBy } from "lodash";
 import { observer } from "mobx-react";
 import { CollectionIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -47,6 +48,8 @@ function ImportExport() {
   const [importDetails, setImportDetails] = React.useState();
   const limit = 15;
   const page = parseInt(params.get("page") || 0, 10);
+  const sort = params.get("sort") || "createdAt";
+  const direction = (params.get("direction") || "desc").toUpperCase();
   const [totalPages, setTotalPages] = React.useState(0);
   const isMobile = useMobile();
   const location = useLocation();
@@ -59,6 +62,7 @@ function ImportExport() {
         id: "name",
         Header: t("Name"),
         accessor: "user",
+        disableSortBy: true,
         Cell: observer(({ value, row }) => {
           return (
             <Flex align="center" gap={8}>
@@ -75,6 +79,7 @@ function ImportExport() {
         id: "collection",
         Header: t("Collection"),
         accessor: "collection",
+        disableSortBy: true,
         Cell: observer(({ value }) => {
           if (!value) return "All collections";
           return <Link to={value.url}>{value.name}</Link>;
@@ -84,12 +89,14 @@ function ImportExport() {
         id: "state",
         Header: t("State"),
         accessor: "state",
+        disableSortBy: true,
         Cell: observer(({ value }) => value),
       },
       {
         id: "url",
         Header: t("Url"),
         accessor: "url",
+        disableSortBy: true,
         Cell: observer(({ value }) => {
           if (!value) return value;
           return (
@@ -103,6 +110,7 @@ function ImportExport() {
         id: "size",
         Header: t("Size"),
         accessor: "size",
+        sortType: "number",
         Cell: observer(
           ({ value }) => (value / (1024 * 1024)).toPrecision(2) + "MB"
         ),
@@ -156,6 +164,26 @@ function ImportExport() {
           block: "start",
         });
       }
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleChangeSort = React.useCallback(
+    (sort, direction) => {
+      if (sort) {
+        params.set("sort", sort);
+      } else {
+        params.delete("sort");
+      }
+      if (direction === "ASC") {
+        params.set("direction", direction.toLowerCase());
+      } else {
+        params.delete("direction");
+      }
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
     },
     [params, history, location.pathname]
   );
@@ -235,6 +263,11 @@ function ImportExport() {
     ? !!importDetails.filter((detail) => detail.type === "document").length
     : false;
   const isImportable = hasCollections && hasDocuments;
+
+  const data = orderBy(exports.allData, sort, direction.toLowerCase()).slice(
+    page * limit,
+    page * limit + limit
+  );
 
   return (
     <Scene
@@ -333,12 +366,14 @@ function ImportExport() {
       </Heading>
       <Table
         columns={columns}
-        data={exports.orderedData.slice(page * limit, page * limit + limit)}
+        data={data}
         isLoading={isExportDataLoading}
         onChangePage={handleChangePage}
-        onChangeSort={() => {}}
+        onChangeSort={handleChangeSort}
         page={page}
         totalPages={totalPages}
+        defaultSortDirection="DESC"
+        defaultSort="createdAt"
       />
     </Scene>
   );
