@@ -25,6 +25,7 @@ export type Props = {|
   onChangeSort: (sort: ?string, direction: "ASC" | "DESC") => void,
   columns: any,
   defaultSortDirection: "ASC" | "DESC",
+  id?: string,
 |};
 
 function Table({
@@ -41,6 +42,7 @@ function Table({
   onChangeSort,
   onChangePage,
   defaultSortDirection,
+  id,
 }: Props) {
   const { t } = useTranslation();
   const {
@@ -132,7 +134,7 @@ function Table({
           {rows.map((row) => {
             prepareRow(row);
             return (
-              <Row {...row.getRowProps()}>
+              <Row {...row.getRowProps()} highlight={row.original.id === id}>
                 {row.cells.map((cell) => (
                   <Cell
                     {...cell.getCellProps([
@@ -247,6 +249,8 @@ const CellWrapper = styled(Flex)`
 `;
 
 const Row = styled.tr`
+  background-color: ${(props) =>
+    props.highlight ? props.theme.sidebarBackground : ""};
   &:last-child {
     ${Cell} {
       border-bottom: 0;

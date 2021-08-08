@@ -47,6 +47,7 @@ function ImportExport() {
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
   const limit = 15;
+  const key = params.get("key") || "";
   const page = parseInt(params.get("page") || 0, 10);
   const sort = params.get("sort") || "createdAt";
   const direction = (params.get("direction") || "desc").toUpperCase();
@@ -374,6 +375,7 @@ function ImportExport() {
         totalPages={totalPages}
         defaultSortDirection="DESC"
         defaultSort="createdAt"
+        id={key}
       />
     </Scene>
   );
