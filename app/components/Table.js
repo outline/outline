@@ -56,7 +56,7 @@ function Table({
     nextPage,
     canPreviousPage,
     previousPage,
-    state: { pageIndex },
+    state: { pageIndex, sortBy },
   } = useTable(
     {
       columns,
@@ -78,22 +78,27 @@ function Table({
       },
       stateReducer: (newState, action, prevState) => {
         if (!isEqual(newState.sortBy, prevState.sortBy)) {
-          onChangePage(0);
-          onChangeSort(
-            newState.sortBy.length ? newState.sortBy[0].id : undefined,
-            !newState.sortBy.length
-              ? defaultSortDirection
-              : newState.sortBy[0].desc
-              ? "DESC"
-              : "ASC"
-          );
           return { ...newState, pageIndex: 0 };
         }
+        return newState;
       },
     },
     useSortBy,
     usePagination
   );
+
+  const prevSortBy = React.useRef(sortBy);
+
+  React.useEffect(() => {
+    if (!isEqual(sortBy, prevSortBy.current)) {
+      prevSortBy.current = sortBy;
+      onChangePage(0);
+      onChangeSort(
+        sortBy.length ? sortBy[0].id : undefined,
+        !sortBy.length ? defaultSortDirection : sortBy[0].desc ? "DESC" : "ASC"
+      );
+    }
+  }, [defaultSortDirection, onChangePage, onChangeSort, sortBy]);
 
   const handleNextPage = () => {
     nextPage();
