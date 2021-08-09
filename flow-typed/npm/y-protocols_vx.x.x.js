@@ -13,7 +13,8 @@
  * https://github.com/flowtype/flow-typed
  */
 
-declare module 'y-protocols' {
+// @flow
+declare module "y-protocols" {
   declare module.exports: any;
 }
 
@@ -22,39 +23,45 @@ declare module 'y-protocols' {
  * require those files directly. Feel free to delete any files that aren't
  * needed.
  */
-declare module 'y-protocols/auth' {
+declare module "y-protocols/auth" {
   declare module.exports: any;
 }
 
-declare module 'y-protocols/awareness' {
+declare module "y-protocols/awareness" {
   declare module.exports: any;
 }
 
-declare module 'y-protocols/awareness.test' {
+declare module "y-protocols/awareness.test" {
   declare module.exports: any;
 }
 
-declare module 'y-protocols/dist/test' {
+declare module "y-protocols/dist/test" {
   declare module.exports: any;
 }
 
-declare module 'y-protocols/sync' {
+declare module "y-protocols/sync" {
   declare module.exports: any;
 }
 
 // Filename aliases
-declare module 'y-protocols/auth.js' {
-  declare module.exports: $Exports<'y-protocols/auth'>;
+declare module "y-protocols/auth.js" {
+  declare module.exports: $Exports<"y-protocols/auth">;
 }
-declare module 'y-protocols/awareness.js' {
-  declare module.exports: $Exports<'y-protocols/awareness'>;
+declare module "y-protocols/awareness.js" {
+  declare module.exports: $Exports<"y-protocols/awareness">;
 }
-declare module 'y-protocols/awareness.test.js' {
-  declare module.exports: $Exports<'y-protocols/awareness.test'>;
+declare module "y-protocols/dist/awareness.cjs" {
+  declare module.exports: $Exports<"y-protocols/awareness">;
 }
-declare module 'y-protocols/dist/test.js' {
-  declare module.exports: $Exports<'y-protocols/dist/test'>;
+declare module "y-protocols/awareness.test.js" {
+  declare module.exports: $Exports<"y-protocols/awareness.test">;
 }
-declare module 'y-protocols/sync.js' {
-  declare module.exports: $Exports<'y-protocols/sync'>;
+declare module "y-protocols/dist/test.js" {
+  declare module.exports: $Exports<"y-protocols/dist/test">;
+}
+declare module "y-protocols/sync.js" {
+  declare module.exports: $Exports<"y-protocols/sync">;
+}
+declare module "y-protocols/dist/sync.cjs" {
+  declare module.exports: $Exports<"y-protocols/sync">;
 }
