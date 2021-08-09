@@ -68,9 +68,9 @@ async function exportAndEmailCollections(
 
   log("Archive path", filePath);
 
-  const readBuffer = await fs.promises.readFile(filePath);
   let url;
   try {
+    const readBuffer = await fs.promises.readFile(filePath);
     state = "uploading";
     exportData.state = state;
     const stat = await fs.promises.stat(filePath);
@@ -85,6 +85,7 @@ async function exportAndEmailCollections(
   } catch (e) {
     log("Failed to export data", e);
     state = "error";
+    url = null;
   } finally {
     exportData.state = state;
     exportData.url = url;

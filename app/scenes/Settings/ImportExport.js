@@ -34,7 +34,7 @@ const Table = React.lazy<TableProps>(() =>
 
 function ImportExport() {
   const { t } = useTranslation();
-  const currentUser = useCurrentUser();
+  const user = useCurrentUser();
   const fileRef = React.useRef();
   const params = useQuery();
   const { exports, collections } = useStores();
@@ -71,8 +71,7 @@ function ImportExport() {
               {!isMobile && (
                 <Avatar src={row.original.user.avatarUrl} size={32} />
               )}
-              {value.name}{" "}
-              {currentUser.id === row.original.user.id && `(${t("You")})`}
+              {value.name} {user.id === row.original.user.id && `(${t("You")})`}
             </Flex>
           );
         }),
@@ -126,13 +125,13 @@ function ImportExport() {
         ),
       },
     ],
-    [t, isMobile, currentUser.id]
+    [t, isMobile, user.id]
   );
 
   React.useEffect(() => {
     const fetchData = async () => {
-      setExportDataLoading(true);
       try {
+        setExportDataLoading(true);
         const response = await exports.fetchPage({
           offset: page * limit,
           limit,
@@ -346,7 +345,7 @@ function ImportExport() {
       <HelpText>
         <Trans
           defaults="A full export might take some time, consider exporting a single document or collection if possible. We’ll put together a zip of all your documents in Markdown format and email it to <em>{{ userEmail }}</em>."
-          values={{ userEmail: currentUser.email }}
+          values={{ userEmail: user.email }}
           components={{ em: <strong /> }}
         />
       </HelpText>

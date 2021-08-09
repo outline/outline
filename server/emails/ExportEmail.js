@@ -11,13 +11,13 @@ import Heading from "./components/Heading";
 export const exportEmailSuccessText = `
 Your Data Export
 
-Your requested data export is completed, please visit the export section to find the zip file.
+Your requested data export is completed, please visit the export section to find the link to zip file.
 `;
 
 export const exportEmailErrorText = `
 Your Data Export
 
-Your requested data export is failed, please visit the export section to know more and try again.
+Your requested data export is failed, please visit the export section to  try again.
 `;
 
 export const ExportEmail = ({ id, state }: { id: string, state: string }) => {
@@ -29,13 +29,13 @@ export const ExportEmail = ({ id, state }: { id: string, state: string }) => {
         <Heading>Your Data Export</Heading>
         <p>
           {state === "complete"
-            ? "Your requested data export is completed, please visit the export section to find the zip file."
-            : "Your requested data export is failed, please visit the export section to know more and try again."}
+            ? "Your requested data export is completed, please visit the export section to find the link to zip file."
+            : "Your requested data export is failed, please visit the export section to try again."}
         </p>
         <EmptySpace height={10} />
         <p>
           <Button href={`${process.env.URL}/settings/import-export?key=${id}`}>
-            View my export
+            Go to export
           </Button>
         </p>
       </Body>
