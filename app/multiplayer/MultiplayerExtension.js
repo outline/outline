@@ -18,7 +18,7 @@ export default class MultiplayerExtension extends Extension {
   get plugins() {
     console.log(this.options);
     const { user, provider, document: doc } = this.options;
-    const type = doc.get("prosemirror", Y.XmlFragment);
+    const type = doc.get("default", Y.XmlFragment);
 
     const assignUser = (tr) => {
       const clientIds = Array.from(doc.store.clients.keys());

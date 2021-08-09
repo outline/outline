@@ -66,20 +66,28 @@ function MultiplayerEditor(props: any, ref) {
   }, [user, token, props.id]);
 
   return (
-    <span style={{ position: "relative" }}>
-      {isRemoteSynced && (
-        <Editor
-          {...props}
-          defaultValue={undefined}
-          value={undefined}
-          extensions={extensions}
-          style={style}
-          ref={ref}
-        />
-      )}
-      {/* {showCachedDocument && <Editor {...props} style={style} readOnly />} */}
-    </span>
+    <Editor
+      {...props}
+      defaultValue={undefined}
+      value={undefined}
+      extensions={extensions}
+      ref={ref}
+    />
   );
+
+  // return (
+  //   <span style={{ position: "relative" }}>
+  //     <Editor
+  //       {...props}
+  //       defaultValue={undefined}
+  //       value={undefined}
+  //       extensions={extensions}
+  //       style={style}
+  //       ref={ref}
+  //     />
+  //     {/* {showCachedDocument && <Editor {...props} style={style} readOnly />} */}
+  //   </span>
+  // );
 }
 
 export default React.forwardRef<any, typeof MultiplayerEditor>(

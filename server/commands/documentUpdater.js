@@ -1,7 +1,8 @@
 // @flow
 import { uniq } from "lodash";
+import { Node } from "prosemirror-model";
 import { schema, serializer } from "rich-markdown-editor";
-import { yDocToProsemirror } from "y-prosemirror";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import { Document, Event } from "../models";
 
@@ -18,7 +19,7 @@ export default async function documentUpdater({
 }) {
   const document = await Document.findByPk(documentId);
   const state = Y.encodeStateAsUpdate(ydoc);
-  const node = yDocToProsemirror(schema, ydoc);
+  const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
   const text = serializer.serialize(node);
 
   // extract collaborators from doc user data
