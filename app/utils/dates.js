@@ -4,14 +4,20 @@ import {
   isYesterday,
   differenceInCalendarWeeks,
   differenceInCalendarMonths,
+  differenceInCalendarYears,
+  format as formatDate,
 } from "date-fns";
-import * as React from "react";
 import { type TFunction } from "react-i18next";
-import LocaleTime from "components/LocaleTime";
+import { dateLocale } from "utils/i18n";
 
-export function dateToHeading(dateTime: string, t: TFunction) {
+export function dateToHeading(
+  dateTime: string,
+  t: TFunction,
+  userLocale: ?string
+) {
   const date = Date.parse(dateTime);
   const now = new Date();
+  const locale = dateLocale(userLocale);
 
   if (isToday(date)) {
     return t("Today");
@@ -26,7 +32,7 @@ export function dateToHeading(dateTime: string, t: TFunction) {
   // async bundle loading of languages
   const weekDiff = differenceInCalendarWeeks(now, date);
   if (weekDiff === 0) {
-    return <LocaleTime dateTime={dateTime} tooltip={false} format="iiii" />;
+    return formatDate(Date.parse(dateTime), "iiii", { locale });
   }
 
   if (weekDiff === 1) {
@@ -42,10 +48,11 @@ export function dateToHeading(dateTime: string, t: TFunction) {
     return t("Last month");
   }
 
-  if (monthDiff <= 12) {
+  const yearDiff = differenceInCalendarYears(now, date);
+  if (yearDiff === 0) {
     return t("This year");
   }
 
   // If older than the current calendar year then just print the year e.g 2020
-  return <LocaleTime dateTime={dateTime} tooltip={false} format="y" />;
+  return formatDate(Date.parse(dateTime), "y", { locale });
 }
