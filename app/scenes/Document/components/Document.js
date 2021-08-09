@@ -195,6 +195,7 @@ class DocumentScene extends React.Component<Props> {
       done?: boolean,
       publish?: boolean,
       autosave?: boolean,
+      collectionId?: string,
     } = {}
   ) => {
     const { document } = this.props;
@@ -211,6 +212,7 @@ class DocumentScene extends React.Component<Props> {
 
     // prevent autosave if nothing has changed
     if (
+      !options.collectionId &&
       options.autosave &&
       document.text.trim() === text.trim() &&
       document.title.trim() === title.trim()
@@ -219,6 +221,8 @@ class DocumentScene extends React.Component<Props> {
 
     document.title = title;
     document.text = text;
+
+    if (options.collectionId) document.collectionId = options.collectionId;
 
     let isNew = !document.id;
     this.isSaving = true;

@@ -709,8 +709,6 @@ router.post("documents.restore", auth(), async (ctx) => {
       data: { title: document.title },
       ip: ctx.request.ip,
     });
-  } else if (!document.publishedAt) {
-    await document.save();
   } else {
     ctx.assertPresent(revisionId, "revisionId is required");
   }
@@ -1001,6 +999,7 @@ router.post("documents.update", auth(), async (ctx) => {
     lastRevision,
     templateId,
     append,
+    collectionId,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
 
@@ -1029,7 +1028,16 @@ router.post("documents.update", auth(), async (ctx) => {
     document.text = text;
   }
   document.lastModifiedById = user.id;
-  const { collection } = document;
+  let collection;
+
+  if (!document.publishedAt && document.collection === null && collectionId) {
+    collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
+    document.collectionId = collectionId;
+  } else {
+    collection = document.collection;
+  }
 
   let transaction;
   try {

@@ -296,6 +296,7 @@ export default class Document extends BaseModel {
           publish: options.publish,
           done: options.done,
           autosave: options.autosave,
+          collectionId: this.collectionId,
         });
       }
 

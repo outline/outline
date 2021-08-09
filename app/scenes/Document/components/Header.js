@@ -66,7 +66,7 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { auth, ui, policies, collections, documents } = useStores();
+  const { auth, ui, policies, collections } = useStores();
   const isMobile = useMobile();
 
   const handleSave = React.useCallback(() => {
@@ -90,12 +90,8 @@ function DocumentHeader({
     if (!chosenCollection) {
       return;
     }
-
-    const result = await documents.restore(document, {
-      collectionId: chosenCollection,
-    });
-    console.log(result);
-  }, [chosenCollection, document, documents]);
+    onSave({ done: true, collectionId: chosenCollection });
+  }, [chosenCollection, onSave]);
 
   React.useEffect(() => {
     updateCollection();
