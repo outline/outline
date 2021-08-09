@@ -1,4 +1,5 @@
 // @flow
+import { isEqual } from "lodash";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
@@ -76,7 +77,7 @@ function Table({
         pageIndex: page,
       },
       stateReducer: (newState, action, prevState) => {
-        if (prevState.sortBy !== newState.sortBy) {
+        if (!isEqual(newState.sortBy, prevState.sortBy)) {
           onChangePage(0);
           onChangeSort(
             newState.sortBy.length ? newState.sortBy[0].id : undefined,

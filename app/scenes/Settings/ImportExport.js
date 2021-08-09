@@ -1,9 +1,9 @@
 // @flow
 import invariant from "invariant";
-import { orderBy } from "lodash";
 import { observer } from "mobx-react";
 import { CollectionIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
+import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useLocation, useHistory } from "react-router-dom";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
@@ -39,6 +39,7 @@ function ImportExport() {
   const params = useQuery();
   const { exports, collections } = useStores();
   const { showToast } = useToasts();
+  const [data, setData] = useState([]);
   const [isLoading, setLoading] = React.useState(false);
   const [isExportDataLoading, setExportDataLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
@@ -135,16 +136,20 @@ function ImportExport() {
         const response = await exports.fetchPage({
           offset: page * limit,
           limit,
+          direction,
+          sort,
         });
-
+        setData(response.slice(0, limit));
         setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+      } catch (err) {
+        showToast(err.message);
       } finally {
         setExportDataLoading(false);
       }
     };
 
     fetchData();
-  }, [exports, page]);
+  }, [direction, exports, page, showToast, sort, exports.orderedData]);
 
   const handleChangePage = React.useCallback(
     (page) => {
@@ -264,11 +269,6 @@ function ImportExport() {
     ? !!importDetails.filter((detail) => detail.type === "document").length
     : false;
   const isImportable = hasCollections && hasDocuments;
-
-  const data = orderBy(exports.allData, sort, direction.toLowerCase()).slice(
-    page * limit,
-    page * limit + limit
-  );
 
   return (
     <Scene
