@@ -3,6 +3,7 @@ import { lighten } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
+import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
@@ -30,6 +31,8 @@ export type Props = {|
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
+  style?: Object,
+  extensions?: Extension[],
   shareId?: ?string,
   autoFocus?: boolean,
   template?: boolean,

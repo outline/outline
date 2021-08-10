@@ -37,7 +37,7 @@ const server = Server.configure({
       throw new AuthenticationError("Account suspended");
     }
 
-    const document = await Document.findByPk(documentId, { userid: user.id });
+    const document = await Document.findByPk(documentId, { userId: user.id });
     if (!can(user, "read", document)) {
       throw new AuthenticationError("Authorization required");
     }
