@@ -13,7 +13,7 @@ type Props = {
   result: DocumentPath,
   document?: ?Document,
   collection: ?Collection,
-  onSuccess?: () => void,
+  onSuccess?: (DocumentPath) => Promise<void>,
   style?: Object,
   ref?: (?React.ElementRef<"div">) => void,
 };
@@ -22,16 +22,8 @@ type Props = {
 class PathToDocument extends React.Component<Props> {
   handleClick = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    const { document, result, onSuccess } = this.props;
-    if (!document) return;
-
-    if (result.type === "document") {
-      await document.move(result.collectionId, result.id);
-    } else {
-      await document.move(result.collectionId, null);
-    }
-
-    if (onSuccess) onSuccess();
+    const { onSuccess, result } = this.props;
+    if (onSuccess) await onSuccess(result);
   };
 
   render() {

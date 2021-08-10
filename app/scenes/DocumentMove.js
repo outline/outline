@@ -78,7 +78,15 @@ function DocumentMove({ document, onRequestClose }: Props) {
     return results;
   }, [document, collections, searchTerm, searchIndex]);
 
-  const handleSuccess = () => {
+  const handleSuccess = async (result: DocumentPath) => {
+    if (!document) return;
+
+    if (result.type === "document") {
+      await document.move(result.collectionId, result.id);
+    } else {
+      await document.move(result.collectionId, null);
+    }
+
     showToast(t("Document moved"), { type: "info" });
     onRequestClose();
   };
