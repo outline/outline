@@ -1000,6 +1000,7 @@ router.post("documents.update", auth(), async (ctx) => {
     templateId,
     append,
     collectionId,
+    parentDocumentId,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
 
@@ -1035,6 +1036,7 @@ router.post("documents.update", auth(), async (ctx) => {
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
     document.collectionId = collectionId;
+    if (parentDocumentId) document.parentDocumentId = parentDocumentId;
   } else {
     collection = document.collection;
   }

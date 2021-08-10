@@ -1,23 +1,37 @@
 // @flow
+import { Search } from "js-search";
+import { last } from "lodash";
 import { observer } from "mobx-react";
 import {
   TableOfContentsIcon,
   EditIcon,
   PlusIcon,
   MoreIcon,
+  SearchIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { FixedSizeList as List } from "react-window";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogDisclosure,
+  useDialogState,
+} from "reakit";
+import styled, { useTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { type DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
-import FilterOptions from "components/FilterOptions";
+import Flex from "components/Flex";
 import Header from "components/Header";
+import PathToDocument from "components/PathToDocument";
 import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
@@ -66,9 +80,10 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { auth, ui, policies, collections } = useStores();
+  const { auth, ui, policies, collections, documents } = useStores();
   const isMobile = useMobile();
-
+  const dialog = useDialogState({ modal: false });
+  const theme = useTheme();
   const handleSave = React.useCallback(() => {
     onSave({ done: true });
   }, [onSave]);
@@ -84,33 +99,90 @@ function DocumentHeader({
   const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
   const canEdit = can.update && !isEditing;
   const hasCollection = collections.get(document.computedCollectionId);
-  const [chosenCollection, setChosenCollection] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState();
 
-  const updateCollection = React.useCallback(async () => {
-    if (!chosenCollection) {
-      return;
+  const handleFilter = (ev) => {
+    setSearchTerm(ev.target.value);
+  };
+
+  const searchIndex = React.useMemo(() => {
+    const paths = collections.pathsToDocuments;
+    const index = new Search("id");
+    index.addIndex("title");
+
+    // Build index
+    const indexeableDocuments = [];
+    paths.forEach((path) => {
+      const doc = documents.get(path.id);
+      if (!doc || !doc.isTemplate) {
+        indexeableDocuments.push(path);
+      }
+    });
+    index.addDocuments(indexeableDocuments);
+
+    return index;
+  }, [documents, collections.pathsToDocuments]);
+
+  const results: DocumentPath[] = React.useMemo(() => {
+    const onlyShowCollections = document.isTemplate;
+    let results = [];
+    if (collections.isLoaded) {
+      if (searchTerm) {
+        results = searchIndex.search(searchTerm);
+      } else {
+        results = searchIndex._documents;
+      }
     }
-    onSave({ done: true, collectionId: chosenCollection });
-  }, [chosenCollection, onSave]);
 
-  React.useEffect(() => {
-    updateCollection();
-  }, [updateCollection]);
+    if (onlyShowCollections) {
+      results = results.filter((result) => result.type === "collection");
+    } else {
+      // Exclude root from search results if document is already at the root
+      if (!document.parentDocumentId) {
+        results = results.filter(
+          (result) => result.id !== document.collectionId
+        );
+      }
 
-  const options = React.useMemo(() => {
-    const collectionOptions = collections.orderedData.map((collection) => ({
-      key: collection.id,
-      label: collection.name,
-    }));
+      // Exclude document if on the path to result, or the same result
+      results = results.filter(
+        (result) =>
+          !result.path.map((doc) => doc.id).includes(document.id) &&
+          last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
+      );
+    }
 
-    return [
-      {
-        key: "",
-        label: t("Choose collection"),
-      },
-      ...collectionOptions,
-    ];
-  }, [collections.orderedData, t]);
+    return results;
+  }, [document, collections, searchTerm, searchIndex]);
+
+  const handleSuccess = async (result: DocumentPath) => {
+    if (!document) return;
+
+    if (result.type === "collection") {
+      onSave({ done: true, collectionId: result.collectionId });
+    } else {
+      onSave({
+        done: true,
+        collectionId: result.collectionId,
+        parentDocumentId: result.id,
+      });
+    }
+  };
+
+  const row = ({ index, data, style }) => {
+    const result = data[index];
+    return (
+      <PathToDocument
+        result={result}
+        document={document}
+        collection={collections.get(result.collectionId)}
+        onSuccess={handleSuccess}
+        style={style}
+      />
+    );
+  };
+
+  const data = results;
 
   const toc = (
     <Tooltip
@@ -206,15 +278,62 @@ function DocumentHeader({
               </Action>
             )}
             {can.update && isDraft && !isRevision && !hasCollection && (
-              <Action>
-                <FilterOptions
-                  options={options}
-                  activeKey={options[0].key}
-                  onSelect={(key) => setChosenCollection(key)}
-                  defaultLabel={t("Choose collection")}
-                  selectedPrefix={`${t("Collection")}:`}
-                />
-              </Action>
+              <Wrapper>
+                <Action>
+                  <DialogDisclosure {...dialog}>
+                    Choose collection
+                  </DialogDisclosure>
+                </Action>
+                <Position>
+                  <DialogBackdrop {...dialog}>
+                    <Dialog
+                      {...dialog}
+                      aria-label="Choose a collection"
+                      preventBodyScroll
+                      hideOnEsc
+                    >
+                      <Content>
+                        <Flex align="center">
+                          <StyledIcon
+                            type="Search"
+                            size={26}
+                            color={theme.textTertiary}
+                          />
+                          <Input
+                            type="search"
+                            placeholder={`${t(
+                              "Search collections & documents"
+                            )}…`}
+                            onChange={handleFilter}
+                            autoFocus
+                          />
+                        </Flex>
+                        <Results>
+                          <AutoSizer>
+                            {({ width, height }) => {
+                              return (
+                                <Flex role="listbox" column>
+                                  <List
+                                    key={data.length}
+                                    width={width}
+                                    height={height}
+                                    itemData={data}
+                                    itemCount={data.length}
+                                    itemSize={40}
+                                    itemKey={(index, data) => data[index].id}
+                                  >
+                                    {row}
+                                  </List>
+                                </Flex>
+                              );
+                            }}
+                          </AutoSizer>
+                        </Results>
+                      </Content>
+                    </Dialog>
+                  </DialogBackdrop>
+                </Position>
+              </Wrapper>
             )}
             {isEditing && (
               <>
@@ -325,6 +444,76 @@ const Status = styled(Action)`
 const TocWrapper = styled(Action)`
   position: absolute;
   left: 42px;
+`;
+
+const Content = styled.div`
+  background: ${(props) => props.theme.background};
+  width: 25vw;
+  height: 40vh;
+  border-radius: 8px;
+  position: absolute;
+  padding: 10px;
+  top: 5px;
+  right: -20vh;
+  box-shadow: ${(props) => props.theme.menuShadow};
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 10px 10px 10px 40px;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  border: 0;
+  background: ${(props) => props.theme.sidebarBackground};
+  transition: ${(props) => props.theme.backgroundTransition};
+  border-radius: 4px;
+
+  color: ${(props) => props.theme.text};
+
+  ::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+  ::-webkit-input-placeholder {
+    color: ${(props) => props.theme.placeholder};
+  }
+  :-moz-placeholder {
+    color: ${(props) => props.theme.placeholder};
+  }
+  ::-moz-placeholder {
+    color: ${(props) => props.theme.placeholder};
+  }
+  :-ms-input-placeholder {
+    color: ${(props) => props.theme.placeholder};
+  }
+`;
+
+const StyledIcon = styled(SearchIcon)`
+  position: absolute;
+  left: 12px;
+`;
+
+const Wrapper = styled.div`
+  position: relative;
+`;
+
+const Position = styled.div`
+  position: absolute;
+  z-index: ${(props) => props.theme.depths.menu};
+
+  ${breakpoint("mobile", "tablet")`
+    position: fixed !important;
+    transform: none !important;
+    top: auto !important;
+    right: 8px !important;
+    bottom: 16px !important;
+    left: 8px !important;
+  `};
+`;
+
+const Results = styled.div`
+  padding: 8px 0;
+  height: calc(100% - 46px);
 `;
 
 export default observer(DocumentHeader);
