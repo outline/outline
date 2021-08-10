@@ -33,10 +33,13 @@ export default class MultiplayerExtension extends Extension {
       }
     };
 
-    provider.awareness.setLocalStateField("user", {
-      color: user.color,
-      name: user.name,
-      id: user.id,
+    provider.on("status", ({ status }) => {
+      if (status === "connected") {
+        provider.awareness.setLocalStateField("user", {
+          color: user.color,
+          name: user.name,
+        });
+      }
     });
 
     doc.on("afterTransaction", assignUser);

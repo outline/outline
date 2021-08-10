@@ -9,7 +9,7 @@ import useCurrentUser from "hooks/useCurrentUser";
 import useUnmount from "hooks/useUnmount";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 
-const style = { position: "absolute", width: "100%" };
+// const style = { position: "absolute", width: "100%" };
 
 function MultiplayerEditor(props: Props, ref: any) {
   const currentUser = useCurrentUser();
@@ -17,10 +17,15 @@ function MultiplayerEditor(props: Props, ref: any) {
   const [provider, setProvider] = React.useState();
   const [ydoc] = React.useState(() => new Y.Doc());
 
+  // Provider initialization must be within useLayoutEffect rather than useState
+  // or useMemo as both of these are ran twice in React StrictMode resulting in
+  // an orphaned websocket connection.
+  // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
   React.useLayoutEffect(() => {
+    const debug = env.ENVIRONMENT === "development";
     const provider = new HocuspocusProvider({
       url: env.MULTIPLAYER_URL,
-      debug: env.ENVIRONMENT === "development",
+      debug,
       name: `document.${props.id || ""}`,
       document: ydoc,
       parameters: {
@@ -28,24 +33,32 @@ function MultiplayerEditor(props: Props, ref: any) {
       },
     });
 
-    const handleSynced = () => {
-      setRemoteSynced(true);
-      provider.off("sync", handleSynced);
-    };
+    // const handleSynced = () => {
+    //   setRemoteSynced(true);
+    //   provider.off("sync", handleSynced);
+    // };
 
-    provider.on("sync", handleSynced);
+    // provider.on("sync", handleSynced);
+
+    if (debug) {
+      provider.on("status", (ev) => console.log("status", ev.status));
+      provider.on("message", (ev) => console.log("incoming", ev.message));
+      provider.on("outgoingMessage", (ev) =>
+        console.log("outgoing", ev.message)
+      );
+    }
 
     setProvider(provider);
   }, [props.id, token, ydoc]);
 
-  const [showCachedDocument, setShowCachedDocument] = React.useState(true);
-  const [isRemoteSynced, setRemoteSynced] = React.useState(true);
+  // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
+  // const [isRemoteSynced, setRemoteSynced] = React.useState(true);
 
-  React.useEffect(() => {
-    if (isRemoteSynced) {
-      setTimeout(() => setShowCachedDocument(false), 100);
-    }
-  }, [isRemoteSynced]);
+  // React.useEffect(() => {
+  //   if (isRemoteSynced) {
+  //     setTimeout(() => setShowCachedDocument(false), 100);
+  //   }
+  // }, [isRemoteSynced]);
 
   const user = React.useMemo(() => {
     return {
@@ -74,19 +87,19 @@ function MultiplayerEditor(props: Props, ref: any) {
   });
 
   return (
-    <span style={{ position: "relative" }}>
+    <>
       {extensions.length ? (
         <Editor
           {...props}
           defaultValue={undefined}
           value={undefined}
           extensions={extensions}
-          style={style}
+          // style={style}
           ref={ref}
         />
       ) : undefined}
-      {showCachedDocument && <Editor {...props} readOnly />}
-    </span>
+      {/* {showCachedDocument && <Editor {...props} readOnly />} */}
+    </>
   );
 }
 
