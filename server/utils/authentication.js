@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/node";
 import { addMonths } from "date-fns";
 import { type Context } from "koa";
 import { pick } from "lodash";
-import { User, Event, Team } from "../models";
+import { User, Event, Team, Collection, View } from "../models";
 import { getCookieDomain } from "../utils/domains";
 
 export function getAllowedDomains(): string[] {
@@ -99,6 +99,23 @@ export async function signIn(
       httpOnly: false,
       expires,
     });
-    ctx.redirect(`${team.url}/home${isNewUser ? "?welcome" : ""}`);
+
+    const [team, collection, view] = await Promise.all([
+      Team.findByPk(user.teamId),
+      Collection.findOne({
+        where: { teamId: user.teamId },
+        order: [["index", "ASC"]],
+      }),
+      View.findOne({
+        where: { userId: user.id },
+      }),
+    ]);
+
+    const hasViewedDocuments = !!view;
+    ctx.redirect(
+      !hasViewedDocuments && collection
+        ? `${team.url}${collection.url}`
+        : `${team.url}/home`
+    );
   }
 }
