@@ -140,6 +140,27 @@ function DocumentMenu({
   const collection = collections.get(collectionId);
   const can = policies.abilities(document.id);
   const canViewHistory = can.read && !can.restore;
+  const restoreItems = React.useMemo(
+    () => [
+      ...collections.orderedData.reduce((filtered, collection) => {
+        const can = policies.abilities(collection.id);
+
+        if (can.update) {
+          filtered.push({
+            onClick: (ev) => handleRestore(ev, { collectionId: collection.id }),
+            title: (
+              <Flex align="center">
+                <CollectionIcon collection={collection} />
+                <CollectionName>{collection.name}</CollectionName>
+              </Flex>
+            ),
+          });
+        }
+        return filtered;
+      }, []),
+    ],
+    [collections.orderedData, handleRestore, policies]
+  );
 
   const stopPropagation = React.useCallback((ev: SyntheticEvent<>) => {
     ev.stopPropagation();
@@ -231,7 +252,10 @@ function DocumentMenu({
             },
             {
               title: t("Restore"),
-              visible: !collection && (can.restore || can.unarchive),
+              visible:
+                !collection &&
+                (can.restore || can.unarchive) &&
+                restoreItems.length !== 0,
               style: {
                 left: -170,
                 position: "relative",
@@ -243,21 +267,7 @@ function DocumentMenu({
                   type: "heading",
                   title: t("Choose a collection"),
                 },
-                ...collections.orderedData.map((collection) => {
-                  const can = policies.abilities(collection.id);
-
-                  return {
-                    title: (
-                      <Flex align="center">
-                        <CollectionIcon collection={collection} />
-                        <CollectionName>{collection.name}</CollectionName>
-                      </Flex>
-                    ),
-                    onClick: (ev) =>
-                      handleRestore(ev, { collectionId: collection.id }),
-                    disabled: !can.update,
-                  };
-                }),
+                ...restoreItems,
               ],
             },
             {
