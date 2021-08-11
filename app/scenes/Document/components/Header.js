@@ -14,12 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogDisclosure,
-  useDialogState,
-} from "reakit";
+import { Dialog, DialogBackdrop, useDialogState } from "reakit";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { type DocumentPath } from "stores/CollectionsStore";
@@ -84,14 +79,6 @@ function DocumentHeader({
   const isMobile = useMobile();
   const dialog = useDialogState({ modal: false });
   const theme = useTheme();
-  const handleSave = React.useCallback(() => {
-    onSave({ done: true });
-  }, [onSave]);
-
-  const handlePublish = React.useCallback(() => {
-    onSave({ done: true, publish: true });
-  }, [onSave]);
-
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
@@ -100,6 +87,18 @@ function DocumentHeader({
   const canEdit = can.update && !isEditing;
   const hasCollection = collections.get(document.computedCollectionId);
   const [searchTerm, setSearchTerm] = React.useState();
+
+  const handleSave = React.useCallback(() => {
+    onSave({ done: true });
+  }, [onSave]);
+
+  const handlePublish = React.useCallback(() => {
+    if (!hasCollection) {
+      dialog.setVisible(true);
+      return;
+    }
+    onSave({ done: true, publish: true });
+  }, [dialog, hasCollection, onSave]);
 
   const handleFilter = (ev) => {
     setSearchTerm(ev.target.value);
@@ -157,12 +156,14 @@ function DocumentHeader({
 
   const handleSuccess = async (result: DocumentPath) => {
     if (!document) return;
+    dialog.setVisible(false);
 
     if (result.type === "collection") {
-      onSave({ done: true, collectionId: result.collectionId });
+      onSave({ done: true, publish: true, collectionId: result.collectionId });
     } else {
       onSave({
         done: true,
+        publish: true,
         collectionId: result.collectionId,
         parentDocumentId: result.id,
       });
@@ -279,11 +280,6 @@ function DocumentHeader({
             )}
             {can.update && isDraft && !isRevision && !hasCollection && (
               <Wrapper>
-                <Action>
-                  <DialogDisclosure {...dialog}>
-                    Choose collection
-                  </DialogDisclosure>
-                </Action>
                 <Position>
                   <DialogBackdrop {...dialog}>
                     <Dialog
@@ -389,7 +385,7 @@ function DocumentHeader({
                 </Button>
               </Action>
             )}
-            {can.update && isDraft && !isRevision && hasCollection && (
+            {can.update && isDraft && !isRevision && (
               <Action>
                 <Tooltip
                   tooltip={t("Publish")}
