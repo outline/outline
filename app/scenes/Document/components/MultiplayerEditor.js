@@ -6,6 +6,7 @@ import Editor, { type Props } from "components/Editor";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
 import useUnmount from "hooks/useUnmount";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 
@@ -13,6 +14,7 @@ import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 
 function MultiplayerEditor(props: Props, ref: any) {
   const currentUser = useCurrentUser();
+  const { presence } = useStores();
   const token = useCurrentToken();
   const [provider, setProvider] = React.useState();
   const [ydoc] = React.useState(() => new Y.Doc());
@@ -31,6 +33,12 @@ function MultiplayerEditor(props: Props, ref: any) {
       parameters: {
         token,
       },
+    });
+
+    provider.on("awarenessChange", ({ states }) => {
+      states.forEach((state) => {
+        presence.touch(props.id, state.user.id);
+      });
     });
 
     // const handleSynced = () => {

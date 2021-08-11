@@ -35,10 +35,7 @@ export default class MultiplayerExtension extends Extension {
 
     provider.on("status", ({ status }) => {
       if (status === "connected") {
-        provider.awareness.setLocalStateField("user", {
-          color: user.color,
-          name: user.name,
-        });
+        provider.awareness.setLocalStateField("user", user);
       }
     });
 
