@@ -98,6 +98,74 @@ describe("#documents.info", () => {
     expect(share.lastAccessedAt).toBeTruthy();
   });
 
+  it("should not return document of a deleted collection, when the user was absent in the collection", async () => {
+    const user = await buildUser();
+    const user2 = await buildUser({
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      permission: null,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const doc = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/collections.delete", {
+      body: {
+        id: collection.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: {
+        id: doc.id,
+        token: user2.getJwtToken(),
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return document of a deleted collection, when the user was present in the collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      permission: null,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const doc = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/collections.delete", {
+      body: {
+        id: collection.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: {
+        id: doc.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(doc.id);
+  });
+
   describe("apiVersion=2", () => {
     it("should return sharedTree from shareId", async () => {
       const { document, collection, user } = await seed();
