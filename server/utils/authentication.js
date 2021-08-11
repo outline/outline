@@ -100,8 +100,7 @@ export async function signIn(
       expires,
     });
 
-    const [team, collection, view] = await Promise.all([
-      Team.findByPk(user.teamId),
+    const [collection, view] = await Promise.all([
       Collection.findOne({
         where: { teamId: user.teamId },
         order: [["index", "ASC"]],
