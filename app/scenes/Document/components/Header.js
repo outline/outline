@@ -278,59 +278,6 @@ function DocumentHeader({
                 <ShareButton document={document} />
               </Action>
             )}
-            {can.update && isDraft && !isRevision && !hasCollection && (
-              <Wrapper>
-                <Position>
-                  <DialogBackdrop {...dialog}>
-                    <Dialog
-                      {...dialog}
-                      aria-label="Choose a collection"
-                      preventBodyScroll
-                      hideOnEsc
-                    >
-                      <Content>
-                        <Flex align="center">
-                          <StyledIcon
-                            type="Search"
-                            size={26}
-                            color={theme.textTertiary}
-                          />
-                          <Input
-                            type="search"
-                            placeholder={`${t(
-                              "Search collections & documents"
-                            )}…`}
-                            onChange={handleFilter}
-                            autoFocus
-                          />
-                        </Flex>
-                        <Results>
-                          <AutoSizer>
-                            {({ width, height }) => {
-                              return (
-                                <Flex role="listbox" column>
-                                  <List
-                                    key={data.length}
-                                    width={width}
-                                    height={height}
-                                    itemData={data}
-                                    itemCount={data.length}
-                                    itemSize={40}
-                                    itemKey={(index, data) => data[index].id}
-                                  >
-                                    {row}
-                                  </List>
-                                </Flex>
-                              );
-                            }}
-                          </AutoSizer>
-                        </Results>
-                      </Content>
-                    </Dialog>
-                  </DialogBackdrop>
-                </Position>
-              </Wrapper>
-            )}
             {isEditing && (
               <>
                 <Action>
@@ -384,6 +331,59 @@ function DocumentHeader({
                   {t("New from template")}
                 </Button>
               </Action>
+            )}
+            {can.update && isDraft && !isRevision && !hasCollection && (
+              <Wrapper>
+                <Position>
+                  <DialogBackdrop {...dialog}>
+                    <Dialog
+                      {...dialog}
+                      aria-label="Choose a collection"
+                      preventBodyScroll
+                      hideOnEsc
+                    >
+                      <Content>
+                        <Flex align="center">
+                          <StyledIcon
+                            type="Search"
+                            size={26}
+                            color={theme.textTertiary}
+                          />
+                          <Input
+                            type="search"
+                            placeholder={`${t(
+                              "Search collections & documents"
+                            )}…`}
+                            onChange={handleFilter}
+                            autoFocus
+                          />
+                        </Flex>
+                        <Results>
+                          <AutoSizer>
+                            {({ width, height }) => {
+                              return (
+                                <Flex role="listbox" column>
+                                  <List
+                                    key={data.length}
+                                    width={width}
+                                    height={height}
+                                    itemData={data}
+                                    itemCount={data.length}
+                                    itemSize={40}
+                                    itemKey={(index, data) => data[index].id}
+                                  >
+                                    {row}
+                                  </List>
+                                </Flex>
+                              );
+                            }}
+                          </AutoSizer>
+                        </Results>
+                      </Content>
+                    </Dialog>
+                  </DialogBackdrop>
+                </Position>
+              </Wrapper>
             )}
             {can.update && isDraft && !isRevision && (
               <Action>
@@ -444,14 +444,21 @@ const TocWrapper = styled(Action)`
 
 const Content = styled.div`
   background: ${(props) => props.theme.background};
-  width: 25vw;
-  height: 40vh;
+  width: 35vh;
+  max-width: 332px;
+  height: 42vh;
+  max-height: 400px;
   border-radius: 8px;
   position: absolute;
   padding: 10px;
-  top: 5px;
-  right: -20vh;
+  right: -10vh;
+  margin-right: 2vh;
   box-shadow: ${(props) => props.theme.menuShadow};
+
+  ${breakpoint("mobile", "tablet")`
+    right: -2vh;
+    width: 90vw;
+`};
 `;
 
 const Input = styled.input`
