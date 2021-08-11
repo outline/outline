@@ -900,7 +900,7 @@ router.post("documents.star", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, "read", document);
+  authorize(user, "star", document);
 
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
@@ -927,7 +927,7 @@ router.post("documents.unstar", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, "read", document);
+  authorize(user, "unstar", document);
 
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },

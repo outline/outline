@@ -63,8 +63,7 @@ function DocumentListItem(props: Props, ref) {
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar =
-    !document.isDraft && !document.isArchived && !document.isTemplate;
+  const canStar = policies.abilities(document.id).star;
   const can = policies.abilities(currentTeam.id);
 
   return (
