@@ -41,6 +41,7 @@ type Props = {|
   isPublishing: boolean,
   publishingIsDisabled: boolean,
   savingIsDisabled: boolean,
+  onSelectTemplate: (template: Document) => void,
   onDiscard: () => void,
   onSave: ({
     done?: boolean,
@@ -61,6 +62,7 @@ function DocumentHeader({
   savingIsDisabled,
   publishingIsDisabled,
   sharedTree,
+  onSelectTemplate,
   onSave,
   headings,
 }: Props) {
@@ -168,7 +170,10 @@ function DocumentHeader({
             />
             {isEditing && !isTemplate && isNew && (
               <Action>
-                <TemplatesMenu document={document} />
+                <TemplatesMenu
+                  document={document}
+                  onSelectTemplate={onSelectTemplate}
+                />
               </Action>
             )}
             {!isEditing && canShareDocument && (!isMobile || !isTemplate) && (

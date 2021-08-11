@@ -36,8 +36,13 @@ function MultiplayerEditor(props: Props, ref: any) {
     });
 
     provider.on("awarenessChange", ({ states }) => {
-      states.forEach((state) => {
-        presence.touch(props.id, state.user.id);
+      states.forEach(({ user }) => {
+        if (user) {
+          // could know if the user is editing here using `state.cursor` but it
+          // feels distracting in the UI, once multiplayer is on for everyone we
+          // can stop diffentiating
+          presence.touch(props.id, user.id);
+        }
       });
     });
 
@@ -57,7 +62,7 @@ function MultiplayerEditor(props: Props, ref: any) {
     }
 
     setProvider(provider);
-  }, [props.id, token, ydoc]);
+  }, [props.id, presence, token, ydoc]);
 
   // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
   // const [isRemoteSynced, setRemoteSynced] = React.useState(true);
@@ -100,7 +105,6 @@ function MultiplayerEditor(props: Props, ref: any) {
         <Editor
           {...props}
           defaultValue={undefined}
-          value={undefined}
           extensions={extensions}
           // style={style}
           ref={ref}

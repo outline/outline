@@ -3,6 +3,7 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
+import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { type TFunction, Trans, withTranslation } from "react-i18next";
 import keydown from "react-keydown";
@@ -113,14 +114,25 @@ class DocumentScene extends React.Component<Props> {
         );
       }
     }
-
-    if (document.injectTemplate) {
-      document.injectTemplate = false;
-      this.title = document.title;
-      this.isDirty = true;
-      this.updateIsDirty();
-    }
   }
+
+  onSelectTemplate = (template: Document) => {
+    this.title = template.title;
+    this.isDirty = true;
+
+    const { view, parser } = this.editor.current;
+    view.dispatch(
+      view.state.tr
+        .setSelection(new AllSelection(view.state.doc))
+        .replaceSelectionWith(parser.parse(template.text))
+    );
+
+    this.props.document.templateId = template.id;
+    this.props.document.title = template.title;
+    this.props.document.text = template.text;
+
+    this.updateIsDirty();
+  };
 
   @keydown("m")
   goToMove(ev) {
@@ -331,7 +343,6 @@ class DocumentScene extends React.Component<Props> {
     const isShare = !!shareId;
 
     const value = revision ? revision.text : document.text;
-    const injectTemplate = document.injectTemplate;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -404,6 +415,7 @@ class DocumentScene extends React.Component<Props> {
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
               goBack={this.goBack}
+              onSelectTemplate={this.onSelectTemplate}
               onSave={this.onSave}
               headings={headings}
             />
@@ -464,12 +476,12 @@ class DocumentScene extends React.Component<Props> {
                   {showContents && <Contents headings={headings} />}
                   <Editor
                     id={document.id}
+                    key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
                     multiplayer={team?.features.multiplayerEditor}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
-                    key={[injectTemplate, disableEmbeds].join("-")}
                     title={revision ? revision.title : this.title}
                     document={document}
                     value={readOnly ? value : undefined}

@@ -14,9 +14,10 @@ import useStores from "hooks/useStores";
 
 type Props = {|
   document: Document,
+  onSelectTemplate: (template: Document) => void,
 |};
 
-function TemplatesMenu({ document }: Props) {
+function TemplatesMenu({ onSelectTemplate, document }: Props) {
   const menu = useMenuState({ modal: true });
   const { documents } = useStores();
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ function TemplatesMenu({ document }: Props) {
   const renderTemplate = (template) => (
     <MenuItem
       key={template.id}
-      onClick={() => document.updateFromTemplate(template)}
+      onClick={() => onSelectTemplate(template)}
       {...menu}
     >
       <DocumentIcon />

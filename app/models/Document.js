@@ -20,7 +20,6 @@ type SaveOptions = {
 export default class Document extends BaseModel {
   @observable isSaving: boolean = false;
   @observable embedsDisabled: boolean = false;
-  @observable injectTemplate: boolean = false;
   @observable lastViewedAt: ?string;
   store: DocumentsStore;
 
@@ -251,14 +250,6 @@ export default class Document extends BaseModel {
   @action
   templatize = async () => {
     return this.store.templatize(this.id);
-  };
-
-  @action
-  updateFromTemplate = async (template: Document) => {
-    this.templateId = template.id;
-    this.title = template.title;
-    this.text = template.text;
-    this.injectTemplate = true;
   };
 
   @action
