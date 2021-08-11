@@ -228,7 +228,7 @@ class DocumentScene extends React.Component<Props> {
 
     try {
       let savedDocument = document;
-      if (auth.team && auth.team.multiplayerEditor) {
+      if (auth.team?.features.multiplayerEditor) {
         // update does not send "text" field to the API, this is a workaround
         // while the multiplayer editor is toggleable. Once it's finalized
         // this can be cleaned up to single code path
@@ -288,7 +288,7 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = (getEditorText) => {
     const { auth } = this.props;
-    if (auth.team?.multiplayerEditor) {
+    if (auth.team?.features.multiplayerEditor) {
       return;
     }
 
@@ -376,7 +376,7 @@ class DocumentScene extends React.Component<Props> {
                   when={
                     this.isDirty &&
                     !this.isUploading &&
-                    !team?.multiplayerEditor
+                    !team?.features.multiplayerEditor
                   }
                   message={t(
                     `You have unsaved changes.\nAre you sure you want to discard them?`
@@ -465,7 +465,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
-                    multiplayer={team?.multiplayerEditor}
+                    multiplayer={team?.features.multiplayerEditor}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}

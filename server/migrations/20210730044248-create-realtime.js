@@ -5,14 +5,13 @@ module.exports = {
     await queryInterface.addColumn('documents', 'state', {
       type: Sequelize.BLOB
     });
-    await queryInterface.addColumn('teams', 'multiplayerEditor', {
-      type: Sequelize.BOOLEAN,
-      defaultValue: false,
+    await queryInterface.addColumn('teams', 'features', {
+      type: Sequelize.JSONB,
     });
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn('documents', 'state');
-    await queryInterface.removeColumn('teams', 'multiplayerEditor');
+    await queryInterface.removeColumn('teams', 'features');
   }
 };

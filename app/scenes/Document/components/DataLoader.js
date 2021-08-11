@@ -248,7 +248,7 @@ class DataLoader extends React.Component<Props> {
 
     const abilities = policies.abilities(document.id);
 
-    const key = team.multiplayerEditor
+    const key = team.features.multiplayerEditor
       ? ""
       : this.isEditing
       ? "editing"

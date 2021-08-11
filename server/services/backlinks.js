@@ -87,7 +87,7 @@ export default class Backlinks {
 
         // TODO: Handle re-writing of titles into CRDT
         const team = await Team.findByPk(document.teamId);
-        if (team.multiplayerEditor) {
+        if (team?.features?.multiplayerEditor) {
           break;
         }
 

@@ -32,7 +32,7 @@ export default function DocumentScene(props: Props) {
   const urlParts = documentSlug ? documentSlug.split("-") : [];
   const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
   const key = [urlId, revisionId].join("/");
-  const isMultiplayer = team.multiplayerEditor;
+  const isMultiplayer = team.features.multiplayerEditor;
 
   return (
     <DataLoader key={key} match={props.match}>
