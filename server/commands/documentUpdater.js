@@ -14,7 +14,7 @@ export default async function documentUpdater({
 }: {
   documentId: string,
   ydoc: Y.Doc,
-  userId: string,
+  userId?: string,
   done?: boolean,
 }) {
   const document = await Document.findByPk(documentId);
@@ -27,8 +27,10 @@ export default async function documentUpdater({
   const pudIds = Array.from(pud.clients.values());
   const existingIds = document.collaboratorIds;
   const collaboratorIds = uniq([...pudIds, ...existingIds]);
+  const isUnchanged = document.text === text;
+  const hasMultiplayerState = !!document.state;
 
-  if (document.text === text) {
+  if (isUnchanged && hasMultiplayerState) {
     return;
   }
 
@@ -36,8 +38,8 @@ export default async function documentUpdater({
     {
       text,
       state: Buffer.from(state),
-      updatedAt: new Date(),
-      lastModifiedById: userId,
+      updatedAt: isUnchanged ? document.updatedAt : new Date(),
+      lastModifiedById: isUnchanged ? document.lastModifiedById : userId,
       collaboratorIds,
     },
     {
@@ -47,6 +49,12 @@ export default async function documentUpdater({
       },
     }
   );
+
+  // If passing no userId to documentUpdater it is used to upgrade a document
+  // from non-multiplayer to multiplayer when opening on a team with the flag.
+  if (!userId) {
+    return;
+  }
 
   const event = {
     name: "documents.update",

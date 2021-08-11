@@ -88,15 +88,10 @@ const server = Server.configure({
 
       log(`persisting ${documentId}`);
 
-      if (!context.user) {
-        console.log("NO USER, WHY?");
-        return;
-      }
-
       await documentUpdater({
         documentId,
         ydoc: document,
-        userId: context.user.id,
+        userId: context.user?.id,
       });
     },
     PERSIST_WAIT,
