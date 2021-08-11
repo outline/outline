@@ -6,6 +6,7 @@ import documentCreator from "../commands/documentCreator";
 import documentImporter from "../commands/documentImporter";
 import documentMover from "../commands/documentMover";
 import { documentPermanentDeleter } from "../commands/documentPermanentDeleter";
+import { documentUpdater } from "../commands/documentUpdater";
 import env from "../env";
 import {
   NotFoundError,
@@ -32,7 +33,6 @@ import {
   presentDocument,
   presentPolicies,
 } from "../presenters";
-import { sequelize } from "../sequelize";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
@@ -1017,95 +1017,81 @@ router.post("documents.update", auth(), async (ctx) => {
   }
 
   const previousTitle = document.title;
-
-  // Update document
-  if (title) document.title = title;
-  if (editorVersion) document.editorVersion = editorVersion;
-  if (templateId) document.templateId = templateId;
-
-  if (append) {
-    document.text += text;
-  } else if (text !== undefined) {
-    document.text = text;
-  }
-  document.lastModifiedById = user.id;
   let collection;
 
-  if (!document.publishedAt && document.collection === null && collectionId) {
+  //draft with no collection and want to be published
+  if (!document.publishedAt && !document.collection && publish) {
+    ctx.assertPresent(collectionId, "collectionId should be present");
     collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
-    document.collectionId = collectionId;
-    if (parentDocumentId) document.parentDocumentId = parentDocumentId;
+    ctx.assertPresent(collection, "Collection should be present");
   } else {
     collection = document.collection;
   }
 
-  let transaction;
-  try {
-    transaction = await sequelize.transaction();
-
-    if (publish) {
-      ctx.assertPresent(collection, "Collection should be present");
-      await document.publish(user.id, { transaction });
-    } else {
-      await document.save({ autosave, transaction });
-    }
-    await transaction.commit();
-  } catch (err) {
-    if (transaction) {
-      await transaction.rollback();
-    }
-    throw err;
+  if (publish) {
+    ctx.assertPresent(collection, "Collection should be present");
   }
+
+  const updatedDocument = await documentUpdater(document, user, collection, {
+    id,
+    title,
+    text,
+    publish,
+    autosave,
+    done,
+    templateId,
+    append,
+    collectionId,
+    editorVersion,
+    parentDocumentId,
+  });
 
   if (publish) {
     await Event.create({
       name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
+      documentId: updatedDocument.id,
+      collectionId: updatedDocument.collectionId,
+      teamId: updatedDocument.teamId,
       actorId: user.id,
-      data: { title: document.title },
+      data: { title: updatedDocument.title },
       ip: ctx.request.ip,
     });
   } else {
     await Event.create({
       name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
+      documentId: updatedDocument.id,
+      collectionId: updatedDocument.collectionId,
+      teamId: updatedDocument.teamId,
       actorId: user.id,
       data: {
         autosave,
         done,
-        title: document.title,
+        title: updatedDocument.title,
       },
       ip: ctx.request.ip,
     });
   }
 
-  if (document.title !== previousTitle) {
+  if (updatedDocument.title !== previousTitle) {
     Event.add({
       name: "documents.title_change",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
+      documentId: updatedDocument.id,
+      collectionId: updatedDocument.collectionId,
+      teamId: updatedDocument.teamId,
       actorId: user.id,
       data: {
         previousTitle,
-        title: document.title,
+        title: updatedDocument.title,
       },
       ip: ctx.request.ip,
     });
   }
 
-  document.updatedBy = user;
-  document.collection = collection;
-
   ctx.body = {
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
+    data: await presentDocument(updatedDocument),
+    policies: presentPolicies(user, [updatedDocument]),
   };
 });
 
