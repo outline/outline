@@ -24,7 +24,7 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
   if (document.deletedAt) return false;
   if (document.template) return false;
 
-  if (document.collection && cannot(user, "read", document.collection))
+  if (!document.collection || cannot(user, "read", document.collection))
     return false;
 
   return user.teamId === document.teamId;
