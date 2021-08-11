@@ -54,3 +54,33 @@ describe("provisionSubdomain", () => {
     expect(team.subdomain).toEqual("example");
   });
 });
+
+describe("save", () => {
+  it("should ot allow known features", async () => {
+    const team = await buildTeam();
+    team.features = { multiplayerEditor: true };
+
+    let error;
+
+    try {
+      await team.save();
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toEqual(undefined);
+  });
+
+  it("should not allow unknown features", async () => {
+    const team = await buildTeam();
+    team.features = { cool: true };
+
+    let error;
+
+    try {
+      await team.save();
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeTruthy();
+  });
+});

@@ -110,6 +110,7 @@ function MultiplayerEditor(props: Props, ref: any) {
       {extensions.length ? (
         <Editor
           {...props}
+          value={undefined}
           defaultValue={undefined}
           extensions={extensions}
           // style={style}

@@ -3,11 +3,13 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
+import { difference } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from "../../shared/utils/domains";
+import { ValidationError } from "../errors";
 import { DataTypes, sequelize, Op } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
@@ -72,6 +74,21 @@ const Team = sequelize.define(
     features: {
       type: DataTypes.JSONB,
       allowNull: true,
+      validate: {
+        isAllowed(value) {
+          if (!value) return true;
+
+          const features = ["multiplayerEditor"];
+          const keys = Object.keys(value);
+          const disallowed = difference(keys, features);
+
+          if (disallowed.length) {
+            throw new ValidationError(
+              `Invalid values ${disallowed.join(", ")}`
+            );
+          }
+        },
+      },
     },
   },
   {
