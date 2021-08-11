@@ -812,7 +812,7 @@ describe("#documents.drafts", () => {
   });
 
   it("should not return documents in private collections not a member of", async () => {
-    const { user, document, collection } = await seed();
+    const { document, collection, admin } = await seed();
     document.publishedAt = null;
     await document.save();
 
@@ -820,7 +820,7 @@ describe("#documents.drafts", () => {
     await collection.save();
 
     const res = await server.post("/api/documents.drafts", {
-      body: { token: user.getJwtToken() },
+      body: { token: admin.getJwtToken() },
     });
     const body = await res.json();
 
