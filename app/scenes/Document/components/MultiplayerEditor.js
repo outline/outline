@@ -2,7 +2,7 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import * as React from "react";
 import * as Y from "yjs";
-import Editor, { type Props } from "components/Editor";
+import Editor, { type Props as EditorProps } from "components/Editor";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -12,7 +12,13 @@ import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 
 // const style = { position: "absolute", width: "100%" };
 
+type Props = {|
+  ...EditorProps,
+  id: string,
+|};
+
 function MultiplayerEditor(props: Props, ref: any) {
+  const documentId = props.id;
   const currentUser = useCurrentUser();
   const { presence } = useStores();
   const token = useCurrentToken();
@@ -28,7 +34,7 @@ function MultiplayerEditor(props: Props, ref: any) {
     const provider = new HocuspocusProvider({
       url: env.MULTIPLAYER_URL,
       debug,
-      name: `document.${props.id || ""}`,
+      name: `document.${documentId}`,
       document: ydoc,
       parameters: {
         token,
@@ -41,7 +47,7 @@ function MultiplayerEditor(props: Props, ref: any) {
           // could know if the user is editing here using `state.cursor` but it
           // feels distracting in the UI, once multiplayer is on for everyone we
           // can stop diffentiating
-          presence.touch(props.id, user.id);
+          presence.touch(documentId, user.id, false);
         }
       });
     });
@@ -62,7 +68,7 @@ function MultiplayerEditor(props: Props, ref: any) {
     }
 
     setProvider(provider);
-  }, [props.id, presence, token, ydoc]);
+  }, [documentId, presence, token, ydoc]);
 
   // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
   // const [isRemoteSynced, setRemoteSynced] = React.useState(true);

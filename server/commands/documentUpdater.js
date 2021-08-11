@@ -34,7 +34,7 @@ export default async function documentUpdater({
     return;
   }
 
-  await Document.update(
+  await Document.scope("withUnpublished").update(
     {
       text,
       state: Buffer.from(state),
@@ -45,7 +45,7 @@ export default async function documentUpdater({
     {
       hooks: false,
       where: {
-        id: document.id,
+        id: documentId,
       },
     }
   );

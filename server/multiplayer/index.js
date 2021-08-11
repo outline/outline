@@ -3,7 +3,6 @@ import { Logger } from "@hocuspocus/extension-logger";
 import { Server } from "@hocuspocus/server";
 import debug from "debug";
 import { debounce } from "lodash";
-//import { RocksDB } from "@hocuspocus/extension-rocksdb";
 import { parser } from "rich-markdown-editor";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
@@ -71,7 +70,9 @@ const server = Server.configure({
       log(`Document ${documentId} is already in state`);
       Y.applyUpdate(ydoc, document.state);
     } else {
-      log(`Document ${documentId} is not in state, creating from text`);
+      log(
+        `Document ${documentId} is not in state, creating state from markdown`
+      );
       const node = parser.parse(document.text);
       Y.applyUpdate(
         ydoc,
@@ -100,18 +101,7 @@ const server = Server.configure({
     }
   ),
 
-  extensions: [
-    new Logger(),
-    // new RocksDB({
-    //   path: "./database",
-
-    //   options: {
-    //     // see available options:
-    //     // https://www.npmjs.com/package/leveldown#options
-    //     createIfMissing: true,
-    //   },
-    // }),
-  ],
+  extensions: [new Logger()],
 });
 
 export async function start() {
