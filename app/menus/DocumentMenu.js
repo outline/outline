@@ -226,12 +226,12 @@ function DocumentMenu({
           items={[
             {
               title: t("Restore"),
-              visible: (!!collection && can.restore) || can.unarchive,
+              visible: !!collection && (can.restore || can.unarchive),
               onClick: handleRestore,
             },
             {
               title: t("Restore"),
-              visible: !collection && !!can.restore,
+              visible: !collection && (can.restore || can.unarchive),
               style: {
                 left: -170,
                 position: "relative",
