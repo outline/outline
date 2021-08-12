@@ -16,6 +16,8 @@ import api from "./api";
 import auth from "./auth";
 import emails from "./emails";
 import env from "./env";
+import { globalEventsQueue, serviceEventsQueue } from "./events";
+import { mailerQueue } from "./mailer";
 import routes from "./routes";
 import updates from "./utils/updates";
 
@@ -104,7 +106,27 @@ if (isProduction) {
       })
     )
   );
+
+  // debug interface for emails
   app.use(mount("/emails", emails));
+
+  // debug interface for queue
+  const { createBullBoard } = require("@bull-board/api");
+  const { BullAdapter } = require("@bull-board/api/bullAdapter");
+  const { KoaAdapter } = require("@bull-board/koa");
+
+  const serverAdapter = new KoaAdapter();
+  createBullBoard({
+    queues: [
+      new BullAdapter(globalEventsQueue),
+      new BullAdapter(serviceEventsQueue),
+      new BullAdapter(mailerQueue),
+    ],
+    serverAdapter,
+  });
+
+  serverAdapter.setBasePath("/queue");
+  app.use(serverAdapter.registerPlugin());
 }
 
 // redirect routing logger to optional "http" debug

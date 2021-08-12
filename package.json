@@ -48,6 +48,8 @@
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-flow": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
+    "@bull-board/api": "^3.5.0",
+    "@bull-board/koa": "^3.5.0",
     "@hocuspocus/extension-logger": "^1.0.0-alpha.35",
     "@hocuspocus/provider": "^1.0.0-alpha.8",
     "@hocuspocus/server": "^1.0.0-alpha.60",

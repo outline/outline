@@ -191,8 +191,8 @@ export type Event =
   | RevisionEvent
   | TeamEvent;
 
-const globalEventsQueue = createQueue("global events");
-const serviceEventsQueue = createQueue("service events");
+export const globalEventsQueue = createQueue("global events");
+export const serviceEventsQueue = createQueue("service events");
 
 // TODO: This is a hack to prevent a require loop from models -> Event -> services -> main
 if (!process.argv.includes("--multiplayer")) {

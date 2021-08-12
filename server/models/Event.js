@@ -45,13 +45,13 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  events.add(event, { removeOnComplete: true });
+  events.add(event.dataValues, { removeOnComplete: true });
 });
 
 // add can be used to send events into the event system without recording them
 // in the database / audit trail
 Event.add = (event) => {
-  events.add(Event.build(event), { removeOnComplete: true });
+  events.add(Event.build(event).dataValues, { removeOnComplete: true });
 };
 
 Event.ACTIVITY_EVENTS = [
