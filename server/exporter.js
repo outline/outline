@@ -19,9 +19,9 @@ const queueOptions = {
   },
 };
 
-async function eventCreate(teamId, userId, exportData) {
-  await Event.create({
-    name: "collections.export_all",
+async function exportsUpdate(teamId, userId, exportData) {
+  await Event.add({
+    name: "exports.update",
     teamId: teamId,
     actorId: userId,
     data: {
@@ -62,7 +62,7 @@ async function exportAndEmailCollections(
     teamId,
   });
 
-  await eventCreate(teamId, userId, exportData);
+  await exportsUpdate(teamId, userId, exportData);
 
   const filePath = await archiveCollections(collections);
 
@@ -77,7 +77,7 @@ async function exportAndEmailCollections(
     exportData.size = stat.size;
 
     await exportData.save();
-    await eventCreate(teamId, userId, exportData);
+    await exportsUpdate(teamId, userId, exportData);
 
     url = await uploadToS3FromBuffer(readBuffer, "application/zip", key, acl);
 
@@ -91,7 +91,16 @@ async function exportAndEmailCollections(
     exportData.url = url;
     await exportData.save();
 
-    await eventCreate(teamId, userId, exportData);
+    await exportsUpdate(teamId, userId, exportData);
+
+    await Event.create({
+      name: "collections.export_all",
+      teamId: teamId,
+      actorId: userId,
+      data: {
+        exportId: exportData.id,
+      },
+    });
 
     if (state === "error") {
       mailer.exportFailure({

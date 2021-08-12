@@ -290,7 +290,7 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("collections.export_all", (event) => {
+    this.socket.on("exports.update", (event) => {
       const user = auth.user;
       if (user) {
         exports.data.set(event.id, {

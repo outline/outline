@@ -95,6 +95,7 @@ Event.AUDIT_EVENTS = [
   "documents.delete",
   "documents.permanent_delete",
   "documents.restore",
+  "exports.update",
   "groups.create",
   "groups.update",
   "groups.delete",

@@ -116,6 +116,15 @@ export type CollectionExportAll = {
   teamId: string,
   actorId: string,
   data: {
+    exportId: string,
+  },
+};
+
+export type ExportEvent = {
+  name: "exports.update",
+  teamId: string,
+  actorId: string,
+  data: {
     url: string,
     state: string,
     id: string,
@@ -202,6 +211,7 @@ export type Event =
   | CollectionEvent
   | CollectionImportEvent
   | CollectionExportAll
+  | ExportEvent
   | IntegrationEvent
   | GroupEvent
   | RevisionEvent
