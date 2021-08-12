@@ -2,8 +2,9 @@
 import { subDays } from "date-fns";
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Document } from "../models";
-import { buildDocument } from "../test/factories";
+import { Document, Export } from "../models";
+import { Op } from "../sequelize";
+import { buildDocument, buildExport } from "../test/factories";
 import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -80,6 +81,62 @@ describe("#utils.gc", () => {
     });
     expect(res.status).toEqual(200);
     expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
+  });
+
+  it("should expire exports older than 30 days ago", async () => {
+    await buildExport({
+      state: "complete",
+      createdAt: subDays(new Date(), 30),
+    });
+
+    await buildExport({
+      state: "complete",
+    });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    const data = await Export.count({
+      where: {
+        state: {
+          [Op.eq]: "expired",
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(data).toEqual(1);
+  });
+
+  it("should not expire exports made less than 30 days ago", async () => {
+    await buildExport({
+      state: "complete",
+      createdAt: subDays(new Date(), 29),
+    });
+
+    await buildExport({
+      state: "complete",
+    });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    const data = await Export.count({
+      where: {
+        state: {
+          [Op.eq]: "expired",
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(data).toEqual(0);
   });
 
   it("should require authentication", async () => {
