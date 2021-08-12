@@ -11,7 +11,7 @@
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
-    "start:multiplayer": "node ./build/multiplayer/index.js",
+    "start:multiplayer": "node ./build/server/index.js --multiplayer",
     "dev": "yarn concurrently --kill-others -n server,multiplayer \"node --inspect=0.0.0.0 build/server/index.js\" \"node build/server/index.js --multiplayer\"",
     "dev:watch": "nodemon --exec \"yarn build:server && yarn build:i18n && yarn dev\" -e js --ignore build/ --ignore app/ --ignore flow-typed/",
     "lint": "eslint app server shared",
