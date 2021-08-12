@@ -12,7 +12,6 @@ module.exports = {
         type: Sequelize.ENUM("creating", "uploading", "complete", "error","expired"),
         allowNull: false,
       },
-      
       key: {
         type: Sequelize.STRING,
       },
