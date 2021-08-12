@@ -292,10 +292,12 @@ class SocketProvider extends React.Component<Props> {
 
     this.socket.on("exports.update", (event) => {
       const user = auth.user;
+      const collection = collections.get(event.collectionId);
       if (user) {
         exports.data.set(event.id, {
           ...event,
           user,
+          collection,
         });
       }
     });

@@ -14,7 +14,6 @@ import {
   User,
   Group,
   Attachment,
-  Export,
 } from "../models";
 import policy from "../policies";
 import {
@@ -459,32 +458,14 @@ router.post("collections.export", auth(), async (ctx) => {
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  authorize(user, "export", collection);
 
-  const filePath = await archiveCollections([collection]);
+  authorize(user, "export", team);
 
-  const stat = await fs.promises.stat(filePath);
+  exportCollections(user.teamId, user.id, user.email, collection);
 
-  await Export.create({
-    state: "complete",
-    collectionId: collection.id,
-    size: stat.size,
-    userId: user.id,
-    teamId: team.id,
-  });
-
-  await Event.create({
-    name: "collections.export",
-    collectionId: collection.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: { title: collection.title },
-    ip: ctx.request.ip,
-  });
-
-  ctx.attachment(`${collection.name}.zip`);
-  ctx.set("Content-Type", "application/force-download");
-  ctx.body = fs.createReadStream(filePath);
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.post("collections.export_all", auth(), async (ctx) => {
@@ -494,19 +475,19 @@ router.post("collections.export_all", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  await Event.create({
-    name: "collections.export",
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
-  });
-
   if (download) {
     const collections = await Collection.findAll({
       where: { teamId: team.id },
       order: [["name", "ASC"]],
     });
     const filePath = await archiveCollections(collections);
+
+    await Event.create({
+      name: "collections.export_all",
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+    });
 
     ctx.attachment(`${team.name}.zip`);
     ctx.set("Content-Type", "application/force-download");

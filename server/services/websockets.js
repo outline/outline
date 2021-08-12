@@ -335,6 +335,7 @@ export default class Websockets {
           state: event.data.state,
           size: event.data.size,
           key: event.data.key,
+          collectionId: event.data.collectionId,
           createdAt: event.data.createdAt,
         });
       }

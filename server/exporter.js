@@ -30,6 +30,7 @@ async function exportsUpdate(teamId, userId, exportData) {
       key: exportData.key,
       url: exportData.url,
       size: exportData.size,
+      collectionId: exportData.collectionId,
       createdAt: exportData.createdAt,
     },
   });
@@ -38,19 +39,28 @@ async function exportsUpdate(teamId, userId, exportData) {
 async function exportAndEmailCollections(
   teamId: string,
   userId: string,
-  email: string
+  email: string,
+  collection?: Collection
 ) {
   log("Archiving team", teamId);
   const { archiveCollections } = require("./utils/zip");
   const team = await Team.findByPk(teamId);
-  const collections = await Collection.findAll({
-    where: { teamId },
-    order: [["name", "ASC"]],
-  });
+
+  let collections;
+  if (!collection) {
+    collections = await Collection.findAll({
+      where: { teamId },
+      order: [["name", "ASC"]],
+    });
+  } else {
+    collections = [collection];
+  }
 
   const acl = process.env.AWS_S3_ACL || "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
-  const key = `${bucket}/${teamId}/${uuidv4()}/${team.name}-export.zip`;
+  const key = `${bucket}/${teamId}/${uuidv4()}/${
+    collection ? collection.name : team.name
+  }-export.zip`;
   let state = "creating";
 
   let exportData = await Export.create({
@@ -58,6 +68,7 @@ async function exportAndEmailCollections(
     key,
     url: null,
     size: 0,
+    collectionId: collection ? collection.id : null,
     userId,
     teamId,
   });
@@ -93,14 +104,24 @@ async function exportAndEmailCollections(
 
     await exportsUpdate(teamId, userId, exportData);
 
-    await Event.create({
-      name: "collections.export_all",
-      teamId: teamId,
-      actorId: userId,
-      data: {
-        exportId: exportData.id,
-      },
-    });
+    if (collection) {
+      await Event.create({
+        name: "collections.export",
+        collectionId: collection.id,
+        teamId: teamId,
+        actorId: userId,
+        data: { title: collection.title, exportId: exportData.id },
+      });
+    } else {
+      await Event.create({
+        name: "collections.export_all",
+        teamId: teamId,
+        actorId: userId,
+        data: {
+          exportId: exportData.id,
+        },
+      });
+    }
 
     if (state === "error") {
       mailer.exportFailure({
@@ -124,7 +145,8 @@ exporterQueue.process(async (job) => {
       return await exportAndEmailCollections(
         job.data.teamId,
         job.data.userId,
-        job.data.email
+        job.data.email,
+        job.data.collections
       );
     default:
   }
@@ -133,7 +155,8 @@ exporterQueue.process(async (job) => {
 export const exportCollections = (
   teamId: string,
   userId: string,
-  email: string
+  email: string,
+  collections?: Collection
 ) => {
   exporterQueue.add(
     {
@@ -141,6 +164,7 @@ export const exportCollections = (
       teamId,
       userId,
       email,
+      collections,
     },
     queueOptions
   );

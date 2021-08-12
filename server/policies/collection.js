@@ -47,7 +47,7 @@ allow(User, "read", Collection, (user, collection) => {
   return true;
 });
 
-allow(User, ["share", "export"], Collection, (user, collection) => {
+allow(User, ["share"], Collection, (user, collection) => {
   if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
   if (!collection.sharing) return false;

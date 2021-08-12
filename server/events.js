@@ -131,6 +131,7 @@ export type ExportEvent = {
     key: string,
     size: number,
     createdAt: string,
+    collectionId: string,
   },
 };
 

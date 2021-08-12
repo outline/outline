@@ -33,7 +33,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           <Trans
-            defaults="Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be downloaded as a zip of folders with files in Markdown format."
+            defaults="Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip."
             values={{ collectionName: collection.name }}
             components={{ em: <strong /> }}
           />

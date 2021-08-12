@@ -275,7 +275,7 @@
   "Public sharing is currently disabled in the team security settings.": "Public sharing is currently disabled in the team security settings.",
   "Saving": "Saving",
   "Save": "Save",
-  "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be downloaded as a zip of folders with files in Markdown format.": "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be downloaded as a zip of folders with files in Markdown format.",
+  "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Import/Export on settings to get the zip.": "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Import/Export on settings to get the zip.",
   "Exporting": "Exporting",
   "Export Collection": "Export Collection",
   "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.": "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.",
