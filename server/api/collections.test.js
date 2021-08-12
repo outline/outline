@@ -263,53 +263,53 @@ describe("#collections.move", () => {
 
 describe("#collections.export", () => {
   it("should now allow export of private collection not a member", async () => {
-    const { user } = await seed();
+    const { admin } = await seed();
     const collection = await buildCollection({
       permission: null,
-      teamId: user.teamId,
+      teamId: admin.teamId,
     });
     const res = await server.post("/api/collections.export", {
-      body: { token: user.getJwtToken(), id: collection.id },
+      body: { token: admin.getJwtToken(), id: collection.id },
     });
 
     expect(res.status).toEqual(403);
   });
 
   it("should allow export of private collection when the actor is a member", async () => {
-    const { user, collection } = await seed();
+    const { admin, collection } = await seed();
     collection.permission = null;
     await collection.save();
 
     await CollectionUser.create({
-      createdById: user.id,
+      createdById: admin.id,
       collectionId: collection.id,
-      userId: user.id,
+      userId: admin.id,
       permission: "read_write",
     });
 
     const res = await server.post("/api/collections.export", {
-      body: { token: user.getJwtToken(), id: collection.id },
+      body: { token: admin.getJwtToken(), id: collection.id },
     });
 
     expect(res.status).toEqual(200);
   });
 
   it("should allow export of private collection when the actor is a group member", async () => {
-    const user = await buildUser();
+    const admin = await buildAdmin();
     const collection = await buildCollection({
       permission: null,
-      teamId: user.teamId,
+      teamId: admin.teamId,
     });
 
-    const group = await buildGroup({ teamId: user.teamId });
-    await group.addUser(user, { through: { createdById: user.id } });
+    const group = await buildGroup({ teamId: admin.teamId });
+    await group.addUser(admin, { through: { createdById: admin.id } });
 
     await collection.addGroup(group, {
-      through: { permission: "read_write", createdById: user.id },
+      through: { permission: "read_write", createdById: admin.id },
     });
 
     const res = await server.post("/api/collections.export", {
-      body: { token: user.getJwtToken(), id: collection.id },
+      body: { token: admin.getJwtToken(), id: collection.id },
     });
 
     expect(res.status).toEqual(200);
@@ -323,13 +323,13 @@ describe("#collections.export", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should return success", async () => {
+  it("should return unauthorized if user is not admin", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.export", {
       body: { token: user.getJwtToken(), id: collection.id },
     });
 
-    expect(res.status).toEqual(200);
+    expect(res.status).toEqual(403);
   });
 });
 

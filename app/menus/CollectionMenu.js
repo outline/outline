@@ -14,7 +14,6 @@ import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template, { filterTemplateItems } from "components/ContextMenu/Template";
 import Modal from "components/Modal";
-import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -41,7 +40,6 @@ function CollectionMenu({
   const [renderModals, setRenderModals] = React.useState(false);
   const { documents, policies } = useStores();
   const { showToast } = useToasts();
-  const team = useCurrentTeam();
   const { t } = useTranslation();
   const history = useHistory();
 
@@ -114,7 +112,6 @@ function CollectionMenu({
   );
 
   const can = policies.abilities(collection.id);
-  const canTeam = policies.abilities(team.id);
 
   const items = React.useMemo(
     () =>
@@ -144,7 +141,7 @@ function CollectionMenu({
         },
         {
           title: `${t("Export")}…`,
-          visible: !!(collection && canTeam.export),
+          visible: !!(collection && can.export),
           onClick: () => setShowCollectionExport(true),
         },
         {
@@ -156,7 +153,7 @@ function CollectionMenu({
           onClick: () => setShowCollectionDelete(true),
         },
       ]),
-    [can, canTeam, collection, handleNewDocument, handleImportDocument, t]
+    [can, collection, handleNewDocument, handleImportDocument, t]
   );
 
   if (!items.length) {
