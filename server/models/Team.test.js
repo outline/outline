@@ -56,7 +56,7 @@ describe("provisionSubdomain", () => {
 });
 
 describe("save", () => {
-  it("should ot allow known features", async () => {
+  it("should allow known features", async () => {
     const team = await buildTeam();
     team.features = { multiplayerEditor: true };
 

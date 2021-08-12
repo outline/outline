@@ -1,6 +1,6 @@
 // @flow
 import { debounce } from "lodash";
-import { observable } from "mobx";
+import { action, observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
@@ -120,7 +120,12 @@ class DocumentScene extends React.Component<Props> {
     this.title = template.title;
     this.isDirty = true;
 
-    const { view, parser } = this.editor.current;
+    const editorRef = this.editor.current;
+    if (!editorRef) {
+      return;
+    }
+
+    const { view, parser } = editorRef;
     view.dispatch(
       view.state.tr
         .setSelection(new AllSelection(view.state.doc))
@@ -231,12 +236,11 @@ class DocumentScene extends React.Component<Props> {
 
     document.title = title;
     document.text = text;
+    document.tasks = getTasks(document.text);
 
     let isNew = !document.id;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
-
-    document.tasks = getTasks(document.text);
 
     try {
       let savedDocument = document;
@@ -299,12 +303,20 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChange = (getEditorText) => {
-    const { auth } = this.props;
-    if (auth.team?.features.multiplayerEditor) {
-      return;
-    }
+    const { document, auth } = this.props;
 
     this.getEditorText = getEditorText;
+
+    // If the multiplayer editor is enabled then we still want to keep the local
+    // text value in sync as it is used as a cache.
+    if (auth.team?.features.multiplayerEditor) {
+      action(() => {
+        document.text = this.getEditorText();
+        document.tasks = getTasks(document.text);
+      })();
+
+      return;
+    }
 
     // document change while read only is presumed to be a checkbox edit,
     // in that case we don't delay in saving for a better user experience.

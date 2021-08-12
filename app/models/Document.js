@@ -10,12 +10,12 @@ import BaseModel from "models/BaseModel";
 import User from "models/User";
 import View from "./View";
 
-type SaveOptions = {
+type SaveOptions = {|
   publish?: boolean,
   done?: boolean,
   autosave?: boolean,
   lastRevision?: number,
-};
+|};
 
 export default class Document extends BaseModel {
   @observable isSaving: boolean = false;
