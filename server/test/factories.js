@@ -257,34 +257,16 @@ export async function buildDocument(overrides: Object = {}) {
 }
 
 export async function buildExport(overrides: Object = {}) {
-  if (!overrides.teamId) {
-    const team = await buildTeam();
-    overrides.teamId = team.id;
-  }
-
-  if (!overrides.userId) {
-    const user = await buildUser({ teamId: overrides.teamId });
-    overrides.userId = user.id;
-  }
-
-  if (!overrides.state) {
-    overrides.state = "creating";
-  }
-
-  if (!overrides.size) {
-    overrides.size = 0;
-  }
-
-  if (!overrides.key) {
-    overrides.key = "key/to/aws/file.zip";
-  }
-
-  if (!overrides.url) {
-    overrides.url = "https://www.urltos3file.com/file.zip";
-  }
+  const team = await buildTeam();
+  const user = await buildUser({ teamId: overrides.teamId });
 
   return Export.create({
-    ...overrides,
+    teamId: team.id,
+    userId: user.id,
+    state: "creating",
+    size: 0,
+    key: "key/to/aws/file.zip",
+    url: "https://www.urltos3file.com/file.zip",
   });
 }
 

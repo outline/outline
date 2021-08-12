@@ -12,7 +12,7 @@ afterAll(() => server.close());
 describe("#exports.list", () => {
   it("should return exports list", async () => {
     const { admin, team } = await seed();
-    await buildExport({ teamId: team.id });
+    const exportData = await buildExport({ teamId: team.id });
 
     const res = await server.post("/api/exports.list", {
       body: {
@@ -23,6 +23,9 @@ describe("#exports.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toBe(1);
+    expect(body.data.id).toBe(exportData.id);
+    expect(body.data.key).toBe(exportData.key);
+    expect(body.data.url).toBe(exportData.url);
   });
 
   it("should require authorization", async () => {

@@ -93,11 +93,17 @@ async function exportAndEmailCollections(
 
     await eventCreate(teamId, userId, exportData);
 
-    mailer.export({
-      to: email,
-      id: exportData.id,
-      state,
-    });
+    if (state === "error") {
+      mailer.exportFailure({
+        to: email,
+        id: exportData.id,
+      });
+    } else {
+      mailer.exportSuccess({
+        to: email,
+        id: exportData.id,
+      });
+    }
   }
 }
 

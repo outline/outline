@@ -8,19 +8,14 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-export const exportEmailSuccessText = `
+export const exportEmailFailureText = `
 Your Data Export
 
-Your requested data export is completed, please visit the export section to find the link to zip file.
+Sorry, your requested data export has failed, please visit the export
+section to try again – if the problem persists please contact support.
 `;
 
-export const exportEmailErrorText = `
-Your Data Export
-
-Your requested data export is failed, please visit the export section to  try again.
-`;
-
-export const ExportEmail = ({ id, state }: { id: string, state: string }) => {
+export const ExportFailureEmail = ({ id }: { id: string }) => {
   return (
     <EmailTemplate>
       <Header />
@@ -28,9 +23,8 @@ export const ExportEmail = ({ id, state }: { id: string, state: string }) => {
       <Body>
         <Heading>Your Data Export</Heading>
         <p>
-          {state === "complete"
-            ? "Your requested data export is completed, please visit the export section to find the link to zip file."
-            : "Your requested data export is failed, please visit the export section to try again."}
+          Sorry, your requested data export has failed, please visit the export
+          section to try again – if the problem persists please contact support.
         </p>
         <EmptySpace height={10} />
         <p>

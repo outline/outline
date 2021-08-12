@@ -1,26 +1,16 @@
 // @flow
 import BaseModal from "./BaseModel";
-
-type UserData = {
-  name: string,
-  id: string,
-  avatarUrl: string,
-};
-
-type CollectionData = {
-  name: string,
-  id: string,
-  url: string,
-};
+import Collection from "./Collection";
+import User from "./User";
 
 class Export extends BaseModal {
   id: string;
   state: string;
-  collection: ?CollectionData;
+  collection: ?Collection;
   key: ?string;
   url: ?string;
   size: number;
-  user: UserData;
+  user: User;
   createdAt: string;
 }
 

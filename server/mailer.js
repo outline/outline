@@ -15,10 +15,14 @@ import {
   documentNotificationEmailText,
 } from "./emails/DocumentNotificationEmail";
 import {
-  ExportEmail,
+  ExportFailureEmail,
+  exportEmailFailureText,
+} from "./emails/ExportFailureEmail";
+
+import {
+  ExportSuccessEmail,
   exportEmailSuccessText,
-  exportEmailErrorText,
-} from "./emails/ExportEmail";
+} from "./emails/ExportSucessEmail";
 import {
   type Props as InviteEmailT,
   InviteEmail,
@@ -112,22 +116,33 @@ export class Mailer {
     });
   };
 
-  export = async (opts: {
+  exportSuccess = async (opts: {
     to: string,
     attachments?: Object[],
     id: string,
-    state: string,
   }) => {
     this.sendMail({
       to: opts.to,
       attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Here's your request data export from Outline",
-      html: <ExportEmail id={opts.id} state={opts.state} />,
-      text:
-        opts.state === "complete"
-          ? exportEmailSuccessText
-          : exportEmailErrorText,
+      html: <ExportSuccessEmail id={opts.id} />,
+      text: exportEmailSuccessText,
+    });
+  };
+
+  exportFailure = async (opts: {
+    to: string,
+    attachments?: Object[],
+    id: string,
+  }) => {
+    this.sendMail({
+      to: opts.to,
+      attachments: opts.attachments,
+      title: "Your requested export",
+      previewText: "Sorry, your requested data export has failed",
+      html: <ExportFailureEmail id={opts.id} />,
+      text: exportEmailFailureText,
     });
   };
 

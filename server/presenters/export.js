@@ -1,25 +1,15 @@
 // @flow
 import { Export } from "../models";
-
-export default function present(key: Export) {
+import { presentCollection, presentUser } from ".";
+export default function present(data: Export) {
   return {
-    id: key.id,
-    state: key.state,
-    collection: key.collection
-      ? {
-          name: key.collection.name,
-          id: key.collection.id,
-          url: key.collection.url,
-        }
-      : null,
-    key: key.key,
-    url: key.url,
-    size: key.size,
-    user: {
-      name: key.user.name,
-      id: key.user.id,
-      avatarUrl: key.user.avatarUrl,
-    },
-    createdAt: key.createdAt,
+    id: data.id,
+    state: data.state,
+    collection: data.collection ? presentCollection(data.collection) : null,
+    key: data.key,
+    url: data.url,
+    size: data.size,
+    user: presentUser(data.user),
+    createdAt: data.createdAt,
   };
 }
