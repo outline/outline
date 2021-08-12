@@ -295,7 +295,7 @@ class SocketProvider extends React.Component<Props> {
       if (user) {
         exports.data.set(event.id, {
           ...event,
-          user: { name: user.name, id: user.id, avatarUrl: user.avatarUrl },
+          user,
         });
       }
     });
