@@ -22,7 +22,6 @@ import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Button from "components/Button";
-import DocumentHistory from "components/DocumentHistory";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
@@ -37,6 +36,12 @@ import {
   matchDocumentSlug as slug,
   newDocumentUrl,
 } from "utils/routeHelpers";
+
+const DocumentHistory = React.lazy(() =>
+  import(
+    /* webpackChunkName: "document-history" */ "components/DocumentHistory"
+  )
+);
 
 type Props = {
   documents: DocumentsStore,
@@ -154,12 +159,14 @@ class Layout extends React.Component<Props> {
             {this.props.children}
           </Content>
 
-          <Switch>
-            <Route
-              path={`/doc/${slug}/history/:revisionId?`}
-              component={DocumentHistory}
-            />
-          </Switch>
+          <React.Suspense>
+            <Switch>
+              <Route
+                path={`/doc/${slug}/history/:revisionId?`}
+                component={DocumentHistory}
+              />
+            </Switch>
+          </React.Suspense>
         </Container>
         <Guide
           isOpen={this.keyboardShortcutsOpen}

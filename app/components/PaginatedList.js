@@ -2,10 +2,11 @@
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
-import { observer } from "mobx-react";
+import { observer, inject } from "mobx-react";
 import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
 import { Waypoint } from "react-waypoint";
+import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
@@ -17,6 +18,7 @@ type Props = {
   heading?: React.Node,
   empty?: React.Node,
   items: any[],
+  auth: AuthStore,
   renderItem: (any, index: number) => React.Node,
   renderHeading?: (name: React.Element<any> | string) => React.Node,
   t: TFunction,
@@ -105,7 +107,7 @@ class PaginatedList extends React.Component<Props> {
   };
 
   render() {
-    const { items, heading, empty, renderHeading } = this.props;
+    const { items, heading, auth, empty, renderHeading } = this.props;
 
     let previousHeading = "";
     const showLoading =
@@ -137,7 +139,11 @@ class PaginatedList extends React.Component<Props> {
                 // Get what a heading would look like for this item
                 const currentDate =
                   item.updatedAt || item.createdAt || previousHeading;
-                const currentHeading = dateToHeading(currentDate, this.props.t);
+                const currentHeading = dateToHeading(
+                  currentDate,
+                  this.props.t,
+                  auth.user?.language
+                );
 
                 // If the heading is different to any previous heading then we
                 // should render it, otherwise the item can go under the previous
@@ -173,4 +179,4 @@ class PaginatedList extends React.Component<Props> {
 
 export const Component = PaginatedList;
 
-export default withTranslation()<PaginatedList>(PaginatedList);
+export default withTranslation()<PaginatedList>(inject("auth")(PaginatedList));

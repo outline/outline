@@ -1,39 +1,9 @@
 // @flow
 import { format as formatDate, formatDistanceToNow } from "date-fns";
-import {
-  enUS,
-  de,
-  faIR,
-  fr,
-  es,
-  it,
-  ja,
-  ko,
-  ptBR,
-  pt,
-  zhCN,
-  zhTW,
-  ru,
-} from "date-fns/locale";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
-
-const locales = {
-  en_US: enUS,
-  de_DE: de,
-  es_ES: es,
-  fa_IR: faIR,
-  fr_FR: fr,
-  it_IT: it,
-  ja_JP: ja,
-  ko_KR: ko,
-  pt_BR: ptBR,
-  pt_PT: pt,
-  zh_CN: zhCN,
-  zh_TW: zhTW,
-  ru_RU: ru,
-};
+import { dateLocale } from "utils/i18n";
 
 let callbacks = [];
 
@@ -59,7 +29,6 @@ type Props = {
   shorten?: boolean,
   relative?: boolean,
   format?: string,
-  tooltip?: boolean,
 };
 
 function LocaleTime({
@@ -70,7 +39,6 @@ function LocaleTime({
   format,
   relative,
   tooltipDelay,
-  tooltip,
 }: Props) {
   const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
@@ -88,7 +56,7 @@ function LocaleTime({
     };
   }, []);
 
-  const locale = userLocale ? locales[userLocale] : undefined;
+  const locale = dateLocale(userLocale);
   let relativeContent = formatDistanceToNow(Date.parse(dateTime), {
     addSuffix,
     locale,
@@ -107,11 +75,8 @@ function LocaleTime({
     { locale }
   );
 
-  const content = children || relative ? relativeContent : tooltipContent;
-
-  if (!tooltip) {
-    return content;
-  }
+  const content =
+    children || relative !== false ? relativeContent : tooltipContent;
 
   return (
     <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
