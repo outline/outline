@@ -391,6 +391,7 @@
   "Recently viewed": "Recientemente vistos",
   "Created by me": "Creado por mí",
   "Weird, this shouldn’t ever be empty": "Weird, this shouldn’t ever be empty",
+  "You haven’t created any documents yet": "You haven’t created any documents yet",
   "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "We sent out your invites!",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Sorry, you can only send {{MAX_INVITES}} invites at a time",
