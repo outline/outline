@@ -75,14 +75,14 @@ export default class Notifications {
         eventName === "updated" &&
         !document.collaboratorIds.includes(setting.userId)
       ) {
-        return;
+        continue;
       }
 
       // Check the user has access to the collection this document is in. Just
       // because they were a collaborator once doesn't mean they still are.
       const collectionIds = await setting.user.collectionIds();
       if (!collectionIds.includes(document.collectionId)) {
-        return;
+        continue;
       }
 
       // If this user has viewed the document since the last update was made
@@ -101,7 +101,7 @@ export default class Notifications {
         log(
           `suppressing notification to ${setting.userId} because update viewed`
         );
-        return;
+        continue;
       }
 
       mailer.documentNotification({
@@ -146,10 +146,10 @@ export default class Notifications {
       ],
     });
 
-    notificationSettings.forEach((setting) => {
+    for (const setting of notificationSettings) {
       // Suppress notifications for suspended users
       if (setting.user.isSuspended) {
-        return;
+        continue;
       }
 
       mailer.collectionNotification({
@@ -159,6 +159,6 @@ export default class Notifications {
         actor: collection.user,
         unsubscribeUrl: setting.unsubscribeUrl,
       });
-    });
+    }
   }
 }
