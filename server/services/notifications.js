@@ -63,7 +63,7 @@ export default class Notifications {
       event.name === "documents.publish" ? "published" : "updated";
 
     for (const setting of notificationSettings) {
-      // Supress notifications for suspended users
+      // Suppress notifications for suspended users
       if (setting.user.isSuspended) {
         continue;
       }
@@ -147,7 +147,10 @@ export default class Notifications {
     });
 
     notificationSettings.forEach((setting) => {
-      if (setting.user.isSuspended) return;
+      // Suppress notifications for suspended users
+      if (setting.user.isSuspended) {
+        return;
+      }
 
       mailer.collectionNotification({
         to: setting.user.email,
