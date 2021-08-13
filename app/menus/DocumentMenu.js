@@ -314,19 +314,13 @@ function DocumentMenu({
               icon: <StarredIcon />,
             },
             {
-              title: t("Enable embeds"),
-              onClick: document.enableEmbeds,
-              visible: !!showToggleEmbeds && document.embedsDisabled,
-              icon: <BuildingBlocksIcon />,
-            },
-            {
-              title: t("Disable embeds"),
-              onClick: document.disableEmbeds,
-              visible: !!showToggleEmbeds && !document.embedsDisabled,
-              icon: <BuildingBlocksIcon />,
-            },
-            {
               type: "separator",
+            },
+            {
+              title: t("Edit"),
+              to: editDocumentUrl(document),
+              visible: !!can.update,
+              icon: <EditIcon />,
             },
             {
               title: t("New nested document"),
@@ -347,12 +341,6 @@ function DocumentMenu({
               onClick: () => setShowTemplateModal(true),
               visible: !!can.update && !document.isTemplate,
               icon: <ShapesIcon />,
-            },
-            {
-              title: t("Edit"),
-              to: editDocumentUrl(document),
-              visible: !!can.update,
-              icon: <EditIcon />,
             },
             {
               title: t("Duplicate"),
@@ -389,6 +377,18 @@ function DocumentMenu({
               onClick: () => setShowMoveModal(true),
               visible: !!can.move,
               icon: <MoveIcon />,
+            },
+            {
+              title: t("Enable embeds"),
+              onClick: document.enableEmbeds,
+              visible: !!showToggleEmbeds && document.embedsDisabled,
+              icon: <BuildingBlocksIcon />,
+            },
+            {
+              title: t("Disable embeds"),
+              onClick: document.disableEmbeds,
+              visible: !!showToggleEmbeds && !document.embedsDisabled,
+              icon: <BuildingBlocksIcon />,
             },
             {
               type: "separator",
