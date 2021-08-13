@@ -391,6 +391,7 @@
   "Recently viewed": "Недавно просмотренные",
   "Created by me": "Созданные мной",
   "Weird, this shouldn’t ever be empty": "Думаю, это не должно быть пустым",
+  "You haven’t created any documents yet": "You haven’t created any documents yet",
   "Documents you’ve recently viewed will be here for easy access": "Документы, которые вы недавно просматривали, будут здесь для быстрого доступа",
   "We sent out your invites!": "Мы отправили ваши приглашения!",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Извините, вы можете отправлять только {{MAX_INVITES}} за раз",
