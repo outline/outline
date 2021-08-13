@@ -14,6 +14,7 @@ import Flex from "components/Flex";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import useMobile from "hooks/useMobile";
+import useQuery from "hooks/useQuery";
 
 type ImportExportListItemProps = {
   item: Export,
@@ -23,9 +24,11 @@ const ImportExportListItem = ({ item }: ImportExportListItemProps) => {
   const user = useCurrentUser();
   const { t } = useTranslation();
   const isMobile = useMobile();
+  const params = useQuery();
+  const key = params.get("key") || "";
 
   return (
-    <ImportExportListItemWrapper>
+    <ImportExportListItemWrapper highlight={key === item.id}>
       <Flex align="center" column>
         <AvatarWrapper src={item.user.avatarUrl} size={32} />
       </Flex>
@@ -104,6 +107,8 @@ const ImportExportListItemWrapper = styled(Flex)`
   border-radius: 8px;
   max-height: 50vh;
   width: calc(100vw - 8px);
+  background: ${(props) =>
+    props.highlight ? props.theme.sidebarBackground : ""};
 
   ${breakpoint("tablet")`
     width: auto;
