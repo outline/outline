@@ -391,6 +391,7 @@
   "Recently viewed": "最近瀏覽",
   "Created by me": "由我建立的",
   "Weird, this shouldn’t ever be empty": "Weird, this shouldn’t ever be empty",
+  "You haven’t created any documents yet": "You haven’t created any documents yet",
   "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "我們發出了您的邀請！",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "抱歉，您一次最多只能發送 {{MAX_INVITES}} 個邀請",
