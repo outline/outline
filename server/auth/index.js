@@ -45,6 +45,7 @@ router.get("/redirect", auth(), async (ctx) => {
     Team.findByPk(user.teamId),
     Collection.findOne({
       where: { teamId: user.teamId },
+      order: [["index", "ASC"]],
     }),
     View.findOne({
       where: { userId: user.id },
