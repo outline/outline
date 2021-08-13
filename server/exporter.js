@@ -110,15 +110,21 @@ async function exportAndEmailCollections(
         collectionId: collection.id,
         teamId: teamId,
         actorId: userId,
-        data: { title: collection.title, exportId: exportData.id },
+        data: { name: collection.name, exportId: exportData.id },
       });
     } else {
+      const collectionsExported = collections.map((c) => ({
+        name: c.name,
+        id: c.id,
+      }));
+
       await Event.create({
         name: "collections.export_all",
         teamId: teamId,
         actorId: userId,
         data: {
           exportId: exportData.id,
+          collections: collectionsExported,
         },
       });
     }
