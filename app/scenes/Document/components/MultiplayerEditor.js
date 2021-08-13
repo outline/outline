@@ -1,6 +1,7 @@
 // @flow
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import * as React from "react";
+import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import Editor, { type Props as EditorProps } from "components/Editor";
 import env from "env";
@@ -22,7 +23,8 @@ function MultiplayerEditor(props: Props, ref: any) {
   const currentUser = useCurrentUser();
   const { presence, ui } = useStores();
   const token = useCurrentToken();
-  const [provider, setProvider] = React.useState();
+  const [localProvider, setLocalProvider] = React.useState();
+  const [remoteProvider, setRemoteProvider] = React.useState();
   const [ydoc] = React.useState(() => new Y.Doc());
 
   // Provider initialization must be within useLayoutEffect rather than useState
@@ -31,10 +33,13 @@ function MultiplayerEditor(props: Props, ref: any) {
   // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
   React.useLayoutEffect(() => {
     const debug = env.ENVIRONMENT === "development";
+    const name = `document.${documentId}`;
+
+    const localProvider = new IndexeddbPersistence(name, ydoc);
     const provider = new HocuspocusProvider({
       url: env.MULTIPLAYER_URL,
       debug,
-      name: `document.${documentId}`,
+      name,
       document: ydoc,
       parameters: {
         token,
@@ -65,11 +70,13 @@ function MultiplayerEditor(props: Props, ref: any) {
       provider.on("outgoingMessage", (ev) =>
         console.log("outgoing", ev.message)
       );
+      localProvider.on("synced", (ev) => console.log("local synced"));
     }
 
     provider.on("status", (ev) => ui.setMultiplayerStatus(ev.status));
 
-    setProvider(provider);
+    setRemoteProvider(provider);
+    setLocalProvider(localProvider);
   }, [documentId, ui, presence, token, ydoc]);
 
   // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
@@ -90,21 +97,22 @@ function MultiplayerEditor(props: Props, ref: any) {
   }, [currentUser.id, currentUser.color, currentUser.name]);
 
   const extensions = React.useMemo(() => {
-    if (!provider) {
+    if (!remoteProvider) {
       return [];
     }
 
     return [
       new MultiplayerExtension({
         user,
-        provider,
+        provider: remoteProvider,
         document: ydoc,
       }),
     ];
-  }, [provider, user, ydoc]);
+  }, [remoteProvider, user, ydoc]);
 
   useUnmount(() => {
-    provider?.destroy();
+    remoteProvider?.destroy();
+    localProvider?.destroy();
     ui.setMultiplayerStatus(undefined);
   });
 
