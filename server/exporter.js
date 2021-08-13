@@ -3,10 +3,11 @@ import fs from "fs";
 import debug from "debug";
 import { v4 as uuidv4 } from "uuid";
 import mailer from "./mailer";
-import { Export, Collection, Team, Event } from "./models";
-
+import { Export, Collection, Team, Event, User } from "./models";
+import policy from "./policies";
 import { createQueue } from "./utils/queue";
 import { uploadToS3FromBuffer } from "./utils/s3";
+const { can } = policy;
 
 const log = debug("exporter");
 const exporterQueue = createQueue("exporter");
@@ -45,13 +46,23 @@ async function exportAndEmailCollections(
   log("Archiving team", teamId);
   const { archiveCollections } = require("./utils/zip");
   const team = await Team.findByPk(teamId);
+  const user = await User.findByPk(userId);
 
   let collections;
   if (!collection) {
-    collections = await Collection.findAll({
+    collections = await Collection.scope({
+      method: ["withMembership", userId],
+    }).findAll({
       where: { teamId },
       order: [["name", "ASC"]],
     });
+
+    collections = collections.reduce((agg, collection) => {
+      if (can(user, "read", collection)) {
+        return [...agg, collection];
+      }
+      return agg;
+    }, []);
   } else {
     collections = [collection];
   }
