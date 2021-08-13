@@ -75,7 +75,8 @@ function LocaleTime({
     { locale }
   );
 
-  const content = children || relative ? relativeContent : tooltipContent;
+  const content =
+    children || relative !== false ? relativeContent : tooltipContent;
 
   return (
     <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
