@@ -29,10 +29,12 @@ router.post("exports.list", auth(), pagination(), async (ctx) => {
         {
           model: User,
           as: "user",
+          paranoid: false,
         },
         {
           model: Collection,
           as: "collection",
+          paranoid: false,
         },
       ],
       order: [[sort, direction]],
