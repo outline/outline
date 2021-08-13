@@ -63,6 +63,11 @@ export default class Notifications {
       event.name === "documents.publish" ? "published" : "updated";
 
     for (const setting of notificationSettings) {
+      // Supress notifications for suspended users
+      if (setting.user.isSuspended) {
+        continue;
+      }
+
       // For document updates we only want to send notifications if
       // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
@@ -141,14 +146,16 @@ export default class Notifications {
       ],
     });
 
-    notificationSettings.forEach((setting) =>
+    notificationSettings.forEach((setting) => {
+      if (setting.user.isSuspended) return;
+
       mailer.collectionNotification({
         to: setting.user.email,
         eventName: "created",
         collection,
         actor: collection.user,
         unsubscribeUrl: setting.unsubscribeUrl,
-      })
-    );
+      });
+    });
   }
 }
