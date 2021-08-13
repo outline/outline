@@ -2,10 +2,10 @@
 import styled from "styled-components";
 
 const MenuIconWrapper = styled.span`
-  position: relative;
   width: 24px;
   height: 24px;
-  right: 4px;
+  margin-right: 6px;
+  margin-left: -4px;
 `;
 
 export default MenuIconWrapper;
