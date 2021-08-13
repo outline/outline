@@ -141,6 +141,8 @@
   "Collections": "Collections",
   "Untitled": "Untitled",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Document not supported – try Markdown, Plain text, HTML, or Word",
+  "Server connection lost": "Server connection lost",
+  "Edits you make will sync once you’re online": "Edits you make will sync once you’re online",
   "Delete {{ documentName }}": "Delete {{ documentName }}",
   "Home": "Home",
   "Starred": "Starred",

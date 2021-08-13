@@ -36,7 +36,7 @@ function Header({ breadcrumb, title, actions }: Props) {
   }, []);
 
   return (
-    <Wrapper align="center" isCompact={isScrolled} shrink={false}>
+    <Wrapper align="center" shrink={false}>
       {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}
       {isScrolled ? (
         <Title align="center" justify="flex-start" onClick={handleClickTitle}>
@@ -95,7 +95,7 @@ const Wrapper = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
+    padding: 16px 16px 0;
     justify-content: "center";
   `};
 `;

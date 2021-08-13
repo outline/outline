@@ -20,7 +20,7 @@ type Props = {|
 function MultiplayerEditor(props: Props, ref: any) {
   const documentId = props.id;
   const currentUser = useCurrentUser();
-  const { presence } = useStores();
+  const { presence, ui } = useStores();
   const token = useCurrentToken();
   const [provider, setProvider] = React.useState();
   const [ydoc] = React.useState(() => new Y.Doc());
@@ -67,8 +67,10 @@ function MultiplayerEditor(props: Props, ref: any) {
       );
     }
 
+    provider.on("status", (ev) => ui.setMultiplayerStatus(ev.status));
+
     setProvider(provider);
-  }, [documentId, presence, token, ydoc]);
+  }, [documentId, ui, presence, token, ydoc]);
 
   // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
   // const [isRemoteSynced, setRemoteSynced] = React.useState(true);
@@ -103,6 +105,7 @@ function MultiplayerEditor(props: Props, ref: any) {
 
   useUnmount(() => {
     provider?.destroy();
+    ui.setMultiplayerStatus(undefined);
   });
 
   return (

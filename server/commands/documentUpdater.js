@@ -50,13 +50,7 @@ export default async function documentUpdater({
     }
   );
 
-  // If passing no userId to documentUpdater it is used to upgrade a document
-  // from non-multiplayer to multiplayer when opening on a team with the flag.
-  if (!userId) {
-    return;
-  }
-
-  const event = {
+  await Event.add({
     name: "documents.update",
     documentId: document.id,
     collectionId: document.collectionId,
@@ -66,11 +60,5 @@ export default async function documentUpdater({
       multiplayer: true,
       title: document.title,
     },
-  };
-
-  if (done) {
-    await Event.create(event);
-  } else {
-    await Event.add(event);
-  }
+  });
 }

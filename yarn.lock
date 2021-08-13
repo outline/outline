@@ -5219,7 +5219,7 @@ depd@2.0.0, depd@^2.0.0, depd@~2.0.0:
   resolved "https://registry.yarnpkg.com/depd/-/depd-2.0.0.tgz#b696163cc757560d09cf22cc8fad1571b79e76df"
   integrity sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==
 
-depd@^1.1.2, depd@~1.1.2:
+depd@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz#9bcd52e14c097763e749b274c4346ed2e560b5a9"
   integrity sha1-m81S4UwJd2PnSbJ0xDRu0uVgtak=
@@ -10457,10 +10457,10 @@ os-name@^3.1.0:
     macos-release "^2.2.0"
     windows-release "^3.1.0"
 
-outline-icons@^1.26.1, outline-icons@^1.30.0:
-  version "1.30.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.30.0.tgz#e6bb779d43fc89df4b7bda8dfe886c28c72e494d"
-  integrity sha512-JLL0hiBB7cKBrpQ7ejvLORUVYNpx2ULngoWJHL8vpsMwMha+ChF7z1MmJQ1dD6/yDX3dgIzeMfMASD8weVRloQ==
+outline-icons@^1.26.1, outline-icons@^1.31.0:
+  version "1.31.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.31.0.tgz#c373667442300afdb1a9fd6059180833c6123fcb"
+  integrity sha512-pe2vSI1mR4bJaWpmTitniyNpu4oq8dVObOweh/H6EON+12w2QDRtJZ6A6Bkc2vjlb2ZRYcZasisJI9VBUuTnHQ==
 
 oy-vey@^0.10.0:
   version "0.10.0"
