@@ -391,6 +391,7 @@
   "Recently viewed": "اخیراً دیده شده",
   "Created by me": "ایجاد شده توسط من",
   "Weird, this shouldn’t ever be empty": "Weird, this shouldn’t ever be empty",
+  "You haven’t created any documents yet": "You haven’t created any documents yet",
   "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "دعوت‌نامه‌های شما ارسال شد!",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "متأسفانه شما تنها می‌توانید {{MAX_INVITES}} دعوت‌نامه به صورت همزمان ارسال نمایید",
