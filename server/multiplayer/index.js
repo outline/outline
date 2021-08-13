@@ -52,13 +52,13 @@ const server = Server.configure({
     };
   },
 
-  async onCreateDocument({ document: ydoc, context, documentName }) {
+  async onCreateDocument({ context, documentName, ...data }) {
     const [, documentId] = documentName.split(".");
     const fieldName = "default";
 
     // Check if the given field already exists in the given y-doc.
     // Important: Only import a document if it doesn't exist in the primary data storage!
-    if (!ydoc.isEmpty(fieldName)) {
+    if (!data.document.isEmpty(fieldName)) {
       return;
     }
 
@@ -67,20 +67,15 @@ const server = Server.configure({
     const document = await Document.findByPk(documentId);
 
     if (document.state) {
+      const ydoc = new Y.Doc();
       log(`Document ${documentId} is already in state`);
       Y.applyUpdate(ydoc, document.state);
-    } else {
-      log(
-        `Document ${documentId} is not in state, creating state from markdown`
-      );
-      const node = parser.parse(document.text);
-      Y.applyUpdate(
-        ydoc,
-        Y.encodeStateAsUpdate(prosemirrorToYDoc(node, fieldName))
-      );
+      return ydoc;
     }
 
-    return ydoc;
+    log(`Document ${documentId} is not in state, creating state from markdown`);
+    const node = parser.parse(document.text);
+    return prosemirrorToYDoc(node, fieldName);
   },
 
   onChange: debounce(

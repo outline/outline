@@ -1146,12 +1146,12 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hocuspocus/extension-logger@^1.0.0-alpha.35":
-  version "1.0.0-alpha.35"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-logger/-/extension-logger-1.0.0-alpha.35.tgz#1d13c82b5da9eb91442e121f374f0a7609cd11fd"
-  integrity sha512-yZ0pEmUvsfor9QhztAVnLOoY1LZpxA8UXJ0ZHr94oYgnmKo+aEK2P7xeiPT7GMH2t+ZYZn5UKoG3z4aaAEt6jg==
+"@hocuspocus/extension-logger@^1.0.0-alpha.36":
+  version "1.0.0-alpha.36"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-logger/-/extension-logger-1.0.0-alpha.36.tgz#f5f27a23113afdcacf06814f2425c1c6aac0744a"
+  integrity sha512-BWYDjBM1JCXqN8L0hkwHtLKbaTaooLNxK6Ti6qOn2izkzIk3toDU/JJnN9C7maDEqE5jA6rj9mTHhsXQeiX6Jw==
   dependencies:
-    "@hocuspocus/server" "^1.0.0-alpha.60"
+    "@hocuspocus/server" "^1.0.0-alpha.61"
 
 "@hocuspocus/provider@^1.0.0-alpha.8":
   version "1.0.0-alpha.8"
@@ -1162,10 +1162,10 @@
     y-protocols "^1.0.5"
     yjs "^13.5.8"
 
-"@hocuspocus/server@^1.0.0-alpha.60":
-  version "1.0.0-alpha.60"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.60.tgz#28221dfc8e5fa27d4b4e17e377ab766edde2a26e"
-  integrity sha512-PKLIYHwk5NmssutlZr8DAIvqRWkDONpCMspDBKWnGbA+RiapVA7oIOZLTH37EpkkVOkRFpvhM+GAsOqUU2/K6w==
+"@hocuspocus/server@^1.0.0-alpha.61":
+  version "1.0.0-alpha.61"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.61.tgz#b29c73f9d3b9329adf3390e287bba924cdec7374"
+  integrity sha512-Wqidv8Gh5ZLHnuFH4rxWJ/ZvUifflIVvZ2nXvK9BRA1Ol3W7CdPkTgN0MxfWpMLq1ClVCoqYR5uS8gUb+kuPOg==
   dependencies:
     "@types/async-lock" "^1.1.2"
     "@types/uuid" "^8.3.0"
