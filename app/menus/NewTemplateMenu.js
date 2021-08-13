@@ -21,7 +21,23 @@ function NewTemplateMenu() {
   const { collections, policies } = useStores();
   const can = policies.abilities(team.id);
 
-  if (!can.createDocument) {
+  const items = React.useMemo(
+    () =>
+      collections.orderedData.reduce((filtered, collection) => {
+        const can = policies.abilities(collection.id);
+        if (can.update) {
+          filtered.push({
+            to: newDocumentUrl(collection.id, { template: true }),
+            title: <CollectionName>{collection.name}</CollectionName>,
+            icon: <CollectionIcon collection={collection} />,
+          });
+        }
+        return filtered;
+      }, []),
+    [collections.orderedData, policies]
+  );
+
+  if (!can.createDocument || items.length === 0) {
     return null;
   }
 
@@ -36,17 +52,7 @@ function NewTemplateMenu() {
       </MenuButton>
       <ContextMenu aria-label={t("New template")} {...menu}>
         <Header>{t("Choose a collection")}</Header>
-        <Template
-          {...menu}
-          items={collections.orderedData.map((collection) => ({
-            to: newDocumentUrl(collection.id, {
-              template: true,
-            }),
-            disabled: !policies.abilities(collection.id).update,
-            title: <CollectionName>{collection.name}</CollectionName>,
-            icon: <CollectionIcon collection={collection} />,
-          }))}
-        />
+        <Template {...menu} items={items} />
       </ContextMenu>
     </>
   );

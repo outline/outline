@@ -12,6 +12,7 @@ const Button = styled.button`
   padding: 0;
   cursor: pointer;
   user-select: none;
+  color: inherit;
 `;
 
 export default React.forwardRef<any, typeof Button>(

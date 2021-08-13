@@ -20,20 +20,32 @@ function NewDocumentMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
-  const singleCollection = collections.orderedData.length === 1;
   const can = policies.abilities(team.id);
 
-  if (!can.createDocument) {
+  const items = React.useMemo(
+    () =>
+      collections.orderedData.reduce((filtered, collection) => {
+        const can = policies.abilities(collection.id);
+
+        if (can.update) {
+          filtered.push({
+            to: newDocumentUrl(collection.id),
+            title: <CollectionName>{collection.name}</CollectionName>,
+            icon: <CollectionIcon collection={collection} />,
+          });
+        }
+        return filtered;
+      }, []),
+    [collections.orderedData, policies]
+  );
+
+  if (!can.createDocument || items.length === 0) {
     return null;
   }
 
-  if (singleCollection) {
+  if (items.length === 1) {
     return (
-      <Button
-        as={Link}
-        to={newDocumentUrl(collections.orderedData[0].id)}
-        icon={<PlusIcon />}
-      >
+      <Button as={Link} to={items[0].to} icon={<PlusIcon />}>
         {t("New doc")}
       </Button>
     );
@@ -50,15 +62,7 @@ function NewDocumentMenu() {
       </MenuButton>
       <ContextMenu {...menu} aria-label={t("New document")}>
         <Header>{t("Choose a collection")}</Header>
-        <Template
-          {...menu}
-          items={collections.orderedData.map((collection) => ({
-            to: newDocumentUrl(collection.id),
-            disabled: !policies.abilities(collection.id).update,
-            title: <CollectionName>{collection.name}</CollectionName>,
-            icon: <CollectionIcon collection={collection} />,
-          }))}
-        />
+        <Template {...menu} items={items} />
       </ContextMenu>
     </>
   );
