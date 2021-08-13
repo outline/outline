@@ -75,6 +75,7 @@ allow(User, "export", Collection, (user, collection) => {
   if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
   if (!collection.sharing) return false;
+  if (!user.isAdmin) return false;
 
   if (collection.permission !== "read_write") {
     invariant(
@@ -92,7 +93,7 @@ allow(User, "export", Collection, (user, collection) => {
     );
   }
 
-  return user.isAdmin;
+  return true;
 });
 
 allow(User, ["publish", "update"], Collection, (user, collection) => {

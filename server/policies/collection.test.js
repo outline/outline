@@ -1,6 +1,11 @@
 // @flow
 import { CollectionUser, Collection } from "../models";
-import { buildUser, buildTeam, buildCollection } from "../test/factories";
+import {
+  buildUser,
+  buildTeam,
+  buildCollection,
+  buildAdmin,
+} from "../test/factories";
 import { flushdb } from "../test/support";
 import { serialize } from "./index";
 
@@ -16,7 +21,7 @@ describe("read_write permission", () => {
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(true);
+    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -43,7 +48,7 @@ describe("read_write permission", () => {
 
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(true);
+    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -86,7 +91,7 @@ describe("read permission", () => {
 
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(true);
+    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -129,8 +134,42 @@ describe("no permission", () => {
 
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(true);
+    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
+  });
+});
+
+describe("export permission", () => {
+  it("admin can export collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    let collection = await buildCollection({
+      teamId: team.id,
+      permission: "read_write",
+    });
+
+    const abilities = serialize(admin, collection);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.update).toEqual(true);
+    expect(abilities.export).toEqual(true);
+    expect(abilities.share).toEqual(true);
+  });
+
+  it("admin cannot export private collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    let collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+      userId: user.id,
+    });
+
+    const abilities = serialize(admin, collection);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.export).toEqual(false);
+    expect(abilities.share).toEqual(false);
   });
 });
