@@ -1,4 +1,5 @@
 // @flow
+import { isEqual } from "lodash";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
@@ -24,6 +25,7 @@ export type Props = {|
   onChangePage: (index: number) => void,
   onChangeSort: (sort: ?string, direction: "ASC" | "DESC") => void,
   columns: any,
+  defaultSortDirection: "ASC" | "DESC",
 |};
 
 function Table({
@@ -39,6 +41,7 @@ function Table({
   topRef,
   onChangeSort,
   onChangePage,
+  defaultSortDirection,
 }: Props) {
   const { t } = useTranslation();
   const {
@@ -62,31 +65,51 @@ function Table({
       autoResetPage: false,
       pageCount: totalPages,
       initialState: {
-        sortBy: [{ id: defaultSort, desc: false }],
+        sortBy: [
+          {
+            id: defaultSort,
+            desc: defaultSortDirection === "DESC" ? true : false,
+          },
+        ],
         pageSize,
         pageIndex: page,
+      },
+      stateReducer: (newState, action, prevState) => {
+        if (!isEqual(newState.sortBy, prevState.sortBy)) {
+          return { ...newState, pageIndex: 0 };
+        }
+        return newState;
       },
     },
     useSortBy,
     usePagination
   );
 
-  React.useEffect(() => {
-    onChangePage(pageIndex);
-  }, [pageIndex]);
+  const prevSortBy = React.useRef(sortBy);
 
   React.useEffect(() => {
-    onChangePage(0);
-    onChangeSort(
-      sortBy.length ? sortBy[0].id : undefined,
-      sortBy.length && sortBy[0].desc ? "DESC" : "ASC"
-    );
-  }, [sortBy]);
+    if (!isEqual(sortBy, prevSortBy.current)) {
+      prevSortBy.current = sortBy;
+      onChangePage(0);
+      onChangeSort(
+        sortBy.length ? sortBy[0].id : undefined,
+        !sortBy.length ? defaultSortDirection : sortBy[0].desc ? "DESC" : "ASC"
+      );
+    }
+  }, [defaultSortDirection, onChangePage, onChangeSort, sortBy]);
+
+  const handleNextPage = () => {
+    nextPage();
+    onChangePage(pageIndex + 1);
+  };
+
+  const handlePreviousPage = () => {
+    previousPage();
+    onChangePage(pageIndex - 1);
+  };
 
   const isEmpty = !isLoading && data.length === 0;
   const showPlaceholder = isLoading && data.length === 0;
-
-  console.log({ canNextPage, pageIndex, totalPages, rows, data });
 
   return (
     <>
@@ -124,7 +147,7 @@ function Table({
                       },
                     ])}
                   >
-                    {cell.render("Cell")}
+                    <CellWrapper>{cell.render("Cell")}</CellWrapper>
                   </Cell>
                 ))}
               </Row>
@@ -142,12 +165,12 @@ function Table({
         >
           {/* Note: the page > 0 check shouldn't be needed here but is */}
           {canPreviousPage && page > 0 && (
-            <Button onClick={previousPage} neutral>
+            <Button onClick={handlePreviousPage} neutral>
               {t("Previous page")}
             </Button>
           )}
           {canNextPage && (
-            <Button onClick={nextPage} neutral>
+            <Button onClick={handleNextPage} neutral>
               {t("Next page")}
             </Button>
           )}
@@ -223,6 +246,10 @@ const Cell = styled.td`
     text-align: right;
     vertical-align: bottom;
   }
+`;
+
+const CellWrapper = styled(Flex)`
+  margin: 4px;
 `;
 
 const Row = styled.tr`
