@@ -3,7 +3,7 @@ import fs from "fs";
 import debug from "debug";
 import { v4 as uuidv4 } from "uuid";
 import mailer from "./mailer";
-import { Export, Collection, Team, Event, User } from "./models";
+import { FileOperation, Collection, Team, Event, User } from "./models";
 import policy from "./policies";
 import { createQueue } from "./utils/queue";
 import { uploadToS3FromBuffer } from "./utils/s3";
@@ -20,12 +20,13 @@ const queueOptions = {
   },
 };
 
-async function exportsUpdate(teamId, userId, exportData) {
+async function fileOperationsUpdate(teamId, userId, exportData) {
   await Event.add({
-    name: "exports.update",
+    name: "fileOperations.update",
     teamId: teamId,
     actorId: userId,
     data: {
+      type: exportData.type,
       id: exportData.id,
       state: exportData.state,
       key: exportData.key,
@@ -74,7 +75,8 @@ async function exportAndEmailCollections(
   }-export.zip`;
   let state = "creating";
 
-  let exportData = await Export.create({
+  let exportData = await FileOperation.create({
+    type: "export",
     state,
     key,
     url: null,
@@ -84,7 +86,7 @@ async function exportAndEmailCollections(
     teamId,
   });
 
-  await exportsUpdate(teamId, userId, exportData);
+  await fileOperationsUpdate(teamId, userId, exportData);
 
   const filePath = await archiveCollections(collections);
 
@@ -99,7 +101,7 @@ async function exportAndEmailCollections(
     exportData.size = stat.size;
 
     await exportData.save();
-    await exportsUpdate(teamId, userId, exportData);
+    await fileOperationsUpdate(teamId, userId, exportData);
 
     url = await uploadToS3FromBuffer(readBuffer, "application/zip", key, acl);
 
@@ -113,7 +115,7 @@ async function exportAndEmailCollections(
     exportData.url = url;
     await exportData.save();
 
-    await exportsUpdate(teamId, userId, exportData);
+    await fileOperationsUpdate(teamId, userId, exportData);
 
     if (collection) {
       await Event.create({

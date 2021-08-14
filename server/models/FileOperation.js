@@ -1,11 +1,15 @@
 // @flow
 import { DataTypes, sequelize } from "../sequelize";
 
-const Export = sequelize.define("export", {
+const FileOperation = sequelize.define("file_operations", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+  },
+  type: {
+    type: DataTypes.ENUM("import", "export"),
+    allowNull: false,
   },
   state: {
     type: DataTypes.ENUM(
@@ -29,19 +33,19 @@ const Export = sequelize.define("export", {
   },
 });
 
-Export.associate = (models) => {
-  Export.belongsTo(models.User, {
+FileOperation.associate = (models) => {
+  FileOperation.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",
   });
-  Export.belongsTo(models.Collection, {
+  FileOperation.belongsTo(models.Collection, {
     as: "collection",
     foreignKey: "collectionId",
   });
-  Export.belongsTo(models.Team, {
+  FileOperation.belongsTo(models.Team, {
     as: "team",
     foreignKey: "teamId",
   });
 };
 
-export default Export;
+export default FileOperation;

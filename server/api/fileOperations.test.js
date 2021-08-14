@@ -5,7 +5,7 @@ import { Collection, User } from "../models";
 import {
   buildAdmin,
   buildCollection,
-  buildExport,
+  buildFileOperation,
   buildTeam,
   buildUser,
 } from "../test/factories";
@@ -20,7 +20,11 @@ describe("#exports.list", () => {
   it("should return exports list", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const exportData = await buildExport({ teamId: team.id, userId: admin.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+    });
 
     const res = await server.post("/api/exports.list", {
       body: {
@@ -46,7 +50,8 @@ describe("#exports.list", () => {
       teamId: team.id,
     });
 
-    const exportData = await buildExport({
+    const exportData = await buildFileOperation({
+      type: "export",
       teamId: team.id,
       userId: admin.id,
       collectionId: collection.id,
@@ -77,7 +82,8 @@ describe("#exports.list", () => {
       teamId: team.id,
     });
 
-    const exportData = await buildExport({
+    const exportData = await buildFileOperation({
+      type: "export",
       teamId: team.id,
       userId: admin.id,
       collectionId: collection.id,
@@ -115,7 +121,8 @@ describe("#exports.list", () => {
       teamId: team.id,
     });
 
-    const exportData = await buildExport({
+    const exportData = await buildFileOperation({
+      type: "export",
       teamId: team.id,
       userId: admin.id,
       collectionId: collection.id,

@@ -120,11 +120,12 @@ export type CollectionExportAll = {
   },
 };
 
-export type ExportEvent = {
-  name: "exports.update",
+export type FileOperationEvent = {
+  name: "fileOperations.update",
   teamId: string,
   actorId: string,
   data: {
+    type: string,
     url: string,
     state: string,
     id: string,
@@ -212,7 +213,7 @@ export type Event =
   | CollectionEvent
   | CollectionImportEvent
   | CollectionExportAll
-  | ExportEvent
+  | FileOperationEvent
   | IntegrationEvent
   | GroupEvent
   | RevisionEvent

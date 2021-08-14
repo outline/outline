@@ -13,7 +13,7 @@ import {
   IntegrationAuthentication,
   Integration,
   AuthenticationProvider,
-  Export,
+  FileOperation,
 } from "../models";
 
 let count = 1;
@@ -256,7 +256,7 @@ export async function buildDocument(overrides: Object = {}) {
   });
 }
 
-export async function buildExport(overrides: Object = {}) {
+export async function buildFileOperation(overrides: Object = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -272,7 +272,7 @@ export async function buildExport(overrides: Object = {}) {
     overrides.collectionId = collection.id;
   }
 
-  return Export.create({
+  return FileOperation.create({
     state: "creating",
     size: 0,
     key: "key/to/aws/file.zip",

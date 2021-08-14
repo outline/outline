@@ -8,9 +8,9 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import { parseOutlineExport } from "shared/utils/zip";
 import Button from "components/Button";
+import FileOperationListItem from "components/FileOperationListItem";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import ImportExportListItem from "components/ImportExportListItem";
 import Notice from "components/Notice";
 import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
@@ -24,7 +24,7 @@ function ImportExport() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const fileRef = React.useRef();
-  const { exports, collections } = useStores();
+  const { fileOperations, collections } = useStores();
   const { showToast } = useToasts();
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
@@ -204,10 +204,11 @@ function ImportExport() {
         <Trans>Exports</Trans>
       </Heading>
       <PaginatedList
-        items={exports.orderedData}
-        fetch={exports.fetchPage}
+        items={fileOperations.orderedDataExports}
+        fetch={fileOperations.fetchPage}
+        options={{ type: "export" }}
         renderItem={(item) => (
-          <ImportExportListItem key={item.id} item={item} />
+          <FileOperationListItem key={item.id} item={item} />
         )}
       />
     </Scene>

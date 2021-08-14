@@ -4,7 +4,7 @@ import debug from "debug";
 import Router from "koa-router";
 import { documentPermanentDeleter } from "../commands/documentPermanentDeleter";
 import { AuthenticationError } from "../errors";
-import { Document, Export } from "../models";
+import { Document, FileOperation } from "../models";
 import { Op } from "../sequelize";
 import { deleteFromS3 } from "../utils/s3";
 
@@ -37,8 +37,9 @@ router.post("utils.gc", async (ctx) => {
 
   log(`Expiring all the collection export older than 30 days…`);
 
-  const exports = await Export.findAll({
+  const exports = await FileOperation.findAll({
     where: {
+      type: "export",
       createdAt: {
         [Op.lt]: subDays(new Date(), 30),
       },

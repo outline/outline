@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("exports",{
+    await queryInterface.createTable("file_operations",{
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -10,6 +10,10 @@ module.exports = {
       },
       state: {
         type: Sequelize.ENUM("creating", "uploading", "complete", "error","expired"),
+        allowNull: false,
+      },
+      type: {
+        type: Sequelize.ENUM("import", "export"),
         allowNull: false,
       },
       key: {
@@ -54,6 +58,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('exports');
+    await queryInterface.dropTable('file_operations');
   }
 };

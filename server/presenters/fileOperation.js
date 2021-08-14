@@ -1,10 +1,11 @@
 // @flow
-import { Export } from "../models";
+import { FileOperation } from "../models";
 import { presentCollection, presentUser } from ".";
 
-export default function present(data: Export) {
+export default function present(data: FileOperation) {
   return {
     id: data.id,
+    type: data.type,
     state: data.state,
     collection: data.collection ? presentCollection(data.collection) : null,
     key: data.key,

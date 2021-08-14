@@ -8,7 +8,7 @@ import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentPresenceStore from "stores/DocumentPresenceStore";
 import DocumentsStore from "stores/DocumentsStore";
-import ExportsStore from "stores/ExportsStore";
+import FileOperationsStore from "stores/FileOperationsStore";
 import GroupsStore from "stores/GroupsStore";
 import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -29,7 +29,7 @@ type Props = {
   views: ViewsStore,
   auth: AuthStore,
   toasts: ToastsStore,
-  exports: ExportsStore,
+  fileOperations: FileOperationsStore,
 };
 
 @observer
@@ -82,7 +82,7 @@ class SocketProvider extends React.Component<Props> {
       policies,
       presence,
       views,
-      exports,
+      fileOperations,
     } = this.props;
     if (!auth.token) return;
 
@@ -290,11 +290,11 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("exports.update", (event) => {
+    this.socket.on("fileOperations.update", (event) => {
       const user = auth.user;
       const collection = collections.get(event.collectionId);
       if (user) {
-        exports.data.set(event.id, {
+        fileOperations.data.set(event.id, {
           ...event,
           user,
           collection,
@@ -361,5 +361,5 @@ export default inject(
   "presence",
   "policies",
   "views",
-  "exports"
+  "fileOperations"
 )(SocketProvider);

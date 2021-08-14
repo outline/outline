@@ -2,9 +2,9 @@
 import { subDays } from "date-fns";
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { Document, Export } from "../models";
+import { Document, FileOperation } from "../models";
 import { Op } from "../sequelize";
-import { buildDocument, buildExport } from "../test/factories";
+import { buildDocument, buildFileOperation } from "../test/factories";
 import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
@@ -84,12 +84,14 @@ describe("#utils.gc", () => {
   });
 
   it("should expire exports older than 30 days ago", async () => {
-    await buildExport({
+    await buildFileOperation({
+      type: "export",
       state: "complete",
       createdAt: subDays(new Date(), 30),
     });
 
-    await buildExport({
+    await buildFileOperation({
+      type: "export",
       state: "complete",
     });
 
@@ -99,8 +101,9 @@ describe("#utils.gc", () => {
       },
     });
 
-    const data = await Export.count({
+    const data = await FileOperation.count({
       where: {
+        type: "export",
         state: {
           [Op.eq]: "expired",
         },
@@ -112,12 +115,14 @@ describe("#utils.gc", () => {
   });
 
   it("should not expire exports made less than 30 days ago", async () => {
-    await buildExport({
+    await buildFileOperation({
+      type: "export",
       state: "complete",
       createdAt: subDays(new Date(), 29),
     });
 
-    await buildExport({
+    await buildFileOperation({
+      type: "export",
       state: "complete",
     });
 
@@ -127,8 +132,9 @@ describe("#utils.gc", () => {
       },
     });
 
-    const data = await Export.count({
+    const data = await FileOperation.count({
       where: {
+        type: "export",
         state: {
           [Op.eq]: "expired",
         },

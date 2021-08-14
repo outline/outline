@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Export from "models/Export";
+import FileOperation from "models/FileOperation";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
@@ -16,11 +16,11 @@ import useCurrentUser from "hooks/useCurrentUser";
 import useMobile from "hooks/useMobile";
 import useQuery from "hooks/useQuery";
 
-type ImportExportListItemProps = {
-  item: Export,
+type FileOperationListItemProps = {
+  item: FileOperation,
 };
 
-const ImportExportListItem = ({ item }: ImportExportListItemProps) => {
+const FileOperationListItem = ({ item }: FileOperationListItemProps) => {
   const user = useCurrentUser();
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -155,4 +155,4 @@ const Heading = styled.p`
   color: ${(props) => props.theme.text};
 `;
 
-export default ImportExportListItem;
+export default FileOperationListItem;
