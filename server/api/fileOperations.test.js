@@ -140,6 +140,7 @@ describe("#fileOperations.list", () => {
     const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin2.getJwtToken(),
+        type: "export",
       },
     });
 
@@ -158,7 +159,7 @@ describe("#fileOperations.list", () => {
     const user = await buildUser();
 
     const res = await server.post("/api/fileOperations.list", {
-      body: { token: user.getJwtToken() },
+      body: { token: user.getJwtToken(), type: "export" },
     });
 
     expect(res.status).toEqual(403);
