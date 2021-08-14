@@ -363,6 +363,12 @@ class DocumentScene extends React.Component<Props> {
       : [];
     const showContents = ui.tocVisible && readOnly;
 
+    const multiplayerEditor =
+      team?.features?.multiplayerEditor &&
+      !document.isArchived &&
+      !document.isDeleted &&
+      !revision;
+
     return (
       <ErrorBoundary>
         <Background
@@ -490,7 +496,7 @@ class DocumentScene extends React.Component<Props> {
                     id={document.id}
                     key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
-                    multiplayer={team?.features?.multiplayerEditor}
+                    multiplayer={multiplayerEditor}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}

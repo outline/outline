@@ -14,6 +14,7 @@
 .*/node_modules/yjs/.*
 .*/node_modules/y-prosemirror/.*
 .*/node_modules/y-protocols/.*
+.*/node_modules/y-indexeddb/.*
 .*/node_modules/lib0/.*
 .*/server/scripts/.*
 *.test.js
