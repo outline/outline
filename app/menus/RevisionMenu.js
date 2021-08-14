@@ -12,6 +12,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Separator from "components/ContextMenu/Separator";
 import CopyToClipboard from "components/CopyToClipboard";
 import MenuIconWrapper from "components/MenuIconWrapper";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useToasts from "hooks/useToasts";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
@@ -23,6 +24,7 @@ type Props = {|
 
 function RevisionMenu({ document, revisionId, className }: Props) {
   const { showToast } = useToasts();
+  const team = useCurrentTeam();
   const menu = useMenuState({ modal: true });
   const { t } = useTranslation();
   const history = useHistory();
@@ -55,7 +57,11 @@ function RevisionMenu({ document, revisionId, className }: Props) {
         {...menu}
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>
-        <MenuItem {...menu} onClick={handleRestore}>
+        <MenuItem
+          {...menu}
+          onClick={handleRestore}
+          disabled={team.features.multiplayerEditor}
+        >
           <MenuIconWrapper>
             <RestoreIcon />
           </MenuIconWrapper>
