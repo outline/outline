@@ -3,10 +3,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
-import Empty from "components/Empty";
 import Flex from "components/Flex";
-import Disclosure from "./Disclosure";
+import DisclosureWrapper from "./DisclosureWrapper";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
@@ -22,7 +20,6 @@ function Starred() {
   const [expanded, setExpanded] = React.useState(false);
   const [show, setShow] = React.useState("Nothing");
   const [offset, setOffset] = React.useState(0);
-  const [showDisclosure, setShowDisclosure] = React.useState(false);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
   const { documents } = useStores();
@@ -63,15 +60,6 @@ function Starred() {
     }
   }, [fetchResults, offset]);
 
-  const handleDisclosureClick = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      setExpanded(!expanded);
-    },
-    [expanded]
-  );
-
   const handleShowMore = React.useCallback(
     async (ev) => {
       setUpperBound(
@@ -96,7 +84,7 @@ function Starred() {
         to={document.url}
         title={document.title}
         url={document.url}
-        depth={1.5}
+        depth={2}
       />
     );
   });
@@ -105,9 +93,6 @@ function Starred() {
     return (
       <>
         <Header>{t("Starred")}</Header>
-        <EmptyWrapper column>
-          <Empty>{t("You’ve not starred any documents yet.")}</Empty>
-        </EmptyWrapper>
       </>
     );
   }
@@ -115,18 +100,9 @@ function Starred() {
   return (
     <Flex column>
       <>
-        <div
-          onMouseOver={() => setShowDisclosure(true)}
-          onMouseLeave={() => setShowDisclosure(false)}
-        >
-          {(showDisclosure || expanded) && (
-            <StarredDisclosure
-              expanded={expanded}
-              onClick={handleDisclosureClick}
-            />
-          )}
+        <DisclosureWrapper handleExpanded={(expanded) => setExpanded(expanded)}>
           <Header>{t("Starred")}</Header>
-        </div>
+        </DisclosureWrapper>
 
         {expanded && (
           <>
@@ -154,14 +130,5 @@ function Starred() {
     </Flex>
   );
 }
-
-const StarredDisclosure = styled(Disclosure)`
-  left: 10px;
-`;
-
-const EmptyWrapper = styled(Flex)`
-  margin: 0 16px 0px 40px;
-  font-size: 15px;
-`;
 
 export default observer(Starred);

@@ -9,6 +9,7 @@ import Fade from "components/Fade";
 import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
+import DisclosureWrapper from "./DisclosureWrapper";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -25,6 +26,7 @@ function Collections({ onCreateCollection }: Props) {
   const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
   const { showToast } = useToasts();
+  const [expanded, setExpanded] = React.useState(false);
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const team = useCurrentTeam();
@@ -115,8 +117,13 @@ function Collections({ onCreateCollection }: Props) {
 
   return (
     <Flex column>
-      <Header>{t("Collections")}</Header>
-      {isPreloaded ? content : <Fade>{content}</Fade>}
+      <DisclosureWrapper
+        handleExpanded={(newExpanded) => setExpanded(newExpanded)}
+      >
+        <Header>{t("Collections")}</Header>
+      </DisclosureWrapper>
+
+      {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
     </Flex>
   );
 }
