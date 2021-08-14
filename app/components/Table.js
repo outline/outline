@@ -1,5 +1,4 @@
 // @flow
-import { isEqual } from "lodash";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
@@ -25,8 +24,6 @@ export type Props = {|
   onChangePage: (index: number) => void,
   onChangeSort: (sort: ?string, direction: "ASC" | "DESC") => void,
   columns: any,
-  defaultSortDirection: "ASC" | "DESC",
-  id?: string,
 |};
 
 function Table({
@@ -42,8 +39,6 @@ function Table({
   topRef,
   onChangeSort,
   onChangePage,
-  defaultSortDirection,
-  id,
 }: Props) {
   const { t } = useTranslation();
   const {
@@ -67,51 +62,31 @@ function Table({
       autoResetPage: false,
       pageCount: totalPages,
       initialState: {
-        sortBy: [
-          {
-            id: defaultSort,
-            desc: defaultSortDirection === "DESC" ? true : false,
-          },
-        ],
+        sortBy: [{ id: defaultSort, desc: false }],
         pageSize,
         pageIndex: page,
-      },
-      stateReducer: (newState, action, prevState) => {
-        if (!isEqual(newState.sortBy, prevState.sortBy)) {
-          return { ...newState, pageIndex: 0 };
-        }
-        return newState;
       },
     },
     useSortBy,
     usePagination
   );
 
-  const prevSortBy = React.useRef(sortBy);
+  React.useEffect(() => {
+    onChangePage(pageIndex);
+  }, [pageIndex]);
 
   React.useEffect(() => {
-    if (!isEqual(sortBy, prevSortBy.current)) {
-      prevSortBy.current = sortBy;
-      onChangePage(0);
-      onChangeSort(
-        sortBy.length ? sortBy[0].id : undefined,
-        !sortBy.length ? defaultSortDirection : sortBy[0].desc ? "DESC" : "ASC"
-      );
-    }
-  }, [defaultSortDirection, onChangePage, onChangeSort, sortBy]);
-
-  const handleNextPage = () => {
-    nextPage();
-    onChangePage(pageIndex + 1);
-  };
-
-  const handlePreviousPage = () => {
-    previousPage();
-    onChangePage(pageIndex - 1);
-  };
+    onChangePage(0);
+    onChangeSort(
+      sortBy.length ? sortBy[0].id : undefined,
+      sortBy.length && sortBy[0].desc ? "DESC" : "ASC"
+    );
+  }, [sortBy]);
 
   const isEmpty = !isLoading && data.length === 0;
   const showPlaceholder = isLoading && data.length === 0;
+
+  console.log({ canNextPage, pageIndex, totalPages, rows, data });
 
   return (
     <>
@@ -140,7 +115,7 @@ function Table({
           {rows.map((row) => {
             prepareRow(row);
             return (
-              <Row {...row.getRowProps()} highlight={row.original.id === id}>
+              <Row {...row.getRowProps()}>
                 {row.cells.map((cell) => (
                   <Cell
                     {...cell.getCellProps([
@@ -149,7 +124,7 @@ function Table({
                       },
                     ])}
                   >
-                    <CellWrapper>{cell.render("Cell")}</CellWrapper>
+                    {cell.render("Cell")}
                   </Cell>
                 ))}
               </Row>
@@ -167,12 +142,12 @@ function Table({
         >
           {/* Note: the page > 0 check shouldn't be needed here but is */}
           {canPreviousPage && page > 0 && (
-            <Button onClick={handlePreviousPage} neutral>
+            <Button onClick={previousPage} neutral>
               {t("Previous page")}
             </Button>
           )}
           {canNextPage && (
-            <Button onClick={handleNextPage} neutral>
+            <Button onClick={nextPage} neutral>
               {t("Next page")}
             </Button>
           )}
@@ -250,13 +225,7 @@ const Cell = styled.td`
   }
 `;
 
-const CellWrapper = styled(Flex)`
-  margin: 4px;
-`;
-
 const Row = styled.tr`
-  background-color: ${(props) =>
-    props.highlight ? props.theme.sidebarBackground : ""};
   &:last-child {
     ${Cell} {
       border-bottom: 0;
