@@ -22,17 +22,18 @@ export default async function documentUpdater({
   const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
   const text = serializer.serialize(node);
 
-  // extract collaborators from doc user data
-  const pud = new Y.PermanentUserData(ydoc);
-  const pudIds = Array.from(pud.clients.values());
-  const existingIds = document.collaboratorIds;
-  const collaboratorIds = uniq([...pudIds, ...existingIds]);
   const isUnchanged = document.text === text;
   const hasMultiplayerState = !!document.state;
 
   if (isUnchanged && hasMultiplayerState) {
     return;
   }
+
+  // extract collaborators from doc user data
+  const pud = new Y.PermanentUserData(ydoc);
+  const pudIds = Array.from(pud.clients.values());
+  const existingIds = document.collaboratorIds;
+  const collaboratorIds = uniq([...pudIds, ...existingIds]);
 
   await Document.scope("withUnpublished").update(
     {
