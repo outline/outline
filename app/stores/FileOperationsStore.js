@@ -22,7 +22,6 @@ export default class FileOperationsStore extends BaseStore<FileOperation> {
 
   @computed
   get orderedDataExports(): FileOperation[] {
-    console.log(this.exports);
     return orderBy(this.exports, "createdAt", "desc");
   }
 }

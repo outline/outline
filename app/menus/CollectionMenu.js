@@ -112,7 +112,6 @@ function CollectionMenu({
   );
 
   const can = policies.abilities(collection.id);
-
   const items = React.useMemo(
     () =>
       filterTemplateItems([

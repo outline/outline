@@ -165,7 +165,7 @@ exporterQueue.process(async (job) => {
         job.data.teamId,
         job.data.userId,
         job.data.email,
-        job.data.collections
+        job.data.collection
       );
     default:
   }
@@ -175,7 +175,7 @@ export const exportCollections = (
   teamId: string,
   userId: string,
   email: string,
-  collections?: Collection
+  collection?: Collection
 ) => {
   exporterQueue.add(
     {
@@ -183,7 +183,7 @@ export const exportCollections = (
       teamId,
       userId,
       email,
-      collections,
+      collection,
     },
     queueOptions
   );
