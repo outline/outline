@@ -10,6 +10,8 @@ import Loading from "./components/Loading";
 import { type LocationWithState } from "types";
 import { OfflineError } from "utils/errors";
 
+const EMPTY_OBJECT = {};
+
 type Props = {|
   match: Match,
   location: LocationWithState,
@@ -51,6 +53,7 @@ export default function SharedDocumentScene(props: Props) {
 
   return (
     <Document
+      abilities={EMPTY_OBJECT}
       document={response.document}
       sharedTree={response.sharedTree}
       location={props.location}

@@ -244,7 +244,7 @@ class DocumentScene extends React.Component<Props> {
 
     try {
       let savedDocument = document;
-      if (auth.team?.features.multiplayerEditor) {
+      if (auth.team?.features?.multiplayerEditor) {
         // update does not send "text" field to the API, this is a workaround
         // while the multiplayer editor is toggleable. Once it's finalized
         // this can be cleaned up to single code path
@@ -490,7 +490,7 @@ class DocumentScene extends React.Component<Props> {
                     id={document.id}
                     key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
-                    multiplayer={team?.features.multiplayerEditor}
+                    multiplayer={team?.features?.multiplayerEditor}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
