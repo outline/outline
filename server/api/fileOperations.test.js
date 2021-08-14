@@ -16,8 +16,8 @@ const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
-describe("#exports.list", () => {
-  it("should return exports list", async () => {
+describe("#fileOperations.list", () => {
+  it("should return fileOperations list", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const exportData = await buildFileOperation({
@@ -26,9 +26,10 @@ describe("#exports.list", () => {
       userId: admin.id,
     });
 
-    const res = await server.post("/api/exports.list", {
+    const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin.getJwtToken(),
+        type: "export",
       },
     });
 
@@ -57,9 +58,10 @@ describe("#exports.list", () => {
       collectionId: collection.id,
     });
 
-    const res = await server.post("/api/exports.list", {
+    const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin.getJwtToken(),
+        type: "export",
       },
     });
 
@@ -95,9 +97,10 @@ describe("#exports.list", () => {
 
     expect(isCollectionPresent).toBe(null);
 
-    const res = await server.post("/api/exports.list", {
+    const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin.getJwtToken(),
+        type: "export",
       },
     });
 
@@ -134,7 +137,7 @@ describe("#exports.list", () => {
 
     expect(isAdminPresent).toBe(null);
 
-    const res = await server.post("/api/exports.list", {
+    const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin2.getJwtToken(),
       },
@@ -154,7 +157,7 @@ describe("#exports.list", () => {
   it("should require authorization", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/exports.list", {
+    const res = await server.post("/api/fileOperations.list", {
       body: { token: user.getJwtToken() },
     });
 
