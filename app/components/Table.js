@@ -147,7 +147,7 @@ function Table({
                       },
                     ])}
                   >
-                    <CellWrapper>{cell.render("Cell")}</CellWrapper>
+                    {cell.render("Cell")}
                   </Cell>
                 ))}
               </Row>
@@ -232,7 +232,7 @@ const SortWrapper = styled(Flex)`
 `;
 
 const Cell = styled.td`
-  padding: 8px 0;
+  padding: 6px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   font-size: 14px;
 
@@ -248,11 +248,15 @@ const Cell = styled.td`
   }
 `;
 
-const CellWrapper = styled(Flex)`
-  margin: 4px;
-`;
-
 const Row = styled.tr`
+  ${Cell} {
+    &:first-child {
+      padding-left: 0;
+    }
+    &:last-child {
+      padding-right: 0;
+    }
+  }
   &:last-child {
     ${Cell} {
       border-bottom: 0;
@@ -264,7 +268,7 @@ const Head = styled.th`
   text-align: left;
   position: sticky;
   top: 54px;
-  padding: 6px 0;
+  padding: 6px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
@@ -272,6 +276,14 @@ const Head = styled.th`
   color: ${(props) => props.theme.textSecondary};
   font-weight: 500;
   z-index: 1;
+
+  :first-child {
+    padding-left: 0;
+  }
+
+  :last-child {
+    padding-right: 0;
+  }
 `;
 
 export default observer(Table);
