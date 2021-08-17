@@ -21,7 +21,6 @@ describe("read_write permission", () => {
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -48,7 +47,6 @@ describe("read_write permission", () => {
 
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -64,7 +62,6 @@ describe("read permission", () => {
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(false);
     expect(abilities.share).toEqual(false);
   });
@@ -91,7 +88,6 @@ describe("read permission", () => {
 
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -107,7 +103,6 @@ describe("no permission", () => {
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(false);
-    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(false);
     expect(abilities.share).toEqual(false);
   });
@@ -134,7 +129,6 @@ describe("no permission", () => {
 
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
-    expect(abilities.export).toEqual(false);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
@@ -152,7 +146,6 @@ describe("export permission", () => {
     const abilities = serialize(admin, collection);
     expect(abilities.read).toEqual(true);
     expect(abilities.update).toEqual(true);
-    expect(abilities.export).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
 
@@ -169,7 +162,6 @@ describe("export permission", () => {
     const abilities = serialize(admin, collection);
     expect(abilities.read).toEqual(false);
     expect(abilities.update).toEqual(false);
-    expect(abilities.export).toEqual(false);
     expect(abilities.share).toEqual(false);
   });
 });
