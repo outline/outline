@@ -1,9 +1,12 @@
 // @flow
+import { values } from "lodash";
 import { observer } from "mobx-react";
 import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
+import styled from "styled-components";
+import { getCookie } from "tiny-cookie";
 import {
   changelog,
   developers,
@@ -19,11 +22,23 @@ import useBoolean from "hooks/useBoolean";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
+type Session = {|
+  url: string,
+  logoUrl: string,
+  name: string,
+|};
+
+function getSessions(): Session[] {
+  const sessions = JSON.parse(getCookie("sessions") || "{}");
+  return values(sessions);
+}
+
 type Props = {|
   children: (props: any) => React.Node,
 |};
 
 function AccountMenu(props: Props) {
+  const [sessions] = React.useState(getSessions);
   const menu = useMenuState({
     unstable_offset: [8, 0],
     placement: "bottom-start",
@@ -97,12 +112,24 @@ function AccountMenu(props: Props) {
       {
         type: "separator",
       },
+      ...(sessions.length
+        ? [
+            {
+              title: t("Switch team"),
+              items: sessions.map((session) => ({
+                title: session.name,
+                icon: <Logo alt={session.name} src={session.logoUrl} />,
+                href: session.url,
+              })),
+            },
+          ]
+        : []),
       {
         title: t("Log out"),
         onClick: auth.logout,
       },
     ],
-    [auth.logout, handleKeyboardShortcutsOpen, t, ui]
+    [auth.logout, sessions, handleKeyboardShortcutsOpen, t, ui]
   );
 
   return (
@@ -121,5 +148,11 @@ function AccountMenu(props: Props) {
     </>
   );
 }
+
+const Logo = styled("img")`
+  border-radius: 2px;
+  width: 24px;
+  height: 24px;
+`;
 
 export default observer(AccountMenu);
