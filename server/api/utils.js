@@ -1,5 +1,5 @@
 // @flow
-import { subDays, subMilliseconds } from "date-fns";
+import { subDays } from "date-fns";
 import debug from "debug";
 import Router from "koa-router";
 import { documentPermanentDeleter } from "../commands/documentPermanentDeleter";
@@ -40,7 +40,7 @@ router.post("utils.gc", async (ctx) => {
     where: {
       type: "export",
       createdAt: {
-        [Op.lt]: subMilliseconds(new Date(), 30),
+        [Op.lt]: subDays(new Date(), 30),
       },
       state: {
         [Op.ne]: "expired",
