@@ -5,7 +5,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import { getCookie } from "tiny-cookie";
 import {
   changelog,
   developers,
@@ -20,30 +19,15 @@ import Guide from "components/Guide";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
+import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
-
-type Session = {|
-  url: string,
-  logoUrl: string,
-  name: string,
-  teamId: string,
-|};
-
-function getSessions(): Session[] {
-  const sessions = JSON.parse(getCookie("sessions") || "{}");
-
-  return Object.keys(sessions).map((teamId) => ({
-    teamId,
-    ...sessions[teamId],
-  }));
-}
 
 type Props = {|
   children: (props: any) => React.Node,
 |};
 
 function AccountMenu(props: Props) {
-  const [sessions] = React.useState(getSessions);
+  const [sessions] = useSessions();
   const menu = useMenuState({
     unstable_offset: [8, 0],
     placement: "bottom-start",
