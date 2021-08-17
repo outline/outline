@@ -224,7 +224,6 @@ function ImportExport() {
             title={
               item.collection ? item.collection.name : t("All collections")
             }
-            to={item.collection?.url}
             subtitle={
               <>
                 <Flex>
@@ -237,12 +236,9 @@ function ImportExport() {
               </>
             }
             actions={
-              <Button
-                onClick={() => fileOperations.viewExport(item.id)}
-                neutral
-              >
+              <a href={`/api/fileOperations.redirect?id=${item.id}`} neutral>
                 {t("Download")}
-              </Button>
+              </a>
             }
           />
         )}

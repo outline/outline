@@ -76,9 +76,8 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   authorize(user, fileOp.type, team);
 
   const accessUrl = await getSignedUrl(fileOp.key);
-  ctx.body = {
-    data: accessUrl,
-  };
+
+  ctx.redirect(accessUrl);
 });
 
 export default router;
