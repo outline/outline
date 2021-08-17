@@ -1,12 +1,11 @@
 // @flow
-import { subDays } from "date-fns";
+import { subDays, subMilliseconds } from "date-fns";
 import debug from "debug";
 import Router from "koa-router";
 import { documentPermanentDeleter } from "../commands/documentPermanentDeleter";
 import { AuthenticationError } from "../errors";
 import { Document, FileOperation } from "../models";
 import { Op } from "../sequelize";
-import { deleteFromS3 } from "../utils/s3";
 
 const router = new Router();
 const log = debug("utils");
@@ -41,7 +40,7 @@ router.post("utils.gc", async (ctx) => {
     where: {
       type: "export",
       createdAt: {
-        [Op.lt]: subDays(new Date(), 30),
+        [Op.lt]: subMilliseconds(new Date(), 30),
       },
       state: {
         [Op.ne]: "expired",
@@ -51,9 +50,7 @@ router.post("utils.gc", async (ctx) => {
 
   await Promise.all(
     exports.map(async (e) => {
-      e.state = "expired";
-      await deleteFromS3(e.key);
-      await e.save();
+      await e.expire();
     })
   );
 

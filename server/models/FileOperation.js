@@ -1,5 +1,6 @@
 // @flow
 import { DataTypes, sequelize } from "../sequelize";
+import { deleteFromS3 } from "../utils/s3";
 
 const FileOperation = sequelize.define("file_operations", {
   id: {
@@ -32,6 +33,12 @@ const FileOperation = sequelize.define("file_operations", {
     allowNull: false,
   },
 });
+
+FileOperation.prototype.expire = async function () {
+  this.state = "expired";
+  await deleteFromS3(this.key);
+  this.save();
+};
 
 FileOperation.associate = (models) => {
   FileOperation.belongsTo(models.User, {
