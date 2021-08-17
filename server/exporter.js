@@ -38,19 +38,26 @@ async function fileOperationsUpdate(teamId, userId, exportData) {
   });
 }
 
-async function exportAndEmailCollections(
+type exportAndEmailCollectionsType = {|
   teamId: string,
   userId: string,
   email: string,
-  collection?: Collection
-) {
+  collectionId?: string,
+|};
+
+async function exportAndEmailCollections({
+  teamId,
+  userId,
+  email,
+  collectionId,
+}: exportAndEmailCollectionsType) {
   log("Archiving team", teamId);
   const { archiveCollections } = require("./utils/zip");
   const team = await Team.findByPk(teamId);
   const user = await User.findByPk(userId);
 
   let collections;
-  if (!collection) {
+  if (!collectionId) {
     collections = await Collection.scope({
       method: ["withMembership", userId],
     }).findAll({
@@ -65,13 +72,13 @@ async function exportAndEmailCollections(
       return agg;
     }, []);
   } else {
-    collections = [collection];
+    collections = [await Collection.findByPk(collectionId)];
   }
 
   const acl = process.env.AWS_S3_ACL || "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
   const key = `${bucket}/${teamId}/${uuidv4()}/${
-    collection ? collection.name : team.name
+    collectionId ? collections[0].name : team.name
   }-export.zip`;
   let state = "creating";
 
@@ -81,7 +88,7 @@ async function exportAndEmailCollections(
     key,
     url: null,
     size: 0,
-    collectionId: collection ? collection.id : null,
+    collectionId: collectionId ? collectionId : null,
     userId,
     teamId,
   });
@@ -117,13 +124,13 @@ async function exportAndEmailCollections(
 
     await fileOperationsUpdate(teamId, userId, exportData);
 
-    if (collection) {
+    if (collectionId) {
       await Event.create({
         name: "collections.export",
-        collectionId: collection.id,
+        collectionId,
         teamId: teamId,
         actorId: userId,
-        data: { name: collection.name, exportId: exportData.id },
+        data: { name: collections[0].name, exportId: exportData.id },
       });
     } else {
       const collectionsExported = collections.map((c) => ({
@@ -161,12 +168,13 @@ exporterQueue.process(async (job) => {
 
   switch (job.data.type) {
     case "export-collections":
-      return await exportAndEmailCollections(
-        job.data.teamId,
-        job.data.userId,
-        job.data.email,
-        job.data.collection
-      );
+      const { teamId, userId, email, collectionId } = job.data;
+      return await exportAndEmailCollections({
+        teamId,
+        userId,
+        email,
+        collectionId,
+      });
     default:
   }
 });
@@ -175,7 +183,7 @@ export const exportCollections = (
   teamId: string,
   userId: string,
   email: string,
-  collection?: Collection
+  collectionId?: string
 ) => {
   exporterQueue.add(
     {
@@ -183,7 +191,7 @@ export const exportCollections = (
       teamId,
       userId,
       email,
-      collection,
+      collectionId,
     },
     queueOptions
   );

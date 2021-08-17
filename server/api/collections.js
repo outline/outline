@@ -460,7 +460,7 @@ router.post("collections.export", auth(), async (ctx) => {
 
   authorize(user, "export", collection);
 
-  exportCollections(user.teamId, user.id, user.email, collection);
+  exportCollections(user.teamId, user.id, user.email, id);
 
   ctx.body = {
     success: true,
