@@ -56,7 +56,7 @@ describe("#auth.config", () => {
   it("should return available providers for team subdomain", async () => {
     process.env.URL = "http://localoutline.com";
 
-    await buildTeam({
+    const team = await buildTeam({
       guestSignin: false,
       subdomain: "example",
       authenticationProviders: [
@@ -74,30 +74,9 @@ describe("#auth.config", () => {
     expect(res.status).toEqual(200);
     expect(body.data.providers.length).toBe(1);
     expect(body.data.providers[0].name).toBe("Slack");
-  });
-
-  it("should return hosted domain hint for Google provider for team subdomain", async () => {
-    process.env.URL = "http://localoutline.com";
-
-    await buildTeam({
-      guestSignin: false,
-      subdomain: "example",
-      authenticationProviders: [
-        {
-          name: "google",
-          providerId: "example.com",
-        },
-      ],
-    });
-    const res = await server.post("/api/auth.config", {
-      headers: { host: `example.localoutline.com` },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.providers.length).toBe(1);
-    expect(body.data.providers[0].name).toBe("Google");
-    expect(body.data.providers[0].authUrl).toContain("?hd=example.com");
+    expect(body.data.providers[0].authUrl).toContain(
+      `?authProviderId=${team.authenticationProviders[0].id}`
+    );
   });
 
   it("should return available providers for team custom domain", async () => {

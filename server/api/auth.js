@@ -35,11 +35,7 @@ function filterProviders(team) {
       return {
         id: provider.id,
         name: provider.name,
-        authUrl: `${provider.authUrl}${
-          authProvider && authProvider.name === "google"
-            ? "?hd=" + authProvider.providerId
-            : ""
-        }`,
+        authUrl: `${provider.authUrl}?authProviderId=${authProvider?.id || ""}`,
       };
     });
 }
