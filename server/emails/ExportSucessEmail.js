@@ -22,8 +22,7 @@ export const ExportSuccessEmail = ({ id }: { id: string }) => {
       <Body>
         <Heading>Your Data Export</Heading>
         <p>
-          Your requested data export is completed, please visit the export
-          section to find the link to zip file.
+          Your requested data export is complete, the exported files are now available in the admin section. 
         </p>
         <EmptySpace height={10} />
         <p>
