@@ -11,7 +11,7 @@ import Heading from "./components/Heading";
 export const exportEmailSuccessText = `
 Your Data Export
 
-Your requested data export is completed, please visit the export section to find the link to zip file.
+Your requested data export is complete, the exported files are also available in the admin section.
 `;
 
 export const ExportSuccessEmail = ({ id }: { id: string }) => {
@@ -22,13 +22,15 @@ export const ExportSuccessEmail = ({ id }: { id: string }) => {
       <Body>
         <Heading>Your Data Export</Heading>
         <p>
-          Your requested data export is complete, the exported files are now
+          Your requested data export is complete, the exported files are also
           available in the admin section.
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}/settings/import-export?key=${id}`}>
-            Go to export
+          <Button
+            href={`${process.env.URL}/api/fileOperations.redirect?id=${id}`}
+          >
+            View my export
           </Button>
         </p>
       </Body>

@@ -131,17 +131,13 @@ export class Mailer {
     });
   };
 
-  exportFailure = async (opts: {
-    to: string,
-    attachments?: Object[],
-    id: string,
-  }) => {
+  exportFailure = async (opts: { to: string, attachments?: Object[] }) => {
     this.sendMail({
       to: opts.to,
       attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Sorry, your requested data export has failed",
-      html: <ExportFailureEmail id={opts.id} />,
+      html: <ExportFailureEmail />,
       text: exportEmailFailureText,
     });
   };

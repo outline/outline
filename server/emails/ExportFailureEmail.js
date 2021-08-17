@@ -15,7 +15,7 @@ Sorry, your requested data export has failed, please visit the export
 section to try again – if the problem persists please contact support.
 `;
 
-export const ExportFailureEmail = ({ id }: { id: string }) => {
+export const ExportFailureEmail = () => {
   return (
     <EmailTemplate>
       <Header />
@@ -28,7 +28,7 @@ export const ExportFailureEmail = ({ id }: { id: string }) => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}/settings/import-export?key=${id}`}>
+          <Button href={`${process.env.URL}/settings/import-export`}>
             Go to export
           </Button>
         </p>

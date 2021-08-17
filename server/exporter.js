@@ -152,7 +152,6 @@ async function exportAndEmailCollections({
     if (state === "error") {
       mailer.exportFailure({
         to: email,
-        id: exportData.id,
       });
     } else {
       mailer.exportSuccess({
