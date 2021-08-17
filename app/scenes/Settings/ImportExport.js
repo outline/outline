@@ -237,7 +237,10 @@ function ImportExport() {
               </>
             }
             actions={
-              <Button onClick={() => window.open(item.url, "_blank")} neutral>
+              <Button
+                onClick={() => fileOperations.viewExport(item.id)}
+                neutral
+              >
                 {t("Download")}
               </Button>
             }

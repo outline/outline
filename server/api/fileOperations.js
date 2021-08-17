@@ -1,9 +1,11 @@
 // @flow
 import Router from "koa-router";
+import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
 import { FileOperation, User, Collection, Team } from "../models";
 import policy from "../policies";
 import { presentFileOperation } from "../presenters";
+import { getSignedUrl } from "../utils/s3";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -56,6 +58,26 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
       total,
     },
     data: exports.map(presentFileOperation),
+  };
+});
+
+router.post("fileOperations.redirect", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
+
+  const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
+
+  const fileOp = await FileOperation.findByPk(id);
+  if (!fileOp) {
+    throw new NotFoundError();
+  }
+
+  authorize(user, fileOp.type, team);
+
+  const accessUrl = await getSignedUrl(fileOp.key);
+  ctx.body = {
+    data: accessUrl,
   };
 });
 

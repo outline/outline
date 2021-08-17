@@ -167,7 +167,7 @@ export const deleteFromS3 = (key: string) => {
     .promise();
 };
 
-export const getSignedImageUrl = async (key: string) => {
+export const getSignedUrl = async (key: string) => {
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
 
   const params = {
