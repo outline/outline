@@ -262,7 +262,7 @@ describe("#collections.move", () => {
 });
 
 describe("#collections.export", () => {
-  it("should now allow export of private collection not a member", async () => {
+  it("should not allow export of private collection not a member", async () => {
     const { admin } = await seed();
     const collection = await buildCollection({
       permission: null,

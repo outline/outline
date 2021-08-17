@@ -454,11 +454,15 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
+  authorize(user, "export", team);
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
 
-  authorize(user, "export", collection);
+  ctx.assertPresent(collection, "Collection should be present");
+  authorize(user, "read", collection);
 
   exportCollections(user.teamId, user.id, user.email, id);
 

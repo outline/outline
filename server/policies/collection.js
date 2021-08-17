@@ -71,31 +71,6 @@ allow(User, "share", Collection, (user, collection) => {
   return true;
 });
 
-allow(User, "export", Collection, (user, collection) => {
-  if (user.isViewer) return false;
-  if (!collection || user.teamId !== collection.teamId) return false;
-  if (!collection.sharing) return false;
-  if (!user.isAdmin) return false;
-
-  if (collection.permission !== "read_write") {
-    invariant(
-      collection.memberships,
-      "membership should be preloaded, did you forget withMembership scope?"
-    );
-
-    const allMemberships = concat(
-      collection.memberships,
-      collection.collectionGroupMemberships
-    );
-
-    return some(allMemberships, (m) =>
-      ["read_write", "maintainer"].includes(m.permission)
-    );
-  }
-
-  return true;
-});
-
 allow(User, ["publish", "update"], Collection, (user, collection) => {
   if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
