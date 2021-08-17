@@ -60,7 +60,7 @@ const FileOperationListItem = ({ item }: FileOperationListItemProps) => {
             icon={<LinkIcon fill="currentColor" />}
             neutral
           >
-            {t("View")}
+            {t("Download")}
           </Button>
         </Actions>
       )}
