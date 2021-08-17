@@ -8,12 +8,15 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import { parseOutlineExport } from "shared/utils/zip";
 import Button from "components/Button";
-import FileOperationListItem from "components/FileOperationListItem";
+import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
+import ListItem from "components/List/Item";
 import Notice from "components/Notice";
 import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
+import Subheading from "components/Subheading";
+import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -32,6 +35,14 @@ function ImportExport() {
   const [isExporting, setExporting] = React.useState(false);
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
+
+  const stateMapping = {
+    creating: t("Processing"),
+    complete: t("Complete"),
+    expired: t("Expired"),
+    uploading: t("Processing"),
+    error: t("Error"),
+  };
 
   const handleImport = React.useCallback(
     async (ev) => {
@@ -200,15 +211,37 @@ function ImportExport() {
           ? `${t("Requesting Export")}…`
           : t("Export Data")}
       </Button>
-      <Heading>
-        <Trans>Exports</Trans>
-      </Heading>
+      <Subheading>
+        <Trans>Recent exports</Trans>
+      </Subheading>
       <PaginatedList
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
         options={{ type: "export" }}
         renderItem={(item) => (
-          <FileOperationListItem key={item.id} item={item} />
+          <ListItem
+            key={item.id}
+            title={
+              item.collection ? item.collection.name : t("All collections")
+            }
+            to={item.collection?.url}
+            subtitle={
+              <>
+                <Flex>
+                  {stateMapping[item.state]}&nbsp;•&nbsp;
+                  {user.id === item.user.id ? t("You") : item.user.name}{" "}
+                  created&nbsp;
+                  <Time dateTime={item.createdAt} addSuffix shorten />
+                  &nbsp;•&nbsp;{item.sizeInMB}
+                </Flex>
+              </>
+            }
+            actions={
+              <Button onClick={() => window.open(item.url, "_blank")} neutral>
+                {t("Download")}
+              </Button>
+            }
+          />
         )}
       />
     </Scene>
