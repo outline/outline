@@ -6,7 +6,8 @@ import {
   buildTeam,
   buildUser,
 } from "../test/factories";
-import { flushdb } from "../test/support";
+import { flushdb, seed } from "../test/support";
+import slugify from "../utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -197,6 +198,12 @@ describe("#searchForTeam", () => {
     expect(results.length).toBe(0);
   });
 
+  test("should handle backslashes in search term", async () => {
+    const team = await buildTeam();
+    const { results } = await Document.searchForTeam(team, "\\\\");
+    expect(results.length).toBe(0);
+  });
+
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({ teamId: team.id });
@@ -213,6 +220,41 @@ describe("#searchForTeam", () => {
 
     const { totalCount } = await Document.searchForTeam(team, "test");
     expect(totalCount).toBe("2");
+  });
+
+  test("should return the document when searched with their previous titles", async () => {
+    const team = await buildTeam();
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForTeam(team, "test number");
+    expect(totalCount).toBe("1");
+  });
+
+  test("should not return the document when searched with neither the titles nor the previous titles", async () => {
+    const team = await buildTeam();
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForTeam(
+      team,
+      "title doesn't exist"
+    );
+    expect(totalCount).toBe("0");
   });
 });
 
@@ -266,6 +308,51 @@ describe("#searchForUser", () => {
     const { totalCount } = await Document.searchForUser(user, "test");
     expect(totalCount).toBe("2");
   });
+
+  test("should return the document when searched with their previous titles", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForUser(user, "test number");
+    expect(totalCount).toBe("1");
+  });
+
+  test("should not return the document when searched with neither the titles nor the previous titles", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "test number 1",
+    });
+
+    document.title = "change";
+    await document.save();
+
+    const { totalCount } = await Document.searchForUser(
+      user,
+      "title doesn't exist"
+    );
+    expect(totalCount).toBe("0");
+  });
 });
 
 describe("#delete", () => {
@@ -299,5 +386,123 @@ describe("#delete", () => {
     document = await Document.findByPk(document.id, { paranoid: false });
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
+  });
+});
+
+describe("#save", () => {
+  test("should have empty previousTitles by default", async () => {
+    const document = await buildDocument();
+    expect(document.previousTitles).toBe(null);
+  });
+
+  test("should include previousTitles on save", async () => {
+    const document = await buildDocument();
+
+    document.title = "test";
+    await document.save();
+
+    expect(document.previousTitles.length).toBe(1);
+  });
+
+  test("should not duplicate previousTitles", async () => {
+    const document = await buildDocument();
+
+    document.title = "test";
+    await document.save();
+
+    document.title = "example";
+    await document.save();
+
+    document.title = "test";
+    await document.save();
+
+    expect(document.previousTitles.length).toBe(3);
+  });
+});
+
+describe("#findByPk", () => {
+  test("should return document when urlId is correct", async () => {
+    const { document } = await seed();
+    const id = `${slugify(document.title)}-${document.urlId}`;
+
+    const response = await Document.findByPk(id);
+
+    expect(response.id).toBe(document.id);
+  });
+});
+
+describe("tasks", () => {
+  test("should consider all the possible checkTtems", async () => {
+    const document = await buildDocument({
+      text: `- [x] test
+      - [X] test
+      - [ ] test
+      - [-] test
+      - [_] test`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(4);
+    expect(tasks.total).toBe(5);
+  });
+
+  test("should return tasks keys set to 0 if checkItems isn't present", async () => {
+    const document = await buildDocument({
+      text: `text`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(0);
+    expect(tasks.total).toBe(0);
+  });
+
+  test("should return tasks keys set to 0 if the text contains broken checkItems", async () => {
+    const document = await buildDocument({
+      text: `- [x ] test
+      - [ x ] test
+      - [  ] test`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(0);
+    expect(tasks.total).toBe(0);
+  });
+
+  test("should return tasks", async () => {
+    const document = await buildDocument({
+      text: `- [x] list item
+      - [ ] list item`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(1);
+    expect(tasks.total).toBe(2);
+  });
+
+  test("should update tasks on save", async () => {
+    const document = await buildDocument({
+      text: `- [x] list item
+      - [ ] list item`,
+    });
+
+    const tasks = document.tasks;
+
+    expect(tasks.completed).toBe(1);
+    expect(tasks.total).toBe(2);
+
+    document.text = `- [x] list item
+    - [ ] list item
+    - [ ] list item`;
+
+    await document.save();
+
+    const newTasks = document.tasks;
+
+    expect(newTasks.completed).toBe(1);
+    expect(newTasks.total).toBe(3);
   });
 });

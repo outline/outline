@@ -1,89 +1,79 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { CodeIcon } from "outline-icons";
 import * as React from "react";
-import ApiKeysStore from "stores/ApiKeysStore";
-import UiStore from "stores/UiStore";
+import { useTranslation, Trans } from "react-i18next";
+import APITokenNew from "scenes/APITokenNew";
+import { Action } from "components/Actions";
 import Button from "components/Button";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import Input from "components/Input";
-import List from "components/List";
+import Modal from "components/Modal";
+import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
+import Subheading from "components/Subheading";
 import TokenListItem from "./components/TokenListItem";
+import useBoolean from "hooks/useBoolean";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useStores from "hooks/useStores";
 
-type Props = {
-  apiKeys: ApiKeysStore,
-  ui: UiStore,
-};
+function Tokens() {
+  const team = useCurrentTeam();
+  const { t } = useTranslation();
+  const { apiKeys, policies } = useStores();
+  const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
+  const can = policies.abilities(team.id);
 
-@observer
-class Tokens extends React.Component<Props> {
-  @observable name: string = "";
-
-  componentDidMount() {
-    this.props.apiKeys.fetchPage({ limit: 100 });
-  }
-
-  handleUpdate = (ev: SyntheticInputEvent<*>) => {
-    this.name = ev.target.value;
-  };
-
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    try {
-      ev.preventDefault();
-      await this.props.apiKeys.create({ name: this.name });
-      this.name = "";
-    } catch (error) {
-      this.props.ui.showToast(error.message, { type: "error" });
-    }
-  };
-
-  render() {
-    const { apiKeys } = this.props;
-    const hasApiKeys = apiKeys.orderedData.length > 0;
-
-    return (
-      <Scene title="API Tokens" icon={<CodeIcon color="currentColor" />}>
-        <Heading>API Tokens</Heading>
-        <HelpText>
-          You can create an unlimited amount of personal tokens to authenticate
-          with the API. For more details about the API take a look at the{" "}
-          <a href="https://www.getoutline.com/developers">
-            developer documentation
-          </a>
-          .
-        </HelpText>
-
-        {hasApiKeys && (
-          <List>
-            {apiKeys.orderedData.map((token) => (
-              <TokenListItem
-                key={token.id}
-                token={token}
-                onDelete={token.delete}
+  return (
+    <Scene
+      title={t("API Tokens")}
+      icon={<CodeIcon color="currentColor" />}
+      actions={
+        <>
+          {can.createApiKey && (
+            <Action>
+              <Button
+                type="submit"
+                value={`${t("New token")}…`}
+                onClick={handleNewModalOpen}
               />
-            ))}
-          </List>
-        )}
+            </Action>
+          )}
+        </>
+      }
+    >
+      <Heading>{t("API Tokens")}</Heading>
+      <HelpText>
+        <Trans
+          defaults="You can create an unlimited amount of personal tokens to authenticate
+          with the API. Tokens have the same permissions as your user account.
+          For more details see the <em>developer documentation</em>."
+          components={{
+            em: (
+              <a href="https://www.getoutline.com/developers" target="_blank" />
+            ),
+          }}
+        />
+      </HelpText>
 
-        <form onSubmit={this.handleSubmit}>
-          <Input
-            onChange={this.handleUpdate}
-            placeholder="Token label (eg. development)"
-            value={this.name}
-            required
-          />
-          <Button
-            type="submit"
-            value="Create Token"
-            disabled={apiKeys.isSaving}
-          />
-        </form>
-      </Scene>
-    );
-  }
+      <PaginatedList
+        fetch={apiKeys.fetchPage}
+        items={apiKeys.orderedData}
+        heading={<Subheading sticky>{t("Tokens")}</Subheading>}
+        renderItem={(token) => (
+          <TokenListItem key={token.id} token={token} onDelete={token.delete} />
+        )}
+      />
+
+      <Modal
+        title={t("Create a token")}
+        onRequestClose={handleNewModalClose}
+        isOpen={newModalOpen}
+      >
+        <APITokenNew onSubmit={handleNewModalClose} />
+      </Modal>
+    </Scene>
+  );
 }
 
-export default inject("apiKeys", "ui")(Tokens);
+export default observer(Tokens);

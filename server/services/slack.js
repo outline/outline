@@ -1,4 +1,5 @@
 // @flow
+import fetch from "fetch-with-proxy";
 import type { DocumentEvent, IntegrationEvent, Event } from "../events";
 import { Document, Integration, Collection, Team } from "../models";
 import { presentSlackAttachment } from "../presenters";

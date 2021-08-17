@@ -1,4 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "../models";
 import {
@@ -6,8 +7,10 @@ import {
   buildGroup,
   buildCollection,
   buildTeam,
+  buildDocument,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
+import slugify from "../utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -15,7 +18,144 @@ beforeEach(jest.resetAllMocks);
 describe("#url", () => {
   test("should return correct url for the collection", () => {
     const collection = new Collection({ id: "1234" });
-    expect(collection.url).toBe("/collections/1234");
+    expect(collection.url).toBe(`/collection/untitled-${collection.urlId}`);
+  });
+});
+
+describe("getDocumentParents", () => {
+  test("should return array of parent document ids", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    const result = collection.getDocumentParents(document.id);
+
+    expect(result.length).toBe(1);
+    expect(result[0]).toBe(parent.id);
+  });
+
+  test("should return array of parent document ids", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    const result = collection.getDocumentParents(parent.id);
+    expect(result.length).toBe(0);
+  });
+
+  test("should not error if documentStructure is empty", async () => {
+    const parent = await buildDocument();
+    await buildDocument();
+    const collection = await buildCollection();
+
+    const result = collection.getDocumentParents(parent.id);
+    expect(result).toBe(undefined);
+  });
+});
+
+describe("getDocumentTree", () => {
+  test("should return document tree", async () => {
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [document.toJSON()],
+    });
+
+    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+  });
+
+  test("should return nested documents in tree", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    expect(collection.getDocumentTree(parent.id)).toEqual({
+      ...parent.toJSON(),
+      children: [document.toJSON()],
+    });
+    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+  });
+});
+
+describe("isChildDocument", () => {
+  test("should return false with unexpected data", async () => {
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [document.toJSON()],
+    });
+
+    expect(collection.isChildDocument(document.id, document.id)).toEqual(false);
+    expect(collection.isChildDocument(document.id, undefined)).toEqual(false);
+    expect(collection.isChildDocument(undefined, document.id)).toEqual(false);
+  });
+
+  test("should return false if sibling", async () => {
+    const one = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [one.toJSON(), document.toJSON()],
+    });
+
+    expect(collection.isChildDocument(one.id, document.id)).toEqual(false);
+    expect(collection.isChildDocument(document.id, one.id)).toEqual(false);
+  });
+
+  test("should return true if direct child of parent", async () => {
+    const parent = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [document.toJSON()],
+        },
+      ],
+    });
+
+    expect(collection.isChildDocument(parent.id, document.id)).toEqual(true);
+    expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
+  });
+
+  test("should return true if nested child of parent", async () => {
+    const parent = await buildDocument();
+    const nested = await buildDocument();
+    const document = await buildDocument();
+    const collection = await buildCollection({
+      documentStructure: [
+        {
+          ...parent.toJSON(),
+          children: [
+            {
+              ...nested.toJSON(),
+              children: [document.toJSON()],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(collection.isChildDocument(parent.id, document.id)).toEqual(true);
+    expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
   });
 });
 
@@ -276,5 +416,55 @@ describe("#membershipUserIds", () => {
 
     const membershipUserIds = await Collection.membershipUserIds(collection.id);
     expect(membershipUserIds.length).toBe(6);
+  });
+});
+
+describe("#findByPk", () => {
+  test("should return collection with collection Id", async () => {
+    const collection = await buildCollection();
+    const response = await Collection.findByPk(collection.id);
+
+    expect(response.id).toBe(collection.id);
+  });
+
+  test("should return collection when urlId is present", async () => {
+    const collection = await buildCollection();
+    const id = `${slugify(collection.name)}-${collection.urlId}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response.id).toBe(collection.id);
+  });
+
+  test("should return undefined when incorrect uuid type", async () => {
+    const collection = await buildCollection();
+    const response = await Collection.findByPk(collection.id + "-incorrect");
+
+    expect(response).toBe(undefined);
+  });
+
+  test("should return undefined when incorrect urlId length", async () => {
+    const collection = await buildCollection();
+    const id = `${slugify(collection.name)}-${collection.urlId}incorrect`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(undefined);
+  });
+
+  test("should return null when no collection is found with uuid", async () => {
+    const response = await Collection.findByPk(
+      "a9e71a81-7342-4ea3-9889-9b9cc8f667da"
+    );
+
+    expect(response).toBe(null);
+  });
+
+  test("should return null when no collection is found with urlId", async () => {
+    const id = `${slugify("test collection")}-${randomstring.generate(15)}`;
+
+    const response = await Collection.findByPk(id);
+
+    expect(response).toBe(null);
   });
 });

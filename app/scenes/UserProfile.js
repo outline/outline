@@ -1,5 +1,5 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { formatDistanceToNow } from "date-fns";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
@@ -52,7 +52,7 @@ function UserProfile(props: Props) {
             ? t("Joined")
             : t("Invited")}{" "}
           {t("{{ time }} ago.", {
-            time: distanceInWordsToNow(new Date(user.createdAt)),
+            time: formatDistanceToNow(Date.parse(user.createdAt)),
           })}
           {user.isAdmin && (
             <StyledBadge primary={user.isAdmin}>{t("Admin")}</StyledBadge>

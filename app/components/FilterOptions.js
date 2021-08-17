@@ -5,7 +5,8 @@ import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import Button, { Inner } from "components/Button";
 import ContextMenu from "components/ContextMenu";
-import FilterOption from "./FilterOption";
+import MenuItem from "components/ContextMenu/MenuItem";
+import HelpText from "components/HelpText";
 
 type TFilterOption = {|
   key: string,
@@ -35,7 +36,7 @@ const FilterOptions = ({
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
 
   return (
-    <SearchFilter>
+    <Wrapper>
       <MenuButton {...menu}>
         {(props) => (
           <StyledButton
@@ -50,30 +51,49 @@ const FilterOptions = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        <List>
-          {options.map((option) => (
-            <FilterOption
-              key={option.key}
-              onSelect={() => {
-                onSelect(option.key);
-                menu.hide();
-              }}
-              active={option.key === activeKey}
-              {...option}
-              {...menu}
-            />
-          ))}
-        </List>
+        {options.map((option) => (
+          <MenuItem
+            key={option.key}
+            onClick={() => {
+              onSelect(option.key);
+              menu.hide();
+            }}
+            selected={option.key === activeKey}
+            {...menu}
+          >
+            {option.note ? (
+              <LabelWithNote>
+                {option.label}
+                <Note>{option.note}</Note>
+              </LabelWithNote>
+            ) : (
+              option.label
+            )}
+          </MenuItem>
+        ))}
       </ContextMenu>
-    </SearchFilter>
+    </Wrapper>
   );
 };
+
+const LabelWithNote = styled.div`
+  font-weight: 500;
+  text-align: left;
+`;
+
+const Note = styled(HelpText)`
+  margin-top: 2px;
+  margin-bottom: 0;
+  line-height: 1.2em;
+  font-size: 14px;
+  font-weight: 400;
+  color: ${(props) => props.theme.textTertiary};
+`;
 
 const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
   border-color: transparent;
-  height: 28px;
 
   &:hover {
     background: transparent;
@@ -84,14 +104,8 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const SearchFilter = styled.div`
+const Wrapper = styled.div`
   margin-right: 8px;
-`;
-
-const List = styled("ol")`
-  list-style: none;
-  margin: 0;
-  padding: 0 8px;
 `;
 
 export default FilterOptions;

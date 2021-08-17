@@ -65,7 +65,9 @@ Event.ACTIVITY_EVENTS = [
   "documents.unpin",
   "documents.move",
   "documents.delete",
+  "documents.permanent_delete",
   "documents.restore",
+  "revisions.create",
   "users.create",
 ];
 
@@ -90,10 +92,12 @@ Event.AUDIT_EVENTS = [
   "documents.unpin",
   "documents.move",
   "documents.delete",
+  "documents.permanent_delete",
   "documents.restore",
   "groups.create",
   "groups.update",
   "groups.delete",
+  "revisions.create",
   "shares.create",
   "shares.update",
   "shares.revoke",

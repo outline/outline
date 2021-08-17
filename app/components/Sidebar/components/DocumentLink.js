@@ -12,6 +12,7 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
@@ -27,16 +28,19 @@ type Props = {|
   parentId?: string,
 |};
 
-function DocumentLink({
-  node,
-  canUpdate,
-  collection,
-  activeDocument,
-  prefetchDocument,
-  depth,
-  index,
-  parentId,
-}: Props) {
+function DocumentLink(
+  {
+    node,
+    canUpdate,
+    collection,
+    activeDocument,
+    prefetchDocument,
+    depth,
+    index,
+    parentId,
+  }: Props,
+  ref
+) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
 
@@ -117,7 +121,7 @@ function DocumentLink({
     [documents, document]
   );
 
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
 
@@ -129,7 +133,11 @@ function DocumentLink({
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      return policies.abilities(node.id).move;
+      return (
+        policies.abilities(node.id).move ||
+        policies.abilities(node.id).archive ||
+        policies.abilities(node.id).delete
+      );
     },
   });
 
@@ -236,13 +244,14 @@ function DocumentLink({
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
+                ref={ref}
                 menu={
                   document && !isMoving ? (
                     <Fade>
                       <DocumentMenu
                         document={document}
-                        onOpen={() => setMenuOpen(true)}
-                        onClose={() => setMenuOpen(false)}
+                        onOpen={handleMenuOpen}
+                        onClose={handleMenuClose}
                       />
                     </Fade>
                   ) : undefined
@@ -282,11 +291,13 @@ const Draggable = styled("div")`
 `;
 
 const Disclosure = styled(CollapsedIcon)`
+  transition: transform 100ms ease, fill 50ms !important;
   position: absolute;
   left: -24px;
 
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
-const ObservedDocumentLink = observer(DocumentLink);
+const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
+
 export default ObservedDocumentLink;

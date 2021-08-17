@@ -14,6 +14,7 @@ type Props = {|
   document: Document,
   isDraft: boolean,
   to?: string,
+  rtl?: boolean,
 |};
 
 function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
@@ -22,6 +23,12 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
+
+  React.useEffect(() => {
+    if (!document.isDeleted) {
+      views.fetchPage({ documentId: document.id });
+    }
+  }, [views, document.id, document.isDeleted]);
 
   const popover = usePopoverState({
     gutter: 8,
@@ -35,7 +42,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
         <PopoverDisclosure {...popover}>
           {(props) => (
             <>
-              &nbsp;&middot;&nbsp;
+              &nbsp;•&nbsp;
               <a {...props}>
                 {t("Viewed by")}{" "}
                 {onlyYou
@@ -56,6 +63,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
 }
 
 const Meta = styled(DocumentMeta)`
+  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   margin: -12px 0 2em 0;
   font-size: 14px;
   position: relative;

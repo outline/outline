@@ -1,5 +1,6 @@
 // @flow
 import "focus-visible";
+import { LazyMotion } from "framer-motion";
 import { createBrowserHistory } from "history";
 import { Provider } from "mobx-react";
 import * as React from "react";
@@ -49,25 +50,33 @@ if ("serviceWorker" in window.navigator) {
   });
 }
 
+// Make sure to return the specific export containing the feature bundle.
+const loadFeatures = () =>
+  import("./utils/motion.js").then((res) => res.default);
+
 if (element) {
   const App = () => (
-    <Provider {...stores}>
-      <Analytics>
-        <Theme>
-          <ErrorBoundary>
-            <Router history={history}>
-              <>
-                <PageTheme />
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </>
-            </Router>
-          </ErrorBoundary>
-        </Theme>
-      </Analytics>
-    </Provider>
+    <React.StrictMode>
+      <Provider {...stores}>
+        <Analytics>
+          <Theme>
+            <ErrorBoundary>
+              <LazyMotion features={loadFeatures}>
+                <Router history={history}>
+                  <>
+                    <PageTheme />
+                    <ScrollToTop>
+                      <Routes />
+                    </ScrollToTop>
+                    <Toasts />
+                  </>
+                </Router>
+              </LazyMotion>
+            </ErrorBoundary>
+          </Theme>
+        </Analytics>
+      </Provider>
+    </React.StrictMode>
   );
 
   render(<App />, element);
@@ -79,7 +88,7 @@ window.addEventListener("load", async () => {
   if (!env.GOOGLE_ANALYTICS_ID || !window.ga) return;
 
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
-  await import("autotrack/autotrack.js");
+  await import(/* webpackChunkName: "autotrack" */ "autotrack/autotrack.js");
 
   window.ga("require", "outboundLinkTracker");
   window.ga("require", "urlChangeTracker");

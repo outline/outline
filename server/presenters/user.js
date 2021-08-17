@@ -25,9 +25,9 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   userData.isViewer = user.isViewer;
   userData.isSuspended = user.isSuspended;
   userData.avatarUrl = user.avatarUrl;
+  userData.lastActiveAt = user.lastActiveAt;
 
   if (options.includeDetails) {
-    userData.lastActiveAt = user.lastActiveAt;
     userData.email = user.email;
     userData.language =
       user.language || process.env.DEFAULT_LANGUAGE || "en_US";

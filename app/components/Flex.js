@@ -25,6 +25,7 @@ type Props = {|
   className?: string,
   children?: React.Node,
   role?: string,
+  gap?: number,
 |};
 
 const Flex = React.forwardRef<Props, HTMLDivElement>((props: Props, ref) => {
@@ -44,6 +45,7 @@ const Container = styled.div`
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
   flex-shrink: ${({ shrink }) => (shrink ? 1 : "initial")};
+  gap: ${({ gap }) => (gap ? `${gap}px` : "initial")};
   min-height: 0;
   min-width: 0;
 `;

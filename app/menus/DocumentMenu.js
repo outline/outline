@@ -9,6 +9,7 @@ import styled from "styled-components";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentMove from "scenes/DocumentMove";
+import DocumentPermanentDelete from "scenes/DocumentPermanentDelete";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import CollectionIcon from "components/CollectionIcon";
 import ContextMenu from "components/ContextMenu";
@@ -17,6 +18,7 @@ import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import {
   documentHistoryUrl,
@@ -50,7 +52,8 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const { policies, collections, ui, documents } = useStores();
+  const { policies, collections, documents } = useStores();
+  const { showToast } = useToasts();
   const menu = useMenuState({
     modal,
     unstable_preventOverflow: true,
@@ -61,6 +64,10 @@ function DocumentMenu({
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [
+    showPermanentDeleteModal,
+    setShowPermanentDeleteModal,
+  ] = React.useState(false);
   const [showMoveModal, setShowMoveModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
   const file = React.useRef<?HTMLInputElement>();
@@ -78,33 +85,33 @@ function DocumentMenu({
 
       // when duplicating, go straight to the duplicated document content
       history.push(duped.url);
-      ui.showToast(t("Document duplicated"), { type: "success" });
+      showToast(t("Document duplicated"), { type: "success" });
     },
-    [ui, t, history, document]
+    [t, history, showToast, document]
   );
 
   const handleArchive = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       await document.archive();
-      ui.showToast(t("Document archived"), { type: "success" });
+      showToast(t("Document archived"), { type: "success" });
     },
-    [ui, t, document]
+    [showToast, t, document]
   );
 
   const handleRestore = React.useCallback(
     async (ev: SyntheticEvent<>, options?: { collectionId: string }) => {
       await document.restore(options);
-      ui.showToast(t("Document restored"), { type: "success" });
+      showToast(t("Document restored"), { type: "success" });
     },
-    [ui, t, document]
+    [showToast, t, document]
   );
 
   const handleUnpublish = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       await document.unpublish();
-      ui.showToast(t("Document unpublished"), { type: "success" });
+      showToast(t("Document unpublished"), { type: "success" });
     },
-    [ui, t, document]
+    [showToast, t, document]
   );
 
   const handlePrint = React.useCallback((ev: SyntheticEvent<>) => {
@@ -176,14 +183,14 @@ function DocumentMenu({
         );
         history.push(importedDocument.url);
       } catch (err) {
-        ui.showToast(err.message, {
+        showToast(err.message, {
           type: "error",
         });
 
         throw err;
       }
     },
-    [history, ui, collection, documents, document.id]
+    [history, showToast, collection, documents, document.id]
   );
 
   return (
@@ -218,12 +225,7 @@ function DocumentMenu({
           items={[
             {
               title: t("Restore"),
-              visible: !!can.unarchive,
-              onClick: handleRestore,
-            },
-            {
-              title: t("Restore"),
-              visible: !!(collection && can.restore),
+              visible: (!!collection && can.restore) || can.unarchive,
               onClick: handleRestore,
             },
             {
@@ -333,6 +335,11 @@ function DocumentMenu({
               visible: !!can.delete,
             },
             {
+              title: `${t("Permanently delete")}…`,
+              onClick: () => setShowPermanentDeleteModal(true),
+              visible: can.permanentDelete,
+            },
+            {
               title: `${t("Move")}…`,
               onClick: () => setShowMoveModal(true),
               visible: !!can.move,
@@ -362,40 +369,60 @@ function DocumentMenu({
       </ContextMenu>
       {renderModals && (
         <>
-          <Modal
-            title={t("Move {{ documentName }}", {
-              documentName: document.noun,
-            })}
-            onRequestClose={() => setShowMoveModal(false)}
-            isOpen={showMoveModal}
-          >
-            <DocumentMove
-              document={document}
+          {can.move && (
+            <Modal
+              title={t("Move {{ documentName }}", {
+                documentName: document.noun,
+              })}
               onRequestClose={() => setShowMoveModal(false)}
-            />
-          </Modal>
-          <Modal
-            title={t("Delete {{ documentName }}", {
-              documentName: document.noun,
-            })}
-            onRequestClose={() => setShowDeleteModal(false)}
-            isOpen={showDeleteModal}
-          >
-            <DocumentDelete
-              document={document}
-              onSubmit={() => setShowDeleteModal(false)}
-            />
-          </Modal>
-          <Modal
-            title={t("Create template")}
-            onRequestClose={() => setShowTemplateModal(false)}
-            isOpen={showTemplateModal}
-          >
-            <DocumentTemplatize
-              document={document}
-              onSubmit={() => setShowTemplateModal(false)}
-            />
-          </Modal>
+              isOpen={showMoveModal}
+            >
+              <DocumentMove
+                document={document}
+                onRequestClose={() => setShowMoveModal(false)}
+              />
+            </Modal>
+          )}
+          {can.delete && (
+            <Modal
+              title={t("Delete {{ documentName }}", {
+                documentName: document.noun,
+              })}
+              onRequestClose={() => setShowDeleteModal(false)}
+              isOpen={showDeleteModal}
+            >
+              <DocumentDelete
+                document={document}
+                onSubmit={() => setShowDeleteModal(false)}
+              />
+            </Modal>
+          )}
+          {can.permanentDelete && (
+            <Modal
+              title={t("Permanently delete {{ documentName }}", {
+                documentName: document.noun,
+              })}
+              onRequestClose={() => setShowPermanentDeleteModal(false)}
+              isOpen={showPermanentDeleteModal}
+            >
+              <DocumentPermanentDelete
+                document={document}
+                onSubmit={() => setShowPermanentDeleteModal(false)}
+              />
+            </Modal>
+          )}
+          {can.update && (
+            <Modal
+              title={t("Create template")}
+              onRequestClose={() => setShowTemplateModal(false)}
+              isOpen={showTemplateModal}
+            >
+              <DocumentTemplatize
+                document={document}
+                onSubmit={() => setShowTemplateModal(false)}
+              />
+            </Modal>
+          )}
         </>
       )}
     </>

@@ -1,7 +1,7 @@
 // @flow
-import addDays from "date-fns/add_days";
-import differenceInDays from "date-fns/difference_in_days";
+import { addDays, differenceInDays } from "date-fns";
 import invariant from "invariant";
+import { floor } from "lodash";
 import { action, computed, observable, set } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
@@ -44,6 +44,7 @@ export default class Document extends BaseModel {
   deletedAt: ?string;
   url: string;
   urlId: string;
+  tasks: { completed: number, total: number };
   revision: number;
 
   constructor(fields: Object, store: DocumentsStore) {
@@ -57,6 +58,26 @@ export default class Document extends BaseModel {
   get emoji() {
     const { emoji } = parseTitle(this.title);
     return emoji;
+  }
+
+  /**
+   * Best-guess the text direction of the document based on the language the
+   * title is written in. Note: wrapping as a computed getter means that it will
+   * only be called directly when the title changes.
+   */
+  @computed
+  get dir(): "rtl" | "ltr" {
+    const element = document.createElement("p");
+    element.innerHTML = this.title;
+    element.style.visibility = "hidden";
+    element.dir = "auto";
+
+    // element must appear in body for direction to be computed
+    document.body?.appendChild(element);
+
+    const direction = window.getComputedStyle(element).direction;
+    document.body?.removeChild(element);
+    return direction;
   }
 
   @computed
@@ -132,8 +153,16 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get placeholder(): ?string {
-    return this.isTemplate ? "Start your template…" : "Start with a title…";
+  get isTasks(): boolean {
+    return !!this.tasks.total;
+  }
+
+  @computed
+  get tasksPercentage(): number {
+    if (!this.isTasks) {
+      return 0;
+    }
+    return floor((this.tasks.completed / this.tasks.total) * 100);
   }
 
   @action

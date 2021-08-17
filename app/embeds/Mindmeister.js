@@ -17,7 +17,10 @@ export default class Mindmeister extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
-    const chartId = this.props.attrs.matches[4] + this.props.attrs.matches[6];
+    const chartId =
+      this.props.attrs.matches[4] +
+      (this.props.attrs.matches[5] || "") +
+      (this.props.attrs.matches[6] || "");
 
     return (
       <Frame

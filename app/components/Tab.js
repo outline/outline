@@ -1,14 +1,26 @@
 // @flow
+import { m } from "framer-motion";
 import * as React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Route } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import { type Theme } from "types";
 
 type Props = {
   theme: Theme,
+  children: React.Node,
 };
 
-const TabLink = styled(NavLink)`
+const NavLinkWithChildrenFunc = ({ to, exact = false, children, ...rest }) => (
+  <Route path={to} exact={exact}>
+    {({ match }) => (
+      <NavLink to={to} exact={exact} {...rest}>
+        {children(match)}
+      </NavLink>
+    )}
+  </Route>
+);
+
+const TabLink = styled(NavLinkWithChildrenFunc)`
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -20,19 +32,48 @@ const TabLink = styled(NavLink)`
 
   &:hover {
     color: ${(props) => props.theme.textSecondary};
-    border-bottom: 3px solid ${(props) => props.theme.divider};
-    padding-bottom: 5px;
   }
 `;
 
-function Tab({ theme, ...rest }: Props) {
+const Active = styled(m.div)`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  width: 100%;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  background: ${(props) => props.theme.textSecondary};
+`;
+
+const transition = {
+  type: "spring",
+  stiffness: 500,
+  damping: 30,
+};
+
+function Tab({ theme, children, ...rest }: Props) {
   const activeStyle = {
-    paddingBottom: "5px",
-    borderBottom: `3px solid ${theme.textSecondary}`,
     color: theme.textSecondary,
   };
 
-  return <TabLink {...rest} activeStyle={activeStyle} />;
+  return (
+    <TabLink {...rest} activeStyle={activeStyle}>
+      {(match) => (
+        <>
+          {children}
+          {match && (
+            <Active
+              layoutId="underline"
+              initial={false}
+              transition={transition}
+            />
+          )}
+        </>
+      )}
+    </TabLink>
+  );
 }
 
 export default withTheme(Tab);

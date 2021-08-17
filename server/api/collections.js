@@ -69,7 +69,7 @@ router.post("collections.create", auth(), async (ctx) => {
   if (index) {
     ctx.assertIndexCharacters(
       index,
-      "Index characters must be between x21 to x7E ASCII"
+      "Index characters must be between x20 to x7E ASCII"
     );
   } else {
     index = fractionalIndex(
@@ -115,7 +115,7 @@ router.post("collections.create", auth(), async (ctx) => {
 
 router.post("collections.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
   const collection = await Collection.scope({
@@ -664,7 +664,7 @@ router.post("collections.move", auth(), async (ctx) => {
   ctx.assertPresent(index, "index is required");
   ctx.assertIndexCharacters(
     index,
-    "Index characters must be between x21 to x7E ASCII"
+    "Index characters must be between x20 to x7E ASCII"
   );
   ctx.assertUuid(id, "id must be a uuid");
 

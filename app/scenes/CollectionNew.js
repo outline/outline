@@ -7,7 +7,7 @@ import { withTranslation, type TFunction, Trans } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
-import UiStore from "stores/UiStore";
+import ToastsStore from "stores/ToastsStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
@@ -20,7 +20,7 @@ import Switch from "components/Switch";
 type Props = {
   history: RouterHistory,
   auth: AuthStore,
-  ui: UiStore,
+  toasts: ToastsStore,
   collections: CollectionsStore,
   onSubmit: () => void,
   t: TFunction,
@@ -55,7 +55,7 @@ class CollectionNew extends React.Component<Props> {
       this.props.onSubmit();
       this.props.history.push(collection.url);
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      this.props.toasts.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
     }
@@ -169,5 +169,5 @@ class CollectionNew extends React.Component<Props> {
 }
 
 export default withTranslation()<CollectionNew>(
-  inject("collections", "ui", "auth")(withRouter(CollectionNew))
+  inject("collections", "toasts", "auth")(withRouter(CollectionNew))
 );

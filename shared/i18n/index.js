@@ -8,11 +8,15 @@ import { initReactI18next } from "react-i18next";
 export const languageOptions = [
   { label: "English (US)", value: "en_US" },
   { label: "简体中文 (Chinese, Simplified)", value: "zh_CN" },
+  { label: "繁體中文 (Chinese, Traditional)", value: "zh_TW" },
   { label: "Deutsch (Deutschland)", value: "de_DE" },
   { label: "Español (España)", value: "es_ES" },
+  { label: "فارسی (Persian)", value: "fa_IR" },
   { label: "Français (France)", value: "fr_FR" },
   { label: "Italiano (Italia)", value: "it_IT" },
+  { label: "日本語 (Japanese)", value: "ja_JP" },
   { label: "한국어 (Korean)", value: "ko_KR" },
+  { label: "Português (Brazil)", value: "pt_BR" },
   { label: "Português (Portugal)", value: "pt_PT" },
   { label: "Pусский (Россия)", value: "ru_RU" },
 ];

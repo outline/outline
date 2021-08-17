@@ -15,6 +15,7 @@ import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import StarButton, { AnimatedStar } from "components/Star";
 import Tooltip from "components/Tooltip";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
@@ -41,12 +42,12 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
-function DocumentListItem(props: Props) {
+function DocumentListItem(props: Props, ref) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const currentUser = useCurrentUser();
   const currentTeam = useCurrentTeam();
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const {
     document,
     showNestedDocuments,
@@ -68,6 +69,8 @@ function DocumentListItem(props: Props) {
 
   return (
     <DocumentLink
+      ref={ref}
+      dir={document.dir}
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
@@ -76,8 +79,12 @@ function DocumentListItem(props: Props) {
       }}
     >
       <Content>
-        <Heading>
-          <Title text={document.titleWithDefault} highlight={highlight} />
+        <Heading dir={document.dir}>
+          <Title
+            text={document.titleWithDefault}
+            highlight={highlight}
+            dir={document.dir}
+          />
           {document.isNew && document.createdBy.id !== currentUser.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
@@ -137,8 +144,8 @@ function DocumentListItem(props: Props) {
         <DocumentMenu
           document={document}
           showPin={showPin}
-          onOpen={() => setMenuOpen(true)}
-          onClose={() => setMenuOpen(false)}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
           modal={false}
         />
       </Actions>
@@ -221,6 +228,7 @@ const DocumentLink = styled(Link)`
 
 const Heading = styled.h3`
   display: flex;
+  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
   height: 24px;
   margin-top: 0;
@@ -251,4 +259,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default observer(DocumentListItem);
+export default observer(React.forwardRef(DocumentListItem));

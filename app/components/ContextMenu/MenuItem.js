@@ -15,6 +15,7 @@ type Props = {|
   target?: "_blank",
   as?: string | React.ComponentType<*>,
   hide?: () => void,
+  level?: number,
 |};
 
 const MenuItem = ({
@@ -29,14 +30,25 @@ const MenuItem = ({
   const handleClick = React.useCallback(
     (ev) => {
       if (onClick) {
+        ev.preventDefault();
+        ev.stopPropagation();
         onClick(ev);
       }
+
       if (hide) {
         hide();
       }
     },
-    [hide, onClick]
+    [onClick, hide]
   );
+
+  // Preventing default mousedown otherwise menu items do not work in Firefox,
+  // which triggers the hideOnClickOutside handler first via mousedown – hiding
+  // and un-rendering the menu contents.
+  const handleMouseDown = React.useCallback((ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+  }, []);
 
   return (
     <BaseMenuItem
@@ -48,12 +60,14 @@ const MenuItem = ({
       {(props) => (
         <MenuAnchor
           {...props}
+          $toggleable={selected !== undefined}
           as={onClick ? "button" : as}
           onClick={handleClick}
+          onMouseDown={handleMouseDown}
         >
           {selected !== undefined && (
             <>
-              {selected ? <CheckmarkIcon /> : <Spacer />}
+              {selected ? <CheckmarkIcon color="currentColor" /> : <Spacer />}
               &nbsp;
             </>
           )}
@@ -64,9 +78,10 @@ const MenuItem = ({
   );
 };
 
-const Spacer = styled.div`
+const Spacer = styled.svg`
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
 `;
 
 export const MenuAnchor = styled.a`
@@ -74,6 +89,7 @@ export const MenuAnchor = styled.a`
   margin: 0;
   border: 0;
   padding: 12px;
+  padding-left: ${(props) => 12 + props.level * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;
@@ -99,7 +115,8 @@ export const MenuAnchor = styled.a`
       ? "pointer-events: none;"
       : `
 
-  &:hover,
+  &:hover,  
+  &:focus,
   &.focus-visible {
     color: ${props.theme.white};
     background: ${props.theme.primary};
@@ -110,15 +127,10 @@ export const MenuAnchor = styled.a`
       fill: ${props.theme.white};
     }
   }
-
-  &:focus {
-    color: ${props.theme.white};
-    background: ${props.theme.primary};
-  }
   `};
 
   ${breakpoint("tablet")`
-    padding: 6px 12px;
+    padding: ${(props) => (props.$toggleable ? "4px 12px" : "6px 12px")};
     font-size: 15px;
   `};
 `;

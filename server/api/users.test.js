@@ -35,7 +35,7 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
-  it("should allow including suspended", async () => {
+  it("should allow filtering to suspended users", async () => {
     const user = await buildUser({ name: "Tester" });
     await buildUser({
       name: "Tester",
@@ -46,14 +46,35 @@ describe("#users.list", () => {
     const res = await server.post("/api/users.list", {
       body: {
         query: "test",
-        includeSuspended: true,
+        filter: "suspended",
         token: user.getJwtToken(),
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it("should allow filtering to invited", async () => {
+    const user = await buildUser({ name: "Tester" });
+    await buildUser({
+      name: "Tester",
+      teamId: user.teamId,
+      lastActiveAt: null,
+    });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "test",
+        filter: "invited",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it("should return teams paginated user list", async () => {
@@ -144,6 +165,17 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
+  });
+
+  it("should require invites to be an array", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: { email: "test@example.com", name: "Test", guest: false },
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should require admin", async () => {

@@ -4,15 +4,21 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
+import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
+import useMediaQuery from "hooks/useMediaQuery";
+import useToasts from "hooks/useToasts";
+import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl } from "utils/urls";
 
-const RichMarkdownEditor = React.lazy(() => import("rich-markdown-editor"));
+const RichMarkdownEditor = React.lazy(() =>
+  import(/* webpackChunkName: "rich-markdown-editor" */ "rich-markdown-editor")
+);
 
 const EMPTY_ARRAY = [];
 
@@ -24,11 +30,13 @@ export type Props = {|
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
+  shareId?: ?string,
   autoFocus?: boolean,
   template?: boolean,
   placeholder?: string,
   maxLength?: number,
   scrollTo?: string,
+  theme?: Theme,
   handleDOMEvents?: Object,
   readOnlyWriteCheckboxes?: boolean,
   onBlur?: (event: SyntheticEvent<>) => any,
@@ -51,8 +59,10 @@ type PropsWithRef = Props & {
 };
 
 function Editor(props: PropsWithRef) {
-  const { id, ui, history } = props;
+  const { id, shareId, history } = props;
   const { t } = useTranslation();
+  const { showToast } = useToasts();
+  const isPrinting = useMediaQuery("print");
 
   const onUploadImage = React.useCallback(
     async (file: File) => {
@@ -84,21 +94,23 @@ function Editor(props: PropsWithRef) {
           }
         }
 
+        if (shareId) {
+          navigateTo = `/share/${shareId}${navigateTo}`;
+        }
+
         history.push(navigateTo);
       } else if (href) {
         window.open(href, "_blank");
       }
     },
-    [history]
+    [history, shareId]
   );
 
   const onShowToast = React.useCallback(
     (message: string) => {
-      if (ui) {
-        ui.showToast(message);
-      }
+      showToast(message);
     },
-    [ui]
+    [showToast]
   );
 
   const dictionary = React.useMemo(() => {
@@ -122,6 +134,7 @@ function Editor(props: PropsWithRef) {
       deleteRow: t("Delete row"),
       deleteTable: t("Delete table"),
       deleteImage: t("Delete image"),
+      downloadImage: t("Download image"),
       alignImageLeft: t("Float left"),
       alignImageRight: t("Float right"),
       alignImageDefault: t("Center large"),
@@ -135,6 +148,7 @@ function Editor(props: PropsWithRef) {
       hr: t("Divider"),
       image: t("Image"),
       imageUploadError: t("Sorry, an error occurred uploading the image"),
+      imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),
       link: t("Link"),
@@ -175,6 +189,7 @@ function Editor(props: PropsWithRef) {
         tooltip={EditorTooltip}
         dictionary={dictionary}
         {...props}
+        theme={isPrinting ? light : props.theme}
       />
     </ErrorBoundary>
   );

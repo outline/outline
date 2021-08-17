@@ -4,12 +4,15 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
 import * as React from "react";
+import { type TFunction, Trans, withTranslation } from "react-i18next";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import getTasks from "shared/utils/getTasks";
 import AuthStore from "stores/AuthStore";
+import ToastsStore from "stores/ToastsStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
@@ -18,10 +21,10 @@ import Branding from "components/Branding";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
 import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -29,13 +32,13 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import PublicReferences from "./PublicReferences";
 import References from "./References";
-import { type LocationWithState, type Theme } from "types";
+import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import { meta } from "utils/keyboard";
 import {
-  collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
@@ -44,19 +47,11 @@ import {
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
-const DISCARD_CHANGES = `
-You have unsaved changes.
-Are you sure you want to discard them?
-`;
-const UPLOADING_WARNING = `
-Images are still uploading.
-Are you sure you want to discard them?
-`;
-
 type Props = {
   match: Match,
   history: RouterHistory,
   location: LocationWithState,
+  sharedTree: ?NavigationNode,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -66,6 +61,8 @@ type Props = {
   theme: Theme,
   auth: AuthStore,
   ui: UiStore,
+  toasts: ToastsStore,
+  t: TFunction,
 };
 
 @observer
@@ -80,8 +77,12 @@ class DocumentScene extends React.Component<Props> {
   @observable title: string = this.props.document.title;
   getEditorText: () => string = () => this.props.document.text;
 
+  componentDidMount() {
+    this.updateIsDirty();
+  }
+
   componentDidUpdate(prevProps) {
-    const { auth, document } = this.props;
+    const { auth, document, t } = this.props;
 
     if (prevProps.readOnly && !this.props.readOnly) {
       this.updateIsDirty();
@@ -95,8 +96,10 @@ class DocumentScene extends React.Component<Props> {
       }
     } else if (prevProps.document.revision !== this.lastRevision) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
-        this.props.ui.showToast(
-          `Document updated by ${document.updatedBy.name}`,
+        this.props.toasts.showToast(
+          t(`Document updated by {{userName}}`, {
+            userName: document.updatedBy.name,
+          }),
           {
             timeout: 30 * 1000,
             type: "warning",
@@ -115,6 +118,7 @@ class DocumentScene extends React.Component<Props> {
       document.injectTemplate = false;
       this.title = document.title;
       this.isDirty = true;
+      this.updateIsDirty();
     }
   }
 
@@ -172,7 +176,7 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
-  @keydown(`${meta}+ctrl+h`)
+  @keydown("ctrl+alt+h")
   onToggleTableOfContents(ev) {
     if (!this.props.readOnly) return;
 
@@ -220,6 +224,8 @@ class DocumentScene extends React.Component<Props> {
     this.isSaving = true;
     this.isPublishing = !!options.publish;
 
+    document.tasks = getTasks(document.text);
+
     try {
       const savedDocument = await document.save({
         ...options,
@@ -236,7 +242,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
+      this.props.toasts.showToast(err.message, { type: "error" });
     } finally {
       this.isSaving = false;
       this.isPublishing = false;
@@ -289,15 +295,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goBack = () => {
-    let url;
-    if (this.props.document.url) {
-      url = this.props.document.url;
-    } else if (this.props.match.params.id) {
-      url = collectionUrl(this.props.match.params.id);
-    }
-    if (url) {
-      this.props.history.push(url);
-    }
+    this.props.history.push(this.props.document.url);
   };
 
   render() {
@@ -309,9 +307,11 @@ class DocumentScene extends React.Component<Props> {
       auth,
       ui,
       match,
+      t,
     } = this.props;
     const team = auth.team;
-    const isShare = !!match.params.shareId;
+    const { shareId } = match.params;
+    const isShare = !!shareId;
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
@@ -357,17 +357,21 @@ class DocumentScene extends React.Component<Props> {
               <>
                 <Prompt
                   when={this.isDirty && !this.isUploading}
-                  message={DISCARD_CHANGES}
+                  message={t(
+                    `You have unsaved changes.\nAre you sure you want to discard them?`
+                  )}
                 />
                 <Prompt
                   when={this.isUploading && !this.isDirty}
-                  message={UPLOADING_WARNING}
+                  message={t(
+                    `Images are still uploading.\nAre you sure you want to discard them?`
+                  )}
                 />
               </>
             )}
             <Header
               document={document}
-              isShare={isShare}
+              shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
               isEditing={!readOnly}
@@ -377,8 +381,10 @@ class DocumentScene extends React.Component<Props> {
                 document.isSaving || this.isPublishing || this.isEmpty
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
+              sharedTree={this.props.sharedTree}
               goBack={this.goBack}
               onSave={this.onSave}
+              headings={headings}
             />
             <MaxWidth
               archived={document.isArchived}
@@ -388,39 +394,57 @@ class DocumentScene extends React.Component<Props> {
             >
               {document.isTemplate && !readOnly && (
                 <Notice muted>
-                  You’re editing a template. Highlight some text and use the{" "}
-                  <PlaceholderIcon color="currentColor" /> control to add
-                  placeholders that can be filled out when creating new
-                  documents from this template.
+                  <Trans>
+                    You’re editing a template. Highlight some text and use the{" "}
+                    <PlaceholderIcon color="currentColor" /> control to add
+                    placeholders that can be filled out when creating new
+                    documents from this template.
+                  </Trans>
                 </Notice>
               )}
               {document.archivedAt && !document.deletedAt && (
                 <Notice muted>
-                  Archived by {document.updatedBy.name}{" "}
-                  <Time dateTime={document.archivedAt} /> ago
+                  {t("Archived by {{userName}}", {
+                    userName: document.updatedBy.name,
+                  })}{" "}
+                  <Time dateTime={document.updatedAt} addSuffix />
                 </Notice>
               )}
               {document.deletedAt && (
                 <Notice muted>
-                  Deleted by {document.updatedBy.name}{" "}
-                  <Time dateTime={document.deletedAt} /> ago
+                  <strong>
+                    {t("Deleted by {{userName}}", {
+                      userName: document.updatedBy.name,
+                    })}{" "}
+                    <Time dateTime={document.deletedAt || ""} addSuffix />
+                  </strong>
                   {document.permanentlyDeletedAt && (
                     <>
                       <br />
-                      This {document.noun} will be permanently deleted in{" "}
-                      <Time dateTime={document.permanentlyDeletedAt} /> unless
-                      restored.
+                      {document.template ? (
+                        <Trans>
+                          This template will be permanently deleted in{" "}
+                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
+                          unless restored.
+                        </Trans>
+                      ) : (
+                        <Trans>
+                          This document will be permanently deleted in{" "}
+                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
+                          unless restored.
+                        </Trans>
+                      )}
                     </>
                   )}
                 </Notice>
               )}
-              <React.Suspense fallback={<LoadingPlaceholder />}>
+              <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
                   <Editor
                     id={document.id}
                     innerRef={this.editor}
-                    isShare={isShare}
+                    shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
                     key={[injectTemplate, disableEmbeds].join("-")}
@@ -442,6 +466,15 @@ class DocumentScene extends React.Component<Props> {
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
                     ui={this.props.ui}
                   >
+                    {shareId && (
+                      <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                        <PublicReferences
+                          shareId={shareId}
+                          documentId={document.id}
+                          sharedTree={this.props.sharedTree}
+                        />
+                      </ReferencesWrapper>
+                    )}
                     {!isShare && !revision && (
                       <>
                         <MarkAsViewed document={document} />
@@ -503,5 +536,7 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject("ui", "auth", "policies", "revisions")(DocumentScene)
+  withTranslation()<DocumentScene>(
+    inject("ui", "auth", "toasts")(DocumentScene)
+  )
 );

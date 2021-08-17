@@ -6,6 +6,7 @@ import { Redirect } from "react-router-dom";
 import { isCustomSubdomain } from "shared/utils/domains";
 import LoadingIndicator from "components/LoadingIndicator";
 import useStores from "../hooks/useStores";
+import { changeLanguage } from "../utils/language";
 import env from "env";
 
 type Props = {
@@ -20,11 +21,7 @@ const Authenticated = ({ children }: Props) => {
   // Watching for language changes here as this is the earliest point we have
   // the user available and means we can start loading translations faster
   React.useEffect(() => {
-    if (language && i18n.language !== language) {
-      // Languages are stored in en_US format in the database, however the
-      // frontend translation framework (i18next) expects en-US
-      i18n.changeLanguage(language.replace("_", "-"));
-    }
+    changeLanguage(language, i18n);
   }, [i18n, language]);
 
   if (auth.authenticated) {

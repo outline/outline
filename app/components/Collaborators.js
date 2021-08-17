@@ -1,5 +1,5 @@
 // @flow
-import { filter } from "lodash";
+import { sortBy, filter, uniq } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -35,8 +35,18 @@ function Collaborators(props: Props) {
     .map((p) => p.userId);
 
   // ensure currently present via websocket are always ordered first
-  const presentUsers = filter(users.orderedData, (user) =>
-    presentIds.includes(user.id)
+  const collaborators = React.useMemo(
+    () =>
+      sortBy(
+        filter(
+          users.orderedData,
+          (user) =>
+            presentIds.includes(user.id) ||
+            document.collaboratorIds.includes(user.id)
+        ),
+        (user) => presentIds.includes(user.id)
+      ),
+    [document.collaboratorIds, users.orderedData, presentIds]
   );
 
   // load any users we don't know about
@@ -45,12 +55,12 @@ function Collaborators(props: Props) {
       return;
     }
 
-    presentIds.forEach((userId) => {
+    uniq([...document.collaboratorIds, ...presentIds]).forEach((userId) => {
       if (!users.get(userId)) {
         return users.fetch(userId);
       }
     });
-  }, [document, users, presentIds]);
+  }, [document, users, presentIds, document.collaboratorIds]);
 
   const popover = usePopoverState({
     gutter: 0,
@@ -61,9 +71,9 @@ function Collaborators(props: Props) {
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <NudeButton width={presentUsers.length * 32} height={32} {...props}>
+          <NudeButton width={collaborators.length * 32} height={32} {...props}>
             <FacepileHiddenOnMobile
-              users={presentUsers}
+              users={collaborators}
               renderAvatar={(user) => {
                 const isPresent = presentIds.includes(user.id);
                 const isEditing = editingIds.includes(user.id);

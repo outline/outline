@@ -16,6 +16,10 @@ const Select = styled.select`
   color: ${(props) => props.theme.text};
   height: 30px;
 
+  option {
+    background: ${(props) => props.theme.buttonNeutralBackground};
+  }
+
   &:disabled,
   &::placeholder {
     color: ${(props) => props.theme.placeholder};

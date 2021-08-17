@@ -135,6 +135,15 @@
       "description": "wikireply@example.com (optional)",
       "required": false
     },
+    "SMTP_SECURE": {
+      "value": "true",
+      "description": "Use a secure SMTP connection (optional)",
+      "required": false
+    },
+    "SMTP_TLS_CIPHERS": {
+      "description": "Override SMTP cipher configuration (optional)",
+      "required": false
+    },
     "GOOGLE_ANALYTICS_ID": {
       "description": "UA-xxxx (optional)",
       "required": false

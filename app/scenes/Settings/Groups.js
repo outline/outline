@@ -4,6 +4,7 @@ import { PlusIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import GroupNew from "scenes/GroupNew";
+import { Action } from "components/Actions";
 import Button from "components/Button";
 import Empty from "components/Empty";
 import GroupListItem from "components/GroupListItem";
@@ -13,6 +14,7 @@ import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import GroupMenu from "menus/GroupMenu";
@@ -22,36 +24,38 @@ function Groups() {
   const { policies, groups } = useStores();
   const team = useCurrentTeam();
   const can = policies.abilities(team.id);
-  const [newGroupModalOpen, setNewGroupModalOpen] = React.useState(false);
-
-  const handleNewGroupModalOpen = React.useCallback(() => {
-    setNewGroupModalOpen(true);
-  }, []);
-
-  const handleNewGroupModalClose = React.useCallback(() => {
-    setNewGroupModalOpen(false);
-  }, []);
+  const [
+    newGroupModalOpen,
+    handleNewGroupModalOpen,
+    handleNewGroupModalClose,
+  ] = useBoolean();
 
   return (
-    <Scene title={t("Groups")} icon={<GroupIcon color="currentColor" />}>
+    <Scene
+      title={t("Groups")}
+      icon={<GroupIcon color="currentColor" />}
+      actions={
+        <>
+          {can.createGroup && (
+            <Action>
+              <Button
+                type="button"
+                onClick={handleNewGroupModalOpen}
+                icon={<PlusIcon />}
+              >
+                {`${t("New group")}…`}
+              </Button>
+            </Action>
+          )}
+        </>
+      }
+    >
       <Heading>{t("Groups")}</Heading>
       <HelpText>
         <Trans>
           Groups can be used to organize and manage the people on your team.
         </Trans>
       </HelpText>
-
-      {can.createGroup && (
-        <Button
-          type="button"
-          onClick={handleNewGroupModalOpen}
-          icon={<PlusIcon />}
-          neutral
-        >
-          {`${t("New group")}…`}
-        </Button>
-      )}
-
       <Subheading>{t("All groups")}</Subheading>
       <PaginatedList
         items={groups.orderedData}

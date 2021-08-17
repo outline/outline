@@ -1,10 +1,10 @@
 // @flow
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
 import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Document from "models/Document";
 import Share from "models/Share";
@@ -13,23 +13,27 @@ import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
+import Notice from "components/Notice";
 import Switch from "components/Switch";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   document: Document,
   share: Share,
+  sharedParent: ?Share,
   onSubmit: () => void,
 |};
 
-function DocumentShare({ document, share, onSubmit }: Props) {
+function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { policies, shares, ui } = useStores();
+  const { policies, shares } = useStores();
+  const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
   const timeout = React.useRef<?TimeoutID>();
   const can = policies.abilities(share ? share.id : "");
   const canPublish = can.update && !document.isTemplate;
+  const isPubliclyShared = (share && share.published) || sharedParent;
 
   React.useEffect(() => {
     document.share();
@@ -41,17 +45,29 @@ function DocumentShare({ document, share, onSubmit }: Props) {
       const share = shares.getByDocumentId(document.id);
       invariant(share, "Share must exist");
 
-      setIsSaving(true);
-
       try {
         await share.save({ published: event.currentTarget.checked });
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
-      } finally {
-        setIsSaving(false);
+        showToast(err.message, { type: "error" });
       }
     },
-    [document.id, shares, ui]
+    [document.id, shares, showToast]
+  );
+
+  const handleChildDocumentsChange = React.useCallback(
+    async (event) => {
+      const share = shares.getByDocumentId(document.id);
+      invariant(share, "Share must exist");
+
+      try {
+        await share.save({
+          includeChildDocuments: event.currentTarget.checked,
+        });
+      } catch (err) {
+        showToast(err.message, { type: "error" });
+      }
+    },
+    [document.id, shares, showToast]
   );
 
   const handleCopied = React.useCallback(() => {
@@ -61,14 +77,14 @@ function DocumentShare({ document, share, onSubmit }: Props) {
       setIsCopied(false);
       onSubmit();
 
-      ui.showToast(t("Share link copied"), { type: "info" });
+      showToast(t("Share link copied"), { type: "info" });
     }, 250);
-  }, [t, onSubmit, ui]);
+  }, [t, onSubmit, showToast]);
 
   return (
     <>
       <Heading>
-        {share && share.published ? (
+        {isPubliclyShared ? (
           <GlobeIcon size={28} color="currentColor" />
         ) : (
           <PadlockIcon size={28} color="currentColor" />
@@ -76,33 +92,64 @@ function DocumentShare({ document, share, onSubmit }: Props) {
         {t("Share this document")}
       </Heading>
 
+      {sharedParent && (
+        <Notice>
+          <Trans
+            defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
+            values={{ documentTitle: sharedParent.documentTitle }}
+            components={{ em: <strong /> }}
+          />
+        </Notice>
+      )}
+
       {canPublish && (
-        <PrivacySwitch>
+        <SwitchWrapper>
           <Switch
             id="published"
             label={t("Publish to internet")}
             onChange={handlePublishedChange}
             checked={share ? share.published : false}
-            disabled={!share || isSaving}
+            disabled={!share}
           />
-          <Privacy>
-            <PrivacyText>
+          <SwitchLabel>
+            <SwitchText>
               {share.published
                 ? t("Anyone with the link can view this document")
-                : t("Only team members with access can view")}
+                : t("Only team members with permission can view")}
               {share.lastAccessedAt && (
                 <>
                   .{" "}
                   {t("The shared link was last accessed {{ timeAgo }}.", {
-                    timeAgo: distanceInWordsToNow(share.lastAccessedAt, {
-                      addSuffix: true,
-                    }),
+                    timeAgo: formatDistanceToNow(
+                      Date.parse(share.lastAccessedAt),
+                      {
+                        addSuffix: true,
+                      }
+                    ),
                   })}
                 </>
               )}
-            </PrivacyText>
-          </Privacy>
-        </PrivacySwitch>
+            </SwitchText>
+          </SwitchLabel>
+        </SwitchWrapper>
+      )}
+      {share && share.published && (
+        <SwitchWrapper>
+          <Switch
+            id="includeChildDocuments"
+            label={t("Share nested documents")}
+            onChange={handleChildDocumentsChange}
+            checked={share ? share.includeChildDocuments : false}
+            disabled={!share}
+          />
+          <SwitchLabel>
+            <SwitchText>
+              {share.includeChildDocuments
+                ? t("Nested documents are publicly available")
+                : t("Nested documents are not shared")}
+            </SwitchText>
+          </SwitchLabel>
+        </SwitchWrapper>
       )}
       <Flex>
         <InputLink
@@ -130,7 +177,7 @@ const Heading = styled.h2`
   margin-left: -4px;
 `;
 
-const PrivacySwitch = styled.div`
+const SwitchWrapper = styled.div`
   margin: 20px 0;
 `;
 
@@ -139,7 +186,7 @@ const InputLink = styled(Input)`
   margin-right: 8px;
 `;
 
-const Privacy = styled(Flex)`
+const SwitchLabel = styled(Flex)`
   flex-align: center;
 
   svg {
@@ -147,9 +194,9 @@ const Privacy = styled(Flex)`
   }
 `;
 
-const PrivacyText = styled(HelpText)`
+const SwitchText = styled(HelpText)`
   margin: 0;
   font-size: 15px;
 `;
 
-export default observer(DocumentShare);
+export default observer(SharePopover);

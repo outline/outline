@@ -1,12 +1,15 @@
 // @flow
 import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { inject, observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
+import { type TFunction, withTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "shared/constants";
+import { light } from "shared/theme";
 import parseTitle from "shared/utils/parseTitle";
+import PoliciesStore from "stores/PoliciesStore";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
@@ -23,15 +26,18 @@ type Props = {|
   title: string,
   document: Document,
   isDraft: boolean,
-  isShare: boolean,
+  shareId: ?string,
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
   children: React.Node,
+  policies: PoliciesStore,
+  t: TFunction,
 |};
 
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
+  ref = React.createRef<HTMLDivElement | HTMLInputElement>();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
@@ -96,13 +102,16 @@ class DocumentEditor extends React.Component<Props> {
       title,
       onChangeTitle,
       isDraft,
-      isShare,
+      shareId,
       readOnly,
       innerRef,
       children,
+      policies,
+      t,
       ...rest
     } = this.props;
 
+    const can = policies.abilities(document.id);
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
     const normalizedTitle =
@@ -113,41 +122,59 @@ class DocumentEditor extends React.Component<Props> {
         {readOnly ? (
           <Title
             as="div"
+            ref={this.ref}
             $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
             $isStarred={document.isStarred}
+            dir="auto"
           >
             <span>{normalizedTitle}</span>{" "}
-            {!isShare && <StarButton document={document} size={32} />}
+            {(can.star || can.unstar) && (
+              <StarButton document={document} size={32} />
+            )}
           </Title>
         ) : (
           <Title
             type="text"
+            ref={this.ref}
             onChange={onChangeTitle}
             onKeyDown={this.handleTitleKeyDown}
-            placeholder={document.placeholder}
+            placeholder={
+              document.isTemplate
+                ? t("Start your template…")
+                : t("Start with a title…")
+            }
             value={normalizedTitle}
             $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
             autoFocus={!title}
             maxLength={MAX_TITLE_LENGTH}
+            dir="auto"
           />
         )}
-        <DocumentMetaWithViews
-          isDraft={isDraft}
-          document={document}
-          to={documentHistoryUrl(document)}
-        />
+        {!shareId && (
+          <DocumentMetaWithViews
+            isDraft={isDraft}
+            document={document}
+            to={documentHistoryUrl(document)}
+            rtl={
+              this.ref.current
+                ? window.getComputedStyle(this.ref.current).direction === "rtl"
+                : false
+            }
+          />
+        )}
         <Editor
           ref={innerRef}
           autoFocus={!!title && !this.props.defaultValue}
-          placeholder="…the rest is up to you"
+          placeholder={t("…the rest is up to you")}
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
           readOnly={readOnly}
+          shareId={shareId}
           grow
           {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !isShare && readOnly && (
+        {this.activeLinkEvent && !shareId && readOnly && (
           <HoverPreview
             node={this.activeLinkEvent.target}
             event={this.activeLinkEvent}
@@ -202,6 +229,14 @@ const Title = styled(Textarea)`
       }
     }
   }
+
+  @media print {
+    color: ${(props) => light.text};
+    -webkit-text-fill-color: ${(props) => light.text};
+    background: none;
+  }
 `;
 
-export default DocumentEditor;
+export default withTranslation()<DocumentEditor>(
+  inject("policies")(DocumentEditor)
+);

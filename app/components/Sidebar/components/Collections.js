@@ -9,18 +9,22 @@ import Fade from "components/Fade";
 import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
-import CollectionsLoading from "./CollectionsLoading";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
+import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 import useCurrentTeam from "hooks/useCurrentTeam";
+import useToasts from "hooks/useToasts";
+
 type Props = {
   onCreateCollection: () => void,
 };
 
 function Collections({ onCreateCollection }: Props) {
   const [isFetching, setFetching] = React.useState(false);
+  const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
+  const { showToast } = useToasts();
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const team = useCurrentTeam();
@@ -32,17 +36,25 @@ function Collections({ onCreateCollection }: Props) {
 
   React.useEffect(() => {
     async function load() {
-      if (!collections.isLoaded && !isFetching) {
+      if (!collections.isLoaded && !isFetching && !fetchError) {
         try {
           setFetching(true);
           await collections.fetchPage({ limit: 100 });
+        } catch (error) {
+          showToast(
+            t("Collections could not be loaded, please reload the app"),
+            {
+              type: "error",
+            }
+          );
+          setFetchError(error);
         } finally {
           setFetching(false);
         }
       }
     }
     load();
-  }, [collections, isFetching]);
+  }, [collections, isFetching, showToast, fetchError, t]);
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
@@ -92,11 +104,11 @@ function Collections({ onCreateCollection }: Props) {
     </>
   );
 
-  if (!collections.isLoaded) {
+  if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
         <Header>{t("Collections")}</Header>
-        <CollectionsLoading />
+        <PlaceholderCollections />
       </Flex>
     );
   }

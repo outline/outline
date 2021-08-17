@@ -13,23 +13,27 @@ import styled from "styled-components";
 import Document from "models/Document";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
-import Breadcrumb, { Slash } from "components/Breadcrumb";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
+import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
+import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
+import TableOfContentsMenu from "menus/TableOfContentsMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
+import { type NavigationNode } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
-  isShare: boolean,
+  sharedTree: ?NavigationNode,
+  shareId: ?string,
   isDraft: boolean,
   isEditing: boolean,
   isRevision: boolean,
@@ -43,11 +47,12 @@ type Props = {|
     publish?: boolean,
     autosave?: boolean,
   }) => void,
+  headings: { title: string, level: number, id: string }[],
 |};
 
 function DocumentHeader({
   document,
-  isShare,
+  shareId,
   isEditing,
   isDraft,
   isPublishing,
@@ -55,7 +60,9 @@ function DocumentHeader({
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
+  sharedTree,
   onSave,
+  headings,
 }: Props) {
   const { t } = useTranslation();
   const { auth, ui, policies } = useStores();
@@ -69,7 +76,7 @@ function DocumentHeader({
     onSave({ done: true, publish: true });
   }, [onSave]);
 
-  const isNew = document.isNew;
+  const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
   const canShareDocument = auth.team && auth.team.sharing && can.share;
@@ -79,7 +86,7 @@ function DocumentHeader({
   const toc = (
     <Tooltip
       tooltip={ui.tocVisible ? t("Hide contents") : t("Show contents")}
-      shortcut={`ctrl+${metaDisplay}+h`}
+      shortcut="ctrl+alt+h"
       delay={250}
       placement="bottom"
     >
@@ -115,11 +122,19 @@ function DocumentHeader({
     </Action>
   );
 
-  if (isShare) {
+  if (shareId) {
     return (
       <Header
         title={document.title}
-        breadcrumb={toc}
+        breadcrumb={
+          <PublicBreadcrumb
+            documentId={document.id}
+            shareId={shareId}
+            sharedTree={sharedTree}
+          >
+            {toc}
+          </PublicBreadcrumb>
+        }
         actions={canEdit ? editAction : <div />}
       />
     );
@@ -129,14 +144,9 @@ function DocumentHeader({
     <>
       <Header
         breadcrumb={
-          <Breadcrumb document={document}>
-            {!isEditing && (
-              <>
-                <Slash />
-                {toc}
-              </>
-            )}
-          </Breadcrumb>
+          <DocumentBreadcrumb document={document}>
+            {!isEditing && toc}
+          </DocumentBreadcrumb>
         }
         title={
           <>
@@ -146,6 +156,11 @@ function DocumentHeader({
         }
         actions={
           <>
+            {isMobile && (
+              <TocWrapper>
+                <TableOfContentsMenu headings={headings} />
+              </TocWrapper>
+            )}
             {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
             <Collaborators
               document={document}
@@ -265,6 +280,11 @@ const Status = styled(Action)`
   padding-left: 0;
   padding-right: 4px;
   color: ${(props) => props.theme.slate};
+`;
+
+const TocWrapper = styled(Action)`
+  position: absolute;
+  left: 42px;
 `;
 
 export default observer(DocumentHeader);

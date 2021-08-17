@@ -96,10 +96,10 @@ function SettingsSidebar() {
               />
             )}
             <SidebarLink
-              to="/settings/people"
+              to="/settings/members"
               icon={<UserIcon color="currentColor" />}
               exact={false}
-              label={t("People")}
+              label={t("Members")}
             />
             <SidebarLink
               to="/settings/groups"

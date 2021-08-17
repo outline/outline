@@ -173,8 +173,15 @@ export class Mailer {
       let smtpConfig = {
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
-        secure: process.env.NODE_ENV === "production",
+        secure:
+          "SMTP_SECURE" in process.env
+            ? process.env.SMTP_SECURE === "true"
+            : process.env.NODE_ENV === "production",
         auth: undefined,
+        tls:
+          "SMTP_TLS_CIPHERS" in process.env
+            ? { ciphers: process.env.SMTP_TLS_CIPHERS }
+            : undefined,
       };
 
       if (process.env.SMTP_USERNAME) {
@@ -190,19 +197,24 @@ export class Mailer {
 
     if (useTestEmailService) {
       log("SMTP_USERNAME not provided, generating test account…");
-      let testAccount = await nodemailer.createTestAccount();
 
-      const smtpConfig = {
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      };
+      try {
+        let testAccount = await nodemailer.createTestAccount();
 
-      this.transporter = nodemailer.createTransport(smtpConfig);
+        const smtpConfig = {
+          host: "smtp.ethereal.email",
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+          },
+        };
+
+        this.transporter = nodemailer.createTransport(smtpConfig);
+      } catch (err) {
+        log(`Could not generate test account: ${err.message}`);
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
+import fetch from "fetch-with-proxy";
 import jwt from "jsonwebtoken";
 import Router from "koa-router";
 import accountProvisioner from "../../commands/accountProvisioner";

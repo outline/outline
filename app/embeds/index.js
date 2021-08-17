@@ -7,9 +7,11 @@ import Airtable from "./Airtable";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
+import Descript from "./Descript";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
@@ -86,6 +88,13 @@ export default [
     matcher: matcher(Codepen),
   },
   {
+    title: "Descript",
+    keywords: "audio",
+    icon: () => <Img src="/images/descript.png" />,
+    component: Descript,
+    matcher: matcher(Descript),
+  },
+  {
     title: "Figma",
     keywords: "design svg vector",
     icon: () => <Img src="/images/figma.png" />,
@@ -139,6 +148,13 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Data Studio",
+    keywords: "business intelligence",
+    icon: () => <Img src="/images/google-datastudio.png" />,
+    component: GoogleDataStudio,
+    matcher: matcher(GoogleDataStudio),
   },
   {
     title: "InVision",
