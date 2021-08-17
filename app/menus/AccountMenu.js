@@ -1,5 +1,4 @@
 // @flow
-import { values } from "lodash";
 import { observer } from "mobx-react";
 import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
@@ -19,6 +18,7 @@ import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
 import useBoolean from "hooks/useBoolean";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
 
@@ -26,11 +26,16 @@ type Session = {|
   url: string,
   logoUrl: string,
   name: string,
+  teamId: string,
 |};
 
 function getSessions(): Session[] {
   const sessions = JSON.parse(getCookie("sessions") || "{}");
-  return values(sessions);
+
+  return Object.keys(sessions).map((teamId) => ({
+    teamId,
+    ...sessions[teamId],
+  }));
 }
 
 type Props = {|
@@ -45,6 +50,7 @@ function AccountMenu(props: Props) {
     modal: true,
   });
   const { auth, ui } = useStores();
+  const team = useCurrentTeam();
   const previousTheme = usePrevious(ui.theme);
   const { t } = useTranslation();
   const [
@@ -59,8 +65,12 @@ function AccountMenu(props: Props) {
     }
   }, [menu, ui.theme, previousTheme]);
 
-  const items = React.useMemo(
-    () => [
+  const items = React.useMemo(() => {
+    const otherSessions = sessions.filter(
+      (session) => session.teamId !== team.id && session.url !== team.url
+    );
+
+    return [
       {
         title: t("Settings"),
         to: settings(),
@@ -112,11 +122,11 @@ function AccountMenu(props: Props) {
       {
         type: "separator",
       },
-      ...(sessions.length
+      ...(otherSessions.length
         ? [
             {
               title: t("Switch team"),
-              items: sessions.map((session) => ({
+              items: otherSessions.map((session) => ({
                 title: session.name,
                 icon: <Logo alt={session.name} src={session.logoUrl} />,
                 href: session.url,
@@ -128,9 +138,16 @@ function AccountMenu(props: Props) {
         title: t("Log out"),
         onClick: auth.logout,
       },
-    ],
-    [auth.logout, sessions, handleKeyboardShortcutsOpen, t, ui]
-  );
+    ];
+  }, [
+    auth.logout,
+    team.id,
+    team.url,
+    sessions,
+    handleKeyboardShortcutsOpen,
+    t,
+    ui,
+  ]);
 
   return (
     <>
