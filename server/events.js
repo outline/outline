@@ -126,7 +126,6 @@ export type FileOperationEvent = {
   actorId: string,
   data: {
     type: string,
-    url: string,
     state: string,
     id: string,
     key: string,

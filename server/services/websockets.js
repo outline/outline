@@ -332,14 +332,7 @@ export default class Websockets {
         return socketio
           .to(`user-${event.actorId}`)
           .emit("fileOperations.update", {
-            id: event.data.id,
-            type: event.data.type,
-            url: event.data.url,
-            state: event.data.state,
-            size: event.data.size,
-            key: event.data.key,
-            collectionId: event.data.collectionId,
-            createdAt: event.data.createdAt,
+            ...event.data,
           });
       }
 

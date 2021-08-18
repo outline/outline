@@ -30,7 +30,6 @@ async function fileOperationsUpdate(teamId, userId, exportData) {
       id: exportData.id,
       state: exportData.state,
       key: exportData.key,
-      url: exportData.url,
       size: exportData.size,
       collectionId: exportData.collectionId,
       createdAt: exportData.createdAt,

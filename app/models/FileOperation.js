@@ -9,7 +9,6 @@ class FileOperation extends BaseModal {
   state: string;
   collection: ?Collection;
   key: ?string;
-  url: ?string;
   size: number;
   type: string;
   user: User;
