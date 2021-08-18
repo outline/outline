@@ -236,9 +236,17 @@ function ImportExport() {
               </>
             }
             actions={
-              <a href={`/api/fileOperations.redirect?id=${item.id}`} neutral>
+              <Button
+                onClick={() =>
+                  window.open(
+                    `/api/fileOperations.redirect?id=${item.id}`,
+                    "_blank"
+                  )
+                }
+                neutral
+              >
                 {t("Download")}
-              </a>
+              </Button>
             }
           />
         )}
