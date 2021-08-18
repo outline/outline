@@ -297,7 +297,7 @@ class SocketProvider extends React.Component<Props> {
       if (event.collectionId)
         collection = await collections.fetch(event.collectionId);
       if (user) {
-        fileOperations.data.set(event.id, {
+        fileOperations.add({
           ...event,
           user,
           collection,
