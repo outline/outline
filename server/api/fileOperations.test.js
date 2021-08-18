@@ -40,7 +40,7 @@ describe("#fileOperations.list", () => {
     expect(body.data.length).toBe(1);
     expect(data.id).toBe(exportData.id);
     expect(data.key).toBe(exportData.key);
-    expect(data.url).toBe(exportData.url);
+    expect(data.state).toBe(exportData.state);
   });
 
   it("should return exports with collection data", async () => {
@@ -72,7 +72,7 @@ describe("#fileOperations.list", () => {
     expect(body.data.length).toBe(1);
     expect(data.id).toBe(exportData.id);
     expect(data.key).toBe(exportData.key);
-    expect(data.url).toBe(exportData.url);
+    expect(data.state).toBe(exportData.state);
     expect(data.collection.id).toBe(collection.id);
   });
 
@@ -111,7 +111,7 @@ describe("#fileOperations.list", () => {
     expect(body.data.length).toBe(1);
     expect(data.id).toBe(exportData.id);
     expect(data.key).toBe(exportData.key);
-    expect(data.url).toBe(exportData.url);
+    expect(data.state).toBe(exportData.state);
     expect(data.collection.id).toBe(collection.id);
   });
 
@@ -151,7 +151,7 @@ describe("#fileOperations.list", () => {
     expect(body.data.length).toBe(1);
     expect(data.id).toBe(exportData.id);
     expect(data.key).toBe(exportData.key);
-    expect(data.url).toBe(exportData.url);
+    expect(data.state).toBe(exportData.state);
     expect(data.user.id).toBe(admin.id);
   });
 
