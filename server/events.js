@@ -117,6 +117,7 @@ export type CollectionExportAll = {
   actorId: string,
   data: {
     exportId: string,
+    collections: [{ name: string, id: string }],
   },
 };
 

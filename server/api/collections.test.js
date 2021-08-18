@@ -1025,7 +1025,6 @@ describe("#collections.create", () => {
     expect(body.data.sort.direction).toBe("asc");
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
-    expect(body.policies[0].abilities.export).toBeFalsy();
   });
 
   it("should error when index is invalid", async () => {
@@ -1059,7 +1058,6 @@ describe("#collections.create", () => {
     expect(body.data.permission).toEqual(null);
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
-    expect(body.policies[0].abilities.export).toBeFalsy();
   });
 
   it("if index collision, should updated index of other collection", async () => {
