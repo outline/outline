@@ -1,6 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-import { TemplateIcon } from "outline-icons";
+import { ShapesIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { type Match } from "react-router-dom";
@@ -29,7 +29,7 @@ function Templates(props: Props) {
 
   return (
     <Scene
-      icon={<TemplateIcon color="currentColor" />}
+      icon={<ShapesIcon color="currentColor" />}
       title={t("Templates")}
       actions={
         <Action>

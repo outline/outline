@@ -37,9 +37,9 @@ function TemplatesMenu({ document }: Props) {
     <MenuItem
       key={template.id}
       onClick={() => document.updateFromTemplate(template)}
+      icon={<DocumentIcon />}
       {...menu}
     >
-      <DocumentIcon />
       <TemplateItem>
         <strong>{template.titleWithDefault}</strong>
         <br />

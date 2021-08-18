@@ -66,6 +66,7 @@ export type MenuItem =
       visible?: boolean,
       selected?: boolean,
       disabled?: boolean,
+      icon?: React.Node,
     |}
   | {|
       title: React.Node,
@@ -73,6 +74,7 @@ export type MenuItem =
       visible?: boolean,
       selected?: boolean,
       disabled?: boolean,
+      icon?: React.Node,
     |}
   | {|
       title: React.Node,
@@ -81,6 +83,7 @@ export type MenuItem =
       selected?: boolean,
       disabled?: boolean,
       level?: number,
+      icon?: React.Node,
     |}
   | {|
       title: React.Node,
@@ -89,6 +92,7 @@ export type MenuItem =
       style?: Object,
       hover?: boolean,
       items: MenuItem[],
+      icon?: React.Node,
     |}
   | {|
       type: "separator",

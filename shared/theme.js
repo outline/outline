@@ -10,7 +10,7 @@ const colors = {
 
   slate: "#9BA6B2",
   slateLight: "#DAE1E9",
-  slateDark: "#4E5C6E",
+  slateDark: "#394351",
 
   smoke: "#F4F7FA",
   smokeLight: "#F9FBFC",
