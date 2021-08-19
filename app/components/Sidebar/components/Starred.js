@@ -1,10 +1,11 @@
 // @flow
 import { observer } from "mobx-react";
+import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Flex from "components/Flex";
-import DisclosureWrapper from "./DisclosureWrapper";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
@@ -17,7 +18,7 @@ const STARRED_PAGINATION_LIMIT = 10;
 function Starred() {
   const [isFetching, setIsFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(true);
   const [show, setShow] = React.useState("Nothing");
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
@@ -100,10 +101,11 @@ function Starred() {
   return (
     <Flex column>
       <>
-        <DisclosureWrapper handleExpanded={(expanded) => setExpanded(expanded)}>
-          <Header>{t("Starred")}</Header>
-        </DisclosureWrapper>
-
+        <SidebarLink
+          onClick={() => setExpanded((prev) => !prev)}
+          label={t("Starred")}
+          icon={<Disclosure expanded={expanded} />}
+        />
         {expanded && (
           <>
             {content}
@@ -111,12 +113,14 @@ function Starred() {
               <SidebarLink
                 onClick={handleShowMore}
                 label={`${t("Show more")}…`}
+                depth={2}
               />
             )}
             {show === "Less" && !isFetching && (
               <SidebarLink
                 onClick={handleShowLess}
                 label={`${t("Show less")}…`}
+                depth={2}
               />
             )}
             {(isFetching || fetchError) && (
@@ -130,5 +134,10 @@ function Starred() {
     </Flex>
   );
 }
+
+const Disclosure = styled(CollapsedIcon)`
+  transition: transform 100ms ease, fill 50ms !important;
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+`;
 
 export default observer(Starred);
