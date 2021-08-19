@@ -1153,19 +1153,19 @@
   dependencies:
     "@hocuspocus/server" "^1.0.0-alpha.61"
 
-"@hocuspocus/provider@^1.0.0-alpha.8":
-  version "1.0.0-alpha.8"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.8.tgz#6e6ccb7e29622df84680de542815695e651ffad9"
-  integrity sha512-7BuHVISzv5RRrX4yU5JJ63/6epP6kkoJc97Th17Jm1rPybFA3/0LpmrLw8eEU35pRWtR0BWIzR9G7hPwjaOo1g==
+"@hocuspocus/provider@^1.0.0-alpha.10":
+  version "1.0.0-alpha.10"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.10.tgz#0e08a68b4a40b043eb9edfb308ab7004b6de0b29"
+  integrity sha512-qlZMnLE3TZwB3bnqBb8qvkKn/Djj2TWQKbNcAjXNqK558FIXuSljik7cne6MF9LxcwYWqIjbAg1VPIUW8vYW3w==
   dependencies:
     lib0 "^0.2.42"
     y-protocols "^1.0.5"
     yjs "^13.5.8"
 
-"@hocuspocus/server@^1.0.0-alpha.61":
-  version "1.0.0-alpha.61"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.61.tgz#b29c73f9d3b9329adf3390e287bba924cdec7374"
-  integrity sha512-Wqidv8Gh5ZLHnuFH4rxWJ/ZvUifflIVvZ2nXvK9BRA1Ol3W7CdPkTgN0MxfWpMLq1ClVCoqYR5uS8gUb+kuPOg==
+"@hocuspocus/server@^1.0.0-alpha.61", "@hocuspocus/server@^1.0.0-alpha.63":
+  version "1.0.0-alpha.63"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.63.tgz#8af661a0d86fbb9845848760174c7603bf0510e2"
+  integrity sha512-3gZU7QHjFjdMCEKj7sZv9ArOnm/pgbXwl4eQIrMkm9d1BF9C8mrXQapA9Llg+ILsJjAAdtSYe72pymZ9dhCBwA==
   dependencies:
     "@types/async-lock" "^1.1.2"
     "@types/uuid" "^8.3.0"

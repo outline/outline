@@ -41,9 +41,7 @@ function MultiplayerEditor(props: Props, ref: any) {
       debug,
       name,
       document: ydoc,
-      parameters: {
-        token,
-      },
+      token,
     });
 
     provider.on("awarenessChange", ({ states }) => {

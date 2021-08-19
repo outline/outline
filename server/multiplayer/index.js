@@ -20,12 +20,9 @@ const PERSIST_WAIT = 3000;
 const server = Server.configure({
   port: process.env.MULTIPLAYER_PORT || process.env.PORT || 80,
 
-  async onConnect({ connection, requestParameters, documentName }) {
+  async onAuthenticate({ connection, token, documentName }) {
     // allows for different entity types to use this multiplayer provider later
     const [, documentId] = documentName.split(".");
-
-    // TODO: https://github.com/ueberdosis/hocuspocus/issues/145
-    const token = requestParameters.get("token");
 
     if (!token) {
       throw new AuthenticationError("Authentication required");
