@@ -4,6 +4,7 @@ import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
+import styled from "styled-components";
 import {
   changelog,
   developers,
@@ -16,7 +17,9 @@ import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
 import useBoolean from "hooks/useBoolean";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
+import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
 
 type Props = {|
@@ -24,12 +27,14 @@ type Props = {|
 |};
 
 function AccountMenu(props: Props) {
+  const [sessions] = useSessions();
   const menu = useMenuState({
     unstable_offset: [8, 0],
     placement: "bottom-start",
     modal: true,
   });
   const { auth, ui } = useStores();
+  const team = useCurrentTeam();
   const previousTheme = usePrevious(ui.theme);
   const { t } = useTranslation();
   const [
@@ -44,8 +49,12 @@ function AccountMenu(props: Props) {
     }
   }, [menu, ui.theme, previousTheme]);
 
-  const items = React.useMemo(
-    () => [
+  const items = React.useMemo(() => {
+    const otherSessions = sessions.filter(
+      (session) => session.teamId !== team.id && session.url !== team.url
+    );
+
+    return [
       {
         title: t("Settings"),
         to: settings(),
@@ -97,13 +106,32 @@ function AccountMenu(props: Props) {
       {
         type: "separator",
       },
+      ...(otherSessions.length
+        ? [
+            {
+              title: t("Switch team"),
+              items: otherSessions.map((session) => ({
+                title: session.name,
+                icon: <Logo alt={session.name} src={session.logoUrl} />,
+                href: session.url,
+              })),
+            },
+          ]
+        : []),
       {
         title: t("Log out"),
         onClick: auth.logout,
       },
-    ],
-    [auth.logout, handleKeyboardShortcutsOpen, t, ui]
-  );
+    ];
+  }, [
+    auth.logout,
+    team.id,
+    team.url,
+    sessions,
+    handleKeyboardShortcutsOpen,
+    t,
+    ui,
+  ]);
 
   return (
     <>
@@ -121,5 +149,11 @@ function AccountMenu(props: Props) {
     </>
   );
 }
+
+const Logo = styled("img")`
+  border-radius: 2px;
+  width: 24px;
+  height: 24px;
+`;
 
 export default observer(AccountMenu);
