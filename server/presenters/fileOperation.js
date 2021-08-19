@@ -8,7 +8,6 @@ export default function present(data: FileOperation) {
     type: data.type,
     state: data.state,
     collection: data.collection ? presentCollection(data.collection) : null,
-    key: data.key,
     size: data.size,
     user: presentUser(data.user),
     createdAt: data.createdAt,

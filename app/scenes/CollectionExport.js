@@ -6,7 +6,7 @@ import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-
+import useToasts from "hooks/useToasts";
 type Props = {
   collection: Collection,
   onSubmit: () => void,
@@ -15,6 +15,7 @@ type Props = {
 function CollectionExport({ collection, onSubmit }: Props) {
   const [isLoading, setIsLoading] = React.useState();
   const { t } = useTranslation();
+  const { showToast } = useToasts();
 
   const handleSubmit = React.useCallback(
     async (ev: SyntheticEvent<>) => {
@@ -23,9 +24,12 @@ function CollectionExport({ collection, onSubmit }: Props) {
       setIsLoading(true);
       await collection.export();
       setIsLoading(false);
+      showToast(
+        t("Export started, you will receive an email when it’s complete.")
+      );
       onSubmit();
     },
-    [collection, onSubmit]
+    [collection, onSubmit, showToast, t]
   );
 
   return (

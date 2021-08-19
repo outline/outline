@@ -8,7 +8,6 @@ class FileOperation extends BaseModal {
   id: string;
   state: string;
   collection: ?Collection;
-  key: ?string;
   size: number;
   type: string;
   user: User;
@@ -16,7 +15,10 @@ class FileOperation extends BaseModal {
 
   @computed
   get sizeInMB(): string {
-    return (this.size / (1024 * 1024)).toPrecision(2) + "MB";
+    const inKB = this.size / 1024;
+    if (inKB < 1024) {
+      return inKB.toFixed(2) + "KB";
+    } else return (inKB / 1024).toFixed(2) + "MB";
   }
 }
 

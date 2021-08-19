@@ -1,5 +1,4 @@
 // @flow
-import fs from "fs";
 import fractionalIndex from "fractional-index";
 import Router from "koa-router";
 import { ValidationError } from "../errors";
@@ -28,7 +27,6 @@ import { Op, sequelize } from "../sequelize";
 
 import collectionIndexing from "../utils/collectionIndexing";
 import removeIndexCollision from "../utils/removeIndexCollision";
-import { archiveCollections } from "../utils/zip";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -472,37 +470,16 @@ router.post("collections.export", auth(), async (ctx) => {
 });
 
 router.post("collections.export_all", auth(), async (ctx) => {
-  const { download = false } = ctx.body;
-
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  if (download) {
-    const collections = await Collection.findAll({
-      where: { teamId: team.id },
-      order: [["name", "ASC"]],
-    });
-    const filePath = await archiveCollections(collections);
+  // async operation to upload zip archive to cloud and email user with link
+  exportCollections(user.teamId, user.id, user.email);
 
-    await Event.create({
-      name: "collections.export_all",
-      teamId: user.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-    });
-
-    ctx.attachment(`${team.name}.zip`);
-    ctx.set("Content-Type", "application/force-download");
-    ctx.body = fs.createReadStream(filePath);
-  } else {
-    // async operation to create zip archive and email user
-    exportCollections(user.teamId, user.id, user.email);
-
-    ctx.body = {
-      success: true,
-    };
-  }
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.post("collections.update", auth(), async (ctx) => {

@@ -1,6 +1,6 @@
 // @flow
 import Router from "koa-router";
-import { NotFoundError } from "../errors";
+import { NotFoundError, ValidationError } from "../errors";
 import auth from "../middlewares/authentication";
 import { FileOperation, User, Collection, Team } from "../models";
 import policy from "../policies";
@@ -15,6 +15,11 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   let { sort = "createdAt", direction, type } = ctx.body;
 
   ctx.assertPresent(type, "type is required");
+  ctx.assertIn(
+    type,
+    ["import", "export"],
+    "type must be one of 'import' or 'export'"
+  );
 
   if (direction !== "ASC") direction = "DESC";
 
@@ -67,10 +72,14 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-
   const fileOp = await FileOperation.findByPk(id);
+
   if (!fileOp) {
     throw new NotFoundError();
+  }
+
+  if (fileOp.state !== "complete") {
+    throw new ValidationError("file operation is not complete yet");
   }
 
   authorize(user, fileOp.type, team);

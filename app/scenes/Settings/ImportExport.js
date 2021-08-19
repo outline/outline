@@ -194,7 +194,7 @@ function ImportExport() {
       <Heading>{t("Export")}</Heading>
       <HelpText>
         <Trans
-          defaults="A full export might take some time, consider exporting a single document or collection if possible. We’ll put together a zip of all your documents in Markdown format and email it to <em>{{ userEmail }}</em>."
+          defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it's complete."
           values={{ userEmail: user.email }}
           components={{ em: <strong /> }}
         />
@@ -211,9 +211,13 @@ function ImportExport() {
           ? `${t("Requesting Export")}…`
           : t("Export Data")}
       </Button>
-      <Subheading>
-        <Trans>Recent exports</Trans>
-      </Subheading>
+      <br />
+      <br />
+      {fileOperations.orderedDataExports.length > 0 && (
+        <Subheading>
+          <Trans>Recent exports</Trans>
+        </Subheading>
+      )}
       <PaginatedList
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
@@ -228,21 +232,26 @@ function ImportExport() {
               <>
                 <Flex>
                   {stateMapping[item.state]}&nbsp;•&nbsp;
-                  {user.id === item.user.id ? t("You") : item.user.name}{" "}
-                  created&nbsp;
+                  {t(`{{userName}} requested`, {
+                    userName:
+                      user.id === item.user.id ? t("You") : item.user.name,
+                  })}
+                  &nbsp;
                   <Time dateTime={item.createdAt} addSuffix shorten />
                   &nbsp;•&nbsp;{item.sizeInMB}
                 </Flex>
               </>
             }
             actions={
-              <Button
-                as="a"
-                href={`/api/fileOperations.redirect?id=${item.id}`}
-                neutral
-              >
-                {t("Download")}
-              </Button>
+              item.state === "complete" ? (
+                <Button
+                  as="a"
+                  href={`/api/fileOperations.redirect?id=${item.id}`}
+                  neutral
+                >
+                  {t("Download")}
+                </Button>
+              ) : undefined
             }
           />
         )}

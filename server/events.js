@@ -129,7 +129,6 @@ export type FileOperationEvent = {
     type: string,
     state: string,
     id: string,
-    key: string,
     size: number,
     createdAt: string,
     collectionId: string,
