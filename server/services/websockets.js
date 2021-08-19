@@ -331,9 +331,7 @@ export default class Websockets {
       case "fileOperations.update": {
         return socketio
           .to(`user-${event.actorId}`)
-          .emit("fileOperations.update", {
-            ...event.data,
-          });
+          .emit("fileOperations.update", event.data);
       }
 
       case "groups.create":
