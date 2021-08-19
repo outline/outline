@@ -63,7 +63,7 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
 
 router.post("fileOperations.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
