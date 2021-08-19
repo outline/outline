@@ -30,7 +30,7 @@ export const ExportSuccessEmail = ({ id }: { id: string }) => {
           <Button
             href={`${process.env.URL}/api/fileOperations.redirect?id=${id}`}
           >
-            View my export
+            Download
           </Button>
         </p>
       </Body>
