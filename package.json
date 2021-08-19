@@ -114,6 +114,7 @@
     "outline-icons": "^1.30.0",
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
+    "passport-discord": "^0.1.4",
     "passport-google-oauth2": "^0.2.0",
     "passport-slack-oauth2": "^1.1.0",
     "pg": "^8.5.1",
