@@ -1,12 +1,11 @@
 // @flow
 import fs from "fs";
 import debug from "debug";
-import { v4 as uuidv4 } from "uuid";
 import mailer from "./mailer";
 import { FileOperation, Collection, Team, Event, User } from "./models";
 import policy from "./policies";
 import { createQueue } from "./utils/queue";
-import { uploadToS3FromBuffer } from "./utils/s3";
+import { getAWSKeyForFileOp, uploadToS3FromBuffer } from "./utils/s3";
 const { can } = policy;
 
 const log = debug("exporter");
@@ -41,6 +40,7 @@ type exportAndEmailCollectionsType = {|
   userId: string,
   email: string,
   collectionId?: string,
+  fileOperationId?: string,
 |};
 
 async function exportAndEmailCollections({
@@ -48,6 +48,7 @@ async function exportAndEmailCollections({
   userId,
   email,
   collectionId,
+  fileOperationId,
 }: exportAndEmailCollectionsType) {
   log("Archiving team", teamId);
   const { archiveCollections } = require("./utils/zip");
@@ -74,22 +75,30 @@ async function exportAndEmailCollections({
   }
 
   const acl = process.env.AWS_S3_ACL || "private";
-  const bucket = acl === "public-read" ? "public" : "uploads";
-  const key = `${bucket}/${teamId}/${uuidv4()}/${
-    collectionId ? collections[0].name : team.name
-  }-export.zip`;
-  let state = "creating";
 
-  let exportData = await FileOperation.create({
-    type: "export",
-    state,
-    key,
-    url: null,
-    size: 0,
-    collectionId: collectionId ? collectionId : null,
-    userId,
-    teamId,
-  });
+  let exportData;
+  let state;
+  let key;
+
+  if (fileOperationId) {
+    exportData = await FileOperation.findByPk(fileOperationId);
+    state = exportData.state;
+    key = exportData.key;
+  } else {
+    const name = collectionId ? collections[0].name : team.name;
+    key = getAWSKeyForFileOp(team.id, name, acl);
+    state = "creating";
+    exportData = await FileOperation.create({
+      type: "export",
+      state,
+      key,
+      url: null,
+      size: 0,
+      collectionId: collectionId ?? null,
+      userId,
+      teamId,
+    });
+  }
 
   await fileOperationsUpdate(teamId, userId, exportData);
 
@@ -165,12 +174,13 @@ exporterQueue.process(async (job) => {
 
   switch (job.data.type) {
     case "export-collections":
-      const { teamId, userId, email, collectionId } = job.data;
+      const { teamId, userId, email, collectionId, fileOperationId } = job.data;
       return await exportAndEmailCollections({
         teamId,
         userId,
         email,
         collectionId,
+        fileOperationId,
       });
     default:
   }
@@ -180,7 +190,8 @@ export const exportCollections = (
   teamId: string,
   userId: string,
   email: string,
-  collectionId?: string
+  collectionId?: string,
+  fileOperationId?: string
 ) => {
   exporterQueue.add(
     {
@@ -189,6 +200,7 @@ export const exportCollections = (
       userId,
       email,
       collectionId,
+      fileOperationId,
     },
     queueOptions
   );

@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
+import { v4 as uuidv4 } from "uuid";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
@@ -179,6 +180,15 @@ export const getSignedUrl = async (key: string) => {
   return isDocker
     ? `${publicS3Endpoint()}/${key}`
     : s3.getSignedUrl("getObject", params);
+};
+
+export const getAWSKeyForFileOp = (
+  teamId: string,
+  name: string,
+  acl: string
+) => {
+  const bucket = acl === "public-read" ? "public" : "uploads";
+  return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
 export const getFileByKey = async (key: string) => {

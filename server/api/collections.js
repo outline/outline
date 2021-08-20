@@ -13,6 +13,7 @@ import {
   User,
   Group,
   Attachment,
+  FileOperation,
 } from "../models";
 import policy from "../policies";
 import {
@@ -22,11 +23,13 @@ import {
   presentMembership,
   presentGroup,
   presentCollectionGroupMembership,
+  presentFileOperation,
 } from "../presenters";
 import { Op, sequelize } from "../sequelize";
 
 import collectionIndexing from "../utils/collectionIndexing";
 import removeIndexCollision from "../utils/removeIndexCollision";
+import { getAWSKeyForFileOp } from "../utils/s3";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -462,10 +465,26 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
 
-  exportCollections(user.teamId, user.id, user.email, id);
+  const name = collection ? collection.name : team.name;
+  const acl = process.env.AWS_S3_ACL || "private";
+  const key = getAWSKeyForFileOp(team.id, name, acl);
+
+  const exportData = await FileOperation.create({
+    type: "export",
+    state: "creating",
+    key,
+    url: null,
+    size: 0,
+    collectionId: id,
+    userId: user.id,
+    teamId: team.id,
+  });
+
+  exportCollections(user.teamId, user.id, user.email, id, exportData.id);
 
   ctx.body = {
     success: true,
+    data: presentFileOperation(exportData),
   };
 });
 
