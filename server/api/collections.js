@@ -469,7 +469,8 @@ router.post("collections.export", auth(), async (ctx) => {
   const acl = process.env.AWS_S3_ACL || "private";
   const key = getAWSKeyForFileOp(team.id, name, acl);
 
-  const exportData = await FileOperation.create({
+  let exportData;
+  exportData = await FileOperation.create({
     type: "export",
     state: "creating",
     key,
@@ -482,9 +483,22 @@ router.post("collections.export", auth(), async (ctx) => {
 
   exportCollections(user.teamId, user.id, user.email, id, exportData.id);
 
+  exportData = await FileOperation.findByPk(exportData.id, {
+    include: [
+      {
+        model: User,
+        as: "user",
+      },
+      {
+        model: Collection,
+        as: "collection",
+      },
+    ],
+  });
+
   ctx.body = {
     success: true,
-    data: presentFileOperation(exportData),
+    data: { fileOperation: presentFileOperation(exportData) },
   };
 });
 
