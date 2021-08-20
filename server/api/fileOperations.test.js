@@ -212,3 +212,70 @@ describe("#fileOperations.list", () => {
     expect(res.status).toEqual(403);
   });
 });
+
+describe("#fileOperations.redirect", () => {
+  it("should not redirect when file operation is not complete", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/fileOperations.redirect", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("file operation is not complete yet");
+  });
+});
+
+describe("#fileOperations.info", () => {
+  it("should return file operation", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/fileOperations.info", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(exportData.id);
+    expect(body.data.user.id).toBe(admin.id);
+  });
+
+  it("should require authorization", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/fileOperations.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    expect(res.status).toBe(403);
+  });
+});
