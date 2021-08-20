@@ -1,6 +1,8 @@
 // @flow
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import Editor, { type Props as EditorProps } from "components/Editor";
@@ -8,8 +10,10 @@ import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import useUnmount from "hooks/useUnmount";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
+import { homeUrl } from "utils/routeHelpers";
 
 // const style = { position: "absolute", width: "100%" };
 
@@ -20,12 +24,15 @@ type Props = {|
 
 function MultiplayerEditor(props: Props, ref: any) {
   const documentId = props.id;
+  const history = useHistory();
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { presence, ui } = useStores();
   const token = useCurrentToken();
   const [localProvider, setLocalProvider] = React.useState();
   const [remoteProvider, setRemoteProvider] = React.useState();
   const [ydoc] = React.useState(() => new Y.Doc());
+  const { showToast } = useToasts();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -42,6 +49,16 @@ function MultiplayerEditor(props: Props, ref: any) {
       name,
       document: ydoc,
       token,
+    });
+
+    provider.on("authenticationFailed", () => {
+      showToast(
+        t(
+          "Sorry, it looks like you don’t have permission to access the document"
+        )
+      );
+
+      history.replace(homeUrl());
     });
 
     provider.on("awarenessChange", ({ states }) => {
@@ -75,7 +92,7 @@ function MultiplayerEditor(props: Props, ref: any) {
 
     setRemoteProvider(provider);
     setLocalProvider(localProvider);
-  }, [documentId, ui, presence, token, ydoc]);
+  }, [history, showToast, t, documentId, ui, presence, token, ydoc]);
 
   // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
   // const [isRemoteSynced, setRemoteSynced] = React.useState(true);
