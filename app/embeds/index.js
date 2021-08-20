@@ -117,7 +117,7 @@ export default [
     matcher: matcher(Gist),
   },
   {
-    title: "Diagrams",
+    title: "Diagrams.net",
     keywords: "diagrams drawio",
     icon: () => <Img src="/images/diagrams.png" />,
     component: Diagrams,
