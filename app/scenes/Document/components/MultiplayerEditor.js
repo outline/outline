@@ -49,6 +49,7 @@ function MultiplayerEditor(props: Props, ref: any) {
       name,
       document: ydoc,
       token,
+      maxReconnectTimeout: 10000,
     });
 
     provider.on("authenticationFailed", () => {

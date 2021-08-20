@@ -19,6 +19,7 @@ import Document from "models/Document";
 import Revision from "models/Revision";
 import DocumentMove from "scenes/DocumentMove";
 import Branding from "components/Branding";
+import ConnectionStatus from "components/ConnectionStatus";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
@@ -544,7 +545,12 @@ class DocumentScene extends React.Component<Props> {
         {isShare && !isCustomDomain() && (
           <Branding href="//www.getoutline.com?ref=sharelink" />
         )}
-        {!isShare && <KeyboardShortcutsButton />}
+        {!isShare && (
+          <>
+            <KeyboardShortcutsButton />
+            <ConnectionStatus />
+          </>
+        )}
       </ErrorBoundary>
     );
   }
