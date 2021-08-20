@@ -331,6 +331,22 @@ describe("#collections.export", () => {
 
     expect(res.status).toEqual(403);
   });
+
+  it("should return file operation associated with export", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/collections.export", {
+      body: { token: admin.getJwtToken(), id: collection.id },
+    });
+
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.fileOperation.id).toBeTruthy();
+    expect(body.data.fileOperation.state).toBe("creating");
+  });
 });
 
 describe("#collections.export_all", () => {
