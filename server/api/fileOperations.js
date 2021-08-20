@@ -11,6 +11,37 @@ import pagination from "./middlewares/pagination";
 const { authorize } = policy;
 const router = new Router();
 
+router.post("fileOperations.info", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, "id is required");
+  const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
+
+  const fileOperation = await FileOperation.findByPk(id, {
+    include: [
+      {
+        model: User,
+        as: "user",
+        paranoid: false,
+      },
+      {
+        model: Collection,
+        as: "collection",
+        paranoid: false,
+      },
+    ],
+  });
+
+  authorize(user, fileOperation.type, team);
+
+  if (!fileOperation) {
+    throw new NotFoundError();
+  }
+
+  ctx.body = {
+    data: presentFileOperation(fileOperation),
+  };
+});
 router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   let { sort = "createdAt", direction, type } = ctx.body;
 

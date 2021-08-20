@@ -16,6 +16,53 @@ const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
+describe("#fileOperations.info", () => {
+  it("should return fileOperation", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/fileOperations.info", {
+      body: {
+        id: exportData.id,
+        token: admin.getJwtToken(),
+        type: "export",
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(exportData.id);
+    expect(body.data.state).toBe(exportData.state);
+  });
+
+  it("should require user to be an admin", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/fileOperations.info", {
+      body: {
+        id: exportData.id,
+        token: user.getJwtToken(),
+        type: "export",
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe("#fileOperations.list", () => {
   it("should return fileOperations list", async () => {
     const team = await buildTeam();
