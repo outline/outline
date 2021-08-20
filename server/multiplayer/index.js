@@ -1,26 +1,28 @@
 // @flow
 import { Logger } from "@hocuspocus/extension-logger";
 import { Server } from "@hocuspocus/server";
-import debug from "debug";
-import { debounce } from "lodash";
-import { parser } from "rich-markdown-editor";
-import { prosemirrorToYDoc } from "y-prosemirror";
-import * as Y from "yjs";
-import documentUpdater from "../commands/documentUpdater";
 import { AuthenticationError } from "../errors";
 import { Document } from "../models";
 import policy from "../policies";
 import { getUserForJWT } from "../utils/jwt";
+import Persistence from "./persistence";
 
-// const isProduction = process.env.NODE_ENV === "production";
-const log = debug("server");
 const { can } = policy;
-const PERSIST_WAIT = 3000;
+// const isProduction = process.env.NODE_ENV === "production";
 
 const server = Server.configure({
   port: process.env.MULTIPLAYER_PORT || process.env.PORT || 80,
 
-  async onAuthenticate({ connection, token, documentName }) {
+  // TODO: Move to extension once ueberdosis/hocuspocus#170 is addressed
+  async onAuthenticate({
+    connection,
+    token,
+    documentName,
+  }: {
+    connection: { readOnly: boolean },
+    token: string,
+    documentName: string,
+  }) {
     // allows for different entity types to use this multiplayer provider later
     const [, documentId] = documentName.split(".");
 
@@ -49,51 +51,7 @@ const server = Server.configure({
     };
   },
 
-  async onCreateDocument({ context, documentName, ...data }) {
-    const [, documentId] = documentName.split(".");
-    const fieldName = "default";
-
-    // Check if the given field already exists in the given y-doc.
-    // Important: Only import a document if it doesn't exist in the primary data storage!
-    if (!data.document.isEmpty(fieldName)) {
-      return;
-    }
-
-    // Get the document from somewhere. In a real world application this would
-    // probably be a database query or an API call
-    const document = await Document.findByPk(documentId);
-
-    if (document.state) {
-      const ydoc = new Y.Doc();
-      log(`Document ${documentId} is already in state`);
-      Y.applyUpdate(ydoc, document.state);
-      return ydoc;
-    }
-
-    log(`Document ${documentId} is not in state, creating state from markdown`);
-    const node = parser.parse(document.text);
-    return prosemirrorToYDoc(node, fieldName);
-  },
-
-  onChange: debounce(
-    async ({ document, context, documentName }) => {
-      const [, documentId] = documentName.split(".");
-
-      log(`persisting ${documentId}`);
-
-      await documentUpdater({
-        documentId,
-        ydoc: document,
-        userId: context.user?.id,
-      });
-    },
-    PERSIST_WAIT,
-    {
-      maxWait: PERSIST_WAIT * 3,
-    }
-  ),
-
-  extensions: [new Logger()],
+  extensions: [new Persistence({ delay: 3000 }), new Logger()],
 });
 
 export async function start() {

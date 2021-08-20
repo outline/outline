@@ -33,12 +33,14 @@ export default class MultiplayerExtension extends Extension {
       }
     };
 
-    provider.on("status", ({ status }) => {
-      if (status === "connected") {
-        provider.awareness.setLocalStateField("user", user);
-      }
+    // only once we have authenticated successfully do we initalize awareness.
+    // we could send this earlier, but getting authenticated faster is more important
+    provider.on("authenticated", () => {
+      provider.awareness.setLocalStateField("user", user);
     });
 
+    // only once an actual change has been made do we add the userId <> clientId
+    // mapping, this avoids stored mappings for clients that never made a change
     doc.on("afterTransaction", assignUser);
 
     return [
