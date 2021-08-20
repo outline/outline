@@ -227,7 +227,10 @@ export async function buildGroupUser(overrides: Object = {}) {
   });
 }
 
-export async function buildDocument(overrides: Object = {}) {
+export async function buildDocument(
+  overrides: Object = {},
+  draft: boolean = false
+) {
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -239,8 +242,12 @@ export async function buildDocument(overrides: Object = {}) {
   }
 
   if (!overrides.collectionId) {
-    const collection = await buildCollection(overrides);
-    overrides.collectionId = collection.id;
+    if (draft) {
+      overrides.collectionId = null;
+    } else {
+      const collection = await buildCollection(overrides);
+      overrides.collectionId = collection.id;
+    }
   }
 
   count++;
@@ -248,7 +255,7 @@ export async function buildDocument(overrides: Object = {}) {
   return Document.create({
     title: `Document ${count}`,
     text: "This is the text in an example document",
-    publishedAt: new Date(),
+    publishedAt: draft ? null : new Date(),
     lastModifiedById: overrides.userId,
     createdById: overrides.userId,
     ...overrides,

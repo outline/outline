@@ -15,6 +15,7 @@ import {
   buildCollection,
   buildUser,
   buildDocument,
+  buildTeam,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 
@@ -1895,6 +1896,24 @@ describe("#documents.create", () => {
     expect(body.data.title).toBe("new document");
     expect(body.policies[0].abilities.update).toEqual(true);
   });
+
+  it("should create a draft document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        title: "new document",
+        text: "hello",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe("new document");
+    expect(body.data.collectionId).toBe(null);
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
 });
 
 describe("#documents.update", () => {
@@ -1977,6 +1996,38 @@ describe("#documents.update", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.publishedAt).toBeTruthy();
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
+  it("should publish draft document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const document = await buildDocument(
+      { teamId: team.id, userId: user.id },
+      true
+    );
+
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: "Updated title",
+        text: "Updated text",
+        lastRevision: document.revision,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.data.collectionId).toBe(collection.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
