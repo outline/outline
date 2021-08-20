@@ -25,11 +25,19 @@ function filterProviders(team) {
         find(team.authenticationProviders, { name: provider.id, enabled: true })
       );
     })
-    .map((provider) => ({
-      id: provider.id,
-      name: provider.name,
-      authUrl: provider.authUrl,
-    }));
+    .map((provider) => {
+      const authProvider = team
+        ? find(team.authenticationProviders, {
+            name: provider.id,
+          })
+        : undefined;
+
+      return {
+        id: provider.id,
+        name: provider.name,
+        authUrl: `${provider.authUrl}?authProviderId=${authProvider?.id || ""}`,
+      };
+    });
 }
 
 router.post("auth.config", async (ctx) => {
