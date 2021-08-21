@@ -235,6 +235,27 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should return document from shareId if public sharing is disabled but the user has permission to read", async () => {
+    const { document, collection, team, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    team.sharing = false;
+    await team.save();
+
+    collection.sharing = false;
+    await collection.save();
+
+    const res = await server.post("/api/documents.info", {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
   it("should not return document from revoked shareId", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
