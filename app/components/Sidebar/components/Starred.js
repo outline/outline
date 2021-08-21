@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "components/Flex";
-import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
@@ -14,6 +13,7 @@ import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
 const STARRED_PAGINATION_LIMIT = 10;
+const STARRED = "STARRED";
 
 function Starred() {
   const [isFetching, setIsFetching] = React.useState(false);
@@ -43,6 +43,15 @@ function Starred() {
       setIsFetching(false);
     }
   }, [fetchStarred, offset, showToast, t]);
+
+  useEffect(() => {
+    const stateInLocal = localStorage.getItem(STARRED);
+    if (!stateInLocal) {
+      localStorage.setItem(STARRED, expanded ? "true" : "false");
+    } else {
+      setExpanded(stateInLocal === "true");
+    }
+  }, [expanded]);
 
   useEffect(() => {
     setOffset(starred.length);
@@ -76,6 +85,11 @@ function Starred() {
     setShow("More");
   }, []);
 
+  const handleExpandClick = React.useCallback(() => {
+    localStorage.setItem(STARRED, !expanded ? "true" : "false");
+    setExpanded((prev) => !prev);
+  }, [expanded]);
+
   const content = starred.slice(0, upperBound).map((document, index) => {
     return (
       <StarredLink
@@ -91,18 +105,14 @@ function Starred() {
   });
 
   if (!starred.length && !isFetching) {
-    return (
-      <>
-        <Header>{t("Starred")}</Header>
-      </>
-    );
+    return null;
   }
 
   return (
     <Flex column>
       <>
         <SidebarLink
-          onClick={() => setExpanded((prev) => !prev)}
+          onClick={handleExpandClick}
           label={t("Starred")}
           icon={<Disclosure expanded={expanded} />}
         />
