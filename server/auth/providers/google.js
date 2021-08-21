@@ -10,7 +10,6 @@ import {
   GoogleWorkspaceInvalidError,
 } from "../../errors";
 import passportMiddleware from "../../middlewares/passport";
-import { AuthenticationProvider } from "../../models";
 import { getAllowedDomains } from "../../utils/authentication";
 import { StateStore } from "../../utils/passport";
 
@@ -87,28 +86,13 @@ if (GOOGLE_CLIENT_ID) {
     )
   );
 
-  router.get("google", async (ctx) => {
-    const { authProviderId } = ctx.request.query;
-
-    if (authProviderId) {
-      ctx.assertUuid(authProviderId, "authProviderId must be a UUID");
-    }
-
-    const authProvider = authProviderId
-      ? await AuthenticationProvider.findOne({
-          where: {
-            id: authProviderId,
-            name: providerName,
-          },
-        })
-      : undefined;
-
-    return passport.authenticate(providerName, {
+  router.get(
+    "google",
+    passport.authenticate(providerName, {
       accessType: "offline",
       prompt: "select_account consent",
-      hd: authProvider?.providerId,
-    })(ctx);
-  });
+    })
+  );
 
   router.get("google.callback", passportMiddleware(providerName));
 }
