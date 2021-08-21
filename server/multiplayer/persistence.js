@@ -8,16 +8,9 @@ import documentUpdater from "../commands/documentUpdater";
 import { Document, User } from "../models";
 
 const log = debug("server");
+const DELAY = 3000;
 
 export default class Persistence {
-  delay: number;
-  maxDelay: number;
-
-  constructor({ delay, maxDelay }: { delay: number, maxDelay?: number }) {
-    this.delay = delay;
-    this.maxDelay = maxDelay || delay * 3;
-  }
-
   async onCreateDocument({
     documentName,
     ...data
@@ -70,9 +63,9 @@ export default class Persistence {
         userId: context.user?.id,
       });
     },
-    this.delay,
+    DELAY,
     {
-      maxWait: this.maxDelay,
+      maxWait: DELAY * 3,
     }
   );
 }
