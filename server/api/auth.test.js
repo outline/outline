@@ -56,7 +56,7 @@ describe("#auth.config", () => {
   it("should return available providers for team subdomain", async () => {
     process.env.URL = "http://localoutline.com";
 
-    const team = await buildTeam({
+    await buildTeam({
       guestSignin: false,
       subdomain: "example",
       authenticationProviders: [
@@ -74,9 +74,6 @@ describe("#auth.config", () => {
     expect(res.status).toEqual(200);
     expect(body.data.providers.length).toBe(1);
     expect(body.data.providers[0].name).toBe("Slack");
-    expect(body.data.providers[0].authUrl).toContain(
-      `?authProviderId=${team.authenticationProviders[0].id}`
-    );
   });
 
   it("should return available providers for team custom domain", async () => {
