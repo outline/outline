@@ -6,6 +6,7 @@ import { useHistory } from "react-router";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import Editor, { type Props as EditorProps } from "components/Editor";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -14,8 +15,6 @@ import useToasts from "hooks/useToasts";
 import useUnmount from "hooks/useUnmount";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 import { homeUrl } from "utils/routeHelpers";
-
-// const style = { position: "absolute", width: "100%" };
 
 type Props = {|
   ...EditorProps,
@@ -31,6 +30,8 @@ function MultiplayerEditor(props: Props, ref: any) {
   const token = useCurrentToken();
   const [localProvider, setLocalProvider] = React.useState();
   const [remoteProvider, setRemoteProvider] = React.useState();
+  const [isLocalSynced, setLocalSynced] = React.useState(false);
+  const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
 
@@ -73,12 +74,8 @@ function MultiplayerEditor(props: Props, ref: any) {
       });
     });
 
-    // const handleSynced = () => {
-    //   setRemoteSynced(true);
-    //   provider.off("sync", handleSynced);
-    // };
-
-    // provider.on("sync", handleSynced);
+    localProvider.on("synced", () => setLocalSynced(true));
+    provider.on("synced", () => setRemoteSynced(true));
 
     if (debug) {
       provider.on("status", (ev) => console.log("status", ev.status));
@@ -94,15 +91,6 @@ function MultiplayerEditor(props: Props, ref: any) {
     setRemoteProvider(provider);
     setLocalProvider(localProvider);
   }, [history, showToast, t, documentId, ui, presence, token, ydoc]);
-
-  // const [showCachedDocument, setShowCachedDocument] = React.useState(true);
-  // const [isRemoteSynced, setRemoteSynced] = React.useState(true);
-
-  // React.useEffect(() => {
-  //   if (isRemoteSynced) {
-  //     setTimeout(() => setShowCachedDocument(false), 100);
-  //   }
-  // }, [isRemoteSynced]);
 
   const user = React.useMemo(() => {
     return {
@@ -132,20 +120,22 @@ function MultiplayerEditor(props: Props, ref: any) {
     ui.setMultiplayerStatus(undefined);
   });
 
+  if (!extensions.length) {
+    return null;
+  }
+
+  if (isLocalSynced && !isRemoteSynced && !ydoc.get("default")._start) {
+    return <PlaceholderDocument includeTitle={false} delay={500} />;
+  }
+
   return (
-    <>
-      {extensions.length ? (
-        <Editor
-          {...props}
-          value={undefined}
-          defaultValue={undefined}
-          extensions={extensions}
-          // style={style}
-          ref={ref}
-        />
-      ) : undefined}
-      {/* {showCachedDocument && <Editor {...props} readOnly />} */}
-    </>
+    <Editor
+      {...props}
+      value={undefined}
+      defaultValue={undefined}
+      extensions={extensions}
+      ref={ref}
+    />
   );
 }
 
