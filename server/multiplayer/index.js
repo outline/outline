@@ -51,7 +51,7 @@ const server = Server.configure({
     };
   },
 
-  extensions: [new Persistence({ delay: 3000 }), new Logger()],
+  extensions: [new Persistence(), new Logger()],
 });
 
 export async function start() {

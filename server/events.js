@@ -196,11 +196,12 @@ export const serviceEventsQueue = createQueue("service events");
 
 // TODO: This is a hack to prevent a require loop from models -> Event -> services -> main
 if (!process.argv.includes("--multiplayer")) {
-  const services = require("./services");
+  const services = require("./services").default;
 
   // this queue processes global events and hands them off to service hooks
   globalEventsQueue.process(async (job) => {
     const names = Object.keys(services);
+
     names.forEach((name) => {
       const service = services[name];
       if (service.on) {
