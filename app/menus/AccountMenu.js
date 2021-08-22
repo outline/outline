@@ -1,82 +1,40 @@
 // @flow
 import { observer } from "mobx-react";
-import { SunIcon, MoonIcon } from "outline-icons";
+import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { useMenuState, MenuButton } from "reakit/Menu";
+import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import {
-  developers,
   changelog,
+  developers,
   githubIssuesUrl,
   mailToUrl,
   settings,
 } from "shared/utils/routeHelpers";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
-import MenuItem, { MenuAnchor } from "components/ContextMenu/MenuItem";
-import Separator from "components/ContextMenu/Separator";
-import Flex from "components/Flex";
+import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
 import useBoolean from "hooks/useBoolean";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
+import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
 
 type Props = {|
   children: (props: any) => React.Node,
 |};
 
-const AppearanceMenu = React.forwardRef((props, ref) => {
-  const { ui } = useStores();
-  const { t } = useTranslation();
-  const menu = useMenuState();
-
-  return (
-    <>
-      <MenuButton ref={ref} {...menu} {...props} onClick={menu.show}>
-        {(props) => (
-          <MenuAnchor {...props}>
-            <ChangeTheme justify="space-between">
-              {t("Appearance")}
-              {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
-            </ChangeTheme>
-          </MenuAnchor>
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Appearance")}>
-        <MenuItem
-          {...menu}
-          onClick={() => ui.setTheme("system")}
-          selected={ui.theme === "system"}
-        >
-          {t("System")}
-        </MenuItem>
-        <MenuItem
-          {...menu}
-          onClick={() => ui.setTheme("light")}
-          selected={ui.theme === "light"}
-        >
-          {t("Light")}
-        </MenuItem>
-        <MenuItem
-          {...menu}
-          onClick={() => ui.setTheme("dark")}
-          selected={ui.theme === "dark"}
-        >
-          {t("Dark")}
-        </MenuItem>
-      </ContextMenu>
-    </>
-  );
-});
-
 function AccountMenu(props: Props) {
+  const [sessions] = useSessions();
   const menu = useMenuState({
+    unstable_offset: [8, 0],
     placement: "bottom-start",
     modal: true,
   });
   const { auth, ui } = useStores();
+  const team = useCurrentTeam();
   const previousTheme = usePrevious(ui.theme);
   const { t } = useTranslation();
   const [
@@ -91,6 +49,90 @@ function AccountMenu(props: Props) {
     }
   }, [menu, ui.theme, previousTheme]);
 
+  const items = React.useMemo(() => {
+    const otherSessions = sessions.filter(
+      (session) => session.teamId !== team.id && session.url !== team.url
+    );
+
+    return [
+      {
+        title: t("Settings"),
+        to: settings(),
+      },
+      {
+        title: t("Keyboard shortcuts"),
+        onClick: handleKeyboardShortcutsOpen,
+      },
+      {
+        title: t("API documentation"),
+        href: developers(),
+      },
+      {
+        type: "separator",
+      },
+      {
+        title: t("Changelog"),
+        href: changelog(),
+      },
+      {
+        title: t("Send us feedback"),
+        href: mailToUrl(),
+      },
+      {
+        title: t("Report a bug"),
+        href: githubIssuesUrl(),
+      },
+      {
+        title: t("Appearance"),
+        icon: ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
+        items: [
+          {
+            title: t("System"),
+            onClick: () => ui.setTheme("system"),
+            selected: ui.theme === "system",
+          },
+          {
+            title: t("Light"),
+            onClick: () => ui.setTheme("light"),
+            selected: ui.theme === "light",
+          },
+          {
+            title: t("Dark"),
+            onClick: () => ui.setTheme("dark"),
+            selected: ui.theme === "dark",
+          },
+        ],
+      },
+      {
+        type: "separator",
+      },
+      ...(otherSessions.length
+        ? [
+            {
+              title: t("Switch team"),
+              items: otherSessions.map((session) => ({
+                title: session.name,
+                icon: <Logo alt={session.name} src={session.logoUrl} />,
+                href: session.url,
+              })),
+            },
+          ]
+        : []),
+      {
+        title: t("Log out"),
+        onClick: auth.logout,
+      },
+    ];
+  }, [
+    auth.logout,
+    team.id,
+    team.url,
+    sessions,
+    handleKeyboardShortcutsOpen,
+    t,
+    ui,
+  ]);
+
   return (
     <>
       <Guide
@@ -102,38 +144,16 @@ function AccountMenu(props: Props) {
       </Guide>
       <MenuButton {...menu}>{props.children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <MenuItem {...menu} as={Link} to={settings()}>
-          {t("Settings")}
-        </MenuItem>
-        <MenuItem {...menu} onClick={handleKeyboardShortcutsOpen}>
-          {t("Keyboard shortcuts")}
-        </MenuItem>
-        <MenuItem {...menu} href={developers()} target="_blank">
-          {t("API documentation")}
-        </MenuItem>
-        <Separator {...menu} />
-        <MenuItem {...menu} href={changelog()} target="_blank">
-          {t("Changelog")}
-        </MenuItem>
-        <MenuItem {...menu} href={mailToUrl()} target="_blank">
-          {t("Send us feedback")}
-        </MenuItem>
-        <MenuItem {...menu} href={githubIssuesUrl()} target="_blank">
-          {t("Report a bug")}
-        </MenuItem>
-        <Separator {...menu} />
-        <MenuItem {...menu} as={AppearanceMenu} />
-        <Separator {...menu} />
-        <MenuItem {...menu} onClick={auth.logout}>
-          {t("Log out")}
-        </MenuItem>
+        <Template {...menu} items={items} />
       </ContextMenu>
     </>
   );
 }
 
-const ChangeTheme = styled(Flex)`
-  width: 100%;
+const Logo = styled("img")`
+  border-radius: 2px;
+  width: 24px;
+  height: 24px;
 `;
 
 export default observer(AccountMenu);

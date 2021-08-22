@@ -146,7 +146,11 @@ function MainSidebar() {
                     exact={false}
                     label={t("Templates")}
                     active={
-                      documents.active ? documents.active.template : undefined
+                      documents.active
+                        ? documents.active.isTemplate &&
+                          !documents.active.isDeleted &&
+                          !documents.active.isArchived
+                        : undefined
                     }
                   />
                   <ArchiveLink documents={documents} />

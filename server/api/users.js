@@ -71,13 +71,13 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   }
 
   const [users, total] = await Promise.all([
-    await User.findAll({
+    User.findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     }),
-    await User.count({
+    User.count({
       where,
     }),
   ]);

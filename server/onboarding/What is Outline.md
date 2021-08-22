@@ -1,16 +1,17 @@
-Outline is a place to build your team knowledge base, you could think of it like your team’s shared library – a place for important documentation, notes, and ideas to live and be discovered. Some things you might want to keep in Outline:
+Outline is a place to build your team knowledge base, you could think of it like your team’s shared library – a place for important documentation, notes, and ideas to live and be discovered. Some things you might want to keep in Outline include:
 
+\
 - Documentation
+- Support knowledge base
+- Product plans and RFCs
 - Sales playbooks
-- Support scripts
-- Onboarding
-- HR documents
+- Onboarding checklists
+- Company policies
 - Meeting notes
-- …and more
 
 ## Structure
 
-Outline allows you to organize documents in "collections", for example these could represent topics like Sales, Product, or HR. Within collections documents can be interlinked and deeply nested to easily build relationships within your knowledge base.
+Outline allows you to organize documents in "collections", for example these could represent topics like Sales, Product, or HR. You can assign users or groups access to collections. Within collections documents can be interlinked and deeply nested to easily build relationships within your knowledge base.
 
 ## Search
 

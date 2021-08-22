@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
+import DocumentTasks from "components/DocumentTasks";
 import Flex from "components/Flex";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -64,6 +65,8 @@ function DocumentMeta({
     deletedAt,
     isDraft,
     lastViewedAt,
+    isTasks,
+    isTemplate,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -114,6 +117,11 @@ function DocumentMeta({
     );
   }
 
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
+  const canShowProgressBar = isTasks && !isTemplate;
+
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
       return null;
@@ -133,10 +141,6 @@ function DocumentMeta({
     );
   };
 
-  const nestedDocumentsCount = collection
-    ? collection.getDocumentChildren(document.id).length
-    : 0;
-
   return (
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {lastUpdatedByCurrentUser ? t("You") : updatedBy.name}&nbsp;
@@ -151,11 +155,17 @@ function DocumentMeta({
       )}
       {showNestedDocuments && nestedDocumentsCount > 0 && (
         <span>
-          &nbsp;&middot; {nestedDocumentsCount}{" "}
+          &nbsp;• {nestedDocumentsCount}{" "}
           {t("nested document", { count: nestedDocumentsCount })}
         </span>
       )}
       &nbsp;{timeSinceNow()}
+      {canShowProgressBar && (
+        <>
+          &nbsp;•&nbsp;
+          <DocumentTasks document={document} />
+        </>
+      )}
       {children}
     </Container>
   );
