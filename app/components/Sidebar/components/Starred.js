@@ -65,6 +65,12 @@ function Starred() {
     }
   }, [starred, upperBound]);
 
+  useEffect(() => {
+    if (offset === 0) {
+      fetchResults();
+    }
+  }, [fetchResults, offset]);
+
   const handleShowMore = React.useCallback(
     async (ev) => {
       setUpperBound(
