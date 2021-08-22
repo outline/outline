@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import PlaceholderCollections from "./PlaceholderCollections";
+import Section from "./Section";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
 import useStores from "hooks/useStores";
@@ -98,13 +99,13 @@ function Starred() {
     );
   });
 
-  if (!starred.length && !isFetching) {
+  if (!starred.length) {
     return null;
   }
 
   return (
-    <Flex column>
-      <>
+    <Section>
+      <Flex column>
         <SidebarLink
           onClick={handleExpandClick}
           label={t("Starred")}
@@ -134,8 +135,8 @@ function Starred() {
             )}
           </>
         )}
-      </>
-    </Flex>
+      </Flex>
+    </Section>
   );
 }
 

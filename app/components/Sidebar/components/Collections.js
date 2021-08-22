@@ -110,7 +110,11 @@ function Collections({ onCreateCollection }: Props) {
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <Header>{t("Collections")}</Header>
+        <SidebarLink
+          label={t("Collections")}
+          icon={<Disclosure expanded={expanded} />}
+          disabled
+        />
         <PlaceholderCollections />
       </Flex>
     );

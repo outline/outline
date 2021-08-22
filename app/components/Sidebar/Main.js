@@ -129,9 +129,7 @@ function MainSidebar() {
                 />
               )}
             </Section>
-            <Section>
-              <Starred />
-            </Section>
+            <Starred />
             <Section auto>
               <Collections
                 onCreateCollection={handleCreateCollectionModalOpen}
