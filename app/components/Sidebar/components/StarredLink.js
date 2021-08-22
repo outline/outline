@@ -75,7 +75,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
             </>
           }
           exact={false}
-          showAction={menuOpen}
+          showActions={menuOpen}
           menu={
             document ? (
               <Fade>
