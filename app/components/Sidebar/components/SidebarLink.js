@@ -104,7 +104,7 @@ const IconWrapper = styled.span`
 const Actions = styled(EventBoundary)`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
-  top: 5px;
+  top: 4px;
   right: 4px;
   color: ${(props) => props.theme.textTertiary};
   transition: opacity 50ms;
@@ -129,7 +129,6 @@ const Link = styled(NavLink)`
   position: relative;
   text-overflow: ellipsis;
   padding: 6px 16px;
-  margin: 1px;
   border-radius: 4px;
   transition: background 50ms, color 50ms;
   background: ${(props) =>

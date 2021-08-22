@@ -13,7 +13,7 @@ import StarredLink from "./StarredLink";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
-const STARRED_PAGINATION_LIMIT = 2;
+const STARRED_PAGINATION_LIMIT = 10;
 const STARRED = "STARRED";
 
 function Starred() {
