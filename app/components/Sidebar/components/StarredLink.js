@@ -67,34 +67,39 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
   ));
 
   return (
-    <div style={{ position: "relative" }}>
-      <SidebarLink
-        depth={depth}
-        to={to}
-        label={
-          <>
-            {hasChildDocuments && (
-              <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
-            )}
-            {title}
-          </>
-        }
-        exact={false}
-        showAction={menuOpen}
-        menu={
-          document ? (
-            <Fade>
-              <DocumentMenu
-                document={document}
-                onOpen={handleMenuOpen}
-                onClose={handleMenuClose}
-              />
-            </Fade>
-          ) : undefined
-        }
-      />
+    <>
+      <div style={{ position: "relative" }}>
+        <SidebarLink
+          depth={depth}
+          to={to}
+          label={
+            <>
+              {hasChildDocuments && (
+                <Disclosure
+                  expanded={expanded}
+                  onClick={handleDisclosureClick}
+                />
+              )}
+              {title}
+            </>
+          }
+          exact={false}
+          showAction={menuOpen}
+          menu={
+            document ? (
+              <Fade>
+                <DocumentMenu
+                  document={document}
+                  onOpen={handleMenuOpen}
+                  onClose={handleMenuClose}
+                />
+              </Fade>
+            ) : undefined
+          }
+        />
+      </div>
       {hasChildDocuments && expanded && showChildDocuments}
-    </div>
+    </>
   );
 }
 
