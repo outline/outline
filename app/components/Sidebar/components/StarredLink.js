@@ -9,6 +9,8 @@ import SidebarLink from "./SidebarLink";
 import useBoolean from "hooks/useBoolean";
 import DocumentMenu from "menus/DocumentMenu";
 
+const style = { position: "relative" };
+
 type Props = {|
   depth: number,
   title: string,
@@ -55,20 +57,9 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     [expanded]
   );
 
-  const showChildDocuments = childDocuments.map((childDocument) => (
-    <ObserveredStarredLink
-      key={childDocument.id}
-      depth={depth + 1}
-      title={childDocument.title}
-      to={childDocument.url}
-      documentId={childDocument.id}
-      collectionId={collectionId}
-    />
-  ));
-
   return (
     <>
-      <div style={{ position: "relative" }}>
+      <div style={style}>
         <SidebarLink
           depth={depth}
           to={to}
@@ -98,7 +89,17 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
           }
         />
       </div>
-      {hasChildDocuments && expanded && showChildDocuments}
+      {expanded &&
+        childDocuments.map((childDocument) => (
+          <ObserveredStarredLink
+            key={childDocument.id}
+            depth={depth + 1}
+            title={childDocument.title}
+            to={childDocument.url}
+            documentId={childDocument.id}
+            collectionId={collectionId}
+          />
+        ))}
     </>
   );
 }

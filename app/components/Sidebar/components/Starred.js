@@ -13,7 +13,7 @@ import StarredLink from "./StarredLink";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
-const STARRED_PAGINATION_LIMIT = 10;
+const STARRED_PAGINATION_LIMIT = 2;
 const STARRED = "STARRED";
 
 function Starred() {
@@ -46,7 +46,14 @@ function Starred() {
   }, [fetchStarred, offset, showToast, t]);
 
   useEffect(() => {
-    const stateInLocal = localStorage.getItem(STARRED);
+    let stateInLocal;
+
+    try {
+      stateInLocal = localStorage.getItem(STARRED);
+    } catch (_) {
+      // no-op Safari private mode
+    }
+
     if (!stateInLocal) {
       localStorage.setItem(STARRED, expanded ? "true" : "false");
     } else {
@@ -56,7 +63,7 @@ function Starred() {
 
   useEffect(() => {
     setOffset(starred.length);
-    if (starred.length < STARRED_PAGINATION_LIMIT) {
+    if (starred.length <= STARRED_PAGINATION_LIMIT) {
       setShow("Nothing");
     } else if (starred.length >= upperBound) {
       setShow("More");
@@ -86,10 +93,20 @@ function Starred() {
     setShow("More");
   }, []);
 
-  const handleExpandClick = React.useCallback(() => {
-    localStorage.setItem(STARRED, !expanded ? "true" : "false");
-    setExpanded((prev) => !prev);
-  }, [expanded]);
+  const handleExpandClick = React.useCallback(
+    (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      try {
+        localStorage.setItem(STARRED, !expanded ? "true" : "false");
+      } catch (_) {
+        // no-op Safari private mode
+      }
+      setExpanded((prev) => !prev);
+    },
+    [expanded]
+  );
 
   const content = starred.slice(0, upperBound).map((document, index) => {
     return (

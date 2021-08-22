@@ -104,7 +104,7 @@ const IconWrapper = styled.span`
 const Actions = styled(EventBoundary)`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
-  top: 4px;
+  top: 5px;
   right: 4px;
   color: ${(props) => props.theme.textTertiary};
   transition: opacity 50ms;

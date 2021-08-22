@@ -17,6 +17,8 @@ import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
+const style = { position: "relative" };
+
 type Props = {|
   node: NavigationNode,
   canUpdate: boolean,
@@ -210,7 +212,7 @@ function DocumentLink(
 
   return (
     <>
-      <div style={{ position: "relative" }} onDragLeave={resetHoverExpanding}>
+      <div style={style} onDragLeave={resetHoverExpanding}>
         <Draggable
           key={node.id}
           ref={drag}
