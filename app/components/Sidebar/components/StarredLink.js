@@ -40,14 +40,11 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     load();
   }, [collection, collectionId, collections, document, documentId, documents]);
 
-  const handleDisclosureClick = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      setExpanded(!expanded);
-    },
-    [expanded]
-  );
+  const handleDisclosureClick = React.useCallback((ev: SyntheticEvent<>) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    setExpanded((prevExpanded) => !prevExpanded);
+  }, []);
 
   return (
     <>
