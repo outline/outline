@@ -2,14 +2,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import styled from "styled-components";
 import Fade from "components/Fade";
 import useStores from "../../../hooks/useStores";
 import Disclosure from "./Disclosure";
 import SidebarLink from "./SidebarLink";
 import useBoolean from "hooks/useBoolean";
 import DocumentMenu from "menus/DocumentMenu";
-
-const style = { position: "relative" };
 
 type Props = {|
   depth: number,
@@ -21,10 +20,8 @@ type Props = {|
 
 function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
   const { collections, documents } = useStores();
-  const [collection, setCollection] = useState(() =>
-    collections.get(collectionId)
-  );
-  const [document, setDocument] = useState(() => documents.get(documentId));
+  const collection = collections.get(collectionId);
+  const document = documents.get(documentId);
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
@@ -36,13 +33,8 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
 
   useEffect(() => {
     async function load() {
-      if (!collection) {
-        const fetchedCollection = await collections.fetch(collectionId);
-        setCollection(fetchedCollection);
-      }
       if (!document) {
-        const fetchDocument = await documents.fetch(documentId);
-        setDocument(fetchDocument);
+        await documents.fetch(documentId);
       }
     }
     load();
@@ -59,7 +51,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
 
   return (
     <>
-      <div style={style}>
+      <Relative>
         <SidebarLink
           depth={depth}
           to={to}
@@ -88,7 +80,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
             ) : undefined
           }
         />
-      </div>
+      </Relative>
       {expanded &&
         childDocuments.map((childDocument) => (
           <ObserveredStarredLink
@@ -103,6 +95,10 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     </>
   );
 }
+
+const Relative = styled.div`
+  position: relative;
+`;
 
 const ObserveredStarredLink = observer(StarredLink);
 

@@ -17,8 +17,6 @@ import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
-const style = { position: "relative" };
-
 type Props = {|
   node: NavigationNode,
   canUpdate: boolean,
@@ -212,7 +210,7 @@ function DocumentLink(
 
   return (
     <>
-      <div style={style} onDragLeave={resetHoverExpanding}>
+      <Relative onDragLeave={resetHoverExpanding}>
         <Draggable
           key={node.id}
           ref={drag}
@@ -266,7 +264,7 @@ function DocumentLink(
         {manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-      </div>
+      </Relative>
       {expanded && !isDragging && (
         <>
           {node.children.map((childNode, index) => (
@@ -288,7 +286,11 @@ function DocumentLink(
   );
 }
 
-const Draggable = styled("div")`
+const Relative = styled.div`
+  position: relative;
+`;
+
+const Draggable = styled.div`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
