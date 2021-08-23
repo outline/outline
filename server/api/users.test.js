@@ -189,6 +189,53 @@ describe("#users.invite", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should invite user as an admin", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: [{ email: "test@example.com", name: "Test", role: "admin" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sent.length).toEqual(1);
+    expect(body.data.users[0].isAdmin).toBeTruthy();
+    expect(body.data.users[0].isViewer).toBeFalsy();
+  });
+
+  it("should invite user as a viewer", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: [{ email: "test@example.com", name: "Test", role: "viewer" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sent.length).toEqual(1);
+    expect(body.data.users[0].isViewer).toBeTruthy();
+    expect(body.data.users[0].isAdmin).toBeFalsy();
+  });
+
+  it("should invite user as a member if role is any arbitary value", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: [
+          { email: "test@example.com", name: "Test", role: "arbitary" },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sent.length).toEqual(1);
+    expect(body.data.users[0].isViewer).toBeFalsy();
+    expect(body.data.users[0].isAdmin).toBeFalsy();
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.invite");
     expect(res.status).toEqual(401);
