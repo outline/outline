@@ -31,6 +31,7 @@ type Props = {|
   activeClassName?: String,
   activeStyle?: Object,
   className?: string,
+  scrollIntoViewIfNeeded?: boolean,
   exact?: boolean,
   isActive?: any,
   location?: Location,
@@ -52,6 +53,7 @@ const NavLink = ({
   location: locationProp,
   strict,
   style: styleProp,
+  scrollIntoViewIfNeeded,
   to,
   ...rest
 }: Props) => {
@@ -83,13 +85,13 @@ const NavLink = ({
   const style = isActive ? { ...styleProp, ...activeStyle } : styleProp;
 
   React.useEffect(() => {
-    if (isActive && linkRef.current) {
+    if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
       scrollIntoView(linkRef.current, {
         scrollMode: "if-needed",
         behavior: "instant",
       });
     }
-  }, [linkRef, isActive]);
+  }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
   const props = {
     "aria-current": (isActive && ariaCurrent) || null,

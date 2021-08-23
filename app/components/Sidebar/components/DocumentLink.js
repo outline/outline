@@ -246,6 +246,7 @@ function DocumentLink(
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
+                scrollIntoViewIfNeeded={!document?.isStarred}
                 ref={ref}
                 menu={
                   document && !isMoving ? (

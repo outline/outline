@@ -28,6 +28,7 @@ type Props = {
   theme: Theme,
   exact?: boolean,
   depth?: number,
+  scrollIntoViewIfNeeded?: boolean,
 };
 
 function SidebarLink(
@@ -49,6 +50,7 @@ function SidebarLink(
     history,
     match,
     className,
+    scrollIntoViewIfNeeded,
   }: Props,
   ref
 ) {
@@ -73,6 +75,7 @@ function SidebarLink(
     <>
       <Link
         $isActiveDrop={isActiveDrop}
+        scrollIntoViewIfNeeded={scrollIntoViewIfNeeded}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}
