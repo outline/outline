@@ -36,7 +36,7 @@ import { sequelize } from "../sequelize";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
-const { authorize, cannot } = policy;
+const { authorize, cannot, can } = policy;
 const router = new Router();
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
@@ -534,10 +534,20 @@ async function loadDocument({
       document = share.document;
     }
 
-    // "published" === on the public internet. So if the share isn't published
-    // then we must have permission to read the document
+    // If the user has access to read the document, we can just update
+    // the last access date and return the document without additional checks.
+    const canReadDocument = can(user, "read", document);
+    if (canReadDocument) {
+      await share.update({ lastAccessedAt: new Date() });
+
+      return { document, share, collection };
+    }
+
+    // "published" === on the public internet.
+    // We already know that there's either no logged in user or the user doesn't
+    // have permission to read the document, so we can throw an error.
     if (!share.published) {
-      authorize(user, "read", document);
+      throw new AuthorizationError();
     }
 
     // It is possible to disable sharing at the collection so we must check
