@@ -111,7 +111,7 @@ function Collections({ onCreateCollection }: Props) {
       <Flex column>
         <SidebarLink
           label={t("Collections")}
-          icon={<Disclosure expanded={expanded} />}
+          icon={<Disclosure expanded={expanded} color="currentColor" />}
           disabled
         />
         <PlaceholderCollections />
@@ -124,7 +124,7 @@ function Collections({ onCreateCollection }: Props) {
       <SidebarLink
         onClick={() => setExpanded((prev) => !prev)}
         label={t("Collections")}
-        icon={<Disclosure expanded={expanded} />}
+        icon={<Disclosure expanded={expanded} color="currentColor" />}
       />
       {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
     </Flex>

@@ -132,7 +132,7 @@ function Starred() {
         <SidebarLink
           onClick={handleExpandClick}
           label={t("Starred")}
-          icon={<Disclosure expanded={expanded} />}
+          icon={<Disclosure expanded={expanded} color="currentColor" />}
         />
         {expanded && (
           <>
