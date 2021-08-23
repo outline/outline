@@ -7,10 +7,6 @@ export function homeUrl(): string {
   return "/home";
 }
 
-export function starredUrl(): string {
-  return "/starred";
-}
-
 export function newCollectionUrl(): string {
   return "/collection/new";
 }
