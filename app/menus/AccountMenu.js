@@ -34,8 +34,9 @@ function AccountMenu(props: Props) {
     modal: true,
   });
   const { auth, ui } = useStores();
+  const { theme, resolvedTheme } = ui;
   const team = useCurrentTeam();
-  const previousTheme = usePrevious(ui.theme);
+  const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
   const [
     keyboardShortcutsOpen,
@@ -44,10 +45,10 @@ function AccountMenu(props: Props) {
   ] = useBoolean();
 
   React.useEffect(() => {
-    if (ui.theme !== previousTheme) {
+    if (theme !== previousTheme) {
       menu.hide();
     }
-  }, [menu, ui.theme, previousTheme]);
+  }, [menu, theme, previousTheme]);
 
   const items = React.useMemo(() => {
     const otherSessions = sessions.filter(
@@ -84,22 +85,22 @@ function AccountMenu(props: Props) {
       },
       {
         title: t("Appearance"),
-        icon: ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
+        icon: resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
         items: [
           {
             title: t("System"),
             onClick: () => ui.setTheme("system"),
-            selected: ui.theme === "system",
+            selected: theme === "system",
           },
           {
             title: t("Light"),
             onClick: () => ui.setTheme("light"),
-            selected: ui.theme === "light",
+            selected: theme === "light",
           },
           {
             title: t("Dark"),
             onClick: () => ui.setTheme("dark"),
-            selected: ui.theme === "dark",
+            selected: theme === "dark",
           },
         ],
       },
@@ -129,6 +130,8 @@ function AccountMenu(props: Props) {
     team.url,
     sessions,
     handleKeyboardShortcutsOpen,
+    resolvedTheme,
+    theme,
     t,
     ui,
   ]);
