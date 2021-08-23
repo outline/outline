@@ -3,7 +3,7 @@ import { uniqBy } from "lodash";
 import mailer from "../mailer";
 import { User, Event, Team } from "../models";
 
-type Invite = { name: string, email: string };
+type Invite = { name: string, email: string, role: string };
 
 export default async function userInviter({
   user,
@@ -52,6 +52,8 @@ export default async function userInviter({
       name: invite.name,
       email: invite.email,
       service: null,
+      isAdmin: invite.role === "admin",
+      isViewer: invite.role === "viewer",
     });
     users.push(newUser);
     await Event.create({
@@ -61,6 +63,7 @@ export default async function userInviter({
       data: {
         email: invite.email,
         name: invite.name,
+        role: invite.role,
       },
       ip,
     });

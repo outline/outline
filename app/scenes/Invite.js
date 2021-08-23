@@ -12,6 +12,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
+import UserInviteMenu from "./Settings/components/UserInviteMenu";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
@@ -26,15 +27,16 @@ type Props = {|
 type InviteRequest = {
   email: string,
   name: string,
+  role: string,
 };
 
 function Invite({ onSubmit }: Props) {
   const [isSaving, setIsSaving] = React.useState();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
   const [invites, setInvites] = React.useState<InviteRequest[]>([
-    { email: "", name: "" },
-    { email: "", name: "" },
-    { email: "", name: "" },
+    { email: "", name: "", role: "member" },
+    { email: "", name: "", role: "member" },
+    { email: "", name: "", role: "member" },
   ]);
 
   const { users, policies } = useStores();
@@ -84,7 +86,7 @@ function Invite({ onSubmit }: Props) {
 
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
-      newInvites.push({ email: "", name: "" });
+      newInvites.push({ email: "", name: "", role: "member" });
       return newInvites;
     });
   }, [showToast, invites, t]);
@@ -108,6 +110,14 @@ function Invite({ onSubmit }: Props) {
       type: "success",
     });
   }, [showToast, t]);
+
+  const handleRoleChange = React.useCallback((role, index) => {
+    setInvites((prevInvites) => {
+      const newInvites = [...prevInvites];
+      newInvites[index]["role"] = role || "member";
+      return newInvites;
+    });
+  }, []);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -184,6 +194,12 @@ function Invite({ onSubmit }: Props) {
             required={!!invite.email}
             flex
           />
+          &nbsp;
+          <UserInviteMenu
+            activeKey={invite.role}
+            onSelect={(newRole) => handleRoleChange(newRole, index)}
+            setTop={index === 0}
+          />
           {index !== 0 && (
             <Remove>
               <Tooltip tooltip={t("Remove invite")} placement="top">
@@ -228,7 +244,7 @@ const CopyBlock = styled("div")`
 const Remove = styled("div")`
   margin-top: 6px;
   position: absolute;
-  right: -32px;
+  right: -38px;
 `;
 
 export default observer(Invite);
