@@ -56,7 +56,7 @@ function SidebarLink(
 ) {
   const style = React.useMemo(() => {
     return {
-      paddingLeft: `${(depth || 0) * 16 + 16}px`,
+      paddingLeft: `${(depth || 0) * 16 + 12}px`,
     };
   }, [depth]);
 
@@ -134,6 +134,7 @@ const Link = styled(NavLink)`
   padding: 6px 16px;
   border-radius: 4px;
   transition: background 50ms, color 50ms;
+  user-select: none;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
