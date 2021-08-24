@@ -9,12 +9,12 @@ import Empty from "components/Empty";
 import Heading from "components/Heading";
 import InputSearchPage from "components/InputSearchPage";
 import LanguagePrompt from "components/LanguagePrompt";
+import NewDocumentButton from "components/NewDocumentButton";
 import Scene from "components/Scene";
 import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
 import useStores from "../hooks/useStores";
-import NewDocumentMenu from "menus/NewDocumentMenu";
 
 function Home() {
   const { documents, ui, auth } = useStores();
@@ -33,7 +33,7 @@ function Home() {
             <InputSearchPage source="dashboard" label={t("Search documents")} />
           </Action>
           <Action>
-            <NewDocumentMenu />
+            <NewDocumentButton />
           </Action>
         </>
       }

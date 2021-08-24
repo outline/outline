@@ -28,13 +28,13 @@ import Fade from "components/Fade";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import LoadingIndicator from "components/LoadingIndicator";
+import NewDocumentButton from "components/NewDocumentButton";
 import PageTitle from "components/PageTitle";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
 import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
-import NewDocumentMenu from "menus/NewDocumentMenu";
 import { type LocationWithState } from "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
@@ -347,7 +347,7 @@ class Search extends React.Component<Props> {
                       {t("New doc")}
                     </Button>
                   ) : (
-                    <NewDocumentMenu />
+                    <NewDocumentButton />
                   )}
                   &nbsp;&nbsp;
                   <Button as={Link} to="/search" neutral>
