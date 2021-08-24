@@ -536,6 +536,7 @@ async function loadDocument({
 
     // If the user has access to read the document, we can just update
     // the last access date and return the document without additional checks.
+    document.fromShare = true;
     const canReadDocument = can(user, "read", document);
     if (canReadDocument) {
       await share.update({ lastAccessedAt: new Date() });
