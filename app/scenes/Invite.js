@@ -12,7 +12,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
-import UserInviteMenu from "./Settings/components/UserInviteMenu";
+import InputSelectRole from "./Settings/components/InputSelectRole";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
@@ -111,10 +111,10 @@ function Invite({ onSubmit }: Props) {
     });
   }, [showToast, t]);
 
-  const handleRoleChange = React.useCallback((role, index) => {
+  const handleRoleChange = React.useCallback((ev, index) => {
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
-      newInvites[index]["role"] = role || "member";
+      newInvites[index]["role"] = ev.target.value || "member";
       return newInvites;
     });
   }, []);
@@ -192,13 +192,14 @@ function Invite({ onSubmit }: Props) {
             onChange={(ev) => handleChange(ev, index)}
             value={invite.name}
             required={!!invite.email}
-            flex
           />
           &nbsp;
-          <UserInviteMenu
-            activeKey={invite.role}
-            onSelect={(newRole) => handleRoleChange(newRole, index)}
-            setTop={index === 0}
+          <InputSelectRole
+            onChange={(ev) => handleRoleChange(ev, index)}
+            value={invite.role}
+            short
+            labelHidden={index !== 0}
+            flex
           />
           {index !== 0 && (
             <Remove>
@@ -244,7 +245,7 @@ const CopyBlock = styled("div")`
 const Remove = styled("div")`
   margin-top: 6px;
   position: absolute;
-  right: -38px;
+  right: -58px;
 `;
 
 export default observer(Invite);
