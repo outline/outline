@@ -1940,12 +1940,16 @@ describe("#documents.update", () => {
 
   it("should not add template to collection structure when publishing", async () => {
     const user = await buildUser();
-    const collection = await buildCollection({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
     const template = await buildDocument({
       teamId: user.teamId,
       collectionId: collection.id,
       template: true,
       publishedAt: null,
+      userId: user.id,
     });
 
     const res = await server.post("/api/documents.update", {
