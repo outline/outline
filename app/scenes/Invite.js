@@ -27,7 +27,7 @@ type Props = {|
 type InviteRequest = {
   email: string,
   name: string,
-  role: string,
+  role: "member" | "viewer" | "admin",
 };
 
 function Invite({ onSubmit }: Props) {
