@@ -14,7 +14,7 @@ allow(User, ["read", "download"], Document, (user, document) => {
   if (
     !document.fromShare &&
     !document.publishedAt &&
-    document.createdBy !== user.id
+    document.createdById !== user.id
   )
     return false;
 
@@ -30,7 +30,7 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
-  if (!document.publishedAt && document.createdBy !== user.id) return false;
+  if (!document.publishedAt && document.createdById !== user.id) return false;
 
   invariant(
     document.collection,
@@ -44,7 +44,7 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
 allow(User, "share", Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
-  if (!document.publishedAt && document.createdBy !== user.id) return false;
+  if (!document.publishedAt && document.createdById !== user.id) return false;
 
   if (cannot(user, "share", document.collection)) {
     return false;
@@ -56,7 +56,7 @@ allow(User, "share", Document, (user, document) => {
 allow(User, "update", Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
-  if (!document.publishedAt && document.createdBy.id !== user.id) return false;
+  if (!document.publishedAt && document.createdById !== user.id) return false;
 
   if (cannot(user, "update", document.collection)) {
     return false;
@@ -112,7 +112,7 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
 allow(User, "delete", Document, (user, document) => {
   if (user.isViewer) return false;
   if (document.deletedAt) return false;
-  if (!document.publishedAt && document.createdBy !== user.id) return false;
+  if (!document.publishedAt && document.createdById !== user.id) return false;
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
