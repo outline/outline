@@ -36,6 +36,9 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
 allow(User, "share", Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  if (!document.publishedAt && !document.collection) {
+    return false;
+  }
 
   invariant(
     document.collection,
