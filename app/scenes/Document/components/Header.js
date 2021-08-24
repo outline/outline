@@ -545,8 +545,8 @@ const Wrapper = styled.div`
 const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
-  right: 2vh;
-  top: 2vh;
+  right: 8vh;
+  top: 4vh;
 
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
