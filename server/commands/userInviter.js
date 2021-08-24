@@ -3,7 +3,11 @@ import { uniqBy } from "lodash";
 import mailer from "../mailer";
 import { User, Event, Team } from "../models";
 
-type Invite = { name: string, email: string, role: string };
+type Invite = {
+  name: string,
+  email: string,
+  role: "member" | "viewer" | "admin",
+};
 
 export default async function userInviter({
   user,
