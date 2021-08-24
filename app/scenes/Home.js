@@ -64,7 +64,7 @@ function Home() {
             documents={documents.createdByUser(user)}
             fetch={documents.fetchOwned}
             options={{ user }}
-            empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
+            empty={<Empty>{t("You haven’t created any documents yet")}</Empty>}
             showCollection
           />
         </Route>

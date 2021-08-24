@@ -159,6 +159,7 @@ function CollectionLink({
                 />
               }
               exact={false}
+              depth={0.5}
               menu={
                 <>
                   {can.update && (
@@ -198,7 +199,7 @@ function CollectionLink({
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}
             canUpdate={canUpdate}
-            depth={1.5}
+            depth={2}
             index={index}
           />
         ))}

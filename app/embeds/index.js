@@ -8,6 +8,7 @@ import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
 import Descript from "./Descript";
+import Diagrams from "./Diagrams";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
@@ -114,6 +115,13 @@ export default [
     icon: () => <Img src="/images/github-gist.png" />,
     component: Gist,
     matcher: matcher(Gist),
+  },
+  {
+    title: "Diagrams.net",
+    keywords: "diagrams drawio",
+    icon: () => <Img src="/images/diagrams.png" />,
+    component: Diagrams,
+    matcher: matcher(Diagrams),
   },
   {
     title: "Google Drawings",

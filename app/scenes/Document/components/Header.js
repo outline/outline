@@ -82,12 +82,6 @@ function DocumentHeader({
   const { showToast } = useToasts();
   const dialog = useDialogState({ modal: true });
   const theme = useTheme();
-  const isNew = document.isNewDocument;
-  const isTemplate = document.isTemplate;
-  const can = policies.abilities(document.id);
-  const canShareDocument = auth.team && auth.team.sharing && can.share;
-  const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
-  const canEdit = can.update && !isEditing;
   const hasCollection = collections.get(document.computedCollectionId);
   const [searchTerm, setSearchTerm] = React.useState();
   const [selectedPath, setSelectedPath] = React.useState<?DocumentPath>();
@@ -216,6 +210,11 @@ function DocumentHeader({
   };
 
   const data = results;
+  const isNew = document.isNewDocument;
+  const isTemplate = document.isTemplate;
+  const can = policies.abilities(document.id);
+  const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
+  const canEdit = can.update && !isEditing;
 
   const toc = (
     <Tooltip
@@ -305,7 +304,7 @@ function DocumentHeader({
                 <TemplatesMenu document={document} />
               </Action>
             )}
-            {!isEditing && canShareDocument && (!isMobile || !isTemplate) && (
+            {!isEditing && (!isMobile || !isTemplate) && (
               <Action>
                 <ShareButton document={document} />
               </Action>
