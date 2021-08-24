@@ -7,11 +7,13 @@ import AuthLogo from "components/AuthLogo";
 import ButtonLarge from "components/ButtonLarge";
 import InputLarge from "components/InputLarge";
 import { client } from "utils/ApiClient";
+import TelegramLoginButton from './TelegramLogin'
 
 type Props = {
   id: string,
   name: string,
   authUrl: string,
+  data: string,
   isCreate: boolean,
   onEmailSuccess: (email: string) => void,
   t: TFunction,
@@ -58,7 +60,7 @@ class Provider extends React.Component<Props, State> {
   };
 
   render() {
-    const { isCreate, id, name, authUrl, t } = this.props;
+    const { isCreate, id, name, authUrl, data, t } = this.props;
 
     if (id === "email") {
       if (isCreate) {
@@ -99,8 +101,19 @@ class Provider extends React.Component<Props, State> {
       );
     }
 
-    return (
-      <Wrapper key={id}>
+    if (id == "telegram") {
+      return (
+        <Wrapper key={id}>
+          <TelegramLoginButton
+          bot_id={parseInt(data)}
+          icon={<AuthLogo providerName={id} />}
+          />
+          </Wrapper>
+      );
+
+    } else {
+      return (
+        <Wrapper key={id}>
         <ButtonLarge
           onClick={() => (window.location.href = authUrl)}
           icon={<AuthLogo providerName={id} />}
@@ -110,8 +123,9 @@ class Provider extends React.Component<Props, State> {
             authProviderName: name,
           })}
         </ButtonLarge>
-      </Wrapper>
-    );
+        </Wrapper>
+        );
+     }
   }
 }
 

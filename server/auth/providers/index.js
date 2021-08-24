@@ -29,6 +29,7 @@ requireDirectory(__dirname).forEach(([module, id]) => {
       name: config.name,
       enabled: config.enabled,
       authUrl: signin(id),
+      data: config.data,
       router: router,
     });
   }

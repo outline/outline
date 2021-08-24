@@ -116,6 +116,7 @@
     "passport": "^0.4.1",
     "passport-google-oauth2": "^0.2.0",
     "passport-slack-oauth2": "^1.1.0",
+    "passport-telegram-official": "^1.1.0",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "polished": "3.6.5",
