@@ -163,7 +163,7 @@ Document.associate = (models) => {
       },
     },
   });
-  Document.addScope("withCollection", (userId) => {
+  Document.addScope("withCollection", (userId, paranoid = true) => {
     if (userId) {
       return {
         include: [
@@ -172,6 +172,7 @@ Document.associate = (models) => {
               method: ["withMembership", userId],
             }),
             as: "collection",
+            paranoid,
           },
         ],
       };
@@ -221,7 +222,7 @@ Document.findByPk = async function (id, options = {}) {
   const scope = this.scope(
     "withUnpublished",
     {
-      method: ["withCollection", options.userId],
+      method: ["withCollection", options.userId, options.paranoid],
     },
     {
       method: ["withViews", options.userId],

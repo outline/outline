@@ -136,7 +136,11 @@ allow(User, "restore", Document, (user, document) => {
   if (user.isViewer) return false;
   if (!document.deletedAt) return false;
 
-  if (document.collection && cannot(user, "update", document.collection)) {
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to set 'paranoid' to 'false' in the query scope?"
+  );
+  if (cannot(user, "update", document.collection)) {
     return false;
   }
 

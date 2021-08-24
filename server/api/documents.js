@@ -575,14 +575,7 @@ async function loadDocument({
     }
 
     if (document.deletedAt) {
-      // if the doc collection is deleted, we check if the current user was present in the collection.
-      if (document.collectionId && !document.collection) {
-        const collection = await Collection.scope({
-          method: ["withMembership", user.id],
-        }).findByPk(document.collectionId);
-
-        authorize(user, "update", collection);
-      }
+      // don't send data if user cannot restore deleted doc
       authorize(user, "restore", document);
     } else {
       authorize(user, "read", document);
