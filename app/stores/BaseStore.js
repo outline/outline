@@ -74,7 +74,6 @@ export default class BaseStore<T: BaseModel> {
   }
 
   get(id: string): ?T {
-    if (!id) return undefined;
     return this.data.get(id);
   }
 
