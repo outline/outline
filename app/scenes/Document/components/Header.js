@@ -23,6 +23,7 @@ import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
+import Divider from "components/Divider";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Flex from "components/Flex";
 import Header from "components/Header";
@@ -32,6 +33,7 @@ import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "menus/TableOfContentsMenu";
@@ -77,7 +79,8 @@ function DocumentHeader({
   const { t } = useTranslation();
   const { auth, ui, policies, collections, documents } = useStores();
   const isMobile = useMobile();
-  const dialog = useDialogState({ modal: false });
+  const { showToast } = useToasts();
+  const dialog = useDialogState({ modal: true });
   const theme = useTheme();
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
@@ -87,6 +90,26 @@ function DocumentHeader({
   const canEdit = can.update && !isEditing;
   const hasCollection = collections.get(document.computedCollectionId);
   const [searchTerm, setSearchTerm] = React.useState();
+  const [selectedPath, setSelectedPath] = React.useState<?DocumentPath>();
+
+  const checked = React.useCallback(
+    (result) => {
+      if (!selectedPath) return;
+
+      if (selectedPath.type === "collection" && selectedPath.id === result.id) {
+        return true;
+      }
+      if (
+        selectedPath.type === "document" &&
+        selectedPath.id === result.id &&
+        selectedPath.collectionId === result.collectionId
+      ) {
+        return true;
+      }
+      return false;
+    },
+    [selectedPath]
+  );
 
   const handleSave = React.useCallback(() => {
     onSave({ done: true });
@@ -154,18 +177,26 @@ function DocumentHeader({
     return results;
   }, [document, collections, searchTerm, searchIndex]);
 
-  const handleSuccess = async (result: DocumentPath) => {
+  const handlePublishFromModal = async () => {
     if (!document) return;
+    if (!selectedPath) {
+      showToast(t("Please select a path"));
+      return;
+    }
     dialog.setVisible(false);
 
-    if (result.type === "collection") {
-      onSave({ done: true, publish: true, collectionId: result.collectionId });
+    if (selectedPath.type === "collection") {
+      onSave({
+        done: true,
+        publish: true,
+        collectionId: selectedPath.collectionId,
+      });
     } else {
       onSave({
         done: true,
         publish: true,
-        collectionId: result.collectionId,
-        parentDocumentId: result.id,
+        collectionId: selectedPath.collectionId,
+        parentDocumentId: selectedPath.id,
       });
     }
   };
@@ -177,8 +208,9 @@ function DocumentHeader({
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}
-        onSuccess={handleSuccess}
+        onSelect={(result) => setSelectedPath(result)}
         style={style}
+        checked={checked(result)}
       />
     );
   };
@@ -334,14 +366,14 @@ function DocumentHeader({
             )}
             {can.update && isDraft && !isRevision && !hasCollection && (
               <Wrapper>
-                <Position>
-                  <DialogBackdrop {...dialog}>
-                    <Dialog
-                      {...dialog}
-                      aria-label="Choose a collection"
-                      preventBodyScroll
-                      hideOnEsc
-                    >
+                <DialogBackdrop {...dialog}>
+                  <Dialog
+                    {...dialog}
+                    aria-label="Choose a collection"
+                    preventBodyScroll
+                    hideOnEsc
+                  >
+                    <Position>
                       <Content>
                         <Flex align="center">
                           <StyledIcon
@@ -379,10 +411,19 @@ function DocumentHeader({
                             }}
                           </AutoSizer>
                         </Results>
+                        <Divider />
+                        <ButtonWrapper justify="flex-end">
+                          <Button
+                            disabled={!selectedPath}
+                            onClick={handlePublishFromModal}
+                          >
+                            Publish
+                          </Button>
+                        </ButtonWrapper>
                       </Content>
-                    </Dialog>
-                  </DialogBackdrop>
-                </Position>
+                    </Position>
+                  </Dialog>
+                </DialogBackdrop>
               </Wrapper>
             )}
             {can.update && isDraft && !isRevision && (
@@ -442,17 +483,18 @@ const TocWrapper = styled(Action)`
   left: 42px;
 `;
 
+const ButtonWrapper = styled(Flex)`
+  margin: 10px 0;
+`;
+
 const Content = styled.div`
   background: ${(props) => props.theme.background};
-  width: 35vh;
-  max-width: 332px;
-  height: 42vh;
-  max-height: 400px;
+  width: 70vw;
+  max-width: 600px;
+  height: 40vh;
+  max-height: 500px;
   border-radius: 8px;
-  position: absolute;
   padding: 10px;
-  right: -10vh;
-  margin-right: 2vh;
   box-shadow: ${(props) => props.theme.menuShadow};
 
   ${breakpoint("mobile", "tablet")`
@@ -503,6 +545,8 @@ const Wrapper = styled.div`
 const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
+  right: 2vh;
+  top: 2vh;
 
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
@@ -516,7 +560,7 @@ const Position = styled.div`
 
 const Results = styled.div`
   padding: 8px 0;
-  height: calc(100% - 46px);
+  height: calc(93% - 52px);
 `;
 
 export default observer(DocumentHeader);

@@ -3,13 +3,14 @@ import { Search } from "js-search";
 import { last } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
 import { type DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
+import Button from "components/Button";
 import Flex from "components/Flex";
 import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
@@ -25,8 +26,28 @@ type Props = {|
 function DocumentMove({ document, onRequestClose }: Props) {
   const [searchTerm, setSearchTerm] = useState();
   const { collections, documents } = useStores();
+  const [selectedPath, setSelectedPath] = useState<?DocumentPath>();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+
+  const checked = useCallback(
+    (result) => {
+      if (!selectedPath) return;
+
+      if (selectedPath.type === "collection" && selectedPath.id === result.id) {
+        return true;
+      }
+      if (
+        selectedPath.type === "document" &&
+        selectedPath.id === result.id &&
+        selectedPath.collectionId === result.collectionId
+      ) {
+        return true;
+      }
+      return false;
+    },
+    [selectedPath]
+  );
 
   const searchIndex = useMemo(() => {
     const paths = collections.pathsToDocuments;
@@ -78,13 +99,18 @@ function DocumentMove({ document, onRequestClose }: Props) {
     return results;
   }, [document, collections, searchTerm, searchIndex]);
 
-  const handleSuccess = async (result: DocumentPath) => {
+  const handlePublish = async () => {
     if (!document) return;
 
-    if (result.type === "document") {
-      await document.move(result.collectionId, result.id);
+    if (!selectedPath) {
+      showToast(t("Please select a path"));
+      return;
+    }
+
+    if (selectedPath.type === "document") {
+      await document.move(selectedPath.collectionId, selectedPath.id);
     } else {
-      await document.move(result.collectionId, null);
+      await document.move(selectedPath.collectionId, null);
     }
 
     showToast(t("Document moved"), { type: "info" });
@@ -113,11 +139,13 @@ function DocumentMove({ document, onRequestClose }: Props) {
 
     return (
       <PathToDocument
+        key={result.id + result.type}
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}
-        onSuccess={handleSuccess}
+        onSelect={(result) => setSelectedPath(result)}
         style={style}
+        checked={checked(result)}
       />
     );
   };
@@ -168,6 +196,9 @@ function DocumentMove({ document, onRequestClose }: Props) {
             </AutoSizer>
           </Results>
         </NewLocation>
+        <Flex justify="flex-end">
+          <Button onClick={handlePublish}>Publish</Button>
+        </Flex>
       </Section>
     </Flex>
   );

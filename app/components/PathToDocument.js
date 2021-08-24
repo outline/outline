@@ -6,6 +6,7 @@ import styled from "styled-components";
 import type { DocumentPath } from "stores/CollectionsStore";
 import Collection from "models/Collection";
 import Document from "models/Document";
+import Checkbox from "components/Checkbox";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
 
@@ -13,21 +14,22 @@ type Props = {
   result: DocumentPath,
   document?: ?Document,
   collection: ?Collection,
-  onSuccess?: (DocumentPath) => Promise<void>,
+  checked?: boolean,
+  onSelect?: (DocumentPath) => void,
   style?: Object,
   ref?: (?React.ElementRef<"div">) => void,
 };
 
 @observer
 class PathToDocument extends React.Component<Props> {
-  handleClick = async (ev: SyntheticEvent<>) => {
+  handleClick = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    const { onSuccess, result } = this.props;
-    if (onSuccess) await onSuccess(result);
+    const { onSelect, result } = this.props;
+    onSelect && onSelect(result);
   };
 
   render() {
-    const { result, collection, document, ref, style } = this.props;
+    const { result, collection, document, ref, style, checked } = this.props;
     const Component = document ? ResultWrapperLink : ResultWrapper;
 
     if (!result) return <div />;
@@ -41,16 +43,23 @@ class PathToDocument extends React.Component<Props> {
         role="option"
         selectable
       >
-        {collection && <CollectionIcon collection={collection} />}
-        &nbsp;
-        {result.path
-          .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
-          .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
-        {document && (
-          <DocumentTitle>
-            {" "}
-            <StyledGoToIcon /> <Title>{document.title}</Title>
-          </DocumentTitle>
+        <Flex>
+          {collection && <CollectionIcon collection={collection} />}
+          &nbsp;
+          {result.path
+            .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
+            .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
+          {document && (
+            <DocumentTitle>
+              {" "}
+              <StyledGoToIcon /> <Title>{document.title}</Title>
+            </DocumentTitle>
+          )}
+        </Flex>
+        {checked && (
+          <ChechboxWrapper>
+            <Checkbox onChange={() => {}} checked={checked} />
+          </ChechboxWrapper>
         )}
       </Component>
     );
@@ -58,6 +67,11 @@ class PathToDocument extends React.Component<Props> {
 }
 
 const DocumentTitle = styled(Flex)``;
+
+const ChechboxWrapper = styled(Flex)`
+  align-content: center;
+  margin: 0 5px;
+`;
 
 const Title = styled.span`
   white-space: nowrap;
@@ -69,21 +83,18 @@ const StyledGoToIcon = styled(GoToIcon)`
   fill: ${(props) => props.theme.divider};
 `;
 
-const ResultWrapper = styled.div`
+const ResultWrapper = styled.div``;
+
+const ResultWrapperLink = styled.div`
+  padding: 8px 4px;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 10px;
   user-select: none;
 
   color: ${(props) => props.theme.text};
   cursor: default;
-
-  svg {
-    flex-shrink: 0;
-  }
-`;
-
-const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
-  padding: 8px 4px;
 
   ${DocumentTitle} {
     display: none;
