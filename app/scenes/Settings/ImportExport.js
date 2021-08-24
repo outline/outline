@@ -38,7 +38,6 @@ function ImportExport() {
 
   const stateMapping = {
     creating: t("Processing"),
-    complete: t("Complete"),
     expired: t("Expired"),
     uploading: t("Processing"),
     error: t("Error"),
@@ -231,7 +230,9 @@ function ImportExport() {
             subtitle={
               <>
                 <Flex>
-                  {stateMapping[item.state]}&nbsp;•&nbsp;
+                  {item.state !== "complete" && (
+                    <>{stateMapping[item.state]}&nbsp;•&nbsp;</>
+                  )}
                   {t(`{{userName}} requested`, {
                     userName:
                       user.id === item.user.id ? t("You") : item.user.name,
