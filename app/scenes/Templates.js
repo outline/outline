@@ -51,7 +51,7 @@ function Templates(props: Props) {
         }
         empty={
           <Empty>
-            {t("There are no templates just yet.")}
+            {t("There are no templates just yet.")}{" "}
             {can.createDocument &&
               t(
                 "You can create templates to help your team create consistent and accurate documentation."
