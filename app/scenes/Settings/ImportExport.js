@@ -212,15 +212,15 @@ function ImportExport() {
       </Button>
       <br />
       <br />
-      {fileOperations.orderedDataExports.length > 0 && (
-        <Subheading>
-          <Trans>Recent exports</Trans>
-        </Subheading>
-      )}
       <PaginatedList
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
         options={{ type: "export" }}
+        heading={
+          <Subheading>
+            <Trans>Recent exports</Trans>
+          </Subheading>
+        }
         renderItem={(item) => (
           <ListItem
             key={item.id}
