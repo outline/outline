@@ -212,11 +212,6 @@ function ImportExport() {
       </Button>
       <br />
       <br />
-      {fileOperations.orderedDataExports.length > 0 && (
-        <Subheading>
-          <Trans>Recent exports</Trans>
-        </Subheading>
-      )}
       <PaginatedList
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
