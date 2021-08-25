@@ -159,11 +159,13 @@ async function exportAndEmailCollections({
     if (state === "error") {
       mailer.exportFailure({
         to: email,
+        teamUrl: team.url,
       });
     } else {
       mailer.exportSuccess({
         to: email,
         id: exportData.id,
+        teamUrl: team.url,
       });
     }
   }

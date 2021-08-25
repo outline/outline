@@ -14,7 +14,13 @@ Your Data Export
 Your requested data export is complete, the exported files are also available in the admin section.
 `;
 
-export const ExportSuccessEmail = ({ id }: { id: string }) => {
+export const ExportSuccessEmail = ({
+  id,
+  teamUrl,
+}: {
+  id: string,
+  teamUrl: string,
+}) => {
   return (
     <EmailTemplate>
       <Header />
@@ -27,9 +33,7 @@ export const ExportSuccessEmail = ({ id }: { id: string }) => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button
-            href={`${process.env.URL}/api/fileOperations.redirect?id=${id}`}
-          >
+          <Button href={`${teamUrl}/api/fileOperations.redirect?id=${id}`}>
             Download
           </Button>
         </p>

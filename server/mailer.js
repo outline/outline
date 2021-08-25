@@ -22,7 +22,7 @@ import {
 import {
   ExportSuccessEmail,
   exportEmailSuccessText,
-} from "./emails/ExportSucessEmail";
+} from "./emails/ExportSuccessEmail";
 import {
   type Props as InviteEmailT,
   InviteEmail,
@@ -120,24 +120,29 @@ export class Mailer {
     to: string,
     attachments?: Object[],
     id: string,
+    teamUrl: string,
   }) => {
     this.sendMail({
       to: opts.to,
       attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Here's your request data export from Outline",
-      html: <ExportSuccessEmail id={opts.id} />,
+      html: <ExportSuccessEmail id={opts.id} teamUrl={opts.teamUrl} />,
       text: exportEmailSuccessText,
     });
   };
 
-  exportFailure = async (opts: { to: string, attachments?: Object[] }) => {
+  exportFailure = async (opts: {
+    to: string,
+    attachments?: Object[],
+    teamUrl: string,
+  }) => {
     this.sendMail({
       to: opts.to,
       attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Sorry, your requested data export has failed",
-      html: <ExportFailureEmail />,
+      html: <ExportFailureEmail teamUrl={opts.teamUrl} />,
       text: exportEmailFailureText,
     });
   };
