@@ -1,39 +1,29 @@
 // @flow
-import { Search } from "js-search";
-import { last } from "lodash";
 import { observer } from "mobx-react";
 import {
   TableOfContentsIcon,
   EditIcon,
   PlusIcon,
   MoreIcon,
-  SearchIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { FixedSizeList as List } from "react-window";
-import { Dialog, DialogBackdrop, useDialogState } from "reakit";
-import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import { type DocumentPath } from "stores/CollectionsStore";
+import { useDialogState } from "reakit";
+import styled from "styled-components";
 import Document from "models/Document";
 import { Action, Separator } from "components/Actions";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Collaborators from "components/Collaborators";
-import Divider from "components/Divider";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
-import Flex from "components/Flex";
 import Header from "components/Header";
-import PathToDocument from "components/PathToDocument";
 import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
+import PublishDialog from "./PublishDialog";
 import ShareButton from "./ShareButton";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "menus/TableOfContentsMenu";
@@ -77,33 +67,10 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { auth, ui, policies, collections, documents } = useStores();
+  const { auth, ui, policies, collections } = useStores();
   const isMobile = useMobile();
-  const { showToast } = useToasts();
   const dialog = useDialogState({ modal: true });
-  const theme = useTheme();
   const hasCollection = collections.get(document.computedCollectionId);
-  const [searchTerm, setSearchTerm] = React.useState();
-  const [selectedPath, setSelectedPath] = React.useState<?DocumentPath>();
-
-  const checked = React.useCallback(
-    (result) => {
-      if (!selectedPath) return;
-
-      if (selectedPath.type === "collection" && selectedPath.id === result.id) {
-        return true;
-      }
-      if (
-        selectedPath.type === "document" &&
-        selectedPath.id === result.id &&
-        selectedPath.collectionId === result.collectionId
-      ) {
-        return true;
-      }
-      return false;
-    },
-    [selectedPath]
-  );
 
   const handleSave = React.useCallback(() => {
     onSave({ done: true });
@@ -117,99 +84,6 @@ function DocumentHeader({
     onSave({ done: true, publish: true });
   }, [dialog, hasCollection, onSave]);
 
-  const handleFilter = (ev) => {
-    setSearchTerm(ev.target.value);
-  };
-
-  const searchIndex = React.useMemo(() => {
-    const paths = collections.pathsToDocuments;
-    const index = new Search("id");
-    index.addIndex("title");
-
-    // Build index
-    const indexeableDocuments = [];
-    paths.forEach((path) => {
-      const doc = documents.get(path.id);
-      if (!doc || !doc.isTemplate) {
-        indexeableDocuments.push(path);
-      }
-    });
-    index.addDocuments(indexeableDocuments);
-
-    return index;
-  }, [documents, collections.pathsToDocuments]);
-
-  const results: DocumentPath[] = React.useMemo(() => {
-    const onlyShowCollections = document.isTemplate;
-    let results = [];
-    if (collections.isLoaded) {
-      if (searchTerm) {
-        results = searchIndex.search(searchTerm);
-      } else {
-        results = searchIndex._documents;
-      }
-    }
-
-    if (onlyShowCollections) {
-      results = results.filter((result) => result.type === "collection");
-    } else {
-      // Exclude root from search results if document is already at the root
-      if (!document.parentDocumentId) {
-        results = results.filter(
-          (result) => result.id !== document.collectionId
-        );
-      }
-
-      // Exclude document if on the path to result, or the same result
-      results = results.filter(
-        (result) =>
-          !result.path.map((doc) => doc.id).includes(document.id) &&
-          last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
-      );
-    }
-
-    return results;
-  }, [document, collections, searchTerm, searchIndex]);
-
-  const handlePublishFromModal = async () => {
-    if (!document) return;
-    if (!selectedPath) {
-      showToast(t("Please select a path"));
-      return;
-    }
-    dialog.setVisible(false);
-
-    if (selectedPath.type === "collection") {
-      onSave({
-        done: true,
-        publish: true,
-        collectionId: selectedPath.collectionId,
-      });
-    } else {
-      onSave({
-        done: true,
-        publish: true,
-        collectionId: selectedPath.collectionId,
-        parentDocumentId: selectedPath.id,
-      });
-    }
-  };
-
-  const row = ({ index, data, style }) => {
-    const result = data[index];
-    return (
-      <PathToDocument
-        result={result}
-        document={document}
-        collection={collections.get(result.collectionId)}
-        onSelect={(result) => setSelectedPath(result)}
-        style={style}
-        checked={checked(result)}
-      />
-    );
-  };
-
-  const data = results;
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
@@ -364,66 +238,11 @@ function DocumentHeader({
               </Action>
             )}
             {can.update && isDraft && !isRevision && !hasCollection && (
-              <Wrapper>
-                <DialogBackdrop {...dialog}>
-                  <Dialog
-                    {...dialog}
-                    aria-label="Choose a collection"
-                    preventBodyScroll
-                    hideOnEsc
-                  >
-                    <Position>
-                      <Content>
-                        <Flex align="center">
-                          <StyledIcon
-                            type="Search"
-                            size={26}
-                            color={theme.textTertiary}
-                          />
-                          <Input
-                            type="search"
-                            placeholder={`${t(
-                              "Search collections & documents"
-                            )}…`}
-                            onChange={handleFilter}
-                            autoFocus
-                          />
-                        </Flex>
-                        <Results>
-                          <AutoSizer>
-                            {({ width, height }) => {
-                              return (
-                                <Flex role="listbox" column>
-                                  <List
-                                    key={data.length}
-                                    width={width}
-                                    height={height}
-                                    itemData={data}
-                                    itemCount={data.length}
-                                    itemSize={40}
-                                    itemKey={(index, data) => data[index].id}
-                                  >
-                                    {row}
-                                  </List>
-                                </Flex>
-                              );
-                            }}
-                          </AutoSizer>
-                        </Results>
-                        <Divider />
-                        <ButtonWrapper justify="flex-end">
-                          <Button
-                            disabled={!selectedPath}
-                            onClick={handlePublishFromModal}
-                          >
-                            Publish
-                          </Button>
-                        </ButtonWrapper>
-                      </Content>
-                    </Position>
-                  </Dialog>
-                </DialogBackdrop>
-              </Wrapper>
+              <PublishDialog
+                dialog={dialog}
+                document={document}
+                onSave={onSave}
+              />
             )}
             {can.update && isDraft && !isRevision && (
               <Action>
@@ -480,86 +299,6 @@ const Status = styled(Action)`
 const TocWrapper = styled(Action)`
   position: absolute;
   left: 42px;
-`;
-
-const ButtonWrapper = styled(Flex)`
-  margin: 10px 0;
-`;
-
-const Content = styled.div`
-  background: ${(props) => props.theme.background};
-  width: 70vw;
-  max-width: 600px;
-  height: 40vh;
-  max-height: 500px;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: ${(props) => props.theme.menuShadow};
-
-  ${breakpoint("mobile", "tablet")`
-    right: -2vh;
-    width: 90vw;
-`};
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 10px 10px 10px 40px;
-  font-size: 16px;
-  font-weight: 400;
-  outline: none;
-  border: 0;
-  background: ${(props) => props.theme.sidebarBackground};
-  transition: ${(props) => props.theme.backgroundTransition};
-  border-radius: 4px;
-
-  color: ${(props) => props.theme.text};
-
-  ::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-  }
-  ::-webkit-input-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-  :-moz-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-  ::-moz-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-  :-ms-input-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-`;
-
-const StyledIcon = styled(SearchIcon)`
-  position: absolute;
-  left: 12px;
-`;
-
-const Wrapper = styled.div`
-  position: relative;
-`;
-
-const Position = styled.div`
-  position: absolute;
-  z-index: ${(props) => props.theme.depths.menu};
-  right: 8vh;
-  top: 4vh;
-
-  ${breakpoint("mobile", "tablet")`
-    position: fixed !important;
-    transform: none !important;
-    top: auto !important;
-    right: 8px !important;
-    bottom: 16px !important;
-    left: 8px !important;
-  `};
-`;
-
-const Results = styled.div`
-  padding: 8px 0;
-  height: calc(93% - 52px);
 `;
 
 export default observer(DocumentHeader);
