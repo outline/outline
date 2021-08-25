@@ -23,7 +23,7 @@ export const ExportFailureEmail = () => {
       <Body>
         <Heading>Your Data Export</Heading>
         <p>
-          Sorry, your requested data export has failed, please visit the export
+          Sorry, your requested data export has failed, please visit the admin
           section to try again – if the problem persists please contact support.
         </p>
         <EmptySpace height={10} />
