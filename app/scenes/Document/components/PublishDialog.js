@@ -36,6 +36,12 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
   const { collections, documents } = useStores();
   const { showToast } = useToasts();
 
+  React.useEffect(() => {
+    if (!dialog.visible) {
+      setSelectedPath(undefined);
+    }
+  }, [dialog.visible]);
+
   const handleFilter = (ev) => {
     setSearchTerm(ev.target.value);
   };
@@ -64,7 +70,7 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     }
   };
 
-  const checked = React.useCallback(
+  const selected = React.useCallback(
     (result) => {
       if (!selectedPath) return;
 
@@ -140,9 +146,9 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}
-        onSelect={(result) => setSelectedPath(result)}
+        setSelectedPath={setSelectedPath}
         style={style}
-        checked={checked(result)}
+        selected={selected(result)}
       />
     );
   };

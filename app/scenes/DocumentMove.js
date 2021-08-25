@@ -30,7 +30,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
-  const checked = useCallback(
+  const selected = useCallback(
     (result) => {
       if (!selectedPath) return;
 
@@ -143,9 +143,9 @@ function DocumentMove({ document, onRequestClose }: Props) {
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}
-        onSelect={(result) => setSelectedPath(result)}
+        setSelectedPath={setSelectedPath}
         style={style}
-        checked={checked(result)}
+        selected={selected(result)}
       />
     );
   };
