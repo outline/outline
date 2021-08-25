@@ -23,8 +23,15 @@ export const ExportFailureEmail = ({ teamUrl }: { teamUrl: string }) => {
       <Body>
         <Heading>Your Data Export</Heading>
         <p>
-          Sorry, your requested data export has failed, please visit the admin
-          section to try again – if the problem persists please contact support.
+          Sorry, your requested data export has failed, please visit the{" "}
+          <a
+            href={`${teamUrl}/settings/import-export`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            admin section
+          </a>
+          . to try again – if the problem persists please contact support.
         </p>
         <EmptySpace height={10} />
         <p>

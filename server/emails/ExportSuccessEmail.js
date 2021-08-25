@@ -29,7 +29,15 @@ export const ExportSuccessEmail = ({
         <Heading>Your Data Export</Heading>
         <p>
           Your requested data export is complete, the exported files are also
-          available in the admin section.
+          available in the{" "}
+          <a
+            href={`${teamUrl}/settings/import-export`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            admin section
+          </a>
+          .
         </p>
         <EmptySpace height={10} />
         <p>
