@@ -1060,7 +1060,7 @@ router.post("documents.update", auth(), async (ctx) => {
       editorVersion,
       parentDocumentId,
     },
-    ctx.user.ip
+    ctx.request.ip
   );
 
   ctx.body = {
