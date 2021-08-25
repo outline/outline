@@ -11,7 +11,7 @@ import Heading from "./components/Heading";
 export const exportEmailFailureText = `
 Your Data Export
 
-Sorry, your requested data export has failed, please visit the export
+Sorry, your requested data export has failed, please visit the admin
 section to try again – if the problem persists please contact support.
 `;
 
