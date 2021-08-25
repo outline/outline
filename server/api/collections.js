@@ -480,7 +480,7 @@ router.post("collections.export", auth(), async (ctx) => {
     teamId: team.id,
   });
 
-  exportCollections(user.teamId, user.id, user.email, id, exportData.id);
+  exportCollections(user.teamId, user.id, user.email, exportData.id, id);
 
   exportData.user = user;
   exportData.collection = collection;
@@ -512,7 +512,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
   });
 
   // async operation to upload zip archive to cloud and email user with link
-  exportCollections(user.teamId, user.id, user.email);
+  exportCollections(user.teamId, user.id, user.email, exportData.id);
 
   exportData.user = user;
   exportData.collection = null;
