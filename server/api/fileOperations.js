@@ -110,11 +110,11 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
     throw new NotFoundError();
   }
 
+  authorize(user, fileOp.type, team);
+
   if (fileOp.state !== "complete") {
     throw new ValidationError("file operation is not complete yet");
   }
-
-  authorize(user, fileOp.type, team);
 
   const accessUrl = await getSignedUrl(fileOp.key);
 
