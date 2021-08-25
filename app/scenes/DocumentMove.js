@@ -99,7 +99,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
     return results;
   }, [document, collections, searchTerm, searchIndex]);
 
-  const handlePublish = async () => {
+  const handleMove = async () => {
     if (!document) return;
 
     if (!selectedPath) {
@@ -197,7 +197,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
           </Results>
         </NewLocation>
         <Flex justify="flex-end">
-          <Button onClick={handlePublish}>
+          <Button onClick={handleMove} disabled={!selectedPath}>
             <Trans>Move</Trans>
           </Button>
         </Flex>
