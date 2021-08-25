@@ -4,7 +4,7 @@ import { last } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useMemo, useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
@@ -197,7 +197,9 @@ function DocumentMove({ document, onRequestClose }: Props) {
           </Results>
         </NewLocation>
         <Flex justify="flex-end">
-          <Button onClick={handlePublish}>Publish</Button>
+          <Button onClick={handlePublish}>
+            <Trans>Move</Trans>
+          </Button>
         </Flex>
       </Section>
     </Flex>
