@@ -18,7 +18,9 @@ class FileOperation extends BaseModal {
     const inKB = this.size / 1024;
     if (inKB < 1024) {
       return inKB.toFixed(2) + "KB";
-    } else return (inKB / 1024).toFixed(2) + "MB";
+    }
+
+    return (inKB / 1024).toFixed(2) + "MB";
   }
 }
 
