@@ -465,9 +465,8 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
 
-  const name = collection ? collection.name : team.name;
   const acl = process.env.AWS_S3_ACL || "private";
-  const key = getAWSKeyForFileOp(team.id, name, acl);
+  const key = getAWSKeyForFileOp(team.id, collection.name, acl);
 
   let exportData;
   exportData = await FileOperation.create({
@@ -497,11 +496,30 @@ router.post("collections.export_all", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
+  const acl = process.env.AWS_S3_ACL || "private";
+  const key = getAWSKeyForFileOp(team.id, team.name, acl);
+
+  let exportData;
+  exportData = await FileOperation.create({
+    type: "export",
+    state: "creating",
+    key,
+    url: null,
+    size: 0,
+    collectionId: null,
+    userId: user.id,
+    teamId: team.id,
+  });
+
   // async operation to upload zip archive to cloud and email user with link
   exportCollections(user.teamId, user.id, user.email);
 
+  exportData.user = user;
+  exportData.collection = null;
+
   ctx.body = {
     success: true,
+    data: { fileOperation: presentFileOperation(exportData) },
   };
 });
 
