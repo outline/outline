@@ -8,15 +8,13 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import { parseOutlineExport } from "shared/utils/zip";
 import Button from "components/Button";
-import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
-import ListItem from "components/List/Item";
 import Notice from "components/Notice";
 import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
-import Time from "components/Time";
+import FileOperationListItem from "./components/FileOperationListItem";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -35,13 +33,6 @@ function ImportExport() {
   const [isExporting, setExporting] = React.useState(false);
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
-
-  const stateMapping = {
-    creating: t("Processing"),
-    expired: t("Expired"),
-    uploading: t("Processing"),
-    error: t("Error"),
-  };
 
   const handleImport = React.useCallback(
     async (ev) => {
@@ -222,39 +213,7 @@ function ImportExport() {
           </Subheading>
         }
         renderItem={(item) => (
-          <ListItem
-            key={item.id}
-            title={
-              item.collection ? item.collection.name : t("All collections")
-            }
-            subtitle={
-              <>
-                <Flex>
-                  {item.state !== "complete" && (
-                    <>{stateMapping[item.state]}&nbsp;•&nbsp;</>
-                  )}
-                  {t(`{{userName}} requested`, {
-                    userName:
-                      user.id === item.user.id ? t("You") : item.user.name,
-                  })}
-                  &nbsp;
-                  <Time dateTime={item.createdAt} addSuffix shorten />
-                  &nbsp;•&nbsp;{item.sizeInMB}
-                </Flex>
-              </>
-            }
-            actions={
-              item.state === "complete" ? (
-                <Button
-                  as="a"
-                  href={`/api/fileOperations.redirect?id=${item.id}`}
-                  neutral
-                >
-                  {t("Download")}
-                </Button>
-              ) : undefined
-            }
-          />
+          <FileOperationListItem key={item.id} fileOperation={item} />
         )}
       />
     </Scene>
