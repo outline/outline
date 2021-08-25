@@ -221,6 +221,11 @@ function ImportExport() {
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
         options={{ type: "export" }}
+        heading={
+          <Subheading>
+            <Trans>Recent exports</Trans>
+          </Subheading>
+        }
         renderItem={(item) => (
           <ListItem
             key={item.id}
