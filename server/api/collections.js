@@ -483,18 +483,8 @@ router.post("collections.export", auth(), async (ctx) => {
 
   exportCollections(user.teamId, user.id, user.email, id, exportData.id);
 
-  exportData = await FileOperation.findByPk(exportData.id, {
-    include: [
-      {
-        model: User,
-        as: "user",
-      },
-      {
-        model: Collection,
-        as: "collection",
-      },
-    ],
-  });
+  exportData.user = user;
+  exportData.collection = collection;
 
   ctx.body = {
     success: true,
