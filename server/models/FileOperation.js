@@ -53,6 +53,20 @@ FileOperation.associate = (models) => {
     as: "team",
     foreignKey: "teamId",
   });
+  FileOperation.addScope("defaultScope", {
+    include: [
+      {
+        model: models.User,
+        as: "user",
+        paranoid: false,
+      },
+      {
+        model: models.Collection,
+        as: "collection",
+        paranoid: false,
+      },
+    ],
+  });
 };
 
 export default FileOperation;

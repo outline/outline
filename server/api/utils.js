@@ -36,7 +36,7 @@ router.post("utils.gc", async (ctx) => {
 
   log(`Expiring all the collection export older than 30 days…`);
 
-  const exports = await FileOperation.findAll({
+  const exports = await FileOperation.unscoped().findAll({
     where: {
       type: "export",
       createdAt: {

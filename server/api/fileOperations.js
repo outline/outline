@@ -2,7 +2,7 @@
 import Router from "koa-router";
 import { NotFoundError, ValidationError } from "../errors";
 import auth from "../middlewares/authentication";
-import { FileOperation, User, Collection, Team } from "../models";
+import { FileOperation, Team } from "../models";
 import policy from "../policies";
 import { presentFileOperation } from "../presenters";
 import { getSignedUrl } from "../utils/s3";
@@ -17,20 +17,7 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
 
-  const fileOperation = await FileOperation.findByPk(id, {
-    include: [
-      {
-        model: User,
-        as: "user",
-        paranoid: false,
-      },
-      {
-        model: Collection,
-        as: "collection",
-        paranoid: false,
-      },
-    ],
-  });
+  const fileOperation = await FileOperation.findByPk(id);
 
   authorize(user, fileOperation.type, team);
 
@@ -68,18 +55,6 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   const [exports, total] = await Promise.all([
     await FileOperation.findAll({
       where,
-      include: [
-        {
-          model: User,
-          as: "user",
-          paranoid: false,
-        },
-        {
-          model: Collection,
-          as: "collection",
-          paranoid: false,
-        },
-      ],
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
@@ -104,7 +79,7 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-  const fileOp = await FileOperation.findByPk(id);
+  const fileOp = await FileOperation.unscoped().findByPk(id);
 
   if (!fileOp) {
     throw new NotFoundError();
