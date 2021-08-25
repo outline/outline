@@ -1026,7 +1026,6 @@ router.post("documents.update", auth(), async (ctx) => {
     throw new InvalidRequestError("Document has changed since last revision");
   }
 
-  const previousTitle = document.title;
   let collection;
 
   //draft with no collection and want to be published
@@ -1044,60 +1043,25 @@ router.post("documents.update", auth(), async (ctx) => {
     ctx.assertPresent(collection, "Collection should be present");
   }
 
-  const updatedDocument = await documentUpdater(document, user, collection, {
-    id,
-    title,
-    text,
-    publish,
-    autosave,
-    done,
-    templateId,
-    append,
-    collectionId,
-    editorVersion,
-    parentDocumentId,
-  });
-
-  if (publish) {
-    await Event.create({
-      name: "documents.publish",
-      documentId: updatedDocument.id,
-      collectionId: updatedDocument.collectionId,
-      teamId: updatedDocument.teamId,
-      actorId: user.id,
-      data: { title: updatedDocument.title },
-      ip: ctx.request.ip,
-    });
-  } else {
-    await Event.create({
-      name: "documents.update",
-      documentId: updatedDocument.id,
-      collectionId: updatedDocument.collectionId,
-      teamId: updatedDocument.teamId,
-      actorId: user.id,
-      data: {
-        autosave,
-        done,
-        title: updatedDocument.title,
-      },
-      ip: ctx.request.ip,
-    });
-  }
-
-  if (updatedDocument.title !== previousTitle) {
-    Event.add({
-      name: "documents.title_change",
-      documentId: updatedDocument.id,
-      collectionId: updatedDocument.collectionId,
-      teamId: updatedDocument.teamId,
-      actorId: user.id,
-      data: {
-        previousTitle,
-        title: updatedDocument.title,
-      },
-      ip: ctx.request.ip,
-    });
-  }
+  const updatedDocument = await documentUpdater(
+    document,
+    user,
+    collection,
+    {
+      id,
+      title,
+      text,
+      publish,
+      autosave,
+      done,
+      templateId,
+      append,
+      collectionId,
+      editorVersion,
+      parentDocumentId,
+    },
+    ctx.user.ip
+  );
 
   ctx.body = {
     data: await presentDocument(updatedDocument),
