@@ -31,6 +31,8 @@ const scriptSrc = [
   "'unsafe-inline'",
   "'unsafe-eval'",
   "gist.github.com",
+  "*.twitter.com",
+  "*.twimg.com",
 ];
 
 if (env.GOOGLE_ANALYTICS_ID) {
@@ -184,7 +186,13 @@ app.use(
     directives: {
       defaultSrc,
       scriptSrc,
-      styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "github.githubassets.com",
+        "*.twitter.com",
+        "*.twimg.com",
+      ],
       imgSrc: ["*", "data:", "blob:"],
       frameSrc: ["*"],
       connectSrc: ["*"],

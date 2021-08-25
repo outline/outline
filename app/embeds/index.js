@@ -28,6 +28,7 @@ import ModeAnalytics from "./ModeAnalytics";
 import Prezi from "./Prezi";
 import Spotify from "./Spotify";
 import Trello from "./Trello";
+import Twitter from "./Twitter";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
@@ -96,6 +97,13 @@ export default [
     matcher: matcher(Descript),
   },
   {
+    title: "Diagrams.net",
+    keywords: "diagrams drawio",
+    icon: () => <Img src="/images/diagrams.png" />,
+    component: Diagrams,
+    matcher: matcher(Diagrams),
+  },
+  {
     title: "Figma",
     keywords: "design svg vector",
     icon: () => <Img src="/images/figma.png" />,
@@ -115,13 +123,6 @@ export default [
     icon: () => <Img src="/images/github-gist.png" />,
     component: Gist,
     matcher: matcher(Gist),
-  },
-  {
-    title: "Diagrams.net",
-    keywords: "diagrams drawio",
-    icon: () => <Img src="/images/diagrams.png" />,
-    component: Diagrams,
-    matcher: matcher(Diagrams),
   },
   {
     title: "Google Drawings",
@@ -235,6 +236,13 @@ export default [
     icon: () => <Img src="/images/trello.png" />,
     component: Trello,
     matcher: matcher(Trello),
+  },
+  {
+    title: "Twitter",
+    keywords: "twitter",
+    icon: () => <Img src="/images/twitter.png" />,
+    component: Twitter,
+    matcher: matcher(Twitter),
   },
   {
     title: "Typeform",

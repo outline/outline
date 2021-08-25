@@ -128,6 +128,7 @@ export const base = {
 
 export const light = {
   ...base,
+  name: "light",
   background: colors.white,
   secondaryBackground: colors.warmGrey,
 
@@ -187,6 +188,7 @@ export const light = {
 
 export const dark = {
   ...base,
+  name: "dark",
   background: colors.almostBlack,
   secondaryBackground: colors.black50,
 
