@@ -1,19 +1,19 @@
 // @flow
 import { Search } from "js-search";
 import { last } from "lodash";
-import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import { Dialog, DialogBackdrop, type DialogStateReturn } from "reakit";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { type DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
 import Button from "components/Button";
 import Divider from "components/Divider";
 import Flex from "components/Flex";
+import InputSearch from "components/InputSearch";
 import PathToDocument from "components/PathToDocument";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -29,7 +29,6 @@ type Props = {|
 |};
 
 const PublishDialog = ({ dialog, document, onSave }: Props) => {
-  const theme = useTheme();
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = React.useState();
   const [selectedPath, setSelectedPath] = React.useState<?DocumentPath>();
@@ -42,9 +41,17 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     }
   }, [dialog.visible]);
 
-  const handleFilter = (ev) => {
-    setSearchTerm(ev.target.value);
-  };
+  const handleChange = React.useCallback((event) => {
+    setSearchTerm(event.target.value);
+  }, []);
+
+  const handleKeyDown = React.useCallback((event) => {
+    if (event.currentTarget.value && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      setSearchTerm("");
+    }
+  }, []);
 
   const handlePublishFromModal = async (selectedPath) => {
     if (!document) return;
@@ -181,16 +188,12 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
           <Position>
             <Content>
               <Flex align="center">
-                <StyledIcon
-                  type="Search"
-                  size={26}
-                  color={theme.textTertiary}
-                />
-                <Input
-                  type="search"
+                <InputSearch
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  value={searchTerm}
                   placeholder={`${t("Search collections & documents")}…`}
-                  onChange={handleFilter}
-                  autoFocus
+                  flex
                 />
               </Flex>
               <Results>
@@ -270,41 +273,6 @@ const Content = styled.div`
     right: -2vh;
     width: 90vw;
 `};
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 10px 10px 10px 40px;
-  font-size: 16px;
-  font-weight: 400;
-  outline: none;
-  border: 0;
-  background: ${(props) => props.theme.sidebarBackground};
-  transition: ${(props) => props.theme.backgroundTransition};
-  border-radius: 4px;
-
-  color: ${(props) => props.theme.text};
-
-  ::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-  }
-  ::-webkit-input-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-  :-moz-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-  ::-moz-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-  :-ms-input-placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-`;
-
-const StyledIcon = styled(SearchIcon)`
-  position: absolute;
-  left: 12px;
 `;
 
 const ButtonWrapper = styled(Flex)`
