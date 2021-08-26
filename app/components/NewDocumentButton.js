@@ -11,7 +11,7 @@ const NewDocumentButton = () => {
 
   return (
     <Button as={Link} to={newDocumentUrl()} icon={<PlusIcon />}>
-      {t("New draft doc")}
+      {t("New doc")}
     </Button>
   );
 };
