@@ -8,6 +8,7 @@ import {
   Group,
   Event,
   Team,
+  NotificationSetting,
   User,
   Integration,
   SearchQuery,
@@ -32,7 +33,6 @@ export async function teamPermanentDeleter(team: Team) {
         },
         limit: 100,
         offset: 0,
-        transaction,
       },
       async (attachments, options) => {
         log(
@@ -42,12 +42,18 @@ export async function teamPermanentDeleter(team: Team) {
         );
 
         await Promise.all(
-          attachments.map((attachment) => attachment.destroy())
+          attachments.map((attachment) => attachment.destroy({ transaction }))
         );
       }
     );
 
     await AuthenticationProvider.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
+    await Event.destroy({
       where: { teamId },
       force: true,
       transaction,
@@ -60,12 +66,6 @@ export async function teamPermanentDeleter(team: Team) {
     });
 
     await Document.unscoped().destroy({
-      where: { teamId },
-      force: true,
-      transaction,
-    });
-
-    await Event.destroy({
       where: { teamId },
       force: true,
       transaction,
@@ -89,14 +89,19 @@ export async function teamPermanentDeleter(team: Team) {
       transaction,
     });
 
+    await NotificationSetting.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
     await User.destroy({
       where: { teamId },
       force: true,
       transaction,
     });
 
-    await Team.destroy({
-      where: { id: teamId },
+    await team.destroy({
       force: true,
       transaction,
     });

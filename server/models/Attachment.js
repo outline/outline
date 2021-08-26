@@ -64,7 +64,7 @@ Attachment.findAllInBatches = async (
   let results;
 
   do {
-    results = Attachment.findAll(query);
+    results = await Attachment.findAll(query);
 
     await callback(results, query);
     query.offset += query.limit;
