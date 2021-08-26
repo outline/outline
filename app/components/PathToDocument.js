@@ -19,45 +19,44 @@ type Props = {
   ref?: (?React.ElementRef<"div">) => void,
 };
 
-@observer
-class PathToDocument extends React.Component<Props> {
-  handleClick = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    const { setSelectedPath, result } = this.props;
-    setSelectedPath && setSelectedPath(result);
-  };
+const PathToDocument = ({
+  result,
+  collection,
+  document,
+  ref,
+  style,
+  selected,
+  setSelectedPath,
+}: Props) => {
+  if (!result) return <div />;
 
-  render() {
-    const { result, collection, document, ref, style, selected } = this.props;
-
-    if (!result) return <div />;
-
-    return (
-      <ResultWrapper
-        ref={ref}
-        onClick={this.handleClick}
-        style={style}
-        role="option"
-        selectable
-        selected={selected}
-      >
-        <Flex>
-          {collection && <CollectionIcon collection={collection} />}
-          &nbsp;
-          {result.path
-            .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
-            .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
-          {document && (
-            <DocumentTitle>
-              {" "}
-              <StyledGoToIcon /> <Title>{document.title}</Title>
-            </DocumentTitle>
-          )}
-        </Flex>
-      </ResultWrapper>
-    );
-  }
-}
+  return (
+    <ResultWrapper
+      ref={ref}
+      onClick={() => {
+        setSelectedPath && setSelectedPath(result);
+      }}
+      style={style}
+      role="option"
+      selectable
+      selected={selected}
+    >
+      <Flex>
+        {collection && <CollectionIcon collection={collection} />}
+        &nbsp;
+        {result.path
+          .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
+          .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
+        {document && (
+          <DocumentTitle>
+            {" "}
+            <StyledGoToIcon /> <Title>{document.title}</Title>
+          </DocumentTitle>
+        )}
+      </Flex>
+    </ResultWrapper>
+  );
+};
 
 const DocumentTitle = styled(Flex)``;
 
@@ -104,4 +103,4 @@ const ResultWrapper = styled.div`
   }
 `;
 
-export default PathToDocument;
+export default observer(PathToDocument);
