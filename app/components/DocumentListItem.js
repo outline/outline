@@ -65,7 +65,7 @@ function DocumentListItem(props: Props, ref) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = policies.abilities(document.id).star;
   const can = policies.abilities(currentTeam.id);
-  const canCollection = policies.abilities(document.computedCollectionId);
+  const canCollection = document.collectionId ? policies.abilities(document.collectionId) : {};
 
   return (
     <DocumentLink
