@@ -131,7 +131,7 @@ function DocumentListItem(props: Props, ref) {
             <>
               <Button
                 as={Link}
-                to={newDocumentUrl(document.computedCollectionId, {
+                to={newDocumentUrl(document.collectionId, {
                   templateId: document.id,
                 })}
                 icon={<PlusIcon />}
