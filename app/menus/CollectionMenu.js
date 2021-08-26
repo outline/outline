@@ -168,7 +168,7 @@ function CollectionMenu({
     [can, collection, handleNewDocument, handleImportDocument, t]
   );
 
-  if (!items.length) {
+  if (items.indexOf((item) => item.visible) === -1) {
     return null;
   }
 

@@ -12,6 +12,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import getTasks from "shared/utils/getTasks";
 import AuthStore from "stores/AuthStore";
+import PoliciesStore from "stores/PoliciesStore";
 import ToastsStore from "stores/ToastsStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
@@ -61,6 +62,7 @@ type Props = {
   theme: Theme,
   auth: AuthStore,
   ui: UiStore,
+  policies: PoliciesStore,
   toasts: ToastsStore,
   t: TFunction,
 };
@@ -199,7 +201,7 @@ class DocumentScene extends React.Component<Props> {
       parentDocumentId?: string,
     } = {}
   ) => {
-    const { document } = this.props;
+    const { document, policies } = this.props;
 
     // prevent saves when we are already saving
     if (document.isSaving) return;
@@ -223,9 +225,14 @@ class DocumentScene extends React.Component<Props> {
     document.text = text;
 
     if (options.collectionId) {
+      const collecionPolicies = policies.abilities(options.collectionId);
+      if (!collecionPolicies.update) return;
       document.collectionId = options.collectionId;
-      if (options.parentDocumentId)
+      if (options.parentDocumentId) {
+        const documentPolicies = policies.abilities(options.parentDocumentId);
+        if (!documentPolicies.createChildDocument) return;
         document.parentDocumentId = options.parentDocumentId;
+      }
     }
 
     let isNew = !document.id;
@@ -545,6 +552,6 @@ const MaxWidth = styled(Flex)`
 
 export default withRouter(
   withTranslation()<DocumentScene>(
-    inject("ui", "auth", "toasts")(DocumentScene)
+    inject("ui", "auth", "toasts", "policies")(DocumentScene)
   )
 );

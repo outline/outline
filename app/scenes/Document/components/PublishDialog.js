@@ -52,22 +52,22 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
       showToast(t("Please select a path"));
       return;
     }
-    dialog.setVisible(false);
 
     if (selectedPath.type === "collection") {
-      onSave({
+      await onSave({
         done: true,
         publish: true,
         collectionId: selectedPath.collectionId,
       });
     } else {
-      onSave({
+      await onSave({
         done: true,
         publish: true,
         collectionId: selectedPath.collectionId,
         parentDocumentId: selectedPath.id,
       });
     }
+    dialog.setVisible(false);
   };
 
   const selected = React.useCallback(
