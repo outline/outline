@@ -55,11 +55,11 @@ module.exports = {
         allowNull: false,
       },
     })
-    await queryInterface.addIndex('file_operations', ["state","type"]);
+    await queryInterface.addIndex('file_operations', ["type", "state"])
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex('file_operations', ["state","type"]);
+    await queryInterface.removeIndex('file_operations', ["type","state"]);
     await queryInterface.dropTable('file_operations');
   }
 };
