@@ -1034,13 +1034,13 @@ router.post("documents.update", auth(), async (ctx) => {
     collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
-    ctx.assertPresent(collection, "Collection should be present");
   } else {
     collection = document.collection;
   }
 
   if (publish) {
     ctx.assertPresent(collection, "Collection should be present");
+    authorize(user, "publish", collection);
   }
 
   const updatedDocument = await documentUpdater(
