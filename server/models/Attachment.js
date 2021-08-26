@@ -54,6 +54,23 @@ const Attachment = sequelize.define(
   }
 );
 
+Attachment.findAllInBatches = async (
+  query,
+  callback: (attachments: Array<Attachment>, query: Object) => Promise<void>
+) => {
+  if (!query.offset) query.offset = 0;
+  if (!query.limit) query.limit = 10;
+
+  let results;
+
+  do {
+    results = Attachment.findAll(query);
+
+    await callback(results, query);
+    query.offset += query.limit;
+  } while (results.length >= query.limit);
+};
+
 Attachment.beforeDestroy(async (model) => {
   await deleteFromS3(model.key);
 });
