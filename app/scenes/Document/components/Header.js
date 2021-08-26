@@ -178,7 +178,7 @@ function DocumentHeader({
                 <TemplatesMenu document={document} />
               </Action>
             )}
-            {!isEditing && !isMobile && !isTemplate && can.share && (
+            {!isEditing && !isMobile && !isTemplate && hasCollection && (
               <Action>
                 <ShareButton document={document} />
               </Action>
