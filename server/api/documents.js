@@ -585,6 +585,7 @@ async function loadDocument({
     }
 
     if (document.deletedAt) {
+      // don't send data if user cannot restore deleted doc
       authorize(user, "restore", document);
     } else {
       authorize(user, "read", document);
