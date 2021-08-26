@@ -175,7 +175,7 @@ export default class UsersStore extends BaseStore<User> {
     }
   };
 
-  notInCollection = (collectionId: string, query: string = "") => {
+  notInCollection = (collectionId: string, query: string = ""): User[] => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId
@@ -190,7 +190,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  inCollection = (collectionId: string, query: string) => {
+  inCollection = (collectionId: string, query: string): User[] => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId
@@ -204,7 +204,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  notInGroup = (groupId: string, query: string = "") => {
+  notInGroup = (groupId: string, query: string = ""): User[] => {
     const memberships = filter(
       this.rootStore.groupMemberships.orderedData,
       (member) => member.groupId === groupId
@@ -219,7 +219,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  inGroup = (groupId: string, query: string) => {
+  inGroup = (groupId: string, query: string): User[] => {
     const groupMemberships = filter(
       this.rootStore.groupMemberships.orderedData,
       (member) => member.groupId === groupId
