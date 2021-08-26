@@ -25,7 +25,7 @@ type Props = {|
 
 function DocumentMove({ document, onRequestClose }: Props) {
   const [searchTerm, setSearchTerm] = useState();
-  const { collections, documents } = useStores();
+  const { collections, documents, policies } = useStores();
   const [selectedPath, setSelectedPath] = useState<?DocumentPath>();
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -50,7 +50,21 @@ function DocumentMove({ document, onRequestClose }: Props) {
   );
 
   const searchIndex = useMemo(() => {
-    const paths = collections.pathsToDocuments;
+    let paths = collections.pathsToDocuments;
+
+    paths = paths.filter((path) => {
+      if (path.type === "collection" && policies.abilities(path.id).update)
+        return true;
+
+      if (
+        path.type === "document" &&
+        policies.abilities(path.collectionId).update
+      )
+        return true;
+
+      return false;
+    });
+
     const index = new Search("id");
     index.addIndex("title");
 
@@ -65,7 +79,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
     index.addDocuments(indexeableDocuments);
 
     return index;
-  }, [documents, collections.pathsToDocuments]);
+  }, [collections.pathsToDocuments, policies, documents]);
 
   const results: DocumentPath[] = useMemo(() => {
     const onlyShowCollections = document.isTemplate;

@@ -33,7 +33,7 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = React.useState();
   const [selectedPath, setSelectedPath] = React.useState<?DocumentPath>();
-  const { collections, documents } = useStores();
+  const { collections, documents, policies } = useStores();
   const { showToast } = useToasts();
 
   React.useEffect(() => {
@@ -90,7 +90,21 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
   );
 
   const searchIndex = React.useMemo(() => {
-    const paths = collections.pathsToDocuments;
+    let paths = collections.pathsToDocuments;
+
+    paths = paths.filter((path) => {
+      if (path.type === "collection" && policies.abilities(path.id).update)
+        return true;
+
+      if (
+        path.type === "document" &&
+        policies.abilities(path.collectionId).update
+      )
+        return true;
+
+      return false;
+    });
+
     const index = new Search("id");
     index.addIndex("title");
 
@@ -105,7 +119,7 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     index.addDocuments(indexeableDocuments);
 
     return index;
-  }, [documents, collections.pathsToDocuments]);
+  }, [collections.pathsToDocuments, policies, documents]);
 
   const results: DocumentPath[] = React.useMemo(() => {
     const onlyShowCollections = document.isTemplate;
