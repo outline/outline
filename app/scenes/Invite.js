@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import type { Role } from "shared/types";
 import Button from "components/Button";
 import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";
@@ -27,7 +28,7 @@ type Props = {|
 type InviteRequest = {
   email: string,
   name: string,
-  role: "member" | "viewer" | "admin",
+  role: Role,
 };
 
 function Invite({ onSubmit }: Props) {
@@ -170,7 +171,7 @@ function Invite({ onSubmit }: Props) {
         </CopyBlock>
       )}
       {invites.map((invite, index) => (
-        <Flex key={index}>
+        <Flex key={index} gap={8}>
           <Input
             type="email"
             name="email"
@@ -183,7 +184,6 @@ function Invite({ onSubmit }: Props) {
             autoFocus={index === 0}
             flex
           />
-          &nbsp;&nbsp;
           <Input
             type="text"
             name="name"
@@ -193,7 +193,6 @@ function Invite({ onSubmit }: Props) {
             value={invite.name}
             required={!!invite.email}
           />
-          &nbsp;
           <InputSelectRole
             onChange={(ev) => handleRoleChange(ev, index)}
             value={invite.role}
@@ -244,7 +243,7 @@ const CopyBlock = styled("div")`
 const Remove = styled("div")`
   margin-top: 6px;
   position: absolute;
-  right: -58px;
+  right: -32px;
 `;
 
 export default observer(Invite);

@@ -372,7 +372,7 @@ describe("#users.demote", () => {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
-        to: "Viewer",
+        to: "viewer",
       },
     });
     const body = await res.json();
@@ -389,7 +389,7 @@ describe("#users.demote", () => {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
-        to: "Member",
+        to: "member",
       },
     });
     const body = await res.json();
