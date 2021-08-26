@@ -18,6 +18,7 @@ import Modal from "components/Modal";
 import Scene from "components/Scene";
 import PeopleTable from "./components/PeopleTable";
 import UserStatusFilter from "./components/UserStatusFilter";
+import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
@@ -26,7 +27,11 @@ function People(props) {
   const topRef = React.useRef();
   const location = useLocation();
   const history = useHistory();
-  const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
+  const [
+    inviteModalOpen,
+    handleInviteModalOpen,
+    handleInviteModalClose,
+  ] = useBoolean();
   const team = useCurrentTeam();
   const { users, policies } = useStores();
   const { t } = useTranslation();
@@ -95,14 +100,6 @@ function People(props) {
     users.viewers,
     userIds,
   ]);
-
-  const handleInviteModalOpen = React.useCallback(() => {
-    setInviteModalOpen(true);
-  }, []);
-
-  const handleInviteModalClose = React.useCallback(() => {
-    setInviteModalOpen(false);
-  }, []);
 
   const handleFilter = React.useCallback(
     (filter) => {
@@ -229,6 +226,7 @@ function People(props) {
         onChangePage={handleChangePage}
         page={page}
         totalPages={totalPages}
+        defaultSortDirection="ASC"
       />
       {can.inviteUser && (
         <Modal

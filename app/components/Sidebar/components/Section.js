@@ -5,7 +5,7 @@ import Flex from "components/Flex";
 const Section = styled(Flex)`
   position: relative;
   flex-direction: column;
-  margin: 0 8px 20px;
+  margin: 0 8px 12px;
   min-width: ${(props) => props.theme.sidebarMinWidth}px;
   flex-shrink: 0;
 

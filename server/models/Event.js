@@ -67,6 +67,7 @@ Event.ACTIVITY_EVENTS = [
   "documents.delete",
   "documents.permanent_delete",
   "documents.restore",
+  "revisions.create",
   "users.create",
 ];
 
@@ -96,6 +97,7 @@ Event.AUDIT_EVENTS = [
   "groups.create",
   "groups.update",
   "groups.delete",
+  "revisions.create",
   "shares.create",
   "shares.update",
   "shares.revoke",

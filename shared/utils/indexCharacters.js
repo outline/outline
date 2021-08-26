@@ -1,4 +1,4 @@
 // @flow
 
 export const validateIndexCharacters = (index: string) =>
-  /^[\x21-\x7E]+$/i.test(index);
+  new RegExp("^[\x20-\x7E]+$").test(index);

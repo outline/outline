@@ -98,6 +98,74 @@ describe("#documents.info", () => {
     expect(share.lastAccessedAt).toBeTruthy();
   });
 
+  it("should not return document of a deleted collection, when the user was absent in the collection", async () => {
+    const user = await buildUser();
+    const user2 = await buildUser({
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      permission: null,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const doc = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/collections.delete", {
+      body: {
+        id: collection.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: {
+        id: doc.id,
+        token: user2.getJwtToken(),
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return document of a deleted collection, when the user was present in the collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      permission: null,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const doc = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/collections.delete", {
+      body: {
+        id: collection.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: {
+        id: doc.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(doc.id);
+  });
+
   describe("apiVersion=2", () => {
     it("should return sharedTree from shareId", async () => {
       const { document, collection, user } = await seed();
@@ -233,6 +301,27 @@ describe("#documents.info", () => {
       body: { shareId: share.id },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should return document from shareId if public sharing is disabled but the user has permission to read", async () => {
+    const { document, collection, team, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    team.sharing = false;
+    await team.save();
+
+    collection.sharing = false;
+    await collection.save();
+
+    const res = await server.post("/api/documents.info", {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+
+    expect(res.status).toEqual(200);
   });
 
   it("should not return document from revoked shareId", async () => {
@@ -900,6 +989,7 @@ describe("#documents.search", () => {
       userId: user.id,
       teamId: user.teamId,
     });
+
     const secondResult = await buildDocument({
       title: "random text",
       text: "search term",
@@ -907,15 +997,26 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
 
+    const thirdResult = await buildDocument({
+      title: "search term",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    thirdResult.title = "change";
+    await thirdResult.save();
+
     const res = await server.post("/api/documents.search", {
       body: { token: user.getJwtToken(), query: "search term" },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(3);
     expect(body.data[0].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
+    expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
 
   it("should return partial results in ranked order", async () => {
@@ -933,15 +1034,26 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
 
+    const thirdResult = await buildDocument({
+      title: "search term",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    thirdResult.title = "change";
+    await thirdResult.save();
+
     const res = await server.post("/api/documents.search", {
       body: { token: user.getJwtToken(), query: "sear &" },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(3);
     expect(body.data[0].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
+    expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
 
   it("should strip junk from search term", async () => {
@@ -1326,6 +1438,7 @@ describe("#documents.viewed", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("should not return recently viewed but deleted documents", async () => {

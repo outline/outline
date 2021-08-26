@@ -16,6 +16,7 @@ import Input from "components/Input";
 import Notice from "components/Notice";
 import Switch from "components/Switch";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   document: Document,
@@ -26,11 +27,17 @@ type Props = {|
 
 function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { policies, shares, ui } = useStores();
+  const { policies, shares, auth } = useStores();
+  const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
   const timeout = React.useRef<?TimeoutID>();
   const can = policies.abilities(share ? share.id : "");
-  const canPublish = can.update && !document.isTemplate;
+  const documentAbilities = policies.abilities(document.id);
+  const canPublish =
+    can.update &&
+    !document.isTemplate &&
+    auth.team?.sharing &&
+    documentAbilities.share;
   const isPubliclyShared = (share && share.published) || sharedParent;
 
   React.useEffect(() => {
@@ -46,10 +53,10 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
       try {
         await share.save({ published: event.currentTarget.checked });
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       }
     },
-    [document.id, shares, ui]
+    [document.id, shares, showToast]
   );
 
   const handleChildDocumentsChange = React.useCallback(
@@ -62,10 +69,10 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
           includeChildDocuments: event.currentTarget.checked,
         });
       } catch (err) {
-        ui.showToast(err.message, { type: "error" });
+        showToast(err.message, { type: "error" });
       }
     },
-    [document.id, shares, ui]
+    [document.id, shares, showToast]
   );
 
   const handleCopied = React.useCallback(() => {
@@ -75,9 +82,9 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
       setIsCopied(false);
       onSubmit();
 
-      ui.showToast(t("Share link copied"), { type: "info" });
+      showToast(t("Share link copied"), { type: "info" });
     }, 250);
-  }, [t, onSubmit, ui]);
+  }, [t, onSubmit, showToast]);
 
   return (
     <>
@@ -100,7 +107,7 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
         </Notice>
       )}
 
-      {canPublish && (
+      {canPublish ? (
         <SwitchWrapper>
           <Switch
             id="published"
@@ -130,8 +137,11 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
             </SwitchText>
           </SwitchLabel>
         </SwitchWrapper>
+      ) : (
+        <HelpText>{t("Only team members with permission can view")}</HelpText>
       )}
-      {share && share.published && (
+
+      {canPublish && share?.published && (
         <SwitchWrapper>
           <Switch
             id="includeChildDocuments"

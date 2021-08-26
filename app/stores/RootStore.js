@@ -5,6 +5,7 @@ import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
+import EventsStore from "./EventsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
@@ -13,6 +14,7 @@ import NotificationSettingsStore from "./NotificationSettingsStore";
 import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
 import SharesStore from "./SharesStore";
+import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
@@ -23,6 +25,7 @@ export default class RootStore {
   collections: CollectionsStore;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   documents: DocumentsStore;
+  events: EventsStore;
   groups: GroupsStore;
   groupMemberships: GroupMembershipsStore;
   integrations: IntegrationsStore;
@@ -35,25 +38,29 @@ export default class RootStore {
   ui: UiStore;
   users: UsersStore;
   views: ViewsStore;
+  toasts: ToastsStore;
 
   constructor() {
+    // PoliciesStore must be initialized before AuthStore
+    this.policies = new PoliciesStore(this);
     this.apiKeys = new ApiKeysStore(this);
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
+    this.events = new EventsStore(this);
     this.groups = new GroupsStore(this);
     this.groupMemberships = new GroupMembershipsStore(this);
     this.integrations = new IntegrationsStore(this);
     this.memberships = new MembershipsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
     this.presence = new DocumentPresenceStore();
-    this.policies = new PoliciesStore(this);
     this.revisions = new RevisionsStore(this);
     this.shares = new SharesStore(this);
     this.ui = new UiStore();
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
+    this.toasts = new ToastsStore();
   }
 
   logout() {
@@ -62,6 +69,7 @@ export default class RootStore {
     this.collections.clear();
     this.collectionGroupMemberships.clear();
     this.documents.clear();
+    this.events.clear();
     this.groups.clear();
     this.groupMemberships.clear();
     this.integrations.clear();

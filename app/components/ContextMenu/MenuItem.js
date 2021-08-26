@@ -4,6 +4,7 @@ import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {|
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
@@ -15,6 +16,8 @@ type Props = {|
   target?: "_blank",
   as?: string | React.ComponentType<*>,
   hide?: () => void,
+  level?: number,
+  icon?: React.Node,
 |};
 
 const MenuItem = ({
@@ -24,6 +27,7 @@ const MenuItem = ({
   disabled,
   as,
   hide,
+  icon,
   ...rest
 }: Props) => {
   const handleClick = React.useCallback(
@@ -70,6 +74,7 @@ const MenuItem = ({
               &nbsp;
             </>
           )}
+          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
           {children}
         </MenuAnchor>
       )}
@@ -88,6 +93,7 @@ export const MenuAnchor = styled.a`
   margin: 0;
   border: 0;
   padding: 12px;
+  padding-left: ${(props) => 12 + props.level * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;
@@ -128,8 +134,8 @@ export const MenuAnchor = styled.a`
   `};
 
   ${breakpoint("tablet")`
-    padding: ${(props) => (props.$toggleable ? "4px 12px" : "6px 12px")};
-    font-size: 15px;
+    padding: 4px 12px;
+    font-size: 14px;
   `};
 `;
 

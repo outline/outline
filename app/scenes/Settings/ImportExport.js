@@ -14,6 +14,7 @@ import Notice from "components/Notice";
 import Scene from "components/Scene";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import { uploadFile } from "utils/uploadFile";
 
@@ -21,8 +22,8 @@ function ImportExport() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const fileRef = React.useRef();
-  const { ui, collections } = useStores();
-  const { showToast } = ui;
+  const { collections } = useStores();
+  const { showToast } = useToasts();
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
   const [isImported, setImported] = React.useState(false);

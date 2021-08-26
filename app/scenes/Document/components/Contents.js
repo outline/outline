@@ -70,11 +70,13 @@ const Wrapper = styled("div")`
   display: none;
   position: sticky;
   top: 80px;
+  max-height: calc(100vh - 80px);
 
   box-shadow: 1px 0 0 ${(props) => props.theme.divider};
   margin-top: 40px;
   margin-right: 2em;
   min-height: 40px;
+  overflow-y: auto;
 
   ${breakpoint("desktopLarge")`
     margin-left: -16em;

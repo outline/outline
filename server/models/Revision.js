@@ -14,11 +14,6 @@ const Revision = sequelize.define("revision", {
   editorVersion: DataTypes.STRING,
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
-
-  // backup contains a record of text at the moment it was converted to v2
-  // this is a safety measure during deployment of new editor and will be
-  // dropped in a future update
-  backup: DataTypes.TEXT,
 });
 
 Revision.associate = (models) => {
@@ -49,19 +44,22 @@ Revision.findLatest = function (documentId) {
   });
 };
 
-Revision.createFromDocument = function (document) {
-  return Revision.create({
-    title: document.title,
-    text: document.text,
-    userId: document.lastModifiedById,
-    editorVersion: document.editorVersion,
-    version: document.version,
-    documentId: document.id,
+Revision.createFromDocument = function (document, options) {
+  return Revision.create(
+    {
+      title: document.title,
+      text: document.text,
+      userId: document.lastModifiedById,
+      editorVersion: document.editorVersion,
+      version: document.version,
+      documentId: document.id,
 
-    // revision time is set to the last time document was touched as this
-    // handler can be debounced in the case of an update
-    createdAt: document.updatedAt,
-  });
+      // revision time is set to the last time document was touched as this
+      // handler can be debounced in the case of an update
+      createdAt: document.updatedAt,
+    },
+    options
+  );
 };
 
 Revision.prototype.migrateVersion = function () {
@@ -78,7 +76,6 @@ Revision.prototype.migrateVersion = function () {
   // migrate from document version 1 -> 2
   if (this.version === 1) {
     const nodes = serializer.deserialize(this.text);
-    this.backup = this.text;
     this.text = serializer.serialize(nodes, { version: 2 });
     this.version = 2;
     migrated = true;

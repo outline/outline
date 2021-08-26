@@ -23,7 +23,6 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
-  if (!document.publishedAt) return false;
 
   invariant(
     document.collection,
@@ -136,6 +135,11 @@ allow(User, "permanentDelete", Document, (user, document) => {
 allow(User, "restore", Document, (user, document) => {
   if (user.isViewer) return false;
   if (!document.deletedAt) return false;
+
+  if (document.collection && cannot(user, "update", document.collection)) {
+    return false;
+  }
+
   return user.teamId === document.teamId;
 });
 

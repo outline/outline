@@ -140,10 +140,13 @@ class Search extends React.Component<Props> {
   }) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
-      search: queryString.stringify({
-        ...queryString.parse(this.props.location.search),
-        ...search,
-      }),
+      search: queryString.stringify(
+        {
+          ...queryString.parse(this.props.location.search),
+          ...search,
+        },
+        { skipEmptyString: true }
+      ),
     });
   };
 
@@ -265,6 +268,7 @@ class Search extends React.Component<Props> {
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
     const can = policies.abilities(auth.team?.id ? auth.team.id : "");
+    const canCollection = policies.abilities(this.collectionId || "");
 
     return (
       <Container auto>
@@ -332,7 +336,9 @@ class Search extends React.Component<Props> {
                   {can.createDocument && <Trans>Create a new document?</Trans>}
                 </HelpText>
                 <Wrapper>
-                  {this.collectionId && can.createDocument ? (
+                  {this.collectionId &&
+                  can.createDocument &&
+                  canCollection.update ? (
                     <Button
                       onClick={this.handleNewDoc}
                       icon={<PlusIcon />}

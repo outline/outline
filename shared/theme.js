@@ -10,7 +10,7 @@ const colors = {
 
   slate: "#9BA6B2",
   slateLight: "#DAE1E9",
-  slateDark: "#4E5C6E",
+  slateDark: "#394351",
 
   smoke: "#F4F7FA",
   smokeLight: "#F9FBFC",
@@ -97,10 +97,12 @@ export const base = {
   blockToolbarIcon: undefined,
   blockToolbarIconSelected: colors.black,
 
-  noticeTipBackground: colors.brand.purple,
-  noticeTipText: colors.white,
-  noticeWarningBackground: colors.danger,
-  noticeWarningText: colors.white,
+  noticeInfoBackground: colors.warmGrey,
+  noticeInfoText: colors.almostBlack,
+  noticeTipBackground: "#fce5bb",
+  noticeTipText: colors.almostBlack,
+  noticeWarningBackground: "#ffadbf",
+  noticeWarningText: colors.almostBlack,
 
   breakpoints: {
     mobile: 0, // targeting all devices
@@ -118,9 +120,9 @@ export const base = {
     modal: 3000,
     menu: 4000,
     toasts: 5000,
-    loadingIndicatorBar: 6000,
     popover: 9000,
     titleBarDivider: 10000,
+    loadingIndicatorBar: 20000,
   },
 };
 
@@ -177,8 +179,7 @@ export const light = {
   embedBorder: colors.slateLight,
   horizontalRule: colors.smokeDark,
 
-  noticeInfoBackground: colors.warmGrey,
-  noticeInfoText: colors.almostBlack,
+  progressBarBackground: colors.slateLight,
 
   scrollbarBackground: colors.smoke,
   scrollbarThumb: darken(0.15, colors.smokeDark),
@@ -197,7 +198,7 @@ export const dark = {
   placeholder: colors.slateDark,
 
   sidebarBackground: colors.veryDarkBlue,
-  sidebarItemBackground: colors.transparent,
+  sidebarItemBackground: lighten(0.015, colors.almostBlack),
   sidebarText: colors.slate,
   backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",
@@ -239,8 +240,14 @@ export const dark = {
   embedBorder: colors.black50,
   horizontalRule: lighten(0.1, colors.almostBlack),
 
-  noticeInfoBackground: colors.white10,
-  noticeInfoText: colors.almostWhite,
+  noticeInfoBackground: "#252a37",
+  noticeInfoText: colors.white,
+  noticeTipBackground: "#a3840a",
+  noticeTipText: colors.white,
+  noticeWarningBackground: "#7a001b",
+  noticeWarningText: colors.white,
+
+  progressBarBackground: colors.slate,
 
   scrollbarBackground: colors.black,
   scrollbarThumb: colors.lightBlack,

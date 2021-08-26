@@ -4,10 +4,10 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import { fadeAndSlideIn } from "shared/styles/animations";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
+import { fadeAndSlideDown } from "styles/animations";
 import { isInternalUrl } from "utils/urls";
 
 const DELAY_OPEN = 300;
@@ -136,7 +136,7 @@ function HoverPreview({ node, ...rest }: Props) {
 }
 
 const Animate = styled.div`
-  animation: ${fadeAndSlideIn} 150ms ease;
+  animation: ${fadeAndSlideDown} 150ms ease;
 
   @media print {
     display: none;

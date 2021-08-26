@@ -1,6 +1,6 @@
 // @flow
 import { type Location } from "react-router-dom";
-import theme from "shared/styles/theme";
+import theme from "shared/theme";
 import Document from "models/Document";
 
 export type Theme = typeof theme;
@@ -58,3 +58,57 @@ export type SearchResult = {
   context: string,
   document: Document,
 };
+
+export type MenuItem =
+  | {|
+      title: React.Node,
+      to: string,
+      visible?: boolean,
+      selected?: boolean,
+      disabled?: boolean,
+      icon?: React.Node,
+    |}
+  | {|
+      title: React.Node,
+      onClick: (event: SyntheticEvent<>) => void | Promise<void>,
+      visible?: boolean,
+      selected?: boolean,
+      disabled?: boolean,
+      icon?: React.Node,
+    |}
+  | {|
+      title: React.Node,
+      href: string,
+      visible?: boolean,
+      selected?: boolean,
+      disabled?: boolean,
+      level?: number,
+      icon?: React.Node,
+    |}
+  | {|
+      title: React.Node,
+      visible?: boolean,
+      disabled?: boolean,
+      style?: Object,
+      hover?: boolean,
+      items: MenuItem[],
+      icon?: React.Node,
+    |}
+  | {|
+      type: "separator",
+      visible?: boolean,
+    |}
+  | {|
+      type: "heading",
+      visible?: boolean,
+      title: React.Node,
+    |};
+
+export type ToastOptions = {|
+  type: "warning" | "error" | "info" | "success",
+  timeout?: number,
+  action?: {
+    text: string,
+    onClick: () => void,
+  },
+|};
