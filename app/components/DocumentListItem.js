@@ -90,11 +90,6 @@ function DocumentListItem(props: Props, ref) {
           {document.isNew && document.createdBy.id !== currentUser.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
-          {canStar && (
-            <StarPositioner>
-              <StarButton document={document} />
-            </StarPositioner>
-          )}
           {document.isDraft && showDraft && (
             <Tooltip
               tooltip={t("Only visible to you")}
@@ -106,6 +101,11 @@ function DocumentListItem(props: Props, ref) {
           )}
           {document.isTemplate && showTemplate && (
             <Badge primary>{t("Template")}</Badge>
+          )}
+          {canStar && (
+            <StarPositioner>
+              <StarButton document={document} />
+            </StarPositioner>
           )}
         </Heading>
 
