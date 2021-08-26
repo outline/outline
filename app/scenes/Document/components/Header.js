@@ -70,7 +70,7 @@ function DocumentHeader({
   const { auth, ui, policies, collections } = useStores();
   const isMobile = useMobile();
   const dialog = useDialogState({ modal: true });
-  const hasCollection = collections.get(document.computedCollectionId);
+  const hasCollection = !!collections.get(document.collectionId || "");
 
   const handleSave = React.useCallback(() => {
     onSave({ done: true });
@@ -228,7 +228,7 @@ function DocumentHeader({
                 <Button
                   icon={<PlusIcon />}
                   as={Link}
-                  to={newDocumentUrl(document.computedCollectionId, {
+                  to={newDocumentUrl(document.collectionId, {
                     templateId: document.id,
                   })}
                   primary

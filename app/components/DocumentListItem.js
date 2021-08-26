@@ -65,7 +65,9 @@ function DocumentListItem(props: Props, ref) {
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = policies.abilities(document.id).star;
   const can = policies.abilities(currentTeam.id);
-  const canCollection = document.collectionId ? policies.abilities(document.collectionId) : {};
+  const collectionPolicy = document.collectionId
+    ? policies.abilities(document.collectionId)
+    : {};
 
   return (
     <DocumentLink
@@ -127,7 +129,7 @@ function DocumentListItem(props: Props, ref) {
           !document.isArchived &&
           !document.isDeleted &&
           can.createDocument &&
-          canCollection.update && (
+          collectionPolicy.update && (
             <>
               <Button
                 as={Link}

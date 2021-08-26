@@ -55,13 +55,14 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
 }
 
 export function newDocumentUrl(
-  collectionId: string,
+  collectionId: ?string,
   params?: {
     parentDocumentId?: string,
     templateId?: string,
     template?: boolean,
   }
 ): string {
+  if (!collectionId) return `/doc/new?${queryString.stringify(params)}`;
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 

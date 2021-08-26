@@ -165,11 +165,6 @@ export default class Document extends BaseModel {
     return floor((this.tasks.completed / this.tasks.total) * 100);
   }
 
-  @computed
-  get computedCollectionId(): string {
-    return this.collectionId || "";
-  }
-
   @action
   share = async () => {
     return this.store.rootStore.shares.create({ documentId: this.id });

@@ -75,7 +75,9 @@ function DocumentMeta({
     return null;
   }
 
-  const collection = document.collectionId ? collections.get(document.collectionId) : undefined;
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
   let content;
 

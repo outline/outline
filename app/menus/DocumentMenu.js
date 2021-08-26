@@ -156,7 +156,9 @@ function DocumentMenu({
     [document]
   );
 
-  const collection = document.collectionId ? collections.get(document.collectionId) : undefined;
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const can = policies.abilities(document.id);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
@@ -326,7 +328,7 @@ function DocumentMenu({
             },
             {
               title: t("New nested document"),
-              to: newDocumentUrl(collectionId, {
+              to: newDocumentUrl(collection?.id, {
                 parentDocumentId: document.id,
               }),
               visible: !!can.createChildDocument,

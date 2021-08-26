@@ -18,7 +18,7 @@ function NewChildDocumentMenu({ document, label }: Props) {
   const menu = useMenuState({ modal: true });
   const { collections } = useStores();
   const { t } = useTranslation();
-  const collection = collections.get(document.computedCollectionId);
+  const collection = collections.get(document.collectionId || "");
   const collectionName = collection ? collection.name : t("collection");
 
   if (!collection) {

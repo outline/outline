@@ -66,7 +66,7 @@ export default class SharesStore extends BaseStore<Share> {
     if (!document) return;
 
     const collection = this.rootStore.collections.get(
-      document.computedCollectionId
+      document.collectionId || ""
     );
     if (!collection) return;
 

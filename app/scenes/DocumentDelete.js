@@ -24,7 +24,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
   const [isArchiving, setArchiving] = React.useState(false);
   const { showToast } = useToasts();
   const canArchive = !document.isDraft && !document.isArchived;
-  const collection = collections.get(document.computedCollectionId);
+  const collection = collections.get(document.collectionId || "");
 
   const handleSubmit = React.useCallback(
     async (ev: SyntheticEvent<>) => {
