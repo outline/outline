@@ -112,7 +112,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   if (onlyText === true) {
     return (
       <>
-        {collection && collection.name}
+        {collection?.name}
         {path.map((n) => (
           <React.Fragment key={n.id}>
             <SmallSlash />
