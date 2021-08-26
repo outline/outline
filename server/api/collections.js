@@ -465,8 +465,7 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
 
-  const acl = process.env.AWS_S3_ACL || "private";
-  const key = getAWSKeyForFileOp(team.id, collection.name, acl);
+  const key = getAWSKeyForFileOp(team.id, collection.name);
 
   let exportData;
   exportData = await FileOperation.create({
@@ -496,8 +495,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  const acl = process.env.AWS_S3_ACL || "private";
-  const key = getAWSKeyForFileOp(team.id, team.name, acl);
+  const key = getAWSKeyForFileOp(team.id, team.name);
 
   let exportData;
   exportData = await FileOperation.create({

@@ -94,7 +94,7 @@ async function exportAndEmailCollections({
       readBuffer,
       "application/zip",
       key,
-      process.env.AWS_S3_ACL || "private"
+      "private"
     );
 
     state = "complete";

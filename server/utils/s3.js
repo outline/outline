@@ -182,12 +182,9 @@ export const getSignedUrl = async (key: string) => {
     : s3.getSignedUrl("getObject", params);
 };
 
-export const getAWSKeyForFileOp = (
-  teamId: string,
-  name: string,
-  acl: string
-) => {
-  const bucket = acl === "public-read" ? "public" : "uploads";
+// function assumes that acl is private
+export const getAWSKeyForFileOp = (teamId: string, name: string) => {
+  const bucket = "uploads";
   return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
