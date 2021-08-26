@@ -60,7 +60,6 @@ Attachment.findAllInBatches = async (
 ) => {
   if (!query.offset) query.offset = 0;
   if (!query.limit) query.limit = 10;
-
   let results;
 
   do {

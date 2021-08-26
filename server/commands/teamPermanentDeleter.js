@@ -10,6 +10,7 @@ import {
   Team,
   NotificationSetting,
   User,
+  UserAuthentication,
   Integration,
   SearchQuery,
 } from "../models";
@@ -18,6 +19,12 @@ import { sequelize } from "../sequelize";
 const log = debug("commands");
 
 export async function teamPermanentDeleter(team: Team) {
+  if (!team.deletedAt) {
+    throw new Error(
+      `Cannot permanently delete ${team.id} team. Please delete it and try again.`
+    );
+  }
+
   log(`Permanently deleting team ${team.name} (${team.id})`);
 
   const teamId = team.id;
@@ -44,6 +51,26 @@ export async function teamPermanentDeleter(team: Team) {
         await Promise.all(
           attachments.map((attachment) => attachment.destroy({ transaction }))
         );
+      }
+    );
+
+    // UserAuthentication
+    await User.findAllInBatches(
+      {
+        where: {
+          teamId,
+        },
+        limit: 100,
+        offset: 0,
+      },
+      async (users) => {
+        const userIds = users.map((user) => user.id);
+
+        await UserAuthentication.destroy({
+          where: { userId: userIds },
+          force: true,
+          transaction,
+        });
       }
     );
 
