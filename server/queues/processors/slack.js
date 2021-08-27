@@ -1,8 +1,8 @@
 // @flow
 import fetch from "fetch-with-proxy";
-import { Document, Integration, Collection, Team } from "../models";
-import { presentSlackAttachment } from "../presenters";
-import type { DocumentEvent, IntegrationEvent, Event } from "../types";
+import { Document, Integration, Collection, Team } from "../../models";
+import { presentSlackAttachment } from "../../presenters";
+import type { DocumentEvent, IntegrationEvent, Event } from "../../types";
 
 export default class Slack {
   async on(event: Event) {

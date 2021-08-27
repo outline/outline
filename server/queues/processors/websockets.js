@@ -6,9 +6,9 @@ import {
   Group,
   CollectionGroup,
   GroupUser,
-} from "../models";
-import { Op } from "../sequelize";
-import type { Event } from "../types";
+} from "../../models";
+import { Op } from "../../sequelize";
+import type { Event } from "../../types";
 
 export default class Websockets {
   async on(event: Event, socketio: any) {

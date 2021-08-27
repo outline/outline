@@ -2,9 +2,9 @@
 import fs from "fs";
 import os from "os";
 import File from "formidable/lib/file";
-import collectionImporter from "../commands/collectionImporter";
-import { Attachment, User } from "../models";
-import type { Event } from "../types";
+import collectionImporter from "../../commands/collectionImporter";
+import { Attachment, User } from "../../models";
+import type { Event } from "../../types";
 
 export default class Importer {
   async on(event: Event) {

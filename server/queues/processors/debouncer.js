@@ -1,7 +1,7 @@
 // @flow
-import { Document } from "../models";
-import { globalEventsQueue } from "../queues";
-import type { Event } from "../types";
+import { Document } from "../../models";
+import { globalEventsQueue } from "../../queues";
+import type { Event } from "../../types";
 
 export default class Debouncer {
   async on(event: Event) {
