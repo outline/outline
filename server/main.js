@@ -7,7 +7,9 @@ import SocketAuth from "socketio-auth";
 import app from "./app";
 import { Document, Collection, View } from "./models";
 import policy from "./policies";
+import { websocketsQueue } from "./queues";
 import { client, subscriber } from "./redis";
+import Websockets from "./services/websockets";
 import { getUserForJWT } from "./utils/jwt";
 import * as metrics from "./utils/metrics";
 import { checkMigrations } from "./utils/startup";
@@ -234,13 +236,27 @@ server.on("listening", () => {
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
+const websockets = new Websockets();
+
+websocketsQueue.process(async function websocketEventsProcessor(job) {
+  const event = job.data;
+  websockets.on(event, io).catch((error) => {
+    if (process.env.SENTRY_DSN) {
+      Sentry.withScope(function (scope) {
+        scope.setExtra("event", event);
+        Sentry.captureException(error);
+      });
+    } else {
+      throw error;
+    }
+  });
+});
+
 export async function start(id: string) {
   console.log(`Started worker ${id}`);
 
   await checkMigrations();
   server.listen(process.env.PORT || "3000");
 }
-
-export const socketio = io;
 
 export default server;

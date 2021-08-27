@@ -10,7 +10,7 @@
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
-    "dev": "nodemon --exec \"yarn build:server && yarn build:i18n && node --inspect=0.0.0.0 build/server/index.js\" -e js --ignore build/ --ignore app/ --ignore flow-typed/",
+    "dev": "nodemon --exec \"yarn build:server && yarn build:i18n && node --stack-trace-limit=1000 build/server/index.js\" -e js --ignore build/ --ignore app/ --ignore flow-typed/",
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
     "prepare": "yarn yarn-deduplicate yarn.lock",

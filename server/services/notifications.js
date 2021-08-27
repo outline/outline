@@ -1,6 +1,5 @@
 // @flow
 import debug from "debug";
-import type { DocumentEvent, CollectionEvent, Event } from "../events";
 import mailer from "../mailer";
 import {
   View,
@@ -11,6 +10,7 @@ import {
   NotificationSetting,
 } from "../models";
 import { Op } from "../sequelize";
+import type { DocumentEvent, CollectionEvent, Event } from "../types";
 
 const log = debug("services");
 

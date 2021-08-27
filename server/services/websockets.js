@@ -1,7 +1,5 @@
 // @flow
 import { subHours } from "date-fns";
-import type { Event } from "../events";
-import { socketio } from "../main";
 import {
   Document,
   Collection,
@@ -10,13 +8,10 @@ import {
   GroupUser,
 } from "../models";
 import { Op } from "../sequelize";
+import type { Event } from "../types";
 
 export default class Websockets {
-  async on(event: Event) {
-    if (!socketio) {
-      return;
-    }
-
+  async on(event: Event, socketio) {
     switch (event.name) {
       case "documents.publish":
       case "documents.restore":
