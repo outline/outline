@@ -1,14 +1,14 @@
 // @flow
 import * as Sentry from "@sentry/node";
 import debug from "debug";
-import Backlinks from "../services/backlinks";
-import Debouncer from "../services/debouncer";
-import Importer from "../services/importer";
-import Notifications from "../services/notifications";
-import Revisions from "../services/revisions";
-import Slack from "../services/slack";
+import Backlinks from "../processors/backlinks";
+import Debouncer from "../processors/debouncer";
+import Importer from "../processors/importer";
+import Notifications from "../processors/notifications";
+import Revisions from "../processors/revisions";
+import Slack from "../processors/slack";
 
-const services = {
+const processors = {
   backlinks: new Backlinks(),
   debouncer: new Debouncer(),
   importer: new Importer(),
@@ -17,14 +17,14 @@ const services = {
   slack: new Slack(),
 };
 
-const log = debug("services");
+const log = debug("processors");
 
 export default async function serviceEventProcessor(job: any) {
   const event = job.data;
-  const service = services[event.service];
+  const service = processors[event.service];
   if (!service) {
     console.warn(
-      `Received event for service that isn't registered (${event.service})`
+      `Received event for processor that isn't registered (${event.service})`
     );
     return;
   }
