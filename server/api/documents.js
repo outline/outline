@@ -383,7 +383,9 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
         },
         include: [
           {
-            model: Collection,
+            model: Collection.scope({
+              method: ["withMembership", user.id],
+            }),
             as: "collection",
           },
           {
