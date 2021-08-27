@@ -61,6 +61,7 @@ function ShareButton({ document }: Props) {
           share={share}
           sharedParent={sharedParent}
           onSubmit={popover.hide}
+          visible={popover.visible}
         />
       </Popover>
     </>
