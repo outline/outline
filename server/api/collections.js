@@ -547,7 +547,8 @@ router.post("collections.update", auth(), async (ctx) => {
     });
   }
 
-  const permissionChanged = permission !== collection.permission;
+  let privacyChanged = false;
+  let sharingChanged = false;
 
   if (name !== undefined) {
     collection.name = name;
@@ -562,9 +563,12 @@ router.post("collections.update", auth(), async (ctx) => {
     collection.color = color;
   }
   if (permission !== undefined) {
+    ctx.assertIn(permission, ["read_write", "read", ""], "Invalid permission");
+    privacyChanged = permission !== collection.permission;
     collection.permission = permission ? permission : null;
   }
   if (sharing !== undefined) {
+    sharingChanged = sharing !== collection.sharing;
     collection.sharing = sharing;
   }
   if (sort !== undefined) {
@@ -582,9 +586,20 @@ router.post("collections.update", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  if (privacyChanged || sharingChanged) {
+    await Event.create({
+      name: "collections.permission_changed",
+      collectionId: collection.id,
+      teamId: collection.teamId,
+      actorId: user.id,
+      data: { name, privacyChanged, sharingChanged },
+      ip: ctx.request.ip,
+    });
+  }
+
   // must reload to update collection membership for correct policy calculation
   // if the privacy level has changed. Otherwise skip this query for speed.
-  if (permissionChanged) {
+  if (privacyChanged || sharingChanged) {
     await collection.reload();
   }
 

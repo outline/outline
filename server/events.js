@@ -145,6 +145,18 @@ export type CollectionEvent =
       actorId: string,
       data: { index: string },
       ip: string,
+    }
+  | {
+      name: "collections.permission_changed",
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        index: string,
+        privacyChanged: boolean,
+        sharingChanged: boolean,
+      },
+      ip: string,
     };
 
 export type GroupEvent =
