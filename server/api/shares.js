@@ -3,7 +3,7 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
-import { Document, User, Event, Share, Team } from "../models";
+import { Document, User, Event, Share, Team, Collection } from "../models";
 import policy from "../policies";
 import { presentShare, presentPolicies } from "../presenters";
 import pagination from "./middlewares/pagination";
@@ -147,7 +147,26 @@ router.post("shares.update", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const { user } = ctx.state;
-  const share = await Share.findByPk(id);
+
+  // fetch the share with document and collection.
+  const share = await Share.findByPk(id, {
+    include: [
+      {
+        model: Document,
+        paranoid: true,
+        as: "document",
+        include: [
+          {
+            model: Collection.scope({
+              method: ["withMembership", user.id],
+            }),
+            as: "collection",
+          },
+        ],
+      },
+    ],
+  });
+
   authorize(user, "update", share);
 
   if (published !== undefined) {
@@ -190,7 +209,8 @@ router.post("shares.create", auth(), async (ctx) => {
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, { userId: user.id });
   const team = await Team.findByPk(user.teamId);
-  authorize(user, "share", document);
+  // user could be creating the share link to share with team members
+  authorize(user, "read", document);
   authorize(user, "share", team);
 
   const [share, isCreated] = await Share.findOrCreate({
