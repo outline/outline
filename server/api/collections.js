@@ -563,7 +563,12 @@ router.post("collections.update", auth(), async (ctx) => {
     collection.color = color;
   }
   if (permission !== undefined) {
-    ctx.assertIn(permission, ["read_write", "read", ""], "Invalid permission");
+    // frontend sends empty string
+    ctx.assertIn(
+      permission,
+      ["read_write", "read", "", null],
+      "Invalid permission"
+    );
     privacyChanged = permission !== collection.permission;
     collection.permission = permission ? permission : null;
   }
