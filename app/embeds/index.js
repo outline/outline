@@ -12,6 +12,7 @@ import Diagrams from "./Diagrams";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GoogleCalendar from "./GoogleCalendar";
 import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
@@ -156,6 +157,13 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Calendar",
+    keywords: "calendar",
+    icon: () => <Img src="/images/google-calendar.png" />,
+    component: GoogleCalendar,
+    matcher: matcher(GoogleCalendar),
   },
   {
     title: "Google Data Studio",
