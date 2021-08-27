@@ -57,6 +57,7 @@ export async function teamPermanentDeleter(team: Team) {
     // UserAuthentication
     await User.findAllInBatches(
       {
+        attributes: ["id"],
         where: {
           teamId,
         },
