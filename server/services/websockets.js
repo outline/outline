@@ -11,7 +11,7 @@ import { Op } from "../sequelize";
 import type { Event } from "../types";
 
 export default class Websockets {
-  async on(event: Event, socketio) {
+  async on(event: Event, socketio: any) {
     switch (event.name) {
       case "documents.publish":
       case "documents.restore":

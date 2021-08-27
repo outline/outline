@@ -10,4 +10,4 @@ process.env.DEPLOYMENT = "";
 process.env.ALLOWED_DOMAINS = "allowed-domain.com";
 
 // This is needed for the relative manual mock to be picked up
-jest.mock("../events");
+jest.mock("../queues");
