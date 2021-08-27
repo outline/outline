@@ -11,6 +11,7 @@ import { languages } from "../shared/i18n";
 import env from "./env";
 import apexRedirect from "./middlewares/apexRedirect";
 import Share from "./models/Share";
+import presentEnv from "./presenters/env";
 import { opensearchResponse } from "./utils/opensearch";
 import prefetchTags from "./utils/prefetchTags";
 import { robotsResponse } from "./utils/robots";
@@ -52,7 +53,7 @@ const renderApp = async (ctx, next, title = "Outline") => {
 
   const page = await readIndexFile(ctx);
   const environment = `
-    window.env = ${JSON.stringify(env)};
+    window.env = ${JSON.stringify(presentEnv(env))};
   `;
   ctx.body = page
     .toString()

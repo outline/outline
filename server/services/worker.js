@@ -28,7 +28,7 @@ const processors = {
 
 export default function init(app: Koa, server: http.Server) {
   // this queue processes global events and hands them off to services
-  globalEventsQueue.process(function globalEventProcessor(job) {
+  globalEventsQueue.process("global", function globalEventProcessor(job) {
     Object.keys(processors).forEach((name) => {
       serviceEventsQueue.add(
         { ...job.data, service: name },
@@ -39,7 +39,7 @@ export default function init(app: Koa, server: http.Server) {
     websocketsQueue.add(job.data, { removeOnComplete: true });
   });
 
-  serviceEventsQueue.process(function serviceEventProcessor(job) {
+  serviceEventsQueue.process("service", function serviceEventProcessor(job) {
     const event = job.data;
     const service = processors[event.service];
     if (!service) {

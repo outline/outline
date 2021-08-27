@@ -224,7 +224,7 @@ export default mailer;
 
 export const mailerQueue = createQueue("email");
 
-mailerQueue.process(async (job: EmailJob) => {
+mailerQueue.process("mailer", async function emailProcessor(job: EmailJob) {
   // $FlowIssue flow doesn't like dynamic values
   await mailer[job.data.type](job.data.opts);
 });
