@@ -21,10 +21,6 @@ export default class Twitter extends React.Component<Props> {
     return this.frameRef.current;
   }
 
-  get theme() {
-    return this.props.theme.name;
-  }
-
   get type() {
     return this.props.attrs.href.includes("/status/")
       ? this.postEmbed
@@ -40,11 +36,6 @@ export default class Twitter extends React.Component<Props> {
     doc.write(html);
     doc.close();
 
-    // Change iframe background color to seamlessly fit into the page
-    if (this.theme === "dark") {
-      doc.body.style.backgroundColor = this.props.theme.almostBlack;
-    }
-
     // Watch for changes to update the iframe height
     const observer = new MutationObserver(() => {
       this.iframe.height = `${doc.body.scrollHeight}px`;
@@ -59,7 +50,6 @@ export default class Twitter extends React.Component<Props> {
         title="Twitter Embed"
         className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
         ref={this.frameRef}
-        width="100%"
         height="0"
         scrolling="no"
         frameBorder="0"
@@ -68,13 +58,27 @@ export default class Twitter extends React.Component<Props> {
     );
   }
 
+  get theme() {
+    return this.props.theme;
+  }
+
   get postEmbed() {
     return (
       <div>
+        <style>{`
+          body {
+            background: ${this.theme.background};
+            margin: 0;
+          }
+
+          .twitter-tweet {
+            margin: 0 !important;
+          }
+        `}</style>
         <blockquote
           className="twitter-tweet"
           data-dnt="true"
-          data-theme={this.theme}
+          data-theme={this.theme.name}
         >
           <a href={this.props.attrs.href}>&#8203;</a>
         </blockquote>
@@ -86,12 +90,19 @@ export default class Twitter extends React.Component<Props> {
   get feedEmbed() {
     return (
       <div>
+        <style>{`
+          body {
+            background: ${this.theme.background};
+            margin: 0;
+            border: 1px solid ${this.theme.embedBorder};
+            border-radius: 6px;
+          }
+        `}</style>
         <a
           className="twitter-timeline"
           data-dnt="true"
-          data-theme={this.theme}
-          data-height="600"
-          data-width="550"
+          data-theme={this.theme.name}
+          data-height="500"
           href={this.props.attrs.href}
         >
           &#8203;
