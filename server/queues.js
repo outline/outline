@@ -26,5 +26,5 @@ globalEventsQueue.process(async function globalEventsProcessor(job) {
 });
 
 serviceEventsQueue.process(
-  path.resolve(path.join(__dirname, "/services/index.js"))
+  path.resolve(path.join(__dirname, "/processors/index.js"))
 );
