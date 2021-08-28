@@ -15,6 +15,7 @@ function PlaceholderCollections() {
 
 const Wrapper = styled.div`
   margin: 4px 16px;
+  margin-left: 40px;
   width: 75%;
 `;
 

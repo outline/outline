@@ -149,7 +149,7 @@ async function exportAndEmailCollections({
   }
 }
 
-exporterQueue.process(async (job) => {
+exporterQueue.process(async function exportProcessor(job) {
   log("Process", job.data);
 
   switch (job.data.type) {

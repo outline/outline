@@ -1,12 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { subDays } from "date-fns";
 import TestServer from "fetch-test-server";
-import app from "../app";
 import { Document, FileOperation } from "../models";
 import { Op } from "../sequelize";
+import webService from "../services/web";
 import { buildDocument, buildFileOperation } from "../test/factories";
 import { flushdb } from "../test/support";
 
+const app = webService();
 const server = new TestServer(app.callback());
 
 jest.mock("aws-sdk", () => {

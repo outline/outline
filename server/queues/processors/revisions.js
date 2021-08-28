@@ -1,10 +1,10 @@
 // @flow
 import invariant from "invariant";
-import revisionCreator from "../commands/revisionCreator";
-import type { DocumentEvent, RevisionEvent } from "../events";
-import { Revision, Document, User } from "../models";
+import revisionCreator from "../../commands/revisionCreator";
+import { Revision, Document, User } from "../../models";
+import type { DocumentEvent, RevisionEvent } from "../../types";
 
-export default class Revisions {
+export default class RevisionsProcessor {
   async on(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.publish":

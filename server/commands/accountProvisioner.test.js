@@ -1,5 +1,5 @@
 // @flow
-import { sendEmail } from "../mailer";
+import mailer from "../mailer";
 import { Collection, UserAuthentication } from "../models";
 import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
@@ -17,7 +17,7 @@ jest.mock("aws-sdk", () => {
 
 beforeEach(() => {
   // $FlowFixMe
-  sendEmail.mockReset();
+  mailer.sendTemplate.mockReset();
 
   return flushdb();
 });
@@ -59,7 +59,7 @@ describe("accountProvisioner", () => {
     expect(user.email).toEqual("jenny@example.com");
     expect(isNewUser).toEqual(true);
     expect(isNewTeam).toEqual(true);
-    expect(sendEmail).toHaveBeenCalled();
+    expect(mailer.sendTemplate).toHaveBeenCalled();
 
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(1);
@@ -104,7 +104,7 @@ describe("accountProvisioner", () => {
     expect(user.email).toEqual(newEmail);
     expect(isNewTeam).toEqual(false);
     expect(isNewUser).toEqual(false);
-    expect(sendEmail).not.toHaveBeenCalled();
+    expect(mailer.sendTemplate).not.toHaveBeenCalled();
 
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(0);
@@ -187,7 +187,7 @@ describe("accountProvisioner", () => {
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual("jenny@example.com");
     expect(isNewUser).toEqual(true);
-    expect(sendEmail).toHaveBeenCalled();
+    expect(mailer.sendTemplate).toHaveBeenCalled();
 
     // should provision welcome collection
     const collectionCount = await Collection.count();
