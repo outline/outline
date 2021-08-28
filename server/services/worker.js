@@ -3,13 +3,15 @@ import http from "http";
 import debug from "debug";
 import Koa from "koa";
 import {
-  globalEventsQueue,
-  serviceEventsQueue,
+  globalEventQueue,
+  processorEventQueue,
   websocketsQueue,
+  emailsQueue,
 } from "../queues";
 import Backlinks from "../queues/processors/backlinks";
 import Debouncer from "../queues/processors/debouncer";
-import Importer from "../queues/processors/importer";
+import Emails from "../queues/processors/emails";
+import Imports from "../queues/processors/imports";
 import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
 import Slack from "../queues/processors/slack";
@@ -17,20 +19,22 @@ import Sentry from "../sentry";
 
 const log = debug("queue");
 
-const processors = {
+const EmailsProcessor = new Emails();
+
+const eventProcessors = {
   backlinks: new Backlinks(),
   debouncer: new Debouncer(),
-  importer: new Importer(),
+  imports: new Imports(),
   notifications: new Notifications(),
   revisions: new Revisions(),
   slack: new Slack(),
 };
 
-export default function init(app: Koa, server: http.Server) {
+export default function init(app: Koa, server?: http.Server) {
   // this queue processes global events and hands them off to services
-  globalEventsQueue.process("global", function globalEventProcessor(job) {
-    Object.keys(processors).forEach((name) => {
-      serviceEventsQueue.add(
+  globalEventQueue.process(function (job) {
+    Object.keys(eventProcessors).forEach((name) => {
+      processorEventQueue.add(
         { ...job.data, service: name },
         { removeOnComplete: true }
       );
@@ -39,20 +43,20 @@ export default function init(app: Koa, server: http.Server) {
     websocketsQueue.add(job.data, { removeOnComplete: true });
   });
 
-  serviceEventsQueue.process("service", function serviceEventProcessor(job) {
+  processorEventQueue.process(function (job) {
     const event = job.data;
-    const service = processors[event.service];
-    if (!service) {
+    const processor = eventProcessors[event.service];
+    if (!processor) {
       console.warn(
         `Received event for processor that isn't registered (${event.service})`
       );
       return;
     }
 
-    if (service.on) {
+    if (processor.on) {
       log(`${event.service} processing ${event.name}`);
 
-      service.on(event).catch((error) => {
+      processor.on(event).catch((error) => {
         if (process.env.SENTRY_DSN) {
           Sentry.withScope(function (scope) {
             scope.setExtra("event", event);
@@ -63,5 +67,20 @@ export default function init(app: Koa, server: http.Server) {
         }
       });
     }
+  });
+
+  emailsQueue.process(function (job) {
+    const event = job.data;
+
+    EmailsProcessor.on(event).catch((error) => {
+      if (process.env.SENTRY_DSN) {
+        Sentry.withScope(function (scope) {
+          scope.setExtra("event", event);
+          Sentry.captureException(error);
+        });
+      } else {
+        throw error;
+      }
+    });
   });
 }
