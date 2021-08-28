@@ -4,7 +4,7 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "../../../shared/utils/domains";
 import { AuthorizationError } from "../../errors";
-import mailer, { sendEmail } from "../../mailer";
+import mailer from "../../mailer";
 import errorHandling from "../../middlewares/errorHandling";
 import methodOverride from "../../middlewares/methodOverride";
 import validation from "../../middlewares/validation";
@@ -108,7 +108,7 @@ router.post("email", errorHandling(), async (ctx) => {
     }
 
     // send email to users registered address with a short-lived token
-    mailer.signin({
+    await mailer.sendTemplate("signin", {
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
@@ -138,7 +138,10 @@ router.get("email.callback", async (ctx) => {
       return ctx.redirect("/?notice=suspended");
     }
     if (user.isInvited) {
-      sendEmail("welcome", user.email, { teamUrl: user.team.url });
+      await mailer.sendTemplate("welcome", {
+        to: user.email,
+        teamUrl: user.team.url,
+      });
     }
 
     await user.update({ lastActiveAt: new Date() });

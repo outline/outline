@@ -1,10 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import app from "../app";
 import { Event } from "../models";
+import webService from "../services/web";
 import { buildUser, buildAdmin, buildGroup } from "../test/factories";
 import { flushdb } from "../test/support";
-
+const app = webService();
 const server = new TestServer(app.callback());
 
 beforeEach(() => flushdb());

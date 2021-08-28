@@ -54,6 +54,7 @@ export default async function userInviter({
       service: null,
     });
     users.push(newUser);
+
     await Event.create({
       name: "users.invite",
       actorId: user.id,
@@ -64,7 +65,8 @@ export default async function userInviter({
       },
       ip,
     });
-    await mailer.invite({
+
+    await mailer.sendTemplate("invite", {
       to: invite.email,
       name: invite.name,
       actorName: user.name,

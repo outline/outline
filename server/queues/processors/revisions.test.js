@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { Revision } from "../models";
-import { buildDocument } from "../test/factories";
-import { flushdb } from "../test/support";
+import { Revision } from "../../models";
+import { buildDocument } from "../../test/factories";
+import { flushdb } from "../../test/support";
 import RevisionsService from "./revisions";
 
 const Revisions = new RevisionsService();
