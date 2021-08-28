@@ -1,5 +1,5 @@
 // @flow
-import events from "../events";
+import { globalEventQueue } from "../queues";
 import { DataTypes, sequelize } from "../sequelize";
 
 const Event = sequelize.define("event", {
@@ -45,13 +45,13 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  events.add(event.dataValues, { removeOnComplete: true });
+  globalEventQueue.add(event, { removeOnComplete: true });
 });
 
 // add can be used to send events into the event system without recording them
 // in the database / audit trail
 Event.add = (event) => {
-  events.add(Event.build(event).dataValues, { removeOnComplete: true });
+  globalEventQueue.add(Event.build(event), { removeOnComplete: true });
 };
 
 Event.ACTIVITY_EVENTS = [

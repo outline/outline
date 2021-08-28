@@ -226,6 +226,7 @@ function People(props) {
         onChangePage={handleChangePage}
         page={page}
         totalPages={totalPages}
+        defaultSortDirection="ASC"
       />
       {can.inviteUser && (
         <Modal

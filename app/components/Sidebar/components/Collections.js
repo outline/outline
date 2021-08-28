@@ -1,16 +1,16 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PlusIcon, CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
-import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -25,6 +25,7 @@ function Collections({ onCreateCollection }: Props) {
   const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
   const { showToast } = useToasts();
+  const [expanded, setExpanded] = React.useState(true);
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
   const team = useCurrentTeam();
@@ -99,6 +100,7 @@ function Collections({ onCreateCollection }: Props) {
           icon={<PlusIcon color="currentColor" />}
           label={`${t("New collection")}…`}
           exact
+          depth={0.5}
         />
       )}
     </>
@@ -107,7 +109,11 @@ function Collections({ onCreateCollection }: Props) {
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <Header>{t("Collections")}</Header>
+        <SidebarLink
+          label={t("Collections")}
+          icon={<Disclosure expanded={expanded} color="currentColor" />}
+          disabled
+        />
         <PlaceholderCollections />
       </Flex>
     );
@@ -115,10 +121,19 @@ function Collections({ onCreateCollection }: Props) {
 
   return (
     <Flex column>
-      <Header>{t("Collections")}</Header>
-      {isPreloaded ? content : <Fade>{content}</Fade>}
+      <SidebarLink
+        onClick={() => setExpanded((prev) => !prev)}
+        label={t("Collections")}
+        icon={<Disclosure expanded={expanded} color="currentColor" />}
+      />
+      {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
     </Flex>
   );
 }
+
+const Disclosure = styled(CollapsedIcon)`
+  transition: transform 100ms ease, fill 50ms !important;
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+`;
 
 export default observer(Collections);

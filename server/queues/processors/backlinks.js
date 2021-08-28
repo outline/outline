@@ -1,11 +1,11 @@
 // @flow
-import type { DocumentEvent, RevisionEvent } from "../events";
-import { Document, Team, Backlink } from "../models";
-import { Op } from "../sequelize";
-import parseDocumentIds from "../utils/parseDocumentIds";
-import slugify from "../utils/slugify";
+import { Document, Backlink, Team } from "../../models";
+import { Op } from "../../sequelize";
+import type { DocumentEvent, RevisionEvent } from "../../types";
+import parseDocumentIds from "../../utils/parseDocumentIds";
+import slugify from "../../utils/slugify";
 
-export default class Backlinks {
+export default class BacklinksProcessor {
   async on(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.publish": {

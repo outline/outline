@@ -1,9 +1,10 @@
 // @flow
 import TestServer from "fetch-test-server";
-import app from "./app";
+import webService from "./services/web";
 import { buildShare, buildDocument } from "./test/factories";
 import { flushdb } from "./test/support";
 
+const app = webService();
 const server = new TestServer(app.callback());
 
 beforeEach(() => flushdb());

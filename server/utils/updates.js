@@ -10,7 +10,7 @@ import { client } from "../redis";
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
 
-export default async () => {
+export async function checkUpdates() {
   invariant(
     process.env.SECRET_KEY && process.env.URL,
     "SECRET_KEY or URL env var is not set"
@@ -68,4 +68,4 @@ export default async () => {
   } catch (_e) {
     // no-op
   }
-};
+}

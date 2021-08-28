@@ -81,7 +81,6 @@ function DocumentHeader({
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
-  const canShareDocument = auth.team && auth.team.sharing && can.share;
   const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
   const canEdit = can.update && !isEditing;
 
@@ -176,7 +175,7 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing && canShareDocument && (!isMobile || !isTemplate) && (
+            {!isEditing && (!isMobile || !isTemplate) && (
               <Action>
                 <ShareButton document={document} />
               </Action>

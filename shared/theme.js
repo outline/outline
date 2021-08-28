@@ -199,7 +199,7 @@ export const dark = {
   placeholder: colors.slateDark,
 
   sidebarBackground: colors.veryDarkBlue,
-  sidebarItemBackground: colors.transparent,
+  sidebarItemBackground: lighten(0.015, colors.almostBlack),
   sidebarText: colors.slate,
   backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",

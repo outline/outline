@@ -1,6 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import app from "../app";
 import {
   Document,
   View,
@@ -10,6 +9,7 @@ import {
   CollectionUser,
   SearchQuery,
 } from "../models";
+import webService from "../services/web";
 import {
   buildShare,
   buildCollection,
@@ -17,7 +17,7 @@ import {
   buildDocument,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
-
+const app = webService();
 const server = new TestServer(app.callback());
 
 beforeEach(() => flushdb());
@@ -96,6 +96,74 @@ describe("#documents.info", () => {
 
     await share.reload();
     expect(share.lastAccessedAt).toBeTruthy();
+  });
+
+  it("should not return document of a deleted collection, when the user was absent in the collection", async () => {
+    const user = await buildUser();
+    const user2 = await buildUser({
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      permission: null,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const doc = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/collections.delete", {
+      body: {
+        id: collection.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: {
+        id: doc.id,
+        token: user2.getJwtToken(),
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return document of a deleted collection, when the user was present in the collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      permission: null,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+
+    const doc = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    await server.post("/api/collections.delete", {
+      body: {
+        id: collection.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: {
+        id: doc.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(doc.id);
   });
 
   describe("apiVersion=2", () => {
@@ -233,6 +301,27 @@ describe("#documents.info", () => {
       body: { shareId: share.id },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should return document from shareId if public sharing is disabled but the user has permission to read", async () => {
+    const { document, collection, team, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    team.sharing = false;
+    await team.save();
+
+    collection.sharing = false;
+    await collection.save();
+
+    const res = await server.post("/api/documents.info", {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+
+    expect(res.status).toEqual(200);
   });
 
   it("should not return document from revoked shareId", async () => {
