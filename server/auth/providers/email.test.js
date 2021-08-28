@@ -14,7 +14,7 @@ beforeEach(async () => {
   await flushdb();
 
   // $FlowFixMe – does not understand Jest mocks
-  mailer.signin.mockReset();
+  mailer.sendTemplate.mockReset();
 });
 afterAll(() => server.close());
 
@@ -40,7 +40,7 @@ describe("email", () => {
 
     expect(res.status).toEqual(200);
     expect(body.redirect).toMatch("slack");
-    expect(mailer.signin).not.toHaveBeenCalled();
+    expect(mailer.sendTemplate).not.toHaveBeenCalled();
   });
 
   it("should respond with redirect location when user is SSO enabled on another subdomain", async () => {
@@ -61,7 +61,7 @@ describe("email", () => {
 
     expect(res.status).toEqual(200);
     expect(body.redirect).toMatch("slack");
-    expect(mailer.signin).not.toHaveBeenCalled();
+    expect(mailer.sendTemplate).not.toHaveBeenCalled();
   });
 
   it("should respond with success when user is not SSO enabled", async () => {
@@ -74,7 +74,7 @@ describe("email", () => {
 
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
-    expect(mailer.signin).toHaveBeenCalled();
+    expect(mailer.sendTemplate).toHaveBeenCalled();
   });
 
   it("should respond with success regardless of whether successful to prevent crawling email logins", async () => {
@@ -85,7 +85,7 @@ describe("email", () => {
 
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
-    expect(mailer.signin).not.toHaveBeenCalled();
+    expect(mailer.sendTemplate).not.toHaveBeenCalled();
   });
 
   describe("with multiple users matching email", () => {
@@ -109,7 +109,7 @@ describe("email", () => {
 
       expect(res.status).toEqual(200);
       expect(body.redirect).toMatch("slack");
-      expect(mailer.signin).not.toHaveBeenCalled();
+      expect(mailer.sendTemplate).not.toHaveBeenCalled();
     });
 
     it("should default to current subdomain with guest email", async () => {
@@ -132,7 +132,7 @@ describe("email", () => {
 
       expect(res.status).toEqual(200);
       expect(body.success).toEqual(true);
-      expect(mailer.signin).toHaveBeenCalled();
+      expect(mailer.sendTemplate).toHaveBeenCalled();
     });
 
     it("should default to custom domain with SSO", async () => {
@@ -152,7 +152,7 @@ describe("email", () => {
 
       expect(res.status).toEqual(200);
       expect(body.redirect).toMatch("slack");
-      expect(mailer.signin).not.toHaveBeenCalled();
+      expect(mailer.sendTemplate).not.toHaveBeenCalled();
     });
 
     it("should default to custom domain with guest email", async () => {
@@ -172,7 +172,7 @@ describe("email", () => {
 
       expect(res.status).toEqual(200);
       expect(body.success).toEqual(true);
-      expect(mailer.signin).toHaveBeenCalled();
+      expect(mailer.sendTemplate).toHaveBeenCalled();
     });
   });
 });
