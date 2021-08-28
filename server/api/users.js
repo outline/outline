@@ -181,7 +181,7 @@ router.post("users.demote", auth(), async (ctx) => {
   const actor = ctx.state.user;
   ctx.assertPresent(userId, "id is required");
 
-  to = to === "Viewer" ? "Viewer" : "Member";
+  to = to === "viewer" ? "viewer" : "member";
 
   const user = await User.findByPk(userId);
 
@@ -262,7 +262,7 @@ router.post("users.invite", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  authorize(user, "invite", team);
+  authorize(user, "inviteUser", team);
 
   const response = await userInviter({ user, invites, ip: ctx.request.ip });
 

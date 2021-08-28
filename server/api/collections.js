@@ -1,5 +1,4 @@
 // @flow
-import fs from "fs";
 import fractionalIndex from "fractional-index";
 import Router from "koa-router";
 import { ValidationError } from "../errors";
@@ -14,6 +13,7 @@ import {
   User,
   Group,
   Attachment,
+  FileOperation,
 } from "../models";
 import policy from "../policies";
 import {
@@ -23,12 +23,13 @@ import {
   presentMembership,
   presentGroup,
   presentCollectionGroupMembership,
+  presentFileOperation,
 } from "../presenters";
 import { Op, sequelize } from "../sequelize";
 
 import collectionIndexing from "../utils/collectionIndexing";
 import removeIndexCollision from "../utils/removeIndexCollision";
-import { archiveCollection, archiveCollections } from "../utils/zip";
+import { getAWSKeyForFileOp } from "../utils/s3";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -454,59 +455,70 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
+  authorize(user, "export", team);
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  authorize(user, "export", collection);
 
-  const filePath = await archiveCollection(collection);
+  ctx.assertPresent(collection, "Collection should be present");
+  authorize(user, "read", collection);
 
-  await Event.create({
-    name: "collections.export",
-    collectionId: collection.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: { title: collection.title },
-    ip: ctx.request.ip,
+  const key = getAWSKeyForFileOp(team.id, collection.name);
+
+  let exportData;
+  exportData = await FileOperation.create({
+    type: "export",
+    state: "creating",
+    key,
+    url: null,
+    size: 0,
+    collectionId: id,
+    userId: user.id,
+    teamId: team.id,
   });
 
-  ctx.attachment(`${collection.name}.zip`);
-  ctx.set("Content-Type", "application/force-download");
-  ctx.body = fs.createReadStream(filePath);
+  exportCollections(user.teamId, user.id, user.email, exportData.id, id);
+
+  exportData.user = user;
+  exportData.collection = collection;
+
+  ctx.body = {
+    success: true,
+    data: { fileOperation: presentFileOperation(exportData) },
+  };
 });
 
 router.post("collections.export_all", auth(), async (ctx) => {
-  const { download = false } = ctx.body;
-
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  await Event.create({
-    name: "collections.export",
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
+  const key = getAWSKeyForFileOp(team.id, team.name);
+
+  let exportData;
+  exportData = await FileOperation.create({
+    type: "export",
+    state: "creating",
+    key,
+    url: null,
+    size: 0,
+    collectionId: null,
+    userId: user.id,
+    teamId: team.id,
   });
 
-  if (download) {
-    const collections = await Collection.findAll({
-      where: { teamId: team.id },
-      order: [["name", "ASC"]],
-    });
-    const filePath = await archiveCollections(collections);
+  // async operation to upload zip archive to cloud and email user with link
+  exportCollections(user.teamId, user.id, user.email, exportData.id);
 
-    ctx.attachment(`${team.name}.zip`);
-    ctx.set("Content-Type", "application/force-download");
-    ctx.body = fs.createReadStream(filePath);
-  } else {
-    // async operation to create zip archive and email user
-    exportCollections(user.teamId, user.email);
+  exportData.user = user;
+  exportData.collection = null;
 
-    ctx.body = {
-      success: true,
-    };
-  }
+  ctx.body = {
+    success: true,
+    data: { fileOperation: presentFileOperation(exportData) },
+  };
 });
 
 router.post("collections.update", auth(), async (ctx) => {

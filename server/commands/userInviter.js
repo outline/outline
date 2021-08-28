@@ -1,9 +1,14 @@
 // @flow
 import { uniqBy } from "lodash";
+import type { Role } from "shared/types";
 import mailer from "../mailer";
 import { User, Event, Team } from "../models";
 
-type Invite = { name: string, email: string };
+type Invite = {
+  name: string,
+  email: string,
+  role: Role,
+};
 
 export default async function userInviter({
   user,
@@ -52,6 +57,8 @@ export default async function userInviter({
       name: invite.name,
       email: invite.email,
       service: null,
+      isAdmin: invite.role === "admin",
+      isViewer: invite.role === "viewer",
     });
     users.push(newUser);
 
@@ -62,6 +69,7 @@ export default async function userInviter({
       data: {
         email: invite.email,
         name: invite.name,
+        role: invite.role,
       },
       ip,
     });

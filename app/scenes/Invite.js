@@ -5,11 +5,13 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import type { Role } from "shared/types";
 import Button from "components/Button";
 import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
+import InputSelectRole from "components/InputSelectRole";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -26,15 +28,16 @@ type Props = {|
 type InviteRequest = {
   email: string,
   name: string,
+  role: Role,
 };
 
 function Invite({ onSubmit }: Props) {
   const [isSaving, setIsSaving] = React.useState();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
   const [invites, setInvites] = React.useState<InviteRequest[]>([
-    { email: "", name: "" },
-    { email: "", name: "" },
-    { email: "", name: "" },
+    { email: "", name: "", role: "member" },
+    { email: "", name: "", role: "member" },
+    { email: "", name: "", role: "member" },
   ]);
 
   const { users, policies } = useStores();
@@ -84,7 +87,7 @@ function Invite({ onSubmit }: Props) {
 
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
-      newInvites.push({ email: "", name: "" });
+      newInvites.push({ email: "", name: "", role: "member" });
       return newInvites;
     });
   }, [showToast, invites, t]);
@@ -108,6 +111,14 @@ function Invite({ onSubmit }: Props) {
       type: "success",
     });
   }, [showToast, t]);
+
+  const handleRoleChange = React.useCallback((ev, index) => {
+    setInvites((prevInvites) => {
+      const newInvites = [...prevInvites];
+      newInvites[index]["role"] = ev.target.value;
+      return newInvites;
+    });
+  }, []);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -160,7 +171,7 @@ function Invite({ onSubmit }: Props) {
         </CopyBlock>
       )}
       {invites.map((invite, index) => (
-        <Flex key={index}>
+        <Flex key={index} gap={8}>
           <Input
             type="email"
             name="email"
@@ -173,7 +184,6 @@ function Invite({ onSubmit }: Props) {
             autoFocus={index === 0}
             flex
           />
-          &nbsp;&nbsp;
           <Input
             type="text"
             name="name"
@@ -182,7 +192,12 @@ function Invite({ onSubmit }: Props) {
             onChange={(ev) => handleChange(ev, index)}
             value={invite.name}
             required={!!invite.email}
-            flex
+          />
+          <InputSelectRole
+            onChange={(ev) => handleRoleChange(ev, index)}
+            value={invite.role}
+            labelHidden={index !== 0}
+            short
           />
           {index !== 0 && (
             <Remove>

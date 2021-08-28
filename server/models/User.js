@@ -304,7 +304,7 @@ User.getCounts = async function (teamId: string) {
 
 User.prototype.demote = async function (
   teamId: string,
-  to: "Member" | "Viewer"
+  to: "member" | "viewer"
 ) {
   const res = await User.findAndCountAll({
     where: {
@@ -318,9 +318,9 @@ User.prototype.demote = async function (
   });
 
   if (res.count >= 1) {
-    if (to === "Member") {
+    if (to === "member") {
       return this.update({ isAdmin: false, isViewer: false });
-    } else if (to === "Viewer") {
+    } else if (to === "viewer") {
       return this.update({ isAdmin: false, isViewer: true });
     }
   } else {

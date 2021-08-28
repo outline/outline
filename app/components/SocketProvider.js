@@ -8,6 +8,7 @@ import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentPresenceStore from "stores/DocumentPresenceStore";
 import DocumentsStore from "stores/DocumentsStore";
+import FileOperationsStore from "stores/FileOperationsStore";
 import GroupsStore from "stores/GroupsStore";
 import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -28,6 +29,7 @@ type Props = {
   views: ViewsStore,
   auth: AuthStore,
   toasts: ToastsStore,
+  fileOperations: FileOperationsStore,
 };
 
 @observer
@@ -80,6 +82,7 @@ class SocketProvider extends React.Component<Props> {
       policies,
       presence,
       views,
+      fileOperations,
     } = this.props;
     if (!auth.token) return;
 
@@ -287,6 +290,21 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("fileOperations.update", async (event) => {
+      const user = auth.user;
+      let collection = null;
+
+      if (event.collectionId)
+        collection = await collections.fetch(event.collectionId);
+      if (user) {
+        fileOperations.add({
+          ...event,
+          user,
+          collection,
+        });
+      }
+    });
+
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
     this.socket.on("join", (event) => {
@@ -345,5 +363,6 @@ export default inject(
   "memberships",
   "presence",
   "policies",
-  "views"
+  "views",
+  "fileOperations"
 )(SocketProvider);
