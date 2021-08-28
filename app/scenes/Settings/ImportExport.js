@@ -213,7 +213,10 @@ function ImportExport() {
           </Subheading>
         }
         renderItem={(item) => (
-          <FileOperationListItem key={item.id} fileOperation={item} />
+          <FileOperationListItem
+            key={item.id + item.state}
+            fileOperation={item}
+          />
         )}
       />
     </Scene>
