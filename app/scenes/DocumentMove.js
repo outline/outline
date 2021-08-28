@@ -53,12 +53,10 @@ function DocumentMove({ document, onRequestClose }: Props) {
     let paths = collections.pathsToDocuments;
 
     paths = paths.filter((path) => {
-      if (path.type === "collection" && policies.abilities(path.id).update)
-        return true;
-
       if (
-        path.type === "document" &&
-        policies.abilities(path.collectionId).update
+        (path.type === "collection" && policies.abilities(path.id).update) ||
+        (path.type === "document" &&
+          policies.abilities(path.collectionId).update)
       )
         return true;
 
@@ -153,7 +151,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
 
     return (
       <PathToDocument
-        key={result.id + result.type}
+        key={result.url}
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}

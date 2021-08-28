@@ -331,7 +331,7 @@ function DocumentMenu({
               to: newDocumentUrl(collection?.id, {
                 parentDocumentId: document.id,
               }),
-              visible: !!can.createChildDocument,
+              visible: !!can.createChildDocument && !!collection?.id,
               icon: <NewDocumentIcon />,
             },
             {

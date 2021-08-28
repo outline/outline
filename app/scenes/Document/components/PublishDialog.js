@@ -53,29 +53,32 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     }
   }, []);
 
-  const handlePublishFromModal = async (selectedPath) => {
-    if (!document) return;
-    if (!selectedPath) {
-      showToast(t("Please select a path"));
-      return;
-    }
+  const handlePublishFromModal = React.useCallback(
+    async (selectedPath) => {
+      if (!document) return;
+      if (!selectedPath) {
+        showToast(t("Please select a path"));
+        return;
+      }
 
-    if (selectedPath.type === "collection") {
-      await onSave({
-        done: true,
-        publish: true,
-        collectionId: selectedPath.collectionId,
-      });
-    } else {
-      await onSave({
-        done: true,
-        publish: true,
-        collectionId: selectedPath.collectionId,
-        parentDocumentId: selectedPath.id,
-      });
-    }
-    dialog.setVisible(false);
-  };
+      if (selectedPath.type === "collection") {
+        await onSave({
+          done: true,
+          publish: true,
+          collectionId: selectedPath.collectionId,
+        });
+      } else {
+        await onSave({
+          done: true,
+          publish: true,
+          collectionId: selectedPath.collectionId,
+          parentDocumentId: selectedPath.id,
+        });
+      }
+      dialog.setVisible(false);
+    },
+    [dialog, document, onSave, showToast, t]
+  );
 
   const selected = React.useCallback(
     (result) => {
@@ -100,12 +103,10 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     let paths = collections.pathsToDocuments;
 
     paths = paths.filter((path) => {
-      if (path.type === "collection" && policies.abilities(path.id).update)
-        return true;
-
       if (
-        path.type === "document" &&
-        policies.abilities(path.collectionId).update
+        (path.type === "collection" && policies.abilities(path.id).update) ||
+        (path.type === "document" &&
+          policies.abilities(path.collectionId).update)
       )
         return true;
 
@@ -164,6 +165,7 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     const result = data[index];
     return (
       <PathToDocument
+        key={result.url}
         result={result}
         document={document}
         collection={collections.get(result.collectionId)}
