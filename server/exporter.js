@@ -41,6 +41,7 @@ type exportAndEmailCollectionsType = {|
   collectionId?: string,
 |};
 
+// TODO: Refactor to use commmand pattern
 async function exportAndEmailCollections({
   teamId,
   userId,
