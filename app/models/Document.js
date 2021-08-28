@@ -274,7 +274,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: ?SaveOptions = {}) => {
+  save = async (options: ?SaveOptions) => {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
@@ -287,22 +287,22 @@ export default class Document extends BaseModel {
           collectionId: this.collectionId,
           title: this.title,
           text: this.text,
-          publish: options.publish,
-          done: options.done,
-          autosave: options.autosave,
+          publish: options?.publish,
+          done: options?.done,
+          autosave: options?.autosave,
         });
       }
 
-      if (options.lastRevision) {
+      if (options?.lastRevision) {
         return await this.store.update({
           id: this.id,
           title: this.title,
           text: this.text,
           templateId: this.templateId,
-          lastRevision: options.lastRevision,
-          publish: options.publish,
-          done: options.done,
-          autosave: options.autosave,
+          lastRevision: options?.lastRevision,
+          publish: options?.publish,
+          done: options?.done,
+          autosave: options?.autosave,
         });
       }
 

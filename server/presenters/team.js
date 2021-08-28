@@ -10,7 +10,7 @@ export default function present(team: Team) {
     sharing: team.sharing,
     features: {
       multiplayerEditor:
-        team.features?.multiplayerEditor && env.MULTIPLAYER_URL,
+        team.features?.multiplayerEditor && env.COLLABORATION_URL,
     },
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,

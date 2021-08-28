@@ -11,6 +11,7 @@ import throng from "throng";
 import "./sentry";
 import services from "./services";
 import { initTracing } from "./tracing";
+import { getArg } from "./utils/args";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
@@ -18,18 +19,17 @@ checkEnv();
 initTracing();
 checkMigrations();
 
+// If a --port flag is passed then it takes priority over the env variable
+const normalizedPortFlag = getArg("port", "p");
+
 // If a services flag is passed it takes priority over the enviroment variable
 // for example: --services=web,worker
-const normalizedServiceFlag = process.argv
-  .slice(2)
-  .filter((arg) => arg.startsWith("--services="))
-  .map((arg) => arg.split("=")[1])
-  .join(",");
+const normalizedServiceFlag = getArg("services");
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
-  (normalizedServiceFlag || env.SERVICES || "web,websockets,worker")
+  (normalizedServiceFlag || env.SERVICES || "websockets,worker,web")
     .split(",")
     .map((service) => service.trim())
 );
@@ -43,6 +43,15 @@ async function start() {
   app.use(logger((str, args) => httpLogger(str)));
   app.use(compress());
   app.use(helmet());
+
+  if (
+    serviceNames.includes("websockets") &&
+    serviceNames.includes("collaboration")
+  ) {
+    throw new Error(
+      "Cannot run websockets and collaboration services in the same process"
+    );
+  }
 
   // loop through requestsed services at startup
   for (const name of serviceNames) {
@@ -64,7 +73,7 @@ async function start() {
     console.log(`\n> Listening on http://localhost:${address.port}\n`);
   });
 
-  server.listen(env.PORT || "3000");
+  server.listen(normalizedPortFlag || env.PORT || "3000");
 }
 
 throng({

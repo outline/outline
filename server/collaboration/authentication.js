@@ -1,19 +1,12 @@
 // @flow
-import { Logger } from "@hocuspocus/extension-logger";
-import { Server } from "@hocuspocus/server";
 import { AuthenticationError } from "../errors";
 import { Document } from "../models";
 import policy from "../policies";
 import { getUserForJWT } from "../utils/jwt";
-import Persistence from "./persistence";
 
 const { can } = policy;
-// const isProduction = process.env.NODE_ENV === "production";
 
-const server = Server.configure({
-  port: process.env.MULTIPLAYER_PORT || process.env.PORT || 80,
-
-  // TODO: Move to extension once ueberdosis/hocuspocus#170 is addressed
+export default class Authentication {
   async onAuthenticate({
     connection,
     token,
@@ -49,12 +42,5 @@ const server = Server.configure({
     return {
       user,
     };
-  },
-
-  extensions: [new Persistence(), new Logger()],
-});
-
-export async function start() {
-  console.log(`Started multiplayer server`);
-  server.listen();
+  }
 }

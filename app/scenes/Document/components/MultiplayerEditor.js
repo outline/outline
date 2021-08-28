@@ -45,7 +45,7 @@ function MultiplayerEditor(props: Props, ref: any) {
 
     const localProvider = new IndexeddbPersistence(name, ydoc);
     const provider = new HocuspocusProvider({
-      url: env.MULTIPLAYER_URL,
+      url: `${env.COLLABORATION_URL}/collaboration`,
       debug,
       name,
       document: ydoc,

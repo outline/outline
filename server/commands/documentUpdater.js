@@ -51,6 +51,10 @@ export default async function documentUpdater({
     }
   );
 
+  if (isUnchanged) {
+    return;
+  }
+
   await Event.add({
     name: "documents.update",
     documentId: document.id,
