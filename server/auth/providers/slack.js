@@ -12,8 +12,8 @@ import {
   Integration,
   Team,
 } from "../../models";
-import * as Slack from "../../slack";
 import { StateStore } from "../../utils/passport";
+import * as Slack from "../../utils/slack";
 
 const router = new Router();
 const providerName = "slack";

@@ -10,9 +10,9 @@ import policy from "../policies";
 import { websocketsQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/websockets";
 import { client, subscriber } from "../redis";
-import Sentry from "../sentry";
 import { getUserForJWT } from "../utils/jwt";
 import * as metrics from "../utils/metrics";
+import Sentry from "../utils/sentry";
 
 const { can } = policy;
 

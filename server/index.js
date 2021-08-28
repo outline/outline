@@ -6,12 +6,13 @@ import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
+import onerror from "koa-onerror";
 import { uniq } from "lodash";
 import throng from "throng";
-import "./sentry";
 import services from "./services";
 import { initTracing } from "./tracing";
 import { getArg } from "./utils/args";
+import { requestErrorHandler } from "./utils/sentry";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
@@ -43,6 +44,10 @@ async function start() {
   app.use(logger((str, args) => httpLogger(str)));
   app.use(compress());
   app.use(helmet());
+
+  // catch errors in one place, automatically set status and response headers
+  onerror(app);
+  app.on("error", requestErrorHandler);
 
   if (
     serviceNames.includes("websockets") &&
