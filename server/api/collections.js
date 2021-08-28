@@ -597,7 +597,7 @@ router.post("collections.update", auth(), async (ctx) => {
       collectionId: collection.id,
       teamId: collection.teamId,
       actorId: user.id,
-      data: { name, privacyChanged, sharingChanged },
+      data: { privacyChanged, sharingChanged },
       ip: ctx.request.ip,
     });
   }
