@@ -10,7 +10,7 @@ import {
 import { Op } from "../../sequelize";
 import type { Event } from "../../types";
 
-export default class Websockets {
+export default class WebsocketsProcessor {
   async on(event: Event, socketio: any) {
     switch (event.name) {
       case "documents.publish":

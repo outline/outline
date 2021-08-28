@@ -4,7 +4,7 @@ import { Document, Integration, Collection, Team } from "../../models";
 import { presentSlackAttachment } from "../../presenters";
 import type { DocumentEvent, IntegrationEvent, Event } from "../../types";
 
-export default class Slack {
+export default class SlackProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":

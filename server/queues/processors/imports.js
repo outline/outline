@@ -6,7 +6,7 @@ import collectionImporter from "../../commands/collectionImporter";
 import { Attachment, User } from "../../models";
 import type { Event } from "../../types";
 
-export default class Importer {
+export default class ImportsProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "collections.import": {

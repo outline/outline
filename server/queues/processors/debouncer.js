@@ -1,13 +1,13 @@
 // @flow
 import { Document } from "../../models";
-import { globalEventsQueue } from "../../queues";
+import { globalEventQueue } from "../../queues";
 import type { Event } from "../../types";
 
-export default class Debouncer {
+export default class DebounceProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "documents.update": {
-        globalEventsQueue.add(
+        globalEventQueue.add(
           {
             ...event,
             name: "documents.update.delayed",
@@ -30,7 +30,7 @@ export default class Debouncer {
         // this functions as a simple distributed debounce.
         if (document.updatedAt > new Date(event.createdAt)) return;
 
-        globalEventsQueue.add(
+        globalEventQueue.add(
           {
             ...event,
             name: "documents.update.debounced",

@@ -14,7 +14,7 @@ import type { DocumentEvent, CollectionEvent, Event } from "../../types";
 
 const log = debug("services");
 
-export default class Notifications {
+export default class NotificationsProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":
