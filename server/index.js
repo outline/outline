@@ -19,14 +19,15 @@ initTracing();
 checkMigrations();
 
 // If a services flag is passed it takes priority over the enviroment variable
-// e.g. services=web,worker
+// for example: --services=web,worker
 const normalizedServiceFlag = process.argv
   .slice(2)
   .filter((arg) => arg.startsWith("--services="))
   .map((arg) => arg.split("=")[1])
   .join(",");
 
-// Set is used here to ensure that the array of services is unique
+// The default is to run all services to make development and OSS installations
+// easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
   (normalizedServiceFlag || env.SERVICES || "web,websockets,worker")
     .split(",")
@@ -43,8 +44,9 @@ async function start() {
   app.use(compress());
   app.use(helmet());
 
+  // loop through requestsed services at startup
   for (const name of serviceNames) {
-    if (!["web", "websockets", "worker"].includes(name)) {
+    if (!Object.keys(services).includes(name)) {
       throw new Error(`Unknown service ${name}`);
     }
 
@@ -68,7 +70,7 @@ async function start() {
 throng({
   worker: start,
 
-  // The number of workers to run, defaults to the number of CPUs available
+  // The number of workers to run, defaults to the number of CPU's available
   count: process.env.WEB_CONCURRENCY || undefined,
 });
 
