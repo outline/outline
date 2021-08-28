@@ -3,7 +3,7 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
-import { Document, User, Event, Share, Team } from "../models";
+import { Document, User, Event, Share, Team, Collection } from "../models";
 import policy from "../policies";
 import { presentShare, presentPolicies } from "../presenters";
 import pagination from "./middlewares/pagination";
@@ -18,7 +18,9 @@ router.post("shares.info", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   let shares = [];
-  let share = await Share.findOne({
+  let share = await Share.scope({
+    method: ["withCollection", user.id],
+  }).findOne({
     where: id
       ? {
           id,
@@ -119,6 +121,14 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
         where: {
           collectionId: collectionIds,
         },
+        include: [
+          {
+            model: Collection.scope({
+              method: ["withMembership", user.id],
+            }),
+            as: "collection",
+          },
+        ],
       },
       {
         model: User,

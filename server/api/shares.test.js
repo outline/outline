@@ -169,7 +169,7 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(200);
 
     const response = await server.post("/api/shares.update", {
-      body: { token: user.getJwtToken(), id: body.id },
+      body: { token: user.getJwtToken(), id: body.data.id, published: true },
     });
 
     expect(response.status).toEqual(403);
@@ -209,13 +209,20 @@ describe("#shares.create", () => {
     expect(body.data.id).toBe(share.id);
   });
 
-  it("should not allow creating a share record if team sharing disabled", async () => {
+  it("should allow creating a share record if team sharing disabled but not publishing", async () => {
     const { user, document, team } = await seed();
     await team.update({ sharing: false });
     const res = await server.post("/api/shares.create", {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    expect(res.status).toEqual(403);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const response = await server.post("/api/shares.update", {
+      body: { token: user.getJwtToken(), id: body.data.id, published: true },
+    });
+
+    expect(response.status).toEqual(403);
   });
 
   it("should allow creating a share record if collection sharing disabled but not publishing", async () => {
@@ -228,10 +235,10 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(200);
 
     const response = await server.post("/api/shares.update", {
-      body: { token: user.getJwtToken(), id: body.id },
+      body: { token: user.getJwtToken(), id: body.data.id, published: true },
     });
 
-    expect(response.status).toEqual(400);
+    expect(response.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
