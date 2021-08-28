@@ -147,6 +147,8 @@ router.post("shares.update", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const { user } = ctx.state;
+  const team = await Team.findByPk(user.teamId);
+  authorize(user, "share", team);
 
   // fetch the share with document and collection.
   const share = await Share.scope({
@@ -197,7 +199,6 @@ router.post("shares.create", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   // user could be creating the share link to share with team members
   authorize(user, "read", document);
-  authorize(user, "share", team);
 
   const [share, isCreated] = await Share.findOrCreate({
     where: {
