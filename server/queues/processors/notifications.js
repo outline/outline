@@ -1,7 +1,6 @@
 // @flow
 import debug from "debug";
-import type { DocumentEvent, CollectionEvent, Event } from "../events";
-import mailer from "../mailer";
+import mailer from "../../mailer";
 import {
   View,
   Document,
@@ -9,12 +8,13 @@ import {
   Collection,
   User,
   NotificationSetting,
-} from "../models";
-import { Op } from "../sequelize";
+} from "../../models";
+import { Op } from "../../sequelize";
+import type { DocumentEvent, CollectionEvent, Event } from "../../types";
 
 const log = debug("services");
 
-export default class Notifications {
+export default class NotificationsProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":

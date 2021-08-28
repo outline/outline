@@ -1,11 +1,15 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import mailer from "../mailer";
-import { View, NotificationSetting } from "../models";
-import { buildDocument, buildCollection, buildUser } from "../test/factories";
-import { flushdb } from "../test/support";
+import mailer from "../../mailer";
+import { View, NotificationSetting } from "../../models";
+import {
+  buildDocument,
+  buildCollection,
+  buildUser,
+} from "../../test/factories";
+import { flushdb } from "../../test/support";
 import NotificationsService from "./notifications";
 
-jest.mock("../mailer");
+jest.mock("../../mailer");
 
 const Notifications = new NotificationsService();
 

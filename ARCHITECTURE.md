@@ -1,4 +1,3 @@
-
 # Architecture
 
 Outline is composed of a backend and frontend codebase in this monorepo. As both are written in Javascript, they share some code where possible. We utilize the latest ES6 language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier formatting and ESLint are enforced by CI.
@@ -46,7 +45,9 @@ server
 ├── onboarding        - Markdown templates for onboarding documents
 ├── policies          - Authorization logic based on cancan
 ├── presenters        - JSON presenters for database models, the interface between backend -> frontend
-├── services          - Service definitions are triggered for events and perform async jobs
+├── queues            - Async queue definitions
+│   └── processors    - Processors perform async jobs, usually working on events from the event bus
+├── services          - Services start distinct portions of the application eg api, worker
 ├── static            - Static assets
 ├── test              - Test helpers and fixtures, tests themselves are colocated
 └── utils             - Utility methods specific to the backend

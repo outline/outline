@@ -38,7 +38,7 @@ async function exportAndEmailCollections(teamId: string, email: string) {
   });
 }
 
-exporterQueue.process(async (job) => {
+exporterQueue.process(async function exportProcessor(job) {
   log("Process", job.data);
 
   switch (job.data.type) {

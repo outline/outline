@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import app from "../app";
 import { Document, CollectionUser, CollectionGroup } from "../models";
+import webService from "../services/web";
 import {
   buildUser,
   buildAdmin,
@@ -11,6 +11,7 @@ import {
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 
+const app = webService();
 const server = new TestServer(app.callback());
 
 beforeEach(() => flushdb());
@@ -262,7 +263,7 @@ describe("#collections.move", () => {
 });
 
 describe("#collections.export", () => {
-  it("should now allow export of private collection not a member", async () => {
+  it("should not allow export of private collection not a member", async () => {
     const { user } = await seed();
     const collection = await buildCollection({
       permission: null,
