@@ -44,6 +44,27 @@ Share.associate = (models) => {
       { association: "team" },
     ],
   });
+  Share.addScope("withCollection", (userId) => {
+    return {
+      include: [
+        {
+          model: models.Document,
+          paranoid: true,
+          as: "document",
+          include: [
+            {
+              model: models.Collection.scope({
+                method: ["withMembership", userId],
+              }),
+              as: "collection",
+            },
+          ],
+        },
+        { association: "user", paranoid: false },
+        { association: "team" },
+      ],
+    };
+  });
 };
 
 Share.prototype.revoke = function (userId) {

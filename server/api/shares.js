@@ -3,7 +3,7 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
-import { Document, User, Event, Share, Team, Collection } from "../models";
+import { Document, User, Event, Share, Team } from "../models";
 import policy from "../policies";
 import { presentShare, presentPolicies } from "../presenters";
 import pagination from "./middlewares/pagination";
@@ -149,23 +149,9 @@ router.post("shares.update", auth(), async (ctx) => {
   const { user } = ctx.state;
 
   // fetch the share with document and collection.
-  const share = await Share.findByPk(id, {
-    include: [
-      {
-        model: Document,
-        paranoid: true,
-        as: "document",
-        include: [
-          {
-            model: Collection.scope({
-              method: ["withMembership", user.id],
-            }),
-            as: "collection",
-          },
-        ],
-      },
-    ],
-  });
+  const share = await Share.scope({
+    method: ["withCollection", user.id],
+  }).findByPk(id);
 
   authorize(user, "update", share);
 
