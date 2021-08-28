@@ -1,6 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import app from "../app";
 import {
   Document,
   View,
@@ -10,6 +9,7 @@ import {
   CollectionUser,
   SearchQuery,
 } from "../models";
+import webService from "../services/web";
 import {
   buildShare,
   buildCollection,
@@ -17,7 +17,7 @@ import {
   buildDocument,
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
-
+const app = webService();
 const server = new TestServer(app.callback());
 
 beforeEach(() => flushdb());

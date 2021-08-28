@@ -1,10 +1,11 @@
 // @flow
 import TestServer from "fetch-test-server";
-import app from "../../app";
 import mailer from "../../mailer";
+import webService from "../../services/web";
 import { buildUser, buildGuestUser, buildTeam } from "../../test/factories";
 import { flushdb } from "../../test/support";
 
+const app = webService();
 const server = new TestServer(app.callback());
 
 jest.mock("../../mailer");

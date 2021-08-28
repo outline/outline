@@ -36,7 +36,7 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa, server: http.Server) {
+export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (process.env.FORCE_HTTPS !== "false") {
@@ -169,4 +169,6 @@ export default function init(app: Koa, server: http.Server) {
   app.use(dnsPrefetchControl({ allow: true }));
   app.use(referrerPolicy({ policy: "no-referrer" }));
   app.use(mount(routes));
+
+  return app;
 }
