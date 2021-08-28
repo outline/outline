@@ -152,7 +152,6 @@ export type CollectionEvent =
       teamId: string,
       actorId: string,
       data: {
-        index: string,
         privacyChanged: boolean,
         sharingChanged: boolean,
       },
