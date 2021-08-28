@@ -11,7 +11,7 @@ import {
   getSignature,
   publicS3Endpoint,
   makeCredential,
-  getSignedImageUrl,
+  getSignedUrl,
 } from "../utils/s3";
 
 const { authorize } = policy;
@@ -146,7 +146,7 @@ router.post("attachments.redirect", auth(), async (ctx) => {
       authorize(user, "read", document);
     }
 
-    const accessUrl = await getSignedImageUrl(attachment.key);
+    const accessUrl = await getSignedUrl(attachment.key);
     ctx.redirect(accessUrl);
   } else {
     ctx.redirect(attachment.url);

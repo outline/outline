@@ -124,10 +124,6 @@ export default class Collection extends BaseModel {
   };
 
   export = () => {
-    return client.get(
-      "/collections.export",
-      { id: this.id },
-      { download: true }
-    );
+    return client.get("/collections.export", { id: this.id });
   };
 }

@@ -322,6 +322,13 @@ export default class WebsocketsProcessor {
         }
         return;
       }
+
+      case "fileOperations.update": {
+        return socketio
+          .to(`user-${event.actorId}`)
+          .emit("fileOperations.update", event.data);
+      }
+
       case "groups.create":
       case "groups.update": {
         const group = await Group.findByPk(event.modelId, {

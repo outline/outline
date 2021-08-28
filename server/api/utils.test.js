@@ -1,9 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { subDays } from "date-fns";
 import TestServer from "fetch-test-server";
-import { Document } from "../models";
+import { Document, FileOperation } from "../models";
+import { Op } from "../sequelize";
 import webService from "../services/web";
-import { buildDocument } from "../test/factories";
+import { buildDocument, buildFileOperation } from "../test/factories";
 import { flushdb } from "../test/support";
 
 const app = webService();
@@ -81,6 +82,68 @@ describe("#utils.gc", () => {
     });
     expect(res.status).toEqual(200);
     expect(await Document.unscoped().count({ paranoid: false })).toEqual(0);
+  });
+
+  it("should expire exports older than 30 days ago", async () => {
+    await buildFileOperation({
+      type: "export",
+      state: "complete",
+      createdAt: subDays(new Date(), 30),
+    });
+
+    await buildFileOperation({
+      type: "export",
+      state: "complete",
+    });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    const data = await FileOperation.count({
+      where: {
+        type: "export",
+        state: {
+          [Op.eq]: "expired",
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(data).toEqual(1);
+  });
+
+  it("should not expire exports made less than 30 days ago", async () => {
+    await buildFileOperation({
+      type: "export",
+      state: "complete",
+      createdAt: subDays(new Date(), 29),
+    });
+
+    await buildFileOperation({
+      type: "export",
+      state: "complete",
+    });
+
+    const res = await server.post("/api/utils.gc", {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+
+    const data = await FileOperation.count({
+      where: {
+        type: "export",
+        state: {
+          [Op.eq]: "expired",
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(data).toEqual(0);
   });
 
   it("should require authentication", async () => {

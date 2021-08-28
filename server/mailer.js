@@ -14,7 +14,15 @@ import {
   DocumentNotificationEmail,
   documentNotificationEmailText,
 } from "./emails/DocumentNotificationEmail";
-import { ExportEmail, exportEmailText } from "./emails/ExportEmail";
+import {
+  ExportFailureEmail,
+  exportEmailFailureText,
+} from "./emails/ExportFailureEmail";
+
+import {
+  ExportSuccessEmail,
+  exportEmailSuccessText,
+} from "./emails/ExportSuccessEmail";
 import {
   type Props as InviteEmailT,
   InviteEmail,
@@ -155,14 +163,34 @@ export class Mailer {
     });
   };
 
-  export = async (opts: { to: string, attachments: Object[] }) => {
+  exportSuccess = async (opts: {
+    to: string,
+    attachments?: Object[],
+    id: string,
+    teamUrl: string,
+  }) => {
     this.sendMail({
       to: opts.to,
       attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Here's your request data export from Outline",
-      html: <ExportEmail />,
-      text: exportEmailText,
+      html: <ExportSuccessEmail id={opts.id} teamUrl={opts.teamUrl} />,
+      text: exportEmailSuccessText,
+    });
+  };
+
+  exportFailure = async (opts: {
+    to: string,
+    attachments?: Object[],
+    teamUrl: string,
+  }) => {
+    this.sendMail({
+      to: opts.to,
+      attachments: opts.attachments,
+      title: "Your requested export",
+      previewText: "Sorry, your requested data export has failed",
+      html: <ExportFailureEmail teamUrl={opts.teamUrl} />,
+      text: exportEmailFailureText,
     });
   };
 
