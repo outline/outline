@@ -12,7 +12,7 @@ const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
-jest.mock("../slack", () => ({
+jest.mock("../utils/slack", () => ({
   post: jest.fn(),
 }));
 
