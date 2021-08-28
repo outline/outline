@@ -6,8 +6,8 @@ import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
+import { uniq } from "lodash";
 import throng from "throng";
-
 import "./sentry";
 import services from "./services";
 import { initTracing } from "./tracing";
@@ -27,31 +27,29 @@ const normalizedServiceFlag = process.argv
   .join(",");
 
 // Set is used here to ensure that the array of services is unique
-const serviceNames = [
-  ...new Set(
-    (normalizedServiceFlag || env.SERVICES || "web,websockets,worker")
-      .split(",")
-      .map((service) => service.trim())
-  ),
-];
+const serviceNames = uniq(
+  (normalizedServiceFlag || env.SERVICES || "web,websockets,worker")
+    .split(",")
+    .map((service) => service.trim())
+);
 
 async function start() {
   const app = new Koa();
   const server = http.createServer(app.callback());
-  const log = debug("http");
+  const httpLogger = debug("http");
+  const log = debug("server");
 
-  app.use(logger((str, args) => log(str)));
+  app.use(logger((str, args) => httpLogger(str)));
   app.use(compress());
   app.use(helmet());
 
-  const initializers = serviceNames.map((name) => {
-    if (["web", "websockets", "worker"].includes(name)) {
-      return services[name];
+  for (const name of serviceNames) {
+    if (!["web", "websockets", "worker"].includes(name)) {
+      throw new Error(`Unknown service ${name}`);
     }
-    throw new Error(`Unknown service ${name}`);
-  });
 
-  for (const init of initializers) {
+    log(`Starting ${name} service`);
+    const init = services[name];
     await init(app, server);
   }
 
