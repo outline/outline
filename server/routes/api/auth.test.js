@@ -1,8 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import webService from "../services/web";
-import { buildUser, buildTeam } from "../test/factories";
-import { flushdb } from "../test/support";
+import webService from "../../services/web";
+import { buildUser, buildTeam } from "../../test/factories";
+import { flushdb } from "../../test/support";
 const app = webService();
 const server = new TestServer(app.callback());
 

@@ -8,15 +8,15 @@ import {
   Backlink,
   CollectionUser,
   SearchQuery,
-} from "../models";
-import webService from "../services/web";
+} from "../../models";
+import webService from "../../services/web";
 import {
   buildShare,
   buildCollection,
   buildUser,
   buildDocument,
-} from "../test/factories";
-import { flushdb, seed } from "../test/support";
+} from "../../test/factories";
+import { flushdb, seed } from "../../test/support";
 const app = webService();
 const server = new TestServer(app.callback());
 

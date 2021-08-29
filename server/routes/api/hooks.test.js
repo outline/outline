@@ -1,10 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import { IntegrationAuthentication, SearchQuery } from "../models";
-import webService from "../services/web";
-import * as Slack from "../slack";
-import { buildDocument, buildIntegration } from "../test/factories";
-import { flushdb, seed } from "../test/support";
+import { IntegrationAuthentication, SearchQuery } from "../../models";
+import webService from "../../services/web";
+import * as Slack from "../../slack";
+import { buildDocument, buildIntegration } from "../../test/factories";
+import { flushdb, seed } from "../../test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
@@ -12,7 +12,7 @@ const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
-jest.mock("../slack", () => ({
+jest.mock("../../slack", () => ({
   post: jest.fn(),
 }));
 

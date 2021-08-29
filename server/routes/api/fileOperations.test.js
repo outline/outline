@@ -1,16 +1,16 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 
-import { Collection, User } from "../models";
-import webService from "../services/web";
+import { Collection, User } from "../../models";
+import webService from "../../services/web";
 import {
   buildAdmin,
   buildCollection,
   buildFileOperation,
   buildTeam,
   buildUser,
-} from "../test/factories";
-import { flushdb } from "../test/support";
+} from "../../test/factories";
+import { flushdb } from "../../test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
