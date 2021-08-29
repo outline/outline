@@ -1162,10 +1162,10 @@
     y-protocols "^1.0.5"
     yjs "^13.5.8"
 
-"@hocuspocus/server@^1.0.0-alpha.61", "@hocuspocus/server@^1.0.0-alpha.64":
-  version "1.0.0-alpha.64"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.64.tgz#f0997e4b7d4f5660b1ac6669b8b2f6799b3b427e"
-  integrity sha512-dbTP3QPb0E+hBCv9VUk1mcl/I25ExgrK8YhS5xpDTrt1M1Y8ApistqiR+yJOV4Dz8qTC3Ux2MXnhIAOB0WtC8Q==
+"@hocuspocus/server@^1.0.0-alpha.61", "@hocuspocus/server@^1.0.0-alpha.65":
+  version "1.0.0-alpha.65"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.65.tgz#266e711a4a283801b1fec863ef625d90a459e229"
+  integrity sha512-qJP2uZg94k951NZ9WSBxxzXHkZ4XQw9BNzc5Xvqc5V4cCmmj+mqXRkhGjnVuigpibTetpuLVBBkDuFCeM8LUlg==
   dependencies:
     "@types/async-lock" "^1.1.2"
     "@types/uuid" "^8.3.0"

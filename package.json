@@ -50,7 +50,7 @@
     "@bull-board/koa": "^3.5.0",
     "@hocuspocus/extension-logger": "^1.0.0-alpha.36",
     "@hocuspocus/provider": "^1.0.0-alpha.11",
-    "@hocuspocus/server": "^1.0.0-alpha.64",
+    "@hocuspocus/server": "^1.0.0-alpha.65",
     "@outlinewiki/koa-passport": "^4.1.4",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@sentry/node": "^6.3.1",
