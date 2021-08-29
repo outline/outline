@@ -7,6 +7,7 @@ import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import { uniq } from "lodash";
+import stoppable from "stoppable";
 import throng from "throng";
 import "./sentry";
 import services from "./services";
@@ -34,9 +35,9 @@ const serviceNames = uniq(
     .map((service) => service.trim())
 );
 
-async function start() {
+async function start(id, disconnect) {
   const app = new Koa();
-  const server = http.createServer(app.callback());
+  const server = stoppable(http.createServer(app.callback()));
   const httpLogger = debug("http");
   const log = debug("server");
 
@@ -65,6 +66,14 @@ async function start() {
   });
 
   server.listen(env.PORT || "3000");
+
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
+
+  function shutdown() {
+    console.log("\n> Stopping server");
+    server.stop(disconnect);
+  }
 }
 
 throng({
