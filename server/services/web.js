@@ -8,11 +8,11 @@ import {
 } from "koa-helmet";
 import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
-import api from "../api";
-import auth from "../auth";
 import emails from "../emails";
 import env from "../env";
 import routes from "../routes";
+import api from "../routes/api";
+import auth from "../routes/auth";
 
 const isProduction = env.NODE_ENV === "production";
 const isTest = env.NODE_ENV === "test";

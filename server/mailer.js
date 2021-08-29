@@ -47,7 +47,6 @@ export type EmailSendOptions = {
   text: string,
   html: React.Node,
   headCSS?: string,
-  attachments?: Object[],
 };
 
 /**
@@ -137,7 +136,6 @@ export class Mailer {
           subject: data.title,
           html: html,
           text: data.text,
-          attachments: data.attachments,
         });
 
         if (useTestEmailService) {
@@ -163,15 +161,9 @@ export class Mailer {
     });
   };
 
-  exportSuccess = async (opts: {
-    to: string,
-    attachments?: Object[],
-    id: string,
-    teamUrl: string,
-  }) => {
+  exportSuccess = async (opts: { to: string, id: string, teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
-      attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Here's your request data export from Outline",
       html: <ExportSuccessEmail id={opts.id} teamUrl={opts.teamUrl} />,
@@ -179,14 +171,9 @@ export class Mailer {
     });
   };
 
-  exportFailure = async (opts: {
-    to: string,
-    attachments?: Object[],
-    teamUrl: string,
-  }) => {
+  exportFailure = async (opts: { to: string, teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
-      attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Sorry, your requested data export has failed",
       html: <ExportFailureEmail teamUrl={opts.teamUrl} />,
