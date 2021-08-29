@@ -24,10 +24,10 @@ const readFile = util.promisify(fs.readFile);
 
 const readIndexFile = async (ctx) => {
   if (isProduction) {
-    return readFile(path.join(__dirname, "../app/index.html"));
+    return readFile(path.join(__dirname, "../../app/index.html"));
   }
   if (isTest) {
-    return readFile(path.join(__dirname, "/static/index.html"));
+    return readFile(path.join(__dirname, "../static/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
@@ -88,7 +88,7 @@ const renderShare = async (ctx, next) => {
 
 // serve static assets
 koa.use(
-  serve(path.resolve(__dirname, "../../public"), {
+  serve(path.resolve(__dirname, "../../../public"), {
     maxage: 60 * 60 * 24 * 30 * 1000,
   })
 );
@@ -103,7 +103,10 @@ if (process.env.NODE_ENV === "production") {
       "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
     });
 
-    await sendfile(ctx, path.join(__dirname, "../app/", ctx.path.substring(8)));
+    await sendfile(
+      ctx,
+      path.join(__dirname, "../../app/", ctx.path.substring(8))
+    );
   });
 }
 
@@ -123,7 +126,7 @@ router.get("/locales/:lng.json", async (ctx) => {
 
   await sendfile(
     ctx,
-    path.join(__dirname, "../shared/i18n/locales", lng, "translation.json")
+    path.join(__dirname, "../../shared/i18n/locales", lng, "translation.json")
   );
 });
 
