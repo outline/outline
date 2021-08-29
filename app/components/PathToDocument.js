@@ -42,7 +42,9 @@ const PathToDocument = ({
       selected={selected}
     >
       <Flex>
-        {collection && <CollectionIcon collection={collection} />}
+        {collection && (
+          <CollectionIcon collection={collection} useLuminance={selected} />
+        )}
         &nbsp;
         {result.path
           .map((doc) => <Title key={doc.id}>{doc.title}</Title>)

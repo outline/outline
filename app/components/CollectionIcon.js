@@ -5,17 +5,27 @@ import { getLuminance } from "polished";
 import * as React from "react";
 import Collection from "models/Collection";
 import { icons } from "components/IconPicker";
+import useStores from "hooks/useStores";
 
 type Props = {
   collection: Collection,
   expanded?: boolean,
   size?: number,
+  useLuminance?: boolean,
 };
 
-function ResolvedCollectionIcon({ collection, expanded, size }: Props) {
+function ResolvedCollectionIcon({
+  collection,
+  expanded,
+  size,
+  useLuminance,
+}: Props) {
+  const { ui } = useStores();
+
   // If the chosen icon color is very dark then we invert it in dark mode
   // otherwise it will be impossible to see against the dark background.
   const color =
+    (ui.resolvedTheme === "dark" || useLuminance) &&
     collection.color !== "currentColor"
       ? getLuminance(collection.color) > 0.12
         ? collection.color
