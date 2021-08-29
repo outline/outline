@@ -3,7 +3,7 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import { NotFoundError } from "../errors";
 import auth from "../middlewares/authentication";
-import { Document, User, Event, Share, Team } from "../models";
+import { Document, User, Event, Share, Team, Collection } from "../models";
 import policy from "../policies";
 import { presentShare, presentPolicies } from "../presenters";
 import pagination from "./middlewares/pagination";
@@ -18,7 +18,9 @@ router.post("shares.info", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   let shares = [];
-  let share = await Share.findOne({
+  let share = await Share.scope({
+    method: ["withCollection", user.id],
+  }).findOne({
     where: id
       ? {
           id,
@@ -119,6 +121,14 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
         where: {
           collectionId: collectionIds,
         },
+        include: [
+          {
+            model: Collection.scope({
+              method: ["withMembership", user.id],
+            }),
+            as: "collection",
+          },
+        ],
       },
       {
         model: User,
@@ -147,7 +157,14 @@ router.post("shares.update", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const { user } = ctx.state;
-  const share = await Share.findByPk(id);
+  const team = await Team.findByPk(user.teamId);
+  authorize(user, "share", team);
+
+  // fetch the share with document and collection.
+  const share = await Share.scope({
+    method: ["withCollection", user.id],
+  }).findByPk(id);
+
   authorize(user, "update", share);
 
   if (published !== undefined) {
@@ -190,8 +207,8 @@ router.post("shares.create", auth(), async (ctx) => {
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, { userId: user.id });
   const team = await Team.findByPk(user.teamId);
-  authorize(user, "share", document);
-  authorize(user, "share", team);
+  // user could be creating the share link to share with team members
+  authorize(user, "read", document);
 
   const [share, isCreated] = await Share.findOrCreate({
     where: {
