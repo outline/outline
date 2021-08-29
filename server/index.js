@@ -84,8 +84,13 @@ async function start() {
 throng({
   worker: start,
 
-  // The number of workers to run, defaults to the number of CPU's available
-  count: process.env.WEB_CONCURRENCY || undefined,
+  // The number of processes to run, defaults to the number of CPU's available
+  // for the web service, and 1 for collaboration during the beta period.
+  count: serviceNames.includes("web")
+    ? process.env.WEB_CONCURRENCY || undefined
+    : serviceNames.includes("collaboration")
+    ? 1
+    : undefined,
 });
 
 if (env.ENABLE_UPDATES !== "false" && process.env.NODE_ENV === "production") {

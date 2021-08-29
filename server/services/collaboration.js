@@ -28,8 +28,7 @@ export default function init(app: Koa, server: http.Server) {
       hocuspocus.handleConnection(ws, ctx.request, documentName);
     }
 
-    ctx.body = "this is a websocket route";
-    ctx.response.status = 400;
+    ctx.response.status = 101;
   });
 
   app.use(websocket());
