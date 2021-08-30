@@ -7,7 +7,9 @@ import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import onerror from "koa-onerror";
+import Router from "koa-router";
 import { uniq } from "lodash";
+import stoppable from "stoppable";
 import throng from "throng";
 import services from "./services";
 import { initTracing } from "./tracing";
@@ -35,12 +37,14 @@ const serviceNames = uniq(
     .map((service) => service.trim())
 );
 
-async function start() {
+async function start(id, disconnect) {
   const app = new Koa();
-  const server = http.createServer(app.callback());
+  const server = stoppable(http.createServer(app.callback()));
   const httpLogger = debug("http");
   const log = debug("server");
+  const router = new Router();
 
+  // install basic middleware shared by all services
   app.use(logger((str, args) => httpLogger(str)));
   app.use(compress());
   app.use(helmet());
@@ -69,6 +73,10 @@ async function start() {
     await init(app, server);
   }
 
+  // install health check endpoint for all services
+  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  app.use(router.routes());
+
   server.on("error", (err) => {
     throw err;
   });
@@ -79,6 +87,14 @@ async function start() {
   });
 
   server.listen(normalizedPortFlag || env.PORT || "3000");
+
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
+
+  function shutdown() {
+    console.log("\n> Stopping server");
+    server.stop(disconnect);
+  }
 }
 
 throng({

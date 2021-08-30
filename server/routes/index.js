@@ -93,8 +93,6 @@ koa.use(
   })
 );
 
-router.get("/_health", (ctx) => (ctx.body = "OK"));
-
 if (process.env.NODE_ENV === "production") {
   router.get("/static/*", async (ctx) => {
     ctx.set({
