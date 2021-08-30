@@ -3,10 +3,13 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag } from "react-dnd";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
+import DocumentReparent from "scenes/DocumentReparent";
 import CollectionIcon from "components/CollectionIcon";
+import Modal from "components/Modal";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -36,7 +39,14 @@ function CollectionLink({
   isDraggingAnyCollection,
   onChangeDragging,
 }: Props) {
+  const { t } = useTranslation();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const [
+    permissionOpen,
+    handlePermissionOpen,
+    handlePermissionClose,
+  ] = useBoolean();
+  const itemRef = React.useRef();
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -67,9 +77,19 @@ function CollectionLink({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: (item, monitor) => {
+      const { id, permission } = item;
       if (monitor.didDrop()) return;
       if (!collection) return;
-      documents.move(item.id, collection.id);
+      if (collection.id === item.collectionId) return;
+      if (
+        permission !== collection.permission &&
+        (permission === null || collection.permission === null)
+      ) {
+        itemRef.current = item;
+        handlePermissionOpen();
+      } else {
+        documents.move(id, collection.id);
+      }
     },
     canDrop: (item, monitor) => {
       return policies.abilities(collection.id).update;
@@ -203,6 +223,17 @@ function CollectionLink({
             index={index}
           />
         ))}
+      <Modal
+        title={t("Document Move")}
+        onRequestClose={() => handlePermissionClose()}
+        isOpen={permissionOpen}
+      >
+        <DocumentReparent
+          item={itemRef.current}
+          collection={collection}
+          onSubmit={() => handlePermissionClose()}
+        />
+      </Modal>
     </>
   );
 }

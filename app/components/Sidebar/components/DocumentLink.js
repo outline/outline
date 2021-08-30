@@ -128,7 +128,14 @@ function DocumentLink(
   // Draggable
   const [{ isDragging }, drag] = useDrag({
     type: "document",
-    item: () => ({ ...node, depth, active: isActiveDocument }),
+    item: () => ({
+      ...node,
+      depth,
+      active: isActiveDocument,
+      permission: collection?.permission,
+      collectionId: collection?.id,
+      collectionName: collection?.name,
+    }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
