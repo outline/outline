@@ -64,12 +64,12 @@ export default class ExportsProcessor {
           });
 
           if (state === "error") {
-            mailer.exportFailure({
+            mailer.sendTemplate("exportFailure", {
               to: user.email,
               teamUrl: team.url,
             });
           } else {
-            mailer.exportSuccess({
+            mailer.sendTemplate("exportSuccess", {
               to: user.email,
               id: exportData.id,
               teamUrl: team.url,
