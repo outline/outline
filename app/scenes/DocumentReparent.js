@@ -61,7 +61,6 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
     [documents, item.id, collection.id, showToast, t, onSubmit]
   );
 
-  console.log(item);
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
