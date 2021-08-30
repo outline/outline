@@ -116,14 +116,19 @@ export type CollectionImportEvent = {
   ip: string,
 };
 
-export type CollectionExportAll = {
+export type CollectionExportEvent = {
+  name: "collections.export",
+  teamId: string,
+  actorId: string,
+  collectionId: string,
+  modelId: string,
+};
+
+export type CollectionExportAllEvent = {
   name: "collections.export_all",
   teamId: string,
   actorId: string,
-  data: {
-    exportId: string,
-    collections: [{ name: string, id: string }],
-  },
+  modelId: string,
 };
 
 export type FileOperationEvent = {
@@ -174,7 +179,8 @@ export type CollectionEvent =
       actorId: string,
       data: { index: string },
       ip: string,
-    };
+    }
+  | CollectionExportEvent;
 
 export type GroupEvent =
   | {
@@ -216,7 +222,7 @@ export type Event =
   | DocumentEvent
   | CollectionEvent
   | CollectionImportEvent
-  | CollectionExportAll
+  | CollectionExportAllEvent
   | FileOperationEvent
   | IntegrationEvent
   | GroupEvent
