@@ -66,11 +66,11 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           <Trans
-            defaults="Moving document <em>{{titleWithDefault}}</em> from collection <em>{{ prevCollection }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{newCollection}} </em> of access <em>{{ newPermission }}</em> will change permission level of the document."
+            defaults="Moving document <em>{{ title }}</em> from collection <em>{{ prevCollectionName }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{ newCollectionName }} </em> of access <em>{{ newPermission }}</em> will change permission level of the document."
             values={{
-              titleWithDefault: item.title,
-              prevCollection: item.collectionName,
-              newCollection: collection.name,
+              title: item.title,
+              prevCollectionName: item.collectionName,
+              newCollectionName: collection.name,
               prevPermission: accessMapping[item.permission || "null"],
               newPermission: accessMapping[collection.permission || "null"],
             }}

@@ -374,7 +374,7 @@
   "Couldn’t create the document, try again?": "Couldn’t create the document, try again?",
   "Document permanently deleted": "Document permanently deleted",
   "Are you sure you want to permanently delete the <em>{{ documentTitle }}</em> document? This action is immediate and cannot be undone.": "Are you sure you want to permanently delete the <em>{{ documentTitle }}</em> document? This action is immediate and cannot be undone.",
-  "Moving document <em>{{titleWithDefault}}</em> from collection <em>{{ prevCollection }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{newCollection}} </em> of access <em>{{ newPermission }}</em> will change permission level of the document.": "Moving document <em>{{titleWithDefault}}</em> from collection <em>{{ prevCollection }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{newCollection}} </em> of access <em>{{ newPermission }}</em> will change permission level of the document.",
+  "Moving document <em>{{ title }}</em> from collection <em>{{ prevCollectionName }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{ newCollectionName }} </em> of access <em>{{ newPermission }}</em> will change permission level of the document.": "Moving document <em>{{ title }}</em> from collection <em>{{ prevCollectionName }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{ newCollectionName }} </em> of access <em>{{ newPermission }}</em> will change permission level of the document.",
   "Moving": "Moving",
   "Move document": "Move document",
   "Template created, go ahead and customize it": "Template created, go ahead and customize it",
