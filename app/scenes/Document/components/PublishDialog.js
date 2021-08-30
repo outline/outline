@@ -1,6 +1,4 @@
 // @flow
-import { Search } from "js-search";
-import { last } from "lodash";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
@@ -8,14 +6,12 @@ import { FixedSizeList as List } from "react-window";
 import { Dialog, DialogBackdrop, type DialogStateReturn } from "reakit";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { type DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
 import Button from "components/Button";
 import Divider from "components/Divider";
 import Flex from "components/Flex";
 import InputSearch from "components/InputSearch";
-import PathToDocument from "components/PathToDocument";
-import useStores from "hooks/useStores";
+import useListDocumentPath from "hooks/useListDocumentPath";
 import useToasts from "hooks/useToasts";
 
 type Props = {|
@@ -30,28 +26,39 @@ type Props = {|
 
 const PublishDialog = ({ dialog, document, onSave }: Props) => {
   const { t } = useTranslation();
-  const [searchTerm, setSearchTerm] = React.useState();
-  const [selectedPath, setSelectedPath] = React.useState<?DocumentPath>();
-  const { collections, documents, policies } = useStores();
   const { showToast } = useToasts();
+  const {
+    row,
+    results,
+    searchTerm,
+    setSearchTerm,
+    selectedPath,
+    setSelectedPath,
+  } = useListDocumentPath(document);
 
   React.useEffect(() => {
     if (!dialog.visible) {
       setSelectedPath(undefined);
     }
-  }, [dialog.visible]);
+  }, [dialog.visible, setSelectedPath]);
 
-  const handleChange = React.useCallback((event) => {
-    setSearchTerm(event.target.value);
-  }, []);
+  const handleChange = React.useCallback(
+    (event) => {
+      setSearchTerm(event.target.value);
+    },
+    [setSearchTerm]
+  );
 
-  const handleKeyDown = React.useCallback((event) => {
-    if (event.currentTarget.value && event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      setSearchTerm("");
-    }
-  }, []);
+  const handleKeyDown = React.useCallback(
+    (event) => {
+      if (event.currentTarget.value && event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setSearchTerm("");
+      }
+    },
+    [setSearchTerm]
+  );
 
   const handlePublishFromModal = React.useCallback(
     async (selectedPath) => {
@@ -79,102 +86,6 @@ const PublishDialog = ({ dialog, document, onSave }: Props) => {
     },
     [dialog, document, onSave, showToast, t]
   );
-
-  const selected = React.useCallback(
-    (result) => {
-      if (!selectedPath) return;
-
-      if (selectedPath.type === "collection" && selectedPath.id === result.id) {
-        return true;
-      }
-      if (
-        selectedPath.type === "document" &&
-        selectedPath.id === result.id &&
-        selectedPath.collectionId === result.collectionId
-      ) {
-        return true;
-      }
-      return false;
-    },
-    [selectedPath]
-  );
-
-  const searchIndex = React.useMemo(() => {
-    let paths = collections.pathsToDocuments;
-
-    paths = paths.filter((path) => {
-      if (
-        (path.type === "collection" && policies.abilities(path.id).update) ||
-        (path.type === "document" &&
-          policies.abilities(path.collectionId).update)
-      )
-        return true;
-
-      return false;
-    });
-
-    const index = new Search("id");
-    index.addIndex("title");
-
-    // Build index
-    const indexeableDocuments = [];
-    paths.forEach((path) => {
-      const doc = documents.get(path.id);
-      if (!doc || !doc.isTemplate) {
-        indexeableDocuments.push(path);
-      }
-    });
-    index.addDocuments(indexeableDocuments);
-
-    return index;
-  }, [collections.pathsToDocuments, policies, documents]);
-
-  const results: DocumentPath[] = React.useMemo(() => {
-    const onlyShowCollections = document.isTemplate;
-    let results = [];
-    if (collections.isLoaded) {
-      if (searchTerm) {
-        results = searchIndex.search(searchTerm);
-      } else {
-        results = searchIndex._documents;
-      }
-    }
-
-    if (onlyShowCollections) {
-      results = results.filter((result) => result.type === "collection");
-    } else {
-      // Exclude root from search results if document is already at the root
-      if (!document.parentDocumentId) {
-        results = results.filter(
-          (result) => result.id !== document.collectionId
-        );
-      }
-
-      // Exclude document if on the path to result, or the same result
-      results = results.filter(
-        (result) =>
-          !result.path.map((doc) => doc.id).includes(document.id) &&
-          last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
-      );
-    }
-
-    return results;
-  }, [document, collections, searchTerm, searchIndex]);
-
-  const row = ({ index, data, style }) => {
-    const result = data[index];
-    return (
-      <PathToDocument
-        key={result.url}
-        result={result}
-        document={document}
-        collection={collections.get(result.collectionId)}
-        setSelectedPath={setSelectedPath}
-        style={style}
-        selected={selected(result)}
-      />
-    );
-  };
 
   const data = results;
 

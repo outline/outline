@@ -1,20 +1,17 @@
 // @flow
-import { Search } from "js-search";
-import { last } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useMemo, useState, useCallback } from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
-import { type DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
 import PathToDocument from "components/PathToDocument";
+import useListDocumentPath from "hooks/useListDocumentPath";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
@@ -24,92 +21,13 @@ type Props = {|
 |};
 
 function DocumentMove({ document, onRequestClose }: Props) {
-  const [searchTerm, setSearchTerm] = useState();
-  const { collections, documents, policies } = useStores();
-  const [selectedPath, setSelectedPath] = useState<?DocumentPath>();
+  const { collections } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
-  const selected = useCallback(
-    (result) => {
-      if (!selectedPath) return;
-
-      if (selectedPath.type === "collection" && selectedPath.id === result.id) {
-        return true;
-      }
-      if (
-        selectedPath.type === "document" &&
-        selectedPath.id === result.id &&
-        selectedPath.collectionId === result.collectionId
-      ) {
-        return true;
-      }
-      return false;
-    },
-    [selectedPath]
+  const { row, results, setSearchTerm, selectedPath } = useListDocumentPath(
+    document
   );
-
-  const searchIndex = useMemo(() => {
-    let paths = collections.pathsToDocuments;
-
-    paths = paths.filter((path) => {
-      if (
-        (path.type === "collection" && policies.abilities(path.id).update) ||
-        (path.type === "document" &&
-          policies.abilities(path.collectionId).update)
-      )
-        return true;
-
-      return false;
-    });
-
-    const index = new Search("id");
-    index.addIndex("title");
-
-    // Build index
-    const indexeableDocuments = [];
-    paths.forEach((path) => {
-      const doc = documents.get(path.id);
-      if (!doc || !doc.isTemplate) {
-        indexeableDocuments.push(path);
-      }
-    });
-    index.addDocuments(indexeableDocuments);
-
-    return index;
-  }, [collections.pathsToDocuments, policies, documents]);
-
-  const results: DocumentPath[] = useMemo(() => {
-    const onlyShowCollections = document.isTemplate;
-    let results = [];
-    if (collections.isLoaded) {
-      if (searchTerm) {
-        results = searchIndex.search(searchTerm);
-      } else {
-        results = searchIndex._documents;
-      }
-    }
-
-    if (onlyShowCollections) {
-      results = results.filter((result) => result.type === "collection");
-    } else {
-      // Exclude root from search results if document is already at the root
-      if (!document.parentDocumentId) {
-        results = results.filter(
-          (result) => result.id !== document.collectionId
-        );
-      }
-
-      // Exclude document if on the path to result, or the same result
-      results = results.filter(
-        (result) =>
-          !result.path.map((doc) => doc.id).includes(document.id) &&
-          last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
-      );
-    }
-
-    return results;
-  }, [document, collections, searchTerm, searchIndex]);
 
   const handleMove = async () => {
     if (!document) return;
@@ -144,22 +62,6 @@ function DocumentMove({ document, onRequestClose }: Props) {
         />
       );
     }
-  };
-
-  const row = ({ index, data, style }) => {
-    const result = data[index];
-
-    return (
-      <PathToDocument
-        key={result.url}
-        result={result}
-        document={document}
-        collection={collections.get(result.collectionId)}
-        setSelectedPath={setSelectedPath}
-        style={style}
-        selected={selected(result)}
-      />
-    );
   };
 
   const data = results;
