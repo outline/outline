@@ -6,6 +6,7 @@ import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
+import Router from "koa-router";
 import { uniq } from "lodash";
 import stoppable from "stoppable";
 import throng from "throng";
@@ -40,7 +41,9 @@ async function start(id, disconnect) {
   const server = stoppable(http.createServer(app.callback()));
   const httpLogger = debug("http");
   const log = debug("server");
+  const router = new Router();
 
+  // install basic middleware shared by all services
   app.use(logger((str, args) => httpLogger(str)));
   app.use(compress());
   app.use(helmet());
@@ -55,6 +58,10 @@ async function start(id, disconnect) {
     const init = services[name];
     await init(app, server);
   }
+
+  // install health check endpoint for all services
+  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  app.use(router.routes());
 
   server.on("error", (err) => {
     throw err;
