@@ -49,7 +49,7 @@ function UserMenu({ user }: Props) {
       ) {
         return;
       }
-      users.demote(user, "Member");
+      users.demote(user, "member");
     },
     [users, user, t]
   );
@@ -69,7 +69,7 @@ function UserMenu({ user }: Props) {
       ) {
         return;
       }
-      users.demote(user, "Viewer");
+      users.demote(user, "viewer");
     },
     [users, user, t]
   );
@@ -119,21 +119,21 @@ function UserMenu({ user }: Props) {
                 userName: user.name,
               }),
               onClick: handleMember,
-              visible: can.demote && user.rank !== "Member",
+              visible: can.demote && user.role !== "member",
             },
             {
               title: t("Make {{ userName }} a viewer", {
                 userName: user.name,
               }),
               onClick: handleViewer,
-              visible: can.demote && user.rank !== "Viewer",
+              visible: can.demote && user.role !== "viewer",
             },
             {
               title: t("Make {{ userName }} an admin…", {
                 userName: user.name,
               }),
               onClick: handlePromote,
-              visible: can.promote && user.rank !== "Admin",
+              visible: can.promote && user.role !== "admin",
             },
             {
               type: "separator",

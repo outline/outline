@@ -6,6 +6,7 @@ import CollectionsStore from "./CollectionsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
+import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
@@ -39,6 +40,7 @@ export default class RootStore {
   users: UsersStore;
   views: ViewsStore;
   toasts: ToastsStore;
+  fileOperations: FileOperationsStore;
 
   constructor() {
     // PoliciesStore must be initialized before AuthStore
@@ -60,6 +62,7 @@ export default class RootStore {
     this.ui = new UiStore();
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
+    this.fileOperations = new FileOperationsStore(this);
     this.toasts = new ToastsStore();
   }
 
@@ -79,6 +82,7 @@ export default class RootStore {
     this.policies.clear();
     this.revisions.clear();
     this.shares.clear();
+    this.fileOperations.clear();
     // this.ui omitted to keep ui settings between sessions
     this.users.clear();
     this.views.clear();

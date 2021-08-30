@@ -9,11 +9,11 @@ import {
 import mount from "koa-mount";
 import onerror from "koa-onerror";
 import enforceHttps from "koa-sslify";
-import api from "../api";
-import auth from "../auth";
 import emails from "../emails";
 import env from "../env";
 import routes from "../routes";
+import api from "../routes/api";
+import auth from "../routes/auth";
 import Sentry from "../sentry";
 
 const isProduction = env.NODE_ENV === "production";

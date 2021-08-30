@@ -85,6 +85,7 @@ Event.AUDIT_EVENTS = [
   "collections.add_group",
   "collections.remove_group",
   "collections.delete",
+  "collections.export_all",
   "documents.create",
   "documents.publish",
   "documents.update",

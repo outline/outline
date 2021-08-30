@@ -1,7 +1,7 @@
 // @flow
 import { Attachment, Document } from "../models";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
-import { getSignedImageUrl } from "../utils/s3";
+import { getSignedUrl } from "../utils/s3";
 import presentUser from "./user";
 
 type Options = {
@@ -16,7 +16,7 @@ async function replaceImageAttachments(text: string) {
     attachmentIds.map(async (id) => {
       const attachment = await Attachment.findByPk(id);
       if (attachment) {
-        const accessUrl = await getSignedImageUrl(attachment.key);
+        const accessUrl = await getSignedUrl(attachment.key);
         text = text.replace(attachment.redirectUrl, accessUrl);
       }
     })
