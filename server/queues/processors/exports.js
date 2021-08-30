@@ -21,8 +21,12 @@ export default class ExportsProcessor {
 
         const collectionIds =
           event.collectionId || (await user.collectionIds());
-        const collections = await Collection.where({
-          collectionId: collectionIds,
+        const collections = await Collection.findAll({
+          where: { id: collectionIds },
+        });
+
+        this.updateFileOperation(exportData, actorId, teamId, {
+          state: "creating",
         });
 
         // heavy lifting of creating the zip file
@@ -34,16 +38,9 @@ export default class ExportsProcessor {
           const readBuffer = await fs.promises.readFile(filePath);
           const stat = await fs.promises.stat(filePath);
 
-          await exportData.update({
+          this.updateFileOperation(exportData, actorId, teamId, {
             state: "uploading",
             size: stat.size,
-          });
-
-          await Event.add({
-            name: "fileOperations.update",
-            teamId,
-            actorId,
-            data: exportData.dataValues,
           });
 
           log(`Uploading archive for file operation ${exportData.id}`);
@@ -61,16 +58,9 @@ export default class ExportsProcessor {
           state = "error";
           url = null;
         } finally {
-          await exportData.update({
+          this.updateFileOperation(exportData, actorId, teamId, {
             state,
             url,
-          });
-
-          await Event.add({
-            name: "fileOperations.update",
-            teamId,
-            actorId,
-            data: exportData.dataValues,
           });
 
           if (state === "error") {
@@ -89,5 +79,21 @@ export default class ExportsProcessor {
         break;
       default:
     }
+  }
+
+  async updateFileOperation(
+    fileOperation: FileOperation,
+    actorId: string,
+    teamId: string,
+    data: Object
+  ) {
+    await fileOperation.update(data);
+
+    await Event.add({
+      name: "fileOperations.update",
+      teamId,
+      actorId,
+      data: fileOperation.dataValues,
+    });
   }
 }

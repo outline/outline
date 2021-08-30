@@ -11,6 +11,7 @@ import {
 import Backlinks from "../queues/processors/backlinks";
 import Debouncer from "../queues/processors/debouncer";
 import Emails from "../queues/processors/emails";
+import Exports from "../queues/processors/exports";
 import Imports from "../queues/processors/imports";
 import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
@@ -25,6 +26,7 @@ const eventProcessors = {
   backlinks: new Backlinks(),
   debouncer: new Debouncer(),
   imports: new Imports(),
+  exports: new Exports(),
   notifications: new Notifications(),
   revisions: new Revisions(),
   slack: new Slack(),
