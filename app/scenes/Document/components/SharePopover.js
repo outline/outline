@@ -23,9 +23,16 @@ type Props = {|
   share: Share,
   sharedParent: ?Share,
   onSubmit: () => void,
+  visible: boolean,
 |};
 
-function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
+function SharePopover({
+  document,
+  share,
+  sharedParent,
+  onSubmit,
+  visible,
+}: Props) {
   const { t } = useTranslation();
   const { policies, shares, auth } = useStores();
   const { showToast } = useToasts();
@@ -41,9 +48,9 @@ function SharePopover({ document, share, sharedParent, onSubmit }: Props) {
   const isPubliclyShared = (share && share.published) || sharedParent;
 
   React.useEffect(() => {
-    document.share();
+    if (visible) document.share();
     return () => clearTimeout(timeout.current);
-  }, [document]);
+  }, [document, visible]);
 
   const handlePublishedChange = React.useCallback(
     async (event) => {

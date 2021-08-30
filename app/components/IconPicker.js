@@ -1,5 +1,6 @@
 // @flow
 import {
+  BookmarkedIcon,
   CollectionIcon,
   CoinsIcon,
   AcademicCapIcon,
@@ -8,9 +9,12 @@ import {
   CloudIcon,
   CodeIcon,
   EditIcon,
+  EmailIcon,
   EyeIcon,
+  ImageIcon,
   LeafIcon,
   LightBulbIcon,
+  MathIcon,
   MoonIcon,
   NotepadIcon,
   PadlockIcon,
@@ -18,6 +22,7 @@ import {
   QuestionMarkIcon,
   SunIcon,
   VehicleIcon,
+  WarningIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -39,6 +44,10 @@ const TwitterPicker = React.lazy(() =>
 );
 
 export const icons = {
+  bookmark: {
+    component: BookmarkedIcon,
+    keywords: "bookmark",
+  },
   collection: {
     component: CollectionIcon,
     keywords: "collection",
@@ -67,9 +76,17 @@ export const icons = {
     component: CodeIcon,
     keywords: "developer api code development engineering programming",
   },
+  email: {
+    component: EmailIcon,
+    keywords: "email at",
+  },
   eye: {
     component: EyeIcon,
     keywords: "eye view",
+  },
+  image: {
+    component: ImageIcon,
+    keywords: "image photo picture",
   },
   leaf: {
     component: LeafIcon,
@@ -78,6 +95,10 @@ export const icons = {
   lightbulb: {
     component: LightBulbIcon,
     keywords: "lightbulb idea",
+  },
+  math: {
+    component: MathIcon,
+    keywords: "math formula",
   },
   moon: {
     component: MoonIcon,
@@ -110,6 +131,10 @@ export const icons = {
   vehicle: {
     component: VehicleIcon,
     keywords: "truck car travel transport",
+  },
+  warning: {
+    component: WarningIcon,
+    keywords: "danger",
   },
 };
 
@@ -192,7 +217,7 @@ const Label = styled.label`
 `;
 
 const Icons = styled.div`
-  padding: 15px 9px 9px 15px;
+  padding: 16px 8px 0 16px;
   width: 276px;
 `;
 

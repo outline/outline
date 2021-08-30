@@ -1,2 +1,2 @@
 // @flow
-export type Rank = "Admin" | "Viewer" | "Member";
+export type Role = "admin" | "viewer" | "member";

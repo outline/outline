@@ -5,6 +5,7 @@ import presentCollection from "./collection";
 import presentCollectionGroupMembership from "./collectionGroupMembership";
 import presentDocument from "./document";
 import presentEvent from "./event";
+import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
 import presentGroupMembership from "./groupMembership";
 import presentIntegration from "./integration";
@@ -20,6 +21,7 @@ import presentView from "./view";
 
 export {
   presentApiKey,
+  presentFileOperation,
   presentAuthenticationProvider,
   presentUser,
   presentView,

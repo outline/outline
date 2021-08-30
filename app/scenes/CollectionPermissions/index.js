@@ -13,6 +13,7 @@ import InputSelectPermission from "components/InputSelectPermission";
 import Labeled from "components/Labeled";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
+import Switch from "components/Switch";
 import AddGroupsToCollection from "./AddGroupsToCollection";
 import AddPeopleToCollection from "./AddPeopleToCollection";
 import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
@@ -34,6 +35,7 @@ function CollectionPermissions({ collection }: Props) {
     collectionGroupMemberships,
     users,
     groups,
+    auth,
   } = useStores();
   const { showToast } = useToasts();
   const [
@@ -153,10 +155,28 @@ function CollectionPermissions({ collection }: Props) {
     collection.id,
   ]);
 
+  const handleSharingChange = React.useCallback(
+    async (ev: SyntheticInputEvent<*>) => {
+      try {
+        await collection.save({ sharing: ev.target.checked });
+        showToast(t("Public document sharing permissions were updated"), {
+          type: "success",
+        });
+      } catch (err) {
+        showToast(t("Could not update public document sharing"), {
+          type: "error",
+        });
+      }
+    },
+    [collection, showToast, t]
+  );
+
   const collectionName = collection.name;
   const collectionGroups = groups.inCollection(collection.id);
   const collectionUsers = users.inCollection(collection.id);
   const isEmpty = !collectionGroups.length && !collectionUsers.length;
+  const sharing = collection.sharing;
+  const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
   return (
     <Flex column>
@@ -189,6 +209,24 @@ function CollectionPermissions({ collection }: Props) {
           />
         )}
       </PermissionExplainer>
+      <Switch
+        id="sharing"
+        label={t("Public document sharing")}
+        onChange={handleSharingChange}
+        checked={sharing && teamSharingEnabled}
+        disabled={!teamSharingEnabled}
+      />
+      <HelpText>
+        {teamSharingEnabled ? (
+          <Trans>
+            When enabled, documents can be shared publicly on the internet.
+          </Trans>
+        ) : (
+          <Trans>
+            Public sharing is currently disabled in the team security settings.
+          </Trans>
+        )}
+      </HelpText>
       <Labeled label={t("Additional access")}>
         <Actions>
           <Button

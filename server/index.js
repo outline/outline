@@ -1,121 +1,96 @@
 // @flow
-require("dotenv").config({ silent: true });
+import env from "./env"; // eslint-disable-line import/order
+import http from "http";
+import debug from "debug";
+import Koa from "koa";
+import compress from "koa-compress";
+import helmet from "koa-helmet";
+import logger from "koa-logger";
+import Router from "koa-router";
+import { uniq } from "lodash";
+import stoppable from "stoppable";
+import throng from "throng";
+import "./sentry";
+import services from "./services";
+import { initTracing } from "./tracing";
+import { checkEnv, checkMigrations } from "./utils/startup";
+import { checkUpdates } from "./utils/updates";
 
-const errors = [];
-const chalk = require("chalk");
-const throng = require("throng");
+checkEnv();
+initTracing();
+checkMigrations();
 
-// If the DataDog agent is installed and the DD_API_KEY environment variable is
-// in the environment then we can safely attempt to start the DD tracer
-if (process.env.DD_API_KEY) {
-  require("dd-trace").init({
-    // SOURCE_COMMIT is used by Docker Hub
-    // SOURCE_VERSION is used by Heroku
-    version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
-  });
-}
+// If a services flag is passed it takes priority over the enviroment variable
+// for example: --services=web,worker
+const normalizedServiceFlag = process.argv
+  .slice(2)
+  .filter((arg) => arg.startsWith("--services="))
+  .map((arg) => arg.split("=")[1])
+  .join(",");
 
-if (
-  !process.env.SECRET_KEY ||
-  process.env.SECRET_KEY === "generate_a_new_key"
-) {
-  errors.push(
-    `The ${chalk.bold(
-      "SECRET_KEY"
-    )} env variable must be set with the output of ${chalk.bold(
-      "$ openssl rand -hex 32"
-    )}`
-  );
-}
+// The default is to run all services to make development and OSS installations
+// easier to deal with. Separate services are only needed at scale.
+const serviceNames = uniq(
+  (normalizedServiceFlag || env.SERVICES || "web,websockets,worker")
+    .split(",")
+    .map((service) => service.trim())
+);
 
-if (
-  !process.env.UTILS_SECRET ||
-  process.env.UTILS_SECRET === "generate_a_new_key"
-) {
-  errors.push(
-    `The ${chalk.bold(
-      "UTILS_SECRET"
-    )} env variable must be set with a secret value, it is recommended to use the output of ${chalk.bold(
-      "$ openssl rand -hex 32"
-    )}`
-  );
-}
+async function start(id, disconnect) {
+  const app = new Koa();
+  const server = stoppable(http.createServer(app.callback()));
+  const httpLogger = debug("http");
+  const log = debug("server");
+  const router = new Router();
 
-if (process.env.AWS_ACCESS_KEY_ID) {
-  [
-    "AWS_REGION",
-    "AWS_SECRET_ACCESS_KEY",
-    "AWS_S3_UPLOAD_BUCKET_URL",
-    "AWS_S3_UPLOAD_MAX_SIZE",
-  ].forEach((key) => {
-    if (!process.env[key]) {
-      errors.push(
-        `The ${chalk.bold(
-          key
-        )} env variable must be set when using S3 compatible storage`
-      );
+  // install basic middleware shared by all services
+  app.use(logger((str, args) => httpLogger(str)));
+  app.use(compress());
+  app.use(helmet());
+
+  // loop through requestsed services at startup
+  for (const name of serviceNames) {
+    if (!Object.keys(services).includes(name)) {
+      throw new Error(`Unknown service ${name}`);
     }
+
+    log(`Starting ${name} service`);
+    const init = services[name];
+    await init(app, server);
+  }
+
+  // install health check endpoint for all services
+  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  app.use(router.routes());
+
+  server.on("error", (err) => {
+    throw err;
   });
-}
 
-if (!process.env.URL) {
-  errors.push(
-    `The ${chalk.bold(
-      "URL"
-    )} env variable must be set to the fully qualified, externally accessible URL, e.g https://wiki.mycompany.com`
-  );
-}
+  server.on("listening", () => {
+    const address = server.address();
+    console.log(`\n> Listening on http://localhost:${address.port}\n`);
+  });
 
-if (!process.env.DATABASE_URL && !process.env.DATABASE_CONNECTION_POOL_URL) {
-  errors.push(
-    `The ${chalk.bold(
-      "DATABASE_URL"
-    )} env variable must be set to the location of your postgres server, including username, password, and port`
-  );
-}
+  server.listen(env.PORT || "3000");
 
-if (!process.env.REDIS_URL) {
-  errors.push(
-    `The ${chalk.bold(
-      "REDIS_URL"
-    )} env variable must be set to the location of your redis server, including username, password, and port`
-  );
-}
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
 
-if (errors.length) {
-  console.log(
-    chalk.bold.red(
-      "\n\nThe server could not start, please fix the following configuration errors and try again:\n"
-    )
-  );
-  errors.map((text) => console.log(`  - ${text}`));
-  console.log("\n");
-  process.exit(1);
+  function shutdown() {
+    console.log("\n> Stopping server");
+    server.stop(disconnect);
+  }
 }
-
-if (process.env.NODE_ENV === "production") {
-  console.log(
-    chalk.green(
-      `
-Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
-`
-    )
-  );
-} else if (process.env.NODE_ENV === "development") {
-  console.log(
-    chalk.yellow(
-      `\nRunning Outline in development mode. To run Outline in production mode set the ${chalk.bold(
-        "NODE_ENV"
-      )} env variable to "production"\n`
-    )
-  );
-}
-
-const { start } = require("./main");
 
 throng({
   worker: start,
 
-  // The number of workers to run, defaults to the number of CPUs available
+  // The number of workers to run, defaults to the number of CPU's available
   count: process.env.WEB_CONCURRENCY || undefined,
 });
+
+if (env.ENABLE_UPDATES !== "false" && process.env.NODE_ENV === "production") {
+  checkUpdates();
+  setInterval(checkUpdates, 24 * 3600 * 1000);
+}

@@ -128,11 +128,11 @@ export type Props = {|
   fullwidth?: boolean,
   autoFocus?: boolean,
   style?: Object,
-  as?: React.ComponentType<any>,
+  as?: React.ComponentType<any> | string,
   to?: string,
   onClick?: (event: SyntheticEvent<>) => mixed,
   borderOnHover?: boolean,
-
+  href?: string,
   "data-on"?: string,
   "data-event-category"?: string,
   "data-event-action"?: string,
