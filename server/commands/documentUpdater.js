@@ -14,7 +14,7 @@ export default async function documentUpdater({
 }: {
   documentId: string,
   ydoc: Y.Doc,
-  userId?: string,
+  userId: string,
   done?: boolean,
 }) {
   const document = await Document.findByPk(documentId);

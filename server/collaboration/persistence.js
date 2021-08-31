@@ -60,7 +60,7 @@ export default class Persistence {
       await documentUpdater({
         documentId,
         ydoc: document,
-        userId: context.user?.id,
+        userId: context.user.id,
       });
     },
     DELAY,
