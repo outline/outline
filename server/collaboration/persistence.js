@@ -20,14 +20,12 @@ export default class Persistence {
     const [, documentId] = documentName.split(".");
     const fieldName = "default";
 
-    // Check if the given field already exists in the given y-doc.
-    // Important: Only import a document if it doesn't exist in the primary data storage!
+    // Check if the given field already exists in the given y-doc. This is import
+    // so we don't import a document fresh if it exists already.
     if (!data.document.isEmpty(fieldName)) {
       return;
     }
 
-    // Get the document from somewhere. In a real world application this would
-    // probably be a database query or an API call
     const document = await Document.findByPk(documentId);
 
     if (document.state) {
@@ -38,7 +36,11 @@ export default class Persistence {
     }
 
     log(`Document ${documentId} is not in state, creating state from markdown`);
-    return markdownToYDoc(document.text, fieldName);
+    const ydoc = markdownToYDoc(document.text, fieldName);
+    const state = Y.encodeStateAsUpdate(ydoc);
+
+    await document.update({ state: Buffer.from(state) }, { hooks: false });
+    return ydoc;
   }
 
   onChange = debounce(
