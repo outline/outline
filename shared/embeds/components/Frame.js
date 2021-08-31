@@ -4,7 +4,6 @@ import { observer } from "mobx-react";
 import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import Flex from "components/Flex";
 
 // This wrapper allows us to pass non-standard HTML attributes through to the DOM element
 // https://www.styled-components.com/docs/basics#passed-props
@@ -130,7 +129,8 @@ const Title = styled.span`
   padding-left: 4px;
 `;
 
-const Bar = styled(Flex)`
+const Bar = styled.div`
+  display: flex;
   border-top: 1px solid ${(props) => props.theme.embedBorder};
   background: ${(props) => props.theme.secondaryBackground};
   color: ${(props) => props.theme.textSecondary};

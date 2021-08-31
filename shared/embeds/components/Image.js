@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { cdnPath } from "utils/urls";
+import { cdnPath } from "../../utils/urls";
 
 type Props = {|
   alt: string,

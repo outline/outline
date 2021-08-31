@@ -1,7 +1,6 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import Image from "components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Cawemo from "./Cawemo";
@@ -32,6 +31,7 @@ import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
+import Image from "./components/Image";
 
 function matcher(Component) {
   return (url: string) => {

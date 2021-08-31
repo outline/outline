@@ -1,11 +1,10 @@
 // @flow
 import debug from "debug";
 import { debounce } from "lodash";
-import { parser } from "rich-markdown-editor";
-import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import documentUpdater from "../commands/documentUpdater";
 import { Document, User } from "../models";
+import markdownToYDoc from "./utils/markdownToYDoc";
 
 const log = debug("server");
 const DELAY = 3000;
@@ -39,8 +38,7 @@ export default class Persistence {
     }
 
     log(`Document ${documentId} is not in state, creating state from markdown`);
-    const node = parser.parse(document.text);
-    return prosemirrorToYDoc(node, fieldName);
+    return markdownToYDoc(document.text, fieldName);
   }
 
   onChange = debounce(
