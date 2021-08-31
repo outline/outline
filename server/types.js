@@ -180,6 +180,17 @@ export type CollectionEvent =
       data: { index: string },
       ip: string,
     }
+  | {
+      name: "collections.permission_changed",
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        privacyChanged: boolean,
+        sharingChanged: boolean,
+      },
+      ip: string,
+    }
   | CollectionExportEvent;
 
 export type GroupEvent =
