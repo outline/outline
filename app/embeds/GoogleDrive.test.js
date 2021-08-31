@@ -23,21 +23,6 @@ describe("GoogleDrive", () => {
   });
 
   test("to not be enabled elsewhere", () => {
-    expect(
-      "https://drive.google.com/file/d/1ohkOgmE8MiNx68u6ynBfYkgjeKu_x3ZK/view".match(
-        match
-      )
-    ).toBe(null);
-    expect(
-      "https://drive.google.com/file/d/1ohkOgmE8MiNx68u6ynBfYkgjeKu_x3ZK/preview".match(
-        match
-      )
-    ).toBe(null);
-    expect(
-      "https://drive.google.com/file/d/1ohkOgmE8MiNx68u6ynBfYkgjeKu_x3ZK/view?usp=restricted".match(
-        match
-      )
-    ).toBe(null);
     expect("https://drive.google.com/file".match(match)).toBe(null);
     expect("https://drive.google.com".match(match)).toBe(null);
     expect("https://www.google.com".match(match)).toBe(null);
