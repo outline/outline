@@ -1,8 +1,8 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import Router from "koa-router";
+import collectionExporter from "../../commands/collectionExporter";
 import { ValidationError } from "../../errors";
-import { exportCollections } from "../../exporter";
 import auth from "../../middlewares/authentication";
 import {
   Collection,
@@ -13,7 +13,6 @@ import {
   User,
   Group,
   Attachment,
-  FileOperation,
 } from "../../models";
 import policy from "../../policies";
 import {
@@ -29,7 +28,6 @@ import { Op, sequelize } from "../../sequelize";
 
 import collectionIndexing from "../../utils/collectionIndexing";
 import removeIndexCollision from "../../utils/removeIndexCollision";
-import { getAWSKeyForFileOp } from "../../utils/s3";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -465,28 +463,16 @@ router.post("collections.export", auth(), async (ctx) => {
   ctx.assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
 
-  const key = getAWSKeyForFileOp(team.id, collection.name);
-
-  let exportData;
-  exportData = await FileOperation.create({
-    type: "export",
-    state: "creating",
-    key,
-    url: null,
-    size: 0,
-    collectionId: id,
-    userId: user.id,
-    teamId: team.id,
+  const fileOperation = await collectionExporter({
+    collection,
+    user,
+    team,
+    ip: ctx.request.ip,
   });
-
-  exportCollections(user.teamId, user.id, user.email, exportData.id, id);
-
-  exportData.user = user;
-  exportData.collection = collection;
 
   ctx.body = {
     success: true,
-    data: { fileOperation: presentFileOperation(exportData) },
+    data: { fileOperation: presentFileOperation(fileOperation) },
   };
 });
 
@@ -495,29 +481,15 @@ router.post("collections.export_all", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  const key = getAWSKeyForFileOp(team.id, team.name);
-
-  let exportData;
-  exportData = await FileOperation.create({
-    type: "export",
-    state: "creating",
-    key,
-    url: null,
-    size: 0,
-    collectionId: null,
-    userId: user.id,
-    teamId: team.id,
+  const fileOperation = await collectionExporter({
+    user,
+    team,
+    ip: ctx.request.ip,
   });
-
-  // async operation to upload zip archive to cloud and email user with link
-  exportCollections(user.teamId, user.id, user.email, exportData.id);
-
-  exportData.user = user;
-  exportData.collection = null;
 
   ctx.body = {
     success: true,
-    data: { fileOperation: presentFileOperation(exportData) },
+    data: { fileOperation: presentFileOperation(fileOperation) },
   };
 });
 
@@ -559,7 +531,8 @@ router.post("collections.update", auth(), async (ctx) => {
     });
   }
 
-  const permissionChanged = permission !== collection.permission;
+  let privacyChanged = false;
+  let sharingChanged = false;
 
   if (name !== undefined) {
     collection.name = name;
@@ -574,9 +547,17 @@ router.post("collections.update", auth(), async (ctx) => {
     collection.color = color;
   }
   if (permission !== undefined) {
+    // frontend sends empty string
+    ctx.assertIn(
+      permission,
+      ["read_write", "read", "", null],
+      "Invalid permission"
+    );
+    privacyChanged = permission !== collection.permission;
     collection.permission = permission ? permission : null;
   }
   if (sharing !== undefined) {
+    sharingChanged = sharing !== collection.sharing;
     collection.sharing = sharing;
   }
   if (sort !== undefined) {
@@ -594,9 +575,20 @@ router.post("collections.update", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
 
+  if (privacyChanged || sharingChanged) {
+    await Event.create({
+      name: "collections.permission_changed",
+      collectionId: collection.id,
+      teamId: collection.teamId,
+      actorId: user.id,
+      data: { privacyChanged, sharingChanged },
+      ip: ctx.request.ip,
+    });
+  }
+
   // must reload to update collection membership for correct policy calculation
   // if the privacy level has changed. Otherwise skip this query for speed.
-  if (permissionChanged) {
+  if (privacyChanged || sharingChanged) {
     await collection.reload();
   }
 
