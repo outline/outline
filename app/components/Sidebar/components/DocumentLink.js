@@ -1,6 +1,5 @@
 // @flow
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -8,10 +7,12 @@ import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import Fade from "components/Fade";
+import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
@@ -120,7 +121,7 @@ function DocumentLink(
     [documents, document]
   );
 
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
 
@@ -132,7 +133,11 @@ function DocumentLink(
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: (monitor) => {
-      return policies.abilities(node.id).move;
+      return (
+        policies.abilities(node.id).move ||
+        policies.abilities(node.id).archive ||
+        policies.abilities(node.id).delete
+      );
     },
   });
 
@@ -205,7 +210,7 @@ function DocumentLink(
 
   return (
     <>
-      <div style={{ position: "relative" }} onDragLeave={resetHoverExpanding}>
+      <Relative onDragLeave={resetHoverExpanding}>
         <Draggable
           key={node.id}
           ref={drag}
@@ -239,14 +244,15 @@ function DocumentLink(
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
+                scrollIntoViewIfNeeded={!document?.isStarred}
                 ref={ref}
                 menu={
                   document && !isMoving ? (
                     <Fade>
                       <DocumentMenu
                         document={document}
-                        onOpen={() => setMenuOpen(true)}
-                        onClose={() => setMenuOpen(false)}
+                        onOpen={handleMenuOpen}
+                        onClose={handleMenuClose}
                       />
                     </Fade>
                   ) : undefined
@@ -258,7 +264,7 @@ function DocumentLink(
         {manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-      </div>
+      </Relative>
       {expanded && !isDragging && (
         <>
           {node.children.map((childNode, index) => (
@@ -280,17 +286,13 @@ function DocumentLink(
   );
 }
 
-const Draggable = styled("div")`
-  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
+const Relative = styled.div`
+  position: relative;
 `;
 
-const Disclosure = styled(CollapsedIcon)`
-  transition: transform 100ms ease, fill 50ms !important;
-  position: absolute;
-  left: -24px;
-
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+const Draggable = styled.div`
+  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
 
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));

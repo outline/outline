@@ -11,6 +11,7 @@ type Props = {
   children?: React.Node,
   tooltipDelay?: number,
   addSuffix?: boolean,
+  format?: string,
   shorten?: boolean,
 };
 
@@ -32,7 +33,7 @@ function Time(props: Props) {
         <time dateTime={props.dateTime}>{props.children || content}</time>
       }
     >
-      <LocaleTime {...props} />
+      <LocaleTime tooltipDelay={250} {...props} />
     </React.Suspense>
   );
 }

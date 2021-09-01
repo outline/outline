@@ -1,53 +1,53 @@
 // @flow
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
+import { useTranslation, Trans } from "react-i18next";
 import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-
+import useToasts from "hooks/useToasts";
 type Props = {
   collection: Collection,
-  auth: AuthStore,
-  ui: UiStore,
   onSubmit: () => void,
 };
 
-@observer
-class CollectionExport extends React.Component<Props> {
-  @observable isLoading: boolean = false;
+function CollectionExport({ collection, onSubmit }: Props) {
+  const [isLoading, setIsLoading] = React.useState();
+  const { t } = useTranslation();
+  const { showToast } = useToasts();
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
+  const handleSubmit = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
 
-    this.isLoading = true;
-    await this.props.collection.export();
-    this.isLoading = false;
-    this.props.onSubmit();
-  };
+      setIsLoading(true);
+      await collection.export();
+      setIsLoading(false);
+      showToast(
+        t("Export started, you will receive an email when it’s complete.")
+      );
+      onSubmit();
+    },
+    [collection, onSubmit, showToast, t]
+  );
 
-  render() {
-    const { collection, auth } = this.props;
-    if (!auth.user) return null;
-
-    return (
-      <Flex column>
-        <form onSubmit={this.handleSubmit}>
-          <HelpText>
-            Exporting the collection <strong>{collection.name}</strong> may take
-            a few seconds. Your documents will be downloaded as a zip of folders
-            with files in Markdown format.
-          </HelpText>
-          <Button type="submit" disabled={this.isLoading} primary>
-            {this.isLoading ? "Exporting…" : "Export Collection"}
-          </Button>
-        </form>
-      </Flex>
-    );
-  }
+  return (
+    <Flex column>
+      <form onSubmit={handleSubmit}>
+        <HelpText>
+          <Trans
+            defaults="Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip."
+            values={{ collectionName: collection.name }}
+            components={{ em: <strong /> }}
+          />
+        </HelpText>
+        <Button type="submit" disabled={isLoading} primary>
+          {isLoading ? `${t("Exporting")}…` : t("Export Collection")}
+        </Button>
+      </form>
+    </Flex>
+  );
 }
 
-export default inject("ui", "auth")(CollectionExport);
+export default observer(CollectionExport);

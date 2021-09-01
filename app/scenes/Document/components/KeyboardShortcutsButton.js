@@ -8,20 +8,15 @@ import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Guide from "components/Guide";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
+import useBoolean from "hooks/useBoolean";
 
 function KeyboardShortcutsButton() {
   const { t } = useTranslation();
-  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = React.useState(
-    false
-  );
-
-  const handleCloseKeyboardShortcuts = React.useCallback(() => {
-    setKeyboardShortcutsOpen(false);
-  }, []);
-
-  const handleOpenKeyboardShortcuts = React.useCallback(() => {
-    setKeyboardShortcutsOpen(true);
-  }, []);
+  const [
+    keyboardShortcutsOpen,
+    handleOpenKeyboardShortcuts,
+    handleCloseKeyboardShortcuts,
+  ] = useBoolean();
 
   return (
     <>

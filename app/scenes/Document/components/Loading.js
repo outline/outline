@@ -2,8 +2,8 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import CenteredContent from "components/CenteredContent";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
 import PageTitle from "components/PageTitle";
+import PlaceholderDocument from "components/PlaceholderDocument";
 import Container from "./Container";
 import type { LocationWithState } from "types";
 
@@ -20,7 +20,7 @@ export default function Loading({ location }: Props) {
         title={location.state ? location.state.title : t("Untitled")}
       />
       <CenteredContent>
-        <LoadingPlaceholder />
+        <PlaceholderDocument />
       </CenteredContent>
     </Container>
   );

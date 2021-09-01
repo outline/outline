@@ -12,6 +12,7 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
+import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import CollectionMenu from "menus/CollectionMenu";
 import CollectionSortMenu from "menus/CollectionSortMenu";
@@ -35,7 +36,7 @@ function CollectionLink({
   isDraggingAnyCollection,
   onChangeDragging,
 }: Props) {
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -158,19 +159,20 @@ function CollectionLink({
                 />
               }
               exact={false}
+              depth={0.5}
               menu={
                 <>
                   {can.update && (
                     <CollectionSortMenuWithMargin
                       collection={collection}
-                      onOpen={() => setMenuOpen(true)}
-                      onClose={() => setMenuOpen(false)}
+                      onOpen={handleMenuOpen}
+                      onClose={handleMenuClose}
                     />
                   )}
                   <CollectionMenu
                     collection={collection}
-                    onOpen={() => setMenuOpen(true)}
-                    onClose={() => setMenuOpen(false)}
+                    onOpen={handleMenuOpen}
+                    onClose={handleMenuClose}
                   />
                 </>
               }
@@ -197,7 +199,7 @@ function CollectionLink({
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}
             canUpdate={canUpdate}
-            depth={1.5}
+            depth={2}
             index={index}
           />
         ))}

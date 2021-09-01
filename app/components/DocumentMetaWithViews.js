@@ -42,7 +42,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
         <PopoverDisclosure {...popover}>
           {(props) => (
             <>
-              &nbsp;&middot;&nbsp;
+              &nbsp;•&nbsp;
               <a {...props}>
                 {t("Viewed by")}{" "}
                 {onlyYou

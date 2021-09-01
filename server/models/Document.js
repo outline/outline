@@ -6,6 +6,7 @@ import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
+import getTasks from "../../shared/utils/getTasks";
 import parseTitle from "../../shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
 import unescape from "../../shared/utils/unescape";
@@ -39,6 +40,11 @@ const beforeSave = async (doc) => {
   // ensure documents have a title
   doc.title = doc.title || "";
 
+  if (doc.previous("title") && doc.previous("title") !== doc.title) {
+    if (!doc.previousTitles) doc.previousTitles = [];
+    doc.previousTitles = uniq(doc.previousTitles.concat(doc.previous("title")));
+  }
+
   // add the current user as a collaborator on this doc
   if (!doc.collaboratorIds) doc.collaboratorIds = [];
   doc.collaboratorIds = uniq(doc.collaboratorIds.concat(doc.lastModifiedById));
@@ -70,15 +76,11 @@ const Document = sequelize.define(
         },
       },
     },
+    previousTitles: DataTypes.ARRAY(DataTypes.STRING),
     version: DataTypes.SMALLINT,
     template: DataTypes.BOOLEAN,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
-
-    // backup contains a record of text at the moment it was converted to v2
-    // this is a safety measure during deployment of new editor and will be
-    // dropped in a future update
-    backup: DataTypes.TEXT,
     isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     archivedAt: DataTypes.DATE,
@@ -99,6 +101,9 @@ const Document = sequelize.define(
 
         const slugifiedTitle = slugify(this.title);
         return `/doc/${slugifiedTitle}-${this.urlId}`;
+      },
+      tasks: function () {
+        return getTasks(this.text || "");
       },
     },
   }
@@ -158,7 +163,7 @@ Document.associate = (models) => {
       },
     },
   });
-  Document.addScope("withCollection", (userId) => {
+  Document.addScope("withCollection", (userId, paranoid = true) => {
     if (userId) {
       return {
         include: [
@@ -167,6 +172,7 @@ Document.associate = (models) => {
               method: ["withMembership", userId],
             }),
             as: "collection",
+            paranoid,
           },
         ],
       };
@@ -187,13 +193,25 @@ Document.associate = (models) => {
 
     return {
       include: [
-        { model: models.View, as: "views", where: { userId }, required: false },
+        {
+          model: models.View,
+          as: "views",
+          where: { userId },
+          required: false,
+          separate: true,
+        },
       ],
     };
   });
   Document.addScope("withStarred", (userId) => ({
     include: [
-      { model: models.Star, as: "starred", where: { userId }, required: false },
+      {
+        model: models.Star,
+        as: "starred",
+        where: { userId },
+        required: false,
+        separate: true,
+      },
     ],
   }));
 };
@@ -204,7 +222,7 @@ Document.findByPk = async function (id, options = {}) {
   const scope = this.scope(
     "withUnpublished",
     {
-      method: ["withCollection", options.userId],
+      method: ["withCollection", options.userId, options.paranoid],
     },
     {
       method: ["withViews", options.userId],
@@ -524,7 +542,6 @@ Document.prototype.migrateVersion = function () {
   // migrate from document version 1 -> 2
   if (this.version === 1) {
     const nodes = serializer.deserialize(this.text);
-    this.backup = this.text;
     this.text = serializer.serialize(nodes, { version: 2 });
     this.version = 2;
     migrated = true;

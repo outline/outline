@@ -13,12 +13,15 @@ import InputSelectPermission from "components/InputSelectPermission";
 import Labeled from "components/Labeled";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
+import Switch from "components/Switch";
 import AddGroupsToCollection from "./AddGroupsToCollection";
 import AddPeopleToCollection from "./AddPeopleToCollection";
 import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
 import MemberListItem from "./components/MemberListItem";
+import useBoolean from "hooks/useBoolean";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 type Props = {|
   collection: Collection,
@@ -28,14 +31,23 @@ function CollectionPermissions({ collection }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const {
-    ui,
     memberships,
     collectionGroupMemberships,
     users,
     groups,
+    auth,
   } = useStores();
-  const [addGroupModalOpen, setAddGroupModalOpen] = React.useState(false);
-  const [addMemberModalOpen, setAddMemberModalOpen] = React.useState(false);
+  const { showToast } = useToasts();
+  const [
+    addGroupModalOpen,
+    handleAddGroupModalOpen,
+    handleAddGroupModalClose,
+  ] = useBoolean();
+  const [
+    addMemberModalOpen,
+    handleAddMemberModalOpen,
+    handleAddMemberModalClose,
+  ] = useBoolean();
 
   const handleRemoveUser = React.useCallback(
     async (user) => {
@@ -44,7 +56,7 @@ function CollectionPermissions({ collection }: Props) {
           collectionId: collection.id,
           userId: user.id,
         });
-        ui.showToast(
+        showToast(
           t(`{{ userName }} was removed from the collection`, {
             userName: user.name,
           }),
@@ -53,10 +65,10 @@ function CollectionPermissions({ collection }: Props) {
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not remove user"), { type: "error" });
+        showToast(t("Could not remove user"), { type: "error" });
       }
     },
-    [memberships, ui, collection, t]
+    [memberships, showToast, collection, t]
   );
 
   const handleUpdateUser = React.useCallback(
@@ -67,17 +79,17 @@ function CollectionPermissions({ collection }: Props) {
           userId: user.id,
           permission,
         });
-        ui.showToast(
+        showToast(
           t(`{{ userName }} permissions were updated`, { userName: user.name }),
           {
             type: "success",
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not update user"), { type: "error" });
+        showToast(t("Could not update user"), { type: "error" });
       }
     },
-    [memberships, ui, collection, t]
+    [memberships, showToast, collection, t]
   );
 
   const handleRemoveGroup = React.useCallback(
@@ -87,7 +99,7 @@ function CollectionPermissions({ collection }: Props) {
           collectionId: collection.id,
           groupId: group.id,
         });
-        ui.showToast(
+        showToast(
           t(`The {{ groupName }} group was removed from the collection`, {
             groupName: group.name,
           }),
@@ -96,10 +108,10 @@ function CollectionPermissions({ collection }: Props) {
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not remove group"), { type: "error" });
+        showToast(t("Could not remove group"), { type: "error" });
       }
     },
-    [collectionGroupMemberships, ui, collection, t]
+    [collectionGroupMemberships, showToast, collection, t]
   );
 
   const handleUpdateGroup = React.useCallback(
@@ -110,7 +122,7 @@ function CollectionPermissions({ collection }: Props) {
           groupId: group.id,
           permission,
         });
-        ui.showToast(
+        showToast(
           t(`{{ groupName }} permissions were updated`, {
             groupName: group.name,
           }),
@@ -119,34 +131,52 @@ function CollectionPermissions({ collection }: Props) {
           }
         );
       } catch (err) {
-        ui.showToast(t("Could not update user"), { type: "error" });
+        showToast(t("Could not update user"), { type: "error" });
       }
     },
-    [collectionGroupMemberships, ui, collection, t]
+    [collectionGroupMemberships, showToast, collection, t]
   );
 
   const handleChangePermission = React.useCallback(
     async (ev) => {
       try {
         await collection.save({ permission: ev.target.value });
-        ui.showToast(t("Default access permissions were updated"), {
+        showToast(t("Default access permissions were updated"), {
           type: "success",
         });
       } catch (err) {
-        ui.showToast(t("Could not update permissions"), { type: "error" });
+        showToast(t("Could not update permissions"), { type: "error" });
       }
     },
-    [collection, ui, t]
+    [collection, showToast, t]
   );
 
   const fetchOptions = React.useMemo(() => ({ id: collection.id }), [
     collection.id,
   ]);
 
+  const handleSharingChange = React.useCallback(
+    async (ev: SyntheticInputEvent<*>) => {
+      try {
+        await collection.save({ sharing: ev.target.checked });
+        showToast(t("Public document sharing permissions were updated"), {
+          type: "success",
+        });
+      } catch (err) {
+        showToast(t("Could not update public document sharing"), {
+          type: "error",
+        });
+      }
+    },
+    [collection, showToast, t]
+  );
+
   const collectionName = collection.name;
   const collectionGroups = groups.inCollection(collection.id);
   const collectionUsers = users.inCollection(collection.id);
   const isEmpty = !collectionGroups.length && !collectionUsers.length;
+  const sharing = collection.sharing;
+  const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
   return (
     <Flex column>
@@ -179,11 +209,29 @@ function CollectionPermissions({ collection }: Props) {
           />
         )}
       </PermissionExplainer>
+      <Switch
+        id="sharing"
+        label={t("Public document sharing")}
+        onChange={handleSharingChange}
+        checked={sharing && teamSharingEnabled}
+        disabled={!teamSharingEnabled}
+      />
+      <HelpText>
+        {teamSharingEnabled ? (
+          <Trans>
+            When enabled, documents can be shared publicly on the internet.
+          </Trans>
+        ) : (
+          <Trans>
+            Public sharing is currently disabled in the team security settings.
+          </Trans>
+        )}
+      </HelpText>
       <Labeled label={t("Additional access")}>
         <Actions>
           <Button
             type="button"
-            onClick={() => setAddGroupModalOpen(true)}
+            onClick={handleAddGroupModalOpen}
             icon={<PlusIcon />}
             neutral
           >
@@ -191,7 +239,7 @@ function CollectionPermissions({ collection }: Props) {
           </Button>{" "}
           <Button
             type="button"
-            onClick={() => setAddMemberModalOpen(true)}
+            onClick={handleAddMemberModalOpen}
             icon={<PlusIcon />}
             neutral
           >
@@ -244,24 +292,24 @@ function CollectionPermissions({ collection }: Props) {
         title={t(`Add groups to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
-        onRequestClose={() => setAddGroupModalOpen(false)}
+        onRequestClose={handleAddGroupModalClose}
         isOpen={addGroupModalOpen}
       >
         <AddGroupsToCollection
           collection={collection}
-          onSubmit={() => setAddGroupModalOpen(false)}
+          onSubmit={handleAddGroupModalClose}
         />
       </Modal>
       <Modal
         title={t(`Add people to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
-        onRequestClose={() => setAddMemberModalOpen(false)}
+        onRequestClose={handleAddMemberModalClose}
         isOpen={addMemberModalOpen}
       >
         <AddPeopleToCollection
           collection={collection}
-          onSubmit={() => setAddMemberModalOpen(false)}
+          onSubmit={handleAddMemberModalClose}
         />
       </Modal>
     </Flex>

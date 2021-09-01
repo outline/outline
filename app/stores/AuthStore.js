@@ -14,6 +14,12 @@ import { getCookieDomain } from "utils/domains";
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 
+type PersistedData = {
+  user?: User,
+  team?: Team,
+  policies?: Policy[],
+};
+
 type Provider = {|
   id: string,
   name: string,
@@ -30,6 +36,7 @@ export default class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
+  @observable policies: Policy[] = [];
   @observable lastSignedIn: ?string;
   @observable isSaving: boolean = false;
   @observable isSuspended: boolean = false;
@@ -41,7 +48,7 @@ export default class AuthStore {
     this.rootStore = rootStore;
 
     // attempt to load the previous state of this store from localstorage
-    let data = {};
+    let data: PersistedData = {};
     try {
       data = JSON.parse(localStorage.getItem(AUTH_STORE) || "{}");
     } catch (_) {
@@ -63,14 +70,18 @@ export default class AuthStore {
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
       if (event.key === AUTH_STORE) {
-        const data = JSON.parse(event.newValue);
+        const data: ?PersistedData = JSON.parse(event.newValue);
 
-        // if there is no user on the new data then we know the other tab
-        // signed out and we should do the same. Otherwise, if we're not
-        // signed in then hydrate from the received data
-        if (this.token && data.user === null) {
-          this.logout();
-        } else if (!this.token) {
+        // data may be null if key is deleted in localStorage
+        if (!data) return;
+
+        // If we're not signed in then hydrate from the received data, otherwise if
+        // we are signed in and the received data contains no user then sign out
+        if (this.authenticated) {
+          if (data.user === null) {
+            this.logout();
+          }
+        } else {
           this.rehydrate(data);
         }
       }
@@ -78,22 +89,25 @@ export default class AuthStore {
   }
 
   @action
-  rehydrate(data: { user: User, team: Team }) {
+  rehydrate(data: PersistedData) {
     this.user = new User(data.user);
     this.team = new Team(data.team);
     this.token = getCookie("accessToken");
     this.lastSignedIn = getCookie("lastSignedIn");
+    this.addPolicies(data.policies);
 
     if (this.token) {
       setImmediate(() => this.fetch());
     }
   }
 
-  addPolicies = (policies: Policy[]) => {
+  addPolicies(policies?: Policy[]) {
     if (policies) {
+      // cache policies in this store so that they are persisted between sessions
+      this.policies = policies;
       policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
-  };
+  }
 
   @computed
   get authenticated(): boolean {
@@ -105,6 +119,7 @@ export default class AuthStore {
     return JSON.stringify({
       user: this.user,
       team: this.team,
+      policies: this.policies,
     });
   }
 
@@ -210,6 +225,7 @@ export default class AuthStore {
       JSON.stringify({
         user: null,
         team: null,
+        policies: [],
       })
     );
 

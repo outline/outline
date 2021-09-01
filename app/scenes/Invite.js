@@ -1,213 +1,238 @@
 // @flow
-import { observable, action } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { LinkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
-import { Link, withRouter, type RouterHistory } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UiStore from "stores/UiStore";
-import UsersStore from "stores/UsersStore";
+import type { Role } from "shared/types";
 import Button from "components/Button";
 import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
+import InputSelectRole from "components/InputSelectRole";
 import NudeButton from "components/NudeButton";
 import Tooltip from "components/Tooltip";
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useCurrentUser from "hooks/useCurrentUser";
+import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
 const MAX_INVITES = 20;
 
-type Props = {
-  auth: AuthStore,
-  users: UsersStore,
-  history: RouterHistory,
-  policies: PoliciesStore,
-  ui: UiStore,
+type Props = {|
   onSubmit: () => void,
-};
+|};
 
 type InviteRequest = {
   email: string,
   name: string,
+  role: Role,
 };
 
-@observer
-class Invite extends React.Component<Props> {
-  @observable isSaving: boolean;
-  @observable linkCopied: boolean = false;
-  @observable
-  invites: InviteRequest[] = [
-    { email: "", name: "" },
-    { email: "", name: "" },
-    { email: "", name: "" },
-  ];
+function Invite({ onSubmit }: Props) {
+  const [isSaving, setIsSaving] = React.useState();
+  const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
+  const [invites, setInvites] = React.useState<InviteRequest[]>([
+    { email: "", name: "", role: "member" },
+    { email: "", name: "", role: "member" },
+    { email: "", name: "", role: "member" },
+  ]);
 
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.isSaving = true;
+  const { users, policies } = useStores();
+  const { showToast } = useToasts();
+  const user = useCurrentUser();
+  const team = useCurrentTeam();
+  const { t } = useTranslation();
 
-    try {
-      await this.props.users.invite(this.invites);
-      this.props.onSubmit();
-      this.props.ui.showToast("We sent out your invites!", { type: "success" });
-    } catch (err) {
-      this.props.ui.showToast(err.message, { type: "error" });
-    } finally {
-      this.isSaving = false;
-    }
-  };
+  const predictedDomain = user.email.split("@")[1];
+  const can = policies.abilities(team.id);
 
-  @action
-  handleChange = (ev, index) => {
-    this.invites[index][ev.target.name] = ev.target.value;
-  };
+  const handleSubmit = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      setIsSaving(true);
 
-  @action
-  handleGuestChange = (ev, index) => {
-    this.invites[index][ev.target.name] = ev.target.checked;
-  };
+      try {
+        await users.invite(invites);
+        onSubmit();
+        showToast(t("We sent out your invites!"), { type: "success" });
+      } catch (err) {
+        showToast(err.message, { type: "error" });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [onSubmit, showToast, invites, t, users]
+  );
 
-  @action
-  handleAdd = () => {
-    if (this.invites.length >= MAX_INVITES) {
-      this.props.ui.showToast(
-        `Sorry, you can only send ${MAX_INVITES} invites at a time`,
+  const handleChange = React.useCallback((ev, index) => {
+    setInvites((prevInvites) => {
+      const newInvites = [...prevInvites];
+      newInvites[index][ev.target.name] = ev.target.value;
+      return newInvites;
+    });
+  }, []);
+
+  const handleAdd = React.useCallback(() => {
+    if (invites.length >= MAX_INVITES) {
+      showToast(
+        t("Sorry, you can only send {{MAX_INVITES}} invites at a time", {
+          MAX_INVITES,
+        }),
         { type: "warning" }
       );
     }
 
-    this.invites.push({ email: "", name: "" });
-  };
+    setInvites((prevInvites) => {
+      const newInvites = [...prevInvites];
+      newInvites.push({ email: "", name: "", role: "member" });
+      return newInvites;
+    });
+  }, [showToast, invites, t]);
 
-  @action
-  handleRemove = (ev: SyntheticEvent<>, index: number) => {
-    ev.preventDefault();
-    this.invites.splice(index, 1);
-  };
+  const handleRemove = React.useCallback(
+    (ev: SyntheticEvent<>, index: number) => {
+      ev.preventDefault();
 
-  handleCopy = () => {
-    this.linkCopied = true;
-    this.props.ui.showToast("Share link copied", {
+      setInvites((prevInvites) => {
+        const newInvites = [...prevInvites];
+        newInvites.splice(index, 1);
+        return newInvites;
+      });
+    },
+    []
+  );
+
+  const handleCopy = React.useCallback(() => {
+    setLinkCopied(true);
+    showToast(t("Share link copied"), {
       type: "success",
     });
-  };
+  }, [showToast, t]);
 
-  render() {
-    const { team, user } = this.props.auth;
-    if (!team || !user) return null;
+  const handleRoleChange = React.useCallback((ev, index) => {
+    setInvites((prevInvites) => {
+      const newInvites = [...prevInvites];
+      newInvites[index]["role"] = ev.target.value;
+      return newInvites;
+    });
+  }, []);
 
-    const predictedDomain = user.email.split("@")[1];
-    const can = this.props.policies.abilities(team.id);
-
-    return (
-      <form onSubmit={this.handleSubmit}>
-        {team.guestSignin ? (
-          <HelpText>
-            Invite team members or guests to join your knowledge base. Team
-            members can sign in with {team.signinMethods} or use their email
-            address.
-          </HelpText>
-        ) : (
-          <HelpText>
-            Invite team members to join your knowledge base. They will need to
-            sign in with {team.signinMethods}.{" "}
-            {can.update && (
-              <>
-                As an admin you can also{" "}
-                <Link to="/settings/security">enable email sign-in</Link>.
-              </>
-            )}
-          </HelpText>
-        )}
-        {team.subdomain && (
-          <CopyBlock>
-            <Flex align="flex-end">
-              <Input
-                type="text"
-                value={team.url}
-                label="Want a link to share directly with your team?"
-                readOnly
-                flex
-              />
-              &nbsp;&nbsp;
-              <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
-                <Button
-                  type="button"
-                  icon={<LinkIcon />}
-                  style={{ marginBottom: "16px" }}
-                  neutral
-                >
-                  {this.linkCopied ? "Link copied" : "Copy link"}
-                </Button>
-              </CopyToClipboard>
-            </Flex>
-            <p>
-              <hr />
-            </p>
-          </CopyBlock>
-        )}
-        {this.invites.map((invite, index) => (
-          <Flex key={index}>
+  return (
+    <form onSubmit={handleSubmit}>
+      {team.guestSignin ? (
+        <HelpText>
+          <Trans
+            defaults="Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address."
+            values={{ signinMethods: team.signinMethods }}
+          />
+        </HelpText>
+      ) : (
+        <HelpText>
+          <Trans
+            defaults="Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}."
+            values={{ signinMethods: team.signinMethods }}
+          />{" "}
+          {can.update && (
+            <Trans>
+              As an admin you can also{" "}
+              <Link to="/settings/security">enable email sign-in</Link>.
+            </Trans>
+          )}
+        </HelpText>
+      )}
+      {team.subdomain && (
+        <CopyBlock>
+          <Flex align="flex-end">
             <Input
-              type="email"
-              name="email"
-              label="Email"
-              labelHidden={index !== 0}
-              onChange={(ev) => this.handleChange(ev, index)}
-              placeholder={`example@${predictedDomain}`}
-              value={invite.email}
-              required={index === 0}
-              autoFocus={index === 0}
+              type="text"
+              value={team.url}
+              label={t("Want a link to share directly with your team?")}
+              readOnly
               flex
             />
             &nbsp;&nbsp;
-            <Input
-              type="text"
-              name="name"
-              label="Full name"
-              labelHidden={index !== 0}
-              onChange={(ev) => this.handleChange(ev, index)}
-              value={invite.name}
-              required={!!invite.email}
-              flex
-            />
-            {index !== 0 && (
-              <Remove>
-                <Tooltip tooltip="Remove invite" placement="top">
-                  <NudeButton onClick={(ev) => this.handleRemove(ev, index)}>
-                    <CloseIcon />
-                  </NudeButton>
-                </Tooltip>
-              </Remove>
-            )}
+            <CopyToClipboard text={team.url} onCopy={handleCopy}>
+              <Button
+                type="button"
+                icon={<LinkIcon />}
+                style={{ marginBottom: "16px" }}
+                neutral
+              >
+                {linkCopied ? t("Link copied") : t("Copy link")}
+              </Button>
+            </CopyToClipboard>
           </Flex>
-        ))}
-
-        <Flex justify="space-between">
-          {this.invites.length <= MAX_INVITES ? (
-            <Button type="button" onClick={this.handleAdd} neutral>
-              Add another…
-            </Button>
-          ) : (
-            <span />
+          <p>
+            <hr />
+          </p>
+        </CopyBlock>
+      )}
+      {invites.map((invite, index) => (
+        <Flex key={index} gap={8}>
+          <Input
+            type="email"
+            name="email"
+            label={t("Email")}
+            labelHidden={index !== 0}
+            onChange={(ev) => handleChange(ev, index)}
+            placeholder={`example@${predictedDomain}`}
+            value={invite.email}
+            required={index === 0}
+            autoFocus={index === 0}
+            flex
+          />
+          <Input
+            type="text"
+            name="name"
+            label={t("Full name")}
+            labelHidden={index !== 0}
+            onChange={(ev) => handleChange(ev, index)}
+            value={invite.name}
+            required={!!invite.email}
+          />
+          <InputSelectRole
+            onChange={(ev) => handleRoleChange(ev, index)}
+            value={invite.role}
+            labelHidden={index !== 0}
+            short
+          />
+          {index !== 0 && (
+            <Remove>
+              <Tooltip tooltip={t("Remove invite")} placement="top">
+                <NudeButton onClick={(ev) => handleRemove(ev, index)}>
+                  <CloseIcon />
+                </NudeButton>
+              </Tooltip>
+            </Remove>
           )}
-
-          <Button
-            type="submit"
-            disabled={this.isSaving}
-            data-on="click"
-            data-event-category="invite"
-            data-event-action="sendInvites"
-          >
-            {this.isSaving ? "Inviting…" : "Send Invites"}
-          </Button>
         </Flex>
-        <br />
-      </form>
-    );
-  }
+      ))}
+
+      <Flex justify="space-between">
+        {invites.length <= MAX_INVITES ? (
+          <Button type="button" onClick={handleAdd} neutral>
+            <Trans>Add another</Trans>…
+          </Button>
+        ) : (
+          <span />
+        )}
+
+        <Button
+          type="submit"
+          disabled={isSaving}
+          data-on="click"
+          data-event-category="invite"
+          data-event-action="sendInvites"
+        >
+          {isSaving ? `${t("Inviting")}…` : t("Send Invites")}
+        </Button>
+      </Flex>
+      <br />
+    </form>
+  );
 }
 
 const CopyBlock = styled("div")`
@@ -221,4 +246,4 @@ const Remove = styled("div")`
   right: -32px;
 `;
 
-export default inject("auth", "users", "policies", "ui")(withRouter(Invite));
+export default observer(Invite);

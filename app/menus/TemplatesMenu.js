@@ -37,16 +37,16 @@ function TemplatesMenu({ document }: Props) {
     <MenuItem
       key={template.id}
       onClick={() => document.updateFromTemplate(template)}
+      icon={<DocumentIcon />}
       {...menu}
     >
-      <DocumentIcon />
-      <div>
+      <TemplateItem>
         <strong>{template.titleWithDefault}</strong>
         <br />
         <Author>
           {t("By {{ author }}", { author: template.createdBy.name })}
         </Author>
-      </div>
+      </TemplateItem>
     </MenuItem>
   );
 
@@ -70,9 +70,12 @@ function TemplatesMenu({ document }: Props) {
   );
 }
 
+const TemplateItem = styled.div`
+  text-align: left;
+`;
+
 const Author = styled.div`
   font-size: 13px;
-  text-align: left;
 `;
 
 export default observer(TemplatesMenu);

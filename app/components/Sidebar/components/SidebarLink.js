@@ -1,4 +1,5 @@
 // @flow
+import { transparentize } from "polished";
 import * as React from "react";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
@@ -27,6 +28,7 @@ type Props = {
   theme: Theme,
   exact?: boolean,
   depth?: number,
+  scrollIntoViewIfNeeded?: boolean,
 };
 
 function SidebarLink(
@@ -48,12 +50,13 @@ function SidebarLink(
     history,
     match,
     className,
+    scrollIntoViewIfNeeded,
   }: Props,
   ref
 ) {
   const style = React.useMemo(() => {
     return {
-      paddingLeft: `${(depth || 0) * 16 + 16}px`,
+      paddingLeft: `${(depth || 0) * 16 + 12}px`,
     };
   }, [depth]);
 
@@ -72,6 +75,7 @@ function SidebarLink(
     <>
       <Link
         $isActiveDrop={isActiveDrop}
+        scrollIntoViewIfNeeded={scrollIntoViewIfNeeded}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}
@@ -130,6 +134,7 @@ const Link = styled(NavLink)`
   padding: 6px 16px;
   border-radius: 4px;
   transition: background 50ms, color 50ms;
+  user-select: none;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
@@ -145,7 +150,8 @@ const Link = styled(NavLink)`
 
   &:focus {
     color: ${(props) => props.theme.text};
-    background: ${(props) => props.theme.black05};
+    background: ${(props) =>
+      transparentize("0.25", props.theme.sidebarItemBackground)};
   }
 
   ${breakpoint("tablet")`
@@ -154,13 +160,11 @@ const Link = styled(NavLink)`
   `}
 
   @media (hover: hover) {
-    &:hover + ${Actions},
-    &:active + ${Actions} {
-        display: inline-flex;
+    &:hover + ${Actions}, &:active + ${Actions} {
+      display: inline-flex;
 
-        svg {
-          opacity: 0.75;
-        }
+      svg {
+        opacity: 0.75;
       }
     }
 

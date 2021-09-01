@@ -8,9 +8,12 @@ import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
 import Descript from "./Descript";
+import Diagrams from "./Diagrams";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GoogleCalendar from "./GoogleCalendar";
+import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
@@ -115,6 +118,13 @@ export default [
     matcher: matcher(Gist),
   },
   {
+    title: "Diagrams.net",
+    keywords: "diagrams drawio",
+    icon: () => <Img src="/images/diagrams.png" />,
+    component: Diagrams,
+    matcher: matcher(Diagrams),
+  },
+  {
     title: "Google Drawings",
     keywords: "drawings",
     icon: () => <Img src="/images/google-drawings.png" />,
@@ -147,6 +157,20 @@ export default [
     icon: () => <Img src="/images/google-slides.png" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Google Calendar",
+    keywords: "calendar",
+    icon: () => <Img src="/images/google-calendar.png" />,
+    component: GoogleCalendar,
+    matcher: matcher(GoogleCalendar),
+  },
+  {
+    title: "Google Data Studio",
+    keywords: "business intelligence",
+    icon: () => <Img src="/images/google-datastudio.png" />,
+    component: GoogleDataStudio,
+    matcher: matcher(GoogleDataStudio),
   },
   {
     title: "InVision",

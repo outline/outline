@@ -1,35 +1,9 @@
 // @flow
-import { format, formatDistanceToNow } from "date-fns";
-import {
-  enUS,
-  de,
-  fr,
-  es,
-  it,
-  ko,
-  ptBR,
-  pt,
-  zhCN,
-  zhTW,
-  ru,
-} from "date-fns/locale";
+import { format as formatDate, formatDistanceToNow } from "date-fns";
 import * as React from "react";
 import Tooltip from "components/Tooltip";
 import useUserLocale from "hooks/useUserLocale";
-
-const locales = {
-  en_US: enUS,
-  de_DE: de,
-  es_ES: es,
-  fr_FR: fr,
-  it_IT: it,
-  ko_KR: ko,
-  pt_BR: ptBR,
-  pt_PT: pt,
-  zh_CN: zhCN,
-  zh_TW: zhTW,
-  ru_RU: ru,
-};
+import { dateLocale } from "utils/i18n";
 
 let callbacks = [];
 
@@ -53,6 +27,8 @@ type Props = {
   tooltipDelay?: number,
   addSuffix?: boolean,
   shorten?: boolean,
+  relative?: boolean,
+  format?: string,
 };
 
 function LocaleTime({
@@ -60,6 +36,8 @@ function LocaleTime({
   children,
   dateTime,
   shorten,
+  format,
+  relative,
   tooltipDelay,
 }: Props) {
   const userLocale = useUserLocale();
@@ -78,25 +56,31 @@ function LocaleTime({
     };
   }, []);
 
-  let content = formatDistanceToNow(Date.parse(dateTime), {
+  const locale = dateLocale(userLocale);
+  let relativeContent = formatDistanceToNow(Date.parse(dateTime), {
     addSuffix,
-    locale: userLocale ? locales[userLocale] : undefined,
+    locale,
   });
 
   if (shorten) {
-    content = content
+    relativeContent = relativeContent
       .replace("about", "")
       .replace("less than a minute ago", "just now")
       .replace("minute", "min");
   }
 
+  const tooltipContent = formatDate(
+    Date.parse(dateTime),
+    format || "MMMM do, yyyy h:mm a",
+    { locale }
+  );
+
+  const content =
+    children || relative !== false ? relativeContent : tooltipContent;
+
   return (
-    <Tooltip
-      tooltip={format(Date.parse(dateTime), "MMMM do, yyyy h:mm a")}
-      delay={tooltipDelay}
-      placement="bottom"
-    >
-      <time dateTime={dateTime}>{children || content}</time>
+    <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
+      <time dateTime={dateTime}>{content}</time>
     </Tooltip>
   );
 }

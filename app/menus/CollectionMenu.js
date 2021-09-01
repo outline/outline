@@ -1,5 +1,13 @@
 // @flow
 import { observer } from "mobx-react";
+import {
+  NewDocumentIcon,
+  EditIcon,
+  TrashIcon,
+  ImportIcon,
+  ExportIcon,
+  PadlockIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -14,7 +22,9 @@ import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import { newDocumentUrl } from "utils/routeHelpers";
 
@@ -38,6 +48,8 @@ function CollectionMenu({
   const menu = useMenuState({ modal, placement });
   const [renderModals, setRenderModals] = React.useState(false);
   const { ui, documents, policies, quickMenu } = useStores();
+  const team = useCurrentTeam();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
 
@@ -99,56 +111,74 @@ function CollectionMenu({
         });
         history.push(document.url);
       } catch (err) {
-        ui.showToast(err.message, {
+        showToast(err.message, {
           type: "error",
         });
 
         throw err;
       }
     },
-    [history, ui, collection.id, documents]
+    [history, showToast, collection.id, documents]
   );
 
   const can = policies.abilities(collection.id);
+  const canUserInTeam = policies.abilities(team.id);
 
-  const items = [
-    {
-      title: t("New document"),
-      visible: can.update,
-      onClick: handleNewDocument,
-    },
-    {
-      title: t("Import document"),
-      visible: can.update,
-      onClick: handleImportDocument,
-    },
-    {
-      type: "separator",
-    },
-    {
-      title: `${t("Edit")}…`,
-      visible: can.update,
-      onClick: () => setShowCollectionEdit(true),
-    },
-    {
-      title: `${t("Permissions")}…`,
-      visible: can.update,
-      onClick: () => setShowCollectionPermissions(true),
-    },
-    {
-      title: `${t("Export")}…`,
-      visible: !!(collection && can.export),
-      onClick: () => setShowCollectionExport(true),
-    },
-    {
-      type: "separator",
-    },
-    {
-      title: `${t("Delete")}…`,
-      visible: !!(collection && can.delete),
-      onClick: () => setShowCollectionDelete(true),
-    },
-  ];
+  const items = React.useMemo(
+    () => [
+      {
+        title: t("New document"),
+        visible: can.update,
+        onClick: handleNewDocument,
+        icon: <NewDocumentIcon />,
+      },
+      {
+        title: t("Import document"),
+        visible: can.update,
+        onClick: handleImportDocument,
+        icon: <ImportIcon />,
+      },
+      {
+        type: "separator",
+      },
+      {
+        title: `${t("Edit")}…`,
+        visible: can.update,
+        onClick: () => setShowCollectionEdit(true),
+        icon: <EditIcon />,
+      },
+      {
+        title: `${t("Permissions")}…`,
+        visible: can.update,
+        onClick: () => setShowCollectionPermissions(true),
+        icon: <PadlockIcon />,
+      },
+      {
+        title: `${t("Export")}…`,
+        visible: !!(collection && canUserInTeam.export),
+        onClick: () => setShowCollectionExport(true),
+        icon: <ExportIcon />,
+      },
+      {
+        type: "separator",
+      },
+      {
+        title: `${t("Delete")}…`,
+        visible: !!(collection && can.delete),
+        onClick: () => setShowCollectionDelete(true),
+        icon: <TrashIcon />,
+      },
+    ],
+    [
+      t,
+      can.update,
+      can.delete,
+      handleNewDocument,
+      handleImportDocument,
+      collection,
+      canUserInTeam.export,
+    ]
+  );
 
   React.useEffect(() => {
     const id = `collection-${collection.id}`;
@@ -163,6 +193,10 @@ function CollectionMenu({
 
     return () => quickMenu.removeContext(id);
   }, [quickMenu, items, collection.id, ui.activeCollectionId, t]);
+
+  if (!items.length) {
+    return null;
+  }
 
   return (
     <>

@@ -27,7 +27,7 @@ const Cursor = styled("div")`
 
   width: 100%;
   height: 14px;
-  ${(props) => (props.from === "collections" ? "top: 15px;" : "bottom: -7px;")}
+  ${(props) => (props.from === "collections" ? "top: 25px;" : "bottom: -7px;")}
   background: transparent;
 
   ::after {

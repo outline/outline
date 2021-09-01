@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
+import { v4 as uuidv4 } from "uuid";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
@@ -147,7 +148,11 @@ export const uploadToS3FromUrl = async (
     return `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err);
+      Sentry.captureException(err, {
+        extra: {
+          url,
+        },
+      });
     } else {
       throw err;
     }
@@ -163,7 +168,7 @@ export const deleteFromS3 = (key: string) => {
     .promise();
 };
 
-export const getSignedImageUrl = async (key: string) => {
+export const getSignedUrl = async (key: string) => {
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
 
   const params = {
@@ -175,6 +180,12 @@ export const getSignedImageUrl = async (key: string) => {
   return isDocker
     ? `${publicS3Endpoint()}/${key}`
     : s3.getSignedUrl("getObject", params);
+};
+
+// function assumes that acl is private
+export const getAWSKeyForFileOp = (teamId: string, name: string) => {
+  const bucket = "uploads";
+  return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
 export const getFileByKey = async (key: string) => {
