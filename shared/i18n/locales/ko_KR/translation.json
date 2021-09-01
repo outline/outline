@@ -510,7 +510,7 @@
   "Uploading": "업로드 중",
   "Confirm & Import": "확인 및 가져오기",
   "Choose File": "파일 선택",
-  "A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it's complete.": "A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it's complete.",
+  "A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it’s complete.": "A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it’s complete.",
   "Export Requested": "내보내기 요청됨",
   "Requesting Export": "내보내기 요청",
   "Export Data": "데이터 내보내기",
