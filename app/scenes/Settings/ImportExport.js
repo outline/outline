@@ -184,7 +184,7 @@ function ImportExport() {
       <Heading>{t("Export")}</Heading>
       <HelpText>
         <Trans
-          defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it's complete."
+          defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{ userEmail: user.email }}
           components={{ em: <strong /> }}
         />

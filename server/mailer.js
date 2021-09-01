@@ -37,7 +37,13 @@ const log = debug("emails");
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
 
-export type EmailTypes = "welcome" | "export" | "invite" | "signin";
+export type EmailTypes =
+  | "welcome"
+  | "export"
+  | "invite"
+  | "signin"
+  | "exportFailure"
+  | "exportSuccess";
 
 export type EmailSendOptions = {
   to: string,
