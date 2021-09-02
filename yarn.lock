@@ -1146,26 +1146,26 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hocuspocus/extension-logger@^1.0.0-alpha.36":
-  version "1.0.0-alpha.36"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-logger/-/extension-logger-1.0.0-alpha.36.tgz#f5f27a23113afdcacf06814f2425c1c6aac0744a"
-  integrity sha512-BWYDjBM1JCXqN8L0hkwHtLKbaTaooLNxK6Ti6qOn2izkzIk3toDU/JJnN9C7maDEqE5jA6rj9mTHhsXQeiX6Jw==
+"@hocuspocus/extension-logger@^1.0.0-alpha.43":
+  version "1.0.0-alpha.43"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-logger/-/extension-logger-1.0.0-alpha.43.tgz#66224ba5bf634ba1a1b6be6156d5d55d515efba6"
+  integrity sha512-PdIG7egACqNpRzWR/vX5BRVlvTRjOsT1MwK1h+6T/ICI8aP6WOsJ5ruqPwJGN0vLbffZK+IH9mfxALHa6NHVlA==
   dependencies:
-    "@hocuspocus/server" "^1.0.0-alpha.61"
+    "@hocuspocus/server" "^1.0.0-alpha.68"
 
-"@hocuspocus/provider@^1.0.0-alpha.11":
-  version "1.0.0-alpha.11"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.11.tgz#660712f2d208368400531e4e226c640c0acdbd3a"
-  integrity sha512-DZ46L/jxRRP9RowtiiGM+i+Z894VymFHZFoBqA/kAyH/TQ/nWRyjrII6GOOus9sFoXvHJcLA2JdtMkhp4LSd8w==
+"@hocuspocus/provider@^1.0.0-alpha.13":
+  version "1.0.0-alpha.13"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.13.tgz#40c65168d1bed35bef0196df40512326825bfa51"
+  integrity sha512-/L6GmV7bEEwd8VIiodOynQjQUaEHUT4hQIkzNMtsICUkiu3OQs35ZrC973BxSp0t7df6KOo3kSULBpp/TW8wGg==
   dependencies:
     lib0 "^0.2.42"
     y-protocols "^1.0.5"
     yjs "^13.5.8"
 
-"@hocuspocus/server@^1.0.0-alpha.61", "@hocuspocus/server@^1.0.0-alpha.65":
-  version "1.0.0-alpha.65"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.65.tgz#266e711a4a283801b1fec863ef625d90a459e229"
-  integrity sha512-qJP2uZg94k951NZ9WSBxxzXHkZ4XQw9BNzc5Xvqc5V4cCmmj+mqXRkhGjnVuigpibTetpuLVBBkDuFCeM8LUlg==
+"@hocuspocus/server@^1.0.0-alpha.68":
+  version "1.0.0-alpha.68"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.68.tgz#19a061718f0cdebab83fe0847386a556e7753e5c"
+  integrity sha512-phuuW8KFHmcufhatvIysq3iiXYH1Utd8+dWW0YNM90BA79A6rmx32DcQT3fton/wjcqU8rzoeZQomemghfSxBQ==
   dependencies:
     "@types/async-lock" "^1.1.2"
     "@types/uuid" "^8.3.0"
