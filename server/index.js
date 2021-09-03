@@ -1,5 +1,7 @@
 // @flow
 import env from "./env"; // eslint-disable-line import/order
+import "./tracing"; // must come before importing any instrumented module
+
 import http from "http";
 import debug from "debug";
 import Koa from "koa";
@@ -12,12 +14,10 @@ import stoppable from "stoppable";
 import throng from "throng";
 import "./sentry";
 import services from "./services";
-import { initTracing } from "./tracing";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
 checkEnv();
-initTracing();
 checkMigrations();
 
 // If a services flag is passed it takes priority over the enviroment variable
