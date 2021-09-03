@@ -1,0 +1,56 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://:pass@localhost:5532/outline"
+}
+
+model SequelizeMeta {
+    name String
+}
+
+apiKeys      
+
+attachments
+
+authentication_providers
+
+authentications 
+
+backlinks    
+
+collection_groups
+
+collection_s
+
+collections  
+
+documents    
+
+events       
+
+file_operations 
+
+group_s  
+
+groups       
+
+integrations 
+
+notification_settings 
+
+notifications
+
+revisions    
+
+search_queries  
+
+shares       
+
+stars        
+
+teams        
+
+user_authentications
+
+users        
+
+views        

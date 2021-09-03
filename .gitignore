@@ -8,3 +8,5 @@ stats.json
 .DS_Store
 fakes3/*
 .idea
+localhost-key.pem
+localhost.pem

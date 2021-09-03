@@ -2,7 +2,7 @@
 import env from "./env"; // eslint-disable-line import/order
 import "./tracing"; // must come before importing any instrumented module
 
-import http from "http";
+import https from "https";
 import debug from "debug";
 import Koa from "koa";
 import compress from "koa-compress";
@@ -16,6 +16,11 @@ import "./sentry";
 import services from "./services";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
+const fs = require("fs");
+const options = {
+  key: fs.readFileSync("./server/localhost-key.pem"),
+  cert: fs.readFileSync("./server/localhost.pem"),
+};
 
 checkEnv();
 checkMigrations();
@@ -38,7 +43,7 @@ const serviceNames = uniq(
 
 async function start(id, disconnect) {
   const app = new Koa();
-  const server = stoppable(http.createServer(app.callback()));
+  const server = stoppable(https.createServer(options, app.callback()));
   const httpLogger = debug("http");
   const log = debug("server");
   const router = new Router();
@@ -69,7 +74,7 @@ async function start(id, disconnect) {
 
   server.on("listening", () => {
     const address = server.address();
-    console.log(`\n> Listening on http://localhost:${address.port}\n`);
+    console.log(`\n> Listening on https://localhost:${address.port}\n`);
   });
 
   server.listen(env.PORT || "3000");

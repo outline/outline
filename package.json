@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf build",
-    "build:i18n": "i18next --silent 'app/**/*.js' 'server/**/*.js' && mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
-    "build:server": "babel -d ./build/server ./server && babel -d ./build/shared ./shared && cp package.json ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
+    "build:i18n": "i18next --silent 'app/**/*.js' 'server/**/*.js'",
+    "build:server": "babel -d ./build/server ./server && babel -d ./build/shared ./shared && cp package.json ./build",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
