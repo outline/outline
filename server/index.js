@@ -3,6 +3,7 @@ import env from "./env"; // eslint-disable-line import/order
 import "./tracing"; // must come before importing any instrumented module
 
 import https from "https";
+import cors from "@koa/cors";
 import debug from "debug";
 import Koa from "koa";
 import compress from "koa-compress";
@@ -52,6 +53,7 @@ async function start(id, disconnect) {
   app.use(logger((str, args) => httpLogger(str)));
   app.use(compress());
   app.use(helmet());
+  app.use(cors());
 
   // loop through requestsed services at startup
   for (const name of serviceNames) {

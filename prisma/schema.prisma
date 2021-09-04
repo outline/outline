@@ -1,0 +1,510 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SequelizeMeta {
+  name String @id @db.VarChar(255)
+}
+
+model apiKeys {
+  id        String    @id @db.Uuid
+  name      String?   @db.VarChar
+  secret    String    @unique @db.VarChar
+  userId    String?   @db.Uuid
+  createdAt DateTime  @db.Timestamptz(6)
+  updatedAt DateTime  @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  @@index([secret, deletedAt], name: "api_keys_secret_deleted_at")
+  @@index([userId, deletedAt], name: "api_keys_user_id_deleted_at")
+}
+
+model attachments {
+  id          String   @id @db.Uuid
+  teamId      String   @db.Uuid
+  userId      String   @db.Uuid
+  documentId  String?  @db.Uuid
+  key         String   @db.VarChar(4096)
+  url         String   @db.VarChar(4096)
+  contentType String   @db.VarChar(255)
+  size        BigInt
+  acl         String   @db.VarChar(255)
+  createdAt   DateTime @db.Timestamptz(6)
+  updatedAt   DateTime @db.Timestamptz(6)
+  teams       teams    @relation(fields: [teamId], references: [id])
+  users       users    @relation(fields: [userId], references: [id])
+
+  @@index([documentId], name: "attachments_document_id")
+}
+
+model authentication_providers {
+  id                   String                 @id @db.Uuid
+  name                 String                 @db.VarChar(255)
+  providerId           String                 @unique @db.VarChar(255)
+  enabled              Boolean                @default(true)
+  teamId               String                 @db.Uuid
+  createdAt            DateTime               @db.Timestamptz(6)
+  teams                teams                  @relation(fields: [teamId], references: [id])
+  user_authentications user_authentications[]
+
+  @@index([providerId], name: "authentication_providers_provider_id")
+}
+
+model authentications {
+  id           String         @id @db.Uuid
+  userId       String?        @db.Uuid
+  teamId       String?        @db.Uuid
+  service      String         @db.VarChar(255)
+  token        Bytes?
+  scopes       String[]       @db.VarChar(255)
+  createdAt    DateTime       @db.Timestamptz(6)
+  updatedAt    DateTime       @db.Timestamptz(6)
+  teams        teams?         @relation(fields: [teamId], references: [id])
+  users        users?         @relation(fields: [userId], references: [id])
+  integrations integrations[]
+}
+
+model backlinks {
+  id                                               String    @id @db.Uuid
+  userId                                           String    @db.Uuid
+  documentId                                       String    @db.Uuid
+  reverseDocumentId                                String    @db.Uuid
+  createdAt                                        DateTime  @db.Timestamptz(6)
+  updatedAt                                        DateTime  @db.Timestamptz(6)
+  documents_backlinks_documentIdTodocuments        documents @relation("backlinks_documentIdTodocuments", fields: [documentId], references: [id])
+  documents_backlinks_reverseDocumentIdTodocuments documents @relation("backlinks_reverseDocumentIdTodocuments", fields: [reverseDocumentId], references: [id])
+  users                                            users     @relation(fields: [userId], references: [id])
+
+  @@index([documentId], name: "backlinks_document_id")
+  @@index([reverseDocumentId], name: "backlinks_reverse_document_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model collection_groups {
+  collectionId String      @db.Uuid
+  groupId      String      @db.Uuid
+  createdById  String      @db.Uuid
+  permission   String      @db.VarChar(255)
+  createdAt    DateTime    @db.Timestamptz(6)
+  updatedAt    DateTime    @db.Timestamptz(6)
+  deletedAt    DateTime?   @db.Timestamptz(6)
+  collections  collections @relation(fields: [collectionId], references: [id])
+  users        users       @relation(fields: [createdById], references: [id])
+  groups       groups      @relation(fields: [groupId], references: [id])
+
+  @@index([collectionId, groupId], name: "collection_groups_collection_id_group_id")
+  @@index([deletedAt], name: "collection_groups_deleted_at")
+  @@index([groupId], name: "collection_groups_group_id")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model collection_users {
+  collectionId                              String      @db.Uuid
+  userId                                    String      @db.Uuid
+  permission                                String      @default("read_write") @db.VarChar(255)
+  createdById                               String      @db.Uuid
+  createdAt                                 DateTime    @db.Timestamptz(6)
+  updatedAt                                 DateTime    @db.Timestamptz(6)
+  collections                               collections @relation(fields: [collectionId], references: [id])
+  users_collection_users_createdByIdTousers users       @relation("collection_users_createdByIdTousers", fields: [createdById], references: [id])
+  users_collection_users_userIdTousers      users       @relation("collection_users_userIdTousers", fields: [userId], references: [id])
+
+  @@index([collectionId, userId], name: "collection_users_collection_id_user_id")
+  @@ignore
+}
+
+model collections {
+  id                         String                   @id @db.Uuid
+  name                       String?                  @db.VarChar
+  description                String?                  @db.VarChar
+  createdAt                  DateTime                 @db.Timestamptz(6)
+  updatedAt                  DateTime                 @db.Timestamptz(6)
+  teamId                     String                   @db.Uuid
+  searchVector               Unsupported("tsvector")?
+  createdById                String?                  @db.Uuid
+  deletedAt                  DateTime?                @db.Timestamptz(6)
+  urlId                      String?                  @unique @db.VarChar(255)
+  documentStructure          Json?
+  color                      String?
+  maintainerApprovalRequired Boolean                  @default(false)
+  icon                       String?
+  sort                       Json?
+  sharing                    Boolean                  @default(true)
+  index                      String?
+  permission                 String?                  @db.VarChar(255)
+  collection_groups          collection_groups[]      @ignore
+  collection_users           collection_users[]       @ignore
+  documents                  documents[]
+  events                     events[]
+  file_operations            file_operations[]
+  integrations               integrations[]
+
+  @@index([id, deletedAt], name: "atlases_id_deleted_at")
+  @@index([id, teamId, deletedAt], name: "atlases_id_team_id_deleted_at")
+  @@index([searchVector], name: "atlases_tsv_idx")
+}
+
+model documents {
+  id                                               String                   @id @db.Uuid
+  urlId                                            String                   @unique @db.VarChar
+  title                                            String                   @db.VarChar
+  text                                             String?
+  createdAt                                        DateTime                 @db.Timestamptz(6)
+  updatedAt                                        DateTime                 @db.Timestamptz(6)
+  userId                                           String?                  @db.Uuid
+  collectionId                                     String?                  @db.Uuid
+  teamId                                           String?                  @db.Uuid
+  parentDocumentId                                 String?                  @db.Uuid
+  lastModifiedById                                 String                   @db.Uuid
+  revisionCount                                    Int?                     @default(0)
+  searchVector                                     Unsupported("tsvector")?
+  deletedAt                                        DateTime?                @db.Timestamptz(6)
+  createdById                                      String?                  @db.Uuid
+  collaboratorIds                                  String[]                 @db.Uuid
+  emoji                                            String?                  @db.VarChar(255)
+  publishedAt                                      DateTime?                @db.Timestamptz(6)
+  pinnedById                                       String?                  @db.Uuid
+  archivedAt                                       DateTime?                @db.Timestamptz(6)
+  isWelcome                                        Boolean                  @default(false)
+  editorVersion                                    String?                  @db.VarChar(255)
+  version                                          Int?                     @db.SmallInt
+  template                                         Boolean                  @default(false)
+  templateId                                       String?                  @db.Uuid
+  previousTitles                                   String[]                 @db.VarChar(255)
+  collections                                      collections?             @relation(fields: [collectionId], references: [id])
+  users_documents_createdByIdTousers               users?                   @relation("documents_createdByIdTousers", fields: [createdById], references: [id])
+  users_documents_lastModifiedByIdTousers          users                    @relation("documents_lastModifiedByIdTousers", fields: [lastModifiedById], references: [id])
+  documents                                        documents?               @relation("documentsTodocuments_parentDocumentId", fields: [parentDocumentId], references: [id])
+  teams                                            teams?                   @relation(fields: [teamId], references: [id])
+  users_documents_userIdTousers                    users?                   @relation("documents_userIdTousers", fields: [userId], references: [id])
+  backlinks_backlinks_documentIdTodocuments        backlinks[]              @relation("backlinks_documentIdTodocuments")
+  backlinks_backlinks_reverseDocumentIdTodocuments backlinks[]              @relation("backlinks_reverseDocumentIdTodocuments")
+  other_documents                                  documents[]              @relation("documentsTodocuments_parentDocumentId")
+  revisions                                        revisions[]
+  shares                                           shares[]
+
+  @@index([archivedAt], name: "documents_archived_at")
+  @@index([id, collectionId, deletedAt], name: "documents_id_atlas_id_deleted_at")
+  @@index([id, collectionId, publishedAt], name: "documents_id_atlas_id_published_at")
+  @@index([id, teamId, deletedAt], name: "documents_id_team_id_deleted_at")
+  @@index([parentDocumentId, collectionId, deletedAt], name: "documents_parent_document_id_atlas_id_deleted_at")
+  @@index([searchVector], name: "documents_tsv_idx")
+  @@index([updatedAt], name: "documents_updated_at")
+  @@index([urlId, deletedAt], name: "documents_url_id_deleted_at")
+}
+
+model events {
+  id                          String       @id @db.Uuid
+  name                        String       @db.VarChar(255)
+  data                        Json?
+  userId                      String?      @db.Uuid
+  collectionId                String?      @db.Uuid
+  teamId                      String?      @db.Uuid
+  createdAt                   DateTime     @db.Timestamptz(6)
+  updatedAt                   DateTime     @db.Timestamptz(6)
+  documentId                  String?      @db.Uuid
+  actorId                     String?      @db.Uuid
+  modelId                     String?      @db.Uuid
+  ip                          String?      @db.VarChar(255)
+  users_events_actorIdTousers users?       @relation("events_actorIdTousers", fields: [actorId], references: [id])
+  collections                 collections? @relation(fields: [collectionId], references: [id])
+  teams                       teams?       @relation(fields: [teamId], references: [id])
+  users_events_userIdTousers  users?       @relation("events_userIdTousers", fields: [userId], references: [id])
+
+  @@index([actorId], name: "events_actor_id")
+  @@index([documentId], name: "events_document_id")
+  @@index([name], name: "events_name")
+  @@index([teamId, collectionId], name: "events_team_id_collection_id")
+}
+
+model file_operations {
+  id           String                     @id @db.Uuid
+  state        enum_file_operations_state
+  type         enum_file_operations_type
+  key          String?                    @db.VarChar(255)
+  url          String?                    @db.VarChar(255)
+  size         BigInt
+  userId       String                     @db.Uuid
+  collectionId String?                    @db.Uuid
+  teamId       String                     @db.Uuid
+  createdAt    DateTime                   @db.Timestamptz(6)
+  updatedAt    DateTime                   @db.Timestamptz(6)
+  collections  collections?               @relation(fields: [collectionId], references: [id])
+  teams        teams                      @relation(fields: [teamId], references: [id])
+  users        users                      @relation(fields: [userId], references: [id])
+
+  @@index([type, state], name: "file_operations_type_state")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model group_users {
+  userId                               String    @db.Uuid
+  groupId                              String    @db.Uuid
+  createdById                          String    @db.Uuid
+  createdAt                            DateTime  @db.Timestamptz(6)
+  updatedAt                            DateTime  @db.Timestamptz(6)
+  deletedAt                            DateTime? @db.Timestamptz(6)
+  users_group_users_createdByIdTousers users     @relation("group_users_createdByIdTousers", fields: [createdById], references: [id])
+  groups                               groups    @relation(fields: [groupId], references: [id])
+  users_group_users_userIdTousers      users     @relation("group_users_userIdTousers", fields: [userId], references: [id])
+
+  @@index([deletedAt], name: "group_users_deleted_at")
+  @@index([groupId, userId], name: "group_users_group_id_user_id")
+  @@index([userId], name: "group_users_user_id")
+  @@ignore
+}
+
+model groups {
+  id                String              @id @db.Uuid
+  name              String              @db.VarChar(255)
+  teamId            String              @db.Uuid
+  createdById       String              @db.Uuid
+  createdAt         DateTime            @db.Timestamptz(6)
+  updatedAt         DateTime            @db.Timestamptz(6)
+  deletedAt         DateTime?           @db.Timestamptz(6)
+  users             users               @relation(fields: [createdById], references: [id])
+  teams             teams               @relation(fields: [teamId], references: [id])
+  collection_groups collection_groups[] @ignore
+  group_users       group_users[]       @ignore
+
+  @@index([deletedAt], name: "groups_deleted_at")
+  @@index([teamId], name: "groups_team_id")
+}
+
+model integrations {
+  id               String          @id @db.Uuid
+  type             String?         @db.VarChar(255)
+  userId           String?         @db.Uuid
+  teamId           String?         @db.Uuid
+  service          String          @db.VarChar(255)
+  collectionId     String?         @db.Uuid
+  authenticationId String          @db.Uuid
+  events           String[]        @db.VarChar(255)
+  settings         Json?
+  createdAt        DateTime        @db.Timestamptz(6)
+  updatedAt        DateTime        @db.Timestamptz(6)
+  authentications  authentications @relation(fields: [authenticationId], references: [id])
+  collections      collections?    @relation(fields: [collectionId], references: [id])
+  teams            teams?          @relation(fields: [teamId], references: [id])
+  users            users?          @relation(fields: [userId], references: [id])
+}
+
+model notification_settings {
+  id        String   @id @db.Uuid
+  userId    String   @db.Uuid
+  teamId    String   @db.Uuid
+  event     String?  @db.VarChar(255)
+  createdAt DateTime @db.Timestamptz(6)
+  teams     teams    @relation(fields: [teamId], references: [id])
+  users     users    @relation(fields: [userId], references: [id])
+
+  @@index([event], name: "notification_settings_event")
+  @@index([teamId, userId], name: "notification_settings_team_id_user_id")
+}
+
+model notifications {
+  id                                 String   @id @db.Uuid
+  actorId                            String   @db.Uuid
+  userId                             String   @db.Uuid
+  event                              String?  @db.VarChar(255)
+  email                              Boolean?
+  createdAt                          DateTime @db.Timestamptz(6)
+  users_notifications_actorIdTousers users    @relation("notifications_actorIdTousers", fields: [actorId], references: [id])
+  users_notifications_userIdTousers  users    @relation("notifications_userIdTousers", fields: [userId], references: [id])
+}
+
+model revisions {
+  id            String    @id @db.Uuid
+  title         String    @db.VarChar
+  text          String?
+  createdAt     DateTime  @db.Timestamptz(6)
+  updatedAt     DateTime  @db.Timestamptz(6)
+  userId        String    @db.Uuid
+  documentId    String    @db.Uuid
+  editorVersion String?   @db.VarChar(255)
+  version       Int?      @db.SmallInt
+  documents     documents @relation(fields: [documentId], references: [id])
+  users         users     @relation(fields: [userId], references: [id])
+
+  @@index([documentId], name: "revisions_document_id")
+}
+
+model search_queries {
+  id        String                     @id @db.Uuid
+  userId    String?                    @db.Uuid
+  teamId    String?                    @db.Uuid
+  source    enum_search_queries_source
+  query     String                     @db.VarChar(255)
+  results   Int
+  createdAt DateTime                   @db.Timestamptz(6)
+  teams     teams?                     @relation(fields: [teamId], references: [id])
+  users     users?                     @relation(fields: [userId], references: [id])
+
+  @@index([createdAt], name: "search_queries_created_at")
+  @@index([teamId], name: "search_queries_team_id")
+  @@index([userId], name: "search_queries_user_id")
+}
+
+model shares {
+  id                              String    @id @db.Uuid
+  userId                          String    @db.Uuid
+  teamId                          String    @db.Uuid
+  documentId                      String    @db.Uuid
+  createdAt                       DateTime  @db.Timestamptz(6)
+  updatedAt                       DateTime  @db.Timestamptz(6)
+  revokedAt                       DateTime? @db.Timestamptz(6)
+  revokedById                     String?   @db.Uuid
+  published                       Boolean   @default(false)
+  lastAccessedAt                  DateTime? @db.Timestamptz(6)
+  includeChildDocuments           Boolean   @default(false)
+  documents                       documents @relation(fields: [documentId], references: [id])
+  users_shares_revokedByIdTousers users?    @relation("shares_revokedByIdTousers", fields: [revokedById], references: [id])
+  teams                           teams     @relation(fields: [teamId], references: [id])
+  users_shares_userIdTousers      users     @relation("shares_userIdTousers", fields: [userId], references: [id])
+}
+
+model stars {
+  id         String   @id @db.Uuid
+  documentId String   @db.Uuid
+  userId     String   @db.Uuid
+  createdAt  DateTime @db.Timestamptz(6)
+  updatedAt  DateTime @db.Timestamptz(6)
+
+  @@index([documentId, userId], name: "stars_document_id_user_id")
+}
+
+model teams {
+  id                       String                     @id @db.Uuid
+  name                     String?                    @db.VarChar
+  slackId                  String?                    @unique @db.VarChar(255)
+  createdAt                DateTime                   @db.Timestamptz(6)
+  updatedAt                DateTime                   @db.Timestamptz(6)
+  googleId                 String?                    @unique @db.VarChar(255)
+  avatarUrl                String?                    @db.VarChar(255)
+  deletedAt                DateTime?                  @db.Timestamptz(6)
+  sharing                  Boolean                    @default(true)
+  subdomain                String?                    @unique @db.VarChar(255)
+  documentEmbeds           Boolean                    @default(true)
+  guestSignin              Boolean                    @default(false)
+  domain                   String?                    @unique @db.VarChar(255)
+  signupQueryParams        Json?
+  attachments              attachments[]
+  authentication_providers authentication_providers[]
+  authentications          authentications[]
+  documents                documents[]
+  events                   events[]
+  file_operations          file_operations[]
+  groups                   groups[]
+  integrations             integrations[]
+  notification_settings    notification_settings[]
+  search_queries           search_queries[]
+  shares                   shares[]
+
+  @@index([subdomain], name: "teams_subdomain")
+}
+
+model user_authentications {
+  id                       String                   @id @db.Uuid
+  userId                   String                   @db.Uuid
+  authenticationProviderId String                   @db.Uuid
+  accessToken              Bytes?
+  refreshToken             Bytes?
+  scopes                   String[]                 @db.VarChar(255)
+  providerId               String                   @unique @db.VarChar(255)
+  createdAt                DateTime                 @db.Timestamptz(6)
+  updatedAt                DateTime                 @db.Timestamptz(6)
+  authentication_providers authentication_providers @relation(fields: [authenticationProviderId], references: [id])
+  users                    users                    @relation(fields: [userId], references: [id])
+
+  @@index([providerId], name: "user_authentications_provider_id")
+}
+
+model users {
+  id                                                   String                  @id @db.Uuid
+  email                                                String?                 @db.VarChar(255)
+  username                                             String?                 @db.VarChar(255)
+  name                                                 String                  @db.VarChar
+  isAdmin                                              Boolean?                @default(false)
+  serviceId                                            String?                 @unique @db.VarChar(255)
+  jwtSecret                                            Bytes?
+  createdAt                                            DateTime                @db.Timestamptz(6)
+  updatedAt                                            DateTime                @db.Timestamptz(6)
+  teamId                                               String?                 @db.Uuid
+  avatarUrl                                            String?
+  suspendedById                                        String?                 @db.Uuid
+  suspendedAt                                          DateTime?               @db.Timestamptz(6)
+  service                                              String?                 @default("slack") @db.VarChar(255)
+  lastActiveAt                                         DateTime?               @db.Timestamptz(6)
+  lastActiveIp                                         String?                 @db.VarChar(255)
+  lastSignedInAt                                       DateTime?               @db.Timestamptz(6)
+  lastSignedInIp                                       String?                 @db.VarChar(255)
+  deletedAt                                            DateTime?               @db.Timestamptz(6)
+  lastSigninEmailSentAt                                DateTime?               @db.Timestamptz(6)
+  language                                             String?                 @default("en_US") @db.VarChar(255)
+  isViewer                                             Boolean                 @default(false)
+  users                                                users?                  @relation("usersTousers_suspendedById", fields: [suspendedById], references: [id])
+  attachments                                          attachments[]
+  authentications                                      authentications[]
+  backlinks                                            backlinks[]
+  collection_groups                                    collection_groups[]     @ignore
+  collection_users_collection_users_createdByIdTousers collection_users[]      @relation("collection_users_createdByIdTousers") @ignore
+  collection_users_collection_users_userIdTousers      collection_users[]      @relation("collection_users_userIdTousers") @ignore
+  documents_documents_createdByIdTousers               documents[]             @relation("documents_createdByIdTousers")
+  documents_documents_lastModifiedByIdTousers          documents[]             @relation("documents_lastModifiedByIdTousers")
+  documents_documents_userIdTousers                    documents[]             @relation("documents_userIdTousers")
+  events_events_actorIdTousers                         events[]                @relation("events_actorIdTousers")
+  events_events_userIdTousers                          events[]                @relation("events_userIdTousers")
+  file_operations                                      file_operations[]
+  group_users_group_users_createdByIdTousers           group_users[]           @relation("group_users_createdByIdTousers") @ignore
+  group_users_group_users_userIdTousers                group_users[]           @relation("group_users_userIdTousers") @ignore
+  groups                                               groups[]
+  integrations                                         integrations[]
+  notification_settings                                notification_settings[]
+  notifications_notifications_actorIdTousers           notifications[]         @relation("notifications_actorIdTousers")
+  notifications_notifications_userIdTousers            notifications[]         @relation("notifications_userIdTousers")
+  revisions                                            revisions[]
+  search_queries                                       search_queries[]
+  shares_shares_revokedByIdTousers                     shares[]                @relation("shares_revokedByIdTousers")
+  shares_shares_userIdTousers                          shares[]                @relation("shares_userIdTousers")
+  user_authentications                                 user_authentications[]
+  other_users                                          users[]                 @relation("usersTousers_suspendedById")
+
+  @@index([teamId], name: "users_team_id")
+}
+
+model views {
+  id            String    @id @db.Uuid
+  documentId    String    @db.Uuid
+  userId        String    @db.Uuid
+  count         Int       @default(1)
+  createdAt     DateTime  @db.Timestamptz(6)
+  updatedAt     DateTime  @db.Timestamptz(6)
+  lastEditingAt DateTime? @db.Timestamptz(6)
+
+  @@index([documentId, userId], name: "views_document_id_user_id")
+}
+
+enum enum_file_operations_state {
+  creating
+  uploading
+  complete
+  error
+  expired
+}
+
+enum enum_file_operations_type {
+  import
+  export
+}
+
+enum enum_search_queries_source {
+  slack
+  app
+  api
+}
