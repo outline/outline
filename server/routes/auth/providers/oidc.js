@@ -22,6 +22,9 @@ const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
+// https://github.com/outline/outline/pull/2388#discussion_r681120223
+const OIDC_TEAM_NAME = process.env.OIDC_TEAM_NAME || "Wiki";
+
 const allowedDomains = getAllowedDomains();
 
 export const config = {
@@ -94,8 +97,7 @@ if (OIDC_CLIENT_ID) {
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
-              // https://github.com/outline/outline/pull/2388#discussion_r681120223
-              name: "Wiki",
+              name: OIDC_TEAM_NAME,
               domain,
               subdomain,
             },
