@@ -52,10 +52,10 @@ async function start(id, disconnect) {
   const log = debug("server");
   const router = new Router();
   const MyGraphQLSchema = buildSchema(`
-  type Query {
-    hello: String
-  }
-`);
+    type Query {
+      hello: String
+      }
+  `);
 
   // install basic middleware shared by all services
   app.use(logger((str, args) => httpLogger(str)));

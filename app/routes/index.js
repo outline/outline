@@ -4,6 +4,7 @@ import { Switch } from "react-router-dom";
 import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
 import Route from "components/ProfiledRoute";
+import Explorer from "explorer/explorer";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
 const Authenticated = React.lazy(() =>
@@ -34,6 +35,7 @@ export default function Routes() {
       }
     >
       <Switch>
+        <Route exact path="/explorer" component={Explorer} />
         <Route exact path="/" component={Login} />
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
