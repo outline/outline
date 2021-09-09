@@ -7,6 +7,9 @@ const options = {
     console.warn(`Retrying redis connection: attempt ${times}`);
     return Math.min(times * 100, 3000);
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
 };
 
 const client = new Redis(process.env.REDIS_URL, options);
