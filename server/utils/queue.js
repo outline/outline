@@ -3,6 +3,7 @@ import Queue from "bull";
 import Redis from "ioredis";
 import { snakeCase } from "lodash";
 import { client, subscriber } from "../redis";
+import Sentry from "../sentry";
 import * as metrics from "../utils/metrics";
 
 export function createQueue(name: string) {
@@ -18,6 +19,10 @@ export function createQueue(name: string) {
           return new Redis(process.env.REDIS_URL);
       }
     },
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: true,
+    },
   });
 
   queue.on("stalled", () => {
@@ -28,7 +33,12 @@ export function createQueue(name: string) {
     metrics.increment(`${prefix}.jobs.completed`);
   });
 
-  queue.on("error", () => {
+  queue.on("error", (err) => {
+    if (process.env.SENTRY_DSN) {
+      Sentry.captureException(err);
+    } else {
+      console.error(err);
+    }
     metrics.increment(`${prefix}.jobs.errored`);
   });
 
