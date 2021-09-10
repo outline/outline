@@ -224,7 +224,7 @@ function CollectionLink({
           />
         ))}
       <Modal
-        title={t("Document Move")}
+        title={t("Move document")}
         onRequestClose={() => handlePermissionClose()}
         isOpen={permissionOpen}
       >
