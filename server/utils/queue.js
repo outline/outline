@@ -20,6 +20,10 @@ export function createQueue(name: string) {
     },
   });
 
+  queue.on("stalled", () => {
+    metrics.increment(`${prefix}.jobs.stalled`);
+  });
+
   queue.on("completed", () => {
     metrics.increment(`${prefix}.jobs.completed`);
   });
