@@ -48,6 +48,10 @@ async function start(id, disconnect) {
   app.use(compress());
   app.use(helmet());
 
+  // install health check endpoint for all services
+  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  app.use(router.routes());
+
   // loop through requestsed services at startup
   for (const name of serviceNames) {
     if (!Object.keys(services).includes(name)) {
@@ -58,10 +62,6 @@ async function start(id, disconnect) {
     const init = services[name];
     await init(app, server);
   }
-
-  // install health check endpoint for all services
-  router.get("/_health", (ctx) => (ctx.body = "OK"));
-  app.use(router.routes());
 
   server.on("error", (err) => {
     throw err;
