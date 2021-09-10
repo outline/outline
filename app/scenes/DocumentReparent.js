@@ -17,11 +17,9 @@ type Props = {
   item: {|
     active: ?boolean,
     children: Array<NavigationNode>,
-    collectionId: void | string,
-    collectionName: void | string,
+    collectionId: string,
     depth: number,
     id: string,
-    permission: void | "read" | "read_write",
     title: string,
     url: string,
   |},
@@ -32,8 +30,9 @@ type Props = {
 function DocumentReparent({ document, collection, item, onSubmit }: Props) {
   const [isSaving, setIsSaving] = useState();
   const { showToast } = useToasts();
-  const { documents } = useStores();
+  const { documents, collections } = useStores();
   const { t } = useTranslation();
+  const prevCollection = collections.get(item.collectionId);
 
   const accessMapping = {
     read_write: t("View and edit"),
@@ -69,9 +68,10 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
             defaults="Moving document <em>{{ title }}</em> from collection <em>{{ prevCollectionName }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{ newCollectionName }} </em> of access <em>{{ newPermission }}</em> will change permission level of the document."
             values={{
               title: item.title,
-              prevCollectionName: item.collectionName,
+              prevCollectionName: prevCollection?.name,
               newCollectionName: collection.name,
-              prevPermission: accessMapping[item.permission || "null"],
+              prevPermission:
+                accessMapping[prevCollection?.permission || "null"],
               newPermission: accessMapping[collection.permission || "null"],
             }}
             components={{ em: <strong /> }}
