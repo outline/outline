@@ -18,7 +18,7 @@ export default function markdownToYDoc(
     if (node.type.name === "paragraph") {
       for (const textNode of node.content.content) {
         for (const embed of embeds) {
-          if (embed.matcher(textNode.text)) {
+          if (textNode.text && embed.matcher(textNode.text)) {
             return schema.nodes.embed.createAndFill({
               href: textNode.text,
             });
