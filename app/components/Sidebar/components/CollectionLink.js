@@ -231,7 +231,7 @@ function CollectionLink({
         <DocumentReparent
           item={itemRef.current}
           collection={collection}
-          onSubmit={() => handlePermissionClose()}
+          onSubmit={handlePermissionClose}
         />
       </Modal>
     </>
