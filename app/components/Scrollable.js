@@ -55,6 +55,7 @@ const Wrapper = styled.div`
   display: ${(props) => (props.$flex ? "flex" : "block")};
   flex-direction: column;
   height: 100%;
+  width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: none;

@@ -1,7 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-// import { SunIcon, MoonIcon } from "outline-icons";
-import { MoonIcon, SunIcon } from "outline-icons";
+import { KeyboardIcon, MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
@@ -64,6 +63,7 @@ function AccountMenu(props: Props) {
       {
         title: t("Keyboard shortcuts"),
         onClick: handleKeyboardShortcutsOpen,
+        icon: <KeyboardIcon />,
       },
       {
         title: t("API documentation"),
@@ -143,8 +143,6 @@ function AccountMenu(props: Props) {
       items,
       title: t("Account"),
     });
-
-    return () => quickMenu.removeContext("account");
   }, [quickMenu, items, t]);
 
   return (

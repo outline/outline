@@ -82,7 +82,6 @@ function DocumentMenu({
   });
   const history = useHistory();
   const { t } = useTranslation();
-  const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [
     showPermanentDeleteModal,
@@ -93,7 +92,6 @@ function DocumentMenu({
   const file = React.useRef<?HTMLInputElement>();
 
   const handleOpen = React.useCallback(() => {
-    setRenderModals(true);
     if (onOpen) {
       onOpen();
     }
@@ -234,17 +232,26 @@ function DocumentMenu({
     [history, showToast, collection, documents, document.id]
   );
 
+  console.log(
+    !collection && !!can.restore && restoreItems.length !== 0,
+    !!can.restore,
+    restoreItems.length
+  );
+
   const items = React.useMemo(
     () => [
       {
-        title: t("Restore"),
-        visible: (!!collection && can.restore) || can.unarchive,
+        title: t("Restore 1"),
+        visible: !!collection && (can.restore || can.unarchive),
         onClick: handleRestore,
         icon: <RestoreIcon />,
       },
       {
-        title: t("Restore"),
-        visible: !collection && !!can.restore && restoreItems.length !== 0,
+        title: t("Restore 2"),
+        visible:
+          !collection &&
+          (can.restore || can.unarchive) &&
+          restoreItems.length !== 0,
         style: {
           left: -170,
           position: "relative",
@@ -461,63 +468,59 @@ function DocumentMenu({
       >
         <Template {...menu} items={items} />
       </ContextMenu>
-      {renderModals && (
-        <>
-          {can.move && (
-            <Modal
-              title={t("Move {{ documentName }}", {
-                documentName: document.noun,
-              })}
-              onRequestClose={() => setShowMoveModal(false)}
-              isOpen={showMoveModal}
-            >
-              <DocumentMove
-                document={document}
-                onRequestClose={() => setShowMoveModal(false)}
-              />
-            </Modal>
-          )}
-          {can.delete && (
-            <Modal
-              title={t("Delete {{ documentName }}", {
-                documentName: document.noun,
-              })}
-              onRequestClose={() => setShowDeleteModal(false)}
-              isOpen={showDeleteModal}
-            >
-              <DocumentDelete
-                document={document}
-                onSubmit={() => setShowDeleteModal(false)}
-              />
-            </Modal>
-          )}
-          {can.permanentDelete && (
-            <Modal
-              title={t("Permanently delete {{ documentName }}", {
-                documentName: document.noun,
-              })}
-              onRequestClose={() => setShowPermanentDeleteModal(false)}
-              isOpen={showPermanentDeleteModal}
-            >
-              <DocumentPermanentDelete
-                document={document}
-                onSubmit={() => setShowPermanentDeleteModal(false)}
-              />
-            </Modal>
-          )}
-          {can.update && (
-            <Modal
-              title={t("Create template")}
-              onRequestClose={() => setShowTemplateModal(false)}
-              isOpen={showTemplateModal}
-            >
-              <DocumentTemplatize
-                document={document}
-                onSubmit={() => setShowTemplateModal(false)}
-              />
-            </Modal>
-          )}
-        </>
+      {can.move && (
+        <Modal
+          title={t("Move {{ documentName }}", {
+            documentName: document.noun,
+          })}
+          onRequestClose={() => setShowMoveModal(false)}
+          isOpen={showMoveModal}
+        >
+          <DocumentMove
+            document={document}
+            onRequestClose={() => setShowMoveModal(false)}
+          />
+        </Modal>
+      )}
+      {can.delete && (
+        <Modal
+          title={t("Delete {{ documentName }}", {
+            documentName: document.noun,
+          })}
+          onRequestClose={() => setShowDeleteModal(false)}
+          isOpen={showDeleteModal}
+        >
+          <DocumentDelete
+            document={document}
+            onSubmit={() => setShowDeleteModal(false)}
+          />
+        </Modal>
+      )}
+      {can.permanentDelete && (
+        <Modal
+          title={t("Permanently delete {{ documentName }}", {
+            documentName: document.noun,
+          })}
+          onRequestClose={() => setShowPermanentDeleteModal(false)}
+          isOpen={showPermanentDeleteModal}
+        >
+          <DocumentPermanentDelete
+            document={document}
+            onSubmit={() => setShowPermanentDeleteModal(false)}
+          />
+        </Modal>
+      )}
+      {can.update && (
+        <Modal
+          title={t("Create template")}
+          onRequestClose={() => setShowTemplateModal(false)}
+          isOpen={showTemplateModal}
+        >
+          <DocumentTemplatize
+            document={document}
+            onSubmit={() => setShowTemplateModal(false)}
+          />
+        </Modal>
       )}
     </>
   );

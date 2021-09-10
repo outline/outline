@@ -1,7 +1,12 @@
 // @flow
 import { observable, computed, action } from "mobx";
-import * as React from "react";
 import { type MenuItem } from "types";
+
+type CommandItem = {|
+  title: React.Node,
+  icon?: React.Node,
+  onClick: (event: SyntheticEvent<>) => void | Promise<void>,
+|};
 
 type QuickMenuContext = {|
   id: string,
@@ -13,39 +18,46 @@ type QuickMenuContext = {|
 class QuickMenuStore {
   @observable searchTerm: string = "";
   @observable contextItems: Map<string, QuickMenuContext> = new Map();
+  @observable showNested: boolean = false;
+  @observable nestedMenu: {|
+    title: React.Node,
+    visible?: boolean,
+    disabled?: boolean,
+    style?: Object,
+    hover?: boolean,
+    items: MenuItem[],
+    icon?: React.Node,
+  |} | void;
 
   @computed
   get resolvedMenuItems(): QuickMenuContext[] {
     let filtered = [];
-
+    if (this.showNested && this.nestedMenu) {
+      return [
+        {
+          id: this.nestedMenu.title,
+          title: this.nestedMenu.title,
+          items: this.nestedMenu.items,
+        },
+      ];
+    }
     this.contextItems.forEach((context) => {
       const items = context.items.filter(
         (item) =>
-          !this.searchTerm ||
-          (typeof item.title === "string" &&
-            item.title.toLowerCase().includes(this.searchTerm.toLowerCase()))
+          item.type !== "separator" &&
+          (item.visible || context.id === "account") &&
+          (!this.searchTerm ||
+            (typeof item.title === "string" &&
+              item.title.toLowerCase().includes(this.searchTerm.toLowerCase())))
       );
 
       items.forEach((item, index) => {
+        // has nested menu
         if (item.items && item.title) {
-          items.splice(
-            index,
-            1,
-            item.items.map((child: MenuItem) => {
-              if (!child.title) {
-                return child;
-              }
-
-              return {
-                ...child,
-                title: (
-                  <>
-                    {item.title} > {child.title}
-                  </>
-                ),
-              };
-            })
-          );
+          const newOnClick = () => {
+            this.activateNestedState(item);
+          };
+          item.onClick = newOnClick;
         }
       });
 
@@ -62,6 +74,26 @@ class QuickMenuStore {
   }
 
   @action
+  activateNestedState(item: {|
+    title: React.Node,
+    visible?: boolean,
+    disabled?: boolean,
+    style?: Object,
+    hover?: boolean,
+    items: MenuItem[],
+    icon?: React.Node,
+  |}) {
+    this.showNested = true;
+    this.nestedMenu = item;
+  }
+
+  @action
+  nestedItems(title: string, item: QuickMenuContext): void {
+    this.contextItems.clear();
+    this.contextItems.set(title, item);
+  }
+
+  @action
   setSearchTerm(searchTerm: string): void {
     console.log({ searchTerm });
     this.searchTerm = searchTerm;
@@ -75,6 +107,13 @@ class QuickMenuStore {
   @action
   removeContext(id: string): void {
     this.contextItems.delete(id);
+  }
+
+  @action
+  reset() {
+    this.setSearchTerm("");
+    this.showNested = false;
+    this.nestedMenu = undefined;
   }
 }
 

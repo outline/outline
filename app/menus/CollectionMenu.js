@@ -46,7 +46,6 @@ function CollectionMenu({
   onClose,
 }: Props) {
   const menu = useMenuState({ modal, placement });
-  const [renderModals, setRenderModals] = React.useState(false);
   const { ui, documents, policies, quickMenu } = useStores();
   const team = useCurrentTeam();
   const { showToast } = useToasts();
@@ -63,7 +62,6 @@ function CollectionMenu({
   const [showCollectionExport, setShowCollectionExport] = React.useState(false);
 
   const handleOpen = React.useCallback(() => {
-    setRenderModals(true);
     if (onOpen) {
       onOpen();
     }
@@ -223,47 +221,44 @@ function CollectionMenu({
       >
         <Template {...menu} items={items} />
       </ContextMenu>
-      {renderModals && (
-        <>
-          <Modal
-            title={t("Collection permissions")}
-            onRequestClose={() => setShowCollectionPermissions(false)}
-            isOpen={showCollectionPermissions}
-          >
-            <CollectionPermissions collection={collection} />
-          </Modal>
-          <Modal
-            title={t("Edit collection")}
-            isOpen={showCollectionEdit}
-            onRequestClose={() => setShowCollectionEdit(false)}
-          >
-            <CollectionEdit
-              onSubmit={() => setShowCollectionEdit(false)}
-              collection={collection}
-            />
-          </Modal>
-          <Modal
-            title={t("Delete collection")}
-            isOpen={showCollectionDelete}
-            onRequestClose={() => setShowCollectionDelete(false)}
-          >
-            <CollectionDelete
-              onSubmit={() => setShowCollectionDelete(false)}
-              collection={collection}
-            />
-          </Modal>
-          <Modal
-            title={t("Export collection")}
-            isOpen={showCollectionExport}
-            onRequestClose={() => setShowCollectionExport(false)}
-          >
-            <CollectionExport
-              onSubmit={() => setShowCollectionExport(false)}
-              collection={collection}
-            />
-          </Modal>
-        </>
-      )}
+
+      <Modal
+        title={t("Collection permissions")}
+        onRequestClose={() => setShowCollectionPermissions(false)}
+        isOpen={showCollectionPermissions}
+      >
+        <CollectionPermissions collection={collection} />
+      </Modal>
+      <Modal
+        title={t("Edit collection")}
+        isOpen={showCollectionEdit}
+        onRequestClose={() => setShowCollectionEdit(false)}
+      >
+        <CollectionEdit
+          onSubmit={() => setShowCollectionEdit(false)}
+          collection={collection}
+        />
+      </Modal>
+      <Modal
+        title={t("Delete collection")}
+        isOpen={showCollectionDelete}
+        onRequestClose={() => setShowCollectionDelete(false)}
+      >
+        <CollectionDelete
+          onSubmit={() => setShowCollectionDelete(false)}
+          collection={collection}
+        />
+      </Modal>
+      <Modal
+        title={t("Export collection")}
+        isOpen={showCollectionExport}
+        onRequestClose={() => setShowCollectionExport(false)}
+      >
+        <CollectionExport
+          onSubmit={() => setShowCollectionExport(false)}
+          collection={collection}
+        />
+      </Modal>
     </>
   );
 }
