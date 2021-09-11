@@ -7,6 +7,13 @@ const options = {
     console.warn(`Retrying redis connection: attempt ${times}`);
     return Math.min(times * 100, 3000);
   },
+  // support Heroku Redis, see:
+  // https://devcenter.heroku.com/articles/heroku-redis#ioredis-module
+  tls: process.env.REDIS_URL.startsWith("rediss://")
+    ? {
+        rejectUnauthorized: false,
+      }
+    : undefined,
 };
 
 const client = new Redis(process.env.REDIS_URL, options);
