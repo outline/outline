@@ -240,7 +240,6 @@ export class Mailer {
       },
       {
         attempts: 5,
-        removeOnComplete: true,
         backoff: {
           type: "exponential",
           delay: 60 * 1000,

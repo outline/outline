@@ -53,6 +53,10 @@ async function start(id, disconnect) {
   onerror(app);
   app.on("error", requestErrorHandler);
 
+  // install health check endpoint for all services
+  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  app.use(router.routes());
+
   if (
     serviceNames.includes("websockets") &&
     serviceNames.includes("collaboration")
@@ -72,10 +76,6 @@ async function start(id, disconnect) {
     const init = services[name];
     await init(app, server);
   }
-
-  // install health check endpoint for all services
-  router.get("/_health", (ctx) => (ctx.body = "OK"));
-  app.use(router.routes());
 
   server.on("error", (err) => {
     throw err;
