@@ -37,6 +37,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
+import convertToCommandItem from "../utils/convertToCommandItem";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -232,12 +233,6 @@ function DocumentMenu({
     [history, showToast, collection, documents, document.id]
   );
 
-  console.log(
-    !collection && !!can.restore && restoreItems.length !== 0,
-    !!can.restore,
-    restoreItems.length
-  );
-
   const items = React.useMemo(
     () => [
       {
@@ -431,13 +426,13 @@ function DocumentMenu({
     if (ui.activeDocumentId === document.id) {
       quickMenu.addContext({
         id,
-        items,
+        items: convertToCommandItem(items, history),
         title: t("Document"),
       });
     }
 
     return () => quickMenu.removeContext(id);
-  }, [quickMenu, items, document.id, t, ui.activeDocumentId]);
+  }, [quickMenu, items, document.id, t, ui.activeDocumentId, history]);
 
   return (
     <>

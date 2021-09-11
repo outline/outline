@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { KeyboardIcon, MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import {
@@ -16,6 +17,7 @@ import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
+import convertToCommandItem from "../utils/convertToCommandItem";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
@@ -28,6 +30,7 @@ type Props = {|
 
 function AccountMenu(props: Props) {
   const [sessions] = useSessions();
+  const history = useHistory();
   const menu = useMenuState({
     unstable_offset: [8, 0],
     placement: "bottom-start",
@@ -140,10 +143,10 @@ function AccountMenu(props: Props) {
   React.useEffect(() => {
     quickMenu.addContext({
       id: "account",
-      items,
+      items: convertToCommandItem(items, history),
       title: t("Account"),
     });
-  }, [quickMenu, items, t]);
+  }, [quickMenu, items, t, history]);
 
   return (
     <>

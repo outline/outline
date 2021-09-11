@@ -22,6 +22,7 @@ import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
+import convertToCommandItem from "../utils/convertToCommandItem";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -184,13 +185,13 @@ function CollectionMenu({
     if (ui.activeCollectionId === collection.id) {
       quickMenu.addContext({
         id,
-        items,
+        items: convertToCommandItem(items, history),
         title: t("Collection"),
       });
     }
 
     return () => quickMenu.removeContext(id);
-  }, [quickMenu, items, collection.id, ui.activeCollectionId, t]);
+  }, [quickMenu, items, collection.id, ui.activeCollectionId, t, history]);
 
   if (!items.length) {
     return null;
