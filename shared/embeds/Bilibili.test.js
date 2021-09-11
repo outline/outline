@@ -5,7 +5,9 @@ describe("Bilibili", () => {
   const match = Bilibili.ENABLED[0];
   test("to be enabled on video link", () => {
     expect(
-      "https://www.bilibili.com/video/BV1CV411s7jd?spm_id_from=333.999.0.0".match(match)
+      "https://www.bilibili.com/video/BV1CV411s7jd?spm_id_from=333.999.0.0".match(
+        match
+      )
     ).toBeTruthy();
   });
 
