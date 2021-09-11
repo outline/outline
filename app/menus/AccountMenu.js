@@ -1,6 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-import { MoonIcon, SunIcon } from "outline-icons";
+import { MoonIcon, SunIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
@@ -16,11 +16,14 @@ import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
+import env from "env";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
 import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
+import { deleteAllDatabases } from "utils/developer";
 
 type Props = {|
   children: (props: any) => React.Node,
@@ -33,11 +36,13 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
+  const { showToast } = useToasts();
   const { auth, ui } = useStores();
   const { theme, resolvedTheme } = ui;
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
+  const [includeAlt, setIncludeAlt] = React.useState(false);
   const [
     keyboardShortcutsOpen,
     handleKeyboardShortcutsOpen,
@@ -49,6 +54,16 @@ function AccountMenu(props: Props) {
       menu.hide();
     }
   }, [menu, theme, previousTheme]);
+
+  const handleDeleteAllDatabases = React.useCallback(async () => {
+    await deleteAllDatabases();
+    showToast("IndexedDB cache deleted");
+    menu.hide();
+  }, [showToast, menu]);
+
+  const handleOpenMenu = React.useCallback((event) => {
+    setIncludeAlt(event.altKey);
+  }, []);
 
   const items = React.useMemo(() => {
     const otherSessions = sessions.filter(
@@ -83,6 +98,20 @@ function AccountMenu(props: Props) {
         title: t("Report a bug"),
         href: githubIssuesUrl(),
       },
+      ...(includeAlt || env.ENVIRONMENT === "development"
+        ? [
+            {
+              title: t("Development"),
+              items: [
+                {
+                  title: "Delete IndexedDB cache",
+                  icon: <TrashIcon />,
+                  onClick: handleDeleteAllDatabases,
+                },
+              ],
+            },
+          ]
+        : []),
       {
         title: t("Appearance"),
         icon: resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
@@ -130,7 +159,9 @@ function AccountMenu(props: Props) {
     team.url,
     sessions,
     handleKeyboardShortcutsOpen,
+    handleDeleteAllDatabases,
     resolvedTheme,
+    includeAlt,
     theme,
     t,
     ui,
@@ -145,7 +176,9 @@ function AccountMenu(props: Props) {
       >
         <KeyboardShortcuts />
       </Guide>
-      <MenuButton {...menu}>{props.children}</MenuButton>
+      <MenuButton {...menu} onClick={handleOpenMenu}>
+        {props.children}
+      </MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
         <Template {...menu} items={items} />
       </ContextMenu>

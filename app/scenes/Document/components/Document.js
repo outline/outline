@@ -1,8 +1,9 @@
 // @flow
 import { debounce } from "lodash";
-import { observable } from "mobx";
+import { action, observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
+import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { type TFunction, Trans, withTranslation } from "react-i18next";
 import keydown from "react-keydown";
@@ -18,6 +19,7 @@ import Document from "models/Document";
 import Revision from "models/Revision";
 import DocumentMove from "scenes/DocumentMove";
 import Branding from "components/Branding";
+import ConnectionStatus from "components/ConnectionStatus";
 import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
@@ -113,14 +115,30 @@ class DocumentScene extends React.Component<Props> {
         );
       }
     }
-
-    if (document.injectTemplate) {
-      document.injectTemplate = false;
-      this.title = document.title;
-      this.isDirty = true;
-      this.updateIsDirty();
-    }
   }
+
+  onSelectTemplate = (template: Document) => {
+    this.title = template.title;
+    this.isDirty = true;
+
+    const editorRef = this.editor.current;
+    if (!editorRef) {
+      return;
+    }
+
+    const { view, parser } = editorRef;
+    view.dispatch(
+      view.state.tr
+        .setSelection(new AllSelection(view.state.doc))
+        .replaceSelectionWith(parser.parse(template.text))
+    );
+
+    this.props.document.templateId = template.id;
+    this.props.document.title = template.title;
+    this.props.document.text = template.text;
+
+    this.updateIsDirty();
+  };
 
   @keydown("m")
   goToMove(ev) {
@@ -197,7 +215,7 @@ class DocumentScene extends React.Component<Props> {
       autosave?: boolean,
     } = {}
   ) => {
-    const { document } = this.props;
+    const { document, auth } = this.props;
 
     // prevent saves when we are already saving
     if (document.isSaving) return;
@@ -219,18 +237,29 @@ class DocumentScene extends React.Component<Props> {
 
     document.title = title;
     document.text = text;
+    document.tasks = getTasks(document.text);
 
     let isNew = !document.id;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
 
-    document.tasks = getTasks(document.text);
-
     try {
-      const savedDocument = await document.save({
-        ...options,
-        lastRevision: this.lastRevision,
-      });
+      let savedDocument = document;
+      if (auth.team?.collaborativeEditing) {
+        // update does not send "text" field to the API, this is a workaround
+        // while the multiplayer editor is toggleable. Once it's finalized
+        // this can be cleaned up to single code path
+        savedDocument = await document.update({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      } else {
+        savedDocument = await document.save({
+          ...options,
+          lastRevision: this.lastRevision,
+        });
+      }
+
       this.isDirty = false;
       this.lastRevision = savedDocument.revision;
 
@@ -275,7 +304,20 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChange = (getEditorText) => {
+    const { document, auth } = this.props;
+
     this.getEditorText = getEditorText;
+
+    // If the multiplayer editor is enabled then we still want to keep the local
+    // text value in sync as it is used as a cache.
+    if (auth.team?.collaborativeEditing) {
+      action(() => {
+        document.text = this.getEditorText();
+        document.tasks = getTasks(document.text);
+      })();
+
+      return;
+    }
 
     // document change while read only is presumed to be a checkbox edit,
     // in that case we don't delay in saving for a better user experience.
@@ -314,7 +356,6 @@ class DocumentScene extends React.Component<Props> {
     const isShare = !!shareId;
 
     const value = revision ? revision.text : document.text;
-    const injectTemplate = document.injectTemplate;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -322,6 +363,12 @@ class DocumentScene extends React.Component<Props> {
       ? this.editor.current.getHeadings()
       : [];
     const showContents = ui.tocVisible && readOnly;
+
+    const collaborativeEditing =
+      team?.collaborativeEditing &&
+      !document.isArchived &&
+      !document.isDeleted &&
+      !revision;
 
     return (
       <ErrorBoundary>
@@ -332,7 +379,7 @@ class DocumentScene extends React.Component<Props> {
           auto
         >
           <Route
-            path={`${match.url}/move`}
+            path={`${document.url}/move`}
             component={() => (
               <Modal
                 title={`Move ${document.noun}`}
@@ -356,7 +403,11 @@ class DocumentScene extends React.Component<Props> {
             {!readOnly && (
               <>
                 <Prompt
-                  when={this.isDirty && !this.isUploading}
+                  when={
+                    this.isDirty &&
+                    !this.isUploading &&
+                    !team?.collaborativeEditing
+                  }
                   message={t(
                     `You have unsaved changes.\nAre you sure you want to discard them?`
                   )}
@@ -383,6 +434,7 @@ class DocumentScene extends React.Component<Props> {
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
               goBack={this.goBack}
+              onSelectTemplate={this.onSelectTemplate}
               onSave={this.onSave}
               headings={headings}
             />
@@ -443,11 +495,12 @@ class DocumentScene extends React.Component<Props> {
                   {showContents && <Contents headings={headings} />}
                   <Editor
                     id={document.id}
+                    key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
+                    multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
-                    key={[injectTemplate, disableEmbeds].join("-")}
                     title={revision ? revision.title : this.title}
                     document={document}
                     value={readOnly ? value : undefined}
@@ -492,7 +545,12 @@ class DocumentScene extends React.Component<Props> {
         {isShare && !isCustomDomain() && (
           <Branding href="//www.getoutline.com?ref=sharelink" />
         )}
-        {!isShare && <KeyboardShortcutsButton />}
+        {!isShare && (
+          <>
+            <KeyboardShortcutsButton />
+            <ConnectionStatus />
+          </>
+        )}
       </ErrorBoundary>
     );
   }

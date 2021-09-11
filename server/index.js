@@ -8,30 +8,31 @@ import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
+import onerror from "koa-onerror";
 import Router from "koa-router";
 import { uniq } from "lodash";
 import stoppable from "stoppable";
 import throng from "throng";
-import "./sentry";
 import services from "./services";
+import { getArg } from "./utils/args";
+import { requestErrorHandler } from "./utils/sentry";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
 checkEnv();
 checkMigrations();
 
+// If a --port flag is passed then it takes priority over the env variable
+const normalizedPortFlag = getArg("port", "p");
+
 // If a services flag is passed it takes priority over the enviroment variable
 // for example: --services=web,worker
-const normalizedServiceFlag = process.argv
-  .slice(2)
-  .filter((arg) => arg.startsWith("--services="))
-  .map((arg) => arg.split("=")[1])
-  .join(",");
+const normalizedServiceFlag = getArg("services");
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
-  (normalizedServiceFlag || env.SERVICES || "web,websockets,worker")
+  (normalizedServiceFlag || env.SERVICES || "websockets,worker,web")
     .split(",")
     .map((service) => service.trim())
 );
@@ -48,9 +49,22 @@ async function start(id, disconnect) {
   app.use(compress());
   app.use(helmet());
 
+  // catch errors in one place, automatically set status and response headers
+  onerror(app);
+  app.on("error", requestErrorHandler);
+
   // install health check endpoint for all services
   router.get("/_health", (ctx) => (ctx.body = "OK"));
   app.use(router.routes());
+
+  if (
+    serviceNames.includes("websockets") &&
+    serviceNames.includes("collaboration")
+  ) {
+    throw new Error(
+      "Cannot run websockets and collaboration services in the same process"
+    );
+  }
 
   // loop through requestsed services at startup
   for (const name of serviceNames) {
@@ -72,7 +86,7 @@ async function start(id, disconnect) {
     console.log(`\n> Listening on http://localhost:${address.port}\n`);
   });
 
-  server.listen(env.PORT || "3000");
+  server.listen(normalizedPortFlag || env.PORT || "3000");
 
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);
@@ -86,8 +100,13 @@ async function start(id, disconnect) {
 throng({
   worker: start,
 
-  // The number of workers to run, defaults to the number of CPU's available
-  count: process.env.WEB_CONCURRENCY || undefined,
+  // The number of processes to run, defaults to the number of CPU's available
+  // for the web service, and 1 for collaboration during the beta period.
+  count: serviceNames.includes("web")
+    ? process.env.WEB_CONCURRENCY || undefined
+    : serviceNames.includes("collaboration")
+    ? 1
+    : undefined,
 });
 
 if (env.ENABLE_UPDATES !== "false" && process.env.NODE_ENV === "production") {

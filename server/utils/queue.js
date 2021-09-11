@@ -3,8 +3,8 @@ import Queue from "bull";
 import Redis from "ioredis";
 import { snakeCase } from "lodash";
 import { client, subscriber } from "../redis";
-import Sentry from "../sentry";
 import * as metrics from "../utils/metrics";
+import Sentry from "./sentry";
 
 export function createQueue(name: string) {
   const prefix = `queue.${snakeCase(name)}`;

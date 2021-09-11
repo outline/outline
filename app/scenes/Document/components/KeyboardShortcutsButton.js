@@ -27,12 +27,7 @@ function KeyboardShortcutsButton() {
       >
         <KeyboardShortcuts />
       </Guide>
-      <Tooltip
-        tooltip={t("Keyboard shortcuts")}
-        shortcut="?"
-        placement="left"
-        delay={500}
-      >
+      <Tooltip tooltip={t("Keyboard shortcuts")} shortcut="?" delay={500}>
         <Button onClick={handleOpenKeyboardShortcuts}>
           <KeyboardIcon />
         </Button>

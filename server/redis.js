@@ -9,11 +9,12 @@ const options = {
   },
   // support Heroku Redis, see:
   // https://devcenter.heroku.com/articles/heroku-redis#ioredis-module
-  tls: process.env.REDIS_URL.startsWith("rediss://")
-    ? {
-        rejectUnauthorized: false,
-      }
-    : undefined,
+  tls:
+    process.env.REDIS_URL && process.env.REDIS_URL.startsWith("rediss://")
+      ? {
+          rejectUnauthorized: false,
+        }
+      : undefined,
 };
 
 const client = new Redis(process.env.REDIS_URL, options);
