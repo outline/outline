@@ -20,12 +20,18 @@ services:
       - ./fakes3:/fakes3_root
   outline:
     image: outline:v001
-    command: sh -c "yarn sequelize:migrate --env production-ssl-disabled && yarn dev"
+    command: sh -c "yarn sequelize:migrate --env production-ssl-disabled && yarn dev:watch"
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
+      # web ports
       - "3000:3000"
+      # multiplayer ports
+      - "4000:4000"
+      # debug ports
+      - "9229:9229"
+      - "9230:9230"
     environment:
       # Preset some configurations to quickly initialize the container for development
       - SECRET_KEY=f6ed695c4d007a2986b075253a998ac74bbdd9a3d66e975dd4f74ecec736d7f7
