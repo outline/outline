@@ -7,9 +7,7 @@ class Team extends BaseModel {
   name: string;
   avatarUrl: string;
   sharing: boolean;
-  features: {
-    multiplayerEditor?: boolean,
-  };
+  collaborativeEditing: boolean;
   documentEmbeds: boolean;
   guestSignin: boolean;
   subdomain: ?string;

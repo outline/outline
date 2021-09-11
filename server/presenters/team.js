@@ -8,10 +8,8 @@ export default function present(team: Team) {
     name: team.name,
     avatarUrl: team.logoUrl,
     sharing: team.sharing,
-    features: {
-      multiplayerEditor:
-        team.features?.multiplayerEditor && env.COLLABORATION_URL,
-    },
+    collaborativeEditing:
+      team.collaborativeEditing && env.COLLABORATION_URL,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
     subdomain: team.subdomain,

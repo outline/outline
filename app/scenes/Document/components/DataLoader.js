@@ -250,7 +250,7 @@ class DataLoader extends React.Component<Props> {
 
     // We do not want to remount the document when changing from view->edit
     // on the multiplayer flag as the doc is guaranteed to be upto date.
-    const key = team.features.multiplayerEditor
+    const key = team.collaborativeEditing
       ? ""
       : this.isEditing
       ? "editing"

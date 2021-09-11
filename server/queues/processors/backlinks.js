@@ -87,7 +87,7 @@ export default class BacklinksProcessor {
 
         // TODO: Handle re-writing of titles into CRDT
         const team = await Team.findByPk(document.teamId);
-        if (team?.features?.multiplayerEditor) {
+        if (team?.collaborativeEditing) {
           break;
         }
 

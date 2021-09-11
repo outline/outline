@@ -245,7 +245,7 @@ class DocumentScene extends React.Component<Props> {
 
     try {
       let savedDocument = document;
-      if (auth.team?.features?.multiplayerEditor) {
+      if (auth.team?.collaborativeEditing) {
         // update does not send "text" field to the API, this is a workaround
         // while the multiplayer editor is toggleable. Once it's finalized
         // this can be cleaned up to single code path
@@ -310,7 +310,7 @@ class DocumentScene extends React.Component<Props> {
 
     // If the multiplayer editor is enabled then we still want to keep the local
     // text value in sync as it is used as a cache.
-    if (auth.team?.features.multiplayerEditor) {
+    if (auth.team?.collaborativeEditing) {
       action(() => {
         document.text = this.getEditorText();
         document.tasks = getTasks(document.text);
@@ -364,8 +364,8 @@ class DocumentScene extends React.Component<Props> {
       : [];
     const showContents = ui.tocVisible && readOnly;
 
-    const multiplayerEditor =
-      team?.features?.multiplayerEditor &&
+    const collaborativeEditing =
+      team?.collaborativeEditing &&
       !document.isArchived &&
       !document.isDeleted &&
       !revision;
@@ -406,7 +406,7 @@ class DocumentScene extends React.Component<Props> {
                   when={
                     this.isDirty &&
                     !this.isUploading &&
-                    !team?.features.multiplayerEditor
+                    !team?.collaborativeEditing
                   }
                   message={t(
                     `You have unsaved changes.\nAre you sure you want to discard them?`
@@ -497,7 +497,7 @@ class DocumentScene extends React.Component<Props> {
                     id={document.id}
                     key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
-                    multiplayer={multiplayerEditor}
+                    multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}

@@ -60,7 +60,7 @@ function RevisionMenu({ document, revisionId, className }: Props) {
         <MenuItem
           {...menu}
           onClick={handleRestore}
-          disabled={team.features.multiplayerEditor}
+          disabled={team.collaborativeEditing}
         >
           <MenuIconWrapper>
             <RestoreIcon />
