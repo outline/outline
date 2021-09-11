@@ -82,7 +82,11 @@ yarn run upgrade
 
 ## Local Development
 
-For contributing features and fixes you can quickly get an environment running using Docker by following these steps:
+For contributing features and fixes you can quickly get an environment running using Docker by using two ways.
+
+### Method A
+
+Following these steps:
 
 1. Install these dependencies if you don't already have them
    1. [Docker for Desktop](https://www.docker.com)
@@ -100,6 +104,13 @@ For contributing features and fixes you can quickly get an environment running u
    1. Add `https://my_ngrok_address/auth/slack.callback` as an Oauth redirect URL
    1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
+
+### Method B
+
+1. Only need to install [Docker for Desktop](https://www.docker.com), all the programs in the development process will be run in docker.
+2. Clone this repo.
+3. Just run `docker-compose -f docker-compose.dev.yml up`, wait for "> Listening on http://localhost:3000, webpack built 6bb2187b445c47f9c267 in 34786ms" to appear in the running log.
+4. Open the browser to access the outline, follow the instructions on the web page to configure the sso, then you can start to develop the outline, when you modify the file, the log will prompt `webpack building...`, it's that simple!
 
 # Contributing
 
