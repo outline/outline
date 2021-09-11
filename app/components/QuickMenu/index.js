@@ -1,6 +1,5 @@
 // @flow
 import { observer } from "mobx-react";
-import { CheckmarkIcon, LinkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
@@ -12,6 +11,7 @@ import Flex from "components/Flex";
 import Scrollable from "components/Scrollable";
 import InputSearch from "../InputSearch";
 import useStores from "hooks/useStores";
+import { fadeAndSlideUp } from "styles/animations";
 
 function QuickMenu() {
   const { quickMenu } = useStores();
@@ -21,14 +21,18 @@ function QuickMenu() {
   const { t } = useTranslation();
   let order = 0;
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
+    setActiveCommand(1);
+  }, [quickMenu.path]);
+
+  React.useEffect(() => {
     if (!dialog.visible) {
       quickMenu.reset();
       setActiveCommand(1);
     }
   }, [quickMenu, dialog.visible]);
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "k") {
         dialog.show();
@@ -42,7 +46,6 @@ function QuickMenu() {
 
   React.useEffect(() => {
     if (activeCommandRef.current) {
-      console.log("calling on", activeCommandRef.current);
       scrollIntoView(activeCommandRef.current, {
         scrollMode: "if-needed",
         behavior: "instant",
@@ -60,7 +63,7 @@ function QuickMenu() {
     if (event.currentTarget.value && event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
-      quickMenu.setSearchTerm("");
+      quickMenu.reset();
     }
 
     if (event.key === "ArrowDown") {
@@ -76,57 +79,36 @@ function QuickMenu() {
   };
 
   const constructBlock = (item, order, setActiveCommand) => {
-    if (item.to || item.href || item.onClick) {
-      return (
-        <CommandItem
-          tabIndex="0"
-          data-order={order}
-          role="option"
-          ref={activeCommand === order ? activeCommandRef : undefined}
-          onMouseOver={() => setActiveCommand(order)}
-          aria-selected={activeCommand === order}
-          selected={activeCommand === order}
-          onClick={
-            item.to || item.href
-              ? () => (window.location.href = item.to ? item.to : item.href)
-              : item.onClick
+    return (
+      <CommandItem
+        tabIndex="0"
+        data-order={order}
+        role="option"
+        ref={activeCommand === order ? activeCommandRef : undefined}
+        onMouseOver={() => setActiveCommand(order)}
+        aria-selected={activeCommand === order}
+        selected={activeCommand === order}
+        onClick={(e) => {
+          if (item.items) quickMenu.handleNestedItems(item);
+          else {
+            dialog.hide();
+            item.onClick(e);
           }
-          onFocus={() => {
-            setActiveCommand(order);
-          }}
-        >
-          <Container align="center">
-            {item.selected !== undefined && (
-              <>
-                {item.selected ? (
-                  <MenuIconWrapper>
-                    <CheckmarkIcon color="currentColor" />
-                  </MenuIconWrapper>
-                ) : (
-                  <MenuIconWrapper />
-                )}
-                &nbsp;
-              </>
-            )}
-            {item.selected === undefined && (
-              <MenuIconWrapper>
-                {item.icon ? (
-                  item.icon
-                ) : item.href || item.to ? (
-                  <LinkIcon />
-                ) : null}
-              </MenuIconWrapper>
-            )}
-            {item.title}
-          </Container>
-        </CommandItem>
-      );
-    }
-    console.log("unhandled item", item);
-    return <div>{item?.title}</div>;
+        }}
+        onMouseEnter={() => {
+          setActiveCommand(order);
+        }}
+      >
+        <Container align="center">
+          <MenuIconWrapper>{item.icon}</MenuIconWrapper>
+          {item.title}
+        </Container>
+      </CommandItem>
+    );
   };
 
-  const data = quickMenu.resolvedMenuItems.map((context) => {
+  console.log("dataaa: ", quickMenu.resolvedMenuItems);
+  const data = quickMenu.resolvedMenuItems?.map((context) => {
     return (
       <>
         <Header>{context.title}</Header>
@@ -138,8 +120,6 @@ function QuickMenu() {
       </>
     );
   });
-
-  console.log(activeCommand);
 
   const term = quickMenu.searchTerm;
 
@@ -155,12 +135,15 @@ function QuickMenu() {
           >
             {(props) => (
               <Content {...props} column>
+                <Badges>
+                  {quickMenu.path.map((b) => (
+                    <Path onClick={() => quickMenu.handlePathClick(b)} key={b}>
+                      {b}
+                    </Path>
+                  ))}
+                </Badges>
                 <InputWrapper>
-                  <InputSearch
-                    // onKeyDown={handleKeyDown}
-                    onChange={handleChange}
-                    value={term}
-                  />
+                  <InputSearch onChange={handleChange} value={term} />
                 </InputWrapper>
                 <Results>
                   <AutoSizer>
@@ -179,6 +162,25 @@ function QuickMenu() {
     </DialogBackdrop>
   );
 }
+
+const Path = styled.span`
+  margin-left: 10px;
+  padding: 1px 5px 2px;
+  border: 1px solid;
+  background-color: ${({ theme }) => theme.slateLight};
+  color: ${({ theme }) => theme.slateDark};
+  border: 1px solid ${({ theme }) => theme.slateLight};
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+  cursor: pointer;
+`;
+
+const Badges = styled.div`
+  margin-top: 10px;
+  margin-left: 10px;
+`;
 
 const InputWrapper = styled.div`
   padding: 16px;
@@ -250,6 +252,8 @@ const Content = styled(Flex)`
   overflow: hidden;
   margin: 20vh auto;
   box-shadow: ${(props) => props.theme.menuShadow};
+  animation: ${fadeAndSlideUp} 200ms ease-in-out;
+  transform-origin: 25% 0;
 `;
 
 const Backdrop = styled.div`

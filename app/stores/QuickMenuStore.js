@@ -1,101 +1,72 @@
 // @flow
 import { observable, computed, action } from "mobx";
-import { type MenuItem } from "types";
 
 type CommandItem = {|
   title: React.Node,
   icon?: React.Node,
   onClick: (event: SyntheticEvent<>) => void | Promise<void>,
+  items?: CommandItem[],
 |};
 
 type QuickMenuContext = {|
   id: string,
   title: string,
-  items: MenuItem[],
+  items: CommandItem[],
   priority?: number,
 |};
 
 class QuickMenuStore {
   @observable searchTerm: string = "";
   @observable contextItems: Map<string, QuickMenuContext> = new Map();
-  @observable showNested: boolean = false;
-  @observable nestedMenu: {|
-    title: React.Node,
-    visible?: boolean,
-    disabled?: boolean,
-    style?: Object,
-    hover?: boolean,
-    items: MenuItem[],
-    icon?: React.Node,
-  |} | void;
+  @observable states: Map<string, any> = new Map();
+  @observable path: string[] = ["Home"];
 
   @computed
   get resolvedMenuItems(): QuickMenuContext[] {
-    let filtered = [];
-    if (this.showNested && this.nestedMenu) {
-      return [
-        {
-          id: this.nestedMenu.title,
-          title: this.nestedMenu.title,
-          items: this.nestedMenu.items,
-        },
-      ];
-    }
-    this.contextItems.forEach((context) => {
-      const items = context.items.filter(
-        (item) =>
-          item.type !== "separator" &&
-          (item.visible || context.id === "account") &&
-          (!this.searchTerm ||
-            (typeof item.title === "string" &&
-              item.title.toLowerCase().includes(this.searchTerm.toLowerCase())))
-      );
+    const currentPath = this.path[this.path.length - 1];
 
-      items.forEach((item, index) => {
-        // has nested menu
-        if (item.items && item.title) {
-          const newOnClick = () => {
-            this.activateNestedState(item);
-          };
-          item.onClick = newOnClick;
+    if (currentPath === "Home") {
+      let filtered = [];
+      this.contextItems.forEach((context) => {
+        const items = context.items.filter(
+          (item) =>
+            !this.searchTerm ||
+            (typeof item.title === "string" &&
+              item.title.toLowerCase().includes(this.searchTerm.toLowerCase()))
+        );
+
+        if (items.length) {
+          filtered.push({
+            ...context,
+            items,
+          });
         }
       });
 
-      if (items.length) {
-        filtered.push({
-          ...context,
-          items,
-        });
-      }
-    });
+      return filtered;
+    } else {
+      let items = this.states.get(currentPath);
+      if (!items) return [];
 
-    console.log({ filtered });
-    return filtered;
+      const filtered = items.filter(
+        (item) =>
+          !this.searchTerm ||
+          (typeof item.title === "string" &&
+            item.title.toLowerCase().includes(this.searchTerm.toLowerCase()))
+      );
+
+      return [{ id: currentPath, title: currentPath, items: filtered }];
+    }
   }
 
   @action
-  activateNestedState(item: {|
-    title: React.Node,
-    visible?: boolean,
-    disabled?: boolean,
-    style?: Object,
-    hover?: boolean,
-    items: MenuItem[],
-    icon?: React.Node,
-  |}) {
-    this.showNested = true;
-    this.nestedMenu = item;
-  }
-
-  @action
-  nestedItems(title: string, item: QuickMenuContext): void {
-    this.contextItems.clear();
-    this.contextItems.set(title, item);
+  handleNestedItems(item: CommandItem) {
+    this.states.set(item.title, item.items);
+    this.path = [...this.path, item.title];
   }
 
   @action
   setSearchTerm(searchTerm: string): void {
-    console.log({ searchTerm });
     this.searchTerm = searchTerm;
   }
 
@@ -112,8 +83,20 @@ class QuickMenuStore {
   @action
   reset() {
     this.setSearchTerm("");
-    this.showNested = false;
-    this.nestedMenu = undefined;
+    this.states.clear();
+    this.path = ["Home"];
+  }
+
+  @action
+  handlePathClick(toPath: string) {
+    if (toPath === "Home") {
+      this.states.clear();
+      this.path = ["Home"];
+    } else {
+      const pathsToRemove = this.path.slice(this.path.indexOf(toPath) + 1);
+      pathsToRemove.forEach((path) => this.states.delete(path));
+      this.path = this.path.slice(0, this.path.indexOf(toPath) + 1);
+    }
   }
 }
 
