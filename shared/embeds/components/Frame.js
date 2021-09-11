@@ -131,6 +131,7 @@ const Title = styled.span`
 
 const Bar = styled.div`
   display: flex;
+  align-items: center;
   border-top: 1px solid ${(props) => props.theme.embedBorder};
   background: ${(props) => props.theme.secondaryBackground};
   color: ${(props) => props.theme.textSecondary};
