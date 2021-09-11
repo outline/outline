@@ -69,7 +69,10 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
       <Relative>
         <SidebarLink
           depth={depth}
-          to={to}
+          to={`${to}?starred`}
+          isActive={(match, location) =>
+            match && location.search === "?starred"
+          }
           label={
             <>
               {hasChildDocuments && (
