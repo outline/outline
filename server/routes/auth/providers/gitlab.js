@@ -2,11 +2,11 @@
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import { Strategy as GitLabStrategy } from "passport-gitlab2";
-import accountProvisioner from "../../commands/accountProvisioner";
-import env from "../../env";
-import { GitLabError } from "../../errors";
-import passportMiddleware from "../../middlewares/passport";
-import { StateStore } from "../../utils/passport";
+import accountProvisioner from "../../../commands/accountProvisioner";
+import env from "../../../env";
+import { GitLabError } from "../../../errors";
+import passportMiddleware from "../../../middlewares/passport";
+import { StateStore } from "../../../utils/passport";
 
 const router = new Router();
 const providerName = "gitlab";
