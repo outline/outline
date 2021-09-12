@@ -92,7 +92,7 @@ function QuickMenu() {
         data-order={order}
         role="option"
         ref={activeCommand === order ? activeCommandRef : undefined}
-        onHover={() => setActiveCommand(order)}
+        onMouseEnter={() => setActiveCommand(order)}
         aria-selected={activeCommand === order}
         selected={activeCommand === order}
         onClick={(e) => {
