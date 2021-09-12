@@ -103,7 +103,7 @@ function QuickMenu() {
             item.onClick(e);
           }
         }}
-        onMouseEnter={() => {
+        onFocus={() => {
           setActiveCommand(order);
         }}
       >
