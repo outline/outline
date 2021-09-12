@@ -50,7 +50,7 @@ function QuickMenu() {
     if (activeCommandRef.current) {
       scrollIntoView(activeCommandRef.current, {
         scrollMode: "if-needed",
-        behavior: "instant",
+        behavior: "smooth",
       });
     }
   });
@@ -232,7 +232,8 @@ const CommandItem = styled.li`
   font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
-  padding: 0 16px;
+  margin: 8px 16px;
+  padding: 4px;
   background: transparent;
   color: var(--gray6);
   white-space: nowrap;
