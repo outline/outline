@@ -14,7 +14,6 @@ export default class DebounceProcessor {
           },
           {
             delay: 5 * 60 * 1000,
-            removeOnComplete: true,
           }
         );
         break;
@@ -30,13 +29,10 @@ export default class DebounceProcessor {
         // this functions as a simple distributed debounce.
         if (document.updatedAt > new Date(event.createdAt)) return;
 
-        globalEventQueue.add(
-          {
-            ...event,
-            name: "documents.update.debounced",
-          },
-          { removeOnComplete: true }
-        );
+        globalEventQueue.add({
+          ...event,
+          name: "documents.update.debounced",
+        });
         break;
       }
       default:

@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
-import Image from "components/Image";
 import Frame from "./components/Frame";
+import Image from "./components/Image";
 
-const URL_REGEX = new RegExp("^https?://docs.google.com/document/(.*)$");
+const URL_REGEX = new RegExp("^https?://drive.google.com/file/d/(.*)$");
 
 type Props = {|
   attrs: {|
@@ -12,24 +12,23 @@ type Props = {|
   |},
 |};
 
-export default class GoogleDocs extends React.Component<Props> {
+export default class GoogleDrive extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
     return (
       <Frame
-        {...this.props}
-        src={this.props.attrs.href.replace("/edit", "/preview")}
+        src={this.props.attrs.href.replace("/view", "/preview")}
         icon={
           <Image
-            src="/images/google-docs.png"
-            alt="Google Docs Icon"
+            src="/images/google-drive.png"
+            alt="Google Drive Icon"
             width={16}
             height={16}
           />
         }
+        title="Google Drive"
         canonicalUrl={this.props.attrs.href}
-        title="Google Docs"
         border
       />
     );

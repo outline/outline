@@ -69,6 +69,11 @@ const Team = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
+    collaborativeEditing: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
     paranoid: true,

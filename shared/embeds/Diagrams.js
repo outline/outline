@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
-import Image from "components/Image";
 import Frame from "./components/Frame";
+import Image from "./components/Image";
 
 const URL_REGEX = new RegExp("^https://viewer.diagrams.net/.*(title=\\w+)?");
 

@@ -541,8 +541,7 @@ async function loadDocument({
     const canReadDocument = can(user, "read", document);
     if (canReadDocument) {
       await share.update({ lastAccessedAt: new Date() });
-
-      return { document, share, collection };
+      return { document, share, collection: document.collection };
     }
 
     // "published" === on the public internet.

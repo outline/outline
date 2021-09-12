@@ -8,7 +8,7 @@ import EventBoundary from "components/EventBoundary";
 import NavLink from "./NavLink";
 import { type Theme } from "types";
 
-type Props = {
+type Props = {|
   to?: string | Object,
   href?: string | Object,
   innerRef?: (?HTMLElement) => void,
@@ -29,7 +29,7 @@ type Props = {
   exact?: boolean,
   depth?: number,
   scrollIntoViewIfNeeded?: boolean,
-};
+|};
 
 function SidebarLink(
   {
@@ -51,6 +51,7 @@ function SidebarLink(
     match,
     className,
     scrollIntoViewIfNeeded,
+    ...rest
   }: Props,
   ref
 ) {
@@ -86,6 +87,7 @@ function SidebarLink(
         href={href}
         className={className}
         ref={ref}
+        {...rest}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
         <Label>{label}</Label>
