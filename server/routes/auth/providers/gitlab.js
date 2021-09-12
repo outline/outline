@@ -16,7 +16,7 @@ const GITLAB_CLIENT_SECRET = env.GITLAB_CLIENT_SECRET;
 const GITLAB_BASEURL = env.GITLAB_BASEURL;
 const GITLAB_GROUP = env.GITLAB_GROUP;
 
-const scopes = ['read_api'];
+const scopes = ["read_api"];
 const callbackURL = `${env.URL}/auth/gitlab.callback`;
 
 export async function request(endpoint: string, accessToken: string) {
@@ -64,9 +64,9 @@ if (GITLAB_CLIENT_ID) {
         const group = await request(
           `${GITLAB_BASEURL}/api/v4/groups/${GITLAB_GROUP}?with_projects=false`,
           accessToken
-          );
+        );
         if (!group) {
-          throw new GitLabError('Failed to load group profile.');
+          throw new GitLabError("Failed to load group profile.");
         }
 
         const result = await accountProvisioner({
