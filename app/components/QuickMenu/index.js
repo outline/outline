@@ -1,4 +1,5 @@
 // @flow
+import { motion } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +17,7 @@ import { fadeAndSlideUp } from "styles/animations";
 function QuickMenu() {
   const { quickMenu } = useStores();
   const dialog = useDialogState({ modal: true, animated: 250 });
+  const [isClicked, setIsClicked] = React.useState(false);
   const [activeCommand, setActiveCommand] = React.useState<number>(1);
   const activeCommandRef = React.useRef();
   const { t } = useTranslation();
@@ -23,7 +25,7 @@ function QuickMenu() {
 
   React.useEffect(() => {
     setActiveCommand(1);
-  }, [quickMenu.path]);
+  }, [quickMenu.resolvedMenuItems]);
 
   React.useEffect(() => {
     if (!dialog.visible) {
@@ -78,6 +80,11 @@ function QuickMenu() {
     }
   };
 
+  const handleAnimation = () => {
+    setIsClicked(true);
+    setTimeout(() => setIsClicked(false), 100);
+  };
+
   const constructBlock = (item, order, setActiveCommand) => {
     return (
       <CommandItem
@@ -85,10 +92,11 @@ function QuickMenu() {
         data-order={order}
         role="option"
         ref={activeCommand === order ? activeCommandRef : undefined}
-        onMouseOver={() => setActiveCommand(order)}
+        onHover={() => setActiveCommand(order)}
         aria-selected={activeCommand === order}
         selected={activeCommand === order}
         onClick={(e) => {
+          handleAnimation();
           if (item.items) quickMenu.handleNestedItems(item);
           else {
             dialog.hide();
@@ -122,6 +130,10 @@ function QuickMenu() {
   });
 
   const term = quickMenu.searchTerm;
+  const variant = {
+    open: { scale: 0.9, transition: "ease" },
+    closed: { scale: 1, transition: "ease" },
+  };
 
   return (
     <DialogBackdrop {...dialog}>
@@ -134,27 +146,38 @@ function QuickMenu() {
             onKeyDown={handleKeyDown}
           >
             {(props) => (
-              <Content {...props} column>
-                <Badges>
-                  {quickMenu.path.map((b) => (
-                    <Path onClick={() => quickMenu.handlePathClick(b)} key={b}>
-                      {b}
-                    </Path>
-                  ))}
-                </Badges>
-                <InputWrapper>
-                  <InputSearch onChange={handleChange} value={term} />
-                </InputWrapper>
-                <Results>
-                  <AutoSizer>
-                    {({ width, height }) => (
-                      <Wrapper width={width} height={height}>
-                        <Scrollable topShadow>{data}</Scrollable>
-                      </Wrapper>
-                    )}
-                  </AutoSizer>
-                </Results>
-              </Content>
+              <motion.div
+                animate={isClicked ? "open" : "closed"}
+                variants={variant}
+              >
+                <Content {...props} column>
+                  <Badges>
+                    {quickMenu.path.map((b) => (
+                      <Path
+                        onClick={() => {
+                          handleAnimation();
+                          quickMenu.handlePathClick(b);
+                        }}
+                        key={b}
+                      >
+                        {b}
+                      </Path>
+                    ))}
+                  </Badges>
+                  <InputWrapper>
+                    <InputSearch onChange={handleChange} value={term} />
+                  </InputWrapper>
+                  <Results>
+                    <AutoSizer>
+                      {({ width, height }) => (
+                        <Wrapper width={width} height={height}>
+                          <Scrollable topShadow>{data}</Scrollable>
+                        </Wrapper>
+                      )}
+                    </AutoSizer>
+                  </Results>
+                </Content>
+              </motion.div>
             )}
           </Dialog>
         </Backdrop>
@@ -262,6 +285,7 @@ const Backdrop = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
+  background-color: ${(props) => props.theme.backdrop};
   z-index: ${(props) => props.theme.depths.modalOverlay};
 `;
 
