@@ -10,11 +10,14 @@ import { StateStore } from "../../../utils/passport";
 
 const router = new Router();
 const providerName = "gitlab";
-const GITLAB_APP_ID = process.env.GITLAB_APP_ID;
-const GITLAB_APP_SECRET = process.env.GITLAB_APP_SECRET;
-const GITLAB_URL = process.env.GITLAB_URL;
 
-const scopes = [];
+const GITLAB_CLIENT_ID = env.GITLAB_CLIENT_ID;
+const GITLAB_CLIENT_SECRET = env.GITLAB_CLIENT_SECRET;
+const GITLAB_BASEURL = env.GITLAB_BASEURL;
+const GITLAB_GROUP = env.GITLAB_GROUP;
+
+const scopes = ['read_api'];
+const callbackURL = `${env.URL}/auth/gitlab.callback`;
 
 export async function request(endpoint: string, accessToken: string) {
   const response = await fetch(endpoint, {
@@ -29,18 +32,19 @@ export async function request(endpoint: string, accessToken: string) {
 
 export const config = {
   name: "GitLab",
-  enabled: !!GITLAB_APP_ID,
+  enabled: !!GITLAB_CLIENT_ID,
 };
 
-if (GITLAB_APP_ID) {
+if (GITLAB_CLIENT_ID) {
   const strategy = new GitLabStrategy(
     {
-      clientID: GITLAB_APP_ID,
-      clientSecret: GITLAB_APP_SECRET,
-      callbackURL: `${env.URL}/auth/gitlab.callback`,
-      baseURL: GITLAB_URL,
+      clientID: GITLAB_CLIENT_ID,
+      clientSecret: GITLAB_CLIENT_SECRET,
+      callbackURL: callbackURL,
+      baseURL: GITLAB_BASEURL,
       passReqToCallback: true,
       store: new StateStore(),
+      scope: scopes,
     },
     async function (req, accessToken, refreshToken, profile, done) {
       try {
@@ -55,16 +59,23 @@ if (GITLAB_APP_ID) {
 
         const domain = email.split("@")[1];
         const subdomain = domain.split(".")[0];
-        // Just set the domain as Team's Name as GitLab doesn't have concept of organization
-        // User can the Team name anyway after creating it.
-        const teamName = domain;
+
+        // Check if we the user has access to the configured GitLab group
+        const group = await request(
+          `${GITLAB_BASEURL}/api/v4/groups/${GITLAB_GROUP}?with_projects=false`,
+          accessToken
+          );
+        if (!group) {
+          throw new GitLabError('Failed to load group profile.');
+        }
 
         const result = await accountProvisioner({
           ip: req.ip,
           team: {
-            name: teamName,
+            name: group.name,
             domain,
             subdomain,
+            avatarUrl: group.avatar_url,
           },
           user: {
             name: profile.name,
@@ -73,12 +84,10 @@ if (GITLAB_APP_ID) {
           },
           authenticationProvider: {
             name: providerName,
-            // GitLab doesn't organization concept, so just set providerName as id.
-            providerId: providerName,
+            providerId: group.id.toString(),
           },
           authentication: {
-            // convert id to string.
-            providerId: "" + profile.id,
+            providerId: profile.id.toString(),
             accessToken,
             refreshToken,
             scopes,
