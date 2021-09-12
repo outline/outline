@@ -84,13 +84,16 @@ function CollectionLink({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: (item, monitor) => {
-      const { id, permission } = item;
+      const { id, collectionId } = item;
       if (monitor.didDrop()) return;
       if (!collection) return;
-      if (collection.id === item.collectionId) return;
+      if (collection.id === collectionId) return;
+      const prevCollection = collections.get(collectionId);
+
       if (
-        permission !== collection.permission &&
-        (permission === null || collection.permission === null)
+        prevCollection &&
+        prevCollection.permission === null &&
+        prevCollection.permission !== collection.permission
       ) {
         itemRef.current = item;
         handlePermissionOpen();
@@ -231,14 +234,14 @@ function CollectionLink({
           />
         ))}
       <Modal
-        title={t("Document Move")}
-        onRequestClose={() => handlePermissionClose()}
+        title={t("Move document")}
+        onRequestClose={handlePermissionClose}
         isOpen={permissionOpen}
       >
         <DocumentReparent
           item={itemRef.current}
           collection={collection}
-          onSubmit={() => handlePermissionClose()}
+          onSubmit={handlePermissionClose}
         />
       </Modal>
     </>

@@ -132,9 +132,7 @@ function DocumentLink(
       ...node,
       depth,
       active: isActiveDocument,
-      permission: collection?.permission,
-      collectionId: collection?.id,
-      collectionName: collection?.name,
+      collectionId: collection?.id || "",
     }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
