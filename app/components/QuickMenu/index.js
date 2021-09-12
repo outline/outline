@@ -91,15 +91,17 @@ function QuickMenu() {
       <CommandItem
         tabIndex="-1"
         data-order={order}
+        key={order}
         role="option"
         ref={activeCommand === order ? activeCommandRef : undefined}
         onMouseEnter={() => setActiveCommand(order)}
         aria-selected={activeCommand === order}
         selected={activeCommand === order}
         onClick={(e) => {
-          handleAnimation();
-          if (item.items) quickMenu.handleNestedItems(item);
-          else {
+          if (item.items) {
+            handleAnimation();
+            quickMenu.handleNestedItems(item);
+          } else {
             dialog.hide();
             item.onClick(e);
           }
@@ -113,17 +115,16 @@ function QuickMenu() {
     );
   };
 
-  console.log("dataaa: ", quickMenu.resolvedMenuItems);
   const data = quickMenu.resolvedMenuItems?.map((context) => {
     return (
-      <>
+      <div key={context.title}>
         <Header>{context.title}</Header>
         <CommandList role="group">
           {context.items.map((item) =>
             constructBlock(item, ++order, setActiveCommand)
           )}
         </CommandList>
-      </>
+      </div>
     );
   });
 
