@@ -62,9 +62,10 @@ function QuickMenu() {
   };
 
   const handleKeyDown = (event) => {
-    if (event.currentTarget.value && event.key === "Escape") {
+    if (event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
+      dialog.hide();
       quickMenu.reset();
     }
 
@@ -88,7 +89,7 @@ function QuickMenu() {
   const constructBlock = (item, order, setActiveCommand) => {
     return (
       <CommandItem
-        tabIndex="0"
+        tabIndex="-1"
         data-order={order}
         role="option"
         ref={activeCommand === order ? activeCommandRef : undefined}
@@ -102,9 +103,6 @@ function QuickMenu() {
             dialog.hide();
             item.onClick(e);
           }
-        }}
-        onFocus={() => {
-          setActiveCommand(order);
         }}
       >
         <Container align="center">
