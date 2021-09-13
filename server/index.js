@@ -19,12 +19,6 @@ import { requestErrorHandler } from "./utils/sentry";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
-checkEnv();
-checkMigrations();
-
-// If a --port flag is passed then it takes priority over the env variable
-const normalizedPortFlag = getArg("port", "p");
-
 // If a services flag is passed it takes priority over the enviroment variable
 // for example: --services=web,worker
 const normalizedServiceFlag = getArg("services");
@@ -37,7 +31,28 @@ const serviceNames = uniq(
     .map((service) => service.trim())
 );
 
-async function start(id, disconnect) {
+// The number of processes to run, defaults to the number of CPU's available
+// for the web service, and 1 for collaboration during the beta period.
+const processCount = serviceNames.includes("collaboration")
+  ? 1
+  : env.WEB_CONCURRENCY || undefined;
+
+// This function will only be called once in the original process
+function master() {
+  checkEnv();
+  checkMigrations();
+
+  if (env.ENABLE_UPDATES !== "false" && process.env.NODE_ENV === "production") {
+    checkUpdates();
+    setInterval(checkUpdates, 24 * 3600 * 1000);
+  }
+}
+
+// This function will only be called in each forked process
+async function start(id: string, disconnect: () => void) {
+  // If a --port flag is passed then it takes priority over the env variable
+  const normalizedPortFlag = getArg("port", "p");
+
   const app = new Koa();
   const server = stoppable(http.createServer(app.callback()));
   const httpLogger = debug("http");
@@ -66,13 +81,13 @@ async function start(id, disconnect) {
     );
   }
 
-  // loop through requestsed services at startup
+  // loop through requested services at startup
   for (const name of serviceNames) {
     if (!Object.keys(services).includes(name)) {
       throw new Error(`Unknown service ${name}`);
     }
 
-    log(`Starting ${name} service`);
+    log(`Starting ${name} service…`);
     const init = services[name];
     await init(app, server);
   }
@@ -98,18 +113,7 @@ async function start(id, disconnect) {
 }
 
 throng({
+  master,
   worker: start,
-
-  // The number of processes to run, defaults to the number of CPU's available
-  // for the web service, and 1 for collaboration during the beta period.
-  count: serviceNames.includes("web")
-    ? process.env.WEB_CONCURRENCY || undefined
-    : serviceNames.includes("collaboration")
-    ? 1
-    : undefined,
+  count: processCount,
 });
-
-if (env.ENABLE_UPDATES !== "false" && process.env.NODE_ENV === "production") {
-  checkUpdates();
-  setInterval(checkUpdates, 24 * 3600 * 1000);
-}
