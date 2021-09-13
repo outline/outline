@@ -36,13 +36,10 @@ export default function init(app: Koa, server?: http.Server) {
   // this queue processes global events and hands them off to services
   globalEventQueue.process(function (job) {
     Object.keys(eventProcessors).forEach((name) => {
-      processorEventQueue.add(
-        { ...job.data, service: name },
-        { removeOnComplete: true }
-      );
+      processorEventQueue.add({ ...job.data, service: name });
     });
 
-    websocketsQueue.add(job.data, { removeOnComplete: true });
+    websocketsQueue.add(job.data);
   });
 
   processorEventQueue.process(function (job) {
