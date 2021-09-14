@@ -33,7 +33,7 @@ class Logger {
               winston.format.colorize(),
               winston.format.printf(
                 ({ message, label }) =>
-                  `${chalk.bold("[" + label + "]")} ${message}`
+                  `${label ? chalk.bold("[" + label + "] ") : ""}${message}`
               )
             ),
       })

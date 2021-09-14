@@ -1,6 +1,7 @@
 // @flow
 import chalk from "chalk";
 import { Team, AuthenticationProvider } from "../models";
+import Logger from "../utils/logger";
 
 export async function checkMigrations() {
   if (process.env.DEPLOYMENT === "hosted") {
@@ -11,12 +12,14 @@ export async function checkMigrations() {
   const providers = await AuthenticationProvider.count();
 
   if (teams && !providers) {
-    console.error(`
+    Logger.warn(
+      `
 This version of Outline cannot start until a data migration is complete.
 Backup your database, run the database migrations and the following script:
 
 $ node ./build/server/scripts/20210226232041-migrate-authentication.js
-`);
+`
+    );
     process.exit(1);
   }
 }
@@ -92,18 +95,16 @@ export function checkEnv() {
   }
 
   if (errors.length) {
-    console.log(
-      chalk.bold.red(
-        "\n\nThe server could not start, please fix the following configuration errors and try again:\n"
-      )
+    Logger.warn(
+      "\n\nThe server could not start, please fix the following configuration errors and try again:\n" +
+        errors.map((e) => `- ${e}`).join("\n")
     );
-    errors.map((text) => console.log(`  - ${text}`));
-    console.log("\n");
     process.exit(1);
   }
 
   if (process.env.NODE_ENV === "production") {
-    console.log(
+    Logger.info(
+      "lifecycle",
       chalk.green(
         `
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
@@ -111,12 +112,12 @@ Is your team enjoying Outline? Consider supporting future development by sponsor
       )
     );
   } else if (process.env.NODE_ENV === "development") {
-    console.log(
-      chalk.yellow(
-        `\nRunning Outline in development mode. To run Outline in production mode set the ${chalk.bold(
-          "NODE_ENV"
-        )} env variable to "production"\n`
-      )
+    Logger.warn(
+      `Running Outline in ${chalk.bold(
+        "development mode"
+      )}. To run Outline in production mode set the ${chalk.bold(
+        "NODE_ENV"
+      )} env variable to "production"`
     );
   }
 }

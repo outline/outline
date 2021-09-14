@@ -122,8 +122,9 @@ please refer to the [architecture document](docs/ARCHITECTURE.md) first for a hi
 
 ## Debugging
 
-Outline outputs JSON logs to the console when running in production, these can be parsed by your preferred log tool. HTTP
-logging is disabled by default, but can be enabled by setting the `DEBUG=http` environment variable.
+In development Outline outputs simple logging to the console, prefixed by categories. In production it outputs JSON logs, these can be easily parsed by your preferred log ingestion pipeline.
+
+HTTP logging is disabled by default, but can be enabled by setting the `DEBUG=http` environment variable.
 
 ## Tests
 
