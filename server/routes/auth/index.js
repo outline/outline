@@ -43,10 +43,7 @@ router.get("/redirect", auth(), async (ctx) => {
 
   const [team, collection, view] = await Promise.all([
     Team.findByPk(user.teamId),
-    Collection.findOne({
-      where: { teamId: user.teamId },
-      order: [["index", "ASC"]],
-    }),
+    Collection.findFirstCollectionForUser(user),
     View.findOne({
       where: { userId: user.id },
     }),

@@ -101,10 +101,7 @@ export async function signIn(
     });
 
     const [collection, view] = await Promise.all([
-      Collection.findOne({
-        where: { teamId: user.teamId },
-        order: [["index", "ASC"]],
-      }),
+      Collection.findFirstCollectionForUser(user),
       View.findOne({
         where: { userId: user.id },
       }),
