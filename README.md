@@ -122,11 +122,8 @@ please refer to the [architecture document](docs/ARCHITECTURE.md) first for a hi
 
 ## Debugging
 
-Outline uses [debug](https://www.npmjs.com/package/debug). To enable debugging output, the following categories are available:
-
-```
-DEBUG=sql,cache,presenters,events,importer,exporter,emails,mailer
-```
+Outline outputs JSON logs to the console when running in production, these can be parsed by your preferred log tool. HTTP
+logging is disabled by default, but can be enabled by setting the `DEBUG=http` environment variable.
 
 ## Tests
 
