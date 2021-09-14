@@ -1,12 +1,11 @@
 // @flow
-import debug from "debug";
 import { debounce } from "lodash";
 import * as Y from "yjs";
 import documentUpdater from "../commands/documentUpdater";
 import { Document, User } from "../models";
+import Logger from "../utils/logger";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
-const log = debug("server");
 const DELAY = 3000;
 
 export default class Persistence {
@@ -30,12 +29,18 @@ export default class Persistence {
 
     if (document.state) {
       const ydoc = new Y.Doc();
-      log(`Document ${documentId} is already in state`);
+      Logger.info(
+        "collaboration",
+        `Document ${documentId} is in database state`
+      );
       Y.applyUpdate(ydoc, document.state);
       return ydoc;
     }
 
-    log(`Document ${documentId} is not in state, creating state from markdown`);
+    Logger.info(
+      "collaboration",
+      `Document ${documentId} is not in state, creating from markdown`
+    );
     const ydoc = markdownToYDoc(document.text, fieldName);
     const state = Y.encodeStateAsUpdate(ydoc);
 
@@ -55,7 +60,7 @@ export default class Persistence {
     }) => {
       const [, documentId] = documentName.split(".");
 
-      log(`persisting ${documentId}`);
+      Logger.info("collaboration", `Persisting ${documentId}`);
 
       await documentUpdater({
         documentId,

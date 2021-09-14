@@ -13,6 +13,7 @@ import env from "../env";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+import Logger from "../utils/logger";
 
 const isProduction = env.NODE_ENV === "production";
 const isTest = env.NODE_ENV === "test";
@@ -90,7 +91,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     app.use(
       convert(
         hotMiddleware(compile, {
-            log: console.log, // eslint-disable-line
+          log: (...args) => Logger.info("lifecycle", ...args),
           path: "/__webpack_hmr",
           heartbeat: 10 * 1000,
         })

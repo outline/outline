@@ -1,7 +1,7 @@
 // @flow
-import debug from "debug";
 import Sequelize from "sequelize";
 import EncryptedField from "sequelize-encrypted";
+import Logger from "./utils/logger";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isSSLDisabled = process.env.PGSSLMODE === "disable";
@@ -15,7 +15,7 @@ export const Op = Sequelize.Op;
 export const sequelize = new Sequelize(
   process.env.DATABASE_URL || process.env.DATABASE_CONNECTION_POOL_URL,
   {
-    logging: debug("sql"),
+    logging: (msg) => Logger.debug("database", msg),
     typeValidation: true,
     dialectOptions: {
       ssl:

@@ -1,6 +1,5 @@
 // @flow
 import http from "http";
-import debug from "debug";
 import Koa from "koa";
 import {
   globalEventQueue,
@@ -16,9 +15,8 @@ import Imports from "../queues/processors/imports";
 import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
 import Slack from "../queues/processors/slack";
+import Logger from "../utils/logger";
 import Sentry from "../utils/sentry";
-
-const log = debug("queue");
 
 const EmailsProcessor = new Emails();
 
@@ -46,14 +44,15 @@ export default function init(app: Koa, server?: http.Server) {
     const event = job.data;
     const processor = eventProcessors[event.service];
     if (!processor) {
-      console.warn(
-        `Received event for processor that isn't registered (${event.service})`
-      );
+      Logger.warn(`Received event for processor that isn't registered`, event);
       return;
     }
 
     if (processor.on) {
-      log(`${event.service} processing ${event.name}`);
+      Logger.info("processor", `${event.service} processing ${event.name}`, {
+        name: event.name,
+        modelId: event.modelId,
+      });
 
       processor.on(event).catch((error) => {
         if (process.env.SENTRY_DSN) {

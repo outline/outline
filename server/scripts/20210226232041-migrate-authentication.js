@@ -1,6 +1,5 @@
 // @flow
 import "./bootstrap";
-import debug from "debug";
 import {
   Team,
   User,
@@ -8,15 +7,15 @@ import {
   UserAuthentication,
 } from "../models";
 import { Op } from "../sequelize";
+import Logger from "../utils/logger";
 
-const log = debug("server");
 const cache = {};
 let page = 0;
 let limit = 100;
 
 export default async function main(exit = false) {
   const work = async (page: number) => {
-    log(`Migrating authentication data… page ${page}`);
+    Logger.info("database", "Starting authentication migration");
 
     const users = await User.findAll({
       limit,
@@ -42,13 +41,15 @@ export default async function main(exit = false) {
       const provider = user.service;
       const providerId = user.team[`${provider}Id`];
       if (!providerId) {
-        console.error(
-          `user ${user.id} has serviceId ${user.serviceId}, but team ${provider}Id missing`
+        Logger.info(
+          "database",
+          `User ${user.id} has serviceId ${user.serviceId}, but team ${provider}Id missing`
         );
         continue;
       }
       if (providerId.startsWith("transferred")) {
-        console.log(
+        Logger.info(
+          "database",
           `skipping previously transferred ${user.team.name} (${user.team.id})`
         );
         continue;
@@ -78,7 +79,8 @@ export default async function main(exit = false) {
           userId: user.id,
         });
       } catch (err) {
-        console.error(
+        Logger.info(
+          "database",
           `serviceId ${user.serviceId} exists, for user ${user.id}`
         );
         continue;
@@ -91,7 +93,7 @@ export default async function main(exit = false) {
   await work(page);
 
   if (exit) {
-    log("Migration complete");
+    Logger.info("database", "Migration complete");
     process.exit(0);
   }
 }

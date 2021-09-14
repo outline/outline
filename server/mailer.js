@@ -1,6 +1,5 @@
 // @flow
 import * as Sentry from "@sentry/node";
-import debug from "debug";
 import nodemailer from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
@@ -32,8 +31,8 @@ import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
 import { emailsQueue } from "./queues";
+import Logger from "./utils/logger";
 
-const log = debug("emails");
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
 
@@ -101,7 +100,10 @@ export class Mailer {
     }
 
     if (useTestEmailService) {
-      log("SMTP_USERNAME not provided, generating test account…");
+      Logger.info(
+        "email",
+        "SMTP_USERNAME not provided, generating test account…"
+      );
 
       try {
         let testAccount = await nodemailer.createTestAccount();
@@ -118,7 +120,10 @@ export class Mailer {
 
         this.transporter = nodemailer.createTransport(smtpConfig);
       } catch (err) {
-        log(`Could not generate test account: ${err.message}`);
+        Logger.error(
+          "Couldn't generate a test account with ethereal.email",
+          err
+        );
       }
     }
   }
@@ -134,7 +139,7 @@ export class Mailer {
       });
 
       try {
-        log(`Sending email "${data.title}" to ${data.to}`);
+        Logger.info("email", `Sending email "${data.title}" to ${data.to}`);
         const info = await transporter.sendMail({
           from: process.env.SMTP_FROM_EMAIL,
           replyTo: process.env.SMTP_REPLY_EMAIL || process.env.SMTP_FROM_EMAIL,
@@ -145,7 +150,10 @@ export class Mailer {
         });
 
         if (useTestEmailService) {
-          log("Email Preview URL: %s", nodemailer.getTestMessageUrl(info));
+          Logger.info(
+            "email",
+            `Preview Url: ${nodemailer.getTestMessageUrl(info)}`
+          );
         }
       } catch (err) {
         if (process.env.SENTRY_DSN) {

@@ -1,13 +1,11 @@
 // @flow
 import fs from "fs";
-import debug from "debug";
 import mailer from "../../mailer";
 import { FileOperation, Collection, Event, Team, User } from "../../models";
 import type { Event as TEvent } from "../../types";
+import Logger from "../../utils/logger";
 import { uploadToS3FromBuffer } from "../../utils/s3";
 import { archiveCollections } from "../../utils/zip";
-
-const log = debug("commands");
 
 export default class ExportsProcessor {
   async on(event: TEvent) {
@@ -30,7 +28,10 @@ export default class ExportsProcessor {
         });
 
         // heavy lifting of creating the zip file
-        log(`Archiving collections for file operation ${exportData.id}`);
+        Logger.info(
+          "processor",
+          `Archiving collections for file operation ${exportData.id}`
+        );
         const filePath = await archiveCollections(collections);
 
         let url, state;
@@ -43,7 +44,10 @@ export default class ExportsProcessor {
             size: stat.size,
           });
 
-          log(`Uploading archive for file operation ${exportData.id}`);
+          Logger.info(
+            "processor",
+            `Uploading archive for file operation ${exportData.id}`
+          );
           url = await uploadToS3FromBuffer(
             readBuffer,
             "application/zip",
@@ -51,10 +55,15 @@ export default class ExportsProcessor {
             "private"
           );
 
-          log(`Upload complete for file operation ${exportData.id}`);
+          Logger.info(
+            "processor",
+            `Upload complete for file operation ${exportData.id}`
+          );
           state = "complete";
-        } catch (e) {
-          log("Failed to export data", e);
+        } catch (error) {
+          Logger.error("Error exporting collection data", error, {
+            fileOperationId: exportData.id,
+          });
           state = "error";
           url = null;
         } finally {
