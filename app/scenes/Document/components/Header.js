@@ -20,6 +20,7 @@ import Header from "components/Header";
 import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
@@ -67,7 +68,8 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { auth, ui, policies } = useStores();
+  const team = useCurrentTeam();
+  const { ui, policies } = useStores();
   const isMobile = useMobile();
 
   const handleSave = React.useCallback(() => {
@@ -81,7 +83,7 @@ function DocumentHeader({
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
-  const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
+  const canToggleEmbeds = team?.documentEmbeds;
   const canEdit = can.update && !isEditing;
 
   const toc = (
@@ -162,11 +164,10 @@ function DocumentHeader({
                 <TableOfContentsMenu headings={headings} />
               </TocWrapper>
             )}
-            {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
-            <Collaborators
-              document={document}
-              currentUserId={auth.user ? auth.user.id : undefined}
-            />
+            {!isPublishing && isSaving && !team.collaborativeEditing && (
+              <Status>{t("Saving")}…</Status>
+            )}
+            <Collaborators document={document} />
             {isEditing && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
