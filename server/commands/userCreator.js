@@ -14,6 +14,7 @@ type UserCreatorResult = {|
 export default async function userCreator({
   name,
   email,
+  username,
   isAdmin,
   avatarUrl,
   teamId,
@@ -22,6 +23,7 @@ export default async function userCreator({
 }: {|
   name: string,
   email: string,
+  username?: string,
   isAdmin?: boolean,
   avatarUrl?: string,
   teamId: string,
@@ -128,6 +130,7 @@ export default async function userCreator({
       {
         name,
         email,
+        username,
         isAdmin,
         teamId,
         avatarUrl,
