@@ -16,7 +16,6 @@ import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
 import Slack from "../queues/processors/slack";
 import Logger from "../utils/logger";
-import Sentry from "../utils/sentry";
 
 const EmailsProcessor = new Emails();
 
@@ -55,14 +54,11 @@ export default function init(app: Koa, server?: http.Server) {
       });
 
       processor.on(event).catch((error) => {
-        if (process.env.SENTRY_DSN) {
-          Sentry.withScope(function (scope) {
-            scope.setExtra("event", event);
-            Sentry.captureException(error);
-          });
-        } else {
-          throw error;
-        }
+        Logger.error(
+          `Error processing ${event.name} in ${event.service}`,
+          error,
+          event
+        );
       });
     }
   });
@@ -71,14 +67,11 @@ export default function init(app: Koa, server?: http.Server) {
     const event = job.data;
 
     EmailsProcessor.on(event).catch((error) => {
-      if (process.env.SENTRY_DSN) {
-        Sentry.withScope(function (scope) {
-          scope.setExtra("event", event);
-          Sentry.captureException(error);
-        });
-      } else {
-        throw error;
-      }
+      Logger.error(
+        `Error processing ${event.name} in emails processor`,
+        error,
+        event
+      );
     });
   });
 }

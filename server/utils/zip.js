@@ -1,10 +1,10 @@
 // @flow
 import fs from "fs";
-import * as Sentry from "@sentry/node";
 import JSZip from "jszip";
 import tmp from "tmp";
 import { Attachment, Collection, Document } from "../models";
 import { serializeFilename } from "./fs";
+import Logger from "./logger";
 import { getFileByKey } from "./s3";
 
 async function addToArchive(zip, documents) {
@@ -47,11 +47,9 @@ async function addImageToArchive(zip, key) {
     const img = await getFileByKey(key);
     zip.file(key, img, { createFolders: true });
   } catch (err) {
-    if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err);
-    }
-    // error during file retrieval
-    console.error(err);
+    Logger.error("Error loading image attachment from S3", err, {
+      key,
+    });
   }
 }
 

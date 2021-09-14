@@ -1,5 +1,4 @@
 // @flow
-import * as Sentry from "@sentry/node";
 import nodemailer from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
@@ -156,9 +155,7 @@ export class Mailer {
           );
         }
       } catch (err) {
-        if (process.env.SENTRY_DSN) {
-          Sentry.captureException(err);
-        }
+        Logger.error(`Error sending email to ${data.to}`, err);
         throw err; // Re-throw for queue to re-try
       }
     }

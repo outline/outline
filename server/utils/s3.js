@@ -1,10 +1,10 @@
 // @flow
 import crypto from "crypto";
-import * as Sentry from "@sentry/node";
 import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
+import Logger from "../utils/logger";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
@@ -147,15 +147,11 @@ export const uploadToS3FromUrl = async (
     const endpoint = publicS3Endpoint(true);
     return `${endpoint}/${key}`;
   } catch (err) {
-    if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err, {
-        extra: {
-          url,
-        },
-      });
-    } else {
-      throw err;
-    }
+    Logger.error("Error uploading to S3 from URL", err, {
+      url,
+      key,
+      acl,
+    });
   }
 };
 
@@ -198,10 +194,8 @@ export const getFileByKey = async (key: string) => {
     const data = await s3.getObject(params).promise();
     return data.Body;
   } catch (err) {
-    if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err);
-    } else {
-      throw err;
-    }
+    Logger.error("Error getting file from S3 by key", err, {
+      key,
+    });
   }
 };

@@ -4,15 +4,14 @@ import Koa from "koa";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
-import env from "../env";
 import { Document, Collection, View } from "../models";
 import policy from "../policies";
 import { websocketsQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/websockets";
 import { client, subscriber } from "../redis";
 import { getUserForJWT } from "../utils/jwt";
+import Logger from "../utils/logger";
 import * as metrics from "../utils/metrics";
-import Sentry from "../utils/sentry";
 
 const { can } = policy;
 
@@ -37,10 +36,10 @@ export default function init(app: Koa, server: http.Server) {
 
   io.of("/").adapter.on("error", (err) => {
     if (err.name === "MaxRetriesPerRequestError") {
-      console.error(`Redis error: ${err.message}. Shutting down now.`);
+      Logger.error("Redis maximum retries exceeded in socketio adapter", err);
       throw err;
     } else {
-      console.error(`Redis error: ${err.message}`);
+      Logger.error("Redis error in socketio adapter", err);
     }
   });
 
@@ -139,14 +138,9 @@ export default function init(app: Koa, server: http.Server) {
               // let this user know who else is already present in the room
               io.in(room).clients(async (err, sockets) => {
                 if (err) {
-                  if (process.env.SENTRY_DSN) {
-                    Sentry.withScope(function (scope) {
-                      scope.setExtra("clients", sockets);
-                      Sentry.captureException(err);
-                    });
-                  } else {
-                    console.error(err);
-                  }
+                  Logger.error("Error getting clients for room", err, {
+                    sockets,
+                  });
                   return;
                 }
 
@@ -232,14 +226,7 @@ export default function init(app: Koa, server: http.Server) {
   websocketsQueue.process(async function websocketEventsProcessor(job) {
     const event = job.data;
     websockets.on(event, io).catch((error) => {
-      if (env.SENTRY_DSN) {
-        Sentry.withScope(function (scope) {
-          scope.setExtra("event", event);
-          Sentry.captureException(error);
-        });
-      } else {
-        throw error;
-      }
+      Logger.error("Error processing websocket event", error, { event });
     });
   });
 }

@@ -4,7 +4,6 @@ import Redis from "ioredis";
 import { snakeCase } from "lodash";
 import { client, subscriber } from "../redis";
 import * as metrics from "../utils/metrics";
-import Sentry from "./sentry";
 
 export function createQueue(name: string) {
   const prefix = `queue.${snakeCase(name)}`;
@@ -34,11 +33,6 @@ export function createQueue(name: string) {
   });
 
   queue.on("error", (err) => {
-    if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err);
-    } else {
-      console.error(err);
-    }
     metrics.increment(`${prefix}.jobs.errored`);
   });
 
