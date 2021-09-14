@@ -45,7 +45,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
         })
       );
     } else {
-      console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
+      Logger.warn("Enforced https was disabled with FORCE_HTTPS env variable");
     }
 
     // trust header fields set by our proxy. eg X-Forwarded-For

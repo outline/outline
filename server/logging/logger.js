@@ -79,7 +79,11 @@ class Logger {
       });
     }
 
-    this.output.warn(message, extra);
+    if (isProduction) {
+      this.output.warn(message, extra);
+    } else {
+      console.warn(message, extra);
+    }
   }
 
   /**
@@ -105,7 +109,7 @@ class Logger {
     if (isProduction) {
       this.output.error(message, { error: error.message, stack: error.stack });
     } else {
-      console.error(error);
+      console.error(message, { error, extra });
     }
   }
 }
