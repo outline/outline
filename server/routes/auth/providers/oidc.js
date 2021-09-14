@@ -21,6 +21,7 @@ const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
+const OIDC_GROUPS_CLAIM = process.env.OIDC_GROUPS_CLAIM || "groups";
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const allowedDomains = getAllowedDomains();
 
@@ -90,6 +91,12 @@ if (OIDC_CLIENT_ID) {
           }
 
           const subdomain = domain.split(".")[0];
+          let groups = profile[OIDC_GROUPS_CLAIM] || [];
+
+          // Ensure groups is an array
+          if (typeof groups === "string") {
+            groups = groups.split(",");
+          }
 
           const result = await accountProvisioner({
             ip: req.ip,
@@ -104,6 +111,7 @@ if (OIDC_CLIENT_ID) {
               email: profile.email,
               avatarUrl: profile.picture,
             },
+            groups,
             authenticationProvider: {
               name: providerName,
               providerId: domain,
