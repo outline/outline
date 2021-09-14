@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import InputSelect, { type Props, type Option } from "./InputSelect";
+import SelectInput, { type Props, type Option } from "./SelectInput";
 
 export default function InputSelectPermission(
   props: $Rest<Props, { options: Array<Option> }>
@@ -9,7 +9,7 @@ export default function InputSelectPermission(
   const { t } = useTranslation();
 
   return (
-    <InputSelect
+    <SelectInput
       label={t("Default access")}
       options={[
         { label: t("View and edit"), value: "read_write" },

@@ -321,7 +321,6 @@ const Empty = styled(HelpText)`
 `;
 
 const PermissionExplainer = styled(HelpText)`
-  margin-top: -8px;
   margin-bottom: 24px;
 `;
 
