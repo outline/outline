@@ -1,4 +1,5 @@
 // @flow
+import chalk from "chalk";
 import winston from "winston";
 import env from "../env";
 import Sentry from "../utils/sentry";
@@ -31,7 +32,8 @@ class Logger {
           : winston.format.combine(
               winston.format.colorize(),
               winston.format.printf(
-                ({ message, label }) => `[${label}] ${message}`
+                ({ message, label }) =>
+                  `${chalk.bold("[" + label + "]")} ${message}`
               )
             ),
       })

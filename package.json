@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf build",
     "build:i18n": "i18next --silent 'app/**/*.js' 'server/**/*.js' && mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
-    "build:server": "babel -d ./build/server ./server && babel -d ./build/shared ./shared && cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile && cp package.json ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
+    "build:server": "babel --quiet  -d ./build/server ./server && babel --quiet  -d./build/shared ./shared && cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile && cp package.json ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
