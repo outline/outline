@@ -7,9 +7,12 @@ import {
   AuthenticationProviderDisabledError,
 } from "../errors";
 import mailer from "../mailer";
-import { Collection, Team, User } from "../models";
+import { Collection, Team, User, Group, GroupUser } from "../models";
+import groupCreator from "./groupCreator";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
+
+const Op = Sequelize.Op;
 
 type Props = {|
   ip: string,
@@ -24,6 +27,7 @@ type Props = {|
     subdomain: string,
     avatarUrl?: string,
   |},
+  groups: string[],
   authenticationProvider: {|
     name: string,
     providerId: string,
@@ -39,6 +43,11 @@ type Props = {|
 export type AccountProvisionerResult = {|
   user: User,
   team: Team,
+  groups: {|
+    group: Group,
+    membership: GroupUser,
+    isNewGroup: boolean,
+  |},
   isNewTeam: boolean,
   isNewUser: boolean,
 |};
@@ -47,12 +56,13 @@ export default async function accountProvisioner({
   ip,
   user: userParams,
   team: teamParams,
+  groups: groupNames = [],
   authenticationProvider: authenticationProviderParams,
   authentication: authenticationParams,
 }: Props): Promise<AccountProvisionerResult> {
-  let result;
+  let teamResult;
   try {
-    result = await teamCreator({
+    teamResult = await teamCreator({
       name: teamParams.name,
       domain: teamParams.domain,
       subdomain: teamParams.subdomain,
@@ -63,15 +73,16 @@ export default async function accountProvisioner({
     throw new AuthenticationError(err.message);
   }
 
-  invariant(result, "Team creator result must exist");
-  const { authenticationProvider, team, isNewTeam } = result;
+  invariant(teamResult, "Team creator result must exist");
+  const { authenticationProvider, team, isNewTeam } = teamResult;
 
   if (!authenticationProvider.enabled) {
     throw new AuthenticationProviderDisabledError();
   }
 
+  let userResult;
   try {
-    const result = await userCreator({
+    userResult = await userCreator({
       name: userParams.name,
       email: userParams.email,
       isAdmin: isNewTeam,
@@ -84,7 +95,7 @@ export default async function accountProvisioner({
       },
     });
 
-    const { isNewUser, user } = result;
+    const { isNewUser, user } = userResult;
 
     if (isNewUser) {
       await mailer.sendTemplate("welcome", {
@@ -108,13 +119,6 @@ export default async function accountProvisioner({
         await team.provisionFirstCollection(user.id);
       }
     }
-
-    return {
-      user,
-      team,
-      isNewUser,
-      isNewTeam,
-    };
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
@@ -136,4 +140,48 @@ export default async function accountProvisioner({
 
     throw err;
   }
+
+  invariant(userResult, "User creator result must exist");
+  const { user } = userResult;
+
+  let groups;
+  try {
+    groups = await Promise.all(
+      groupNames.map(async (name) =>
+        groupCreator({
+          name,
+          ip,
+          user,
+        })
+      )
+    );
+  } catch (err) {
+    // TODO
+    console.error(err);
+  }
+
+  // Remove group memberships that are not part of the current user info.
+  // This reconciles the user with whatever groups are passed in with the latest auth.
+  // At least one group must be specfied to enable this behaviour.
+  if (groupNames.length) {
+    try {
+      await GroupUser.destroy({
+        where: {
+          userId: userResult.user.id,
+          groupId: {
+            [Op.notIn]: groups.map((group) => group.membership.groupId),
+          },
+        },
+      });
+    } catch (err) {
+      // TODO
+      console.error(err);
+    }
+  }
+
+  return {
+    ...teamResult,
+    ...userResult,
+    groups,
+  };
 }
