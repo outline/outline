@@ -1,5 +1,6 @@
 // @flow
 import "./bootstrap";
+import Logger from "../logging/logger";
 import {
   Team,
   User,
@@ -7,7 +8,6 @@ import {
   UserAuthentication,
 } from "../models";
 import { Op } from "../sequelize";
-import Logger from "../utils/logger";
 
 const cache = {};
 let page = 0;

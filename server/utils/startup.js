@@ -1,7 +1,7 @@
 // @flow
 import chalk from "chalk";
+import Logger from "../logging/logger";
 import { Team, AuthenticationProvider } from "../models";
-import Logger from "../utils/logger";
 
 export async function checkMigrations() {
   if (process.env.DEPLOYMENT === "hosted") {

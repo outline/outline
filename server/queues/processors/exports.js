@@ -1,9 +1,9 @@
 // @flow
 import fs from "fs";
+import Logger from "../../logging/logger";
 import mailer from "../../mailer";
 import { FileOperation, Collection, Event, Team, User } from "../../models";
 import type { Event as TEvent } from "../../types";
-import Logger from "../../utils/logger";
 import { uploadToS3FromBuffer } from "../../utils/s3";
 import { archiveCollections } from "../../utils/zip";
 

@@ -29,8 +29,8 @@ import {
 import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
+import Logger from "./logging/logger";
 import { emailsQueue } from "./queues";
-import Logger from "./utils/logger";
 
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;

@@ -3,9 +3,9 @@ import { subDays } from "date-fns";
 import Router from "koa-router";
 import { documentPermanentDeleter } from "../../commands/documentPermanentDeleter";
 import { AuthenticationError } from "../../errors";
+import Logger from "../../logging/logger";
 import { Document, FileOperation } from "../../models";
 import { Op } from "../../sequelize";
-import Logger from "../../utils/logger";
 
 const router = new Router();
 

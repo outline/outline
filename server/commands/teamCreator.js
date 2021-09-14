@@ -1,10 +1,10 @@
 // @flow
 import { MaximumTeamsError } from "../errors";
+import Logger from "../logging/logger";
 import { Team, AuthenticationProvider } from "../models";
 import { sequelize } from "../sequelize";
 import { getAllowedDomains } from "../utils/authentication";
 import { generateAvatarUrl } from "../utils/avatars";
-import Logger from "../utils/logger";
 
 type TeamCreatorResult = {|
   team: Team,

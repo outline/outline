@@ -1,6 +1,7 @@
 // @flow
 import http from "http";
 import Koa from "koa";
+import Logger from "../logging/logger";
 import {
   globalEventQueue,
   processorEventQueue,
@@ -15,7 +16,6 @@ import Imports from "../queues/processors/imports";
 import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
 import Slack from "../queues/processors/slack";
-import Logger from "../utils/logger";
 
 const EmailsProcessor = new Emails();
 

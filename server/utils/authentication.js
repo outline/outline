@@ -3,9 +3,9 @@ import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { type Context } from "koa";
 import { pick } from "lodash";
+import Logger from "../logging/logger";
 import { User, Event, Team, Collection, View } from "../models";
 import { getCookieDomain } from "../utils/domains";
-import Logger from "../utils/logger";
 
 export function getAllowedDomains(): string[] {
   // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability

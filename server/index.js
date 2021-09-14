@@ -12,10 +12,10 @@ import Router from "koa-router";
 import { uniq } from "lodash";
 import stoppable from "stoppable";
 import throng from "throng";
+import Logger from "./logging/logger";
+import { requestErrorHandler } from "./logging/sentry";
 import services from "./services";
 import { getArg } from "./utils/args";
-import Logger from "./utils/logger";
-import { requestErrorHandler } from "./utils/sentry";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 

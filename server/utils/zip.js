@@ -2,9 +2,9 @@
 import fs from "fs";
 import JSZip from "jszip";
 import tmp from "tmp";
+import Logger from "../logging/logger";
 import { Attachment, Collection, Document } from "../models";
 import { serializeFilename } from "./fs";
-import Logger from "./logger";
 import { getFileByKey } from "./s3";
 
 async function addToArchive(zip, documents) {

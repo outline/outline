@@ -8,9 +8,9 @@ import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from "../../shared/utils/domains";
+import Logger from "../logging/logger";
 import { DataTypes, sequelize, Op } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
-import Logger from "../utils/logger";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 
 import Collection from "./Collection";

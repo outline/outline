@@ -2,8 +2,8 @@
 import passport from "@outlinewiki/koa-passport";
 import { type Context } from "koa";
 import type { AccountProvisionerResult } from "../commands/accountProvisioner";
+import Logger from "../logging/logger";
 import { signIn } from "../utils/authentication";
-import Logger from "../utils/logger";
 
 export default function createMiddleware(providerName: string) {
   return function passportMiddleware(ctx: Context) {

@@ -1,7 +1,7 @@
 // @flow
+import Logger from "../logging/logger";
 import { Document, Attachment } from "../models";
 import { sequelize } from "../sequelize";
-import Logger from "../utils/logger";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 
 export async function documentPermanentDeleter(documents: Document[]) {

@@ -10,10 +10,10 @@ import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
 import emails from "../emails";
 import env from "../env";
+import Logger from "../logging/logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
-import Logger from "../utils/logger";
 
 const isProduction = env.NODE_ENV === "production";
 const isTest = env.NODE_ENV === "test";

@@ -2,8 +2,8 @@
 import chalk from "chalk";
 import winston from "winston";
 import env from "../env";
-import Sentry from "../utils/sentry";
-import * as metrics from "./metrics";
+import Metrics from "../logging/metrics";
+import Sentry from "../logging/sentry";
 
 const isProduction = env.NODE_ENV === "production";
 
@@ -67,7 +67,7 @@ class Logger {
    * @param extra Arbitrary data to be logged that will appear in prod logs
    */
   warn(message: string, extra?: Extra) {
-    metrics.increment("logger.warning");
+    Metrics.increment("logger.warning");
 
     if (process.env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
@@ -90,7 +90,7 @@ class Logger {
    * @param extra Arbitrary data to be logged that will appear in prod logs
    */
   error(message: string, error: Error, extra?: Extra) {
-    metrics.increment("logger.error");
+    Metrics.increment("logger.error");
 
     if (process.env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {

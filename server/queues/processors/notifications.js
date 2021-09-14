@@ -1,4 +1,5 @@
 // @flow
+import Logger from "../../logging/logger";
 import mailer from "../../mailer";
 import {
   View,
@@ -10,7 +11,6 @@ import {
 } from "../../models";
 import { Op } from "../../sequelize";
 import type { DocumentEvent, CollectionEvent, Event } from "../../types";
-import Logger from "../../utils/logger";
 
 export default class NotificationsProcessor {
   async on(event: Event) {

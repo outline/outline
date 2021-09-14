@@ -4,14 +4,14 @@ import Koa from "koa";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
+import Logger from "../logging/logger";
+import Metrics from "../logging/metrics";
 import { Document, Collection, View } from "../models";
 import policy from "../policies";
 import { websocketsQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/websockets";
 import { client, subscriber } from "../redis";
 import { getUserForJWT } from "../utils/jwt";
-import Logger from "../utils/logger";
-import * as metrics from "../utils/metrics";
 
 const { can } = policy;
 
@@ -44,15 +44,15 @@ export default function init(app: Koa, server: http.Server) {
   });
 
   io.on("connection", (socket) => {
-    metrics.increment("websockets.connected");
-    metrics.gaugePerInstance(
+    Metrics.increment("websockets.connected");
+    Metrics.gaugePerInstance(
       "websockets.count",
       socket.client.conn.server.clientsCount
     );
 
     socket.on("disconnect", () => {
-      metrics.increment("websockets.disconnected");
-      metrics.gaugePerInstance(
+      Metrics.increment("websockets.disconnected");
+      Metrics.gaugePerInstance(
         "websockets.count",
         socket.client.conn.server.clientsCount
       );
@@ -105,7 +105,7 @@ export default function init(app: Koa, server: http.Server) {
 
           if (can(user, "read", collection)) {
             socket.join(`collection-${event.collectionId}`, () => {
-              metrics.increment("websockets.collections.join");
+              Metrics.increment("websockets.collections.join");
             });
           }
         }
@@ -126,7 +126,7 @@ export default function init(app: Koa, server: http.Server) {
             );
 
             socket.join(room, () => {
-              metrics.increment("websockets.documents.join");
+              Metrics.increment("websockets.documents.join");
 
               // let everyone else in the room know that a new user joined
               io.to(room).emit("user.join", {
@@ -167,13 +167,13 @@ export default function init(app: Koa, server: http.Server) {
       socket.on("leave", (event) => {
         if (event.collectionId) {
           socket.leave(`collection-${event.collectionId}`, () => {
-            metrics.increment("websockets.collections.leave");
+            Metrics.increment("websockets.collections.leave");
           });
         }
         if (event.documentId) {
           const room = `document-${event.documentId}`;
           socket.leave(room, () => {
-            metrics.increment("websockets.documents.leave");
+            Metrics.increment("websockets.documents.leave");
 
             io.to(room).emit("user.leave", {
               userId: user.id,
@@ -198,7 +198,7 @@ export default function init(app: Koa, server: http.Server) {
       });
 
       socket.on("presence", async (event) => {
-        metrics.increment("websockets.presence");
+        Metrics.increment("websockets.presence");
 
         const room = `document-${event.documentId}`;
 

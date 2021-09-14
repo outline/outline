@@ -1,5 +1,5 @@
 // @flow
-import Logger from "../utils/logger";
+import Logger from "../logging/logger";
 export default class CollaborationLogger {
   async onCreateDocument(data: { documentName: string }) {
     Logger.info("collaboration", `Created document "${data.documentName}"`);

@@ -2,8 +2,8 @@
 import { debounce } from "lodash";
 import * as Y from "yjs";
 import documentUpdater from "../commands/documentUpdater";
+import Logger from "../logging/logger";
 import { Document, User } from "../models";
-import Logger from "../utils/logger";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
 const DELAY = 3000;
