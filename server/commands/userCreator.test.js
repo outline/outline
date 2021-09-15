@@ -13,10 +13,12 @@ describe("userCreator", () => {
     const authentications = await existing.getAuthentications();
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
+    const newUsername = "tname";
 
     const result = await userCreator({
       name: existing.name,
       email: newEmail,
+      username: newUsername,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       ip,
@@ -34,6 +36,7 @@ describe("userCreator", () => {
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
+    expect(user.username).toEqual(newUsername);
     expect(isNewUser).toEqual(false);
   });
 
@@ -101,6 +104,7 @@ describe("userCreator", () => {
     const result = await userCreator({
       name: "Test Name",
       email: "test@example.com",
+      username: "tname",
       teamId: team.id,
       ip,
       authentication: {
@@ -117,6 +121,7 @@ describe("userCreator", () => {
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual("test@example.com");
+    expect(user.username).toEqual("tname");
     expect(isNewUser).toEqual(true);
   });
 
