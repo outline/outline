@@ -276,7 +276,7 @@
   "Drop documents to import": "インポートするドキュメントをドロップ",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
   "Deleting": "削除中",
-  "I’m sure – Delete": "間違いありません – 削除",
+  "I’m sure – Delete": "I’m sure – Delete",
   "The collection was updated": "コレクションを更新しました。",
   "You can edit the name and other details at any time, however doing so often might confuse your team mates.": "名前やその他の詳細はいつでも編集できますが、チームメイトを混乱させる可能性があります。",
   "Name": "名前",
