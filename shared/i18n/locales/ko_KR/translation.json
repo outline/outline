@@ -276,7 +276,7 @@
   "Drop documents to import": "Drop documents to import",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
   "Deleting": "삭제 중",
-  "I’m sure – Delete": "I’m sure – Delete",
+  "I’m sure – Delete": "I’m sure – Delete",
   "The collection was updated": "컬렉션이 업데이트 되었습니다.",
   "You can edit the name and other details at any time, however doing so often might confuse your team mates.": "이름 및 기타 세부 정보를 언제라도 수정할 수 있지만 그렇게 할 경우 팀원들에게 자주 혼란을 줄 수 있습니다.",
   "Name": "이름",
