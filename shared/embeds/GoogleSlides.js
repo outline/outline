@@ -1,11 +1,9 @@
 // @flow
 import * as React from "react";
-import Image from "components/Image";
 import Frame from "./components/Frame";
+import Image from "./components/Image";
 
-const URL_REGEX = new RegExp(
-  "^https?://datastudio.google.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
-);
+const URL_REGEX = new RegExp("^https?://docs.google.com/presentation/d/(.*)$");
 
 type Props = {|
   attrs: {|
@@ -14,24 +12,26 @@ type Props = {|
   |},
 |};
 
-export default class GoogleDataStudio extends React.Component<Props> {
+export default class GoogleSlides extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
     return (
       <Frame
         {...this.props}
-        src={this.props.attrs.href.replace("u/0", "embed").replace("/edit", "")}
+        src={this.props.attrs.href
+          .replace("/edit", "/preview")
+          .replace("/pub", "/embed")}
         icon={
           <Image
-            src="/images/google-datastudio.png"
-            alt="Google Data Studio Icon"
+            src="/images/google-slides.png"
+            alt="Google Slides Icon"
             width={16}
             height={16}
           />
         }
         canonicalUrl={this.props.attrs.href}
-        title="Google Data Studio"
+        title="Google Slides"
         border
       />
     );

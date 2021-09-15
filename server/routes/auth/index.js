@@ -1,7 +1,6 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
 import { addMonths } from "date-fns";
-import debug from "debug";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
@@ -11,7 +10,6 @@ import validation from "../../middlewares/validation";
 import { Collection, Team, View } from "../../models";
 import providers from "./providers";
 
-const log = debug("server");
 const app = new Koa();
 const router = new Router();
 
@@ -21,7 +19,6 @@ router.use(passport.initialize());
 providers.forEach((provider) => {
   if (provider.enabled) {
     router.use("/", provider.router.routes());
-    log(`loaded ${provider.name} auth provider`);
   }
 });
 
@@ -43,10 +40,7 @@ router.get("/redirect", auth(), async (ctx) => {
 
   const [team, collection, view] = await Promise.all([
     Team.findByPk(user.teamId),
-    Collection.findOne({
-      where: { teamId: user.teamId },
-      order: [["index", "ASC"]],
-    }),
+    Collection.findFirstCollectionForUser(user),
     View.findOne({
       where: { userId: user.id },
     }),

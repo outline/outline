@@ -17,6 +17,7 @@ import Editor, { type Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import Star, { AnimatedStar } from "components/Star";
+import MultiplayerEditor from "./MultiplayerEditor";
 import { isModKey } from "utils/keyboard";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
@@ -27,6 +28,7 @@ type Props = {|
   document: Document,
   isDraft: boolean,
   shareId: ?string,
+  multiplayer?: boolean,
   onSave: ({ done?: boolean, autosave?: boolean, publish?: boolean }) => any,
   innerRef: { current: any },
   children: React.Node,
@@ -107,10 +109,12 @@ class DocumentEditor extends React.Component<Props> {
       innerRef,
       children,
       policies,
+      multiplayer,
       t,
       ...rest
     } = this.props;
 
+    const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
     const can = policies.abilities(document.id);
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
@@ -162,7 +166,7 @@ class DocumentEditor extends React.Component<Props> {
             }
           />
         )}
-        <Editor
+        <EditorComponent
           ref={innerRef}
           autoFocus={!!title && !this.props.defaultValue}
           placeholder={t("…the rest is up to you")}
