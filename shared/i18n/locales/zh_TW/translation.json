@@ -276,7 +276,7 @@
   "Drop documents to import": "拖曳文件以進行匯入",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "你確定嗎？ 刪除 <em>{{collectionName}}</em> 收藏列表是不可逆的行爲，但是在裡面的文章會被移動到垃圾桶。",
   "Deleting": "正在刪除",
-  "I’m sure – Delete": "我確定要－ 刪除",
+  "I’m sure – Delete": "I’m sure – Delete",
   "The collection was updated": "文件已被更新",
   "You can edit the name and other details at any time, however doing so often might confuse your team mates.": "你可以在任何時間編輯姓名或其他詳細資料，然而經常這麼做可能會讓其他團隊成員感到困擾。",
   "Name": "名稱",
