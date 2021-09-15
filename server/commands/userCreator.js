@@ -65,7 +65,7 @@ export default async function userCreator({
     }
 
     if (user) {
-      await user.update({ email });
+      await user.update({ email, username });
       await auth.update(rest);
 
       return { user, authentication: auth, isNewUser: false };
