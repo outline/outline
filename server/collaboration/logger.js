@@ -1,22 +1,19 @@
 // @flow
-import debug from "debug";
-
-const log = debug("server");
-
-export default class Logger {
+import Logger from "../logging/logger";
+export default class CollaborationLogger {
   async onCreateDocument(data: { documentName: string }) {
-    log(`Created document "${data.documentName}"`);
+    Logger.info("collaboration", `Created document "${data.documentName}"`);
   }
 
   async onConnect(data: { documentName: string }) {
-    log(`New connection to "${data.documentName}"`);
+    Logger.info("collaboration", `New connection to "${data.documentName}"`);
   }
 
   async onDisconnect(data: { documentName: string }) {
-    log(`Connection to "${data.documentName}" closed`);
+    Logger.info("collaboration", `Connection to "${data.documentName}" closed`);
   }
 
   async onUpgrade() {
-    log("Upgrading connection");
+    Logger.info("collaboration", "Upgrading connection");
   }
 }

@@ -9,6 +9,8 @@ declare var process: {
   env: {
     [string]: string,
   },
+  stdout: Stream,
+  stderr: Stream,
 };
 
 declare var EDITOR_VERSION: string;

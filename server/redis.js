@@ -1,10 +1,11 @@
 // @flow
 import Redis from "ioredis";
+import Logger from "./logging/logger";
 
 const options = {
   maxRetriesPerRequest: 20,
   retryStrategy(times) {
-    console.warn(`Retrying redis connection: attempt ${times}`);
+    Logger.warn(`Retrying redis connection: attempt ${times}`);
     return Math.min(times * 100, 3000);
   },
   // support Heroku Redis, see:

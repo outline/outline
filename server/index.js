@@ -3,7 +3,6 @@ import env from "./env"; // eslint-disable-line import/order
 import "./tracing"; // must come before importing any instrumented module
 
 import http from "http";
-import debug from "debug";
 import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
@@ -13,9 +12,10 @@ import Router from "koa-router";
 import { uniq } from "lodash";
 import stoppable from "stoppable";
 import throng from "throng";
+import Logger from "./logging/logger";
+import { requestErrorHandler } from "./logging/sentry";
 import services from "./services";
 import { getArg } from "./utils/args";
-import { requestErrorHandler } from "./utils/sentry";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
@@ -55,12 +55,12 @@ async function start(id: string, disconnect: () => void) {
 
   const app = new Koa();
   const server = stoppable(http.createServer(app.callback()));
-  const httpLogger = debug("http");
-  const log = debug("server");
   const router = new Router();
 
   // install basic middleware shared by all services
-  app.use(logger((str, args) => httpLogger(str)));
+  if ((env.DEBUG || "").includes("http")) {
+    app.use(logger((str, args) => Logger.info("http", str)));
+  }
   app.use(compress());
   app.use(helmet());
 
@@ -87,7 +87,7 @@ async function start(id: string, disconnect: () => void) {
       throw new Error(`Unknown service ${name}`);
     }
 
-    log(`Starting ${name} service…`);
+    Logger.info("lifecycle", `Starting ${name} service`);
     const init = services[name];
     await init(app, server);
   }
@@ -98,7 +98,7 @@ async function start(id: string, disconnect: () => void) {
 
   server.on("listening", () => {
     const address = server.address();
-    console.log(`\n> Listening on http://localhost:${address.port}\n`);
+    Logger.info("lifecycle", `Listening on http://localhost:${address.port}`);
   });
 
   server.listen(normalizedPortFlag || env.PORT || "3000");
@@ -107,7 +107,7 @@ async function start(id: string, disconnect: () => void) {
   process.once("SIGINT", shutdown);
 
   function shutdown() {
-    console.log("\n> Stopping server");
+    Logger.info("lifecycle", "Stopping server");
     server.stop(disconnect);
   }
 }

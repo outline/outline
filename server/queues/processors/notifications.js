@@ -1,5 +1,5 @@
 // @flow
-import debug from "debug";
+import Logger from "../../logging/logger";
 import mailer from "../../mailer";
 import {
   View,
@@ -11,8 +11,6 @@ import {
 } from "../../models";
 import { Op } from "../../sequelize";
 import type { DocumentEvent, CollectionEvent, Event } from "../../types";
-
-const log = debug("services");
 
 export default class NotificationsProcessor {
   async on(event: Event) {
@@ -98,7 +96,8 @@ export default class NotificationsProcessor {
       });
 
       if (view) {
-        log(
+        Logger.info(
+          "processor",
           `suppressing notification to ${setting.userId} because update viewed`
         );
         continue;
