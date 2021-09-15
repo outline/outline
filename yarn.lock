@@ -12482,10 +12482,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.17.5:
-  version "11.17.5"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.17.5.tgz#90041c4b2b6fed64dc7402aac6dec378cc4a7c22"
-  integrity sha512-NhKmQyOqV0FYK4BMjIdjWLC2J0NGEibebWVyJgJE43fLIFm4LOg5ql4QszsOFLX79CVVBPAysHCFYns+XJ+qGw==
+rich-markdown-editor@^11.17.6:
+  version "11.17.6"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.17.6.tgz#c524ba03a3e331105c5e2a927e6359efd034295c"
+  integrity sha512-lZ6gZ+C10SclOM28m1b6rElBoaylpkifGc7KJfd+rOqyFsFu1kX3RMCm2R8X2keVjTz3d0zhZ3eHNvoOaICXoQ==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
