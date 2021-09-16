@@ -23,8 +23,7 @@ const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
-const OIDC_USERNAME_CLAIM =
-  process.env.OIDC_USERNAME_CLAIM || "preferred_username";
+const OIDC_USERNAME_CLAIM = process.env.OIDC_USERNAME_CLAIM;
 const allowedDomains = getAllowedDomains();
 
 export const config = {
@@ -107,8 +106,7 @@ if (OIDC_CLIENT_ID) {
               email: profile.email,
               avatarUrl: profile.picture,
               // Claim name can be overriden using an env variable.
-              // Default is 'preferred_username' as per OIDC spec.
-              username: get(profile, OIDC_USERNAME_CLAIM),
+              username: get(profile, OIDC_USERNAME_CLAIM, "preferred_username"),
             },
             authenticationProvider: {
               name: providerName,
