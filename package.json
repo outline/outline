@@ -201,7 +201,7 @@
     "fetch-test-server": "^1.1.0",
     "flow-bin": "^0.124.0",
     "html-webpack-plugin": "3.2.0",
-    "i18next-parser": "^4.6.0",
+    "i18next-parser": "^4.7.0",
     "jest-cli": "^26.0.0",
     "jest-fetch-mock": "^3.0.3",
     "koa-webpack-dev-middleware": "^1.4.5",
