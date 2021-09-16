@@ -271,7 +271,7 @@
   "Pinned": "Épinglé",
   "Recently updated": "Récemment mis à jour",
   "Recently published": "Récemment publiés",
-  "Least recently updated": "Moins récemment modifiés",
+  "Least recently updated": "Anciennement modifiés",
   "A–Z": "A – Z",
   "Drop documents to import": "Déposer les documents à importer",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Êtes-vous sûr ? La suppression de la collection <em>{{collectionName}}</em> est définitive et ne peut pas être restaurée. Cependant les documents inclus seront déplacés vers la corbeille.",
