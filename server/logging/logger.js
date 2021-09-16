@@ -9,7 +9,7 @@ const isProduction = env.NODE_ENV === "production";
 
 type LogCategory =
   | "lifecycle"
-  | "collaboration"
+  | "hocuspocus"
   | "http"
   | "commands"
   | "processor"
