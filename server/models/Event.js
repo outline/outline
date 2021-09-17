@@ -45,13 +45,21 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  globalEventQueue.add(event, { removeOnComplete: true });
+  globalEventQueue.add(event);
 });
 
 // add can be used to send events into the event system without recording them
-// in the database / audit trail
+// in the database or audit trail
 Event.add = (event) => {
-  globalEventQueue.add(Event.build(event), { removeOnComplete: true });
+  const now = new Date();
+
+  globalEventQueue.add(
+    Event.build({
+      createdAt: now,
+      updatedAt: now,
+      ...event,
+    })
+  );
 };
 
 Event.ACTIVITY_EVENTS = [

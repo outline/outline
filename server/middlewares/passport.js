@@ -2,6 +2,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { type Context } from "koa";
 import type { AccountProvisionerResult } from "../commands/accountProvisioner";
+import Logger from "../logging/logger";
 import { signIn } from "../utils/authentication";
 
 export default function createMiddleware(providerName: string) {
@@ -11,7 +12,7 @@ export default function createMiddleware(providerName: string) {
       { session: false },
       async (err, user, result: AccountProvisionerResult) => {
         if (err) {
-          console.error(err);
+          Logger.error("Error during authentication", err);
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
@@ -36,7 +37,10 @@ export default function createMiddleware(providerName: string) {
         // Correlation ID, Timestamp in these two query string parameters.
         const { error, error_description } = ctx.request.query;
         if (error && error_description) {
-          console.error(error_description);
+          Logger.error(
+            "Error from Azure during authentication",
+            new Error(error_description)
+          );
 
           // Display only the descriptive message to the user, log the rest
           const description = error_description.split("Trace ID")[0];

@@ -1,4 +1,5 @@
 // @flow
+import { observer } from "mobx-react";
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -84,4 +85,4 @@ const Header = styled.button`
   }
 `;
 
-export default TeamButton;
+export default observer(TeamButton);

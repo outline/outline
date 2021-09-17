@@ -1,6 +1,7 @@
 // @flow
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+import { Trans } from "react-i18next";
 import { withRouter, type Location } from "react-router-dom";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -42,12 +43,12 @@ class References extends React.Component<Props> {
           <Tabs>
             {showNestedDocuments && (
               <Tab to="#children" isActive={() => !isBacklinksTab}>
-                Nested documents
+                <Trans>Nested documents</Trans>
               </Tab>
             )}
             {showBacklinks && (
               <Tab to="#backlinks" isActive={() => isBacklinksTab}>
-                Referenced by
+                <Trans>Referenced by</Trans>
               </Tab>
             )}
           </Tabs>

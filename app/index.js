@@ -15,8 +15,8 @@ import ScrollToTop from "components/ScrollToTop";
 import Theme from "components/Theme";
 import Toasts from "components/Toasts";
 import Routes from "./routes";
+import { initSentry } from "./utils/sentry";
 import env from "env";
-import { initSentry } from "utils/sentry";
 
 initI18n();
 

@@ -245,6 +245,9 @@ function DocumentLink(
                     />
                   </>
                 }
+                isActive={(match, location) =>
+                  match && location.search !== "?starred"
+                }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}

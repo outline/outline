@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Collection from "models/Collection";
 import Document from "models/Document";
@@ -40,6 +41,7 @@ function CollectionLink({
   onChangeDragging,
 }: Props) {
   const { t } = useTranslation();
+  const { search } = useLocation();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [
     permissionOpen,
@@ -62,12 +64,17 @@ function CollectionLink({
   );
 
   React.useEffect(() => {
+    // If we're viewing a starred document through the starred menu then don't
+    // touch the expanded / collapsed state of the collections
+    if (search === "?starred") {
+      return;
+    }
     if (isDraggingAnyCollection) {
       setExpanded(false);
     } else {
       setExpanded(collection.id === ui.activeCollectionId);
     }
-  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId]);
+  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId, search]);
 
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
