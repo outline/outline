@@ -70,6 +70,7 @@ export default [
   {
     title: "Bilibili",
     keywords: "video",
+    defaultHidden: true,
     icon: () => <Img src="/images/bilibili.png" />,
     component: Bilibili,
     matcher: matcher(Bilibili),
