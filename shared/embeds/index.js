@@ -3,6 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import Bilibili from "./Bilibili";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -65,6 +66,13 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "Bilibili",
+    keywords: "video",
+    icon: () => <Img src="/images/bilibili.png" />,
+    component: Bilibili,
+    matcher: matcher(Bilibili),
   },
   {
     title: "Cawemo",
