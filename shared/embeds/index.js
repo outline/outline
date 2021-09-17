@@ -3,6 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import Berrycast from "./Berrycast";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -65,6 +66,14 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "Berrycast",
+    keywords: "video",
+    defaultHidden: true,
+    icon: () => <Img src="/images/berrycast.png" />,
+    component: Berrycast,
+    matcher: matcher(Berrycast),
   },
   {
     title: "Cawemo",
