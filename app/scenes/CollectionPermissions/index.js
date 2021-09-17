@@ -138,9 +138,9 @@ function CollectionPermissions({ collection }: Props) {
   );
 
   const handleChangePermission = React.useCallback(
-    async (ev) => {
+    async (permission: string) => {
       try {
-        await collection.save({ permission: ev.target.value });
+        await collection.save({ permission });
         showToast(t("Default access permissions were updated"), {
           type: "success",
         });
