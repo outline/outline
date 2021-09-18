@@ -5,7 +5,7 @@ import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
 import GroupListItem from "components/GroupListItem";
-import SelectInput, { type Props as SelectProps } from "components/SelectInput";
+import InputSelect, { type Props as SelectProps } from "components/InputSelect";
 import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 
 type Props = {|
@@ -67,7 +67,7 @@ const Spacer = styled.div`
   width: 8px;
 `;
 
-const Select = (styled(SelectInput)`
+const Select = (styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;

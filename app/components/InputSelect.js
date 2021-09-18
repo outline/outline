@@ -50,7 +50,7 @@ const getOptionFromValue = (options: Option[], value) => {
   return options.find((option) => option.value === value) || {};
 };
 
-const SelectInput = (props: Props) => {
+const InputSelect = (props: Props) => {
   const select = useSelectState({
     gutter: 2,
     placement: "bottom-start",
@@ -148,4 +148,4 @@ export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
 `;
 
-export default SelectInput;
+export default InputSelect;

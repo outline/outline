@@ -8,8 +8,8 @@ import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Flex from "components/Flex";
+import InputSelect, { type Props as SelectProps } from "components/InputSelect";
 import ListItem from "components/List/Item";
-import SelectInput, { type Props as SelectProps } from "components/SelectInput";
 import Time from "components/Time";
 import MemberMenu from "menus/MemberMenu";
 
@@ -92,7 +92,7 @@ const Spacer = styled.div`
   width: 8px;
 `;
 
-const Select = (styled(SelectInput)`
+const Select = (styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;

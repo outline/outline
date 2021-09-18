@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import SelectInput, { type Props, type Option } from "components/SelectInput";
+import InputSelect, { type Props, type Option } from "components/InputSelect";
 
 const InputSelectRole = (
   props: $Rest<
@@ -12,7 +12,7 @@ const InputSelectRole = (
   const { t } = useTranslation();
 
   return (
-    <SelectInput
+    <InputSelect
       label={t("Role")}
       options={[
         { label: t("Member"), value: "member" },

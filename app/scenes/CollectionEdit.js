@@ -9,7 +9,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Input from "components/Input";
-import SelectInput from "components/SelectInput";
+import InputSelect from "components/InputSelect";
 import useToasts from "hooks/useToasts";
 
 type Props = {
@@ -93,7 +93,7 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
           &nbsp;
           <IconPicker onChange={handleChange} color={color} icon={icon} />
         </Flex>
-        <SelectInput
+        <InputSelect
           label={t("Sort in sidebar")}
           options={[
             { label: t("Alphabetical"), value: "title.asc" },
