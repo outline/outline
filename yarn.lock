@@ -1155,26 +1155,20 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hocuspocus/extension-logger@^1.0.0-alpha.43":
-  version "1.0.0-alpha.43"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-logger/-/extension-logger-1.0.0-alpha.43.tgz#66224ba5bf634ba1a1b6be6156d5d55d515efba6"
-  integrity sha512-PdIG7egACqNpRzWR/vX5BRVlvTRjOsT1MwK1h+6T/ICI8aP6WOsJ5ruqPwJGN0vLbffZK+IH9mfxALHa6NHVlA==
+"@hocuspocus/provider@^1.0.0-alpha.16":
+  version "1.0.0-alpha.16"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.16.tgz#f14e10a6961a377564aabb8a6d443b8b512fa49d"
+  integrity sha512-kp3oteq64ruUAVXcEW4HlLlg2yZtZSxLN9/JMGaCERFRm+D+cvzJNadNh35mbO5a2Me612wj7lSV/OEw0ugQAw==
   dependencies:
-    "@hocuspocus/server" "^1.0.0-alpha.68"
-
-"@hocuspocus/provider@^1.0.0-alpha.13":
-  version "1.0.0-alpha.13"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.13.tgz#40c65168d1bed35bef0196df40512326825bfa51"
-  integrity sha512-/L6GmV7bEEwd8VIiodOynQjQUaEHUT4hQIkzNMtsICUkiu3OQs35ZrC973BxSp0t7df6KOo3kSULBpp/TW8wGg==
-  dependencies:
+    "@lifeomic/attempt" "^3.0.0"
     lib0 "^0.2.42"
     y-protocols "^1.0.5"
     yjs "^13.5.8"
 
-"@hocuspocus/server@^1.0.0-alpha.68":
-  version "1.0.0-alpha.68"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.68.tgz#19a061718f0cdebab83fe0847386a556e7753e5c"
-  integrity sha512-phuuW8KFHmcufhatvIysq3iiXYH1Utd8+dWW0YNM90BA79A6rmx32DcQT3fton/wjcqU8rzoeZQomemghfSxBQ==
+"@hocuspocus/server@^1.0.0-alpha.70":
+  version "1.0.0-alpha.70"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.70.tgz#0986d85d2eb05a60562ab58fe70a8b47b0ff3de7"
+  integrity sha512-LyMTo1tRfJGzz0F9J/wDr35cIc056uFQPzl/tLYuYX6DNhU6KF2UKuR4EYlyiYpxxRUIpFQe3yKYisusmU2E/Q==
   dependencies:
     "@types/async-lock" "^1.1.2"
     "@types/uuid" "^8.3.0"
@@ -1666,6 +1660,11 @@
   dependencies:
     "@babel/runtime" "^7.7.2"
     regenerator-runtime "^0.13.3"
+
+"@lifeomic/attempt@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@lifeomic/attempt/-/attempt-3.0.0.tgz#75fecc204f8b0ac18b5363b4404bb32450f01859"
+  integrity sha512-Ibk4Vfl46dSrhtH5fHsrTA4waAuyP7/qcr3uo0mO70azRc6LWgJILlMy3B1oOvyiN9jQcdqwsThaQkPKLiYKTg==
 
 "@nicolo-ribaudo/chokidar-2@^2.1.8":
   version "2.1.8"
