@@ -2,31 +2,18 @@
 import {
   Select,
   SelectOption,
-  SelectPopover,
   useSelectState,
+  useSelectPopover,
+  SelectPopover,
 } from "@renderlesskit/react";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Button, { Inner } from "components/Button";
 import Flex from "components/Flex";
+import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
-
-const StyledButton = styled(Button)`
-  text-transform: none;
-  margin-bottom: 16px;
-  width: fit-content;
-  ${Inner} {
-    line-height: 28px;
-  }
-`;
-
-const Wrapper = styled.label`
-  display: block;
-  max-width: ${(props) => (props.short ? "350px" : "100%")};
-`;
 
 export type Option = { label: string, value: string };
 
@@ -53,8 +40,13 @@ const getOptionFromValue = (options: Option[], value) => {
 const InputSelect = (props: Props) => {
   const select = useSelectState({
     gutter: 2,
-    placement: "bottom-start",
-    current: getOptionFromValue(props.options, props.value).label,
+    modal: true,
+  });
+
+  const popOver = useSelectPopover({
+    ...select,
+    hideOnClickOutside: true,
+    preventBodyScroll: true,
   });
 
   const {
@@ -101,47 +93,54 @@ const InputSelect = (props: Props) => {
           );
         }}
       </Select>
-      <Container {...select} aria-label={ariaLabelPlural}>
-        {options.map((option) => (
-          <div key={option.value}>
-            <StyledSelectOption
-              {...select}
-              value={option.label}
-              key={option.value}
-              onClick={handleOnClick}
-            >
-              {option.label}
-            </StyledSelectOption>
-          </div>
-        ))}
-      </Container>
+      <SelectPopover {...select} {...popOver} aria-label={ariaLabelPlural}>
+        {(props) => {
+          const topAnchor = props.style.top === "0";
+          const rightAnchor = props.placement === "bottom-end";
+
+          return (
+            <Position {...props}>
+              <Background
+                dir="auto"
+                topAnchor={topAnchor}
+                rightAnchor={rightAnchor}
+              >
+                {select.visible || select.animating
+                  ? options.map((option) => (
+                      <div key={option.value}>
+                        <StyledSelectOption
+                          {...select}
+                          value={option.label}
+                          key={option.value}
+                          onClick={handleOnClick}
+                        >
+                          {option.label}
+                        </StyledSelectOption>
+                      </div>
+                    ))
+                  : null}
+              </Background>
+            </Position>
+          );
+        }}
+      </SelectPopover>
+      {(select.visible || select.animating) && <Backdrop />}
     </Flex>
   );
 };
 
-const Container = styled(SelectPopover)`
-  max-width: 100%;
-  background: ${(props) => props.theme.menuBackground};
-  box-shadow: ${(props) => props.theme.menuShadow};
-  border-radius: 6px;
-  padding: 6px 0;
-  min-width: 180px;
-  overflow: hidden;
-  overflow-y: auto;
-  max-height: 75vh;
-  pointer-events: all;
-  font-weight: normal;
-  z-index: ${(props) => props.theme.depths.modal};
-
-  @media print {
-    display: none;
+const StyledButton = styled(Button)`
+  text-transform: none;
+  margin-bottom: 16px;
+  width: fit-content;
+  ${Inner} {
+    line-height: 28px;
   }
+`;
 
-  ${breakpoint("tablet")`
-    max-width: 276px;
-    border: ${(props) =>
-      props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
-  `};
+const Wrapper = styled.label`
+  display: block;
+  max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
 export const StyledSelectOption = styled(SelectOption)`
