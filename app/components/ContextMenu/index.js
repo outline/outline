@@ -75,7 +75,7 @@ export default function ContextMenu({
   );
 }
 
-const Backdrop = styled.div`
+export const Backdrop = styled.div`
   animation: ${fadeIn} 200ms ease-in-out;
   position: fixed;
   top: 0;
@@ -90,7 +90,7 @@ const Backdrop = styled.div`
   `};
 `;
 
-const Position = styled.div`
+export const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
 
@@ -104,7 +104,7 @@ const Position = styled.div`
   `};
 `;
 
-const Background = styled.div`
+export const Background = styled.div`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
@@ -125,8 +125,7 @@ const Background = styled.div`
   ${breakpoint("tablet")`
     animation: ${(props) =>
       props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
-    transform-origin: ${(props) =>
-      props.rightAnchor === "bottom-end" ? "75%" : "25%"} 0;
+    transform-origin: ${(props) => (props.rightAnchor ? "75%" : "25%")} 0;
     max-width: 276px;
     background: ${(props) => props.theme.menuBackground};
     box-shadow: ${(props) => props.theme.menuShadow};
