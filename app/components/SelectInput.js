@@ -16,6 +16,7 @@ import { LabelText } from "./Input";
 
 const StyledButton = styled(Button)`
   text-transform: none;
+  margin-bottom: 16px;
   width: fit-content;
   ${Inner} {
     line-height: 28px;
@@ -48,6 +49,7 @@ const getOptionFromLabel = (options: Option[], label) => {
 const getOptionFromValue = (options: Option[], value) => {
   return options.find((option) => option.value === value) || {};
 };
+
 const SelectInput = (props: Props) => {
   const select = useSelectState({
     gutter: 2,

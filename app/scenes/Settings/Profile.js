@@ -14,8 +14,8 @@ import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Input, { LabelText } from "components/Input";
-import InputSelect from "components/InputSelect";
 import Scene from "components/Scene";
+import SelectInput from "components/SelectInput";
 import ImageUpload from "./components/ImageUpload";
 
 type Props = {
@@ -82,8 +82,8 @@ class Profile extends React.Component<Props> {
     );
   };
 
-  handleLanguageChange = (ev: SyntheticInputEvent<*>) => {
-    this.language = ev.target.value;
+  handleLanguageChange = (value: string) => {
+    this.language = value;
   };
 
   toggleDeleteAccount = () => {
@@ -127,12 +127,14 @@ class Profile extends React.Component<Props> {
             short
           />
           <br />
-          <InputSelect
+          <SelectInput
             label={t("Language")}
             options={languageOptions}
             value={this.language}
             onChange={this.handleLanguageChange}
             short
+            ariaLabel="Language"
+            ariaLabelPlural="Languages"
           />
           <HelpText small>
             <Trans>

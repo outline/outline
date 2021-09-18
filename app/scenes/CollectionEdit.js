@@ -9,7 +9,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Input from "components/Input";
-import InputSelect from "components/InputSelect";
+import SelectInput from "components/SelectInput";
 import useToasts from "hooks/useToasts";
 
 type Props = {
@@ -54,8 +54,8 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
     [collection, color, icon, name, onSubmit, showToast, sort, t]
   );
 
-  const handleSortChange = (ev: SyntheticInputEvent<HTMLSelectElement>) => {
-    const [field, direction] = ev.target.value.split(".");
+  const handleSortChange = (value: string) => {
+    const [field, direction] = value.split(".");
 
     if (direction === "asc" || direction === "desc") {
       setSort({ field, direction });
@@ -93,7 +93,7 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
           &nbsp;
           <IconPicker onChange={handleChange} color={color} icon={icon} />
         </Flex>
-        <InputSelect
+        <SelectInput
           label={t("Sort in sidebar")}
           options={[
             { label: t("Alphabetical"), value: "title.asc" },
@@ -101,6 +101,8 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
           ]}
           value={`${sort.field}.${sort.direction}`}
           onChange={handleSortChange}
+          ariaLabel="Sort"
+          ariaLabelPlural="Sorts"
         />
         <Button type="submit" disabled={isSaving || !collection.name}>
           {isSaving ? `${t("Saving")}…` : t("Save")}

@@ -322,6 +322,7 @@ const Empty = styled(HelpText)`
 
 const PermissionExplainer = styled(HelpText)`
   margin-bottom: 24px;
+  margin-top: -16px;
 `;
 
 const Actions = styled.div`
