@@ -1,5 +1,6 @@
 // @flow
 import { addMinutes, subMinutes } from "date-fns";
+import fetch from "fetch-with-proxy";
 import { type Request } from "koa";
 import { OAuthStateMismatchError } from "../errors";
 import { getCookieDomain } from "./domains";
@@ -46,4 +47,15 @@ export class StateStore {
 
     callback(null, true);
   };
+}
+
+export async function request(endpoint: string, accessToken: string) {
+  const response = await fetch(endpoint, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
 }
