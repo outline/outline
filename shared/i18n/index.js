@@ -4,7 +4,7 @@ import backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
 // Note: Updating the available languages? Make sure to also update the
-// locales array in app/components/LocaleTime.js to enable translation for timestamps.
+// locales array in app/utils/i18n.js to enable translation for timestamps.
 export const languageOptions = [
   { label: "English (US)", value: "en_US" },
   { label: "简体中文 (Chinese, Simplified)", value: "zh_CN" },
@@ -19,6 +19,7 @@ export const languageOptions = [
   { label: "Português (Brazil)", value: "pt_BR" },
   { label: "Português (Portugal)", value: "pt_PT" },
   { label: "Pусский (Россия)", value: "ru_RU" },
+  { label: "Polskie (Polska)", value: "pl_PL" },
 ];
 
 export const languages: string[] = languageOptions.map((i) => i.value);
