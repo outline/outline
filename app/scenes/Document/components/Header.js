@@ -43,6 +43,7 @@ type Props = {|
   isPublishing: boolean,
   publishingIsDisabled: boolean,
   savingIsDisabled: boolean,
+  onSelectTemplate: (template: Document) => void,
   onDiscard: () => void,
   onSave: ({
     done?: boolean,
@@ -63,6 +64,7 @@ function DocumentHeader({
   savingIsDisabled,
   publishingIsDisabled,
   sharedTree,
+  onSelectTemplate,
   onSave,
   headings,
 }: Props) {
@@ -87,7 +89,7 @@ function DocumentHeader({
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
-  const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
+  const canToggleEmbeds = auth.team?.documentEmbeds;
   const canEdit = can.update && !isEditing;
 
   const toc = (
@@ -168,14 +170,16 @@ function DocumentHeader({
                 <TableOfContentsMenu headings={headings} />
               </TocWrapper>
             )}
-            {!isPublishing && isSaving && <Status>{t("Saving")}…</Status>}
-            <Collaborators
-              document={document}
-              currentUserId={auth.user ? auth.user.id : undefined}
-            />
+            {!isPublishing && isSaving && !auth.team?.collaborativeEditing && (
+              <Status>{t("Saving")}…</Status>
+            )}
+            <Collaborators document={document} />
             {isEditing && !isTemplate && isNew && (
               <Action>
-                <TemplatesMenu document={document} />
+                <TemplatesMenu
+                  document={document}
+                  onSelectTemplate={onSelectTemplate}
+                />
               </Action>
             )}
             {!isEditing && !isMobile && !isTemplate && (

@@ -10,17 +10,16 @@ import BaseModel from "models/BaseModel";
 import User from "models/User";
 import View from "./View";
 
-type SaveOptions = {
+type SaveOptions = {|
   publish?: boolean,
   done?: boolean,
   autosave?: boolean,
   lastRevision?: number,
-};
+|};
 
 export default class Document extends BaseModel {
   @observable isSaving: boolean = false;
   @observable embedsDisabled: boolean = false;
-  @observable injectTemplate: boolean = false;
   @observable lastViewedAt: ?string;
   store: DocumentsStore;
 
@@ -254,15 +253,28 @@ export default class Document extends BaseModel {
   };
 
   @action
-  updateFromTemplate = async (template: Document) => {
-    this.templateId = template.id;
-    this.title = template.title;
-    this.text = template.text;
-    this.injectTemplate = true;
+  update = async (options: {| ...SaveOptions, title: string |}) => {
+    if (this.isSaving) return this;
+    this.isSaving = true;
+
+    try {
+      if (options.lastRevision) {
+        return await this.store.update({
+          id: this.id,
+          title: this.title,
+          lastRevision: options.lastRevision,
+          ...options,
+        });
+      }
+
+      throw new Error("Attempting to update without a lastRevision");
+    } finally {
+      this.isSaving = false;
+    }
   };
 
   @action
-  save = async (options: SaveOptions = {}) => {
+  save = async (options: ?SaveOptions) => {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
@@ -275,22 +287,22 @@ export default class Document extends BaseModel {
           collectionId: this.collectionId,
           title: this.title,
           text: this.text,
-          publish: options.publish,
-          done: options.done,
-          autosave: options.autosave,
+          publish: options?.publish,
+          done: options?.done,
+          autosave: options?.autosave,
         });
       }
 
-      if (options.lastRevision) {
+      if (options?.lastRevision) {
         return await this.store.update({
           id: this.id,
           title: this.title,
           text: this.text,
           templateId: this.templateId,
-          lastRevision: options.lastRevision,
-          publish: options.publish,
-          done: options.done,
-          autosave: options.autosave,
+          lastRevision: options?.lastRevision,
+          publish: options?.publish,
+          done: options?.done,
+          autosave: options?.autosave,
           collectionId: this.collectionId,
           parentDocumentId: this.parentDocumentId,
         });

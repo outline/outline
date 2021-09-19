@@ -28,6 +28,11 @@ export default function Notices() {
           an allowed team domain.
         </NoticeAlert>
       )}
+      {notice === "malformed_user_info" && (
+        <NoticeAlert>
+          We could not read the user info supplied by your identity provider.
+        </NoticeAlert>
+      )}
       {notice === "email-auth-required" && (
         <NoticeAlert>
           Your account uses email sign-in, please sign-in with email to

@@ -21,13 +21,12 @@ export async function documentUpdater(
   }: Object,
   ip: String
 ): Document {
-  // Update document
   const previousTitle = document.title;
   if (title) document.title = title;
   if (editorVersion) document.editorVersion = editorVersion;
   if (templateId) document.templateId = templateId;
-  document.text = append ? document.text + text : text;
 
+  document.text = append ? document.text + text : text;
   document.lastModifiedById = user.id;
 
   let transaction;
@@ -44,56 +43,63 @@ export async function documentUpdater(
     } else {
       updatedDocument = await document.save({ autosave, transaction });
     }
+
+    updatedDocument.updatedBy = user;
+    updatedDocument.collection = collection;
+
+    if (publish) {
+      await Event.create(
+        {
+          name: "documents.publish",
+          documentId: updatedDocument.id,
+          collectionId: updatedDocument.collectionId,
+          teamId: updatedDocument.teamId,
+          actorId: user.id,
+          data: { title: updatedDocument.title },
+          ip,
+        },
+        { transaction }
+      );
+    } else {
+      await Event.create(
+        {
+          name: "documents.update",
+          documentId: updatedDocument.id,
+          collectionId: updatedDocument.collectionId,
+          teamId: updatedDocument.teamId,
+          actorId: user.id,
+          data: {
+            autosave,
+            done,
+            title: updatedDocument.title,
+          },
+          ip,
+        },
+        { transaction }
+      );
+    }
+
+    if (updatedDocument.title !== previousTitle) {
+      Event.add({
+        name: "documents.title_change",
+        documentId: updatedDocument.id,
+        collectionId: updatedDocument.collectionId,
+        teamId: updatedDocument.teamId,
+        actorId: user.id,
+        data: {
+          previousTitle,
+          title: updatedDocument.title,
+        },
+        ip,
+      });
+    }
+
     await transaction.commit();
   } catch (err) {
     if (transaction) {
       await transaction.rollback();
     }
     throw err;
-  }
-
-  updatedDocument.updatedBy = user;
-  updatedDocument.collection = collection;
-
-  if (publish) {
-    await Event.create({
-      name: "documents.publish",
-      documentId: updatedDocument.id,
-      collectionId: updatedDocument.collectionId,
-      teamId: updatedDocument.teamId,
-      actorId: user.id,
-      data: { title: updatedDocument.title },
-      ip,
-    });
-  } else {
-    await Event.create({
-      name: "documents.update",
-      documentId: updatedDocument.id,
-      collectionId: updatedDocument.collectionId,
-      teamId: updatedDocument.teamId,
-      actorId: user.id,
-      data: {
-        autosave,
-        done,
-        title: updatedDocument.title,
-      },
-      ip,
-    });
-  }
-
-  if (updatedDocument.title !== previousTitle) {
-    Event.add({
-      name: "documents.title_change",
-      documentId: updatedDocument.id,
-      collectionId: updatedDocument.collectionId,
-      teamId: updatedDocument.teamId,
-      actorId: user.id,
-      data: {
-        previousTitle,
-        title: updatedDocument.title,
-      },
-      ip,
-    });
   }
 
   return updatedDocument;

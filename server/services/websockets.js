@@ -4,20 +4,19 @@ import Koa from "koa";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
-import env from "../env";
+import Logger from "../logging/logger";
+import Metrics from "../logging/metrics";
 import { Document, Collection, View } from "../models";
 import policy from "../policies";
 import { websocketsQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/websockets";
 import { client, subscriber } from "../redis";
-import Sentry from "../sentry";
 import { getUserForJWT } from "../utils/jwt";
-import * as metrics from "../utils/metrics";
 
 const { can } = policy;
-const websockets = new WebsocketsProcessor();
 
 export default function init(app: Koa, server: http.Server) {
+  // Websockets for events and non-collaborative documents
   const io = IO(server, {
     path: "/realtime",
     serveClient: false,
@@ -37,23 +36,23 @@ export default function init(app: Koa, server: http.Server) {
 
   io.of("/").adapter.on("error", (err) => {
     if (err.name === "MaxRetriesPerRequestError") {
-      console.error(`Redis error: ${err.message}. Shutting down now.`);
+      Logger.error("Redis maximum retries exceeded in socketio adapter", err);
       throw err;
     } else {
-      console.error(`Redis error: ${err.message}`);
+      Logger.error("Redis error in socketio adapter", err);
     }
   });
 
   io.on("connection", (socket) => {
-    metrics.increment("websockets.connected");
-    metrics.gaugePerInstance(
+    Metrics.increment("websockets.connected");
+    Metrics.gaugePerInstance(
       "websockets.count",
       socket.client.conn.server.clientsCount
     );
 
     socket.on("disconnect", () => {
-      metrics.increment("websockets.disconnected");
-      metrics.gaugePerInstance(
+      Metrics.increment("websockets.disconnected");
+      Metrics.gaugePerInstance(
         "websockets.count",
         socket.client.conn.server.clientsCount
       );
@@ -106,7 +105,7 @@ export default function init(app: Koa, server: http.Server) {
 
           if (can(user, "read", collection)) {
             socket.join(`collection-${event.collectionId}`, () => {
-              metrics.increment("websockets.collections.join");
+              Metrics.increment("websockets.collections.join");
             });
           }
         }
@@ -127,7 +126,7 @@ export default function init(app: Koa, server: http.Server) {
             );
 
             socket.join(room, () => {
-              metrics.increment("websockets.documents.join");
+              Metrics.increment("websockets.documents.join");
 
               // let everyone else in the room know that a new user joined
               io.to(room).emit("user.join", {
@@ -139,14 +138,9 @@ export default function init(app: Koa, server: http.Server) {
               // let this user know who else is already present in the room
               io.in(room).clients(async (err, sockets) => {
                 if (err) {
-                  if (process.env.SENTRY_DSN) {
-                    Sentry.withScope(function (scope) {
-                      scope.setExtra("clients", sockets);
-                      Sentry.captureException(err);
-                    });
-                  } else {
-                    console.error(err);
-                  }
+                  Logger.error("Error getting clients for room", err, {
+                    sockets,
+                  });
                   return;
                 }
 
@@ -173,13 +167,13 @@ export default function init(app: Koa, server: http.Server) {
       socket.on("leave", (event) => {
         if (event.collectionId) {
           socket.leave(`collection-${event.collectionId}`, () => {
-            metrics.increment("websockets.collections.leave");
+            Metrics.increment("websockets.collections.leave");
           });
         }
         if (event.documentId) {
           const room = `document-${event.documentId}`;
           socket.leave(room, () => {
-            metrics.increment("websockets.documents.leave");
+            Metrics.increment("websockets.documents.leave");
 
             io.to(room).emit("user.leave", {
               userId: user.id,
@@ -204,7 +198,7 @@ export default function init(app: Koa, server: http.Server) {
       });
 
       socket.on("presence", async (event) => {
-        metrics.increment("websockets.presence");
+        Metrics.increment("websockets.presence");
 
         const room = `document-${event.documentId}`;
 
@@ -226,17 +220,13 @@ export default function init(app: Koa, server: http.Server) {
     },
   });
 
+  // Handle events from event queue that should be sent to the clients down ws
+  const websockets = new WebsocketsProcessor();
+
   websocketsQueue.process(async function websocketEventsProcessor(job) {
     const event = job.data;
     websockets.on(event, io).catch((error) => {
-      if (env.SENTRY_DSN) {
-        Sentry.withScope(function (scope) {
-          scope.setExtra("event", event);
-          Sentry.captureException(error);
-        });
-      } else {
-        throw error;
-      }
+      Logger.error("Error processing websocket event", error, { event });
     });
   });
 }

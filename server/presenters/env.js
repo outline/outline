@@ -4,8 +4,11 @@
 // do not add anything here that should be a secret or password
 export default function present(env: Object): Object {
   return {
-    URL: env.URL,
-    CDN_URL: env.CDN_URL || "",
+    URL: env.URL.replace(/\/$/, ""),
+    CDN_URL: (env.CDN_URL || "").replace(/\/$/, ""),
+    COLLABORATION_URL: (env.COLLABORATION_URL || "")
+      .replace(/\/$/, "")
+      .replace(/^http/, "ws"),
     DEPLOYMENT: env.DEPLOYMENT,
     ENVIRONMENT: env.NODE_ENV,
     SENTRY_DSN: env.SENTRY_DSN,

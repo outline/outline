@@ -104,6 +104,7 @@ export async function buildUser(overrides: Object = {}) {
     {
       email: `user${count}@example.com`,
       name: `User ${count}`,
+      username: `user${count}`,
       createdAt: new Date("2018-01-01T00:00:00.000Z"),
       lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
       authentications: [

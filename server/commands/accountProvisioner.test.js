@@ -32,6 +32,7 @@ describe("accountProvisioner", () => {
         name: "Jenny Tester",
         email: "jenny@example.com",
         avatarUrl: "https://example.com/avatar.png",
+        username: "jtester",
       },
       team: {
         name: "New team",
@@ -57,6 +58,7 @@ describe("accountProvisioner", () => {
     expect(auth.scopes[0]).toEqual("read");
     expect(team.name).toEqual("New team");
     expect(user.email).toEqual("jenny@example.com");
+    expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
     expect(isNewTeam).toEqual(true);
     expect(mailer.sendTemplate).toHaveBeenCalled();
@@ -73,6 +75,7 @@ describe("accountProvisioner", () => {
     const authentications = await existing.getAuthentications();
     const authentication = authentications[0];
     const newEmail = "test@example.com";
+    const newUsername = "tname";
 
     const { user, isNewUser, isNewTeam } = await accountProvisioner({
       ip,
@@ -80,6 +83,7 @@ describe("accountProvisioner", () => {
         name: existing.name,
         email: newEmail,
         avatarUrl: existing.avatarUrl,
+        username: newUsername,
       },
       team: {
         name: existingTeam.name,
@@ -102,6 +106,7 @@ describe("accountProvisioner", () => {
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
+    expect(user.username).toEqual(newUsername);
     expect(isNewTeam).toEqual(false);
     expect(isNewUser).toEqual(false);
     expect(mailer.sendTemplate).not.toHaveBeenCalled();
@@ -162,6 +167,7 @@ describe("accountProvisioner", () => {
         name: "Jenny Tester",
         email: "jenny@example.com",
         avatarUrl: "https://example.com/avatar.png",
+        username: "jtester",
       },
       team: {
         name: team.name,
@@ -186,6 +192,7 @@ describe("accountProvisioner", () => {
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
     expect(user.email).toEqual("jenny@example.com");
+    expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
     expect(mailer.sendTemplate).toHaveBeenCalled();
 
