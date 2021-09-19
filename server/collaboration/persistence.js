@@ -59,11 +59,18 @@ export default class Persistence {
 
       Logger.info("database", `Persisting ${documentId}`);
 
-      await documentUpdater({
-        documentId,
-        ydoc: document,
-        userId: context.user.id,
-      });
+      try {
+        await documentUpdater({
+          documentId,
+          ydoc: document,
+          userId: context.user.id,
+        });
+      } catch (err) {
+        Logger.error("Unable to persist document", err, {
+          documentId,
+          userId: context.user?.id,
+        });
+      }
     },
     DELAY,
     {
