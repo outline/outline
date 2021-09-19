@@ -1,7 +1,7 @@
 // @flow
 import { debounce } from "lodash";
 import * as Y from "yjs";
-import documentUpdater from "../commands/documentUpdater";
+import documentUpdater from "../commands/documentUpdaterCollaboration";
 import Logger from "../logging/logger";
 import { Document, User } from "../models";
 import markdownToYDoc from "./utils/markdownToYDoc";
