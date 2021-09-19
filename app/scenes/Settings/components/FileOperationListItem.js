@@ -1,16 +1,19 @@
 // @flow
+import { TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import FileOperation from "models/FileOperation";
 import Button from "components/Button";
+import Flex from "components/Flex";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
 
 type Props = {|
   fileOperation: FileOperation,
+  handleDelete: (FileOperation) => Promise<void>,
 |};
 
-const FileOperationListItem = ({ fileOperation }: Props) => {
+const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
   const { t } = useTranslation();
 
   const stateMapping = {
@@ -45,17 +48,29 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       }
       actions={
         fileOperation.state === "complete" ? (
-          <Button
-            as="a"
-            href={`/api/fileOperations.redirect?id=${fileOperation.id}`}
-            neutral
-          >
-            {t("Download")}
-          </Button>
+          <Flex gap={8}>
+            <Button
+              onClick={async (ev) => {
+                ev.preventDefault();
+                await handleDelete(fileOperation);
+              }}
+              neutral
+              icon={<TrashIcon />}
+            >
+              {t("Delete")}
+            </Button>
+            <Button
+              as="a"
+              href={`/api/fileOperations.redirect?id=${fileOperation.id}`}
+              primary
+            >
+              {t("Download")}
+            </Button>
+          </Flex>
         ) : undefined
       }
     />
   );
 };
 
-export default FileOperationListItem;
+export default React.memo<Props>(FileOperationListItem);
