@@ -13,6 +13,7 @@ import Flex from "components/Flex";
 import InputSearch from "components/InputSearch";
 import useListDocumentPath from "hooks/useListDocumentPath";
 import useToasts from "hooks/useToasts";
+import { mobileContextMenu, fadeAndSlideDown } from "styles/animations";
 
 type Props = {|
   dialog: DialogStateReturn,
@@ -156,6 +157,8 @@ const Position = styled.div`
   z-index: ${(props) => props.theme.depths.menu};
   right: 8vh;
   top: 4vh;
+  animation: ${mobileContextMenu} 200ms ease;
+  transform-origin: 50% 100%;
 
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
@@ -165,6 +168,11 @@ const Position = styled.div`
     bottom: 16px !important;
     left: 8px !important;
   `};
+
+  ${breakpoint("tablet")`
+    animation: ${fadeAndSlideDown} 200ms ease;
+    transform-origin: 75% 0;
+  `}
 `;
 
 const Results = styled.div`
@@ -184,7 +192,7 @@ const Content = styled.div`
 
   ${breakpoint("mobile", "tablet")`
     right: -2vh;
-    width: 90vw;
+    width: 95vw;
 `};
 `;
 
