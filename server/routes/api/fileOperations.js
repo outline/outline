@@ -96,4 +96,28 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   ctx.redirect(accessUrl);
 });
 
+router.post("fileOperations.delete", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, "id is required");
+
+  const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
+  const fileOp: FileOperation = await FileOperation.findByPk(id);
+
+  if (!fileOp) {
+    throw new NotFoundError();
+  }
+
+  authorize(user, fileOp.type, team);
+
+  if (fileOp.state !== "complete") {
+    throw new ValidationError("file operation is not complete yet");
+  }
+
+  await fileOp.expire();
+
+  ctx.body = {
+    success: true,
+  };
+});
 export default router;
