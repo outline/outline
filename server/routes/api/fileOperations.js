@@ -110,7 +110,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   authorize(user, fileOp.type, team);
 
-  if (fileOp.state === "expire") {
+  if (fileOp.state === "expired") {
     throw new ValidationError("file Operation is already expired");
   }
 

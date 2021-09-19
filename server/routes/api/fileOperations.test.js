@@ -281,3 +281,58 @@ describe("#fileOperations.info", () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe("#fileOperations.delete", () => {
+  it("should delete file operation", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+      state: "complete",
+    });
+
+    const res = await server.post("/api/fileOperations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    expect(res.status).toBe(200);
+
+    const expiredFileOp = await server.post("/api/fileOperations.info", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    const body = await expiredFileOp.json();
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(exportData.id);
+    expect(body.data.user.id).toBe(admin.id);
+    expect(body.data.state).toBe("expired");
+  });
+
+  it("shouldn't delete already expired file operation", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+      state: "expired",
+    });
+
+    const res = await server.post("/api/fileOperations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    expect(res.status).toBe(400);
+  });
+});
