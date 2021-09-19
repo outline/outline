@@ -39,7 +39,7 @@ const getOptionFromValue = (options: Option[], value) => {
 
 const InputSelect = (props: Props) => {
   const select = useSelectState({
-    gutter: 2,
+    gutter: 0,
     modal: true,
   });
 
@@ -66,7 +66,7 @@ const InputSelect = (props: Props) => {
 
     if (!(target instanceof HTMLDivElement)) return;
 
-    await onChange(getOptionFromLabel(options, target.innerText).value || "");
+    await onChange(getOptionFromLabel(options, target.innerText).value);
   };
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
