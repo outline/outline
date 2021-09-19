@@ -2,7 +2,7 @@
 import Router from "koa-router";
 import { NotFoundError, ValidationError } from "../../errors";
 import auth from "../../middlewares/authentication";
-import { FileOperation, Team } from "../../models";
+import { FileOperation, Team, Event } from "../../models";
 import policy from "../../policies";
 import { presentFileOperation } from "../../presenters";
 import { getSignedUrl } from "../../utils/s3";
@@ -115,6 +115,13 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   }
 
   await fileOp.expire();
+
+  await Event.add({
+    name: "fileOperations.update",
+    teamId: team.id,
+    actorId: user.id,
+    data: fileOp.dataValues,
+  });
 
   ctx.body = {
     success: true,
