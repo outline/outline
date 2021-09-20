@@ -1,6 +1,5 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
-import fetch from "fetch-with-proxy";
 import Router from "koa-router";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
@@ -11,7 +10,7 @@ import {
 } from "../../../errors";
 import passportMiddleware from "../../../middlewares/passport";
 import { getAllowedDomains } from "../../../utils/authentication";
-import { StateStore } from "../../../utils/passport";
+import { StateStore, request } from "../../../utils/passport";
 
 const router = new Router();
 const providerName = "oidc";
@@ -33,18 +32,8 @@ const scopes = OIDC_SCOPES.split(" ");
 
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
-    const response = await fetch(OIDC_USERINFO_URI, {
-      credentials: "same-origin",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    try {
-      return done(null, await response.json());
-    } catch (err) {
-      return done(err);
-    }
+    const response = await request(OIDC_USERINFO_URI, accessToken);
+    return done(null, response);
   } catch (err) {
     return done(err);
   }
