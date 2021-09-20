@@ -8,6 +8,7 @@ import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from "../../shared/utils/domains";
+import Logger from "../logging/logger";
 import { DataTypes, sequelize, Op } from "../sequelize";
 import { generateAvatarUrl } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
@@ -134,8 +135,7 @@ const uploadAvatar = async (model) => {
       );
       if (newUrl) model.avatarUrl = newUrl;
     } catch (err) {
-      // we can try again next time
-      console.error(err);
+      Logger.error("Error uploading avatar to S3", err, { url: avatarUrl });
     }
   }
 };

@@ -90,7 +90,7 @@ class DocumentScene extends React.Component<Props> {
       this.updateIsDirty();
     }
 
-    if (this.props.readOnly) {
+    if (this.props.readOnly || auth.team?.collaborativeEditing) {
       this.lastRevision = document.revision;
 
       if (document.title !== this.title) {

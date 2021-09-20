@@ -12,17 +12,19 @@ import DocumentViews from "components/DocumentViews";
 import Facepile from "components/Facepile";
 import NudeButton from "components/NudeButton";
 import Popover from "components/Popover";
+import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
 type Props = {|
   document: Document,
-  currentUserId: string,
 |};
 
 function Collaborators(props: Props) {
   const { t } = useTranslation();
+  const user = useCurrentUser();
+  const currentUserId = user?.id;
   const { users, presence } = useStores();
-  const { document, currentUserId } = props;
+  const { document } = props;
 
   let documentPresence = presence.get(document.id);
   documentPresence = documentPresence

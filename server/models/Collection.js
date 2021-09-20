@@ -7,6 +7,7 @@ import { Op, DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
+import User from "./User";
 
 const Collection = sequelize.define(
   "collection",
@@ -234,6 +235,25 @@ Collection.findByPk = async function (id, options = {}) {
       ...options,
     });
   }
+};
+
+/**
+ * Find the first collection that the specified user has access to.
+ *
+ * @param user User object
+ * @returns collection First collection in the sidebar order
+ */
+Collection.findFirstCollectionForUser = async (user: User) => {
+  const id = await user.collectionIds();
+
+  return Collection.findOne({
+    where: { id },
+    order: [
+      // using LC_COLLATE:"C" because we need byte order to drive the sorting
+      sequelize.literal('"collection"."index" collate "C"'),
+      ["updatedAt", "DESC"],
+    ],
+  });
 };
 
 // get all the membership relationshps a user could have with the collection
