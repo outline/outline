@@ -242,6 +242,7 @@ function CollectionLink({
           item={itemRef.current}
           collection={collection}
           onSubmit={handlePermissionClose}
+          onCancel={handlePermissionClose}
         />
       </Modal>
     </>

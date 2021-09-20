@@ -12,7 +12,7 @@ import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import { type NavigationNode } from "types";
 
-type Props = {
+type Props = {|
   document: Document,
   item: {|
     active: ?boolean,
@@ -24,10 +24,17 @@ type Props = {
     url: string,
   |},
   collection: Collection,
+  onCancel: () => void,
   onSubmit: () => void,
-};
+|};
 
-function DocumentReparent({ document, collection, item, onSubmit }: Props) {
+function DocumentReparent({
+  document,
+  collection,
+  item,
+  onSubmit,
+  onCancel,
+}: Props) {
   const [isSaving, setIsSaving] = useState();
   const { showToast } = useToasts();
   const { documents, collections } = useStores();
@@ -35,9 +42,9 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
   const prevCollection = collections.get(item.collectionId);
 
   const accessMapping = {
-    read_write: t("View and edit"),
-    read: t("View only"),
-    null: t("No access"),
+    read_write: t("view and edit access"),
+    read: t("view only access"),
+    null: t("no access"),
   };
 
   const handleSubmit = React.useCallback(
@@ -46,7 +53,7 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
       setIsSaving(true);
 
       try {
-        documents.move(item.id, collection.id);
+        await documents.move(item.id, collection.id);
         showToast(t("Document moved"), {
           type: "info",
         });
@@ -65,7 +72,7 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <HelpText>
           <Trans
-            defaults="Moving document <em>{{ title }}</em> from collection <em>{{ prevCollectionName }}</em> of access <em>{{ prevPermission }}</em> to collection <em> {{ newCollectionName }} </em> of access <em>{{ newPermission }}</em> will change permission level of the document."
+            defaults="Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all team members <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}."
             values={{
               title: item.title,
               prevCollectionName: prevCollection?.name,
@@ -79,6 +86,9 @@ function DocumentReparent({ document, collection, item, onSubmit }: Props) {
         </HelpText>
         <Button type="submit">
           {isSaving ? `${t("Moving")}…` : t("Move document")}
+        </Button>{" "}
+        <Button type="button" onClick={onCancel} neutral>
+          {t("Cancel")}
         </Button>
       </form>
     </Flex>
