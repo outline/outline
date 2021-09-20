@@ -17,6 +17,7 @@ router.post("team.update", auth(), async (ctx) => {
     sharing,
     guestSignin,
     documentEmbeds,
+    collaborativeEditing,
   } = ctx.body;
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
@@ -31,6 +32,9 @@ router.post("team.update", auth(), async (ctx) => {
   if (documentEmbeds !== undefined) team.documentEmbeds = documentEmbeds;
   if (guestSignin !== undefined) team.guestSignin = guestSignin;
   if (avatarUrl !== undefined) team.avatarUrl = avatarUrl;
+  if (collaborativeEditing !== undefined) {
+    team.collaborativeEditing = collaborativeEditing;
+  }
 
   const changes = team.changed();
   const data = {};

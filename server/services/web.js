@@ -7,14 +7,13 @@ import {
   referrerPolicy,
 } from "koa-helmet";
 import mount from "koa-mount";
-import onerror from "koa-onerror";
 import enforceHttps from "koa-sslify";
 import emails from "../emails";
 import env from "../env";
+import Logger from "../logging/logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
-import Sentry from "../sentry";
 
 const isProduction = env.NODE_ENV === "production";
 const isTest = env.NODE_ENV === "test";
@@ -46,7 +45,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
         })
       );
     } else {
-      console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
+      Logger.warn("Enforced https was disabled with FORCE_HTTPS env variable");
     }
 
     // trust header fields set by our proxy. eg X-Forwarded-For
@@ -92,7 +91,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     app.use(
       convert(
         hotMiddleware(compile, {
-            log: console.log, // eslint-disable-line
+          log: (...args) => Logger.info("lifecycle", ...args),
           path: "/__webpack_hmr",
           heartbeat: 10 * 1000,
         })
@@ -100,44 +99,6 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     );
     app.use(mount("/emails", emails));
   }
-
-  // catch errors in one place, automatically set status and response headers
-  onerror(app);
-
-  app.on("error", (error, ctx) => {
-    // we don't need to report every time a request stops to the bug tracker
-    if (error.code === "EPIPE" || error.code === "ECONNRESET") {
-      console.warn("Connection error", { error });
-      return;
-    }
-
-    if (process.env.SENTRY_DSN) {
-      Sentry.withScope(function (scope) {
-        const requestId = ctx.headers["x-request-id"];
-        if (requestId) {
-          scope.setTag("request_id", requestId);
-        }
-
-        const authType = ctx.state ? ctx.state.authType : undefined;
-        if (authType) {
-          scope.setTag("auth_type", authType);
-        }
-
-        const userId =
-          ctx.state && ctx.state.user ? ctx.state.user.id : undefined;
-        if (userId) {
-          scope.setUser({ id: userId });
-        }
-
-        scope.addEventProcessor(function (event) {
-          return Sentry.Handlers.parseRequest(event, ctx.request);
-        });
-        Sentry.captureException(error);
-      });
-    } else {
-      console.error(error);
-    }
-  });
 
   app.use(mount("/auth", auth));
   app.use(mount("/api", api));

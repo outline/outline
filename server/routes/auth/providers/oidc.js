@@ -1,6 +1,7 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
+import get from "lodash/get";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
@@ -21,6 +22,8 @@ const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
+const OIDC_USERNAME_CLAIM =
+  process.env.OIDC_USERNAME_CLAIM || "preferred_username";
 const allowedDomains = getAllowedDomains();
 
 export const config = {
@@ -92,6 +95,9 @@ if (OIDC_CLIENT_ID) {
               name: profile.name,
               email: profile.email,
               avatarUrl: profile.picture,
+              // Claim name can be overriden using an env variable.
+              // Default is 'preferred_username' as per OIDC spec.
+              username: get(profile, OIDC_USERNAME_CLAIM),
             },
             authenticationProvider: {
               name: providerName,

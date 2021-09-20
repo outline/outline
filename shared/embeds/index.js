@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import Image from "components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import Bilibili from "./Bilibili";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -32,6 +32,7 @@ import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
+import Image from "./components/Image";
 
 function matcher(Component) {
   return (url: string) => {
@@ -65,6 +66,14 @@ export default [
     icon: () => <Img src="/images/airtable.png" />,
     component: Airtable,
     matcher: matcher(Airtable),
+  },
+  {
+    title: "Bilibili",
+    keywords: "video",
+    defaultHidden: true,
+    icon: () => <Img src="/images/bilibili.png" />,
+    component: Bilibili,
+    matcher: matcher(Bilibili),
   },
   {
     title: "Cawemo",

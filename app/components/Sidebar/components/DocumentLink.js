@@ -128,7 +128,12 @@ function DocumentLink(
   // Draggable
   const [{ isDragging }, drag] = useDrag({
     type: "document",
-    item: () => ({ ...node, depth, active: isActiveDocument }),
+    item: () => ({
+      ...node,
+      depth,
+      active: isActiveDocument,
+      collectionId: collection?.id || "",
+    }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -239,6 +244,9 @@ function DocumentLink(
                       canUpdate={canUpdate}
                     />
                   </>
+                }
+                isActive={(match, location) =>
+                  match && location.search !== "?starred"
                 }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
