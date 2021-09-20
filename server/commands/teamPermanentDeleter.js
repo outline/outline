@@ -1,22 +1,23 @@
 // @flow
-import debug from "debug";
+import Logger from "../logging/logger";
 import {
+  ApiKey,
   Attachment,
   AuthenticationProvider,
   Collection,
   Document,
-  Group,
   Event,
+  FileOperation,
+  Group,
   Team,
   NotificationSetting,
   User,
   UserAuthentication,
   Integration,
   SearchQuery,
+  Share,
 } from "../models";
 import { sequelize } from "../sequelize";
-
-const log = debug("commands");
 
 export default async function teamPermanentDeleter(team: Team) {
   if (!team.deletedAt) {
@@ -25,7 +26,10 @@ export default async function teamPermanentDeleter(team: Team) {
     );
   }
 
-  log(`Permanently deleting team ${team.name} (${team.id})`);
+  Logger.info(
+    "commands",
+    `Permanently deleting team ${team.name} (${team.id})`
+  );
 
   const teamId = team.id;
   let transaction;
@@ -42,7 +46,8 @@ export default async function teamPermanentDeleter(team: Team) {
         offset: 0,
       },
       async (attachments, options) => {
-        log(
+        Logger.info(
+          "commands",
           `Deleting attachments ${options.offset} – ${
             options.offset + options.limit
           }…`
@@ -54,7 +59,7 @@ export default async function teamPermanentDeleter(team: Team) {
       }
     );
 
-    // UserAuthentication
+    // Destroy user-relation models
     await User.findAllInBatches(
       {
         attributes: ["id"],
@@ -72,16 +77,17 @@ export default async function teamPermanentDeleter(team: Team) {
           force: true,
           transaction,
         });
+
+        await ApiKey.destroy({
+          where: { userId: userIds },
+          force: true,
+          transaction,
+        });
       }
     );
 
+    // Destory team-relation models
     await AuthenticationProvider.destroy({
-      where: { teamId },
-      force: true,
-      transaction,
-    });
-
-    await Event.destroy({
       where: { teamId },
       force: true,
       transaction,
@@ -99,6 +105,18 @@ export default async function teamPermanentDeleter(team: Team) {
       transaction,
     });
 
+    await Event.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
+    await FileOperation.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
     await Group.unscoped().destroy({
       where: { teamId },
       force: true,
@@ -111,13 +129,19 @@ export default async function teamPermanentDeleter(team: Team) {
       transaction,
     });
 
+    await NotificationSetting.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
     await SearchQuery.destroy({
       where: { teamId },
       force: true,
       transaction,
     });
 
-    await NotificationSetting.destroy({
+    await Share.destroy({
       where: { teamId },
       force: true,
       transaction,
@@ -133,6 +157,14 @@ export default async function teamPermanentDeleter(team: Team) {
       force: true,
       transaction,
     });
+
+    await Event.create(
+      {
+        name: "teams.destroy",
+        modelId: teamId,
+      },
+      { transaction }
+    );
 
     await transaction.commit();
   } catch (err) {
