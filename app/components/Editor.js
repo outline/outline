@@ -3,12 +3,13 @@ import { lighten } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { withRouter, type RouterHistory } from "react-router-dom";
+import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
+import embeds from "shared/embeds";
 import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
-import embeds from "../embeds";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
 import { type Theme } from "types";
@@ -30,6 +31,8 @@ export type Props = {|
   grow?: boolean,
   disableEmbeds?: boolean,
   ui?: UiStore,
+  style?: Object,
+  extensions?: Extension[],
   shareId?: ?string,
   autoFocus?: boolean,
   template?: boolean,
@@ -243,6 +246,50 @@ const StyledEditor = styled(RichMarkdownEditor)`
       &:hover {
         border-bottom: 1px solid ${(props) => props.theme.text};
         text-decoration: none;
+      }
+    }
+  }
+
+  .ProseMirror {
+    .ProseMirror-yjs-cursor {
+      position: relative;
+      margin-left: -1px;
+      margin-right: -1px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      height: 1em;
+      word-break: normal;
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        left: -8px;
+        right: -8px;
+        top: 0;
+        bottom: 0;
+      }
+      > div {
+        opacity: 0;
+        position: absolute;
+        top: -1.8em;
+        font-size: 13px;
+        background-color: rgb(250, 129, 0);
+        font-style: normal;
+        line-height: normal;
+        user-select: none;
+        white-space: nowrap;
+        color: white;
+        padding: 2px 6px;
+        font-weight: 500;
+        border-radius: 4px;
+        pointer-events: none;
+        left: -1px;
+      }
+      &:hover {
+        > div {
+          opacity: 1;
+          transition: opacity 100ms ease-in-out;
+        }
       }
     }
   }

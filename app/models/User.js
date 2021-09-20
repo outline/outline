@@ -1,6 +1,6 @@
 // @flow
 import { computed } from "mobx";
-import type { Rank } from "shared/types";
+import type { Role } from "shared/types";
 import BaseModel from "./BaseModel";
 
 class User extends BaseModel {
@@ -8,6 +8,7 @@ class User extends BaseModel {
   id: string;
   name: string;
   email: string;
+  color: string;
   isAdmin: boolean;
   isViewer: boolean;
   lastActiveAt: string;
@@ -21,13 +22,13 @@ class User extends BaseModel {
   }
 
   @computed
-  get rank(): Rank {
+  get role(): Role {
     if (this.isAdmin) {
-      return "Admin";
+      return "admin";
     } else if (this.isViewer) {
-      return "Viewer";
+      return "viewer";
     } else {
-      return "Member";
+      return "member";
     }
   }
 }

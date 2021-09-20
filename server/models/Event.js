@@ -1,5 +1,5 @@
 // @flow
-import events from "../events";
+import { globalEventQueue } from "../queues";
 import { DataTypes, sequelize } from "../sequelize";
 
 const Event = sequelize.define("event", {
@@ -45,19 +45,28 @@ Event.beforeCreate((event) => {
 });
 
 Event.afterCreate((event) => {
-  events.add(event, { removeOnComplete: true });
+  globalEventQueue.add(event);
 });
 
 // add can be used to send events into the event system without recording them
-// in the database / audit trail
+// in the database or audit trail
 Event.add = (event) => {
-  events.add(Event.build(event), { removeOnComplete: true });
+  const now = new Date();
+
+  globalEventQueue.add(
+    Event.build({
+      createdAt: now,
+      updatedAt: now,
+      ...event,
+    })
+  );
 };
 
 Event.ACTIVITY_EVENTS = [
   "collections.create",
   "collections.delete",
   "collections.move",
+  "collections.permission_changed",
   "documents.publish",
   "documents.archive",
   "documents.unarchive",
@@ -77,12 +86,14 @@ Event.AUDIT_EVENTS = [
   "authenticationProviders.update",
   "collections.create",
   "collections.update",
+  "collections.permission_changed",
   "collections.move",
   "collections.add_user",
   "collections.remove_user",
   "collections.add_group",
   "collections.remove_group",
   "collections.delete",
+  "collections.export_all",
   "documents.create",
   "documents.publish",
   "documents.update",

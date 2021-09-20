@@ -1,8 +1,8 @@
 // @flow
 import fs from "fs";
-import * as Sentry from "@sentry/node";
 import JSZip from "jszip";
 import tmp from "tmp";
+import Logger from "../logging/logger";
 import { Attachment, Collection, Document } from "../models";
 import { serializeFilename } from "./fs";
 import { getFileByKey } from "./s3";
@@ -47,11 +47,9 @@ async function addImageToArchive(zip, key) {
     const img = await getFileByKey(key);
     zip.file(key, img, { createFolders: true });
   } catch (err) {
-    if (process.env.SENTRY_DSN) {
-      Sentry.captureException(err);
-    }
-    // error during file retrieval
-    console.error(err);
+    Logger.error("Error loading image attachment from S3", err, {
+      key,
+    });
   }
 }
 
@@ -67,17 +65,6 @@ async function archiveToPath(zip) {
         .on("error", reject);
     });
   });
-}
-
-export async function archiveCollection(collection: Collection) {
-  const zip = new JSZip();
-
-  if (collection.documentStructure) {
-    const folder = zip.folder(collection.name);
-    await addToArchive(folder, collection.documentStructure);
-  }
-
-  return archiveToPath(zip);
 }
 
 export async function archiveCollections(collections: Collection[]) {

@@ -1,6 +1,4 @@
 // @flow
-import * as Sentry from "@sentry/node";
-import debug from "debug";
 import nodemailer from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
@@ -14,7 +12,15 @@ import {
   DocumentNotificationEmail,
   documentNotificationEmailText,
 } from "./emails/DocumentNotificationEmail";
-import { ExportEmail, exportEmailText } from "./emails/ExportEmail";
+import {
+  ExportFailureEmail,
+  exportEmailFailureText,
+} from "./emails/ExportFailureEmail";
+
+import {
+  ExportSuccessEmail,
+  exportEmailSuccessText,
+} from "./emails/ExportSuccessEmail";
 import {
   type Props as InviteEmailT,
   InviteEmail,
@@ -23,15 +29,21 @@ import {
 import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
-import { createQueue } from "./utils/queue";
+import Logger from "./logging/logger";
+import { emailsQueue } from "./queues";
 
-const log = debug("emails");
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
 
-type Emails = "welcome" | "export";
+export type EmailTypes =
+  | "welcome"
+  | "export"
+  | "invite"
+  | "signin"
+  | "exportFailure"
+  | "exportSuccess";
 
-type SendMailType = {
+export type EmailSendOptions = {
   to: string,
   properties?: any,
   title: string,
@@ -39,14 +51,6 @@ type SendMailType = {
   text: string,
   html: React.Node,
   headCSS?: string,
-  attachments?: Object[],
-};
-
-type EmailJob = {
-  data: {
-    type: Emails,
-    opts: SendMailType,
-  },
 };
 
 /**
@@ -63,7 +67,67 @@ type EmailJob = {
 export class Mailer {
   transporter: ?any;
 
-  sendMail = async (data: SendMailType): ?Promise<*> => {
+  constructor() {
+    this.loadTransport();
+  }
+
+  async loadTransport() {
+    if (process.env.SMTP_HOST) {
+      let smtpConfig = {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure:
+          "SMTP_SECURE" in process.env
+            ? process.env.SMTP_SECURE === "true"
+            : process.env.NODE_ENV === "production",
+        auth: undefined,
+        tls:
+          "SMTP_TLS_CIPHERS" in process.env
+            ? { ciphers: process.env.SMTP_TLS_CIPHERS }
+            : undefined,
+      };
+
+      if (process.env.SMTP_USERNAME) {
+        smtpConfig.auth = {
+          user: process.env.SMTP_USERNAME,
+          pass: process.env.SMTP_PASSWORD,
+        };
+      }
+
+      this.transporter = nodemailer.createTransport(smtpConfig);
+      return;
+    }
+
+    if (useTestEmailService) {
+      Logger.info(
+        "email",
+        "SMTP_USERNAME not provided, generating test account…"
+      );
+
+      try {
+        let testAccount = await nodemailer.createTestAccount();
+
+        const smtpConfig = {
+          host: "smtp.ethereal.email",
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+          },
+        };
+
+        this.transporter = nodemailer.createTransport(smtpConfig);
+      } catch (err) {
+        Logger.error(
+          "Couldn't generate a test account with ethereal.email",
+          err
+        );
+      }
+    }
+  }
+
+  sendMail = async (data: EmailSendOptions): ?Promise<*> => {
     const { transporter } = this;
 
     if (transporter) {
@@ -74,7 +138,7 @@ export class Mailer {
       });
 
       try {
-        log(`Sending email "${data.title}" to ${data.to}`);
+        Logger.info("email", `Sending email "${data.title}" to ${data.to}`);
         const info = await transporter.sendMail({
           from: process.env.SMTP_FROM_EMAIL,
           replyTo: process.env.SMTP_REPLY_EMAIL || process.env.SMTP_FROM_EMAIL,
@@ -82,16 +146,16 @@ export class Mailer {
           subject: data.title,
           html: html,
           text: data.text,
-          attachments: data.attachments,
         });
 
         if (useTestEmailService) {
-          log("Email Preview URL: %s", nodemailer.getTestMessageUrl(info));
+          Logger.info(
+            "email",
+            `Preview Url: ${nodemailer.getTestMessageUrl(info)}`
+          );
         }
       } catch (err) {
-        if (process.env.SENTRY_DSN) {
-          Sentry.captureException(err);
-        }
+        Logger.error(`Error sending email to ${data.to}`, err);
         throw err; // Re-throw for queue to re-try
       }
     }
@@ -108,14 +172,23 @@ export class Mailer {
     });
   };
 
-  export = async (opts: { to: string, attachments: Object[] }) => {
+  exportSuccess = async (opts: { to: string, id: string, teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
-      attachments: opts.attachments,
       title: "Your requested export",
       previewText: "Here's your request data export from Outline",
-      html: <ExportEmail />,
-      text: exportEmailText,
+      html: <ExportSuccessEmail id={opts.id} teamUrl={opts.teamUrl} />,
+      text: exportEmailSuccessText,
+    });
+  };
+
+  exportFailure = async (opts: { to: string, teamUrl: string }) => {
+    this.sendMail({
+      to: opts.to,
+      title: "Your requested export",
+      previewText: "Sorry, your requested data export has failed",
+      html: <ExportFailureEmail teamUrl={opts.teamUrl} />,
+      text: exportEmailFailureText,
     });
   };
 
@@ -164,87 +237,22 @@ export class Mailer {
     });
   };
 
-  constructor() {
-    this.loadTransport();
-  }
-
-  async loadTransport() {
-    if (process.env.SMTP_HOST) {
-      let smtpConfig = {
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        secure:
-          "SMTP_SECURE" in process.env
-            ? process.env.SMTP_SECURE === "true"
-            : process.env.NODE_ENV === "production",
-        auth: undefined,
-        tls:
-          "SMTP_TLS_CIPHERS" in process.env
-            ? { ciphers: process.env.SMTP_TLS_CIPHERS }
-            : undefined,
-      };
-
-      if (process.env.SMTP_USERNAME) {
-        smtpConfig.auth = {
-          user: process.env.SMTP_USERNAME,
-          pass: process.env.SMTP_PASSWORD,
-        };
+  sendTemplate = async (type: EmailTypes, opts?: Object = {}) => {
+    await emailsQueue.add(
+      {
+        type,
+        opts,
+      },
+      {
+        attempts: 5,
+        backoff: {
+          type: "exponential",
+          delay: 60 * 1000,
+        },
       }
-
-      this.transporter = nodemailer.createTransport(smtpConfig);
-      return;
-    }
-
-    if (useTestEmailService) {
-      log("SMTP_USERNAME not provided, generating test account…");
-
-      try {
-        let testAccount = await nodemailer.createTestAccount();
-
-        const smtpConfig = {
-          host: "smtp.ethereal.email",
-          port: 587,
-          secure: false,
-          auth: {
-            user: testAccount.user,
-            pass: testAccount.pass,
-          },
-        };
-
-        this.transporter = nodemailer.createTransport(smtpConfig);
-      } catch (err) {
-        log(`Could not generate test account: ${err.message}`);
-      }
-    }
-  }
+    );
+  };
 }
 
 const mailer = new Mailer();
 export default mailer;
-
-export const mailerQueue = createQueue("email");
-
-mailerQueue.process(async (job: EmailJob) => {
-  // $FlowIssue flow doesn't like dynamic values
-  await mailer[job.data.type](job.data.opts);
-});
-
-export const sendEmail = (type: Emails, to: string, options?: Object = {}) => {
-  mailerQueue.add(
-    {
-      type,
-      opts: {
-        to,
-        ...options,
-      },
-    },
-    {
-      attempts: 5,
-      removeOnComplete: true,
-      backoff: {
-        type: "exponential",
-        delay: 60 * 1000,
-      },
-    }
-  );
-};

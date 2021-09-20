@@ -134,9 +134,13 @@ function DocumentMenu({
     [showToast, t, document]
   );
 
-  const handlePrint = React.useCallback((ev: SyntheticEvent<>) => {
-    window.print();
-  }, []);
+  const handlePrint = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      menu.hide();
+      window.print();
+    },
+    [menu]
+  );
 
   const handleStar = React.useCallback(
     (ev: SyntheticEvent<>) => {

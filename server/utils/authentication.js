@@ -1,9 +1,9 @@
 // @flow
 import querystring from "querystring";
-import * as Sentry from "@sentry/node";
 import { addMonths } from "date-fns";
 import { type Context } from "koa";
 import { pick } from "lodash";
+import Logger from "../logging/logger";
 import { User, Event, Team, Collection, View } from "../models";
 import { getCookieDomain } from "../utils/domains";
 
@@ -37,8 +37,8 @@ export async function signIn(
           ["ref", "utm_content", "utm_medium", "utm_source", "utm_campaign"]
         );
         await team.update({ signupQueryParams });
-      } catch (err) {
-        Sentry.captureException(err);
+      } catch (error) {
+        Logger.error(`Error persisting signup query params`, error);
       }
     }
   }
@@ -101,10 +101,7 @@ export async function signIn(
     });
 
     const [collection, view] = await Promise.all([
-      Collection.findOne({
-        where: { teamId: user.teamId },
-        order: [["index", "ASC"]],
-      }),
+      Collection.findFirstCollectionForUser(user),
       View.findOne({
         where: { userId: user.id },
       }),

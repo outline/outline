@@ -18,7 +18,7 @@ import { sequelize } from "../sequelize";
 
 const log = debug("commands");
 
-export async function teamPermanentDeleter(team: Team) {
+export default async function teamPermanentDeleter(team: Team) {
   if (!team.deletedAt) {
     throw new Error(
       `Cannot permanently delete ${team.id} team. Please delete it and try again.`

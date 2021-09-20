@@ -6,7 +6,7 @@ import {
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "../errors";
-import { sendEmail } from "../mailer";
+import mailer from "../mailer";
 import { Collection, Team, User } from "../models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
@@ -17,6 +17,7 @@ type Props = {|
     name: string,
     email: string,
     avatarUrl?: string,
+    username?: string,
   |},
   team: {|
     name: string,
@@ -74,6 +75,7 @@ export default async function accountProvisioner({
     const result = await userCreator({
       name: userParams.name,
       email: userParams.email,
+      username: userParams.username,
       isAdmin: isNewTeam,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
@@ -87,7 +89,10 @@ export default async function accountProvisioner({
     const { isNewUser, user } = result;
 
     if (isNewUser) {
-      sendEmail("welcome", user.email, { teamUrl: team.url });
+      await mailer.sendTemplate("welcome", {
+        to: user.email,
+        teamUrl: team.url,
+      });
     }
 
     if (isNewUser || isNewTeam) {

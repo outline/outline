@@ -50,7 +50,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
           />
         </HelpText>
         <Button type="submit" disabled={isDeleting} autoFocus danger>
-          {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
+          {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>
       </form>
     </Flex>

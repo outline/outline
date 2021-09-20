@@ -11,7 +11,10 @@ import Button from "components/Button";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Notice from "components/Notice";
+import PaginatedList from "components/PaginatedList";
 import Scene from "components/Scene";
+import Subheading from "components/Subheading";
+import FileOperationListItem from "./components/FileOperationListItem";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -22,7 +25,7 @@ function ImportExport() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const fileRef = React.useRef();
-  const { collections } = useStores();
+  const { fileOperations, collections } = useStores();
   const { showToast } = useToasts();
   const [isLoading, setLoading] = React.useState(false);
   const [isImporting, setImporting] = React.useState(false);
@@ -178,11 +181,10 @@ function ImportExport() {
           {t("Choose File")}…
         </Button>
       )}
-
       <Heading>{t("Export")}</Heading>
       <HelpText>
         <Trans
-          defaults="A full export might take some time, consider exporting a single document or collection if possible. We’ll put together a zip of all your documents in Markdown format and email it to <em>{{ userEmail }}</em>."
+          defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{ userEmail: user.email }}
           components={{ em: <strong /> }}
         />
@@ -199,6 +201,24 @@ function ImportExport() {
           ? `${t("Requesting Export")}…`
           : t("Export Data")}
       </Button>
+      <br />
+      <br />
+      <PaginatedList
+        items={fileOperations.orderedDataExports}
+        fetch={fileOperations.fetchPage}
+        options={{ type: "export" }}
+        heading={
+          <Subheading>
+            <Trans>Recent exports</Trans>
+          </Subheading>
+        }
+        renderItem={(item) => (
+          <FileOperationListItem
+            key={item.id + item.state}
+            fileOperation={item}
+          />
+        )}
+      />
     </Scene>
   );
 }

@@ -8,6 +8,7 @@ import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import Event from "./Event";
+import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 import Integration from "./Integration";
@@ -47,6 +48,7 @@ const models = {
   User,
   UserAuthentication,
   View,
+  FileOperation,
 };
 
 // based on https://github.com/sequelize/express-example/blob/master/models/index.js
@@ -80,4 +82,5 @@ export {
   User,
   UserAuthentication,
   View,
+  FileOperation,
 };

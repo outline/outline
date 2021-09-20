@@ -5,8 +5,10 @@ import JWT from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
+import Logger from "../logging/logger";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
+import { palette } from "../utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import {
   UserAuthentication,
@@ -73,6 +75,11 @@ const User = sequelize.define(
           .update(this.email || "")
           .digest("hex");
         return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png`;
+      },
+      color() {
+        const idAsHex = crypto.createHash("md5").update(this.id).digest("hex");
+        const idAsNumber = parseInt(idAsHex, 16);
+        return palette[idAsNumber % palette.length];
       },
     },
   }
@@ -189,8 +196,9 @@ const uploadAvatar = async (model) => {
       );
       if (newUrl) model.avatarUrl = newUrl;
     } catch (err) {
-      // we can try again next time
-      console.error(err);
+      Logger.error("Couldn't upload user avatar image to S3", err, {
+        url: avatarUrl,
+      });
     }
   }
 };
@@ -314,7 +322,7 @@ User.findAllInBatches = async (
 
 User.prototype.demote = async function (
   teamId: string,
-  to: "Member" | "Viewer"
+  to: "member" | "viewer"
 ) {
   const res = await User.findAndCountAll({
     where: {
@@ -328,9 +336,9 @@ User.prototype.demote = async function (
   });
 
   if (res.count >= 1) {
-    if (to === "Member") {
+    if (to === "member") {
       return this.update({ isAdmin: false, isViewer: false });
-    } else if (to === "Viewer") {
+    } else if (to === "viewer") {
       return this.update({ isAdmin: false, isViewer: true });
     }
   } else {

@@ -34,7 +34,7 @@ describe("teamCreator", () => {
     expect(isNewTeam).toEqual(true);
   });
 
-  it("should now allow creating multiple teams in installation", async () => {
+  it("should not allow creating multiple teams in installation", async () => {
     await buildTeam();
     let error;
 

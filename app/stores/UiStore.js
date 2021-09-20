@@ -6,6 +6,8 @@ import Document from "models/Document";
 
 const UI_STORE = "UI_STORE";
 
+type Status = "connecting" | "connected" | "disconnected" | void;
+
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
   @observable languagePromptDismissed: boolean;
@@ -24,6 +26,7 @@ class UiStore {
   @observable sidebarWidth: number;
   @observable sidebarCollapsed: boolean = false;
   @observable sidebarIsResizing: boolean = false;
+  @observable multiplayerStatus: Status;
 
   constructor() {
     // Rehydrate
@@ -91,6 +94,11 @@ class UiStore {
     ) {
       this.activeCollectionId = document.collectionId;
     }
+  };
+
+  @action
+  setMultiplayerStatus = (status: Status): void => {
+    this.multiplayerStatus = status;
   };
 
   @action

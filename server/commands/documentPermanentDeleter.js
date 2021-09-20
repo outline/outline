@@ -1,12 +1,10 @@
 // @flow
-import debug from "debug";
+import Logger from "../logging/logger";
 import { Document, Attachment } from "../models";
 import { sequelize } from "../sequelize";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 
-const log = debug("commands");
-
-export async function documentPermanentDeleter(documents: Document[]) {
+export default async function documentPermanentDeleter(documents: Document[]) {
   const activeDocument = documents.find((doc) => !doc.deletedAt);
 
   if (activeDocument) {
@@ -47,9 +45,9 @@ export async function documentPermanentDeleter(documents: Document[]) {
         if (attachment) {
           await attachment.destroy();
 
-          log(`Attachment ${attachmentId} deleted`);
+          Logger.info("commands", `Attachment ${attachmentId} deleted`);
         } else {
-          log(`Unknown attachment ${attachmentId} ignored`);
+          Logger.info("commands", `Unknown attachment ${attachmentId} ignored`);
         }
       }
     }

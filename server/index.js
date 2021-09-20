@@ -1,121 +1,119 @@
 // @flow
-require("dotenv").config({ silent: true });
+import env from "./env"; // eslint-disable-line import/order
+import "./tracing"; // must come before importing any instrumented module
 
-const errors = [];
-const chalk = require("chalk");
-const throng = require("throng");
+import http from "http";
+import Koa from "koa";
+import compress from "koa-compress";
+import helmet from "koa-helmet";
+import logger from "koa-logger";
+import onerror from "koa-onerror";
+import Router from "koa-router";
+import { uniq } from "lodash";
+import stoppable from "stoppable";
+import throng from "throng";
+import Logger from "./logging/logger";
+import { requestErrorHandler } from "./logging/sentry";
+import services from "./services";
+import { getArg } from "./utils/args";
+import { checkEnv, checkMigrations } from "./utils/startup";
+import { checkUpdates } from "./utils/updates";
 
-// If the DataDog agent is installed and the DD_API_KEY environment variable is
-// in the environment then we can safely attempt to start the DD tracer
-if (process.env.DD_API_KEY) {
-  require("dd-trace").init({
-    // SOURCE_COMMIT is used by Docker Hub
-    // SOURCE_VERSION is used by Heroku
-    version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
-  });
+// If a services flag is passed it takes priority over the enviroment variable
+// for example: --services=web,worker
+const normalizedServiceFlag = getArg("services");
+
+// The default is to run all services to make development and OSS installations
+// easier to deal with. Separate services are only needed at scale.
+const serviceNames = uniq(
+  (normalizedServiceFlag || env.SERVICES || "websockets,worker,web")
+    .split(",")
+    .map((service) => service.trim())
+);
+
+// The number of processes to run, defaults to the number of CPU's available
+// for the web service, and 1 for collaboration during the beta period.
+const processCount = serviceNames.includes("collaboration")
+  ? 1
+  : env.WEB_CONCURRENCY || undefined;
+
+// This function will only be called once in the original process
+function master() {
+  checkEnv();
+  checkMigrations();
+
+  if (env.ENABLE_UPDATES !== "false" && process.env.NODE_ENV === "production") {
+    checkUpdates();
+    setInterval(checkUpdates, 24 * 3600 * 1000);
+  }
 }
 
-if (
-  !process.env.SECRET_KEY ||
-  process.env.SECRET_KEY === "generate_a_new_key"
-) {
-  errors.push(
-    `The ${chalk.bold(
-      "SECRET_KEY"
-    )} env variable must be set with the output of ${chalk.bold(
-      "$ openssl rand -hex 32"
-    )}`
-  );
-}
+// This function will only be called in each forked process
+async function start(id: string, disconnect: () => void) {
+  // If a --port flag is passed then it takes priority over the env variable
+  const normalizedPortFlag = getArg("port", "p");
 
-if (
-  !process.env.UTILS_SECRET ||
-  process.env.UTILS_SECRET === "generate_a_new_key"
-) {
-  errors.push(
-    `The ${chalk.bold(
-      "UTILS_SECRET"
-    )} env variable must be set with a secret value, it is recommended to use the output of ${chalk.bold(
-      "$ openssl rand -hex 32"
-    )}`
-  );
-}
+  const app = new Koa();
+  const server = stoppable(http.createServer(app.callback()));
+  const router = new Router();
 
-if (process.env.AWS_ACCESS_KEY_ID) {
-  [
-    "AWS_REGION",
-    "AWS_SECRET_ACCESS_KEY",
-    "AWS_S3_UPLOAD_BUCKET_URL",
-    "AWS_S3_UPLOAD_MAX_SIZE",
-  ].forEach((key) => {
-    if (!process.env[key]) {
-      errors.push(
-        `The ${chalk.bold(
-          key
-        )} env variable must be set when using S3 compatible storage`
-      );
+  // install basic middleware shared by all services
+  if ((env.DEBUG || "").includes("http")) {
+    app.use(logger((str, args) => Logger.info("http", str)));
+  }
+  app.use(compress());
+  app.use(helmet());
+
+  // catch errors in one place, automatically set status and response headers
+  onerror(app);
+  app.on("error", requestErrorHandler);
+
+  // install health check endpoint for all services
+  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  app.use(router.routes());
+
+  if (
+    serviceNames.includes("websockets") &&
+    serviceNames.includes("collaboration")
+  ) {
+    throw new Error(
+      "Cannot run websockets and collaboration services in the same process"
+    );
+  }
+
+  // loop through requested services at startup
+  for (const name of serviceNames) {
+    if (!Object.keys(services).includes(name)) {
+      throw new Error(`Unknown service ${name}`);
     }
+
+    Logger.info("lifecycle", `Starting ${name} service`);
+    const init = services[name];
+    await init(app, server);
+  }
+
+  server.on("error", (err) => {
+    throw err;
   });
-}
 
-if (!process.env.URL) {
-  errors.push(
-    `The ${chalk.bold(
-      "URL"
-    )} env variable must be set to the fully qualified, externally accessible URL, e.g https://wiki.mycompany.com`
-  );
-}
+  server.on("listening", () => {
+    const address = server.address();
+    Logger.info("lifecycle", `Listening on http://localhost:${address.port}`);
+  });
 
-if (!process.env.DATABASE_URL && !process.env.DATABASE_CONNECTION_POOL_URL) {
-  errors.push(
-    `The ${chalk.bold(
-      "DATABASE_URL"
-    )} env variable must be set to the location of your postgres server, including username, password, and port`
-  );
-}
+  server.listen(normalizedPortFlag || env.PORT || "3000");
 
-if (!process.env.REDIS_URL) {
-  errors.push(
-    `The ${chalk.bold(
-      "REDIS_URL"
-    )} env variable must be set to the location of your redis server, including username, password, and port`
-  );
-}
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
 
-if (errors.length) {
-  console.log(
-    chalk.bold.red(
-      "\n\nThe server could not start, please fix the following configuration errors and try again:\n"
-    )
-  );
-  errors.map((text) => console.log(`  - ${text}`));
-  console.log("\n");
-  process.exit(1);
+  function shutdown() {
+    Logger.info("lifecycle", "Stopping server");
+    server.stop(disconnect);
+  }
 }
-
-if (process.env.NODE_ENV === "production") {
-  console.log(
-    chalk.green(
-      `
-Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
-`
-    )
-  );
-} else if (process.env.NODE_ENV === "development") {
-  console.log(
-    chalk.yellow(
-      `\nRunning Outline in development mode. To run Outline in production mode set the ${chalk.bold(
-        "NODE_ENV"
-      )} env variable to "production"\n`
-    )
-  );
-}
-
-const { start } = require("./main");
 
 throng({
+  master,
   worker: start,
-
-  // The number of workers to run, defaults to the number of CPUs available
-  count: process.env.WEB_CONCURRENCY || undefined,
+  count: processCount,
 });

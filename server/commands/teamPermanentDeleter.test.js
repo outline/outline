@@ -3,7 +3,7 @@ import { subDays } from "date-fns";
 import { Attachment, Document } from "../models";
 import { buildAttachment, buildTeam, buildDocument } from "../test/factories";
 import { flushdb } from "../test/support";
-import { teamPermanentDeleter } from "./teamPermanentDeleter";
+import teamPermanentDeleter from "./teamPermanentDeleter";
 
 jest.mock("aws-sdk", () => {
   const mS3 = { deleteObject: jest.fn().mockReturnThis(), promise: jest.fn() };
