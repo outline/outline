@@ -4,26 +4,20 @@ import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 import { User } from "../models";
 import { DataTypes, Op, sequelize } from "../sequelize";
 
-const View = sequelize.define(
-  "view",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    lastEditingAt: {
-      type: DataTypes.DATE,
-    },
-    count: {
-      type: DataTypes.INTEGER,
-      defaultValue: 1,
-    },
+const View = sequelize.define("view", {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
   },
-  {
-    classMethods: {},
-  }
-);
+  lastEditingAt: {
+    type: DataTypes.DATE,
+  },
+  count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+  },
+});
 
 View.associate = (models) => {
   View.belongsTo(models.Document);
