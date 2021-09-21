@@ -93,6 +93,13 @@ export default async function teamPermanentDeleter(team: Team) {
       transaction,
     });
 
+    // events must be first due to db constraints
+    await Event.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
     await Collection.destroy({
       where: { teamId },
       force: true,
@@ -100,12 +107,6 @@ export default async function teamPermanentDeleter(team: Team) {
     });
 
     await Document.unscoped().destroy({
-      where: { teamId },
-      force: true,
-      transaction,
-    });
-
-    await Event.destroy({
       where: { teamId },
       force: true,
       transaction,
