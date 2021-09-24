@@ -261,7 +261,7 @@
   "API token created": "Jeton d'API créé",
   "Name your token something that will help you to remember it's use in the future, for example \"local development\", \"production\", or \"continuous integration\".": "Nommez votre jeton afin de vous aider à vous souvenir de son utilisation dans le futur, par exemple \"développement local\", \"production\", ou \"intégration continue\".",
   "Documents": "Documents",
-  "The document archive is empty at the moment.": "L'archive du document est vide pour le moment.",
+  "The document archive is empty at the moment.": "Les archives sont vides pour le moment.",
   "Search in collection": "Rechercher dans la collection",
   "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.": "<em>{{ collectionName }}</em> ne contient pas encore\n                    documents.",
   "Get started by creating a new one!": "Commencez par en créer un nouveau !",
