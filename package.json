@@ -49,7 +49,7 @@
     "@bull-board/api": "^3.5.0",
     "@bull-board/koa": "^3.5.0",
     "@hocuspocus/provider": "^1.0.0-alpha.16",
-    "@hocuspocus/server": "^1.0.0-alpha.70",
+    "@hocuspocus/server": "^1.0.0-alpha.73",
     "@outlinewiki/koa-passport": "^4.1.4",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@sentry/node": "^6.3.1",
