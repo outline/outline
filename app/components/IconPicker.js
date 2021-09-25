@@ -12,6 +12,7 @@ import {
   EditIcon,
   EmailIcon,
   EyeIcon,
+  GlobeIcon,
   InfoIcon,
   ImageIcon,
   LeafIcon,
@@ -28,6 +29,7 @@ import {
   TargetIcon,
   ToolsIcon,
   VehicleIcon,
+  WarningIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -92,6 +94,10 @@ export const icons = {
   eye: {
     component: EyeIcon,
     keywords: "eye view",
+  },
+  globe: {
+    component: GlobeIcon,
+    keywords: "world translate",
   },
   info: {
     component: InfoIcon,
@@ -160,6 +166,10 @@ export const icons = {
   vehicle: {
     component: VehicleIcon,
     keywords: "truck car travel transport",
+  },
+  warning: {
+    component: WarningIcon,
+    keywords: "warning alert error",
   },
 };
 
