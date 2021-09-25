@@ -13,14 +13,10 @@ export default class CollaborationLogger {
   }
 
   async onConnect(data: { documentName: string, context: { user: User } }) {
-    Logger.info("hocuspocus", `New connection to "${data.documentName}"`, {
-      userId: data.context.user.id,
-    });
+    Logger.info("hocuspocus", `New connection to "${data.documentName}"`);
   }
 
   async onDisconnect(data: { documentName: string, context: { user: User } }) {
-    Logger.info("hocuspocus", `Connection to "${data.documentName}" closed `, {
-      userId: data.context.user.id,
-    });
+    Logger.info("hocuspocus", `Connection to "${data.documentName}" closed `);
   }
 }
