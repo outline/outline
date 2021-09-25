@@ -6,11 +6,13 @@ import {
   AcademicCapIcon,
   BeakerIcon,
   BuildingBlocksIcon,
+  CameraIcon,
   CloudIcon,
   CodeIcon,
   EditIcon,
   EmailIcon,
   EyeIcon,
+  InfoIcon,
   ImageIcon,
   LeafIcon,
   LightBulbIcon,
@@ -19,10 +21,13 @@ import {
   NotepadIcon,
   PadlockIcon,
   PaletteIcon,
+  PromoteIcon,
   QuestionMarkIcon,
+  SportIcon,
   SunIcon,
+  TargetIcon,
+  ToolsIcon,
   VehicleIcon,
-  WarningIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -56,6 +61,10 @@ export const icons = {
     component: CoinsIcon,
     keywords: "coins money finance sales income revenue cash",
   },
+  camera: {
+    component: CameraIcon,
+    keywords: "photo picture",
+  },
   academicCap: {
     component: AcademicCapIcon,
     keywords: "learn teach lesson guide tutorial onboarding training",
@@ -83,6 +92,10 @@ export const icons = {
   eye: {
     component: EyeIcon,
     keywords: "eye view",
+  },
+  info: {
+    component: InfoIcon,
+    keywords: "info information",
   },
   image: {
     component: ImageIcon,
@@ -120,6 +133,10 @@ export const icons = {
     component: EditIcon,
     keywords: "copy writing post blog",
   },
+  promote: {
+    component: PromoteIcon,
+    keywords: "marketing promotion",
+  },
   question: {
     component: QuestionMarkIcon,
     keywords: "question help support faq",
@@ -128,13 +145,21 @@ export const icons = {
     component: SunIcon,
     keywords: "day sun weather",
   },
+  sport: {
+    component: SportIcon,
+    keywords: "sport outdoor racket game",
+  },
+  target: {
+    component: TargetIcon,
+    keywords: "target goal sales",
+  },
+  tools: {
+    component: ToolsIcon,
+    keywords: "tool settings",
+  },
   vehicle: {
     component: VehicleIcon,
     keywords: "truck car travel transport",
-  },
-  warning: {
-    component: WarningIcon,
-    keywords: "danger",
   },
 };
 
@@ -164,7 +189,6 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
     modal: true,
     placement: "bottom-end",
   });
-  const Component = icons[icon || "collection"].component;
 
   return (
     <Wrapper>
@@ -174,14 +198,17 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
       <MenuButton {...menu}>
         {(props) => (
           <Button aria-label={t("Show menu")} {...props}>
-            <Component color={color} size={30} />
+            <Icon
+              as={icons[icon || "collection"].component}
+              color={color}
+              size={30}
+            />
           </Button>
         )}
       </MenuButton>
       <ContextMenu {...menu} onOpen={onOpen} aria-label={t("Choose icon")}>
         <Icons>
           {Object.keys(icons).map((name) => {
-            const Component = icons[name].component;
             return (
               <MenuItem
                 key={name}
@@ -190,7 +217,7 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
               >
                 {(props) => (
                   <IconButton style={style} {...props}>
-                    <Component color={color} size={30} />
+                    <Icon as={icons[name].component} color={color} size={30} />
                   </IconButton>
                 )}
               </MenuItem>
@@ -211,6 +238,10 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
     </Wrapper>
   );
 }
+
+const Icon = styled.svg`
+  transition: fill 150ms ease-in-out;
+`;
 
 const Label = styled.label`
   display: block;

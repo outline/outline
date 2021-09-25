@@ -10654,10 +10654,10 @@ os-name@^3.1.0:
     macos-release "^2.2.0"
     windows-release "^3.1.0"
 
-outline-icons@^1.26.1, outline-icons@^1.31.0:
-  version "1.31.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.31.0.tgz#c373667442300afdb1a9fd6059180833c6123fcb"
-  integrity sha512-pe2vSI1mR4bJaWpmTitniyNpu4oq8dVObOweh/H6EON+12w2QDRtJZ6A6Bkc2vjlb2ZRYcZasisJI9VBUuTnHQ==
+outline-icons@^1.26.1, outline-icons@^1.33.0:
+  version "1.33.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.33.0.tgz#eb022b170977eb977ab531941f2976f95860a6df"
+  integrity sha512-Ib2kEZ+2rlidyLJa9istA5k0GSV6731PXlKMJ2o4qzzO9h+AoxPeSmE7Rx3ZzrZDCYDMuruWcOLyNWjwu1/bLw==
 
 oy-vey@^0.10.0:
   version "0.10.0"
