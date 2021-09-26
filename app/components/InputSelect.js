@@ -6,6 +6,7 @@ import {
   useSelectPopover,
   SelectPopover,
 } from "@renderlesskit/react";
+import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
@@ -29,26 +30,11 @@ export type Props = {
   onChange: (string) => Promise<void> | void,
 };
 
-const getOptionFromLabel = (options: Option[], label) => {
-  return options.find((option) => option.label === label) || {};
-};
-
 const getOptionFromValue = (options: Option[], value) => {
   return options.find((option) => option.value === value) || {};
 };
 
 const InputSelect = (props: Props) => {
-  const select = useSelectState({
-    gutter: 0,
-    modal: true,
-  });
-
-  const popOver = useSelectPopover({
-    ...select,
-    hideOnClickOutside: true,
-    preventBodyScroll: true,
-  });
-
   const {
     value,
     label,
@@ -61,15 +47,32 @@ const InputSelect = (props: Props) => {
     onChange,
   } = props;
 
-  const handleOnClick = async (ev: SyntheticEvent<*>) => {
-    const { target } = ev;
+  const select = useSelectState({
+    gutter: 0,
+    modal: true,
+    selectedValue: value,
+  });
 
-    if (!(target instanceof HTMLDivElement)) return;
+  const popOver = useSelectPopover({
+    ...select,
+    hideOnClickOutside: true,
+    preventBodyScroll: true,
+  });
 
-    await onChange(getOptionFromLabel(options, target.innerText).value);
-  };
+  const previousValue = React.useRef(value);
+
+  React.useEffect(() => {
+    if (previousValue.current === select.selectedValue) return;
+
+    previousValue.current = select.selectedValue;
+    async function load() {
+      await onChange(select.selectedValue);
+    }
+    load();
+  }, [onChange, select.selectedValue]);
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
+
   return (
     <Flex column>
       <Wrapper short={short}>
@@ -84,11 +87,8 @@ const InputSelect = (props: Props) => {
         {(props) => {
           return (
             <StyledButton neutral disclosure className={className} {...props}>
-              <span>
-                {select.selectedValue ||
-                  getOptionFromValue(options, value).label ||
-                  `Select a ${ariaLabel}`}
-              </span>
+              {getOptionFromValue(options, select.selectedValue).label ||
+                `Select a ${ariaLabel}`}
             </StyledButton>
           );
         }}
@@ -107,16 +107,21 @@ const InputSelect = (props: Props) => {
               >
                 {select.visible || select.animating
                   ? options.map((option) => (
-                      <div key={option.value}>
-                        <StyledSelectOption
-                          {...select}
-                          value={option.label}
-                          key={option.value}
-                          onClick={handleOnClick}
-                        >
+                      <Flex key={option.value}>
+                        <StyledSelectOption {...select} value={option.value}>
+                          {select.selectedValue && (
+                            <>
+                              {select.selectedValue === option.value ? (
+                                <CheckmarkIcon color="currentColor" />
+                              ) : (
+                                <Spacer />
+                              )}
+                              &nbsp;
+                            </>
+                          )}
                           {option.label}
                         </StyledSelectOption>
-                      </div>
+                      </Flex>
                     ))
                   : null}
               </Background>
@@ -128,6 +133,12 @@ const InputSelect = (props: Props) => {
     </Flex>
   );
 };
+
+const Spacer = styled.svg`
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+`;
 
 const StyledButton = styled(Button)`
   text-transform: none;
