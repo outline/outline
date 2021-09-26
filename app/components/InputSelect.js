@@ -156,6 +156,17 @@ const Wrapper = styled.label`
 
 export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
+
+  &[aria-selected="true"] {
+    color: ${(props) => props.theme.white};
+    background: ${(props) => props.theme.primary};
+    box-shadow: none;
+    cursor: pointer;
+
+    svg {
+      fill: ${(props) => props.theme.white};
+    }
+  }
 `;
 
 export default InputSelect;
