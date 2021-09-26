@@ -35,6 +35,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import ContextMenu from "components/ContextMenu";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -188,12 +189,13 @@ const colors = [
 
 type Props = {|
   onOpen?: () => void,
+  onClose?: () => void,
   onChange: (color: string, icon: string) => void,
   icon: string,
   color: string,
 |};
 
-function IconPicker({ onOpen, icon, color, onChange }: Props) {
+function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
   const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,
@@ -216,7 +218,12 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
           </Button>
         )}
       </MenuButton>
-      <ContextMenu {...menu} onOpen={onOpen} aria-label={t("Choose icon")}>
+      <ContextMenu
+        {...menu}
+        onOpen={onOpen}
+        onClose={onClose}
+        aria-label={t("Choose icon")}
+      >
         <Icons>
           {Object.keys(icons).map((name) => {
             return (
@@ -259,7 +266,10 @@ const Label = styled.label`
 
 const Icons = styled.div`
   padding: 16px 8px 0 16px;
-  width: 276px;
+
+  ${breakpoint("tablet")`
+    width: 276px;
+  `};
 `;
 
 const Button = styled(NudeButton)`
@@ -282,6 +292,11 @@ const Loading = styled(HelpText)`
 const ColorPicker = styled(TwitterPicker)`
   box-shadow: none !important;
   background: transparent !important;
+  width: auto !important;
+
+  ${breakpoint("tablet")`
+    width: 276px;
+  `};
 `;
 
 const Wrapper = styled("div")`

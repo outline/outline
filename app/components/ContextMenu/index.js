@@ -20,6 +20,7 @@ type Props = {|
   children: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
+  hide?: () => void,
 |};
 
 export default function ContextMenu({
@@ -68,7 +69,7 @@ export default function ContextMenu({
       </Menu>
       {(rest.visible || rest.animating) && (
         <Portal>
-          <Backdrop />
+          <Backdrop onClick={rest.hide} />
         </Portal>
       )}
     </>
