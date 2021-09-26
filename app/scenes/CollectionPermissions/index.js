@@ -140,6 +140,7 @@ function CollectionPermissions({ collection }: Props) {
   const handleChangePermission = React.useCallback(
     async (permission: string) => {
       try {
+        if (permission === "no_access") permission = "";
         await collection.save({ permission });
         showToast(t("Default access permissions were updated"), {
           type: "success",
@@ -178,6 +179,7 @@ function CollectionPermissions({ collection }: Props) {
   const sharing = collection.sharing;
   const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
+  console.log("collection permission forpm index", collection.permission);
   return (
     <Flex column>
       <InputSelectPermission

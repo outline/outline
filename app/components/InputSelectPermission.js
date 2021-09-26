@@ -17,7 +17,7 @@ export default function InputSelectPermission(
       options={[
         { label: t("View and edit"), value: "read_write" },
         { label: t("View only"), value: "read" },
-        { label: t("No access"), value: "" },
+        { label: t("No access"), value: "no_access" },
       ]}
       ariaLabel="Default access"
       ariaLabelPlural="Default access options"
