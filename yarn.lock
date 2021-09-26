@@ -6866,10 +6866,10 @@ fuzzy-search@^3.2.1:
   resolved "https://registry.yarnpkg.com/fuzzy-search/-/fuzzy-search-3.2.1.tgz#65d5faad6bc633aee86f1898b7788dfe312ac6c9"
   integrity sha512-vAcPiyomt1ioKAsAL2uxSABHJ4Ju/e4UeDM+g1OlR0vV4YhLGMNsdLNvZTpEDY4JCSt0E4hASCNM5t2ETtsbyg==
 
-gemoji@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/gemoji/-/gemoji-7.0.0.tgz#e77c435a208ab6d74a32d5e9d05746ee86ae0390"
-  integrity sha512-QN1P252570sLIRdEUQCB0hA1EaEuQZCcgLIDxSEPr353q9eBRLxV7cRN/MxhVRCXqybUX0GwUgi0qPMV0zSA7w==
+gemoji@6.x:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/gemoji/-/gemoji-6.1.0.tgz#268fbb0c81d1a8c32a4bcc39bdfdd66080ba7ce9"
+  integrity sha512-MOlX3doQ1fsfzxQX8Y+u6bC5Ssc1pBUBIPVyrS69EzKt+5LIZAOm0G5XGVNhwXFgkBF3r+Yk88ONyrFHo8iNFA==
 
 gensync@^1.0.0-beta.1:
   version "1.0.0-beta.2"
@@ -12496,14 +12496,14 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.18.0:
-  version "11.18.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.0.tgz#bd4e5f8b18bf0e3308b3e7e4623b71c100ac2ef3"
-  integrity sha512-4fpU6fShdmOiZPlFaK+N+kbXfb2VUJNBy+PbtIXw/TVrXAMqeIBPtsFDOGItzEQVqlBkXo7yqfTFIvZPPtbPkg==
+rich-markdown-editor@^11.18.1:
+  version "11.18.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.1.tgz#6528370438b082dd3d5877f24110d56725c85fda"
+  integrity sha512-3C6OI6OU87073dwnKZqt0JkK9kQz6IxNqGke4y3JSOxXNkwaywyXjtllH1VFzdhkO0m6rPsmmwxt+2pPgMtDVg==
   dependencies:
     copy-to-clipboard "^3.0.8"
     fuzzy-search "^3.2.1"
-    gemoji "^7.0.0"
+    gemoji "6.x"
     lodash "^4.17.11"
     markdown-it "^12.2.0"
     markdown-it-container "^3.0.0"
