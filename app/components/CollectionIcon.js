@@ -26,10 +26,9 @@ function ResolvedCollectionIcon({
   // otherwise it will be impossible to see against the dark background.
   const color =
     (ui.resolvedTheme === "dark" || useLuminance) &&
-    collection.color !== "currentColor"
-      ? getLuminance(collection.color) > 0.12
-        ? collection.color
-        : "currentColor"
+    collection.color !== "currentColor" &&
+    !(getLuminance(collection.color) > 0.12)
+      ? "currentColor"
       : collection.color;
 
   if (collection.icon && collection.icon !== "collection") {
