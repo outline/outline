@@ -5,7 +5,7 @@ import { subtractDate } from "../../../shared/utils/date";
 import documentCreator from "../../commands/documentCreator";
 import documentImporter from "../../commands/documentImporter";
 import documentMover from "../../commands/documentMover";
-import { documentPermanentDeleter } from "../../commands/documentPermanentDeleter";
+import documentPermanentDeleter from "../../commands/documentPermanentDeleter";
 import { documentUpdater } from "../../commands/documentUpdater";
 
 import env from "../../env";

@@ -304,6 +304,22 @@ User.getCounts = async function (teamId: string) {
   };
 };
 
+User.findAllInBatches = async (
+  query,
+  callback: (users: Array<User>, query: Object) => Promise<void>
+) => {
+  if (!query.offset) query.offset = 0;
+  if (!query.limit) query.limit = 10;
+  let results;
+
+  do {
+    results = await User.findAll(query);
+
+    await callback(results, query);
+    query.offset += query.limit;
+  } while (results.length >= query.limit);
+};
+
 User.prototype.demote = async function (
   teamId: string,
   to: "member" | "viewer"

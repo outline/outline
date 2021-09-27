@@ -48,7 +48,6 @@ export default class Tracing {
       instance.getConnectionsCount()
     );
 
-    // TODO: Waiting for `instance` available in payload
     Metrics.gaugePerInstance(
       "collaboration.documents_count",
       instance.getDocumentsCount()

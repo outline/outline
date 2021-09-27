@@ -4,7 +4,9 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import useMobile from "hooks/useMobile";
 import usePrevious from "hooks/usePrevious";
+import useWindowSize from "hooks/useWindowSize";
 import {
   fadeIn,
   fadeAndSlideUp,
@@ -18,8 +20,12 @@ type Props = {|
   placement?: string,
   animating?: boolean,
   children: React.Node,
+  unstable_disclosureRef?: {
+    current: null | React.ElementRef<"button">,
+  },
   onOpen?: () => void,
   onClose?: () => void,
+  hide?: () => void,
 |};
 
 export default function ContextMenu({
@@ -29,6 +35,10 @@ export default function ContextMenu({
   ...rest
 }: Props) {
   const previousVisible = usePrevious(rest.visible);
+  const [maxHeight, setMaxHeight] = React.useState(undefined);
+  const isMobile = useMobile();
+  const { height: windowHeight } = useWindowSize();
+  const backgroundRef = React.useRef();
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
@@ -42,6 +52,23 @@ export default function ContextMenu({
       }
     }
   }, [onOpen, onClose, previousVisible, rest.visible]);
+
+  // sets the menu height based on the available space between the disclosure/
+  // trigger and the bottom of the window
+  React.useLayoutEffect(() => {
+    const padding = 8;
+
+    if (rest.visible && !isMobile) {
+      setMaxHeight(
+        rest.unstable_disclosureRef?.current
+          ? windowHeight -
+              rest.unstable_disclosureRef.current.getBoundingClientRect()
+                .bottom -
+              padding
+          : undefined
+      );
+    }
+  }, [rest.visible, rest.unstable_disclosureRef, windowHeight, isMobile]);
 
   return (
     <>
@@ -59,6 +86,8 @@ export default function ContextMenu({
                 dir="auto"
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
+                ref={backgroundRef}
+                style={maxHeight && topAnchor ? { maxHeight } : undefined}
               >
                 {rest.visible || rest.animating ? children : null}
               </Background>
@@ -68,7 +97,7 @@ export default function ContextMenu({
       </Menu>
       {(rest.visible || rest.animating) && (
         <Portal>
-          <Backdrop />
+          <Backdrop onClick={rest.hide} />
         </Portal>
       )}
     </>

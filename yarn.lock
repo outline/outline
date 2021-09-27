@@ -1165,10 +1165,10 @@
     y-protocols "^1.0.5"
     yjs "^13.5.8"
 
-"@hocuspocus/server@^1.0.0-alpha.70":
-  version "1.0.0-alpha.70"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.70.tgz#0986d85d2eb05a60562ab58fe70a8b47b0ff3de7"
-  integrity sha512-LyMTo1tRfJGzz0F9J/wDr35cIc056uFQPzl/tLYuYX6DNhU6KF2UKuR4EYlyiYpxxRUIpFQe3yKYisusmU2E/Q==
+"@hocuspocus/server@^1.0.0-alpha.73":
+  version "1.0.0-alpha.73"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.73.tgz#94cd4ab914983bec6a4f21a120b82e187ebdaded"
+  integrity sha512-7LtTeIEMyYcGWfFJlcl8CioBqyrperKATgOpMTAmBv0MBJKHU4+Z88WLxKBSDJGrXY+95kblFOtrqelfoqjIdA==
   dependencies:
     "@types/async-lock" "^1.1.2"
     "@types/uuid" "^8.3.0"
@@ -6861,6 +6861,16 @@ functions-have-names@^1.2.2:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.2.tgz#98d93991c39da9361f8e50b337c4f6e41f120e21"
   integrity sha512-bLgc3asbWdwPbx2mNk2S49kmJCuQeu0nfmaOgbs8WIyzzkw3r4htszdIi9Q9EMezDPTYuJx2wvjZ/EwgAthpnA==
 
+fuzzy-search@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fuzzy-search/-/fuzzy-search-3.2.1.tgz#65d5faad6bc633aee86f1898b7788dfe312ac6c9"
+  integrity sha512-vAcPiyomt1ioKAsAL2uxSABHJ4Ju/e4UeDM+g1OlR0vV4YhLGMNsdLNvZTpEDY4JCSt0E4hASCNM5t2ETtsbyg==
+
+gemoji@6.x:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/gemoji/-/gemoji-6.1.0.tgz#268fbb0c81d1a8c32a4bcc39bdfdd66080ba7ce9"
+  integrity sha512-MOlX3doQ1fsfzxQX8Y+u6bC5Ssc1pBUBIPVyrS69EzKt+5LIZAOm0G5XGVNhwXFgkBF3r+Yk88ONyrFHo8iNFA==
+
 gensync@^1.0.0-beta.1:
   version "1.0.0-beta.2"
   resolved "https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.2.tgz#32a6ee76c3d7f52d46b2b1ae5d93fea8580a25e0"
@@ -9803,6 +9813,11 @@ markdown-it-container@^3.0.0:
   resolved "https://registry.yarnpkg.com/markdown-it-container/-/markdown-it-container-3.0.0.tgz#1d19b06040a020f9a827577bb7dbf67aa5de9a5b"
   integrity sha512-y6oKTq4BB9OQuY/KLfk/O3ysFhB3IMYoIWhGJEidXt1NQFocFK2sA2t0NYZAMyMShAGL6x5OPIbrmXPIqaN9rw==
 
+markdown-it-emoji@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-emoji/-/markdown-it-emoji-2.0.0.tgz#3164ad4c009efd946e98274f7562ad611089a231"
+  integrity sha512-39j7/9vP/CPCKbEI44oV8yoPJTpvfeReTn/COgRhSpNrjWF3PfP/JUxxB0hxV6ynOY8KH8Y8aX9NMDdo6z+6YQ==
+
 markdown-it@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/markdown-it/-/markdown-it-10.0.0.tgz#abfc64f141b1722d663402044e43927f1f50a8dc"
@@ -10654,10 +10669,10 @@ os-name@^3.1.0:
     macos-release "^2.2.0"
     windows-release "^3.1.0"
 
-outline-icons@^1.26.1, outline-icons@^1.31.0:
-  version "1.31.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.31.0.tgz#c373667442300afdb1a9fd6059180833c6123fcb"
-  integrity sha512-pe2vSI1mR4bJaWpmTitniyNpu4oq8dVObOweh/H6EON+12w2QDRtJZ6A6Bkc2vjlb2ZRYcZasisJI9VBUuTnHQ==
+outline-icons@^1.26.1, outline-icons@^1.33.0:
+  version "1.33.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.33.0.tgz#eb022b170977eb977ab531941f2976f95860a6df"
+  integrity sha512-Ib2kEZ+2rlidyLJa9istA5k0GSV6731PXlKMJ2o4qzzO9h+AoxPeSmE7Rx3ZzrZDCYDMuruWcOLyNWjwu1/bLw==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -12077,35 +12092,35 @@ readdirp@~3.5.0:
   dependencies:
     picomatch "^2.2.1"
 
-reakit-system@^0.15.1:
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/reakit-system/-/reakit-system-0.15.1.tgz#bf5cc7a03f60a817373bc9cbb4a689c1f4100547"
-  integrity sha512-PkqfAyEohtcEu/gUvKriCv42NywDtUgvocEN3147BI45dOFAB89nrT7wRIbIcKJiUT598F+JlPXAZZVLWhc1Kg==
+reakit-system@^0.15.2:
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/reakit-system/-/reakit-system-0.15.2.tgz#a485fab84b3942acbed6212c3b56a6ef8611c457"
+  integrity sha512-TvRthEz0DmD0rcJkGamMYx+bATwnGNWJpe/lc8UV2Js8nnPvkaxrHk5fX9cVASFrWbaIyegZHCWUBfxr30bmmA==
   dependencies:
-    reakit-utils "^0.15.1"
+    reakit-utils "^0.15.2"
 
-reakit-utils@^0.15.1:
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/reakit-utils/-/reakit-utils-0.15.1.tgz#797f0a43f6a1dbc22d161224d5d2272e287dbfe3"
-  integrity sha512-6cZgKGvOkAMQgkwU9jdYbHfkuIN1Pr+vwcB19plLvcTfVN0Or10JhIuj9X+JaPZyI7ydqTDFaKNdUcDP69o/+Q==
+reakit-utils@^0.15.2:
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/reakit-utils/-/reakit-utils-0.15.2.tgz#b4d5836e534576bfd175171541d43182ad97f2d2"
+  integrity sha512-i/RYkq+W6hvfFmXw5QW7zvfJJT/K8a4qZ0hjA79T61JAFPGt23DsfxwyBbyK91GZrJ9HMrXFVXWMovsKBc1qEQ==
 
-reakit-warning@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/reakit-warning/-/reakit-warning-0.6.1.tgz#dba33bb8866aebe30e67ac433ead707d16d38a36"
-  integrity sha512-poFUV0EyxB+CcV9uTNBAFmcgsnR2DzAbOTkld4Ul+QOKSeEHZB3b3+MoZQgcYHmbvG19Na1uWaM7ES+/Eyr8tQ==
+reakit-warning@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/reakit-warning/-/reakit-warning-0.6.2.tgz#9c346ae483eb1f284f2088653f90cabd26dbee56"
+  integrity sha512-z/3fvuc46DJyD3nJAUOto6inz2EbSQTjvI/KBQDqxwB0y02HDyeP8IWOJxvkuAUGkWpeSx+H3QWQFSNiPcHtmw==
   dependencies:
-    reakit-utils "^0.15.1"
+    reakit-utils "^0.15.2"
 
-reakit@^1.3.8:
-  version "1.3.8"
-  resolved "https://registry.yarnpkg.com/reakit/-/reakit-1.3.8.tgz#717e1a3b7cc6da803362a0edc2c55d2b6a001baf"
-  integrity sha512-8SVejx6FUaFi2+Q9eXoDAd4wWi/xAn6v8JgXH8x2xnzye8pb6v5bYvegACVpYVZnrS5w/JUgMTGh1Xy8MkkPww==
+reakit@^1.3.10:
+  version "1.3.10"
+  resolved "https://registry.yarnpkg.com/reakit/-/reakit-1.3.10.tgz#9b04efb8962cc17ecaffa31bae0396940177d431"
+  integrity sha512-HxHtnegMDwidGU4Ik/fKTZ3coihf4nKeycs0QSIFWcau77qL5wL6xnqZrAxcjjDDPOIANct3LxTiAlf+qGLOlw==
   dependencies:
     "@popperjs/core" "^2.5.4"
     body-scroll-lock "^3.1.5"
-    reakit-system "^0.15.1"
-    reakit-utils "^0.15.1"
-    reakit-warning "^0.6.1"
+    reakit-system "^0.15.2"
+    reakit-utils "^0.15.2"
+    reakit-warning "^0.6.2"
 
 rechoir@^0.6.2:
   version "0.6.2"
@@ -12481,15 +12496,18 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.17.8:
-  version "11.17.8"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.17.8.tgz#f26aa3620ea716db052dc49053742f777b245a2c"
-  integrity sha512-XxiC3W12jjBzXejj/RUGvC5nvlBqInDFgXaoWzxttUv6s+A2JYnigURc7rOlcvgI1Lv8sN7PAqINPHPEooG+5g==
+rich-markdown-editor@^11.18.2:
+  version "11.18.2"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.2.tgz#866d63850065c21fd0e831ff751f31365de7fd14"
+  integrity sha512-mTfAN3qGCZsh/WuTQUq76Xasr1CiIYyXyVzp8ceZv5jipjl1fDMXNjDiXxVPvkB/lL/lpNxsdp6vnsFm6Fy56g==
   dependencies:
     copy-to-clipboard "^3.0.8"
+    fuzzy-search "^3.2.1"
+    gemoji "6.x"
     lodash "^4.17.11"
     markdown-it "^12.2.0"
     markdown-it-container "^3.0.0"
+    markdown-it-emoji "^2.0.0"
     outline-icons "^1.26.1"
     prosemirror-commands "^1.1.6"
     prosemirror-dropcursor "^1.3.3"
@@ -13937,9 +13955,9 @@ tmp@^0.2.1:
     rimraf "^3.0.0"
 
 tmpl@1.0.x:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/tmpl/-/tmpl-1.0.4.tgz#23640dd7b42d00433911140820e5cf440e521dd1"
-  integrity sha1-I2QN17QtAEM5ERQIIOXPRA5SHdE=
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/tmpl/-/tmpl-1.0.5.tgz#8683e0b902bb9c20c4f726e3c0b69f36518c07cc"
+  integrity sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==
 
 to-absolute-glob@^2.0.0:
   version "2.0.2"

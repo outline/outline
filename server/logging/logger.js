@@ -83,8 +83,10 @@ class Logger {
 
     if (isProduction) {
       this.output.warn(message, extra);
-    } else {
+    } else if (extra) {
       console.warn(message, extra);
+    } else {
+      console.warn(message);
     }
   }
 
