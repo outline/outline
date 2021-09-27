@@ -4,6 +4,7 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import useMobile from "hooks/useMobile";
 import usePrevious from "hooks/usePrevious";
 import useWindowSize from "hooks/useWindowSize";
 import {
@@ -35,8 +36,9 @@ export default function ContextMenu({
 }: Props) {
   const previousVisible = usePrevious(rest.visible);
   const [maxHeight, setMaxHeight] = React.useState(undefined);
-  const backgroundRef = React.useRef();
+  const isMobile = useMobile();
   const { height: windowHeight } = useWindowSize();
+  const backgroundRef = React.useRef();
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
@@ -56,7 +58,7 @@ export default function ContextMenu({
   React.useLayoutEffect(() => {
     const padding = 8;
 
-    if (rest.visible) {
+    if (rest.visible && !isMobile) {
       setMaxHeight(
         rest.unstable_disclosureRef?.current
           ? windowHeight -
@@ -66,7 +68,7 @@ export default function ContextMenu({
           : undefined
       );
     }
-  }, [rest.visible, rest.unstable_disclosureRef, windowHeight]);
+  }, [rest.visible, rest.unstable_disclosureRef, windowHeight, isMobile]);
 
   return (
     <>
