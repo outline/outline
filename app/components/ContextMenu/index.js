@@ -4,9 +4,8 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import useMobile from "hooks/useMobile";
+import useMenuHeight from "hooks/useMenuHeight";
 import usePrevious from "hooks/usePrevious";
-import useWindowSize from "hooks/useWindowSize";
 import {
   fadeIn,
   fadeAndSlideUp,
@@ -35,9 +34,7 @@ export default function ContextMenu({
   ...rest
 }: Props) {
   const previousVisible = usePrevious(rest.visible);
-  const [maxHeight, setMaxHeight] = React.useState(undefined);
-  const isMobile = useMobile();
-  const { height: windowHeight } = useWindowSize();
+  const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
   const backgroundRef = React.useRef();
 
   React.useEffect(() => {
@@ -55,21 +52,6 @@ export default function ContextMenu({
 
   // sets the menu height based on the available space between the disclosure/
   // trigger and the bottom of the window
-  React.useLayoutEffect(() => {
-    const padding = 8;
-
-    if (rest.visible && !isMobile) {
-      setMaxHeight(
-        rest.unstable_disclosureRef?.current
-          ? windowHeight -
-              rest.unstable_disclosureRef.current.getBoundingClientRect()
-                .bottom -
-              padding
-          : undefined
-      );
-    }
-  }, [rest.visible, rest.unstable_disclosureRef, windowHeight, isMobile]);
-
   return (
     <>
       <Menu hideOnClickOutside preventBodyScroll {...rest}>
