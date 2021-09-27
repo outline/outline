@@ -12332,7 +12332,6 @@ readdirp@~3.5.0:
     picomatch "^2.2.1"
 
 reakit-system@^0.15.1, reakit-system@^0.15.2:
-reakit-system@^0.15.2:
   version "0.15.2"
   resolved "https://registry.yarnpkg.com/reakit-system/-/reakit-system-0.15.2.tgz#a485fab84b3942acbed6212c3b56a6ef8611c457"
   integrity sha512-TvRthEz0DmD0rcJkGamMYx+bATwnGNWJpe/lc8UV2Js8nnPvkaxrHk5fX9cVASFrWbaIyegZHCWUBfxr30bmmA==
@@ -12340,13 +12339,11 @@ reakit-system@^0.15.2:
     reakit-utils "^0.15.2"
 
 reakit-utils@^0.15.1, reakit-utils@^0.15.2:
-reakit-utils@^0.15.2:
   version "0.15.2"
   resolved "https://registry.yarnpkg.com/reakit-utils/-/reakit-utils-0.15.2.tgz#b4d5836e534576bfd175171541d43182ad97f2d2"
   integrity sha512-i/RYkq+W6hvfFmXw5QW7zvfJJT/K8a4qZ0hjA79T61JAFPGt23DsfxwyBbyK91GZrJ9HMrXFVXWMovsKBc1qEQ==
 
 reakit-warning@^0.6.1, reakit-warning@^0.6.2:
-reakit-warning@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/reakit-warning/-/reakit-warning-0.6.2.tgz#9c346ae483eb1f284f2088653f90cabd26dbee56"
   integrity sha512-z/3fvuc46DJyD3nJAUOto6inz2EbSQTjvI/KBQDqxwB0y02HDyeP8IWOJxvkuAUGkWpeSx+H3QWQFSNiPcHtmw==
