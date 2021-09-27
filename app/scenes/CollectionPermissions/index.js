@@ -179,7 +179,6 @@ function CollectionPermissions({ collection }: Props) {
   const sharing = collection.sharing;
   const teamSharingEnabled = !!auth.team && auth.team.sharing;
 
-  console.log("collection permission forpm index", collection.permission);
   return (
     <Flex column>
       <InputSelectPermission

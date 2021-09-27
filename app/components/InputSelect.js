@@ -15,6 +15,7 @@ import Flex from "components/Flex";
 import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
+import useMenuHeight from "hooks/useMenuHeight";
 
 export type Option = { label: string, value: string };
 
@@ -61,6 +62,11 @@ const InputSelect = (props: Props) => {
 
   const previousValue = React.useRef(value);
 
+  const maxHeight = useMenuHeight(
+    select.visible,
+    select.unstable_disclosureRef
+  );
+
   React.useEffect(() => {
     if (previousValue.current === select.selectedValue) return;
 
@@ -104,6 +110,7 @@ const InputSelect = (props: Props) => {
                 dir="auto"
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
+                style={maxHeight && topAnchor ? { maxHeight } : undefined}
               >
                 {select.visible || select.animating
                   ? options.map((option) => (
