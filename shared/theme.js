@@ -63,7 +63,7 @@ export const base = {
     "'SFMono-Regular',Consolas,'Liberation Mono', Menlo, Courier,monospace",
   fontWeight: 400,
   backgroundTransition: "background 100ms ease-in-out",
-  zIndex: 100,
+  zIndex: 800,
 
   selected: colors.primary,
   buttonBackground: colors.primary,
@@ -116,6 +116,7 @@ export const base = {
   depths: {
     header: 800,
     sidebar: 900,
+    // Note: editor toolbars are 900
     hoverPreview: 998,
     // Note: editor lightbox is z-index 999
     modalOverlay: 2000,
