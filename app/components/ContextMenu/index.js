@@ -5,6 +5,7 @@ import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import usePrevious from "hooks/usePrevious";
+import useWindowSize from "hooks/useWindowSize";
 import {
   fadeIn,
   fadeAndSlideUp,
@@ -18,6 +19,9 @@ type Props = {|
   placement?: string,
   animating?: boolean,
   children: React.Node,
+  unstable_disclosureRef?: {
+    current: null | React.ElementRef<"button">,
+  },
   onOpen?: () => void,
   onClose?: () => void,
   hide?: () => void,
@@ -30,6 +34,9 @@ export default function ContextMenu({
   ...rest
 }: Props) {
   const previousVisible = usePrevious(rest.visible);
+  const [maxHeight, setMaxHeight] = React.useState(undefined);
+  const backgroundRef = React.useRef();
+  const { height: windowHeight } = useWindowSize();
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
@@ -43,6 +50,23 @@ export default function ContextMenu({
       }
     }
   }, [onOpen, onClose, previousVisible, rest.visible]);
+
+  // sets the menu height based on the available space between the disclosure/
+  // trigger and the bottom of the window
+  React.useLayoutEffect(() => {
+    const padding = 8;
+
+    if (rest.visible) {
+      setMaxHeight(
+        rest.unstable_disclosureRef?.current
+          ? windowHeight -
+              rest.unstable_disclosureRef.current.getBoundingClientRect()
+                .bottom -
+              padding
+          : undefined
+      );
+    }
+  }, [rest.visible, rest.unstable_disclosureRef, windowHeight]);
 
   return (
     <>
@@ -60,6 +84,8 @@ export default function ContextMenu({
                 dir="auto"
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
+                ref={backgroundRef}
+                style={maxHeight && topAnchor ? { maxHeight } : undefined}
               >
                 {rest.visible || rest.animating ? children : null}
               </Background>
