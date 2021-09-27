@@ -29,16 +29,13 @@ export default class Persistence {
 
     if (document.state) {
       const ydoc = new Y.Doc();
-      Logger.info(
-        "collaboration",
-        `Document ${documentId} is in database state`
-      );
+      Logger.info("database", `Document ${documentId} is in database state`);
       Y.applyUpdate(ydoc, document.state);
       return ydoc;
     }
 
     Logger.info(
-      "collaboration",
+      "database",
       `Document ${documentId} is not in state, creating from markdown`
     );
     const ydoc = markdownToYDoc(document.text, fieldName);
@@ -60,13 +57,20 @@ export default class Persistence {
     }) => {
       const [, documentId] = documentName.split(".");
 
-      Logger.info("collaboration", `Persisting ${documentId}`);
+      Logger.info("database", `Persisting ${documentId}`);
 
-      await documentUpdater({
-        documentId,
-        ydoc: document,
-        userId: context.user.id,
-      });
+      try {
+        await documentUpdater({
+          documentId,
+          ydoc: document,
+          userId: context.user.id,
+        });
+      } catch (err) {
+        Logger.error("Unable to persist document", err, {
+          documentId,
+          userId: context.user?.id,
+        });
+      }
     },
     DELAY,
     {

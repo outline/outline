@@ -93,6 +93,7 @@ export const base = {
   blockToolbarItem: colors.almostBlack,
   blockToolbarText: colors.almostBlack,
   blockToolbarTextSelected: colors.black,
+  blockToolbarSelectedBackground: colors.slateLight,
   blockToolbarHoverBackground: colors.slateLight,
   blockToolbarDivider: colors.slateLight,
   blockToolbarIcon: undefined,

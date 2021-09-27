@@ -13,6 +13,7 @@ import {
   zhCN,
   zhTW,
   ru,
+  pl,
 } from "date-fns/locale";
 
 const locales = {
@@ -29,6 +30,7 @@ const locales = {
   zh_CN: zhCN,
   zh_TW: zhTW,
   ru_RU: ru,
+  pl_PL: pl,
 };
 
 export function dateLocale(userLocale: ?string) {

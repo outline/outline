@@ -21,7 +21,7 @@ type Props = {|
   id: string,
 |};
 
-function MultiplayerEditor(props: Props, ref: any) {
+function MultiplayerEditor({ ...props }: Props, ref: any) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -128,14 +128,24 @@ function MultiplayerEditor(props: Props, ref: any) {
     return <PlaceholderDocument includeTitle={false} delay={500} />;
   }
 
+  // while the collaborative document is loading, we render a version of the
+  // document from the last text cache in read-only mode if we have it.
+  const showCache = !isLocalSynced && !isRemoteSynced;
+
   return (
-    <Editor
-      {...props}
-      value={undefined}
-      defaultValue={undefined}
-      extensions={extensions}
-      ref={ref}
-    />
+    <>
+      {showCache && (
+        <Editor defaultValue={props.defaultValue} readOnly ref={ref} />
+      )}
+      <Editor
+        {...props}
+        value={undefined}
+        defaultValue={undefined}
+        extensions={extensions}
+        ref={showCache ? undefined : ref}
+        style={showCache ? { display: "none" } : undefined}
+      />
+    </>
   );
 }
 

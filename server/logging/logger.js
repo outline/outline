@@ -9,7 +9,7 @@ const isProduction = env.NODE_ENV === "production";
 
 type LogCategory =
   | "lifecycle"
-  | "collaboration"
+  | "hocuspocus"
   | "http"
   | "commands"
   | "processor"
@@ -32,8 +32,10 @@ class Logger {
           : winston.format.combine(
               winston.format.colorize(),
               winston.format.printf(
-                ({ message, label }) =>
-                  `${label ? chalk.bold("[" + label + "] ") : ""}${message}`
+                ({ message, level, label }) =>
+                  `${level}: ${
+                    label ? chalk.bold("[" + label + "] ") : ""
+                  }${message}`
               )
             ),
       })
@@ -81,8 +83,10 @@ class Logger {
 
     if (isProduction) {
       this.output.warn(message, extra);
-    } else {
+    } else if (extra) {
       console.warn(message, extra);
+    } else {
+      console.warn(message);
     }
   }
 

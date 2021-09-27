@@ -1,37 +1,57 @@
 // @flow
 import Metrics from "../logging/metrics";
 
-let count = 0;
-
 export default class Tracing {
-  async onCreateDocument({ documentName }: { documentName: string }) {
+  async onCreateDocument({
+    documentName,
+    instance,
+  }: {
+    documentName: string,
+    instance: any,
+  }) {
     Metrics.increment("collaboration.create_document", { documentName });
 
-    // TODO: Waiting for `instance` available in payload
-    // Metrics.gaugePerInstance(
-    //   "collaboration.documents_count",
-    //   instance.documents.size()
-    // );
+    Metrics.gaugePerInstance(
+      "collaboration.documents_count",
+      instance.getDocumentsCount()
+    );
   }
 
   async onAuthenticationFailed({ documentName }: { documentName: string }) {
     Metrics.increment("collaboration.authentication_failed", { documentName });
   }
 
-  async onConnect({ documentName }: { documentName: string }) {
+  async onConnect({
+    documentName,
+    instance,
+  }: {
+    documentName: string,
+    instance: any,
+  }) {
     Metrics.increment("collaboration.connect", { documentName });
-    Metrics.gaugePerInstance("collaboration.connections_count", ++count);
+    Metrics.gaugePerInstance(
+      "collaboration.connections_count",
+      instance.getConnectionsCount()
+    );
   }
 
-  async onDisconnect({ documentName }: { documentName: string }) {
+  async onDisconnect({
+    documentName,
+    instance,
+  }: {
+    documentName: string,
+    instance: any,
+  }) {
     Metrics.increment("collaboration.disconnect", { documentName });
-    Metrics.gaugePerInstance("collaboration.connections_count", --count);
+    Metrics.gaugePerInstance(
+      "collaboration.connections_count",
+      instance.getConnectionsCount()
+    );
 
-    // TODO: Waiting for `instance` available in payload
-    // Metrics.gaugePerInstance(
-    //   "collaboration.documents_count",
-    //   instance.documents.size()
-    // );
+    Metrics.gaugePerInstance(
+      "collaboration.documents_count",
+      instance.getDocumentsCount()
+    );
   }
 
   async onChange({ documentName }: { documentName: string }) {
