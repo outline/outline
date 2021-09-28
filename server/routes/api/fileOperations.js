@@ -108,12 +108,15 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
     throw new NotFoundError();
   }
 
+  console.log("fileop found", fileOp);
+
   authorize(user, fileOp.type, team);
 
   if (fileOp.state === "expired") {
     throw new ValidationError("file Operation is already expired");
   }
 
+  console.log("expiring");
   await fileOp.expire();
 
   await Event.add({
@@ -123,6 +126,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
     data: fileOp.dataValues,
   });
 
+  console.log("returning success");
   ctx.body = {
     success: true,
   };
