@@ -27,7 +27,7 @@ function ResolvedCollectionIcon({
   const color =
     (ui.resolvedTheme === "dark" || useLuminance) &&
     collection.color !== "currentColor" &&
-    getLuminance(collection.color) < 0.12
+    getLuminance(collection.color) <= 0.12
       ? "currentColor"
       : collection.color;
 
