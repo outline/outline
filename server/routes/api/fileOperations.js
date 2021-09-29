@@ -98,10 +98,12 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
 
 router.post("fileOperations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
+  console.log(id);
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
+  console.log("user and team done");
   const fileOp: FileOperation = await FileOperation.findByPk(id);
 
   if (!fileOp) {
@@ -112,6 +114,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   authorize(user, fileOp.type, team);
 
+  console.log("auth done");
   if (fileOp.state === "expired") {
     throw new ValidationError("file Operation is already expired");
   }
