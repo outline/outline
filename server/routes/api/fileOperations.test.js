@@ -300,6 +300,10 @@ describe("#fileOperations.delete", () => {
       },
     });
 
+    const deletedBody = await res.json();
+
+    console.log("deleted operation", deletedBody);
+
     // console.log(await res.json());
     // expect(res.status).toBe(200);
 
@@ -311,7 +315,9 @@ describe("#fileOperations.delete", () => {
     });
 
     const body = await expiredFileOp.json();
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(500);
+    console.log(res);
+    console.log("body", body);
     expect(body.data.id).toBe(exportData.id);
     expect(body.data.user.id).toBe(admin.id);
     expect(body.data.state).toBe("expired");

@@ -99,7 +99,7 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
 
 router.post("fileOperations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  console.log(id);
+  Logger.info("commands", id);
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
@@ -114,7 +114,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   Logger.info("commands", "fileop found");
   Logger.info("commands", fileOp);
 
-  authorize(user, fileOp.type, team);
+  authorize(user, "export", team);
 
   console.log("auth done");
   if (fileOp.state === "expired") {
