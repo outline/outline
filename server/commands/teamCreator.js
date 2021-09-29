@@ -7,6 +7,7 @@ import { getAllowedDomains } from "../utils/authentication";
 import { generateAvatarUrl } from "../utils/avatars";
 
 const log = debug("server");
+
 type TeamCreatorResult = {|
   team: Team,
   authenticationProvider: AuthenticationProvider,

@@ -10,7 +10,7 @@ const colors = {
 
   slate: "#9BA6B2",
   slateLight: "#DAE1E9",
-  slateDark: "#4E5C6E",
+  slateDark: "#394351",
 
   smoke: "#F4F7FA",
   smokeLight: "#F9FBFC",
@@ -198,7 +198,7 @@ export const dark = {
   placeholder: colors.slateDark,
 
   sidebarBackground: colors.veryDarkBlue,
-  sidebarItemBackground: colors.transparent,
+  sidebarItemBackground: lighten(0.015, colors.almostBlack),
   sidebarText: colors.slate,
   backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",

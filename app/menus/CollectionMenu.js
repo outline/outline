@@ -1,5 +1,13 @@
 // @flow
 import { observer } from "mobx-react";
+import {
+  NewDocumentIcon,
+  EditIcon,
+  TrashIcon,
+  ImportIcon,
+  ExportIcon,
+  PadlockIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -12,8 +20,9 @@ import CollectionExport from "scenes/CollectionExport";
 import CollectionPermissions from "scenes/CollectionPermissions";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import Template, { filterTemplateItems } from "components/ContextMenu/Template";
+import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -38,6 +47,7 @@ function CollectionMenu({
 }: Props) {
   const menu = useMenuState({ modal, placement });
   const [renderModals, setRenderModals] = React.useState(false);
+  const team = useCurrentTeam();
   const { documents, policies } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -112,47 +122,62 @@ function CollectionMenu({
   );
 
   const can = policies.abilities(collection.id);
+  const canUserInTeam = policies.abilities(team.id);
+
   const items = React.useMemo(
-    () =>
-      filterTemplateItems([
-        {
-          title: t("New document"),
-          visible: can.update,
-          onClick: handleNewDocument,
-        },
-        {
-          title: t("Import document"),
-          visible: can.update,
-          onClick: handleImportDocument,
-        },
-        {
-          type: "separator",
-        },
-        {
-          title: `${t("Edit")}…`,
-          visible: can.update,
-          onClick: () => setShowCollectionEdit(true),
-        },
-        {
-          title: `${t("Permissions")}…`,
-          visible: can.update,
-          onClick: () => setShowCollectionPermissions(true),
-        },
-        {
-          title: `${t("Export")}…`,
-          visible: !!(collection && can.export),
-          onClick: () => setShowCollectionExport(true),
-        },
-        {
-          type: "separator",
-        },
-        {
-          title: `${t("Delete")}…`,
-          visible: !!(collection && can.delete),
-          onClick: () => setShowCollectionDelete(true),
-        },
-      ]),
-    [can, collection, handleNewDocument, handleImportDocument, t]
+    () => [
+      {
+        title: t("New document"),
+        visible: can.update,
+        onClick: handleNewDocument,
+        icon: <NewDocumentIcon />,
+      },
+      {
+        title: t("Import document"),
+        visible: can.update,
+        onClick: handleImportDocument,
+        icon: <ImportIcon />,
+      },
+      {
+        type: "separator",
+      },
+      {
+        title: `${t("Edit")}…`,
+        visible: can.update,
+        onClick: () => setShowCollectionEdit(true),
+        icon: <EditIcon />,
+      },
+      {
+        title: `${t("Permissions")}…`,
+        visible: can.update,
+        onClick: () => setShowCollectionPermissions(true),
+        icon: <PadlockIcon />,
+      },
+      {
+        title: `${t("Export")}…`,
+        visible: !!(collection && canUserInTeam.export),
+        onClick: () => setShowCollectionExport(true),
+        icon: <ExportIcon />,
+      },
+      {
+        type: "separator",
+      },
+      {
+        title: `${t("Delete")}…`,
+        visible: !!(collection && can.delete),
+        onClick: () => setShowCollectionDelete(true),
+        icon: <TrashIcon />,
+      },
+    ],
+    [
+      t,
+      can.update,
+      can.delete,
+      handleNewDocument,
+      handleImportDocument,
+      collection,
+      canUserInTeam.export,
+    ]
   );
 
   if (!items.length) {

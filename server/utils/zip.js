@@ -69,17 +69,6 @@ async function archiveToPath(zip) {
   });
 }
 
-export async function archiveCollection(collection: Collection) {
-  const zip = new JSZip();
-
-  if (collection.documentStructure) {
-    const folder = zip.folder(collection.name);
-    await addToArchive(folder, collection.documentStructure);
-  }
-
-  return archiveToPath(zip);
-}
-
 export async function archiveCollections(collections: Collection[]) {
   const zip = new JSZip();
 

@@ -66,7 +66,11 @@ const RealButton = styled.button`
     
 
     &:hover {
-      background: ${darken(0.05, props.theme.buttonNeutralBackground)};
+      background: ${
+        props.borderOnHover
+          ? props.theme.buttonNeutralBackground
+          : darken(0.05, props.theme.buttonNeutralBackground)
+      };
       box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
         props.theme.buttonNeutralBorder
       } 0 0 0 1px inset;
@@ -124,11 +128,11 @@ export type Props = {|
   fullwidth?: boolean,
   autoFocus?: boolean,
   style?: Object,
-  as?: React.ComponentType<any>,
+  as?: React.ComponentType<any> | string,
   to?: string,
   onClick?: (event: SyntheticEvent<>) => mixed,
   borderOnHover?: boolean,
-
+  href?: string,
   "data-on"?: string,
   "data-event-category"?: string,
   "data-event-action"?: string,

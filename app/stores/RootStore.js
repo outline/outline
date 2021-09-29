@@ -5,6 +5,8 @@ import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
+import EventsStore from "./EventsStore";
+import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
@@ -24,6 +26,7 @@ export default class RootStore {
   collections: CollectionsStore;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   documents: DocumentsStore;
+  events: EventsStore;
   groups: GroupsStore;
   groupMemberships: GroupMembershipsStore;
   integrations: IntegrationsStore;
@@ -37,6 +40,7 @@ export default class RootStore {
   users: UsersStore;
   views: ViewsStore;
   toasts: ToastsStore;
+  fileOperations: FileOperationsStore;
 
   constructor() {
     // PoliciesStore must be initialized before AuthStore
@@ -46,6 +50,7 @@ export default class RootStore {
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
+    this.events = new EventsStore(this);
     this.groups = new GroupsStore(this);
     this.groupMemberships = new GroupMembershipsStore(this);
     this.integrations = new IntegrationsStore(this);
@@ -57,6 +62,7 @@ export default class RootStore {
     this.ui = new UiStore();
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
+    this.fileOperations = new FileOperationsStore(this);
     this.toasts = new ToastsStore();
   }
 
@@ -66,6 +72,7 @@ export default class RootStore {
     this.collections.clear();
     this.collectionGroupMemberships.clear();
     this.documents.clear();
+    this.events.clear();
     this.groups.clear();
     this.groupMemberships.clear();
     this.integrations.clear();
@@ -75,6 +82,7 @@ export default class RootStore {
     this.policies.clear();
     this.revisions.clear();
     this.shares.clear();
+    this.fileOperations.clear();
     // this.ui omitted to keep ui settings between sessions
     this.users.clear();
     this.views.clear();

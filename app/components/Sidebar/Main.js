@@ -2,12 +2,11 @@
 import { observer } from "mobx-react";
 import {
   EditIcon,
+  SearchIcon,
+  ShapesIcon,
   HomeIcon,
   PlusIcon,
-  SearchIcon,
   SettingsIcon,
-  ShapesIcon,
-  StarredIcon,
 } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
@@ -25,6 +24,7 @@ import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
+import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -109,12 +109,6 @@ function MainSidebar() {
                 label={t("Search")}
                 exact={false}
               />
-              <SidebarLink
-                to="/starred"
-                icon={<StarredIcon color="currentColor" />}
-                exact={false}
-                label={t("Starred")}
-              />
               {can.createDocument && (
                 <SidebarLink
                   to="/drafts"
@@ -135,6 +129,7 @@ function MainSidebar() {
                 />
               )}
             </Section>
+            <Starred />
             <Section auto>
               <Collections
                 onCreateCollection={handleCreateCollectionModalOpen}
@@ -149,7 +144,11 @@ function MainSidebar() {
                     exact={false}
                     label={t("Templates")}
                     active={
-                      documents.active ? documents.active.template : undefined
+                      documents.active
+                        ? documents.active.isTemplate &&
+                          !documents.active.isDeleted &&
+                          !documents.active.isArchived
+                        : undefined
                     }
                   />
                   <ArchiveLink documents={documents} />

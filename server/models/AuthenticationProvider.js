@@ -1,6 +1,6 @@
 // @flow
-import providers from "../auth/providers";
 import { ValidationError } from "../errors";
+import providers from "../routes/auth/providers";
 import { DataTypes, Op, sequelize } from "../sequelize";
 
 const AuthenticationProvider = sequelize.define(

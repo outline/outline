@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { Outline, LabelText } from "./Input";
 
 const Select = styled.select`
@@ -15,6 +16,7 @@ const Select = styled.select`
   background: none;
   color: ${(props) => props.theme.text};
   height: 30px;
+  font-size: 14px;
 
   option {
     background: ${(props) => props.theme.buttonNeutralBackground};
@@ -24,6 +26,10 @@ const Select = styled.select`
   &::placeholder {
     color: ${(props) => props.theme.placeholder};
   }
+
+  ${breakpoint("mobile", "tablet")`
+    font-size: 16px;
+  `};
 `;
 
 const Wrapper = styled.label`
