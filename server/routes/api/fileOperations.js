@@ -1,12 +1,12 @@
 // @flow
 import Router from "koa-router";
 import { NotFoundError, ValidationError } from "../../errors";
+import Logger from "../../logging/logger";
 import auth from "../../middlewares/authentication";
 import { FileOperation, Team, Event } from "../../models";
 import policy from "../../policies";
 import { presentFileOperation } from "../../presenters";
 import { getSignedUrl } from "../../utils/s3";
-import Logger from "./logging/logger";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
