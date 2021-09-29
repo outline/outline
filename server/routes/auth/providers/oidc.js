@@ -100,9 +100,8 @@ if (OIDC_CLIENT_ID) {
               subdomain,
             },
             user: {
-              name: profile.name,
+              name: profile.email,
               email: profile.email,
-              avatarUrl: profile.picture,
             },
             authenticationProvider: {
               name: providerName,
