@@ -6,6 +6,7 @@ import { FileOperation, Team, Event } from "../../models";
 import policy from "../../policies";
 import { presentFileOperation } from "../../presenters";
 import { getSignedUrl } from "../../utils/s3";
+import Logger from "./logging/logger";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -103,14 +104,15 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-  console.log("user and team done");
+  Logger.info("commands", "user and team done");
   const fileOp: FileOperation = await FileOperation.findByPk(id);
 
   if (!fileOp) {
     throw new NotFoundError();
   }
 
-  console.log("fileop found", fileOp);
+  Logger.info("commands", "fileop found");
+  Logger.info("commands", fileOp);
 
   authorize(user, fileOp.type, team);
 
@@ -119,7 +121,8 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
     throw new ValidationError("file Operation is already expired");
   }
 
-  console.log("expiring");
+  Logger.info("commands", "expiring");
+
   await fileOp.expire();
 
   await Event.add({
