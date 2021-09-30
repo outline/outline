@@ -271,7 +271,7 @@ export async function buildFileOperation(overrides: Object = {}) {
   return FileOperation.create({
     state: "creating",
     size: 0,
-    key: "key/to/aws/file.zip",
+    key: "uploads/key/to/file.zip",
     collectionId: null,
     url: "https://www.urltos3file.com/file.zip",
     ...overrides,

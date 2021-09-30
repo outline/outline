@@ -122,7 +122,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   Logger.info("commands", "expiring");
 
-  // await fileOp.expire();
+  await fileOp.expire();
 
   // await Event.create({
   //   name: "fileOperations.update",
