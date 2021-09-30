@@ -1,7 +1,6 @@
 // @flow
 import Router from "koa-router";
 import { NotFoundError, ValidationError } from "../../errors";
-import Logger from "../../logging/logger";
 import auth from "../../middlewares/authentication";
 import { FileOperation, Team, Event } from "../../models";
 import policy from "../../policies";
@@ -89,7 +88,8 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   authorize(user, fileOp.type, team);
 
   if (fileOp.state !== "complete") {
-    throw new ValidationError("file operation is not complete yet");
+    // fileOp could deleted as well
+    throw new ValidationError(`${fileOp.type} is not complete yet`);
   }
 
   const accessUrl = await getSignedUrl(fileOp.key);
@@ -103,17 +103,16 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-
-  authorize(user, "export", team);
-
   const fileOp: FileOperation = await FileOperation.findByPk(id);
+
+  authorize(user, fileOp.type, team);
 
   if (!fileOp) {
     throw new NotFoundError();
   }
 
   if (fileOp.state === "expired") {
-    throw new ValidationError("file Operation is already expired");
+    throw new ValidationError(`${fileOp.type} is already expired`);
   }
 
   await fileOp.expire();
