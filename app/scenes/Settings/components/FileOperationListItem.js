@@ -5,8 +5,8 @@ import FileOperation from "models/FileOperation";
 import { Action } from "components/Actions";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
+import useCurrentUser from "hooks/useCurrentUser";
 import FileOperationMenu from "menus/FileOperationMenu";
-
 type Props = {|
   fileOperation: FileOperation,
   handleDelete: (FileOperation) => Promise<void>,
@@ -14,6 +14,7 @@ type Props = {|
 
 const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
   const { t } = useTranslation();
+  const user = useCurrentUser();
 
   const stateMapping = {
     creating: t("Processing"),
@@ -36,7 +37,7 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
           )}
           {t(`{{userName}} requested`, {
             userName:
-              fileOperation.id === fileOperation.user.id
+              user.id === fileOperation.user.id
                 ? t("You")
                 : fileOperation.user.name,
           })}
