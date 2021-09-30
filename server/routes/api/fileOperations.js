@@ -124,12 +124,12 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   await fileOp.expire();
 
-  await Event.create({
-    name: "fileOperations.update",
-    teamId: team.id,
-    actorId: user.id,
-    data: fileOp.dataValues,
-  });
+  // await Event.create({
+  //   name: "fileOperations.update",
+  //   teamId: team.id,
+  //   actorId: user.id,
+  //   data: fileOp.dataValues,
+  // });
 
   console.log("returning success");
   ctx.body = {

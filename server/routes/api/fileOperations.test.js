@@ -293,6 +293,7 @@ describe("#fileOperations.delete", () => {
       state: "complete",
     });
 
+    console.log(exportData.dataValues);
     const deleteResponse = await server.post("/api/fileOperations.delete", {
       body: {
         token: admin.getJwtToken(),
