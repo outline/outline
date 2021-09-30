@@ -107,7 +107,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   Logger.info("commands", "user and team done");
 
   authorize(user, "export", team);
-  console.log("auth done");
+  Logger.info("commands", "auth done");
 
   const fileOp: FileOperation = await FileOperation.findByPk(id);
 

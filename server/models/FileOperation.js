@@ -37,7 +37,7 @@ const FileOperation = sequelize.define("file_operations", {
 FileOperation.prototype.expire = async function () {
   this.state = "expired";
   await deleteFromS3(this.key);
-  return this.save();
+  await this.save();
 };
 
 FileOperation.associate = (models) => {

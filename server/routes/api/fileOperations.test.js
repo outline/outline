@@ -293,19 +293,18 @@ describe("#fileOperations.delete", () => {
       state: "complete",
     });
 
-    const res = await server.post("/api/fileOperations.delete", {
+    const deleteResponse = await server.post("/api/fileOperations.delete", {
       body: {
         token: admin.getJwtToken(),
         id: exportData.id,
       },
     });
 
-    const deletedBody = await res.json();
+    const deletedBody = await deleteResponse.json();
 
     console.log("deleted operation", deletedBody);
 
-    // console.log(await res.json());
-    // expect(res.status).toBe(200);
+    expect(deleteResponse.status).toBe(200);
 
     const expiredFileOp = await server.post("/api/fileOperations.info", {
       body: {
@@ -315,12 +314,11 @@ describe("#fileOperations.delete", () => {
     });
 
     const body = await expiredFileOp.json();
-    expect(res.status).toBe(500);
-    console.log(res);
+    expect(expiredFileOp.status).toBe(200);
     console.log("body", body);
-    // expect(body.data.id).toBe(exportData.id);
-    // expect(body.data.user.id).toBe(admin.id);
-    // expect(body.data.state).toBe("expired");
+    expect(body.data.id).toBe(exportData.id);
+    expect(body.data.user.id).toBe(admin.id);
+    expect(body.data.state).toBe("expired");
   });
 
   it("shouldn't delete already expired file operation", async () => {
