@@ -3,7 +3,7 @@ import Router from "koa-router";
 import { NotFoundError, ValidationError } from "../../errors";
 import Logger from "../../logging/logger";
 import auth from "../../middlewares/authentication";
-import { FileOperation, Team } from "../../models";
+import { FileOperation, Team, Event } from "../../models";
 import policy from "../../policies";
 import { presentFileOperation } from "../../presenters";
 import { getSignedUrl } from "../../utils/s3";
@@ -99,15 +99,12 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
 
 router.post("fileOperations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  Logger.info("commands", id);
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-  Logger.info("commands", "user and team done");
 
   authorize(user, "export", team);
-  Logger.info("commands", "auth done");
 
   const fileOp: FileOperation = await FileOperation.findByPk(id);
 
@@ -115,23 +112,19 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
     throw new NotFoundError();
   }
 
-  Logger.info("commands", "fileop found");
   if (fileOp.state === "expired") {
     throw new ValidationError("file Operation is already expired");
   }
 
-  Logger.info("commands", "expiring");
-
   await fileOp.expire();
 
-  // await Event.create({
-  //   name: "fileOperations.update",
-  //   teamId: team.id,
-  //   actorId: user.id,
-  //   data: fileOp.dataValues,
-  // });
+  await Event.create({
+    name: "fileOperations.update",
+    teamId: team.id,
+    actorId: user.id,
+    data: fileOp.dataValues,
+  });
 
-  console.log("returning success");
   ctx.body = {
     success: true,
   };
