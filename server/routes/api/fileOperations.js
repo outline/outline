@@ -105,6 +105,10 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   Logger.info("commands", "user and team done");
+
+  authorize(user, "export", team);
+  console.log("auth done");
+
   const fileOp: FileOperation = await FileOperation.findByPk(id);
 
   if (!fileOp) {
@@ -113,10 +117,6 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   Logger.info("commands", "fileop found");
   Logger.info("commands", fileOp);
-
-  authorize(user, "export", team);
-
-  console.log("auth done");
   if (fileOp.state === "expired") {
     throw new ValidationError("file Operation is already expired");
   }
@@ -125,7 +125,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   await fileOp.expire();
 
-  await Event.add({
+  await Event.create({
     name: "fileOperations.update",
     teamId: team.id,
     actorId: user.id,
