@@ -116,7 +116,6 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   }
 
   Logger.info("commands", "fileop found");
-  Logger.info("commands", fileOp);
   if (fileOp.state === "expired") {
     throw new ValidationError("file Operation is already expired");
   }
