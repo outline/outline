@@ -242,7 +242,7 @@ describe("#fileOperations.redirect", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("file operation is not complete yet");
+    expect(body.message).toEqual("export is not complete yet");
   });
 });
 
@@ -342,6 +342,8 @@ describe("#fileOperations.delete", () => {
       },
     });
 
+    const body = await res.json();
     expect(res.status).toBe(400);
+    expect(body.message).toBe("export is already expired");
   });
 });
