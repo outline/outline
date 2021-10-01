@@ -117,7 +117,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   await fileOp.expire();
 
   await Event.create({
-    name: "fileOperations.update",
+    name: "fileOperations.delete",
     teamId: team.id,
     actorId: user.id,
     data: fileOp.dataValues,

@@ -132,7 +132,7 @@ export type CollectionExportAllEvent = {
 };
 
 export type FileOperationEvent = {
-  name: "fileOperations.update",
+  name: "fileOperations.update" | "fileOperation.delete",
   teamId: string,
   actorId: string,
   data: {
