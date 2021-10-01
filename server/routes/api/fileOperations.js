@@ -88,7 +88,6 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   authorize(user, fileOp.type, team);
 
   if (fileOp.state !== "complete") {
-    // fileOp could deleted as well
     throw new ValidationError(`${fileOp.type} is not complete yet`);
   }
 
