@@ -103,13 +103,13 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-  const fileOp: FileOperation = await FileOperation.findByPk(id);
-
-  authorize(user, fileOp.type, team);
+  const fileOp = await FileOperation.findByPk(id);
 
   if (!fileOp) {
     throw new NotFoundError();
   }
+
+  authorize(user, fileOp.type, team);
 
   if (fileOp.state === "expired") {
     throw new ValidationError(`${fileOp.type} is already expired`);
