@@ -1,13 +1,8 @@
 // @flow
 import { debounce } from "lodash";
-import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
-import AuthStore from "stores/AuthStore";
-import MembershipsStore from "stores/MembershipsStore";
-import ToastsStore from "stores/ToastsStore";
-import UsersStore from "stores/UsersStore";
+import { useTranslation } from "react-i18next";
 import Collection from "models/Collection";
 import User from "models/User";
 import Invite from "scenes/Invite";
@@ -19,116 +14,99 @@ import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import MemberListItem from "./components/MemberListItem";
-
+import useCurrentTeam from "hooks/useCurrentTeam";
+import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 type Props = {
-  toasts: ToastsStore,
-  auth: AuthStore,
   collection: Collection,
-  memberships: MembershipsStore,
-  users: UsersStore,
   onSubmit: () => void,
-  t: TFunction,
 };
 
-@observer
-class AddPeopleToCollection extends React.Component<Props> {
-  @observable inviteModalOpen: boolean = false;
-  @observable query: string = "";
+const AddPeopleToCollection = ({ collection, onSubmit }: Props) => {
+  const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
+  const team = useCurrentTeam();
+  const { users, memberships } = useStores();
+  const { t } = useTranslation();
+  const { showToast } = useToasts();
 
-  handleInviteModalOpen = () => {
-    this.inviteModalOpen = true;
+  const handleFilter = (ev: SyntheticInputEvent<>) => {
+    setQuery(ev.target.value);
+    debouncedFetch();
   };
 
-  handleInviteModalClose = () => {
-    this.inviteModalOpen = false;
-  };
-
-  handleFilter = (ev: SyntheticInputEvent<>) => {
-    this.query = ev.target.value;
-    this.debouncedFetch();
-  };
-
-  debouncedFetch = debounce(() => {
-    this.props.users.fetchPage({
-      query: this.query,
+  const debouncedFetch = debounce(() => {
+    users.fetchPage({
+      query,
     });
   }, 250);
 
-  handleAddUser = (user: User) => {
-    const { t } = this.props;
+  const handleAddUser = (user: User) => {
     try {
-      this.props.memberships.create({
-        collectionId: this.props.collection.id,
+      memberships.create({
+        collectionId: collection.id,
         userId: user.id,
         permission: "read_write",
       });
-      this.props.toasts.showToast(
+      showToast(
         t("{{ userName }} was added to the collection", {
           userName: user.name,
         }),
         { type: "success" }
       );
     } catch (err) {
-      this.props.toasts.showToast(t("Could not add user"), { type: "error" });
+      showToast(t("Could not add user"), { type: "error" });
     }
   };
 
-  render() {
-    const { users, collection, auth, t } = this.props;
-    const { user, team } = auth;
-    if (!user || !team) return null;
+  return (
+    <Flex column>
+      <HelpText>
+        {t("Need to add someone who’s not yet on the team yet?")}{" "}
+        <ButtonLink onClick={() => setInviteModalOpen(true)}>
+          {t("Invite people to {{ teamName }}", { teamName: team.name })}
+        </ButtonLink>
+        .
+      </HelpText>
 
-    return (
-      <Flex column>
-        <HelpText>
-          {t("Need to add someone who’s not yet on the team yet?")}{" "}
-          <ButtonLink onClick={this.handleInviteModalOpen}>
-            {t("Invite people to {{ teamName }}", { teamName: team.name })}
-          </ButtonLink>
-          .
-        </HelpText>
+      <Input
+        type="search"
+        placeholder={`${t("Search by name")}…`}
+        value={query}
+        onChange={handleFilter}
+        label={t("Search people")}
+        autoFocus
+        labelHidden
+        flex
+      />
+      <PaginatedList
+        empty={
+          query ? (
+            <Empty>{t("No people matching your search")}</Empty>
+          ) : (
+            <Empty>{t("No people left to add")}</Empty>
+          )
+        }
+        items={users.notInCollection(collection.id, query)}
+        fetch={query ? undefined : users.fetchPage}
+        renderItem={(item) => (
+          <MemberListItem
+            key={item.id}
+            user={item}
+            onAdd={() => handleAddUser(item)}
+            canEdit
+          />
+        )}
+      />
+      <Modal
+        title={t("Invite people")}
+        onRequestClose={() => setInviteModalOpen(false)}
+        isOpen={inviteModalOpen}
+      >
+        <Invite onSubmit={() => setInviteModalOpen(false)} />
+      </Modal>
+    </Flex>
+  );
+};
 
-        <Input
-          type="search"
-          placeholder={`${t("Search by name")}…`}
-          value={this.query}
-          onChange={this.handleFilter}
-          label={t("Search people")}
-          autoFocus
-          labelHidden
-          flex
-        />
-        <PaginatedList
-          empty={
-            this.query ? (
-              <Empty>{t("No people matching your search")}</Empty>
-            ) : (
-              <Empty>{t("No people left to add")}</Empty>
-            )
-          }
-          items={users.notInCollection(collection.id, this.query)}
-          fetch={this.query ? undefined : users.fetchPage}
-          renderItem={(item) => (
-            <MemberListItem
-              key={item.id}
-              user={item}
-              onAdd={() => this.handleAddUser(item)}
-              canEdit
-            />
-          )}
-        />
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={this.handleInviteModalClose}
-          isOpen={this.inviteModalOpen}
-        >
-          <Invite onSubmit={this.handleInviteModalClose} />
-        </Modal>
-      </Flex>
-    );
-  }
-}
-
-export default withTranslation()<AddPeopleToCollection>(
-  inject("auth", "users", "memberships", "toasts")(AddPeopleToCollection)
-);
+export default observer(AddPeopleToCollection);
