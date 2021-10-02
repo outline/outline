@@ -36,6 +36,7 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
   if (!user.isAdmin) {
     groups = groups.filter(
       (group) =>
+        !group.isPrivate ||
         group.groupMemberships.filter((gm) => gm.userId === user.id).length
     );
   }
