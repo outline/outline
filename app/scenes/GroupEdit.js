@@ -29,7 +29,7 @@ function GroupEdit({ group, onSubmit }: Props) {
       setIsSaving(true);
 
       try {
-        await group.save({ name: name });
+        await group.save({ name, isPrivate });
         onSubmit();
       } catch (err) {
         showToast(err.message, { type: "error" });
@@ -37,7 +37,7 @@ function GroupEdit({ group, onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, showToast, name]
+    [group, isPrivate, name, onSubmit, showToast]
   );
 
   const handleNameChange = React.useCallback((ev: SyntheticInputEvent<*>) => {

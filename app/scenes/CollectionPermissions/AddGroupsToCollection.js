@@ -16,6 +16,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 type Props = {
@@ -26,10 +27,13 @@ type Props = {
 const AddGroupsToCollection = ({ collection, onSubmit }: Props) => {
   const [newGroupModalOpen, setNewGroupModalOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const { groups, auth, collectionGroupMemberships } = useStores();
+  const { groups, collectionGroupMemberships, policies } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
+  const team = useCurrentTeam();
 
+  const can = policies.abilities(team.id);
+  const groupsExist = !!groups.orderedData.length;
   const handleFilter = (ev: SyntheticInputEvent<>) => {
     setQuery(ev.target.value);
     debouncedFetch();
@@ -60,34 +64,35 @@ const AddGroupsToCollection = ({ collection, onSubmit }: Props) => {
     }
   };
 
-  const { user, team } = auth;
-  if (!user || !team) return null;
-
   return (
     <Flex column>
-      <HelpText>
-        {t("Can’t find the group you’re looking for?")}{" "}
-        <ButtonLink onClick={() => setNewGroupModalOpen(true)}>
-          {t("Create a group")}
-        </ButtonLink>
-        .
-      </HelpText>
-
-      <Input
-        type="search"
-        placeholder={`${t("Search by group name")}…`}
-        value={query}
-        onChange={handleFilter}
-        label={t("Search groups")}
-        labelHidden
-        flex
-      />
+      {can.createGroup && (
+        <HelpText>
+          {t("Can’t find the group you’re looking for?")}{" "}
+          <ButtonLink onClick={() => setNewGroupModalOpen(true)}>
+            {t("Create a group")}
+          </ButtonLink>
+        </HelpText>
+      )}
+      {groupsExist && (
+        <Input
+          type="search"
+          placeholder={`${t("Search by group name")}…`}
+          value={query}
+          onChange={handleFilter}
+          label={t("Search groups")}
+          labelHidden
+          flex
+        />
+      )}
       <PaginatedList
         empty={
           query ? (
             <Empty>{t("No groups matching your search")}</Empty>
-          ) : (
+          ) : groupsExist ? (
             <Empty>{t("No groups left to add")}</Empty>
+          ) : (
+            <Empty>{t("No groups found to add")}</Empty>
           )
         }
         items={groups.notInCollection(collection.id, query)}
