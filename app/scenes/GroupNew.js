@@ -2,6 +2,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
 import Group from "models/Group";
 import GroupMembers from "scenes/GroupMembers";
 import Button from "components/Button";
@@ -9,6 +10,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
+import Switch from "components/Switch";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
@@ -22,6 +24,7 @@ function GroupNew({ onSubmit }: Props) {
   const { showToast } = useToasts();
   const [name, setName] = React.useState();
   const [isSaving, setIsSaving] = React.useState();
+  const [isPrivate, setIsPrivate] = React.useState(true);
   const [group, setGroup] = React.useState();
 
   const handleSubmit = async (ev: SyntheticEvent<>) => {
@@ -29,7 +32,8 @@ function GroupNew({ onSubmit }: Props) {
     setIsSaving(true);
     const group = new Group(
       {
-        name: name,
+        name,
+        isPrivate,
       },
       groups
     );
@@ -72,6 +76,24 @@ function GroupNew({ onSubmit }: Props) {
           <Trans>You’ll be able to add people to the group next.</Trans>
         </HelpText>
 
+        <SwitchWrapper>
+          <Switch
+            id="isPrivate"
+            label={t("Access to group")}
+            onChange={() => setIsPrivate((prev) => !prev)}
+            checked={!isPrivate}
+          />
+          <SwitchLabel>
+            <SwitchText>
+              {isPrivate
+                ? t(
+                    "Only Admins and members present in the group know about the group"
+                  )
+                : t("Everyone in the team can view the group")}
+            </SwitchText>
+          </SwitchLabel>
+        </SwitchWrapper>
+
         <Button type="submit" disabled={isSaving || !name}>
           {isSaving ? `${t("Creating")}…` : t("Continue")}
         </Button>
@@ -86,5 +108,22 @@ function GroupNew({ onSubmit }: Props) {
     </>
   );
 }
+
+const SwitchWrapper = styled.div`
+  margin: 20px 0;
+`;
+
+const SwitchLabel = styled(Flex)`
+  flex-align: center;
+
+  svg {
+    flex-shrink: 0;
+  }
+`;
+
+const SwitchText = styled(HelpText)`
+  margin: 0;
+  font-size: 15px;
+`;
 
 export default observer(GroupNew);

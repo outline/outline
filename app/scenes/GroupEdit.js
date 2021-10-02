@@ -2,11 +2,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
 import Group from "models/Group";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
+import Switch from "components/Switch";
 import useToasts from "hooks/useToasts";
 
 type Props = {
@@ -18,6 +20,7 @@ function GroupEdit({ group, onSubmit }: Props) {
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
+  const [isPrivate, setIsPrivate] = React.useState(group.isPrivate);
   const [isSaving, setIsSaving] = React.useState();
 
   const handleSubmit = React.useCallback(
@@ -60,6 +63,23 @@ function GroupEdit({ group, onSubmit }: Props) {
           flex
         />
       </Flex>
+      <SwitchWrapper>
+        <Switch
+          id="isPrivate"
+          label={t("Access to group")}
+          onChange={() => setIsPrivate((prev) => !prev)}
+          checked={!isPrivate}
+        />
+        <SwitchLabel>
+          <SwitchText>
+            {isPrivate
+              ? t(
+                  "Only Admins and members present in the group know about the group"
+                )
+              : t("Everyone in the team can view the group")}
+          </SwitchText>
+        </SwitchLabel>
+      </SwitchWrapper>
 
       <Button type="submit" disabled={isSaving || !name}>
         {isSaving ? `${t("Saving")}…` : t("Save")}
@@ -67,5 +87,22 @@ function GroupEdit({ group, onSubmit }: Props) {
     </form>
   );
 }
+
+const SwitchWrapper = styled.div`
+  margin: 20px 0;
+`;
+
+const SwitchLabel = styled(Flex)`
+  flex-align: center;
+
+  svg {
+    flex-shrink: 0;
+  }
+`;
+
+const SwitchText = styled(HelpText)`
+  margin: 0;
+  font-size: 15px;
+`;
 
 export default observer(GroupEdit);

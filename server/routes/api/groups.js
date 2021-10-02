@@ -72,14 +72,13 @@ router.post("groups.info", auth(), async (ctx) => {
 });
 
 router.post("groups.create", auth(), async (ctx) => {
-  const { name } = ctx.body;
+  const { name, isPrivate } = ctx.body;
   ctx.assertPresent(name, "name is required");
-
   const user = ctx.state.user;
-
   authorize(user, "createGroup", user.team);
   let group = await Group.create({
     name,
+    isPrivate: isPrivate ?? true,
     teamId: user.teamId,
     createdById: user.id,
   });
@@ -92,7 +91,7 @@ router.post("groups.create", auth(), async (ctx) => {
     actorId: user.id,
     teamId: user.teamId,
     modelId: group.id,
-    data: { name: group.name },
+    data: { name: group.name, isPrivate: group.isPrivate },
     ip: ctx.request.ip,
   });
 
@@ -103,8 +102,9 @@ router.post("groups.create", auth(), async (ctx) => {
 });
 
 router.post("groups.update", auth(), async (ctx) => {
-  const { id, name } = ctx.body;
+  const { id, name, isPrivate } = ctx.body;
   ctx.assertPresent(name, "name is required");
+
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
@@ -114,6 +114,10 @@ router.post("groups.update", auth(), async (ctx) => {
 
   group.name = name;
 
+  if (isPrivate) {
+    group.isPrivate = !!isPrivate;
+  }
+
   if (group.changed()) {
     await group.save();
     await Event.create({
@@ -121,7 +125,7 @@ router.post("groups.update", auth(), async (ctx) => {
       teamId: user.teamId,
       actorId: user.id,
       modelId: group.id,
-      data: { name },
+      data: { name, isPrivate },
       ip: ctx.request.ip,
     });
   }
@@ -147,7 +151,7 @@ router.post("groups.delete", auth(), async (ctx) => {
     actorId: user.id,
     modelId: group.id,
     teamId: group.teamId,
-    data: { name: group.name },
+    data: { name: group.name, isPrivate: group.isPrivate },
     ip: ctx.request.ip,
   });
 
