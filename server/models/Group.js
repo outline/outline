@@ -18,6 +18,11 @@ const Group = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    isPrivate: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
   },
   {
     timestamps: true,
