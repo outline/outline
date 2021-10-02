@@ -26,9 +26,10 @@ const AddPeopleToCollection = ({ collection, onSubmit }: Props) => {
   const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const team = useCurrentTeam();
-  const { users, memberships } = useStores();
+  const { users, memberships, policies } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
+  const can = policies.abilities(team.id);
 
   const handleFilter = (ev: SyntheticInputEvent<>) => {
     setQuery(ev.target.value);
@@ -61,13 +62,14 @@ const AddPeopleToCollection = ({ collection, onSubmit }: Props) => {
 
   return (
     <Flex column>
-      <HelpText>
-        {t("Need to add someone who’s not yet on the team yet?")}{" "}
-        <ButtonLink onClick={() => setInviteModalOpen(true)}>
-          {t("Invite people to {{ teamName }}", { teamName: team.name })}
-        </ButtonLink>
-        .
-      </HelpText>
+      {can.inviteUser && (
+        <HelpText>
+          {t("Need to add someone who’s not yet on the team yet?")}{" "}
+          <ButtonLink onClick={() => setInviteModalOpen(true)}>
+            {t("Invite people to {{ teamName }}", { teamName: team.name })}
+          </ButtonLink>
+        </HelpText>
+      )}
 
       <Input
         type="search"
