@@ -6,7 +6,6 @@ import { useHistory } from "react-router";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import Editor, { type Props as EditorProps } from "components/Editor";
-import PlaceholderDocument from "components/PlaceholderDocument";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -74,7 +73,10 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
       });
     });
 
-    localProvider.on("synced", () => setLocalSynced(true));
+    localProvider.on("synced", () =>
+      // only set local storage to "synced" if it's loaded a non-empty doc
+      setLocalSynced(!!ydoc.get("default")._start)
+    );
     provider.on("synced", () => setRemoteSynced(true));
 
     if (debug) {
@@ -122,10 +124,6 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
 
   if (!extensions.length) {
     return null;
-  }
-
-  if (isLocalSynced && !isRemoteSynced && !ydoc.get("default")._start) {
-    return <PlaceholderDocument includeTitle={false} delay={500} />;
   }
 
   // while the collaborative document is loading, we render a version of the
