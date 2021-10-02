@@ -23,6 +23,7 @@ describe("#groups.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual(name);
+    expect(body.data.isPrivate).toEqual(true);
   });
 });
 
@@ -67,7 +68,12 @@ describe("#groups.update", () => {
 
     it("allows admin to edit a group", async () => {
       const res = await server.post("/api/groups.update", {
-        body: { token: user.getJwtToken(), id: group.id, name: "Test" },
+        body: {
+          token: user.getJwtToken(),
+          id: group.id,
+          name: "Test",
+          isPrivate: false,
+        },
       });
 
       const events = await Event.findAll();
@@ -76,6 +82,7 @@ describe("#groups.update", () => {
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe("Test");
+      expect(body.data.isPrivate).toBe(false);
     });
 
     it("does not create an event if the update is a noop", async () => {
@@ -145,6 +152,48 @@ describe("#groups.list", () => {
     expect(body.policies[0].abilities.read).toEqual(true);
   });
 
+  it("should return groups with memberships if isPrivate is false", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const group = await buildGroup({ teamId: user.teamId, isPrivate: false });
+
+    await group.addUser(admin, { through: { createdById: admin.id } });
+
+    const res = await server.post("/api/groups.list", {
+      body: { token: user.getJwtToken() },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data["groups"].length).toEqual(1);
+    expect(body.data["groups"][0].id).toEqual(group.id);
+
+    expect(body.data["groupMemberships"].length).toEqual(1);
+    expect(body.data["groupMemberships"][0].groupId).toEqual(group.id);
+    expect(body.data["groupMemberships"][0].user.id).toEqual(admin.id);
+
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+  });
+
+  it("should not return groups with memberships to non-member, if isPrivate is true", async () => {
+    const user = await buildUser();
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+
+    expect(body.data["groups"].length).toEqual(0);
+    expect(body.data["groupMemberships"].length).toEqual(0);
+
+    expect(body.policies.length).toEqual(0);
+  });
+
   it("should return groups when membership user is deleted", async () => {
     const me = await buildUser();
     const user = await buildUser({ teamId: me.teamId });
@@ -177,6 +226,20 @@ describe("#groups.info", () => {
   it("should return group if admin", async () => {
     const user = await buildAdmin();
     const group = await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.info", {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
+  });
+
+  it("should return group info to non-member, if group isPrivate is false", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, isPrivate: false });
 
     const res = await server.post("/api/groups.info", {
       body: { token: user.getJwtToken(), id: group.id },
@@ -295,6 +358,26 @@ describe("#groups.memberships", () => {
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.groupMemberships.length).toEqual(1);
     expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
+  });
+
+  it("should return members in a group to non-member, if isPrivate is false", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const group = await buildGroup({ teamId: admin.teamId, isPrivate: false });
+
+    await group.addUser(admin, { through: { createdById: admin.id } });
+
+    const res = await server.post("/api/groups.memberships", {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(1);
+    expect(body.data.users[0].id).toEqual(admin.id);
+    expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].user.id).toEqual(admin.id);
   });
 
   it("should allow filtering members in group by name", async () => {

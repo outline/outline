@@ -206,6 +206,7 @@ export async function buildGroup(overrides: Object = {}) {
   return Group.create({
     name: `Test Group ${count}`,
     createdById: overrides.userId,
+    isPrivate: true,
     ...overrides,
   });
 }
