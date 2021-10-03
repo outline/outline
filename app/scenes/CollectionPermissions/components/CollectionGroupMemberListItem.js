@@ -50,6 +50,7 @@ const CollectionGroupMemberListItem = ({
             onChange={onUpdate}
             ariaLabel={t("Permissions")}
             labelHidden
+            nude
           />
           <Spacer />
           <CollectionGroupMemberMenu

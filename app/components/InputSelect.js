@@ -9,7 +9,7 @@ import {
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Button, { Inner } from "components/Button";
 import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
@@ -21,6 +21,7 @@ export type Option = { label: string, value: string };
 export type Props = {
   value?: string,
   label?: string,
+  nude?: boolean,
   ariaLabel: string,
   short?: boolean,
   className?: string,
@@ -43,6 +44,7 @@ const InputSelect = (props: Props) => {
     short,
     ariaLabel,
     onChange,
+    nude,
   } = props;
 
   const select = useSelectState({
@@ -58,6 +60,8 @@ const InputSelect = (props: Props) => {
   });
 
   const previousValue = React.useRef(value);
+  const buttonRef = React.useRef();
+  const minWidth = buttonRef.current?.offsetWidth || 0;
 
   const maxHeight = useMenuHeight(
     select.visible,
@@ -85,9 +89,15 @@ const InputSelect = (props: Props) => {
           ) : (
             wrappedLabel
           ))}
-        <Select {...select} aria-label={ariaLabel}>
+        <Select {...select} aria-label={ariaLabel} ref={buttonRef}>
           {(props) => (
-            <StyledButton neutral disclosure className={className} {...props}>
+            <StyledButton
+              neutral
+              disclosure
+              className={className}
+              nude={nude}
+              {...props}
+            >
               {getOptionFromValue(options, select.selectedValue).label ||
                 `Select a ${ariaLabel}`}
             </StyledButton>
@@ -104,7 +114,11 @@ const InputSelect = (props: Props) => {
                   dir="auto"
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
-                  style={maxHeight && topAnchor ? { maxHeight } : undefined}
+                  style={
+                    maxHeight && topAnchor
+                      ? { maxHeight, minWidth }
+                      : { minWidth }
+                  }
                 >
                   {select.visible || select.animating
                     ? options.map((option) => (
@@ -149,11 +163,20 @@ const StyledButton = styled(Button)`
   text-transform: none;
   margin-bottom: 16px;
   display: block;
+  width: 100%;
+
+  ${(props) =>
+    props.nude &&
+    css`
+      border-color: transparent;
+      box-shadow: none;
+    `}
 
   ${Inner} {
     line-height: 28px;
     padding-left: 16px;
     padding-right: 8px;
+    justify-content: space-between;
   }
 `;
 

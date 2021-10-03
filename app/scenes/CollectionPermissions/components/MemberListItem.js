@@ -68,6 +68,7 @@ const MemberListItem = ({
               disabled={!canEdit}
               ariaLabel={t("Permissions")}
               labelHidden
+              nude
             />
           )}
           {canEdit && (
