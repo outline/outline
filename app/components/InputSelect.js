@@ -11,7 +11,6 @@ import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import Button, { Inner } from "components/Button";
-import Flex from "components/Flex";
 import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
@@ -22,7 +21,6 @@ export type Option = { label: string, value: string };
 export type Props = {
   value?: string,
   label?: string,
-  ariaLabelPlural: string,
   ariaLabel: string,
   short?: boolean,
   className?: string,
@@ -44,7 +42,6 @@ const InputSelect = (props: Props) => {
     options,
     short,
     ariaLabel,
-    ariaLabelPlural,
     onChange,
   } = props;
 
@@ -80,7 +77,7 @@ const InputSelect = (props: Props) => {
   const wrappedLabel = <LabelText>{label}</LabelText>;
 
   return (
-    <Flex column>
+    <>
       <Wrapper short={short}>
         {label &&
           (labelHidden ? (
@@ -88,34 +85,34 @@ const InputSelect = (props: Props) => {
           ) : (
             wrappedLabel
           ))}
-      </Wrapper>
-      <Select {...select} aria-label={ariaLabel}>
-        {(props) => {
-          return (
+        <Select {...select} aria-label={ariaLabel}>
+          {(props) => (
             <StyledButton neutral disclosure className={className} {...props}>
               {getOptionFromValue(options, select.selectedValue).label ||
                 `Select a ${ariaLabel}`}
             </StyledButton>
-          );
-        }}
-      </Select>
-      <SelectPopover {...select} {...popOver} aria-label={ariaLabelPlural}>
-        {(props) => {
-          const topAnchor = props.style.top === "0";
-          const rightAnchor = props.placement === "bottom-end";
+          )}
+        </Select>
+        <SelectPopover {...select} {...popOver}>
+          {(props) => {
+            const topAnchor = props.style.top === "0";
+            const rightAnchor = props.placement === "bottom-end";
 
-          return (
-            <Position {...props}>
-              <Background
-                dir="auto"
-                topAnchor={topAnchor}
-                rightAnchor={rightAnchor}
-                style={maxHeight && topAnchor ? { maxHeight } : undefined}
-              >
-                {select.visible || select.animating
-                  ? options.map((option) => (
-                      <Flex key={option.value}>
-                        <StyledSelectOption {...select} value={option.value}>
+            return (
+              <Positioner {...props}>
+                <Background
+                  dir="auto"
+                  topAnchor={topAnchor}
+                  rightAnchor={rightAnchor}
+                  style={maxHeight && topAnchor ? { maxHeight } : undefined}
+                >
+                  {select.visible || select.animating
+                    ? options.map((option) => (
+                        <StyledSelectOption
+                          {...select}
+                          value={option.value}
+                          key={option.value}
+                        >
                           {select.selectedValue && (
                             <>
                               {select.selectedValue === option.value ? (
@@ -128,16 +125,16 @@ const InputSelect = (props: Props) => {
                           )}
                           {option.label}
                         </StyledSelectOption>
-                      </Flex>
-                    ))
-                  : null}
-              </Background>
-            </Position>
-          );
-        }}
-      </SelectPopover>
+                      ))
+                    : null}
+                </Background>
+              </Positioner>
+            );
+          }}
+        </SelectPopover>
+      </Wrapper>
       {(select.visible || select.animating) && <Backdrop />}
-    </Flex>
+    </>
   );
 };
 
@@ -148,12 +145,20 @@ const Spacer = styled.svg`
 `;
 
 const StyledButton = styled(Button)`
+  font-weight: normal;
   text-transform: none;
   margin-bottom: 16px;
-  width: fit-content;
+  display: block;
+
   ${Inner} {
     line-height: 28px;
+    padding-left: 16px;
+    padding-right: 8px;
   }
+`;
+
+export const StyledSelectOption = styled(SelectOption)`
+  ${MenuAnchorCSS}
 `;
 
 const Wrapper = styled.label`
@@ -161,17 +166,19 @@ const Wrapper = styled.label`
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-export const StyledSelectOption = styled(SelectOption)`
-  ${MenuAnchorCSS}
+const Positioner = styled(Position)`
+  &.focus-visible {
+    ${StyledSelectOption} {
+      &[aria-selected="true"] {
+        color: ${(props) => props.theme.white};
+        background: ${(props) => props.theme.primary};
+        box-shadow: none;
+        cursor: pointer;
 
-  &[aria-selected="true"] {
-    color: ${(props) => props.theme.white};
-    background: ${(props) => props.theme.primary};
-    box-shadow: none;
-    cursor: pointer;
-
-    svg {
-      fill: ${(props) => props.theme.white};
+        svg {
+          fill: ${(props) => props.theme.white};
+        }
+      }
     }
   }
 `;

@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next";
 import InputSelect, { type Props, type Option } from "components/InputSelect";
 
 const InputSelectRole = (
-  props: $Rest<
-    $Exact<Props>,
-    // eslint-disable-next-line prettier/prettier
-  {| options: Array<Option>, ariaLabel: string, ariaLabelPlural: string |}>
+  props: $Rest<$Exact<Props>, {| options: Array<Option>, ariaLabel: string |}>
 ) => {
   const { t } = useTranslation();
 
@@ -19,8 +16,7 @@ const InputSelectRole = (
         { label: t("Viewer"), value: "viewer" },
         { label: t("Admin"), value: "admin" },
       ]}
-      ariaLabel="Role"
-      ariaLabelPlural="Roles"
+      ariaLabel={t("Role")}
       {...props}
     />
   );

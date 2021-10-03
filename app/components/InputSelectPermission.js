@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next";
 import InputSelect, { type Props, type Option } from "./InputSelect";
 
 export default function InputSelectPermission(
-  props: $Rest<
-    $Exact<Props>,
-    // eslint-disable-next-line prettier/prettier
-    {| options: Array<Option>, ariaLabel: string, ariaLabelPlural: string |}>
+  props: $Rest<$Exact<Props>, {| options: Array<Option>, ariaLabel: string |}>
 ) {
   const { t } = useTranslation();
 
@@ -19,8 +16,7 @@ export default function InputSelectPermission(
         { label: t("View only"), value: "read" },
         { label: t("No access"), value: "no_access" },
       ]}
-      ariaLabel="Default access"
-      ariaLabelPlural="Default access options"
+      ariaLabel={t("Default access")}
       {...props}
     />
   );

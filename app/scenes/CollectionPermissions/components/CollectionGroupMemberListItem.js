@@ -47,10 +47,9 @@ const CollectionGroupMemberListItem = ({
                 ? collectionGroupMembership.permission
                 : undefined
             }
-            onChange={(value) => onUpdate(value)}
+            onChange={onUpdate}
+            ariaLabel={t("Permissions")}
             labelHidden
-            ariaLabel="Permission"
-            ariaLabelPlural="Permissions"
           />
           <Spacer />
           <CollectionGroupMemberMenu

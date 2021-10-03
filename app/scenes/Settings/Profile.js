@@ -106,9 +106,8 @@ const Profile = () => {
           options={languageOptions}
           value={language}
           onChange={handleLanguageChange}
+          ariaLabel={t("Language")}
           short
-          ariaLabel="Language"
-          ariaLabelPlural="Languages"
         />
         <HelpText small>
           <Trans>

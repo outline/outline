@@ -93,7 +93,7 @@ export const MenuAnchorCSS = css`
   margin: 0;
   border: 0;
   padding: 12px;
-  padding-left: ${(props) => 12 + props.level * 10}px;
+  padding-left: ${(props) => 12 + (props.level || 0) * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;

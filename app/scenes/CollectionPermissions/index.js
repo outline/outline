@@ -140,7 +140,10 @@ function CollectionPermissions({ collection }: Props) {
   const handleChangePermission = React.useCallback(
     async (permission: string) => {
       try {
-        if (permission === "no_access") permission = "";
+        if (permission === "no_access") {
+          permission = "";
+        }
+
         await collection.save({ permission });
         showToast(t("Default access permissions were updated"), {
           type: "success",
@@ -322,8 +325,8 @@ const Empty = styled(HelpText)`
 `;
 
 const PermissionExplainer = styled(HelpText)`
+  margin-top: -8px;
   margin-bottom: 24px;
-  margin-top: -16px;
 `;
 
 const Actions = styled.div`

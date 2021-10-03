@@ -101,8 +101,7 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
           ]}
           value={`${sort.field}.${sort.direction}`}
           onChange={handleSortChange}
-          ariaLabel="Sort"
-          ariaLabelPlural="Sorts"
+          ariaLabel={t("Sort")}
         />
         <Button type="submit" disabled={isSaving || !collection.name}>
           {isSaving ? `${t("Saving")}…` : t("Save")}

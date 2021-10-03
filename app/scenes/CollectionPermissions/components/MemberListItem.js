@@ -64,11 +64,10 @@ const MemberListItem = ({
               label={t("Permissions")}
               options={PERMISSIONS}
               value={membership ? membership.permission : undefined}
-              onChange={(value) => onUpdate(value)}
+              onChange={onUpdate}
               disabled={!canEdit}
+              ariaLabel={t("Permissions")}
               labelHidden
-              ariaLabel="Permission"
-              ariaLabelPlural="Permissions"
             />
           )}
           {canEdit && (
