@@ -56,7 +56,6 @@ const ListItem = (
 
 const Wrapper = styled.div`
   display: flex;
-  user-select: none;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
   margin: ${(props) => (props.$border === false ? "8px 0" : 0)};
   border-bottom: 1px solid
