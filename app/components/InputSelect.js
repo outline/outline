@@ -80,6 +80,10 @@ const InputSelect = (props: Props) => {
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
 
+  const selectedValueIndex = options.findIndex(
+    (option) => option.value === select.selectedValue
+  );
+
   return (
     <>
       <Wrapper short={short}>
@@ -107,6 +111,11 @@ const InputSelect = (props: Props) => {
           {(props) => {
             const topAnchor = props.style.top === "0";
             const rightAnchor = props.placement === "bottom-end";
+
+            // offset top of select to place selected item under the cursor
+            if (selectedValueIndex !== -1) {
+              props.style.top = `-${(selectedValueIndex + 1) * 32}px`;
+            }
 
             return (
               <Positioner {...props}>
