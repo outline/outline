@@ -113,7 +113,7 @@ const InputSelect = (props: Props) => {
                           value={option.value}
                           key={option.value}
                         >
-                          {select.selectedValue && (
+                          {select.selectedValue !== undefined && (
                             <>
                               {select.selectedValue === option.value ? (
                                 <CheckmarkIcon color="currentColor" />

@@ -6,7 +6,18 @@ import InputSelect, { type Props, type Option } from "./InputSelect";
 export default function InputSelectPermission(
   props: $Rest<$Exact<Props>, {| options: Array<Option>, ariaLabel: string |}>
 ) {
+  const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
+
+  const handleChange = React.useCallback(
+    (value) => {
+      if (value === "no_access") {
+        value = "";
+      }
+      onChange(value);
+    },
+    [onChange]
+  );
 
   return (
     <InputSelect
@@ -17,7 +28,9 @@ export default function InputSelectPermission(
         { label: t("No access"), value: "no_access" },
       ]}
       ariaLabel={t("Default access")}
-      {...props}
+      value={value || "no_access"}
+      onChange={handleChange}
+      {...rest}
     />
   );
 }
