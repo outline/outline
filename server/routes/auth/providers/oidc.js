@@ -68,6 +68,11 @@ if (OIDC_CLIENT_ID) {
       // available on the `profile` parameter
       async function (req, accessToken, refreshToken, profile, done) {
         try {
+          if (!profile.email) {
+            throw new AuthenticationError(
+              `An email field was not returned in the profile parameter, but is required.`
+            );
+          }
           const parts = profile.email.split("@");
           const domain = parts.length && parts[1];
 
