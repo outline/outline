@@ -6,11 +6,14 @@ import {
   AcademicCapIcon,
   BeakerIcon,
   BuildingBlocksIcon,
+  CameraIcon,
   CloudIcon,
   CodeIcon,
   EditIcon,
   EmailIcon,
   EyeIcon,
+  GlobeIcon,
+  InfoIcon,
   ImageIcon,
   LeafIcon,
   LightBulbIcon,
@@ -19,8 +22,12 @@ import {
   NotepadIcon,
   PadlockIcon,
   PaletteIcon,
+  PromoteIcon,
   QuestionMarkIcon,
+  SportIcon,
   SunIcon,
+  TargetIcon,
+  ToolsIcon,
   VehicleIcon,
   WarningIcon,
 } from "outline-icons";
@@ -28,6 +35,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import ContextMenu from "components/ContextMenu";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -56,6 +64,10 @@ export const icons = {
     component: CoinsIcon,
     keywords: "coins money finance sales income revenue cash",
   },
+  camera: {
+    component: CameraIcon,
+    keywords: "photo picture",
+  },
   academicCap: {
     component: AcademicCapIcon,
     keywords: "learn teach lesson guide tutorial onboarding training",
@@ -83,6 +95,14 @@ export const icons = {
   eye: {
     component: EyeIcon,
     keywords: "eye view",
+  },
+  globe: {
+    component: GlobeIcon,
+    keywords: "world translate",
+  },
+  info: {
+    component: InfoIcon,
+    keywords: "info information",
   },
   image: {
     component: ImageIcon,
@@ -120,6 +140,10 @@ export const icons = {
     component: EditIcon,
     keywords: "copy writing post blog",
   },
+  promote: {
+    component: PromoteIcon,
+    keywords: "marketing promotion",
+  },
   question: {
     component: QuestionMarkIcon,
     keywords: "question help support faq",
@@ -128,13 +152,25 @@ export const icons = {
     component: SunIcon,
     keywords: "day sun weather",
   },
+  sport: {
+    component: SportIcon,
+    keywords: "sport outdoor racket game",
+  },
+  target: {
+    component: TargetIcon,
+    keywords: "target goal sales",
+  },
+  tools: {
+    component: ToolsIcon,
+    keywords: "tool settings",
+  },
   vehicle: {
     component: VehicleIcon,
     keywords: "truck car travel transport",
   },
   warning: {
     component: WarningIcon,
-    keywords: "danger",
+    keywords: "warning alert error",
   },
 };
 
@@ -153,18 +189,18 @@ const colors = [
 
 type Props = {|
   onOpen?: () => void,
+  onClose?: () => void,
   onChange: (color: string, icon: string) => void,
   icon: string,
   color: string,
 |};
 
-function IconPicker({ onOpen, icon, color, onChange }: Props) {
+function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
   const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,
     placement: "bottom-end",
   });
-  const Component = icons[icon || "collection"].component;
 
   return (
     <Wrapper>
@@ -174,14 +210,22 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
       <MenuButton {...menu}>
         {(props) => (
           <Button aria-label={t("Show menu")} {...props}>
-            <Component color={color} size={30} />
+            <Icon
+              as={icons[icon || "collection"].component}
+              color={color}
+              size={30}
+            />
           </Button>
         )}
       </MenuButton>
-      <ContextMenu {...menu} onOpen={onOpen} aria-label={t("Choose icon")}>
+      <ContextMenu
+        {...menu}
+        onOpen={onOpen}
+        onClose={onClose}
+        aria-label={t("Choose icon")}
+      >
         <Icons>
           {Object.keys(icons).map((name) => {
-            const Component = icons[name].component;
             return (
               <MenuItem
                 key={name}
@@ -190,7 +234,7 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
               >
                 {(props) => (
                   <IconButton style={style} {...props}>
-                    <Component color={color} size={30} />
+                    <Icon as={icons[name].component} color={color} size={30} />
                   </IconButton>
                 )}
               </MenuItem>
@@ -212,13 +256,20 @@ function IconPicker({ onOpen, icon, color, onChange }: Props) {
   );
 }
 
+const Icon = styled.svg`
+  transition: fill 150ms ease-in-out;
+`;
+
 const Label = styled.label`
   display: block;
 `;
 
 const Icons = styled.div`
   padding: 16px 8px 0 16px;
-  width: 276px;
+
+  ${breakpoint("tablet")`
+    width: 276px;
+  `};
 `;
 
 const Button = styled(NudeButton)`
@@ -241,6 +292,11 @@ const Loading = styled(HelpText)`
 const ColorPicker = styled(TwitterPicker)`
   box-shadow: none !important;
   background: transparent !important;
+  width: auto !important;
+
+  ${breakpoint("tablet")`
+    width: 276px;
+  `};
 `;
 
 const Wrapper = styled("div")`

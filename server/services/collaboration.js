@@ -1,12 +1,13 @@
 // @flow
 import http from "http";
-import { Logger } from "@hocuspocus/extension-logger";
 import { Server } from "@hocuspocus/server";
 import Koa from "koa";
 import websocket from "koa-easy-ws";
 import Router from "koa-router";
 import AuthenticationExtension from "../collaboration/authentication";
+import LoggerExtension from "../collaboration/logger";
 import PersistenceExtension from "../collaboration/persistence";
+import TracingExtension from "../collaboration/tracing";
 
 export default function init(app: Koa, server: http.Server) {
   const router = new Router();
@@ -15,7 +16,8 @@ export default function init(app: Koa, server: http.Server) {
     extensions: [
       new AuthenticationExtension(),
       new PersistenceExtension(),
-      new Logger(),
+      new LoggerExtension(),
+      new TracingExtension(),
     ],
   });
 

@@ -10,6 +10,7 @@ import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
 import emails from "../emails";
 import env from "../env";
+import Logger from "../logging/logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
@@ -44,7 +45,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
         })
       );
     } else {
-      console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
+      Logger.warn("Enforced https was disabled with FORCE_HTTPS env variable");
     }
 
     // trust header fields set by our proxy. eg X-Forwarded-For
@@ -90,7 +91,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     app.use(
       convert(
         hotMiddleware(compile, {
-            log: console.log, // eslint-disable-line
+          log: (...args) => Logger.info("lifecycle", ...args),
           path: "/__webpack_hmr",
           heartbeat: 10 * 1000,
         })

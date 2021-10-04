@@ -5,6 +5,7 @@ import JWT from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "../../shared/i18n";
 import { ValidationError } from "../errors";
+import Logger from "../logging/logger";
 import { DataTypes, sequelize, encryptedFields, Op } from "../sequelize";
 import { DEFAULT_AVATAR_HOST } from "../utils/avatars";
 import { palette } from "../utils/color";
@@ -195,8 +196,9 @@ const uploadAvatar = async (model) => {
       );
       if (newUrl) model.avatarUrl = newUrl;
     } catch (err) {
-      // we can try again next time
-      console.error(err);
+      Logger.error("Couldn't upload user avatar image to S3", err, {
+        url: avatarUrl,
+      });
     }
   }
 };
@@ -300,6 +302,22 @@ User.getCounts = async function (teamId: string) {
     invited: parseInt(counts.invitedCount),
     suspended: parseInt(counts.suspendedCount),
   };
+};
+
+User.findAllInBatches = async (
+  query,
+  callback: (users: Array<User>, query: Object) => Promise<void>
+) => {
+  if (!query.offset) query.offset = 0;
+  if (!query.limit) query.limit = 10;
+  let results;
+
+  do {
+    results = await User.findAll(query);
+
+    await callback(results, query);
+    query.offset += query.limit;
+  } while (results.length >= query.limit);
 };
 
 User.prototype.demote = async function (

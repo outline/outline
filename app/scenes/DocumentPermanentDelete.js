@@ -51,7 +51,7 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
           />
         </HelpText>
         <Button type="submit" danger>
-          {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
+          {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>
       </form>
     </Flex>

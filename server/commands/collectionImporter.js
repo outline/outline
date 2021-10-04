@@ -2,19 +2,17 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import debug from "debug";
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import { values, keys } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { parseOutlineExport } from "../../shared/utils/zip";
 import { FileImportError } from "../errors";
+import Logger from "../logging/logger";
 import { Attachment, Event, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
-
-const log = debug("commands");
 
 export default async function collectionImporter({
   file,
@@ -155,7 +153,7 @@ export default async function collectionImporter({
       continue;
     }
 
-    log(`Skipped importing ${item.path}`);
+    Logger.info("commands", `Skipped importing ${item.path}`);
   }
 
   // All collections, documents, and attachments have been created – time to

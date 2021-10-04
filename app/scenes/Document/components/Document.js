@@ -90,13 +90,21 @@ class DocumentScene extends React.Component<Props> {
       this.updateIsDirty();
     }
 
-    if (this.props.readOnly) {
+    if (this.props.readOnly || auth.team?.collaborativeEditing) {
       this.lastRevision = document.revision;
+    }
 
+    if (this.props.readOnly) {
       if (document.title !== this.title) {
         this.title = document.title;
       }
-    } else if (prevProps.document.revision !== this.lastRevision) {
+    }
+
+    if (
+      !this.props.readOnly &&
+      !auth.team?.collaborativeEditing &&
+      prevProps.document.revision !== this.lastRevision
+    ) {
       if (auth.user && document.updatedBy.id !== auth.user.id) {
         this.props.toasts.showToast(
           t(`Document updated by {{userName}}`, {

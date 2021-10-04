@@ -39,7 +39,8 @@ const Guide = ({
           <Dialog
             {...dialog}
             aria-label={title}
-            preventBodyScrollhideOnEsc
+            preventBodyScroll
+            hideOnEsc
             hide={onRequestClose}
           >
             {(props) => (

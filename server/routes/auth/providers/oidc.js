@@ -1,7 +1,7 @@
 // @flow
 import passport from "@outlinewiki/koa-passport";
-import fetch from "fetch-with-proxy";
 import Router from "koa-router";
+import get from "lodash/get";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
@@ -11,7 +11,7 @@ import {
 } from "../../../errors";
 import passportMiddleware from "../../../middlewares/passport";
 import { getAllowedDomains } from "../../../utils/authentication";
-import { StateStore } from "../../../utils/passport";
+import { StateStore, request } from "../../../utils/passport";
 
 const router = new Router();
 const providerName = "oidc";
@@ -22,6 +22,8 @@ const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
+const OIDC_USERNAME_CLAIM =
+  process.env.OIDC_USERNAME_CLAIM || "preferred_username";
 const allowedDomains = getAllowedDomains();
 
 export const config = {
@@ -33,18 +35,8 @@ const scopes = OIDC_SCOPES.split(" ");
 
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
-    const response = await fetch(OIDC_USERINFO_URI, {
-      credentials: "same-origin",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    try {
-      return done(null, await response.json());
-    } catch (err) {
-      return done(err);
-    }
+    const response = await request(OIDC_USERINFO_URI, accessToken);
+    return done(null, response);
   } catch (err) {
     return done(err);
   }
@@ -76,6 +68,11 @@ if (OIDC_CLIENT_ID) {
       // available on the `profile` parameter
       async function (req, accessToken, refreshToken, profile, done) {
         try {
+          if (!profile.email) {
+            throw new AuthenticationError(
+              `An email field was not returned in the profile parameter, but is required.`
+            );
+          }
           const parts = profile.email.split("@");
           const domain = parts.length && parts[1];
 
@@ -103,6 +100,9 @@ if (OIDC_CLIENT_ID) {
               name: profile.name,
               email: profile.email,
               avatarUrl: profile.picture,
+              // Claim name can be overriden using an env variable.
+              // Default is 'preferred_username' as per OIDC spec.
+              username: get(profile, OIDC_USERNAME_CLAIM),
             },
             authenticationProvider: {
               name: providerName,

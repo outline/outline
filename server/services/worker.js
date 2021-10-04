@@ -1,7 +1,7 @@
 // @flow
 import http from "http";
-import debug from "debug";
 import Koa from "koa";
+import Logger from "../logging/logger";
 import {
   globalEventQueue,
   processorEventQueue,
@@ -16,9 +16,6 @@ import Imports from "../queues/processors/imports";
 import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
 import Slack from "../queues/processors/slack";
-import Sentry from "../utils/sentry";
-
-const log = debug("queue");
 
 const EmailsProcessor = new Emails();
 
@@ -36,37 +33,32 @@ export default function init(app: Koa, server?: http.Server) {
   // this queue processes global events and hands them off to services
   globalEventQueue.process(function (job) {
     Object.keys(eventProcessors).forEach((name) => {
-      processorEventQueue.add(
-        { ...job.data, service: name },
-        { removeOnComplete: true }
-      );
+      processorEventQueue.add({ ...job.data, service: name });
     });
 
-    websocketsQueue.add(job.data, { removeOnComplete: true });
+    websocketsQueue.add(job.data);
   });
 
   processorEventQueue.process(function (job) {
     const event = job.data;
     const processor = eventProcessors[event.service];
     if (!processor) {
-      console.warn(
-        `Received event for processor that isn't registered (${event.service})`
-      );
+      Logger.warn(`Received event for processor that isn't registered`, event);
       return;
     }
 
     if (processor.on) {
-      log(`${event.service} processing ${event.name}`);
+      Logger.info("processor", `${event.service} processing ${event.name}`, {
+        name: event.name,
+        modelId: event.modelId,
+      });
 
       processor.on(event).catch((error) => {
-        if (process.env.SENTRY_DSN) {
-          Sentry.withScope(function (scope) {
-            scope.setExtra("event", event);
-            Sentry.captureException(error);
-          });
-        } else {
-          throw error;
-        }
+        Logger.error(
+          `Error processing ${event.name} in ${event.service}`,
+          error,
+          event
+        );
       });
     }
   });
@@ -75,14 +67,11 @@ export default function init(app: Koa, server?: http.Server) {
     const event = job.data;
 
     EmailsProcessor.on(event).catch((error) => {
-      if (process.env.SENTRY_DSN) {
-        Sentry.withScope(function (scope) {
-          scope.setExtra("event", event);
-          Sentry.captureException(error);
-        });
-      } else {
-        throw error;
-      }
+      Logger.error(
+        `Error processing ${event.name} in emails processor`,
+        error,
+        event
+      );
     });
   });
 }

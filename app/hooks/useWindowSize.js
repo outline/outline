@@ -4,8 +4,8 @@ import * as React from "react";
 
 export default function useWindowSize() {
   const [windowSize, setWindowSize] = React.useState({
-    width: undefined,
-    height: undefined,
+    width: parseInt(window.innerWidth),
+    height: parseInt(window.innerHeight),
   });
 
   React.useEffect(() => {
@@ -13,8 +13,8 @@ export default function useWindowSize() {
     const handleResize = debounce(() => {
       // Set window width/height to state
       setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: parseInt(window.innerWidth),
+        height: parseInt(window.innerHeight),
       });
     }, 100);
 
