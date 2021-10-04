@@ -19,17 +19,6 @@ const GITLAB_GROUP = env.GITLAB_GROUP;
 const scopes = ["read_api"];
 const callbackURL = `${env.URL}/auth/gitlab.callback`;
 
-export async function request(endpoint: string, accessToken: string) {
-  const response = await fetch(endpoint, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-  });
-  return response.json();
-}
-
 export const config = {
   name: "GitLab",
   enabled: !!GITLAB_CLIENT_ID,
