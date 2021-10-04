@@ -1,6 +1,6 @@
 // @flow
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
-import { debounce, isEqual } from "lodash";
+import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
@@ -31,7 +31,7 @@ import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
-import SearchField from "./components/SearchField";
+import SearchInput from "./components/SearchInput";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
@@ -88,8 +88,9 @@ class Search extends React.Component<Props> {
     this.props.history.goBack();
   }
 
-  handleKeyDown = (ev: SyntheticKeyboardEvent<>) => {
+  handleKeyDown = (ev: SyntheticKeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
+      this.updateLocation(ev.currentTarget.value);
       this.fetchResults();
       return;
     }
@@ -117,7 +118,7 @@ class Search extends React.Component<Props> {
     // To prevent "no results" showing before debounce kicks in
     this.isLoading = true;
 
-    this.fetchResultsDebounced();
+    this.fetchResults();
   };
 
   handleTermChange = () => {
@@ -127,9 +128,9 @@ class Search extends React.Component<Props> {
     this.allowLoadMore = true;
 
     // To prevent "no results" showing before debounce kicks in
-    this.isLoading = !!this.query;
+    this.isLoading = true;
 
-    this.fetchResultsDebounced();
+    this.fetchResults();
   };
 
   handleFilterChange = (search: {
@@ -241,14 +242,10 @@ class Search extends React.Component<Props> {
       }
     } else {
       this.pinToTop = false;
+      this.isLoading = false;
       this.lastQuery = this.query;
     }
   };
-
-  fetchResultsDebounced = debounce(this.fetchResults, 500, {
-    leading: false,
-    trailing: true,
-  });
 
   updateLocation = (query: string) => {
     this.props.history.replace({
@@ -283,10 +280,9 @@ class Search extends React.Component<Props> {
           </div>
         )}
         <ResultsWrapper pinToTop={this.pinToTop} column auto>
-          <SearchField
+          <SearchInput
             placeholder={`${t("Search")}…`}
             onKeyDown={this.handleKeyDown}
-            onChange={this.updateLocation}
             defaultValue={this.query}
           />
           {showShortcutTip && (

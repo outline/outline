@@ -76,11 +76,6 @@ const FilterOptions = ({
   );
 };
 
-const LabelWithNote = styled.div`
-  font-weight: 500;
-  text-align: left;
-`;
-
 const Note = styled(HelpText)`
   margin-top: 2px;
   margin-bottom: 0;
@@ -88,6 +83,15 @@ const Note = styled(HelpText)`
   font-size: 14px;
   font-weight: 400;
   color: ${(props) => props.theme.textTertiary};
+`;
+
+const LabelWithNote = styled.div`
+  font-weight: 500;
+  text-align: left;
+
+  &:hover ${Note} {
+    color: ${(props) => props.theme.white50};
+  }
 `;
 
 const StyledButton = styled(Button)`
