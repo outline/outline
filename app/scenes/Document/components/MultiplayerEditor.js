@@ -1,5 +1,5 @@
 // @flow
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
@@ -9,6 +9,7 @@ import Editor, { type Props as EditorProps } from "components/Editor";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
+import useIdle from "hooks/useIdle";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import useUnmount from "hooks/useUnmount";
@@ -33,6 +34,7 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
+  const isIdle = useIdle();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -115,6 +117,20 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
       }),
     ];
   }, [remoteProvider, user, ydoc]);
+
+  // Disconnect the realtime connection while idle. `isIdle` also checks for
+  // page visibility and will immediately disconnect when a tab is hidden.
+  React.useEffect(() => {
+    if (!remoteProvider) {
+      return;
+    }
+    if (isIdle && remoteProvider.status === WebSocketStatus.Connected) {
+      remoteProvider.disconnect();
+    }
+    if (!isIdle && remoteProvider.status === WebSocketStatus.Disconnected) {
+      remoteProvider.connect();
+    }
+  }, [remoteProvider, isIdle]);
 
   useUnmount(() => {
     remoteProvider?.destroy();
