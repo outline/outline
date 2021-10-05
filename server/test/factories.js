@@ -273,6 +273,7 @@ export async function buildFileOperation(overrides: Object = {}) {
     size: 0,
     key: "uploads/key/to/file.zip",
     collectionId: null,
+    type: "export",
     url: "https://www.urltos3file.com/file.zip",
     ...overrides,
   });

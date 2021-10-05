@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 
-import { Collection, User } from "../../models";
+import { Collection, User, Event, FileOperation } from "../../models";
 import webService from "../../services/web";
 import {
   buildAdmin,
@@ -309,41 +309,7 @@ describe("#fileOperations.delete", () => {
     });
 
     expect(deleteResponse.status).toBe(200);
-
-    const expiredFileOp = await server.post("/api/fileOperations.info", {
-      body: {
-        token: admin.getJwtToken(),
-        id: exportData.id,
-      },
-    });
-
-    const body = await expiredFileOp.json();
-
-    expect(expiredFileOp.status).toBe(200);
-    expect(body.data.id).toBe(exportData.id);
-    expect(body.data.user.id).toBe(admin.id);
-    expect(body.data.state).toBe("expired");
-  });
-
-  it("shouldn't delete already expired file operation", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const exportData = await buildFileOperation({
-      type: "export",
-      teamId: team.id,
-      userId: admin.id,
-      state: "expired",
-    });
-
-    const res = await server.post("/api/fileOperations.delete", {
-      body: {
-        token: admin.getJwtToken(),
-        id: exportData.id,
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toBe(400);
-    expect(body.message).toBe("export is already expired");
+    expect(await Event.count()).toBe(1);
+    expect(await FileOperation.count()).toBe(0);
   });
 });
