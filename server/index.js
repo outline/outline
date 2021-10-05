@@ -108,6 +108,8 @@ async function start(id: string, disconnect: () => void) {
 
   function shutdown() {
     Logger.info("lifecycle", "Stopping server");
+
+    server.emit("shutdown");
     server.stop(disconnect);
   }
 }

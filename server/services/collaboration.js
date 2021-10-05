@@ -36,4 +36,8 @@ export default function init(app: Koa, server: http.Server) {
   app.use(websocket());
   app.use(router.routes());
   app.use(router.allowedMethods());
+
+  server.on("shutdown", () => {
+    hocuspocus.destroy();
+  });
 }

@@ -23,6 +23,10 @@ export default function init(app: Koa, server: http.Server) {
     cookie: false,
   });
 
+  server.on("shutdown", () => {
+    Metrics.gaugePerInstance("websockets.count", 0);
+  });
+
   io.adapter(
     socketRedisAdapter({
       pubClient: client,
