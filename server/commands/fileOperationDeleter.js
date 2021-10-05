@@ -23,7 +23,7 @@ export default async function fileOperationDeleter(
 
     await transaction.commit();
   } catch (error) {
-    if (transaction) await transaction.rollback();
+    await transaction.rollback();
     throw error;
   }
 }
