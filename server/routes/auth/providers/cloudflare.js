@@ -5,8 +5,8 @@ import Router from "koa-router";
 import { Strategy as CloudflareStrategy } from "passport-cloudflare";
 import debug from "debug";
 
-import passportMiddleware from "../../middlewares/passport";
-import accountProvisioner from "../../commands/accountProvisioner";
+import passportMiddleware from "../../../middlewares/passport";
+import accountProvisioner from "../../../commands/accountProvisioner";
 
 const router = new Router();
 
