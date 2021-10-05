@@ -1,8 +1,9 @@
 // @flow
 import Router from "koa-router";
+import fileOperationDeleter from "../../commands/fileOperationDeleter";
 import { NotFoundError, ValidationError } from "../../errors";
 import auth from "../../middlewares/authentication";
-import { FileOperation, Team, Event } from "../../models";
+import { FileOperation, Team } from "../../models";
 import policy from "../../policies";
 import { presentFileOperation } from "../../presenters";
 import { getSignedUrl } from "../../utils/s3";
@@ -110,18 +111,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   authorize(user, fileOp.type, team);
 
-  if (fileOp.state === "expired") {
-    throw new ValidationError(`${fileOp.type} is already expired`);
-  }
-
-  await fileOp.expire();
-
-  await Event.create({
-    name: "fileOperations.delete",
-    teamId: team.id,
-    actorId: user.id,
-    data: fileOp.dataValues,
-  });
+  await fileOperationDeleter(fileOp, user);
 
   ctx.body = {
     success: true,
