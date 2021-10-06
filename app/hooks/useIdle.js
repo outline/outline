@@ -1,6 +1,17 @@
 // @flow
-import createActivityDetector from "activity-detector";
 import * as React from "react";
+
+const activityEvents = [
+  "click",
+  "mousemove",
+  "keydown",
+  "DOMMouseScroll",
+  "mousewheel",
+  "mousedown",
+  "touchstart",
+  "touchmove",
+  "focus",
+];
 
 /**
  * Hook to detect user idle state.
@@ -8,15 +19,36 @@ import * as React from "react";
  * @param {number} timeToIdle
  * @returns boolean if the user is idle
  */
-export default function useIdle(timeToIdle: number = 60 * 60 * 1000) {
+export default function useIdle(timeToIdle: number = 60 * 1000) {
   const [isIdle, setIsIdle] = React.useState(false);
+  const timeout = React.useRef();
+
+  const onActivity = React.useCallback(() => {
+    if (timeout.current) {
+      clearTimeout(timeout.current);
+    }
+
+    timeout.current = setTimeout(() => {
+      setIsIdle(true);
+    }, timeToIdle);
+  }, [timeToIdle]);
 
   React.useEffect(() => {
-    const detector = createActivityDetector({ timeToIdle });
-    detector.on("idle", () => setIsIdle(true));
-    detector.on("active", () => setIsIdle(false));
-    return () => detector.stop();
-  }, [timeToIdle]);
+    const handleUserActivityEvent = () => {
+      setIsIdle(false);
+      onActivity();
+    };
+
+    activityEvents.forEach((eventName) =>
+      window.addEventListener(eventName, handleUserActivityEvent)
+    );
+
+    return () => {
+      activityEvents.forEach((eventName) =>
+        window.removeEventListener(eventName, handleUserActivityEvent)
+      );
+    };
+  }, [onActivity]);
 
   return isIdle;
 }

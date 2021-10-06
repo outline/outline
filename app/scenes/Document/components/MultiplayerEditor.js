@@ -10,9 +10,9 @@ import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
 import useIdle from "hooks/useIdle";
+import usePageVisibility from "hooks/usePageVisibility";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
-import useUnmount from "hooks/useUnmount";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 import { homeUrl } from "utils/routeHelpers";
 
@@ -28,13 +28,13 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
   const currentUser = useCurrentUser();
   const { presence, ui } = useStores();
   const token = useCurrentToken();
-  const [localProvider, setLocalProvider] = React.useState();
   const [remoteProvider, setRemoteProvider] = React.useState();
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
   const isIdle = useIdle();
+  const isVisible = usePageVisibility();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -93,7 +93,15 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
     provider.on("status", (ev) => ui.setMultiplayerStatus(ev.status));
 
     setRemoteProvider(provider);
-    setLocalProvider(localProvider);
+
+    return () => {
+      provider?.destroy();
+      localProvider?.destroy();
+
+      setRemoteProvider(null);
+
+      ui.setMultiplayerStatus(undefined);
+    };
   }, [history, showToast, t, documentId, ui, presence, token, ydoc]);
 
   const user = React.useMemo(() => {
@@ -124,19 +132,20 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
     if (!remoteProvider) {
       return;
     }
-    if (isIdle && remoteProvider.status === WebSocketStatus.Connected) {
+    if (
+      isIdle &&
+      !isVisible &&
+      remoteProvider.status === WebSocketStatus.Connected
+    ) {
       remoteProvider.disconnect();
     }
-    if (!isIdle && remoteProvider.status === WebSocketStatus.Disconnected) {
+    if (
+      (!isIdle || isVisible) &&
+      remoteProvider.status === WebSocketStatus.Disconnected
+    ) {
       remoteProvider.connect();
     }
-  }, [remoteProvider, isIdle]);
-
-  useUnmount(() => {
-    remoteProvider?.destroy();
-    localProvider?.destroy();
-    ui.setMultiplayerStatus(undefined);
-  });
+  }, [remoteProvider, isIdle, isVisible]);
 
   if (!extensions.length) {
     return null;
