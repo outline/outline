@@ -13,11 +13,11 @@ const router = new Router();
 const providerName = 'cloudflare';
 
 const audienceId = process.env.CLOUDFLARE_AUDIENCE;
-const displayName = process.env.CLOUDFLARE_TEAM_DISPLAY_NAME;
 const teamName = process.env.CLOUDFLARE_TEAM_NAME;
+const displayName = process.env.CLOUDFLARE_TEAM_DISPLAY_NAME || teamName;
 const teamDomainName = `${teamName}.cloudflareaccess.com`;
 
-const providerEnabled = !!teamName;
+const providerEnabled = !!teamName && !!audienceId;
 
 export const config = {
     name: providerName,
