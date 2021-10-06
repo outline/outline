@@ -48,7 +48,7 @@
     "@babel/preset-react": "^7.10.4",
     "@bull-board/api": "^3.5.0",
     "@bull-board/koa": "^3.5.0",
-    "@hocuspocus/provider": "^1.0.0-alpha.17",
+    "@hocuspocus/provider": "^1.0.0-alpha.18",
     "@hocuspocus/server": "^1.0.0-alpha.73",
     "@outlinewiki/koa-passport": "^4.1.4",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
