@@ -1,6 +1,11 @@
 // @flow
 import * as React from "react";
 
+/**
+ * Hook to return page visibility state.
+ *
+ * @returns boolean if the page is visible
+ */
 export default function usePageVisibility(): boolean {
   const [visible, setVisible] = React.useState(true);
 
@@ -13,6 +18,5 @@ export default function usePageVisibility(): boolean {
     };
   }, []);
 
-  console.log("usePageVisibility", visible);
   return visible;
 }
