@@ -26,7 +26,14 @@ export async function documentUpdater(
   if (editorVersion) document.editorVersion = editorVersion;
   if (templateId) document.templateId = templateId;
 
-  document.text = append ? document.text + text : text;
+  if (!user.team?.collaborativeEditing) {
+    if (append) {
+      document.text += text;
+    } else if (text !== undefined) {
+      document.text = text;
+    }
+  }
+
   document.lastModifiedById = user.id;
 
   let transaction;
