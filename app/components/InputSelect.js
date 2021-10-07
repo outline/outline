@@ -9,6 +9,7 @@ import {
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import Button, { Inner } from "components/Button";
 import { Position, Background, Backdrop } from "./ContextMenu";
@@ -53,6 +54,7 @@ const InputSelect = (props: Props) => {
     gutter: 0,
     modal: true,
     selectedValue: value,
+    animated: 200,
   });
 
   const popOver = useSelectPopover({
@@ -63,7 +65,10 @@ const InputSelect = (props: Props) => {
   });
 
   const previousValue = React.useRef(value);
+  const contentRef = React.useRef();
+  const selectedRef = React.useRef();
   const buttonRef = React.useRef();
+  const [offset, setOffset] = React.useState(0);
   const minWidth = buttonRef.current?.offsetWidth || 0;
 
   const maxHeight = useMenuHeight(
@@ -86,6 +91,27 @@ const InputSelect = (props: Props) => {
   const selectedValueIndex = options.findIndex(
     (option) => option.value === select.selectedValue
   );
+
+  // Ensure selected option is visible when opening the input
+  React.useEffect(() => {
+    if (!select.animating && selectedRef.current) {
+      scrollIntoView(selectedRef.current, {
+        scrollMode: "if-needed",
+        behavior: "instant",
+        block: "start",
+      });
+    }
+  }, [select.animating]);
+
+  React.useLayoutEffect(() => {
+    if (select.visible) {
+      const offset = Math.round(
+        (selectedRef.current?.getBoundingClientRect().top || 0) -
+          (contentRef.current?.getBoundingClientRect().top || 0)
+      );
+      setOffset(offset);
+    }
+  }, [select.visible]);
 
   return (
     <>
@@ -122,13 +148,14 @@ const InputSelect = (props: Props) => {
 
             // offset top of select to place selected item under the cursor
             if (selectedValueIndex !== -1) {
-              props.style.top = `-${(selectedValueIndex + 1) * 32}px`;
+              props.style.top = `-${offset + 32}px`;
             }
 
             return (
               <Positioner {...props}>
                 <Background
                   dir="auto"
+                  ref={contentRef}
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
                   style={
@@ -144,6 +171,11 @@ const InputSelect = (props: Props) => {
                           value={option.value}
                           key={option.value}
                           animating={select.animating}
+                          ref={
+                            select.selectedValue === option.value
+                              ? selectedRef
+                              : undefined
+                          }
                         >
                           {select.selectedValue !== undefined && (
                             <>
