@@ -130,7 +130,7 @@ function DocumentHeader({
 
   const appearanceAction = (
     <Action>
-      <Tooltip tooltip={t("Appearance")} delay={500} placement="bottom">
+      <Tooltip tooltip={resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")} delay={500} placement="bottom">
         <Button
           icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
           onClick={() =>
@@ -158,8 +158,8 @@ function DocumentHeader({
         }
         actions={
           <>
-            {canEdit ? editAction : <div />}
             {appearanceAction}
+            {canEdit ? editAction : <div />}
           </>
         }
       />
