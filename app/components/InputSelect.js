@@ -24,6 +24,7 @@ export type Props = {
   nude?: boolean,
   ariaLabel: string,
   short?: boolean,
+  disabled?: boolean,
   className?: string,
   labelHidden?: boolean,
   options: Option[],
@@ -44,6 +45,7 @@ const InputSelect = (props: Props) => {
     short,
     ariaLabel,
     onChange,
+    disabled,
     nude,
   } = props;
 
@@ -57,6 +59,7 @@ const InputSelect = (props: Props) => {
     ...select,
     hideOnClickOutside: true,
     preventBodyScroll: true,
+    disabled,
   });
 
   const previousValue = React.useRef(value);
@@ -93,7 +96,12 @@ const InputSelect = (props: Props) => {
           ) : (
             wrappedLabel
           ))}
-        <Select {...select} aria-label={ariaLabel} ref={buttonRef}>
+        <Select
+          {...select}
+          disabled={disabled}
+          aria-label={ariaLabel}
+          ref={buttonRef}
+        >
           {(props) => (
             <StyledButton
               neutral
@@ -135,6 +143,7 @@ const InputSelect = (props: Props) => {
                           {...select}
                           value={option.value}
                           key={option.value}
+                          animating={select.animating}
                         >
                           {select.selectedValue !== undefined && (
                             <>
@@ -191,6 +200,12 @@ const StyledButton = styled(Button)`
 
 export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
+
+  ${(props) =>
+    props.animating &&
+    css`
+      pointer-events: none;
+    `}
 `;
 
 const Wrapper = styled.label`
