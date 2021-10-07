@@ -6,7 +6,7 @@ import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class FileOperationsStore extends BaseStore<FileOperation> {
-  actions = ["list", "info"];
+  actions = ["list", "info", "delete"];
 
   constructor(rootStore: RootStore) {
     super(rootStore, FileOperation);
