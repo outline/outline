@@ -88,8 +88,8 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handlePermissionChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {
-    this.permission = ev.target.value;
+  handlePermissionChange = (newPermission: string) => {
+    this.permission = newPermission;
   };
 
   handleSharingChange = (ev: SyntheticInputEvent<HTMLInputElement>) => {

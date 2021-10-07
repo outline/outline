@@ -4,9 +4,8 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import useMobile from "hooks/useMobile";
+import useMenuHeight from "hooks/useMenuHeight";
 import usePrevious from "hooks/usePrevious";
-import useWindowSize from "hooks/useWindowSize";
 import {
   fadeIn,
   fadeAndSlideUp,
@@ -35,9 +34,7 @@ export default function ContextMenu({
   ...rest
 }: Props) {
   const previousVisible = usePrevious(rest.visible);
-  const [maxHeight, setMaxHeight] = React.useState(undefined);
-  const isMobile = useMobile();
-  const { height: windowHeight } = useWindowSize();
+  const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
   const backgroundRef = React.useRef();
 
   React.useEffect(() => {
@@ -55,21 +52,6 @@ export default function ContextMenu({
 
   // sets the menu height based on the available space between the disclosure/
   // trigger and the bottom of the window
-  React.useLayoutEffect(() => {
-    const padding = 8;
-
-    if (rest.visible && !isMobile) {
-      setMaxHeight(
-        rest.unstable_disclosureRef?.current
-          ? windowHeight -
-              rest.unstable_disclosureRef.current.getBoundingClientRect()
-                .bottom -
-              padding
-          : undefined
-      );
-    }
-  }, [rest.visible, rest.unstable_disclosureRef, windowHeight, isMobile]);
-
   return (
     <>
       <Menu hideOnClickOutside preventBodyScroll {...rest}>
@@ -104,7 +86,7 @@ export default function ContextMenu({
   );
 }
 
-const Backdrop = styled.div`
+export const Backdrop = styled.div`
   animation: ${fadeIn} 200ms ease-in-out;
   position: fixed;
   top: 0;
@@ -119,7 +101,7 @@ const Backdrop = styled.div`
   `};
 `;
 
-const Position = styled.div`
+export const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
 
@@ -133,7 +115,7 @@ const Position = styled.div`
   `};
 `;
 
-const Background = styled.div`
+export const Background = styled.div`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
@@ -154,8 +136,7 @@ const Background = styled.div`
   ${breakpoint("tablet")`
     animation: ${(props) =>
       props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
-    transform-origin: ${(props) =>
-      props.rightAnchor === "bottom-end" ? "75%" : "25%"} 0;
+    transform-origin: ${(props) => (props.rightAnchor ? "75%" : "25%")} 0;
     max-width: 276px;
     background: ${(props) => props.theme.menuBackground};
     box-shadow: ${(props) => props.theme.menuShadow};

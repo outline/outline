@@ -2,7 +2,7 @@
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import MenuIconWrapper from "../MenuIconWrapper";
 
@@ -88,12 +88,12 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchor = styled.a`
+export const MenuAnchorCSS = css`
   display: flex;
   margin: 0;
   border: 0;
   padding: 12px;
-  padding-left: ${(props) => 12 + props.level * 10}px;
+  padding-left: ${(props) => 12 + (props.level || 0) * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;
@@ -137,6 +137,9 @@ export const MenuAnchor = styled.a`
     padding: 4px 12px;
     font-size: 14px;
   `};
+`;
+export const MenuAnchor = styled.a`
+  ${MenuAnchorCSS}
 `;
 
 export default MenuItem;

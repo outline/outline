@@ -112,10 +112,10 @@ function Invite({ onSubmit }: Props) {
     });
   }, [showToast, t]);
 
-  const handleRoleChange = React.useCallback((ev, index) => {
+  const handleRoleChange = React.useCallback((role: Role, index: number) => {
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
-      newInvites[index]["role"] = ev.target.value;
+      newInvites[index]["role"] = role;
       return newInvites;
     });
   }, []);
@@ -194,7 +194,7 @@ function Invite({ onSubmit }: Props) {
             required={!!invite.email}
           />
           <InputSelectRole
-            onChange={(ev) => handleRoleChange(ev, index)}
+            onChange={(role: any) => handleRoleChange((role: Role), index)}
             value={invite.role}
             labelHidden={index !== 0}
             short

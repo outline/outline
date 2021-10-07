@@ -4,9 +4,20 @@ import { useTranslation } from "react-i18next";
 import InputSelect, { type Props, type Option } from "./InputSelect";
 
 export default function InputSelectPermission(
-  props: $Rest<Props, { options: Array<Option> }>
+  props: $Rest<$Exact<Props>, {| options: Array<Option>, ariaLabel: string |}>
 ) {
+  const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
+
+  const handleChange = React.useCallback(
+    (value) => {
+      if (value === "no_access") {
+        value = "";
+      }
+      onChange(value);
+    },
+    [onChange]
+  );
 
   return (
     <InputSelect
@@ -14,9 +25,12 @@ export default function InputSelectPermission(
       options={[
         { label: t("View and edit"), value: "read_write" },
         { label: t("View only"), value: "read" },
-        { label: t("No access"), value: "" },
+        { label: t("No access"), value: "no_access" },
       ]}
-      {...props}
+      ariaLabel={t("Default access")}
+      value={value || "no_access"}
+      onChange={handleChange}
+      {...rest}
     />
   );
 }

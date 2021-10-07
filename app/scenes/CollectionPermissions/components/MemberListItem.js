@@ -8,7 +8,7 @@ import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Flex from "components/Flex";
-import InputSelect from "components/InputSelect";
+import InputSelect, { type Props as SelectProps } from "components/InputSelect";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
 import MemberMenu from "menus/MemberMenu";
@@ -64,9 +64,11 @@ const MemberListItem = ({
               label={t("Permissions")}
               options={PERMISSIONS}
               value={membership ? membership.permission : undefined}
-              onChange={(ev) => onUpdate(ev.target.value)}
+              onChange={onUpdate}
               disabled={!canEdit}
+              ariaLabel={t("Permissions")}
               labelHidden
+              nude
             />
           )}
           {canEdit && (
@@ -90,7 +92,7 @@ const Spacer = styled.div`
   width: 8px;
 `;
 
-const Select = styled(InputSelect)`
+const Select = (styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;
@@ -98,6 +100,6 @@ const Select = styled(InputSelect)`
   select {
     margin: 0;
   }
-`;
+`: React.ComponentType<SelectProps>);
 
 export default MemberListItem;
