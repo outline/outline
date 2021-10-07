@@ -3,10 +3,10 @@ import passport from "@outlinewiki/koa-passport";
 import fetch from "fetch-with-proxy";
 import Router from "koa-router";
 import { Strategy as GithubStrategy } from "passport-github2";
-import accountProvisioner from "../../commands/accountProvisioner";
-import env from "../../env";
-import passportMiddleware from "../../middlewares/passport";
-import { StateStore } from "../../utils/passport";
+import accountProvisioner from "../../../commands/accountProvisioner";
+import env from "../../../env";
+import passportMiddleware from "../../../middlewares/passport";
+import { StateStore } from "../../../utils/passport";
 
 const router = new Router();
 const providerName = "github";
