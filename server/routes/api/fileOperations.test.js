@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 
-import { Collection, User } from "../../models";
+import { Collection, User, Event, FileOperation } from "../../models";
 import webService from "../../services/web";
 import {
   buildAdmin,
@@ -14,6 +14,14 @@ import { flushdb } from "../../test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
+
+jest.mock("aws-sdk", () => {
+  const mS3 = { deleteObject: jest.fn().mockReturnThis(), promise: jest.fn() };
+  return {
+    S3: jest.fn(() => mS3),
+    Endpoint: jest.fn(),
+  };
+});
 
 beforeEach(() => flushdb());
 afterAll(() => server.close());
@@ -234,7 +242,7 @@ describe("#fileOperations.redirect", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("file operation is not complete yet");
+    expect(body.message).toEqual("export is not complete yet");
   });
 });
 
@@ -279,5 +287,29 @@ describe("#fileOperations.info", () => {
     });
 
     expect(res.status).toBe(403);
+  });
+});
+
+describe("#fileOperations.delete", () => {
+  it("should delete file operation", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: "export",
+      teamId: team.id,
+      userId: admin.id,
+      state: "complete",
+    });
+
+    const deleteResponse = await server.post("/api/fileOperations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+
+    expect(deleteResponse.status).toBe(200);
+    expect(await Event.count()).toBe(1);
+    expect(await FileOperation.count()).toBe(0);
   });
 });

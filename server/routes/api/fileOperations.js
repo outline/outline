@@ -1,5 +1,6 @@
 // @flow
 import Router from "koa-router";
+import fileOperationDeleter from "../../commands/fileOperationDeleter";
 import { NotFoundError, ValidationError } from "../../errors";
 import auth from "../../middlewares/authentication";
 import { FileOperation, Team } from "../../models";
@@ -88,7 +89,7 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   authorize(user, fileOp.type, team);
 
   if (fileOp.state !== "complete") {
-    throw new ValidationError("file operation is not complete yet");
+    throw new ValidationError(`${fileOp.type} is not complete yet`);
   }
 
   const accessUrl = await getSignedUrl(fileOp.key);
@@ -96,4 +97,24 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   ctx.redirect(accessUrl);
 });
 
+router.post("fileOperations.delete", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, "id is required");
+
+  const user = ctx.state.user;
+  const team = await Team.findByPk(user.teamId);
+  const fileOp = await FileOperation.findByPk(id);
+
+  if (!fileOp) {
+    throw new NotFoundError();
+  }
+
+  authorize(user, fileOp.type, team);
+
+  await fileOperationDeleter(fileOp, user);
+
+  ctx.body = {
+    success: true,
+  };
+});
 export default router;
