@@ -2,16 +2,19 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import FileOperation from "models/FileOperation";
-import Button from "components/Button";
+import { Action } from "components/Actions";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
-
+import useCurrentUser from "hooks/useCurrentUser";
+import FileOperationMenu from "menus/FileOperationMenu";
 type Props = {|
   fileOperation: FileOperation,
+  handleDelete: (FileOperation) => Promise<void>,
 |};
 
-const FileOperationListItem = ({ fileOperation }: Props) => {
+const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
   const { t } = useTranslation();
+  const user = useCurrentUser();
 
   const stateMapping = {
     creating: t("Processing"),
@@ -34,7 +37,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
           )}
           {t(`{{userName}} requested`, {
             userName:
-              fileOperation.id === fileOperation.user.id
+              user.id === fileOperation.user.id
                 ? t("You")
                 : fileOperation.user.name,
           })}
@@ -45,13 +48,15 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       }
       actions={
         fileOperation.state === "complete" ? (
-          <Button
-            as="a"
-            href={`/api/fileOperations.redirect?id=${fileOperation.id}`}
-            neutral
-          >
-            {t("Download")}
-          </Button>
+          <Action>
+            <FileOperationMenu
+              id={fileOperation.id}
+              onDelete={async (ev) => {
+                ev.preventDefault();
+                await handleDelete(fileOperation);
+              }}
+            />
+          </Action>
         ) : undefined
       }
     />

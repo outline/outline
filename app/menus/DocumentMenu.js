@@ -37,6 +37,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -72,6 +73,7 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
+  const team = useCurrentTeam();
   const { policies, collections, documents } = useStores();
   const { showToast } = useToasts();
   const menu = useMenuState({
@@ -389,13 +391,19 @@ function DocumentMenu({
             {
               title: t("Enable embeds"),
               onClick: document.enableEmbeds,
-              visible: !!showToggleEmbeds && document.embedsDisabled,
+              visible:
+                !!showToggleEmbeds &&
+                document.embedsDisabled &&
+                !team.collaborativeEditing,
               icon: <BuildingBlocksIcon />,
             },
             {
               title: t("Disable embeds"),
               onClick: document.disableEmbeds,
-              visible: !!showToggleEmbeds && !document.embedsDisabled,
+              visible:
+                !!showToggleEmbeds &&
+                !document.embedsDisabled &&
+                !team.collaborativeEditing,
               icon: <BuildingBlocksIcon />,
             },
             {

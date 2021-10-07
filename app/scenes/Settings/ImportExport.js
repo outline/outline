@@ -7,6 +7,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import { parseOutlineExport } from "shared/utils/zip";
+import FileOperation from "models/FileOperation";
 import Button from "components/Button";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
@@ -100,6 +101,18 @@ function ImportExport() {
       }
     },
     [t, collections, showToast]
+  );
+
+  const handleDelete = React.useCallback(
+    async (fileOperation: FileOperation) => {
+      try {
+        await fileOperations.delete(fileOperation);
+        showToast(t("Export deleted"));
+      } catch (err) {
+        showToast(err.message, { type: "error" });
+      }
+    },
+    [fileOperations, showToast, t]
   );
 
   const hasCollections = importDetails
@@ -216,6 +229,7 @@ function ImportExport() {
           <FileOperationListItem
             key={item.id + item.state}
             fileOperation={item}
+            handleDelete={handleDelete}
           />
         )}
       />

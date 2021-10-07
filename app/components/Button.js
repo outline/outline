@@ -35,7 +35,7 @@ const RealButton = styled.button`
     border: 0;
   }
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${(props) => darken(0.05, props.theme.buttonBackground)};
   }
 
@@ -43,6 +43,10 @@ const RealButton = styled.button`
     cursor: default;
     pointer-events: none;
     color: ${(props) => props.theme.white50};
+
+    svg {
+      fill: ${(props) => props.theme.white50};
+    }
   }
 
   ${(props) =>
@@ -65,7 +69,7 @@ const RealButton = styled.button`
     }
     
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: ${
         props.borderOnHover
           ? props.theme.buttonNeutralBackground
@@ -78,6 +82,10 @@ const RealButton = styled.button`
 
     &:disabled {
       color: ${props.theme.textTertiary};
+
+      svg {
+        fill: ${props.theme.textTertiary};
+      }
     }
   `} ${(props) =>
     props.danger &&

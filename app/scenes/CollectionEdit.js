@@ -54,8 +54,8 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
     [collection, color, icon, name, onSubmit, showToast, sort, t]
   );
 
-  const handleSortChange = (ev: SyntheticInputEvent<HTMLSelectElement>) => {
-    const [field, direction] = ev.target.value.split(".");
+  const handleSortChange = (value: string) => {
+    const [field, direction] = value.split(".");
 
     if (direction === "asc" || direction === "desc") {
       setSort({ field, direction });
@@ -101,6 +101,7 @@ const CollectionEdit = ({ collection, onSubmit }: Props) => {
           ]}
           value={`${sort.field}.${sort.direction}`}
           onChange={handleSortChange}
+          ariaLabel={t("Sort")}
         />
         <Button type="submit" disabled={isSaving || !collection.name}>
           {isSaving ? `${t("Saving")}…` : t("Save")}

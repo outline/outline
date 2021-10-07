@@ -40,14 +40,20 @@ class InputSearchPage extends React.Component<Props> {
     }
   }
 
-  handleSearchInput = (ev: SyntheticInputEvent<>) => {
-    ev.preventDefault();
-    this.props.history.push(
-      searchUrl(ev.target.value, {
-        collectionId: this.props.collectionId,
-        ref: this.props.source,
-      })
-    );
+  handleKeyDown = (ev: SyntheticKeyboardEvent<HTMLInputElement>) => {
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      this.props.history.push(
+        searchUrl(ev.currentTarget.value, {
+          collectionId: this.props.collectionId,
+          ref: this.props.source,
+        })
+      );
+    }
+
+    if (this.props.onKeyDown) {
+      this.props.onKeyDown(ev);
+    }
   };
 
   handleFocus = () => {
@@ -59,7 +65,7 @@ class InputSearchPage extends React.Component<Props> {
   };
 
   render() {
-    const { t, value, onChange, onKeyDown } = this.props;
+    const { t, value, onChange } = this.props;
     const { theme, placeholder = `${t("Search")}…` } = this.props;
 
     return (
@@ -67,10 +73,9 @@ class InputSearchPage extends React.Component<Props> {
         ref={(ref) => (this.input = ref)}
         type="search"
         placeholder={placeholder}
-        onInput={this.handleSearchInput}
         value={value}
         onChange={onChange}
-        onKeyDown={onKeyDown}
+        onKeyDown={this.handleKeyDown}
         icon={
           <SearchIcon
             color={this.focused ? theme.inputBorderFocused : theme.inputBorder}

@@ -1,80 +1,120 @@
 // @flow
-import { observable } from "mobx";
-import { observer } from "mobx-react";
+import {
+  Select,
+  SelectOption,
+  useSelectState,
+  useSelectPopover,
+  SelectPopover,
+} from "@renderlesskit/react";
+import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import { Outline, LabelText } from "./Input";
-
-const Select = styled.select`
-  border: 0;
-  flex: 1;
-  padding: 4px 0;
-  margin: 0 12px;
-  outline: none;
-  background: none;
-  color: ${(props) => props.theme.text};
-  height: 30px;
-  font-size: 14px;
-
-  option {
-    background: ${(props) => props.theme.buttonNeutralBackground};
-  }
-
-  &:disabled,
-  &::placeholder {
-    color: ${(props) => props.theme.placeholder};
-  }
-
-  ${breakpoint("mobile", "tablet")`
-    font-size: 16px;
-  `};
-`;
-
-const Wrapper = styled.label`
-  display: block;
-  max-width: ${(props) => (props.short ? "350px" : "100%")};
-`;
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import styled, { css } from "styled-components";
+import Button, { Inner } from "components/Button";
+import { Position, Background, Backdrop } from "./ContextMenu";
+import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
+import { LabelText } from "./Input";
+import useMenuHeight from "hooks/useMenuHeight";
 
 export type Option = { label: string, value: string };
 
 export type Props = {
   value?: string,
   label?: string,
+  nude?: boolean,
+  ariaLabel: string,
   short?: boolean,
+  disabled?: boolean,
   className?: string,
   labelHidden?: boolean,
   options: Option[],
-  onBlur?: () => void,
-  onFocus?: () => void,
+  onChange: (string) => Promise<void> | void,
 };
 
-@observer
-class InputSelect extends React.Component<Props> {
-  @observable focused: boolean = false;
+const getOptionFromValue = (options: Option[], value) => {
+  return options.find((option) => option.value === value) || {};
+};
 
-  handleBlur = () => {
-    this.focused = false;
-  };
+const InputSelect = (props: Props) => {
+  const {
+    value,
+    label,
+    className,
+    labelHidden,
+    options,
+    short,
+    ariaLabel,
+    onChange,
+    disabled,
+    nude,
+  } = props;
 
-  handleFocus = () => {
-    this.focused = true;
-  };
+  const select = useSelectState({
+    gutter: 0,
+    modal: true,
+    selectedValue: value,
+    animated: 200,
+  });
 
-  render() {
-    const {
-      label,
-      className,
-      labelHidden,
-      options,
-      short,
-      ...rest
-    } = this.props;
+  const popOver = useSelectPopover({
+    ...select,
+    hideOnClickOutside: true,
+    preventBodyScroll: true,
+    disabled,
+  });
 
-    const wrappedLabel = <LabelText>{label}</LabelText>;
+  const previousValue = React.useRef(value);
+  const contentRef = React.useRef();
+  const selectedRef = React.useRef();
+  const buttonRef = React.useRef();
+  const [offset, setOffset] = React.useState(0);
+  const minWidth = buttonRef.current?.offsetWidth || 0;
 
-    return (
+  const maxHeight = useMenuHeight(
+    select.visible,
+    select.unstable_disclosureRef
+  );
+
+  React.useEffect(() => {
+    if (previousValue.current === select.selectedValue) return;
+
+    previousValue.current = select.selectedValue;
+    async function load() {
+      await onChange(select.selectedValue);
+    }
+    load();
+  }, [onChange, select.selectedValue]);
+
+  const wrappedLabel = <LabelText>{label}</LabelText>;
+
+  const selectedValueIndex = options.findIndex(
+    (option) => option.value === select.selectedValue
+  );
+
+  // Ensure selected option is visible when opening the input
+  React.useEffect(() => {
+    if (!select.animating && selectedRef.current) {
+      scrollIntoView(selectedRef.current, {
+        scrollMode: "if-needed",
+        behavior: "instant",
+        block: "start",
+      });
+    }
+  }, [select.animating]);
+
+  React.useLayoutEffect(() => {
+    if (select.visible) {
+      const offset = Math.round(
+        (selectedRef.current?.getBoundingClientRect().top || 0) -
+          (contentRef.current?.getBoundingClientRect().top || 0)
+      );
+      setOffset(offset);
+    }
+  }, [select.visible]);
+
+  return (
+    <>
       <Wrapper short={short}>
         {label &&
           (labelHidden ? (
@@ -82,18 +122,144 @@ class InputSelect extends React.Component<Props> {
           ) : (
             wrappedLabel
           ))}
-        <Outline focused={this.focused} className={className}>
-          <Select onBlur={this.handleBlur} onFocus={this.handleFocus} {...rest}>
-            {options.map((option) => (
-              <option value={option.value} key={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-        </Outline>
+        <Select
+          {...select}
+          disabled={disabled}
+          aria-label={ariaLabel}
+          ref={buttonRef}
+        >
+          {(props) => (
+            <StyledButton
+              neutral
+              disclosure
+              className={className}
+              nude={nude}
+              {...props}
+            >
+              {getOptionFromValue(options, select.selectedValue).label ||
+                `Select a ${ariaLabel}`}
+            </StyledButton>
+          )}
+        </Select>
+        <SelectPopover {...select} {...popOver}>
+          {(props) => {
+            const topAnchor = props.style.top === "0";
+            const rightAnchor = props.placement === "bottom-end";
+
+            // offset top of select to place selected item under the cursor
+            if (selectedValueIndex !== -1) {
+              props.style.top = `-${offset + 32}px`;
+            }
+
+            return (
+              <Positioner {...props}>
+                <Background
+                  dir="auto"
+                  ref={contentRef}
+                  topAnchor={topAnchor}
+                  rightAnchor={rightAnchor}
+                  style={
+                    maxHeight && topAnchor
+                      ? { maxHeight, minWidth }
+                      : { minWidth }
+                  }
+                >
+                  {select.visible || select.animating
+                    ? options.map((option) => (
+                        <StyledSelectOption
+                          {...select}
+                          value={option.value}
+                          key={option.value}
+                          animating={select.animating}
+                          ref={
+                            select.selectedValue === option.value
+                              ? selectedRef
+                              : undefined
+                          }
+                        >
+                          {select.selectedValue !== undefined && (
+                            <>
+                              {select.selectedValue === option.value ? (
+                                <CheckmarkIcon color="currentColor" />
+                              ) : (
+                                <Spacer />
+                              )}
+                              &nbsp;
+                            </>
+                          )}
+                          {option.label}
+                        </StyledSelectOption>
+                      ))
+                    : null}
+                </Background>
+              </Positioner>
+            );
+          }}
+        </SelectPopover>
       </Wrapper>
-    );
+      {(select.visible || select.animating) && <Backdrop />}
+    </>
+  );
+};
+
+const Spacer = styled.svg`
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+`;
+
+const StyledButton = styled(Button)`
+  font-weight: normal;
+  text-transform: none;
+  margin-bottom: 16px;
+  display: block;
+  width: 100%;
+
+  ${(props) =>
+    props.nude &&
+    css`
+      border-color: transparent;
+      box-shadow: none;
+    `}
+
+  ${Inner} {
+    line-height: 28px;
+    padding-left: 16px;
+    padding-right: 8px;
+    justify-content: space-between;
   }
-}
+`;
+
+export const StyledSelectOption = styled(SelectOption)`
+  ${MenuAnchorCSS}
+
+  ${(props) =>
+    props.animating &&
+    css`
+      pointer-events: none;
+    `}
+`;
+
+const Wrapper = styled.label`
+  display: block;
+  max-width: ${(props) => (props.short ? "350px" : "100%")};
+`;
+
+const Positioner = styled(Position)`
+  &.focus-visible {
+    ${StyledSelectOption} {
+      &[aria-selected="true"] {
+        color: ${(props) => props.theme.white};
+        background: ${(props) => props.theme.primary};
+        box-shadow: none;
+        cursor: pointer;
+
+        svg {
+          fill: ${(props) => props.theme.white};
+        }
+      }
+    }
+  }
+`;
 
 export default InputSelect;

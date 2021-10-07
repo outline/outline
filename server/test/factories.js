@@ -275,15 +275,12 @@ export async function buildFileOperation(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
-  if (!overrides.collectionId) {
-    const collection = await buildCollection(overrides);
-    overrides.collectionId = collection.id;
-  }
-
   return FileOperation.create({
     state: "creating",
     size: 0,
-    key: "key/to/aws/file.zip",
+    key: "uploads/key/to/file.zip",
+    collectionId: null,
+    type: "export",
     url: "https://www.urltos3file.com/file.zip",
     ...overrides,
   });

@@ -19,19 +19,23 @@ function APITokenNew({ onSubmit }: Props) {
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
-  const handleSubmit = React.useCallback(async () => {
-    setIsSaving(true);
+  const handleSubmit = React.useCallback(
+    async (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      setIsSaving(true);
 
-    try {
-      await apiKeys.create({ name });
-      showToast(t("API token created", { type: "success" }));
-      onSubmit();
-    } catch (err) {
-      showToast(err.message, { type: "error" });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [t, showToast, name, onSubmit, apiKeys]);
+      try {
+        await apiKeys.create({ name });
+        showToast(t("API token created", { type: "success" }));
+        onSubmit();
+      } catch (err) {
+        showToast(err.message, { type: "error" });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [t, showToast, name, onSubmit, apiKeys]
+  );
 
   const handleNameChange = React.useCallback((event) => {
     setName(event.target.value);

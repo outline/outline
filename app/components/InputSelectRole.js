@@ -3,7 +3,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import InputSelect, { type Props, type Option } from "components/InputSelect";
 
-const InputSelectRole = (props: $Rest<Props, { options: Array<Option> }>) => {
+const InputSelectRole = (
+  props: $Rest<$Exact<Props>, {| options: Array<Option>, ariaLabel: string |}>
+) => {
   const { t } = useTranslation();
 
   return (
@@ -14,6 +16,7 @@ const InputSelectRole = (props: $Rest<Props, { options: Array<Option> }>) => {
         { label: t("Viewer"), value: "viewer" },
         { label: t("Admin"), value: "admin" },
       ]}
+      ariaLabel={t("Role")}
       {...props}
     />
   );

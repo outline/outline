@@ -1,13 +1,10 @@
 // @flow
-import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { ProfileIcon } from "outline-icons";
 import * as React from "react";
-import { Trans, withTranslation, type TFunction } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { languageOptions } from "shared/i18n";
-import AuthStore from "stores/AuthStore";
-import ToastsStore from "stores/ToastsStore";
 import UserDelete from "scenes/UserDelete";
 import Button from "components/Button";
 import Flex from "components/Flex";
@@ -17,162 +14,137 @@ import Input, { LabelText } from "components/Input";
 import InputSelect from "components/InputSelect";
 import Scene from "components/Scene";
 import ImageUpload from "./components/ImageUpload";
+import useStores from "hooks/useStores";
+import useToasts from "hooks/useToasts";
 
-type Props = {
-  auth: AuthStore,
-  toasts: ToastsStore,
-  t: TFunction,
-};
+const Profile = () => {
+  const { auth } = useStores();
+  const form = React.useRef<?HTMLFormElement>();
+  const [name, setName] = React.useState<string>(auth.user?.name || "");
+  const [avatarUrl, setAvatarUrl] = React.useState<?string>();
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [language, setLanguage] = React.useState(auth.user?.language);
 
-@observer
-class Profile extends React.Component<Props> {
-  timeout: TimeoutID;
-  form: ?HTMLFormElement;
+  const { showToast } = useToasts();
+  const { t } = useTranslation();
 
-  @observable name: string;
-  @observable avatarUrl: ?string;
-  @observable showDeleteModal: boolean = false;
-  @observable language: string;
-
-  componentDidMount() {
-    if (this.props.auth.user) {
-      this.name = this.props.auth.user.name;
-      this.language = this.props.auth.user.language;
-    }
-  }
-
-  componentWillUnmount() {
-    clearTimeout(this.timeout);
-  }
-
-  handleSubmit = async (ev: SyntheticEvent<>) => {
-    const { t } = this.props;
+  const handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
-    await this.props.auth.updateUser({
-      name: this.name,
-      avatarUrl: this.avatarUrl,
-      language: this.language,
+    await auth.updateUser({
+      name,
+      avatarUrl,
+      language,
     });
 
-    this.props.toasts.showToast(t("Profile saved"), { type: "success" });
+    showToast(t("Profile saved"), { type: "success" });
   };
 
-  handleNameChange = (ev: SyntheticInputEvent<*>) => {
-    this.name = ev.target.value;
+  const handleNameChange = (ev: SyntheticInputEvent<*>) => {
+    setName(ev.target.value);
   };
 
-  handleAvatarUpload = async (avatarUrl: string) => {
-    const { t } = this.props;
-    this.avatarUrl = avatarUrl;
+  const handleAvatarUpload = async (avatarUrl: string) => {
+    setAvatarUrl(avatarUrl);
 
-    await this.props.auth.updateUser({
-      avatarUrl: this.avatarUrl,
+    await auth.updateUser({
+      avatarUrl,
     });
-    this.props.toasts.showToast(t("Profile picture updated"), {
+    showToast(t("Profile picture updated"), {
       type: "success",
     });
   };
 
-  handleAvatarError = (error: ?string) => {
-    const { t } = this.props;
-    this.props.toasts.showToast(
-      error || t("Unable to upload new profile picture"),
-      { type: "error" }
-    );
+  const handleAvatarError = (error: ?string) => {
+    showToast(error || t("Unable to upload new profile picture"), {
+      type: "error",
+    });
   };
 
-  handleLanguageChange = (ev: SyntheticInputEvent<*>) => {
-    this.language = ev.target.value;
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value);
   };
 
-  toggleDeleteAccount = () => {
-    this.showDeleteModal = !this.showDeleteModal;
+  const toggleDeleteAccount = () => {
+    setShowDeleteModal((prev) => !prev);
   };
 
-  get isValid() {
-    return this.form && this.form.checkValidity();
-  }
+  const isValid = form.current && form.current.checkValidity();
 
-  render() {
-    const { t } = this.props;
-    const { user, isSaving } = this.props.auth;
-    if (!user) return null;
-    const avatarUrl = this.avatarUrl || user.avatarUrl;
+  const { user, isSaving } = auth;
+  if (!user) return null;
 
-    return (
-      <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
-        <Heading>{t("Profile")}</Heading>
-        <ProfilePicture column>
-          <LabelText>{t("Photo")}</LabelText>
-          <AvatarContainer>
-            <ImageUpload
-              onSuccess={this.handleAvatarUpload}
-              onError={this.handleAvatarError}
+  return (
+    <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
+      <Heading>{t("Profile")}</Heading>
+      <ProfilePicture column>
+        <LabelText>{t("Photo")}</LabelText>
+        <AvatarContainer>
+          <ImageUpload
+            onSuccess={handleAvatarUpload}
+            onError={handleAvatarError}
+          >
+            <Avatar src={avatarUrl || user?.avatarUrl} />
+            <Flex auto align="center" justify="center">
+              {t("Upload")}
+            </Flex>
+          </ImageUpload>
+        </AvatarContainer>
+      </ProfilePicture>
+      <form onSubmit={handleSubmit} ref={form}>
+        <Input
+          label={t("Full name")}
+          autoComplete="name"
+          value={name}
+          onChange={handleNameChange}
+          required
+          short
+        />
+        <br />
+        <InputSelect
+          label={t("Language")}
+          options={languageOptions}
+          value={language}
+          onChange={handleLanguageChange}
+          ariaLabel={t("Language")}
+          short
+        />
+        <HelpText small>
+          <Trans>
+            Please note that translations are currently in early access.
+            <br />
+            Community contributions are accepted though our{" "}
+            <a
+              href="https://translate.getoutline.com"
+              target="_blank"
+              rel="noreferrer"
             >
-              <Avatar src={avatarUrl} />
-              <Flex auto align="center" justify="center">
-                {t("Upload")}
-              </Flex>
-            </ImageUpload>
-          </AvatarContainer>
-        </ProfilePicture>
-        <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
-          <Input
-            label={t("Full name")}
-            autoComplete="name"
-            value={this.name}
-            onChange={this.handleNameChange}
-            required
-            short
-          />
-          <br />
-          <InputSelect
-            label={t("Language")}
-            options={languageOptions}
-            value={this.language}
-            onChange={this.handleLanguageChange}
-            short
-          />
-          <HelpText small>
-            <Trans>
-              Please note that translations are currently in early access.
-              <br />
-              Community contributions are accepted though our{" "}
-              <a
-                href="https://translate.getoutline.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                translation portal
-              </a>
-            </Trans>
-            .
-          </HelpText>
-          <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? `${t("Saving")}…` : t("Save")}
-          </Button>
-        </form>
+              translation portal
+            </a>
+          </Trans>
+          .
+        </HelpText>
+        <Button type="submit" disabled={isSaving || !isValid}>
+          {isSaving ? `${t("Saving")}…` : t("Save")}
+        </Button>
+      </form>
 
-        <DangerZone>
-          <h2>{t("Delete Account")}</h2>
-          <HelpText small>
-            <Trans>
-              You may delete your account at any time, note that this is
-              unrecoverable
-            </Trans>
-          </HelpText>
-          <Button onClick={this.toggleDeleteAccount} neutral>
-            {t("Delete account")}…
-          </Button>
-        </DangerZone>
-        {this.showDeleteModal && (
-          <UserDelete onRequestClose={this.toggleDeleteAccount} />
-        )}
-      </Scene>
-    );
-  }
-}
+      <DangerZone>
+        <h2>{t("Delete Account")}</h2>
+        <HelpText small>
+          <Trans>
+            You may delete your account at any time, note that this is
+            unrecoverable
+          </Trans>
+        </HelpText>
+        <Button onClick={toggleDeleteAccount} neutral>
+          {t("Delete account")}…
+        </Button>
+      </DangerZone>
+      {showDeleteModal && <UserDelete onRequestClose={toggleDeleteAccount} />}
+    </Scene>
+  );
+};
 
 const DangerZone = styled.div`
   margin-top: 60px;
@@ -215,4 +187,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default withTranslation()<Profile>(inject("auth", "toasts")(Profile));
+export default observer(Profile);

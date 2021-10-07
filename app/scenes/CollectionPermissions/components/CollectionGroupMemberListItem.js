@@ -5,7 +5,7 @@ import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
 import GroupListItem from "components/GroupListItem";
-import InputSelect from "components/InputSelect";
+import InputSelect, { type Props as SelectProps } from "components/InputSelect";
 import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 
 type Props = {|
@@ -47,8 +47,10 @@ const CollectionGroupMemberListItem = ({
                 ? collectionGroupMembership.permission
                 : undefined
             }
-            onChange={(ev) => onUpdate(ev.target.value)}
+            onChange={onUpdate}
+            ariaLabel={t("Permissions")}
             labelHidden
+            nude
           />
           <Spacer />
           <CollectionGroupMemberMenu
@@ -65,7 +67,7 @@ const Spacer = styled.div`
   width: 8px;
 `;
 
-const Select = styled(InputSelect)`
+const Select = (styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;
@@ -73,6 +75,6 @@ const Select = styled(InputSelect)`
   select {
     margin: 0;
   }
-`;
+`: React.ComponentType<SelectProps>);
 
 export default CollectionGroupMemberListItem;

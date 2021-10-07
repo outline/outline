@@ -11,6 +11,7 @@ import {
   LinkIcon,
   TeamIcon,
   ExpandedIcon,
+  BeakerIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -95,6 +96,15 @@ function SettingsSidebar() {
                 label={t("Security")}
               />
             )}
+            {can.update &&
+              env.COLLABORATION_URL &&
+              env.DEPLOYMENT !== "hosted" && (
+                <SidebarLink
+                  to="/settings/features"
+                  icon={<BeakerIcon color="currentColor" />}
+                  label={t("Features")}
+                />
+              )}
             <SidebarLink
               to="/settings/members"
               icon={<UserIcon color="currentColor" />}
