@@ -17,8 +17,8 @@ function FileOperationMenu({ id, onDelete }: Props) {
 
   return (
     <>
-      <OverflowMenuButton aria-label={t("Show Menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("File Operation options")}>
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
+      <ContextMenu {...menu} aria-label={t("Export options")}>
         <Template
           {...menu}
           items={[
