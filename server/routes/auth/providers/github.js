@@ -80,6 +80,7 @@ if (GITHUB_CLIENT_ID) {
             name: orgInfo.name,
             domain: orgInfo.blog,
             avatarUrl: orgInfo.avatar_url,
+            subdomain: GITHUB_ORGANIZATION,
           },
           user: {
             name: profile.displayName,
