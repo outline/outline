@@ -111,7 +111,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   authorize(user, fileOp.type, team);
 
-  await fileOperationDeleter(fileOp, user);
+  await fileOperationDeleter(fileOp, user, ctx.request.ip);
 
   ctx.body = {
     success: true,

@@ -107,7 +107,7 @@ function ImportExport() {
     async (fileOperation: FileOperation) => {
       try {
         await fileOperations.delete(fileOperation);
-        showToast(t("Deleted"));
+        showToast(t("Export deleted"));
       } catch (err) {
         showToast(err.message, { type: "error" });
       }

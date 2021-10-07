@@ -15,6 +15,8 @@ jest.mock("aws-sdk", () => {
 beforeEach(() => flushdb());
 
 describe("fileOperationDeleter", () => {
+  const ip = "127.0.0.1";
+
   it("should destroy file operation", async () => {
     const admin = await buildAdmin();
     const fileOp = await buildFileOperation({
@@ -22,7 +24,7 @@ describe("fileOperationDeleter", () => {
       teamId: admin.teamId,
     });
 
-    await fileOperationDeleter(fileOp, admin);
+    await fileOperationDeleter(fileOp, admin, ip);
 
     expect(await FileOperation.count()).toEqual(0);
   });

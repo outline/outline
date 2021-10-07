@@ -4,7 +4,8 @@ import { sequelize } from "../sequelize";
 
 export default async function fileOperationDeleter(
   fileOp: FileOperation,
-  user: User
+  user: User,
+  ip: string
 ) {
   let transaction = await sequelize.transaction();
 
@@ -17,6 +18,7 @@ export default async function fileOperationDeleter(
         teamId: user.teamId,
         actorId: user.id,
         data: fileOp.dataValues,
+        ip,
       },
       { transaction }
     );
