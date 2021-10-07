@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import GithubLogo from "./GithubLogo";
 import GoogleLogo from "./GoogleLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
@@ -31,7 +32,12 @@ function AuthLogo({ providerName, size = 16 }: Props) {
           <MicrosoftLogo size={size} />
         </Logo>
       );
-
+    case "github":
+      return (
+        <Logo>
+          <GithubLogo size={size} />
+        </Logo>
+      );
     default:
       return null;
   }
