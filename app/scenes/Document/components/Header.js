@@ -4,7 +4,9 @@ import {
   TableOfContentsIcon,
   EditIcon,
   PlusIcon,
+  MoonIcon,
   MoreIcon,
+  SunIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -70,6 +72,7 @@ function DocumentHeader({
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { ui, policies } = useStores();
+  const { resolvedTheme } = ui;
   const isMobile = useMobile();
 
   const handleSave = React.useCallback(() => {
@@ -125,6 +128,27 @@ function DocumentHeader({
     </Action>
   );
 
+  const appearanceAction = (
+    <Action>
+      <Tooltip
+        tooltip={
+          resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
+        }
+        delay={500}
+        placement="bottom"
+      >
+        <Button
+          icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
+          onClick={() =>
+            ui.setTheme(resolvedTheme === "light" ? "dark" : "light")
+          }
+          neutral
+          borderOnHover
+        />
+      </Tooltip>
+    </Action>
+  );
+
   if (shareId) {
     return (
       <Header
@@ -138,7 +162,12 @@ function DocumentHeader({
             {toc}
           </PublicBreadcrumb>
         }
-        actions={canEdit ? editAction : <div />}
+        actions={
+          <>
+            {appearanceAction}
+            {canEdit ? editAction : <div />}
+          </>
+        }
       />
     );
   }
