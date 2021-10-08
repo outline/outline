@@ -265,7 +265,7 @@
   "Documents": "Documents",
   "The document archive is empty at the moment.": "Les archives sont vides pour le moment.",
   "Search in collection": "Rechercher dans la collection",
-  "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.": "<em>{{ collectionName }}</em> ne contient pas encore\n                    documents.",
+  "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.": "<em>{{ collectionName }}</em> ne contient aucun document.",
   "Get started by creating a new one!": "Commencez par en créer un nouveau !",
   "Create a document": "Créer un document",
   "Manage permissions": "Gérer les permissions",
