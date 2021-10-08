@@ -4,7 +4,9 @@ import {
   TableOfContentsIcon,
   EditIcon,
   PlusIcon,
+  MoonIcon,
   MoreIcon,
+  SunIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -22,6 +24,7 @@ import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import PublishDialog from "./PublishDialog";
 import ShareButton from "./ShareButton";
+import useCurrentTeam from "hooks/useCurrentTeam";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
@@ -69,7 +72,9 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { auth, ui, policies, collections } = useStores();
+  const { ui, policies, collections } = useStores();
+  const team = useCurrentTeam();
+  const { resolvedTheme } = ui;
   const isMobile = useMobile();
   const dialog = useDialogState({ modal: true });
   const hasCollection = !!collections.get(document.collectionId || "");
@@ -89,7 +94,7 @@ function DocumentHeader({
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
-  const canToggleEmbeds = auth.team?.documentEmbeds;
+  const canToggleEmbeds = team.documentEmbeds;
   const canEdit = can.update && !isEditing;
 
   const toc = (
@@ -131,6 +136,27 @@ function DocumentHeader({
     </Action>
   );
 
+  const appearanceAction = (
+    <Action>
+      <Tooltip
+        tooltip={
+          resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
+        }
+        delay={500}
+        placement="bottom"
+      >
+        <Button
+          icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
+          onClick={() =>
+            ui.setTheme(resolvedTheme === "light" ? "dark" : "light")
+          }
+          neutral
+          borderOnHover
+        />
+      </Tooltip>
+    </Action>
+  );
+
   if (shareId) {
     return (
       <Header
@@ -144,7 +170,12 @@ function DocumentHeader({
             {toc}
           </PublicBreadcrumb>
         }
-        actions={canEdit ? editAction : <div />}
+        actions={
+          <>
+            {appearanceAction}
+            {canEdit ? editAction : <div />}
+          </>
+        }
       />
     );
   }
@@ -170,7 +201,7 @@ function DocumentHeader({
                 <TableOfContentsMenu headings={headings} />
               </TocWrapper>
             )}
-            {!isPublishing && isSaving && !auth.team?.collaborativeEditing && (
+            {!isPublishing && isSaving && !team.collaborativeEditing && (
               <Status>{t("Saving")}…</Status>
             )}
             <Collaborators document={document} />
