@@ -73,9 +73,7 @@ function GroupEdit({ group, onSubmit }: Props) {
         <SwitchLabel>
           <SwitchText>
             {isPrivate
-              ? t(
-                  "Only Admins and members present in the group know about the group"
-                )
+              ? t("Only members present in the group know about the group")
               : t("Everyone in the team can view the group")}
           </SwitchText>
         </SwitchLabel>
