@@ -15,7 +15,7 @@ import useToasts from "hooks/useToasts";
 import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
-import { isInternalUrl } from "utils/urls";
+import { isInternalUrl, isHash } from "utils/urls";
 
 const RichMarkdownEditor = React.lazy(() =>
   import(/* webpackChunkName: "rich-markdown-editor" */ "rich-markdown-editor")
@@ -78,7 +78,7 @@ function Editor(props: PropsWithRef) {
   const onClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
       // on page hash
-      if (href[0] === "#") {
+      if (isHash(href)) {
         window.location.href = href;
         return;
       }
