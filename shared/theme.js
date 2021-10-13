@@ -209,7 +209,7 @@ export const dark = {
   menuBorder: lighten(0.1, colors.almostBlack),
   menuBackground: lighten(0.015, colors.almostBlack),
   menuShadow:
-    "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 0 1px rgba(255,255,255,.2)",
+    "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 0 1px rgba(255,255,255,.4)",
   divider: lighten(0.1, colors.almostBlack),
   titleBarDivider: darken(0.4, colors.slate),
   inputBorder: colors.slateDark,

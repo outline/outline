@@ -140,7 +140,5 @@ export const Background = styled.div`
     max-width: 276px;
     background: ${(props) => props.theme.menuBackground};
     box-shadow: ${(props) => props.theme.menuShadow};
-    border: ${(props) =>
-      props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   `};
 `;

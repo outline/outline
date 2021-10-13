@@ -20,7 +20,7 @@ function ResolvedCollectionIcon({ collection, expanded, size }: Props) {
   // otherwise it will be impossible to see against the dark background.
   const color =
     ui.resolvedTheme === "dark" && collection.color !== "currentColor"
-      ? getLuminance(collection.color) > 0.12
+      ? getLuminance(collection.color) > 0.09
         ? collection.color
         : "currentColor"
       : collection.color;
