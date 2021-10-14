@@ -10,12 +10,10 @@ export default async function documentUpdater({
   documentId,
   ydoc,
   userId,
-  done,
 }: {
   documentId: string,
   ydoc: Y.Doc,
   userId: string,
-  done?: boolean,
 }) {
   const document = await Document.findByPk(documentId);
   const state = Y.encodeStateAsUpdate(ydoc);
