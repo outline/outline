@@ -9,7 +9,8 @@ export class StateStore {
   key: string = "state";
 
   store = (req: Request, callback: (err: ?Error, state?: string) => void) => {
-    const state = Math.random().toString(36).substring(7);
+    // Produce an 8-character random string as state
+    const state = Math.random().toString(36).slice(-8);
 
     // $FlowFixMe
     req.cookies.set(this.key, state, {
