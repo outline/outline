@@ -12735,10 +12735,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.18.8:
-  version "11.18.8"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.8.tgz#9ab07ea10e8964d2eee455f78536a6dbc5ad2a2f"
-  integrity sha512-jNd6aPF0hD4z170hJ/WCfJkTYoGZO4ri2cw+5nOZ9iH0r0bJG/w/d03XO1PebkolRbaDR/9+O7JHVpYr/hZUOw==
+rich-markdown-editor@^11.18.9:
+  version "11.18.9"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.9.tgz#46fd86c34a5fae49378c3efd53aa5951298ec9cc"
+  integrity sha512-XiC9A5Efd64ezJjacthMcbtpbOkFXUNPZHW0ujpPQ01GFYMuBVSNht5ngBR0zhVNaRmZV4vtf/Knpw4J8YoAjQ==
   dependencies:
     copy-to-clipboard "^3.0.8"
     fuzzy-search "^3.2.1"
