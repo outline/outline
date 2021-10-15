@@ -39,6 +39,7 @@ function Slack() {
   return (
     <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
       <Heading>Slack</Heading>
+
       {error === "access_denied" && (
         <Notice>
           <Trans>
@@ -62,72 +63,87 @@ function Slack() {
           components={{ em: <Code /> }}
         />
       </HelpText>
-      <p>
-        {commandIntegration ? (
-          <Button onClick={commandIntegration.delete}>{t("Disconnect")}</Button>
-        ) : (
-          <SlackButton
-            scopes={["commands", "links:read", "links:write"]}
-            redirectUri={`${env.URL}/auth/slack.commands`}
-            state={team.id}
-          />
-        )}
-      </p>
-      <p>&nbsp;</p>
-
-      <h2>{t("Collections")}</h2>
-      <HelpText>
-        <Trans>
-          Connect Outline collections to Slack channels and messages will be
-          automatically posted to Slack when documents are published or updated.
-        </Trans>
-      </HelpText>
-
-      <List>
-        {collections.orderedData.map((collection) => {
-          const integration = find(integrations.slackIntegrations, {
-            collectionId: collection.id,
-          });
-
-          if (integration) {
-            return (
-              <ListItem
-                key={integration.id}
-                title={collection.name}
-                image={<CollectionIcon collection={collection} />}
-                subtitle={
-                  <Trans
-                    defaults={`Connected to the <em>{{ channelName }}</em> channel`}
-                    values={{ channelName: integration.settings.channel }}
-                    components={{ em: <strong /> }}
-                  />
-                }
-                actions={
-                  <Button onClick={integration.delete}>
-                    {t("Disconnect")}
-                  </Button>
-                }
+      {env.SLACK_KEY ? (
+        <>
+          <p>
+            {commandIntegration ? (
+              <Button onClick={commandIntegration.delete}>
+                {t("Disconnect")}
+              </Button>
+            ) : (
+              <SlackButton
+                scopes={["commands", "links:read", "links:write"]}
+                redirectUri={`${env.URL}/auth/slack.commands`}
+                state={team.id}
               />
-            );
-          }
+            )}
+          </p>
+          <p>&nbsp;</p>
 
-          return (
-            <ListItem
-              key={collection.id}
-              title={collection.name}
-              image={<CollectionIcon collection={collection} />}
-              actions={
-                <SlackButton
-                  scopes={["incoming-webhook"]}
-                  redirectUri={`${env.URL}/auth/slack.post`}
-                  state={collection.id}
-                  label={t("Connect")}
-                />
+          <h2>{t("Collections")}</h2>
+          <HelpText>
+            <Trans>
+              Connect Outline collections to Slack channels and messages will be
+              automatically posted to Slack when documents are published or
+              updated.
+            </Trans>
+          </HelpText>
+
+          <List>
+            {collections.orderedData.map((collection) => {
+              const integration = find(integrations.slackIntegrations, {
+                collectionId: collection.id,
+              });
+
+              if (integration) {
+                return (
+                  <ListItem
+                    key={integration.id}
+                    title={collection.name}
+                    image={<CollectionIcon collection={collection} />}
+                    subtitle={
+                      <Trans
+                        defaults={`Connected to the <em>{{ channelName }}</em> channel`}
+                        values={{ channelName: integration.settings.channel }}
+                        components={{ em: <strong /> }}
+                      />
+                    }
+                    actions={
+                      <Button onClick={integration.delete} neutral>
+                        {t("Disconnect")}
+                      </Button>
+                    }
+                  />
+                );
               }
-            />
-          );
-        })}
-      </List>
+
+              return (
+                <ListItem
+                  key={collection.id}
+                  title={collection.name}
+                  image={<CollectionIcon collection={collection} />}
+                  actions={
+                    <SlackButton
+                      scopes={["incoming-webhook"]}
+                      redirectUri={`${env.URL}/auth/slack.post`}
+                      state={collection.id}
+                      label={t("Connect")}
+                    />
+                  }
+                />
+              );
+            })}
+          </List>
+        </>
+      ) : (
+        <Notice>
+          <Trans>
+            The Slack integration is currently disabled. Please set the
+            associated environment variables and restart the server to enable
+            the integration.
+          </Trans>
+        </Notice>
+      )}
     </Scene>
   );
 }

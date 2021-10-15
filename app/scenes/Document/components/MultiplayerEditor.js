@@ -79,7 +79,10 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
       // only set local storage to "synced" if it's loaded a non-empty doc
       setLocalSynced(!!ydoc.get("default")._start)
     );
-    provider.on("synced", () => setRemoteSynced(true));
+    provider.on("synced", () => {
+      presence.touch(documentId, currentUser.id, false);
+      setRemoteSynced(true);
+    });
 
     if (debug) {
       provider.on("status", (ev) => console.log("status", ev.status));

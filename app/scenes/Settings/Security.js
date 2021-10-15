@@ -11,6 +11,7 @@ import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import InputSelect from "components/InputSelect";
 import Scene from "components/Scene";
+import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -79,7 +80,12 @@ function Security() {
         name="guestSignin"
         checked={data.guestSignin}
         onChange={handleChange}
-        note={t("When enabled, users can sign-in using their email address")}
+        note={
+          env.EMAIL_ENABLED
+            ? t("When enabled, users can sign-in using their email address")
+            : t("The server must have SMTP configured to enable this setting")
+        }
+        disabled={!env.EMAIL_ENABLED}
       />
       <Checkbox
         label={t("Public document sharing")}

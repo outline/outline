@@ -31,6 +31,10 @@ type Props = {|
   scrollIntoViewIfNeeded?: boolean,
 |};
 
+const activeDropStyle = {
+  fontWeight: 600,
+};
+
 function SidebarLink(
   {
     icon,
@@ -55,22 +59,22 @@ function SidebarLink(
   }: Props,
   ref
 ) {
-  const style = React.useMemo(() => {
-    return {
+  const style = React.useMemo(
+    () => ({
       paddingLeft: `${(depth || 0) * 16 + 12}px`,
-    };
-  }, [depth]);
+    }),
+    [depth]
+  );
 
-  const activeStyle = {
-    fontWeight: 600,
-    color: theme.text,
-    background: theme.sidebarItemBackground,
-    ...style,
-  };
-
-  const activeDropStyle = {
-    fontWeight: 600,
-  };
+  const activeStyle = React.useMemo(
+    () => ({
+      fontWeight: 600,
+      color: theme.text,
+      background: theme.sidebarItemBackground,
+      ...style,
+    }),
+    [theme, style]
+  );
 
   return (
     <>
