@@ -103,7 +103,7 @@ function Slack() {
                   />
                 }
                 actions={
-                  <Button onClick={integration.delete}>
+                  <Button onClick={integration.delete} neutral>
                     {t("Disconnect")}
                   </Button>
                 }
