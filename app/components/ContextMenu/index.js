@@ -123,6 +123,7 @@ export const Background = styled.div`
   border-radius: 6px;
   padding: 6px 0;
   min-width: 180px;
+  min-height: 44px;
   overflow: hidden;
   overflow-y: auto;
   max-height: 75vh;

@@ -6,6 +6,11 @@ import Document from "models/Document";
 
 export type Theme = typeof theme;
 
+export type ActionContext = {
+  event?: Event,
+  t: TFunction,
+};
+
 export type Action = {|
   id: string,
   name: ({ t: TFunction }) => string,
@@ -14,7 +19,8 @@ export type Action = {|
   keywords?: string,
   iconInContextMenu?: boolean,
   icon?: React.Element,
-  visible?: ({ event?: Event }) => boolean,
+  selected?: (ActionContext) => boolean,
+  visible?: (ActionContext) => boolean,
   perform?: ({ t: TFunction }) => any,
   children?: Action[],
 |};

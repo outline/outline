@@ -1,15 +1,12 @@
 // @flow
 import { observer } from "mobx-react";
-import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import { githubIssuesUrl, mailToUrl } from "shared/utils/routeHelpers";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
-import Guide from "components/Guide";
 import { actionToMenuItem } from "actions";
 import { development } from "actions/definitions/debug";
 import {
@@ -18,7 +15,7 @@ import {
   openChangelog,
   openAPIDocumentation,
 } from "actions/definitions/navigation";
-import useBoolean from "hooks/useBoolean";
+import { changeTheme } from "actions/definitions/settings";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
 import useSessions from "hooks/useSessions";
@@ -40,8 +37,7 @@ function AccountMenu(props: Props) {
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
-  const [lastEvent, setEvent] = React.useState(Event);
-  const [keyboardShortcutsOpen, handleKeyboardShortcutsClose] = useBoolean();
+  const [lastEvent, setEvent] = React.useState();
 
   React.useEffect(() => {
     if (theme !== previousTheme) {
@@ -75,27 +71,7 @@ function AccountMenu(props: Props) {
         href: githubIssuesUrl(),
       },
       actionToMenuItem(development, { t, event: lastEvent }),
-      {
-        title: t("Appearance"),
-        icon: resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
-        items: [
-          {
-            title: t("System"),
-            onClick: () => ui.setTheme("system"),
-            selected: theme === "system",
-          },
-          {
-            title: t("Light"),
-            onClick: () => ui.setTheme("light"),
-            selected: theme === "light",
-          },
-          {
-            title: t("Dark"),
-            onClick: () => ui.setTheme("dark"),
-            selected: theme === "dark",
-          },
-        ],
-      },
+      actionToMenuItem(changeTheme, { t }),
       {
         type: "separator",
       },
@@ -130,13 +106,6 @@ function AccountMenu(props: Props) {
 
   return (
     <>
-      <Guide
-        isOpen={keyboardShortcutsOpen}
-        onRequestClose={handleKeyboardShortcutsClose}
-        title={t("Keyboard shortcuts")}
-      >
-        <KeyboardShortcuts />
-      </Guide>
       <MenuButton {...menu} onClick={handleOpenMenu}>
         {props.children}
       </MenuButton>
