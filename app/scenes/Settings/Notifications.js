@@ -107,7 +107,7 @@ function Notifications() {
         </Trans>
       </HelpText>
 
-      {env.NOTIFICATIONS_ENABLED ? (
+      {env.EMAIL_ENABLED ? (
         <>
           <Input
             type="email"
