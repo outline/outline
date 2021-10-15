@@ -30,9 +30,7 @@ export default function SettingsRoutes() {
       <Route exact path="/settings/shares" component={Shares} />
       <Route exact path="/settings/tokens" component={Tokens} />
       <Route exact path="/settings/notifications" component={Notifications} />
-      {env.SLACK_KEY && (
-        <Route exact path="/settings/integrations/slack" component={Slack} />
-      )}
+      <Route exact path="/settings/integrations/slack" component={Slack} />
       {isHosted && (
         <Route exact path="/settings/integrations/zapier" component={Zapier} />
       )}
