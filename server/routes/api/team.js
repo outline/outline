@@ -18,6 +18,7 @@ router.post("team.update", auth(), async (ctx) => {
     guestSignin,
     documentEmbeds,
     collaborativeEditing,
+    defaultUserRole,
   } = ctx.body;
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
@@ -34,6 +35,14 @@ router.post("team.update", auth(), async (ctx) => {
   if (avatarUrl !== undefined) team.avatarUrl = avatarUrl;
   if (collaborativeEditing !== undefined) {
     team.collaborativeEditing = collaborativeEditing;
+  }
+  if (defaultUserRole !== undefined) {
+    ctx.assertIn(
+      defaultUserRole,
+      ["viewer", "member", "admin"],
+      "type must be one of 'Reader','Member' or 'Admin'"
+    );
+    team.defaultUserRole = defaultUserRole;
   }
 
   const changes = team.changed();

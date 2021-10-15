@@ -75,6 +75,14 @@ const Team = sequelize.define(
       allowNull: false,
       defaultValue: false,
     },
+    defaultUserRole: {
+      type: DataTypes.STRING,
+      defaultValue: "member",
+      allowNull: false,
+      validate: {
+        isIn: [["viewer", "member", "admin"]],
+      },
+    },
   },
   {
     paranoid: true,
