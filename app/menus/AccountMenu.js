@@ -5,17 +5,18 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import {
-  changelog,
-  developers,
-  githubIssuesUrl,
-  mailToUrl,
-} from "shared/utils/routeHelpers";
+import { githubIssuesUrl, mailToUrl } from "shared/utils/routeHelpers";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
-import { openKeyboardShortcuts, navigateToSettings } from "actions/navigation";
+import { actionToMenuItem } from "actions";
+import {
+  navigateToSettings,
+  openKeyboardShortcuts,
+  openChangelog,
+  openAPIDocumentation,
+} from "actions/definitions/navigation";
 import env from "env";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -71,25 +72,13 @@ function AccountMenu(props: Props) {
     );
 
     return [
-      {
-        title: t("Settings"),
-        onClick: () => navigateToSettings.perform({ t }),
-      },
-      {
-        title: t("Keyboard shortcuts"),
-        onClick: () => openKeyboardShortcuts.perform({ t }),
-      },
-      {
-        title: t("API documentation"),
-        href: developers(),
-      },
+      actionToMenuItem(navigateToSettings, { t }),
+      actionToMenuItem(openKeyboardShortcuts, { t }),
+      actionToMenuItem(openAPIDocumentation, { t }),
       {
         type: "separator",
       },
-      {
-        title: t("Changelog"),
-        href: changelog(),
-      },
+      actionToMenuItem(openChangelog, { t }),
       {
         title: t("Send us feedback"),
         href: mailToUrl(),

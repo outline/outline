@@ -11,10 +11,11 @@ export type Action = {|
   name: ({ t: TFunction }) => string,
   section: ({ t: TFunction }) => string,
   shortcut?: string[],
+  keywords?: string,
   iconInContextMenu?: boolean,
   icon?: React.Element,
   visible?: () => boolean,
-  perform: ({ t: TFunction }) => mixed,
+  perform: ({ t: TFunction }) => any,
 |};
 
 export type LocationWithState = Location & {
