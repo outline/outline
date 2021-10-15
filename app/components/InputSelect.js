@@ -28,6 +28,7 @@ export type Props = {
   disabled?: boolean,
   className?: string,
   labelHidden?: boolean,
+  icon?: React.Node,
   options: Option[],
   onChange: (string) => Promise<void> | void,
 };
@@ -48,6 +49,7 @@ const InputSelect = (props: Props) => {
     onChange,
     disabled,
     nude,
+    icon,
   } = props;
 
   const select = useSelectState({
@@ -134,10 +136,12 @@ const InputSelect = (props: Props) => {
               disclosure
               className={className}
               nude={nude}
+              icon={icon}
               {...props}
             >
-              {getOptionFromValue(options, select.selectedValue).label ||
-                `Select a ${ariaLabel}`}
+              {getOptionFromValue(options, select.selectedValue).label || (
+                <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
+              )}
             </StyledButton>
           )}
         </Select>
@@ -202,7 +206,11 @@ const InputSelect = (props: Props) => {
   );
 };
 
-const Spacer = styled.svg`
+const Placeholder = styled.span`
+  color: ${(props) => props.theme.placeholder};
+`;
+
+const Spacer = styled.div`
   width: 24px;
   height: 24px;
   flex-shrink: 0;
@@ -226,7 +234,11 @@ const StyledButton = styled(Button)`
     line-height: 28px;
     padding-left: 16px;
     padding-right: 8px;
-    justify-content: space-between;
+  }
+
+  svg {
+    justify-self: flex-end;
+    margin-left: auto;
   }
 `;
 
