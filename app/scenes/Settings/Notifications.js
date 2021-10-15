@@ -12,6 +12,7 @@ import Notice from "components/Notice";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import NotificationListItem from "./components/NotificationListItem";
+import env from "env";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -90,6 +91,8 @@ function Notifications() {
 
   return (
     <Scene title={t("Notifications")} icon={<EmailIcon color="currentColor" />}>
+      <Heading>{t("Notifications")}</Heading>
+
       {showSuccessNotice && (
         <Notice>
           <Trans>
@@ -97,40 +100,55 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
-      <Heading>{t("Notifications")}</Heading>
       <HelpText>
         <Trans>
           Manage when and where you receive email notifications from Outline.
           Your email address can be updated in your SSO provider.
         </Trans>
       </HelpText>
-      <Input
-        type="email"
-        value={user.email}
-        label={t("Email address")}
-        readOnly
-        short
-      />
 
-      <Subheading>{t("Notifications")}</Subheading>
-
-      {options.map((option, index) => {
-        if (option.separator) return <Separator key={`separator-${index}`} />;
-
-        const setting = notificationSettings.getByEvent(option.event);
-
-        return (
-          <NotificationListItem
-            key={option.event}
-            onChange={handleChange}
-            setting={setting}
-            disabled={
-              (setting && setting.isSaving) || notificationSettings.isFetching
-            }
-            {...option}
+      {env.NOTIFICATIONS_ENABLED ? (
+        <>
+          <Input
+            type="email"
+            value={user.email}
+            label={t("Email address")}
+            readOnly
+            short
           />
-        );
-      })}
+
+          <Subheading>{t("Notifications")}</Subheading>
+
+          {options.map((option, index) => {
+            if (option.separator) {
+              return <Separator key={`separator-${index}`} />;
+            }
+
+            const setting = notificationSettings.getByEvent(option.event);
+
+            return (
+              <NotificationListItem
+                key={option.event}
+                onChange={handleChange}
+                setting={setting}
+                disabled={
+                  (setting && setting.isSaving) ||
+                  notificationSettings.isFetching
+                }
+                {...option}
+              />
+            );
+          })}
+        </>
+      ) : (
+        <Notice>
+          <Trans>
+            The email integration is currently disabled. Please set the
+            associated environment variables and restart the server to enable
+            notifications.
+          </Trans>
+        </Notice>
+      )}
     </Scene>
   );
 }
