@@ -12,6 +12,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import Button, { Inner } from "components/Button";
+import HelpText from "components/HelpText";
 import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
@@ -29,6 +30,7 @@ export type Props = {
   className?: string,
   labelHidden?: boolean,
   options: Option[],
+  note?: string,
   onChange: (string) => Promise<void> | void,
 };
 
@@ -48,6 +50,7 @@ const InputSelect = (props: Props) => {
     onChange,
     disabled,
     nude,
+    note,
   } = props;
 
   const select = useSelectState({
@@ -122,6 +125,8 @@ const InputSelect = (props: Props) => {
           ) : (
             wrappedLabel
           ))}
+        {note && <HelpText small>{note}</HelpText>}
+
         <Select
           {...select}
           disabled={disabled}

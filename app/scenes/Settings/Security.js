@@ -5,9 +5,11 @@ import { PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
 import Checkbox from "components/Checkbox";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
+import InputSelect from "components/InputSelect";
 import Scene from "components/Scene";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
@@ -22,13 +24,21 @@ function Security() {
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
+    defaultUserRole: team.defaultUserRole,
   });
 
-  const showSuccessMessage = React.useCallback(
-    debounce(() => {
-      showToast(t("Settings saved"), { type: "success" });
-    }, 250),
-    [t, showToast]
+  const notes = {
+    admin: t("All new users will be admin by default"),
+    member: t("All new users will be member by default"),
+    viewer: t("All new users will be viewer by default"),
+  };
+
+  const showSuccessMessage = React.useMemo(
+    () =>
+      debounce(() => {
+        showToast(t("Settings saved"), { type: "success" });
+      }, 250),
+    [showToast, t]
   );
 
   const handleChange = React.useCallback(
@@ -43,6 +53,14 @@ function Security() {
     [auth, data, showSuccessMessage]
   );
 
+  const handleDefaultRoleChange = async (newDefaultRole: string) => {
+    const newData = { ...data, defaultUserRole: newDefaultRole };
+    setData(newData);
+
+    await auth.updateTeam(newData);
+
+    showSuccessMessage();
+  };
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
       <Heading>
@@ -80,8 +98,26 @@ function Security() {
           "Links to supported services are shown as rich embeds within your documents"
         )}
       />
+      <FitContent>
+        <InputSelect
+          value={data.defaultUserRole}
+          label="Default role"
+          options={[
+            { label: t("Member"), value: "member" },
+            { label: t("Viewer"), value: "viewer" },
+            { label: t("Admin"), value: "admin" },
+          ]}
+          onChange={handleDefaultRoleChange}
+          ariaLabel={t("Default role")}
+          note={notes[data.defaultUserRole]}
+        />
+      </FitContent>
     </Scene>
   );
 }
+
+const FitContent = styled.div`
+  max-width: 250px;
+`;
 
 export default observer(Security);
