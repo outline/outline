@@ -50,7 +50,8 @@ export default class Tracing {
 
     Metrics.gaugePerInstance(
       "collaboration.documents_count",
-      instance.getDocumentsCount()
+      // -1 adjustment because hook is called before document is removed
+      instance.getDocumentsCount() - 1
     );
   }
 

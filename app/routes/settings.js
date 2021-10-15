@@ -14,6 +14,9 @@ import Slack from "scenes/Settings/Slack";
 import Tokens from "scenes/Settings/Tokens";
 import Zapier from "scenes/Settings/Zapier";
 import Route from "components/ProfiledRoute";
+import env from "env";
+
+const isHosted = env.DEPLOYMENT === "hosted";
 
 export default function SettingsRoutes() {
   return (
@@ -28,7 +31,9 @@ export default function SettingsRoutes() {
       <Route exact path="/settings/tokens" component={Tokens} />
       <Route exact path="/settings/notifications" component={Notifications} />
       <Route exact path="/settings/integrations/slack" component={Slack} />
-      <Route exact path="/settings/integrations/zapier" component={Zapier} />
+      {isHosted && (
+        <Route exact path="/settings/integrations/zapier" component={Zapier} />
+      )}
       <Route exact path="/settings/import-export" component={ImportExport} />
       <Redirect from="/settings/people" to="/settings/members" />
     </Switch>

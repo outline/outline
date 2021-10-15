@@ -19,7 +19,9 @@ export default class DebounceProcessor {
         break;
       }
       case "documents.update.delayed": {
-        const document = await Document.findByPk(event.documentId);
+        const document = await Document.findByPk(event.documentId, {
+          fields: ["updatedAt"],
+        });
 
         // If the document has been deleted then prevent further processing
         if (!document) return;
