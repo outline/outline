@@ -14,8 +14,9 @@ export type Action = {|
   keywords?: string,
   iconInContextMenu?: boolean,
   icon?: React.Element,
-  visible?: () => boolean,
-  perform: ({ t: TFunction }) => any,
+  visible?: ({ event?: Event }) => boolean,
+  perform?: ({ t: TFunction }) => any,
+  children?: Action[],
 |};
 
 export type LocationWithState = Location & {

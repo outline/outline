@@ -1,6 +1,6 @@
 // @flow
 import { observer } from "mobx-react";
-import { MoonIcon, SunIcon, TrashIcon } from "outline-icons";
+import { MoonIcon, SunIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
@@ -11,20 +11,18 @@ import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
 import { actionToMenuItem } from "actions";
+import { development } from "actions/definitions/debug";
 import {
   navigateToSettings,
   openKeyboardShortcuts,
   openChangelog,
   openAPIDocumentation,
 } from "actions/definitions/navigation";
-import env from "env";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
 import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-import { deleteAllDatabases } from "utils/developer";
 
 type Props = {|
   children: (props: any) => React.Node,
@@ -37,18 +35,13 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
-  const { showToast } = useToasts();
   const { auth, ui } = useStores();
   const { theme, resolvedTheme } = ui;
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
-  const [includeAlt, setIncludeAlt] = React.useState(false);
-  const [
-    keyboardShortcutsOpen,
-    handleKeyboardShortcutsOpen,
-    handleKeyboardShortcutsClose,
-  ] = useBoolean();
+  const [lastEvent, setEvent] = React.useState(Event);
+  const [keyboardShortcutsOpen, handleKeyboardShortcutsClose] = useBoolean();
 
   React.useEffect(() => {
     if (theme !== previousTheme) {
@@ -56,14 +49,8 @@ function AccountMenu(props: Props) {
     }
   }, [menu, theme, previousTheme]);
 
-  const handleDeleteAllDatabases = React.useCallback(async () => {
-    await deleteAllDatabases();
-    showToast("IndexedDB cache deleted");
-    menu.hide();
-  }, [showToast, menu]);
-
   const handleOpenMenu = React.useCallback((event) => {
-    setIncludeAlt(event.altKey);
+    setEvent(event);
   }, []);
 
   const items = React.useMemo(() => {
@@ -87,20 +74,7 @@ function AccountMenu(props: Props) {
         title: t("Report a bug"),
         href: githubIssuesUrl(),
       },
-      ...(includeAlt || env.ENVIRONMENT === "development"
-        ? [
-            {
-              title: t("Development"),
-              items: [
-                {
-                  title: "Delete IndexedDB cache",
-                  icon: <TrashIcon />,
-                  onClick: handleDeleteAllDatabases,
-                },
-              ],
-            },
-          ]
-        : []),
+      actionToMenuItem(development, { t, event: lastEvent }),
       {
         title: t("Appearance"),
         icon: resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
@@ -147,12 +121,10 @@ function AccountMenu(props: Props) {
     team.id,
     team.url,
     sessions,
-    handleKeyboardShortcutsOpen,
-    handleDeleteAllDatabases,
     resolvedTheme,
-    includeAlt,
     theme,
     t,
+    lastEvent,
     ui,
   ]);
 

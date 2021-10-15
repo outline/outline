@@ -5,7 +5,7 @@ import type { Action, MenuItem } from "types";
 
 export function actionToMenuItem(
   action: Action,
-  { t }: { t: TFunction }
+  { t, event }: { t: TFunction, event?: Event }
 ): ?MenuItem {
   return {
     title: action.name({ t }),
@@ -13,7 +13,13 @@ export function actionToMenuItem(
       action.icon && action.iconInContextMenu !== false
         ? React.cloneElement(action.icon, { color: "currentColor" })
         : undefined,
-    onClick: () => action.perform({ t }),
+    onClick: action.perform ? () => action.perform({ t }) : undefined,
+    items: action.children
+      ? action.children
+          .map((a) => actionToMenuItem(a, { t, event }))
+          .filter((a) => !!a)
+      : [],
+    visible: action.visible ? action.visible({ event }) : true,
     // TODO
     // disabled
     // visible
