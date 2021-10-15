@@ -10,12 +10,12 @@ import {
   developers,
   githubIssuesUrl,
   mailToUrl,
-  settings,
 } from "shared/utils/routeHelpers";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import Guide from "components/Guide";
+import { openKeyboardShortcuts, navigateToSettings } from "actions/navigation";
 import env from "env";
 import useBoolean from "hooks/useBoolean";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -73,11 +73,11 @@ function AccountMenu(props: Props) {
     return [
       {
         title: t("Settings"),
-        to: settings(),
+        onClick: () => navigateToSettings.perform({ t }),
       },
       {
         title: t("Keyboard shortcuts"),
-        onClick: handleKeyboardShortcutsOpen,
+        onClick: () => openKeyboardShortcuts.perform({ t }),
       },
       {
         title: t("API documentation"),

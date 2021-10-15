@@ -1,9 +1,21 @@
 // @flow
+import { type TFunction } from "react-i18next";
 import { type Location } from "react-router-dom";
 import theme from "shared/theme";
 import Document from "models/Document";
 
 export type Theme = typeof theme;
+
+export type Action = {|
+  id: string,
+  name: ({ t: TFunction }) => string,
+  section: ({ t: TFunction }) => string,
+  shortcut?: string[],
+  iconInContextMenu?: boolean,
+  icon?: React.Element,
+  visible?: () => boolean,
+  perform: ({ t: TFunction }) => mixed,
+|};
 
 export type LocationWithState = Location & {
   state: {
