@@ -61,6 +61,7 @@ function Security() {
 
     showSuccessMessage();
   };
+
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
       <Heading>
@@ -98,7 +99,7 @@ function Security() {
           "Links to supported services are shown as rich embeds within your documents"
         )}
       />
-      <FitContent>
+      <Wrapper>
         <InputSelect
           value={data.defaultUserRole}
           label="Default role"
@@ -111,12 +112,12 @@ function Security() {
           ariaLabel={t("Default role")}
           note={notes[data.defaultUserRole]}
         />
-      </FitContent>
+      </Wrapper>
     </Scene>
   );
 }
 
-const FitContent = styled.div`
+const Wrapper = styled.div`
   max-width: 250px;
 `;
 
