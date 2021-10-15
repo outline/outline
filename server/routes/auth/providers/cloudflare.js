@@ -17,6 +17,7 @@ const displayName = process.env.CLOUDFLARE_TEAM_DISPLAY_NAME || teamName;
 const teamDomainName = `${teamName}.cloudflareaccess.com`;
 
 const providerEnabled = !!teamName && !!audienceId;
+const scopes = [];
 
 export const config = {
   name: providerName,
@@ -54,6 +55,7 @@ const strategy = new CloudflareStrategy(
         },
         authentication: {
           providerId: identity.account_id,
+          scopes,
         },
       });
 
