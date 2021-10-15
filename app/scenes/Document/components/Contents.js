@@ -74,7 +74,7 @@ const Wrapper = styled("div")`
 
   box-shadow: 1px 0 0 ${(props) => props.theme.divider};
   margin-top: 40px;
-  margin-right: 2em;
+  margin-right: 3.2em;
   min-height: 40px;
   overflow-y: auto;
 
