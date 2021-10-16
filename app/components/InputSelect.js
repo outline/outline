@@ -31,7 +31,7 @@ export type Props = {
   labelHidden?: boolean,
   icon?: React.Node,
   options: Option[],
-  note?: string,
+  note?: React.Node,
   onChange: (string) => Promise<void> | void,
 };
 
@@ -120,15 +120,14 @@ const InputSelect = (props: Props) => {
 
   return (
     <>
-      {label &&
-        (labelHidden ? (
-          <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
-        ) : (
-          wrappedLabel
-        ))}
-      {note && <HelpText small>{note}</HelpText>}
-
       <Wrapper short={short}>
+        {label &&
+          (labelHidden ? (
+            <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+          ) : (
+            wrappedLabel
+          ))}
+
         <Select
           {...select}
           disabled={disabled}
@@ -206,6 +205,8 @@ const InputSelect = (props: Props) => {
           }}
         </SelectPopover>
       </Wrapper>
+      {note && <HelpText small>{note}</HelpText>}
+
       {(select.visible || select.animating) && <Backdrop />}
     </>
   );

@@ -107,23 +107,22 @@ const Profile = () => {
           value={language}
           onChange={handleLanguageChange}
           ariaLabel={t("Language")}
+          note={
+            <Trans>
+              Please note that translations are currently in early access.
+              <br />
+              Community contributions are accepted though our{" "}
+              <a
+                href="https://translate.getoutline.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                translation portal
+              </a>
+            </Trans>
+          }
           short
         />
-        <HelpText small>
-          <Trans>
-            Please note that translations are currently in early access.
-            <br />
-            Community contributions are accepted though our{" "}
-            <a
-              href="https://translate.getoutline.com"
-              target="_blank"
-              rel="noreferrer"
-            >
-              translation portal
-            </a>
-          </Trans>
-          .
-        </HelpText>
         <Button type="submit" disabled={isSaving || !isValid}>
           {isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
