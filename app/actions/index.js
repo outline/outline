@@ -1,4 +1,5 @@
 // @flow
+import { flattenDeep } from "lodash";
 import * as React from "react";
 import type { Action, ActionContext, CommandBarAction } from "types";
 
@@ -59,9 +60,9 @@ export function actionToKBar(
   const resolvedName = resolve<string>(action.name);
 
   const children = resolvedChildren
-    ? resolvedChildren
-        .map((a) => actionToKBar(a, context)[0])
-        .filter((a) => !!a)
+    ? flattenDeep(resolvedChildren.map((a) => actionToKBar(a, context))).filter(
+        (a) => !!a
+      )
     : [];
 
   return [
@@ -70,6 +71,7 @@ export function actionToKBar(
       name: resolvedName,
       section: resolvedSection,
       keywords: `${action.keywords || ""} ${children
+        .filter((c) => !!c.keywords)
         .map((c) => c.keywords)
         .join(" ")}`,
       shortcut: action.shortcut,

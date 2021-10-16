@@ -1,5 +1,5 @@
 // @flow
-import { SunIcon, MoonIcon } from "outline-icons";
+import { SunIcon, MoonIcon, ToolsIcon } from "outline-icons";
 import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
 import stores from "stores";
@@ -30,6 +30,8 @@ export const changeToLightTheme: Action = {
 export const changeToSystemTheme: Action = {
   id: uuidv4(),
   name: ({ t }) => t("System"),
+  icon: <ToolsIcon />,
+  iconInContextMenu: false,
   keywords: "theme system default",
   section: ({ t }) => t("Settings"),
   selected: () => stores.ui.theme === "system",

@@ -14,12 +14,14 @@ export const openDocument: Action = {
   children: ({ stores }) => {
     const paths = stores.collections.pathsToDocuments;
 
-    return paths.map((path) => ({
-      id: path.id,
-      name: path.title,
-      section: ({ t }) => t("Documents"),
-      perform: () => history.push(path.url),
-    }));
+    return paths
+      .filter((path) => path.type === "document")
+      .map((path) => ({
+        id: path.id,
+        name: path.title,
+        section: ({ t }) => t("Documents"),
+        perform: () => history.push(path.url),
+      }));
   },
 };
 
