@@ -564,6 +564,7 @@
   "Settings that impact the access, security, and content of your knowledge base.": "此處設定將影響您的知識庫存取、安全性、內容呈現。",
   "Allow email authentication": "允許透過電子郵件進行身份驗證",
   "When enabled, users can sign-in using their email address": "\b當啟用時，使用者可以透過電子郵件地址進行登入",
+  "The server must have SMTP configured to enable this setting": "The server must have SMTP configured to enable this setting",
   "When enabled, documents can be shared publicly on the internet by any team member": "當啟用時，文件可以被任何團隊成員公開分享到網際網路上。",
   "Rich service embeds": "顯示嵌入的外部服務",
   "Links to supported services are shown as rich embeds within your documents": "支援的外部服務連結將會被嵌入顯示於您的文件中",
