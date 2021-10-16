@@ -71,7 +71,9 @@ export function actionToKBar(
       id: action.id,
       name: action.name({ t }),
       section: resolvedSection,
-      keywords: action.keywords,
+      keywords: `${action.keywords || ""} ${children
+        .map((c) => c.keywords)
+        .join(" ")}`,
       shortcut: action.shortcut,
       icon: resolvedIcon
         ? React.cloneElement(resolvedIcon, { color: "currentColor" })

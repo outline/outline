@@ -45,7 +45,7 @@ export default function CommandBar() {
     <KBarPortal>
       <Positioner>
         <Animator>
-          <SearchInput placeholder={t("Type a command or search…")} />
+          <SearchInput placeholder={`${t("Type a command or search")}…`} />
           <Results
             onRender={(action, handlers, state) => (
               <CommandBarItem
@@ -82,7 +82,7 @@ const SearchInput = styled(KBarSearch)`
   width: 100%;
   outline: none;
   border: none;
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.menuBackground};
   color: ${(props) => props.theme.text};
 
   &:disabled,
@@ -99,7 +99,7 @@ const Results = styled(KBarResults)`
 const Animator = styled(KBarAnimator)`
   max-width: 540px;
   width: 90vw;
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.menuBackground};
   color: ${(props) => props.theme.text};
   border-radius: 8px;
   overflow: hidden;
