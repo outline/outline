@@ -22,7 +22,6 @@ import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Button from "components/Button";
-import CommandBar from "components/CommandBar";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
@@ -42,6 +41,13 @@ import {
 const DocumentHistory = React.lazy(() =>
   import(
     /* webpackChunkName: "document-history" */ "components/DocumentHistory"
+  )
+);
+
+const CommandBar = React.lazy(() =>
+  import(
+    /* webpackChunkName: "command-bar" */
+    "components/CommandBar"
   )
 );
 

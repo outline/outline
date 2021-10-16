@@ -52,7 +52,9 @@ const Modal = ({
     }
   });
 
-  if (!isOpen) return null;
+  if (!isOpen && !wasOpen) {
+    return null;
+  }
 
   return (
     <DialogBackdrop {...dialog}>

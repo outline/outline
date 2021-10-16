@@ -1,7 +1,9 @@
 // @flow
-import { CollectionIcon } from "outline-icons";
+import { CollectionIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
+import stores from "stores";
+import CollectionNew from "scenes/CollectionNew";
 import DynamicCollectionIcon from "components/CollectionIcon";
 import { type Action } from "types";
 import history from "utils/history";
@@ -25,4 +27,22 @@ export const openCollection: Action = {
   },
 };
 
-export const rootCollectionActions = [openCollection];
+export const createCollection: Action = {
+  id: uuidv4(),
+  name: ({ t }) => `${t("New collection")}…`,
+  section: ({ t }) => t("Collections"),
+  icon: <PlusIcon />,
+  visible: ({ stores }) =>
+    stores.policies.abilities(stores.auth.team?.id || "").createCollection,
+  perform: ({ t, event }) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    stores.dialogs.openModal({
+      title: t("Create a collection"),
+      content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
+    });
+  },
+};
+
+export const rootCollectionActions = [openCollection, createCollection];

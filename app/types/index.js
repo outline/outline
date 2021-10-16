@@ -25,7 +25,7 @@ export type Action = {|
   icon?: React.Element,
   selected?: (ActionContext) => boolean,
   visible?: (ActionContext) => boolean,
-  perform?: ({ t: TFunction }) => any,
+  perform?: (ActionContext) => any,
   children?: ((ActionContext) => Action[]) | Action[],
 |};
 
