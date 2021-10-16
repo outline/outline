@@ -29,9 +29,9 @@ function Security() {
   });
 
   const notes = {
-    admin: t("All new users will be admin by default"),
-    member: t("All new users will be member by default"),
-    viewer: t("All new users will be viewer by default"),
+    admin: t("New user accounts will be given admin permissions by default"),
+    member: t("New user accounts will be given member permissions by default"),
+    viewer: t("New user accounts will be given viewer permissions by default"),
   };
 
   const showSuccessMessage = React.useMemo(
