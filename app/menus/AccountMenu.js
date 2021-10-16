@@ -4,7 +4,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import { githubIssuesUrl, mailToUrl } from "shared/utils/routeHelpers";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import { actionToMenuItem } from "actions";
@@ -14,12 +13,15 @@ import {
   openKeyboardShortcuts,
   openChangelog,
   openAPIDocumentation,
+  openBugReportUrl,
+  openFeedbackUrl,
 } from "actions/definitions/navigation";
 import { changeTheme } from "actions/definitions/settings";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
 import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
+import separator from "menus/separator";
 
 type Props = {|
   children: (props: any) => React.Node,
@@ -33,7 +35,7 @@ function AccountMenu(props: Props) {
     modal: true,
   });
   const { auth, ui } = useStores();
-  const { theme, resolvedTheme } = ui;
+  const { theme } = ui;
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
@@ -54,27 +56,19 @@ function AccountMenu(props: Props) {
       (session) => session.teamId !== team.id && session.url !== team.url
     );
 
+    const context = { t, event: lastEvent };
+
     return [
-      actionToMenuItem(navigateToSettings, { t }),
-      actionToMenuItem(openKeyboardShortcuts, { t }),
-      actionToMenuItem(openAPIDocumentation, { t }),
-      {
-        type: "separator",
-      },
-      actionToMenuItem(openChangelog, { t }),
-      {
-        title: t("Send us feedback"),
-        href: mailToUrl(),
-      },
-      {
-        title: t("Report a bug"),
-        href: githubIssuesUrl(),
-      },
-      actionToMenuItem(development, { t, event: lastEvent }),
-      actionToMenuItem(changeTheme, { t }),
-      {
-        type: "separator",
-      },
+      actionToMenuItem(navigateToSettings, context),
+      actionToMenuItem(openKeyboardShortcuts, context),
+      actionToMenuItem(openAPIDocumentation, context),
+      separator(),
+      actionToMenuItem(openChangelog, context),
+      actionToMenuItem(openFeedbackUrl, context),
+      actionToMenuItem(openBugReportUrl, context),
+      actionToMenuItem(development, context),
+      actionToMenuItem(changeTheme, context),
+      separator(),
       ...(otherSessions.length
         ? [
             {
@@ -92,17 +86,7 @@ function AccountMenu(props: Props) {
         onClick: auth.logout,
       },
     ];
-  }, [
-    auth.logout,
-    team.id,
-    team.url,
-    sessions,
-    resolvedTheme,
-    theme,
-    t,
-    lastEvent,
-    ui,
-  ]);
+  }, [auth.logout, team.id, team.url, sessions, t, lastEvent]);
 
   return (
     <>
