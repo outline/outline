@@ -105,20 +105,19 @@ function Security() {
           "Links to supported services are shown as rich embeds within your documents"
         )}
       />
-      <Wrapper>
-        <InputSelect
-          value={data.defaultUserRole}
-          label="Default role"
-          options={[
-            { label: t("Member"), value: "member" },
-            { label: t("Viewer"), value: "viewer" },
-            { label: t("Admin"), value: "admin" },
-          ]}
-          onChange={handleDefaultRoleChange}
-          ariaLabel={t("Default role")}
-          note={notes[data.defaultUserRole]}
-        />
-      </Wrapper>
+      <InputSelect
+        value={data.defaultUserRole}
+        label="Default role"
+        options={[
+          { label: t("Member"), value: "member" },
+          { label: t("Viewer"), value: "viewer" },
+          { label: t("Admin"), value: "admin" },
+        ]}
+        onChange={handleDefaultRoleChange}
+        ariaLabel={t("Default role")}
+        note={notes[data.defaultUserRole]}
+        short
+      />
     </Scene>
   );
 }
