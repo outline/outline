@@ -564,6 +564,7 @@
   "Settings that impact the access, security, and content of your knowledge base.": "Настройки, влияющие на доступ, безопасность и содержимое вашей базы знаний.",
   "Allow email authentication": "Разрешить аутентификацию по электронной почте",
   "When enabled, users can sign-in using their email address": "Если этот параметр включен, пользователи могут входить в систему, используя свой адрес электронной почты",
+  "The server must have SMTP configured to enable this setting": "The server must have SMTP configured to enable this setting",
   "When enabled, documents can be shared publicly on the internet by any team member": "Если этот параметр включен, любой член команды сможет поделиться документами в интернете",
   "Rich service embeds": "Расширенная вставка сервиса",
   "Links to supported services are shown as rich embeds within your documents": "Ссылки на поддерживаемые сервисы отображаются в ваших документах в виде расширенных вставок",
