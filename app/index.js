@@ -1,6 +1,7 @@
 // @flow
 import "focus-visible";
 import { LazyMotion } from "framer-motion";
+import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
@@ -54,6 +55,8 @@ if ("serviceWorker" in window.navigator) {
 const loadFeatures = () =>
   import("./utils/motion.js").then((res) => res.default);
 
+const EMPTY_ARRAY = [];
+
 if (element) {
   const App = () => (
     <React.StrictMode>
@@ -61,18 +64,20 @@ if (element) {
         <Analytics>
           <Theme>
             <ErrorBoundary>
-              <LazyMotion features={loadFeatures}>
-                <Router history={history}>
-                  <>
-                    <PageTheme />
-                    <ScrollToTop>
-                      <Routes />
-                    </ScrollToTop>
-                    <Toasts />
-                    <Dialogs />
-                  </>
-                </Router>
-              </LazyMotion>
+              <KBarProvider actions={EMPTY_ARRAY}>
+                <LazyMotion features={loadFeatures}>
+                  <Router history={history}>
+                    <>
+                      <PageTheme />
+                      <ScrollToTop>
+                        <Routes />
+                      </ScrollToTop>
+                      <Toasts />
+                      <Dialogs />
+                    </>
+                  </Router>
+                </LazyMotion>
+              </KBarProvider>
             </ErrorBoundary>
           </Theme>
         </Analytics>

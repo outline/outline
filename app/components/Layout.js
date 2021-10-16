@@ -22,6 +22,7 @@ import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Button from "components/Button";
+import CommandBar from "components/CommandBar";
 import Flex from "components/Flex";
 import Guide from "components/Guide";
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
@@ -29,6 +30,7 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
+import env from "env";
 import { meta } from "utils/keyboard";
 import {
   homeUrl,
@@ -83,7 +85,11 @@ class Layout extends React.Component<Props> {
     this.keyboardShortcutsOpen = false;
   };
 
-  @keydown(["t", "/", `${meta}+k`])
+  @keydown([
+    "t",
+    "/",
+    env.ENVIRONMENT === "development" ? undefined : `${meta}+k`,
+  ])
   goToSearch(ev: SyntheticEvent<>) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -175,6 +181,7 @@ class Layout extends React.Component<Props> {
         >
           <KeyboardShortcuts />
         </Guide>
+        <CommandBar />
       </Container>
     );
   }

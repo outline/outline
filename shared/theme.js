@@ -126,6 +126,7 @@ export const base = {
     popover: 9000,
     titleBarDivider: 10000,
     loadingIndicatorBar: 20000,
+    commandBar: 30000,
   },
 };
 
