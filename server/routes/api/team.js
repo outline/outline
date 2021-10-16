@@ -37,11 +37,6 @@ router.post("team.update", auth(), async (ctx) => {
     team.collaborativeEditing = collaborativeEditing;
   }
   if (defaultUserRole !== undefined) {
-    ctx.assertIn(
-      defaultUserRole,
-      ["viewer", "member", "admin"],
-      "type must be one of 'Reader','Member' or 'Admin'"
-    );
     team.defaultUserRole = defaultUserRole;
   }
 

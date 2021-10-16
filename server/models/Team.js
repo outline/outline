@@ -80,7 +80,10 @@ const Team = sequelize.define(
       defaultValue: "member",
       allowNull: false,
       validate: {
-        isIn: [["viewer", "member", "admin"]],
+        isIn: {
+          args: [["viewer", "member", "admin"]],
+          msg: "Must be one of 'Reader','Member' or 'Admin'",
+        },
       },
     },
   },

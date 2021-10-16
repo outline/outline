@@ -6,9 +6,6 @@ module.exports = {
       type: Sequelize.STRING,
       defaultValue: "member",
       allowNull: false,
-      validate: {
-        isIn: [["viewer", "member", "admin"]],
-      },
     });
   },
 

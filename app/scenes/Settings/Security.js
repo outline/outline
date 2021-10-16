@@ -5,7 +5,6 @@ import { PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import styled from "styled-components";
 import Checkbox from "components/Checkbox";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
