@@ -564,6 +564,7 @@
   "Settings that impact the access, security, and content of your knowledge base.": "Ustawienia wpływające na dostęp, bezpieczeństwo i zawartość Twojej bazy wiedzy.",
   "Allow email authentication": "Zezwalaj na uwierzytelnianie e-mail",
   "When enabled, users can sign-in using their email address": "Po włączeniu użytkownicy mogą logować się przy użyciu swojego adresu e-mail",
+  "The server must have SMTP configured to enable this setting": "The server must have SMTP configured to enable this setting",
   "When enabled, documents can be shared publicly on the internet by any team member": "Po włączeniu dokumenty mogą być udostępniane publicznie w Internecie przez dowolnego członka zespołu",
   "Rich service embeds": "Bogate osadzone usługi",
   "Links to supported services are shown as rich embeds within your documents": "Linki do obsługiwanych usług są wyświetlane jako bogate osadzone w dokumentach",
