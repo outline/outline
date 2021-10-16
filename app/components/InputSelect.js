@@ -120,15 +120,15 @@ const InputSelect = (props: Props) => {
 
   return (
     <>
-      <Wrapper short={short}>
-        {label &&
-          (labelHidden ? (
-            <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
-          ) : (
-            wrappedLabel
-          ))}
-        {note && <HelpText small>{note}</HelpText>}
+      {label &&
+        (labelHidden ? (
+          <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+        ) : (
+          wrappedLabel
+        ))}
+      {note && <HelpText small>{note}</HelpText>}
 
+      <Wrapper short={short}>
         <Select
           {...select}
           disabled={disabled}
