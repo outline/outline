@@ -564,6 +564,7 @@
   "Settings that impact the access, security, and content of your knowledge base.": "تنظیماتی که دسترسی‌ها، امنیت، و محتوای پایگاه دانش شما را مدیریت می‌کنند.",
   "Allow email authentication": "امکان احراز هویت با ایمیل",
   "When enabled, users can sign-in using their email address": "وقتی فعال باشد، کاربران می‌توانند با آدرس ایمیل خود وارد شوند",
+  "The server must have SMTP configured to enable this setting": "The server must have SMTP configured to enable this setting",
   "When enabled, documents can be shared publicly on the internet by any team member": "وقتی فعال باشد، هر عضو تیم می‌تواند سندها را به صورت عمومی روی اینترنت منتشر کند",
   "Rich service embeds": "جاسازی‌های غنی سرویس‌ها",
   "Links to supported services are shown as rich embeds within your documents": "پیوندها به سایت‌ها و سرویس‌های پشتیبانی شده به صورت جاسازی‌های غنی در سندها نمایش داده می‌شود",
