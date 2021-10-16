@@ -27,8 +27,6 @@ const Contents = styled.div`
   overflow-y: scroll;
   width: ${(props) => props.width}px;
   box-shadow: ${(props) => props.theme.menuShadow};
-  border: ${(props) =>
-    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
 `;
 
 export default Popover;

@@ -34,7 +34,8 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
-  const { auth, ui } = useStores();
+  const stores = useStores();
+  const { auth, ui } = stores;
   const { theme } = ui;
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
@@ -61,6 +62,7 @@ function AccountMenu(props: Props) {
       event: lastEvent,
       isCommandBar: false,
       isContextMenu: true,
+      stores,
     };
 
     return [
@@ -91,7 +93,7 @@ function AccountMenu(props: Props) {
         onClick: auth.logout,
       },
     ];
-  }, [auth.logout, team.id, team.url, sessions, t, lastEvent]);
+  }, [auth.logout, team.id, team.url, sessions, stores, t, lastEvent]);
 
   return (
     <>

@@ -2,6 +2,7 @@
 import { type TFunction } from "react-i18next";
 import { type Location } from "react-router-dom";
 import theme from "shared/theme";
+import RootStore from "stores/RootStore";
 import Document from "models/Document";
 
 export type Theme = typeof theme;
@@ -9,14 +10,15 @@ export type Theme = typeof theme;
 export type ActionContext = {
   isContextMenu: boolean,
   isCommandBar: boolean,
+  stores: RootStore,
   event?: Event,
   t: TFunction,
 };
 
 export type Action = {|
   id: string,
-  name: ({ t: TFunction }) => string,
-  section: ({ t: TFunction }) => string,
+  name: ((ActionContext) => string) | string,
+  section: ((ActionContext) => string) | string,
   shortcut?: string[],
   keywords?: string,
   iconInContextMenu?: boolean,
@@ -24,7 +26,7 @@ export type Action = {|
   selected?: (ActionContext) => boolean,
   visible?: (ActionContext) => boolean,
   perform?: ({ t: TFunction }) => any,
-  children?: Action[],
+  children?: ((ActionContext) => Action[]) | Action[],
 |};
 
 export type CommandBarAction = {|

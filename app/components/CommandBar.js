@@ -8,6 +8,7 @@ import {
   useRegisterActions,
 } from "kbar";
 import { flattenDeep } from "lodash";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
@@ -16,6 +17,7 @@ import CommandBarItem from "components/CommandBarItem";
 import { actionToKBar } from "actions";
 import rootActions from "actions/root";
 import env from "env";
+import useStores from "hooks/useStores";
 
 export const CommandBarOptions = {
   animations: {
@@ -24,18 +26,29 @@ export const CommandBarOptions = {
   },
 };
 
-export default function CommandBar() {
+function CommandBar() {
   const { t } = useTranslation();
+  const stores = useStores();
+  const { currentRootActionId } = useKBar((state) => ({
+    currentRootActionId: state.currentRootActionId,
+  }));
 
   const context = {
     t,
     isCommandBar: true,
     isContextMenu: false,
+    stores,
   };
 
-  useRegisterActions(
-    flattenDeep(rootActions.map((action) => actionToKBar(action, context)))
+  const actions = flattenDeep(
+    rootActions.map((action) => actionToKBar(action, context))
   );
+
+  const rootAction = actions.find(
+    (action) => action.id === currentRootActionId
+  );
+
+  useRegisterActions(actions);
 
   if (env.ENVIRONMENT !== "development") {
     return null;
@@ -45,7 +58,11 @@ export default function CommandBar() {
     <KBarPortal>
       <Positioner>
         <Animator>
-          <SearchInput placeholder={`${t("Type a command or search")}…`} />
+          <SearchInput
+            placeholder={`${
+              rootAction?.name || t("Type a command or search")
+            }…`}
+          />
           <Results
             onRender={(action, handlers, state) => (
               <CommandBarItem
@@ -92,7 +109,7 @@ const SearchInput = styled(KBarSearch)`
 `;
 
 const Results = styled(KBarResults)`
-  max-height: 400;
+  max-height: 400px;
   overflow: auto;
 `;
 
@@ -105,3 +122,5 @@ const Animator = styled(KBarAnimator)`
   overflow: hidden;
   box-shadow: rgb(0 0 0 / 40%) 0px 16px 60px;
 `;
+
+export default observer(CommandBar);

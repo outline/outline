@@ -1,11 +1,5 @@
 // @flow
-import {
-  OpenIcon,
-  SettingsIcon,
-  KeyboardIcon,
-  BulletedListIcon,
-  EmailIcon,
-} from "outline-icons";
+import { OpenIcon, SettingsIcon, KeyboardIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -60,7 +54,7 @@ export const openChangelog: Action = {
   name: ({ t }) => t("Changelog"),
   section: ({ t }) => t("Navigation"),
   iconInContextMenu: false,
-  icon: <BulletedListIcon />,
+  icon: <OpenIcon />,
   perform: () => window.open(changelog()),
 };
 

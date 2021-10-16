@@ -6,8 +6,6 @@ export function actionToMenuItem(
   action: Action,
   context: ActionContext
 ): ?Object {
-  const { t } = context;
-
   function resolve<T>(value: any): T {
     if (typeof value === "function") {
       return value(context);
@@ -18,9 +16,10 @@ export function actionToMenuItem(
 
   const resolvedIcon = resolve<React.Element<any>>(action.icon);
   const resolvedChildren = resolve<Action[]>(action.children);
+  const resolvedName = resolve<string>(action.name);
 
   return {
-    title: action.name({ t }),
+    title: resolvedName,
     icon:
       resolvedIcon && action.iconInContextMenu !== false
         ? React.cloneElement(resolvedIcon, { color: "currentColor" })
@@ -42,8 +41,6 @@ export function actionToKBar(
   action: Action,
   context: ActionContext
 ): CommandBarAction[] {
-  const { t } = context;
-
   function resolve<T>(value: any): T {
     if (typeof value === "function") {
       return value(context);
@@ -59,6 +56,7 @@ export function actionToKBar(
   const resolvedIcon = resolve<React.Element<any>>(action.icon);
   const resolvedChildren = resolve<Action[]>(action.children);
   const resolvedSection = resolve<string>(action.section);
+  const resolvedName = resolve<string>(action.name);
 
   const children = resolvedChildren
     ? resolvedChildren
@@ -69,7 +67,7 @@ export function actionToKBar(
   return [
     {
       id: action.id,
-      name: action.name({ t }),
+      name: resolvedName,
       section: resolvedSection,
       keywords: `${action.keywords || ""} ${children
         .map((c) => c.keywords)

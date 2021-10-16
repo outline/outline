@@ -27,7 +27,6 @@ export default function CommandBarItem({ action, handlers, state }: Props) {
           if (!element) {
             return;
           }
-          // @ts-ignore
           element.scrollIntoView({
             block: "nearest",
             behavior: "smooth",
@@ -49,6 +48,7 @@ export default function CommandBarItem({ action, handlers, state }: Props) {
           )}
         </Icon>
         {action.name}
+        {action.children?.length ? "…" : ""}
       </Flex>
       {action.shortcut?.length ? (
         <div style={{ display: "grid", gridAutoFlow: "column", gap: "4px" }}>
