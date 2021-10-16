@@ -45,3 +45,5 @@ export const changeTheme: Action = {
   section: ({ t }) => t("Settings"),
   children: [changeToLightTheme, changeToDarkTheme, changeToSystemTheme],
 };
+
+export const rootSettingsActions = [changeTheme];

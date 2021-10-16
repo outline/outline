@@ -1,8 +1,8 @@
 // @flow
 import {
+  OpenIcon,
   SettingsIcon,
   KeyboardIcon,
-  CodeIcon,
   BulletedListIcon,
   EmailIcon,
 } from "outline-icons";
@@ -35,7 +35,7 @@ export const openAPIDocumentation: Action = {
   name: ({ t }) => t("API documentation"),
   section: ({ t }) => t("Navigation"),
   iconInContextMenu: false,
-  icon: <CodeIcon />,
+  icon: <OpenIcon />,
   perform: () => window.open(developers()),
 };
 
@@ -78,3 +78,12 @@ export const openKeyboardShortcuts: Action = {
     });
   },
 };
+
+export const rootNavigationActions = [
+  navigateToSettings,
+  openAPIDocumentation,
+  openFeedbackUrl,
+  openBugReportUrl,
+  openChangelog,
+  openKeyboardShortcuts,
+];

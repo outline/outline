@@ -9,6 +9,7 @@ import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
 import stores from "stores";
 import Analytics from "components/Analytics";
+import { CommandBarOptions } from "components/CommandBar";
 import Dialogs from "components/Dialogs";
 import ErrorBoundary from "components/ErrorBoundary";
 import PageTheme from "components/PageTheme";
@@ -55,8 +56,6 @@ if ("serviceWorker" in window.navigator) {
 const loadFeatures = () =>
   import("./utils/motion.js").then((res) => res.default);
 
-const EMPTY_ARRAY = [];
-
 if (element) {
   const App = () => (
     <React.StrictMode>
@@ -64,7 +63,7 @@ if (element) {
         <Analytics>
           <Theme>
             <ErrorBoundary>
-              <KBarProvider actions={EMPTY_ARRAY}>
+              <KBarProvider actions={[]} options={CommandBarOptions}>
                 <LazyMotion features={loadFeatures}>
                   <Router history={history}>
                     <>

@@ -1,11 +1,10 @@
 // @flow
-import type { TFunction } from "i18next";
 import * as React from "react";
-import type { Action } from "types";
+import type { Action, ActionContext, CommandBarAction } from "types";
 
 export function actionToMenuItem(
   action: Action,
-  context: { t: TFunction, event?: Event }
+  context: ActionContext
 ): ?Object {
   const { t } = context;
 
@@ -20,7 +19,7 @@ export function actionToMenuItem(
   const resolvedIcon = resolve<React.Element<any>>(action.icon);
   const resolvedChildren = resolve<Action[]>(action.children);
 
-  const item = {
+  return {
     title: action.name({ t }),
     icon:
       resolvedIcon && action.iconInContextMenu !== false
@@ -36,16 +35,57 @@ export function actionToMenuItem(
       : undefined,
     visible: action.visible ? action.visible(context) : true,
     selected: action.selected ? action.selected(context) : undefined,
-    // TODO
-    // disabled
-    // visible
-    // selected
   };
-
-  console.log(item);
-  return item;
 }
 
-export function actionToKBar(action: Action, { t }: { t: TFunction }) {
-  //
+export function actionToKBar(
+  action: Action,
+  context: ActionContext
+): CommandBarAction[] {
+  const { t } = context;
+
+  function resolve<T>(value: any): T {
+    if (typeof value === "function") {
+      return value(context);
+    }
+
+    return value;
+  }
+
+  if (typeof action.visible === "function" && !action.visible(context)) {
+    return [];
+  }
+
+  const resolvedIcon = resolve<React.Element<any>>(action.icon);
+  const resolvedChildren = resolve<Action[]>(action.children);
+  const resolvedSection = resolve<string>(action.section);
+
+  const children = resolvedChildren
+    ? resolvedChildren
+        .map((a) => actionToKBar(a, context)[0])
+        .filter((a) => !!a)
+    : [];
+
+  return [
+    {
+      id: action.id,
+      name: action.name({ t }),
+      section: resolvedSection,
+      keywords: action.keywords,
+      shortcut: action.shortcut,
+      icon: resolvedIcon
+        ? React.cloneElement(resolvedIcon, { color: "currentColor" })
+        : undefined,
+      perform: action.perform
+        ? () => action.perform && action.perform(context)
+        : undefined,
+      children: children.map((a) => a.id),
+      // selected: action.selected ? action.selected(context) : undefined
+    },
+  ].concat(
+    children.map((child) => ({
+      ...child,
+      parent: action.id,
+    }))
+  );
 }

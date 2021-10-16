@@ -1,29 +1,41 @@
 // @flow
 import {
-  KBarPortal,
+  useKBar,
   KBarPositioner,
   KBarAnimator,
   KBarSearch,
   KBarResults,
   useRegisterActions,
 } from "kbar";
+import { flattenDeep } from "lodash";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { Portal } from "react-portal";
 import styled from "styled-components";
+import CommandBarItem from "components/CommandBarItem";
+import { actionToKBar } from "actions";
+import rootActions from "actions/root";
 import env from "env";
+
+export const CommandBarOptions = {
+  animations: {
+    enterMs: 250,
+    exitMs: 200,
+  },
+};
 
 export default function CommandBar() {
   const { t } = useTranslation();
 
-  useRegisterActions([
-    {
-      id: "blog",
-      name: "Blog",
-      shortcut: ["b"],
-      keywords: "writing words",
-      perform: () => (window.location.pathname = "blog"),
-    },
-  ]);
+  const context = {
+    t,
+    isCommandBar: true,
+    isContextMenu: false,
+  };
+
+  useRegisterActions(
+    flattenDeep(rootActions.map((action) => actionToKBar(action, context)))
+  );
 
   if (env.ENVIRONMENT !== "development") {
     return null;
@@ -31,15 +43,39 @@ export default function CommandBar() {
 
   return (
     <KBarPortal>
-      <KBarPositioner>
-        <Background>
+      <Positioner>
+        <Animator>
           <SearchInput placeholder={t("Type a command or search…")} />
-          <Results />
-        </Background>
-      </KBarPositioner>
+          <Results
+            onRender={(action, handlers, state) => (
+              <CommandBarItem
+                action={action}
+                handlers={handlers}
+                state={state}
+              />
+            )}
+          />
+        </Animator>
+      </Positioner>
     </KBarPortal>
   );
 }
+
+function KBarPortal({ children }: { children: React.Node }) {
+  const { showing } = useKBar((state) => ({
+    showing: state.visualState !== "hidden",
+  }));
+
+  if (!showing) {
+    return null;
+  }
+
+  return <Portal>{children}</Portal>;
+}
+
+const Positioner = styled(KBarPositioner)`
+  z-index: ${(props) => props.theme.depths.commandBar};
+`;
 
 const SearchInput = styled(KBarSearch)`
   padding: 12px 16px;
@@ -60,13 +96,12 @@ const Results = styled(KBarResults)`
   overflow: auto;
 `;
 
-const Background = styled(KBarAnimator)`
-  max-width: 500px;
-  width: 100%;
+const Animator = styled(KBarAnimator)`
+  max-width: 540px;
+  width: 90vw;
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text};
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: ${(props) => props.theme.menuShadow};
-  z-index: ${(props) => props.theme.depths.commandBar};
+  box-shadow: rgb(0 0 0 / 40%) 0px 16px 60px;
 `;

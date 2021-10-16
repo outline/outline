@@ -56,7 +56,12 @@ function AccountMenu(props: Props) {
       (session) => session.teamId !== team.id && session.url !== team.url
     );
 
-    const context = { t, event: lastEvent };
+    const context = {
+      t,
+      event: lastEvent,
+      isCommandBar: false,
+      isContextMenu: true,
+    };
 
     return [
       actionToMenuItem(navigateToSettings, context),

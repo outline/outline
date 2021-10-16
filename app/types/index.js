@@ -7,6 +7,8 @@ import Document from "models/Document";
 export type Theme = typeof theme;
 
 export type ActionContext = {
+  isContextMenu: boolean,
+  isCommandBar: boolean,
   event?: Event,
   t: TFunction,
 };
@@ -23,6 +25,18 @@ export type Action = {|
   visible?: (ActionContext) => boolean,
   perform?: ({ t: TFunction }) => any,
   children?: Action[],
+|};
+
+export type CommandBarAction = {|
+  id: string,
+  name: string,
+  section: string,
+  shortcut?: string[],
+  keywords?: string,
+  icon?: React.Element,
+  perform?: () => any,
+  children?: string[],
+  parent?: string,
 |};
 
 export type LocationWithState = Location & {
