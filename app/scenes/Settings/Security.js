@@ -122,8 +122,4 @@ function Security() {
   );
 }
 
-const Wrapper = styled.div`
-  max-width: 250px;
-`;
-
 export default observer(Security);
