@@ -1,12 +1,10 @@
 // @flow
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import { v4 as uuidv4 } from "uuid";
-import { type Action } from "types";
+import { createAction } from "actions";
 import history from "utils/history";
 
-export const openDocument: Action = {
-  id: uuidv4(),
+export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
   section: ({ t }) => t("Documents"),
   shortcut: ["o", "d"],
@@ -23,6 +21,6 @@ export const openDocument: Action = {
         perform: () => history.push(path.url),
       }));
   },
-};
+});
 
 export const rootDocumentActions = [openDocument];

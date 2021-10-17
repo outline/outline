@@ -2,7 +2,7 @@
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   useMenuState,
   MenuButton,
@@ -78,6 +78,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
 
 function Template({ items, actions, ...menu }: Props): React.Node {
   const { t } = useTranslation();
+  const location = useLocation();
   const stores = useStores();
   const { ui } = stores;
 
@@ -87,6 +88,7 @@ function Template({ items, actions, ...menu }: Props): React.Node {
     isContextMenu: true,
     activeCollectionId: ui.activeCollectionId,
     activeDocumentId: ui.activeDocumentId,
+    location,
     stores,
   };
 

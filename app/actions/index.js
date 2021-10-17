@@ -1,7 +1,17 @@
 // @flow
 import { flattenDeep } from "lodash";
 import * as React from "react";
+import { v4 as uuidv4 } from "uuid";
 import type { Action, ActionContext, CommandBarAction, MenuItem } from "types";
+
+export function createAction(
+  definition: $Diff<Action, { id?: string }>
+): Action {
+  return {
+    id: uuidv4(),
+    ...definition,
+  };
+}
 
 export function actionToMenuItem(
   action: Action,

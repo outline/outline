@@ -1,15 +1,13 @@
 // @flow
 import { CollectionIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
-import { v4 as uuidv4 } from "uuid";
 import stores from "stores";
 import CollectionNew from "scenes/CollectionNew";
 import DynamicCollectionIcon from "components/CollectionIcon";
-import { type Action } from "types";
+import { createAction } from "actions";
 import history from "utils/history";
 
-export const openCollection: Action = {
-  id: uuidv4(),
+export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),
   section: ({ t }) => t("Collections"),
   shortcut: ["o", "c"],
@@ -25,10 +23,9 @@ export const openCollection: Action = {
       perform: () => history.push(collection.url),
     }));
   },
-};
+});
 
-export const createCollection: Action = {
-  id: uuidv4(),
+export const createCollection = createAction({
   name: ({ t }) => `${t("New collection")}…`,
   section: ({ t }) => t("Collections"),
   icon: <PlusIcon />,
@@ -43,6 +40,6 @@ export const createCollection: Action = {
       content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
-};
+});
 
 export const rootCollectionActions = [openCollection, createCollection];

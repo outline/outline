@@ -23,6 +23,7 @@ export type ActionContext = {
   isCommandBar: boolean,
   activeCollectionId: ?string,
   activeDocumentId: ?string,
+  location: Location,
   stores: RootStore,
   event?: Event,
   t: TFunction,

@@ -1,14 +1,12 @@
 // @flow
 import { TrashIcon } from "outline-icons";
 import * as React from "react";
-import { v4 as uuidv4 } from "uuid";
 import stores from "stores";
+import { createAction } from "actions";
 import env from "env";
-import { type Action } from "types";
 import { deleteAllDatabases } from "utils/developer";
 
-export const clearIndexedDB: Action = {
-  id: uuidv4(),
+export const clearIndexedDB = createAction({
   name: ({ t }) => t("Delete IndexedDB cache"),
   icon: <TrashIcon />,
   keywords: "cache clear database",
@@ -17,10 +15,9 @@ export const clearIndexedDB: Action = {
     await deleteAllDatabases();
     stores.toasts.showToast(t("IndexedDB cache deleted"));
   },
-};
+});
 
-export const development: Action = {
-  id: uuidv4(),
+export const development = createAction({
   name: ({ t }) => t("Development"),
   keywords: "debug",
   section: ({ t }) => t("Debug"),
@@ -28,4 +25,4 @@ export const development: Action = {
     env.ENVIRONMENT === "development" ||
     (event instanceof KeyboardEvent && event.altKey),
   children: [clearIndexedDB],
-};
+});
