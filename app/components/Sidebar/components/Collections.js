@@ -1,7 +1,7 @@
 // @flow
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { PlusIcon, CollapsedIcon } from "outline-icons";
+import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -12,15 +12,12 @@ import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
+import SidebarAction from "./SidebarAction";
 import SidebarLink from "./SidebarLink";
-import useCurrentTeam from "hooks/useCurrentTeam";
+import { createCollection } from "actions/definitions/collections";
 import useToasts from "hooks/useToasts";
 
-type Props = {
-  onCreateCollection: () => void,
-};
-
-function Collections({ onCreateCollection }: Props) {
+function Collections() {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
   const { ui, policies, documents, collections } = useStores();
@@ -28,9 +25,7 @@ function Collections({ onCreateCollection }: Props) {
   const [expanded, setExpanded] = React.useState(true);
   const isPreloaded: boolean = !!collections.orderedData.length;
   const { t } = useTranslation();
-  const team = useCurrentTeam();
   const orderedCollections = collections.orderedData;
-  const can = policies.abilities(team.id);
   const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
     false
   );
@@ -93,16 +88,7 @@ function Collections({ onCreateCollection }: Props) {
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      {can.createCollection && (
-        <SidebarLink
-          to="/collections"
-          onClick={onCreateCollection}
-          icon={<PlusIcon color="currentColor" />}
-          label={`${t("New collection")}…`}
-          exact
-          depth={0.5}
-        />
-      )}
+      <SidebarAction action={createCollection} depth={0.5} />
     </>
   );
 

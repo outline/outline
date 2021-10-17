@@ -13,6 +13,7 @@ app
 ├── components  - React components reusable across scenes
 ├── embeds      - Embed definitions that represent rich interactive embeds in the editor
 ├── hooks       - Reusable React hooks
+├── actions     - Reusable actions such as navigating, opening, creating entities
 ├── menus       - Context menus, often appear in multiple places in the UI
 ├── models      - State models using MobX observables
 ├── routes      - Route definitions, note that chunks are async loaded with suspense

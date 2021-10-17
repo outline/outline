@@ -13,7 +13,6 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import CollectionNew from "scenes/CollectionNew";
 import Invite from "scenes/Invite";
 import Bubble from "components/Bubble";
 import Flex from "components/Flex";
@@ -45,27 +44,11 @@ function MainSidebar() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
-  const [
-    createCollectionModalOpen,
-    setCreateCollectionModalOpen,
-  ] = React.useState(false);
 
   React.useEffect(() => {
     documents.fetchDrafts();
     documents.fetchTemplates();
   }, [documents]);
-
-  const handleCreateCollectionModalOpen = React.useCallback(
-    (ev: SyntheticEvent<>) => {
-      ev.preventDefault();
-      setCreateCollectionModalOpen(true);
-    },
-    []
-  );
-
-  const handleCreateCollectionModalClose = React.useCallback(() => {
-    setCreateCollectionModalOpen(false);
-  }, []);
 
   const handleInviteModalOpen = React.useCallback((ev: SyntheticEvent<>) => {
     ev.preventDefault();
@@ -138,9 +121,7 @@ function MainSidebar() {
             </Section>
             <Starred />
             <Section auto>
-              <Collections
-                onCreateCollection={handleCreateCollectionModalOpen}
-              />
+              <Collections />
             </Section>
             <Section>
               {can.createDocument && (
@@ -187,13 +168,6 @@ function MainSidebar() {
               <Invite onSubmit={handleInviteModalClose} />
             </Modal>
           )}
-          <Modal
-            title={t("Create a collection")}
-            onRequestClose={handleCreateCollectionModalClose}
-            isOpen={createCollectionModalOpen}
-          >
-            <CollectionNew onSubmit={handleCreateCollectionModalClose} />
-          </Modal>
         </DndProvider>
       )}
     </Sidebar>

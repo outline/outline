@@ -2,7 +2,12 @@
 import { flattenDeep } from "lodash";
 import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
-import type { Action, ActionContext, CommandBarAction, MenuItem } from "types";
+import type {
+  Action,
+  ActionContext,
+  CommandBarAction,
+  MenuItemClickable,
+} from "types";
 
 export function createAction(
   definition: $Diff<Action, { id?: string }>
@@ -16,7 +21,7 @@ export function createAction(
 export function actionToMenuItem(
   action: Action,
   context: ActionContext
-): MenuItem {
+): MenuItemClickable {
   function resolve<T>(value: any): T {
     if (typeof value === "function") {
       return value(context);

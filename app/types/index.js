@@ -7,6 +7,15 @@ import Document from "models/Document";
 
 export type Theme = typeof theme;
 
+export type MenuItemClickable = {|
+  title: React.Node,
+  onClick: (event: SyntheticEvent<>) => void | Promise<void>,
+  visible?: boolean,
+  selected?: boolean,
+  disabled?: boolean,
+  icon?: React.Node,
+|};
+
 export type MenuSeparator = {|
   type: "separator",
   visible?: boolean,
@@ -118,14 +127,7 @@ export type MenuItem =
       disabled?: boolean,
       icon?: React.Node,
     |}
-  | {|
-      title: React.Node,
-      onClick: (event: SyntheticEvent<>) => void | Promise<void>,
-      visible?: boolean,
-      selected?: boolean,
-      disabled?: boolean,
-      icon?: React.Node,
-    |}
+  | MenuItemClickable
   | {|
       title: React.Node,
       href: string,
