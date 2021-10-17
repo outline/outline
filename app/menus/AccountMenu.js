@@ -62,6 +62,8 @@ function AccountMenu(props: Props) {
       event: lastEvent,
       isCommandBar: false,
       isContextMenu: true,
+      activeCollectionId: ui.activeCollectionId,
+      activeDocumentId: ui.activeDocumentId,
       stores,
     };
 

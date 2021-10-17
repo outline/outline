@@ -5,19 +5,16 @@ import {
   KBarAnimator,
   KBarSearch,
   KBarResults,
-  useRegisterActions,
 } from "kbar";
-import { flattenDeep } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import CommandBarItem from "components/CommandBarItem";
-import { actionToKBar } from "actions";
 import rootActions from "actions/root";
 import env from "env";
-import useStores from "hooks/useStores";
+import { useCommandBarActions } from "hooks/useCommandBarActions";
 
 export const CommandBarOptions = {
   animations: {
@@ -28,27 +25,12 @@ export const CommandBarOptions = {
 
 function CommandBar() {
   const { t } = useTranslation();
-  const stores = useStores();
-  const { currentRootActionId } = useKBar((state) => ({
-    currentRootActionId: state.currentRootActionId,
+
+  useCommandBarActions(rootActions);
+
+  const { rootAction } = useKBar((state) => ({
+    rootAction: state.actions[state.currentRootActionId],
   }));
-
-  const context = {
-    t,
-    isCommandBar: true,
-    isContextMenu: false,
-    stores,
-  };
-
-  const actions = flattenDeep(
-    rootActions.map((action) => actionToKBar(action, context))
-  );
-
-  const rootAction = actions.find(
-    (action) => action.id === currentRootActionId
-  );
-
-  useRegisterActions(actions);
 
   if (env.ENVIRONMENT !== "development") {
     return null;

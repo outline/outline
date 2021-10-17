@@ -10,6 +10,8 @@ export type Theme = typeof theme;
 export type ActionContext = {
   isContextMenu: boolean,
   isCommandBar: boolean,
+  activeCollectionId: ?string,
+  activeDocumentId: ?string,
   stores: RootStore,
   event?: Event,
   t: TFunction,
