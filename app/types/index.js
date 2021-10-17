@@ -7,6 +7,17 @@ import Document from "models/Document";
 
 export type Theme = typeof theme;
 
+export type MenuSeparator = {|
+  type: "separator",
+  visible?: boolean,
+|};
+
+export type MenuHeading = {|
+  type: "heading",
+  visible?: boolean,
+  title: React.Node,
+|};
+
 export type ActionContext = {
   isContextMenu: boolean,
   isCommandBar: boolean,
@@ -132,15 +143,8 @@ export type MenuItem =
       items: MenuItem[],
       icon?: React.Node,
     |}
-  | {|
-      type: "separator",
-      visible?: boolean,
-    |}
-  | {|
-      type: "heading",
-      visible?: boolean,
-      title: React.Node,
-    |};
+  | MenuSeparator
+  | MenuHeading;
 
 export type ToastOptions = {|
   type: "warning" | "error" | "info" | "success",

@@ -15,10 +15,18 @@ import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
-import { type MenuItem as TMenuItem } from "types";
+import { actionToMenuItem } from "actions";
+import useStores from "hooks/useStores";
+import type {
+  MenuItem as TMenuItem,
+  Action,
+  MenuSeparator,
+  MenuHeading,
+} from "types";
 
 type Props = {|
   items: TMenuItem[],
+  actions: (Action | MenuSeparator | MenuHeading)[],
 |};
 
 const Disclosure = styled(ExpandedIcon)`
@@ -68,8 +76,27 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   return filtered;
 }
 
-function Template({ items, ...menu }: Props): React.Node {
-  const filteredTemplates = filterTemplateItems(items);
+function Template({ items, actions, ...menu }: Props): React.Node {
+  const { t } = useTranslation();
+  const stores = useStores();
+  const { ui } = stores;
+
+  const context = {
+    t,
+    isCommandBar: false,
+    isContextMenu: true,
+    activeCollectionId: ui.activeCollectionId,
+    activeDocumentId: ui.activeDocumentId,
+    stores,
+  };
+
+  const filteredTemplates = filterTemplateItems(
+    actions
+      ? actions.map((action) =>
+          action.type ? action : actionToMenuItem(action, context)
+        )
+      : items
+  );
   const iconIsPresentInAnyMenuItem = filteredTemplates.find(
     (item) => !item.type && !!item.icon
   );

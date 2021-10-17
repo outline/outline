@@ -6,7 +6,6 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
-import { actionToMenuItem } from "actions";
 import { development } from "actions/definitions/debug";
 import {
   navigateToSettings,
@@ -40,7 +39,6 @@ function AccountMenu(props: Props) {
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
-  const [lastEvent, setEvent] = React.useState();
 
   React.useEffect(() => {
     if (theme !== previousTheme) {
@@ -48,62 +46,46 @@ function AccountMenu(props: Props) {
     }
   }, [menu, theme, previousTheme]);
 
-  const handleOpenMenu = React.useCallback((event) => {
-    setEvent(event);
-  }, []);
-
-  const items = React.useMemo(() => {
+  const actions = React.useMemo(() => {
     const otherSessions = sessions.filter(
       (session) => session.teamId !== team.id && session.url !== team.url
     );
 
-    const context = {
-      t,
-      event: lastEvent,
-      isCommandBar: false,
-      isContextMenu: true,
-      activeCollectionId: ui.activeCollectionId,
-      activeDocumentId: ui.activeDocumentId,
-      stores,
-    };
-
     return [
-      actionToMenuItem(navigateToSettings, context),
-      actionToMenuItem(openKeyboardShortcuts, context),
-      actionToMenuItem(openAPIDocumentation, context),
+      navigateToSettings,
+      openKeyboardShortcuts,
+      openAPIDocumentation,
       separator(),
-      actionToMenuItem(openChangelog, context),
-      actionToMenuItem(openFeedbackUrl, context),
-      actionToMenuItem(openBugReportUrl, context),
-      actionToMenuItem(development, context),
-      actionToMenuItem(changeTheme, context),
+      openChangelog,
+      openFeedbackUrl,
+      openBugReportUrl,
+      development,
+      changeTheme,
       separator(),
       ...(otherSessions.length
         ? [
             {
-              title: t("Switch team"),
-              items: otherSessions.map((session) => ({
-                title: session.name,
+              name: t("Switch team"),
+              children: otherSessions.map((session) => ({
+                name: session.name,
                 icon: <Logo alt={session.name} src={session.logoUrl} />,
-                href: session.url,
+                perform: () => (window.location.href = session.url),
               })),
             },
           ]
         : []),
       {
-        title: t("Log out"),
-        onClick: auth.logout,
+        name: t("Log out"),
+        perform: auth.logout,
       },
     ];
-  }, [auth.logout, team.id, team.url, sessions, stores, t, lastEvent]);
+  }, [auth.logout, team.id, team.url, sessions, t]);
 
   return (
     <>
-      <MenuButton {...menu} onClick={handleOpenMenu}>
-        {props.children}
-      </MenuButton>
+      <MenuButton {...menu}>{props.children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <Template {...menu} items={items} />
+        <Template {...menu} actions={actions} />
       </ContextMenu>
     </>
   );

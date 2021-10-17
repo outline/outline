@@ -1,12 +1,12 @@
 // @flow
 import { flattenDeep } from "lodash";
 import * as React from "react";
-import type { Action, ActionContext, CommandBarAction } from "types";
+import type { Action, ActionContext, CommandBarAction, MenuItem } from "types";
 
 export function actionToMenuItem(
   action: Action,
   context: ActionContext
-): ?Object {
+): MenuItem {
   function resolve<T>(value: any): T {
     if (typeof value === "function") {
       return value(context);
@@ -17,23 +17,30 @@ export function actionToMenuItem(
 
   const resolvedIcon = resolve<React.Element<any>>(action.icon);
   const resolvedChildren = resolve<Action[]>(action.children);
-  const resolvedName = resolve<string>(action.name);
+
+  const visible = action.visible ? action.visible(context) : true;
+  const title = resolve<string>(action.name);
+  const icon =
+    resolvedIcon && action.iconInContextMenu !== false
+      ? React.cloneElement(resolvedIcon, { color: "currentColor" })
+      : undefined;
+
+  if (resolvedChildren) {
+    return {
+      title,
+      icon,
+      items: resolvedChildren
+        .map((a) => actionToMenuItem(a, context))
+        .filter((a) => !!a),
+      visible,
+    };
+  }
 
   return {
-    title: resolvedName,
-    icon:
-      resolvedIcon && action.iconInContextMenu !== false
-        ? React.cloneElement(resolvedIcon, { color: "currentColor" })
-        : undefined,
-    onClick: action.perform
-      ? () => action.perform && action.perform(context)
-      : undefined,
-    items: resolvedChildren
-      ? resolvedChildren
-          .map((a) => actionToMenuItem(a, context))
-          .filter((a) => !!a)
-      : undefined,
-    visible: action.visible ? action.visible(context) : true,
+    title,
+    icon,
+    visible,
+    onClick: () => action.perform && action.perform(context),
     selected: action.selected ? action.selected(context) : undefined,
   };
 }
