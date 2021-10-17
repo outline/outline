@@ -8,7 +8,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useToasts from "hooks/useToasts";
-import { homeUrl } from "utils/routeHelpers";
+import { homePath } from "utils/routeHelpers";
 
 type Props = {
   collection: Collection,
@@ -28,7 +28,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
 
       try {
         await collection.delete();
-        history.push(homeUrl());
+        history.push(homePath());
         onSubmit();
       } catch (err) {
         showToast(err.message, { type: "error" });

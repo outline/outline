@@ -14,7 +14,7 @@ import usePageVisibility from "hooks/usePageVisibility";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
-import { homeUrl } from "utils/routeHelpers";
+import { homePath } from "utils/routeHelpers";
 
 type Props = {|
   ...EditorProps,
@@ -61,7 +61,7 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
         )
       );
 
-      history.replace(homeUrl());
+      history.replace(homePath());
     });
 
     provider.on("awarenessChange", ({ states }) => {

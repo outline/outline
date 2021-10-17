@@ -1,5 +1,5 @@
 // @flow
-import { DocumentIcon } from "outline-icons";
+import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { createAction } from "actions";
 import history from "utils/history";
@@ -17,6 +17,10 @@ export const openDocument = createAction({
       .map((path) => ({
         id: path.id,
         name: path.title,
+        icon: () =>
+          stores.documents.get(path.id)?.isStarred ? (
+            <StarredIcon />
+          ) : undefined,
         section: ({ t }) => t("Documents"),
         perform: () => history.push(path.url),
       }));

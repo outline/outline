@@ -31,6 +31,13 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import AccountMenu from "menus/AccountMenu";
+import {
+  homePath,
+  searchUrl,
+  draftsPath,
+  templatesPath,
+  settingsPath,
+} from "utils/routeHelpers";
 
 function MainSidebar() {
   const { t } = useTranslation();
@@ -95,14 +102,14 @@ function MainSidebar() {
           <Scrollable flex topShadow>
             <Section>
               <SidebarLink
-                to="/home"
+                to={homePath()}
                 icon={<HomeIcon color="currentColor" />}
                 exact={false}
                 label={t("Home")}
               />
               <SidebarLink
                 to={{
-                  pathname: "/search",
+                  pathname: searchUrl(),
                   state: { fromMenu: true },
                 }}
                 icon={<SearchIcon color="currentColor" />}
@@ -111,7 +118,7 @@ function MainSidebar() {
               />
               {can.createDocument && (
                 <SidebarLink
-                  to="/drafts"
+                  to={draftsPath()}
                   icon={<EditIcon color="currentColor" />}
                   label={
                     <Drafts align="center">
@@ -139,7 +146,7 @@ function MainSidebar() {
               {can.createDocument && (
                 <>
                   <SidebarLink
-                    to="/templates"
+                    to={templatesPath()}
                     icon={<ShapesIcon color="currentColor" />}
                     exact={false}
                     label={t("Templates")}
@@ -156,7 +163,7 @@ function MainSidebar() {
                 </>
               )}
               <SidebarLink
-                to="/settings"
+                to={settingsPath()}
                 icon={<SettingsIcon color="currentColor" />}
                 exact={false}
                 label={t("Settings")}

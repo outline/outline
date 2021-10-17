@@ -77,7 +77,7 @@ const Positioner = styled(KBarPositioner)`
 `;
 
 const SearchInput = styled(KBarSearch)`
-  padding: 12px 16px;
+  padding: 16px 20px;
   width: 100%;
   outline: none;
   border: none;

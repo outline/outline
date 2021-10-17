@@ -1,5 +1,5 @@
 // @flow
-import { TrashIcon } from "outline-icons";
+import { ToolsIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import stores from "stores";
 import { createAction } from "actions";
@@ -20,9 +20,13 @@ export const clearIndexedDB = createAction({
 export const development = createAction({
   name: ({ t }) => t("Development"),
   keywords: "debug",
+  icon: <ToolsIcon />,
+  iconInContextMenu: false,
   section: ({ t }) => t("Debug"),
   visible: ({ event }) =>
     env.ENVIRONMENT === "development" ||
     (event instanceof KeyboardEvent && event.altKey),
   children: [clearIndexedDB],
 });
+
+export const rootDebugActions = [development];

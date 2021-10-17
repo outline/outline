@@ -32,7 +32,7 @@ import SkipNavLink from "components/SkipNavLink";
 import env from "env";
 import { meta } from "utils/keyboard";
 import {
-  homeUrl,
+  homePath,
   searchUrl,
   matchDocumentSlug as slug,
   newDocumentUrl,
@@ -104,7 +104,7 @@ class Layout extends React.Component<Props> {
 
   @keydown("d")
   goToDashboard() {
-    this.redirectTo = homeUrl();
+    this.redirectTo = homePath();
   }
 
   @keydown("n")

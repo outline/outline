@@ -3,12 +3,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { groupSettings } from "shared/utils/routeHelpers";
 import Group from "models/Group";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useToasts from "hooks/useToasts";
+import { groupSettingsPath } from "utils/routeHelpers";
 
 type Props = {|
   group: Group,
@@ -27,7 +27,7 @@ function GroupDelete({ group, onSubmit }: Props) {
 
     try {
       await group.delete();
-      history.push(groupSettings());
+      history.push(groupSettingsPath());
       onSubmit();
     } catch (err) {
       showToast(err.message, { type: "error" });

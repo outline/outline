@@ -14,6 +14,7 @@ import {
   openAPIDocumentation,
   openBugReportUrl,
   openFeedbackUrl,
+  logout,
 } from "actions/definitions/navigation";
 import { changeTheme } from "actions/definitions/settings";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -33,8 +34,7 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
-  const stores = useStores();
-  const { auth, ui } = stores;
+  const { ui } = useStores();
   const { theme } = ui;
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
@@ -74,12 +74,9 @@ function AccountMenu(props: Props) {
             },
           ]
         : []),
-      {
-        name: t("Log out"),
-        perform: auth.logout,
-      },
+      logout,
     ];
-  }, [auth.logout, team.id, team.url, sessions, t]);
+  }, [team.id, team.url, sessions, t]);
 
   return (
     <>
