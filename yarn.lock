@@ -9200,10 +9200,10 @@ jws@^3.2.2:
     jwa "^1.4.1"
     safe-buffer "^5.0.1"
 
-kbar@^0.1.0-beta.7:
-  version "0.1.0-beta.7"
-  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.7.tgz#bda5edf0892174fbadb6af3f4f02e60d68651179"
-  integrity sha512-4ccJmCO58Wr9QJVTNJMOdUQ8GHSoLrAqEckCU7iRCK3ClFI7Q9/drUw7cUCDatVc5B9yNMfDhLk79U9rqzSAaQ==
+kbar@^0.1.0-beta.8:
+  version "0.1.0-beta.8"
+  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.8.tgz#f2703a2789acb1c50074491202956d0a82c45f3c"
+  integrity sha512-dL1sw3XGVyBApYhQIjtGHnPulYIXq1JWipPy6RjMUgzfe7qzNyzWtc3n08S7Dwse+4/Li6LvQmjg0GFpNWqZ7w==
   dependencies:
     "@reach/portal" "^0.16.0"
     fast-equals "^2.0.3"
