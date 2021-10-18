@@ -7,7 +7,7 @@ import { actionToKBar } from "actions";
 import useStores from "hooks/useStores";
 import type { Action } from "types";
 
-export function useCommandBarActions(actions: Action[]) {
+export default function useCommandBarActions(actions: Action[]) {
   const stores = useStores();
   const { t } = useTranslation();
   const location = useLocation();
@@ -22,7 +22,11 @@ export function useCommandBarActions(actions: Action[]) {
     stores,
   };
 
-  useRegisterActions(
-    flattenDeep(actions.map((action) => actionToKBar(action, context)))
+  const registerable = flattenDeep(
+    actions.map((action) => actionToKBar(action, context))
   );
+
+  console.log("registerable", registerable);
+
+  useRegisterActions(registerable);
 }

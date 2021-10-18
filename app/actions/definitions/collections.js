@@ -1,7 +1,8 @@
 // @flow
-import { CollectionIcon, PlusIcon } from "outline-icons";
+import { CollectionIcon, EditIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import stores from "stores";
+import CollectionEdit from "scenes/CollectionEdit";
 import CollectionNew from "scenes/CollectionNew";
 import DynamicCollectionIcon from "components/CollectionIcon";
 import { createAction } from "actions";
@@ -26,7 +27,7 @@ export const openCollection = createAction({
 });
 
 export const createCollection = createAction({
-  name: ({ t }) => `${t("New collection")}…`,
+  name: ({ t }) => t("New collection"),
   section: ({ t }) => t("Collections"),
   icon: <PlusIcon />,
   visible: ({ stores }) =>
@@ -38,6 +39,26 @@ export const createCollection = createAction({
     stores.dialogs.openModal({
       title: t("Create a collection"),
       content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
+    });
+  },
+});
+
+export const editCollection = createAction({
+  name: ({ t }) => t("Edit collection"),
+  section: ({ t }) => t("Collections"),
+  icon: <EditIcon />,
+  visible: ({ stores, activeCollectionId }) =>
+    !!activeCollectionId &&
+    stores.policies.abilities(activeCollectionId).update,
+  perform: ({ t, activeCollectionId }) => {
+    stores.dialogs.openModal({
+      title: t("Edit collection"),
+      content: (
+        <CollectionEdit
+          onSubmit={stores.dialogs.closeAllModals}
+          collectionId={activeCollectionId}
+        />
+      ),
     });
   },
 });

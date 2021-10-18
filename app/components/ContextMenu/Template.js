@@ -20,6 +20,7 @@ import useStores from "hooks/useStores";
 import type {
   MenuItem as TMenuItem,
   Action,
+  ActionContext,
   MenuSeparator,
   MenuHeading,
 } from "types";
@@ -27,6 +28,7 @@ import type {
 type Props = {|
   items: TMenuItem[],
   actions: (Action | MenuSeparator | MenuHeading)[],
+  context?: $Shape<ActionContext>,
 |};
 
 const Disclosure = styled(ExpandedIcon)`
@@ -76,13 +78,13 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   return filtered;
 }
 
-function Template({ items, actions, ...menu }: Props): React.Node {
+function Template({ items, actions, context, ...menu }: Props): React.Node {
   const { t } = useTranslation();
   const location = useLocation();
   const stores = useStores();
   const { ui } = stores;
 
-  const context = {
+  const ctx = {
     t,
     isCommandBar: false,
     isContextMenu: true,
@@ -90,12 +92,13 @@ function Template({ items, actions, ...menu }: Props): React.Node {
     activeDocumentId: ui.activeDocumentId,
     location,
     stores,
+    ...context,
   };
 
   const filteredTemplates = filterTemplateItems(
     actions
       ? actions.map((action) =>
-          action.type ? action : actionToMenuItem(action, context)
+          action.type ? action : actionToMenuItem(action, ctx)
         )
       : items
   );

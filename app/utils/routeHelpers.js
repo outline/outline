@@ -74,7 +74,7 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
   return oldUrl.replace(new RegExp("/doc/[0-9a-zA-Z-_~]*"), document.url);
 }
 
-export function newDocumentUrl(
+export function newDocumentPath(
   collectionId: string,
   params?: {
     parentDocumentId?: string,

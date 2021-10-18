@@ -26,7 +26,7 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
-import { newDocumentUrl } from "utils/routeHelpers";
+import { newDocumentPath } from "utils/routeHelpers";
 
 type Props = {|
   collection: Collection,
@@ -72,7 +72,7 @@ function CollectionMenu({
   const handleNewDocument = React.useCallback(
     (ev: SyntheticEvent<>) => {
       ev.preventDefault();
-      history.push(newDocumentUrl(collection.id));
+      history.push(newDocumentPath(collection.id));
     },
     [history, collection.id]
   );
@@ -225,7 +225,7 @@ function CollectionMenu({
           >
             <CollectionEdit
               onSubmit={() => setShowCollectionEdit(false)}
-              collection={collection}
+              collectionId={collection.id}
             />
           </Modal>
           <Modal

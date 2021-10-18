@@ -14,7 +14,7 @@ import styled from "styled-components";
 import CommandBarItem from "components/CommandBarItem";
 import rootActions from "actions/root";
 import env from "env";
-import { useCommandBarActions } from "hooks/useCommandBarActions";
+import useCommandBarActions from "hooks/useCommandBarActions";
 
 export const CommandBarOptions = {
   animations: {

@@ -35,7 +35,7 @@ import {
 export const navigateToHome = createAction({
   name: ({ t }) => t("Home"),
   section: ({ t }) => t("Navigation"),
-  shortcut: ["g", "h"],
+  shortcut: ["d"],
   icon: <HomeIcon />,
   perform: () => history.push(homePath()),
   visible: ({ location }) => location.pathname !== homePath(),

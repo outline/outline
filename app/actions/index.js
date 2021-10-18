@@ -105,7 +105,6 @@ export function actionToKBar(
         ? () => action.perform && action.perform(context)
         : undefined,
       children: children.map((a) => a.id),
-      // selected: action.selected ? action.selected(context) : undefined
     },
   ].concat(
     children.map((child) => ({
