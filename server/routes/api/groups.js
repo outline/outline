@@ -3,14 +3,7 @@ import Router from "koa-router";
 import { MAX_AVATAR_DISPLAY } from "../../../shared/constants";
 import auth from "../../middlewares/authentication";
 
-import {
-  User,
-  Event,
-  Group,
-  GroupUser,
-  Collection,
-  CollectionGroup,
-} from "../../models";
+import { User, Event, Group, GroupUser } from "../../models";
 import policy from "../../policies";
 import {
   presentGroup,
@@ -21,7 +14,7 @@ import {
 import { Op } from "../../sequelize";
 import pagination from "./middlewares/pagination";
 
-const { authorize, can } = policy;
+const { authorize } = policy;
 const router = new Router();
 
 router.post("groups.list", auth(), pagination(), async (ctx) => {
@@ -123,39 +116,6 @@ router.post("groups.update", auth(), async (ctx) => {
   group.name = name;
 
   if (isPrivate !== undefined) {
-    if (group.isPrivate === false && isPrivate === true) {
-      let collectionIds = await CollectionGroup.findAll({
-        where: { groupId: group.id },
-        attributes: ["collectionId"],
-      });
-
-      collectionIds = collectionIds.map((c) => c.collectionId);
-
-      const collections = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findAll({ where: { id: collectionIds } });
-
-      const collectionsWithPermission = collections.reduce(
-        (acc, collection) => {
-          if (can(user, "update", collection)) {
-            return [...acc, collection.id];
-          }
-          return acc;
-        },
-        []
-      );
-
-      await CollectionGroup.update(
-        {
-          permission: "read",
-        },
-        {
-          where: {
-            collectionId: collectionsWithPermission,
-          },
-        }
-      );
-    }
     group.isPrivate = !!isPrivate;
   }
 

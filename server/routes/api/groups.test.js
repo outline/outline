@@ -1,13 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
-import { CollectionGroup, Event } from "../../models";
+import { Event } from "../../models";
 import webService from "../../services/web";
-import {
-  buildUser,
-  buildAdmin,
-  buildGroup,
-  buildCollection,
-} from "../../test/factories";
+import { buildUser, buildAdmin, buildGroup } from "../../test/factories";
 import { flushdb } from "../../test/support";
 const app = webService();
 const server = new TestServer(app.callback());
@@ -88,67 +83,6 @@ describe("#groups.update", () => {
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe("Test");
       expect(body.data.isPrivate).toBe(false);
-    });
-
-    it("make groups readonly in collection if the visibility of group changes to private", async () => {
-      const user = await buildUser({ teamId: admin.teamId });
-
-      const privateCollection = await buildCollection({
-        teamId: admin.teamId,
-        createdById: user.id,
-        permission: null,
-      });
-
-      const response1 = await server.post("/api/groups.add_user", {
-        body: {
-          token: admin.getJwtToken(),
-          userId: admin.id,
-          id: group.id,
-        },
-      });
-
-      const response2 = await server.post("/api/groups.update", {
-        body: {
-          token: admin.getJwtToken(),
-          name: group.name,
-          id: group.id,
-          isPrivate: false,
-        },
-      });
-
-      const response3 = await server.post("/api/collections.add_group", {
-        body: {
-          token: user.getJwtToken(),
-          groupId: group.id,
-          id: privateCollection.id,
-        },
-      });
-
-      expect(response1.status).toBe(200);
-      expect(response2.status).toBe(200);
-      expect(response3.status).toBe(200);
-
-      const res = await server.post("/api/groups.update", {
-        body: {
-          token: admin.getJwtToken(),
-          name: group.name,
-          id: group.id,
-          isPrivate: true,
-        },
-      });
-
-      const body = await res.json();
-      expect(res.status).toEqual(200);
-      expect(body.data.isPrivate).toBe(true);
-
-      const collectionGroups = await CollectionGroup.findAll({
-        where: {
-          groupId: group.id,
-        },
-      });
-
-      expect(collectionGroups.length).toBe(1);
-      expect(collectionGroups[0].permission).toBe("read");
     });
 
     it("does not create an event if the update is a noop", async () => {
