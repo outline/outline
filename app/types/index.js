@@ -16,6 +16,16 @@ export type MenuItemClickable = {|
   icon?: React.Node,
 |};
 
+export type MenuItemWithChildren = {|
+  title: React.Node,
+  visible?: boolean,
+  disabled?: boolean,
+  style?: Object,
+  hover?: boolean,
+  items: MenuItem[],
+  icon?: React.Node,
+|};
+
 export type MenuSeparator = {|
   type: "separator",
   visible?: boolean,
@@ -137,15 +147,7 @@ export type MenuItem =
       level?: number,
       icon?: React.Node,
     |}
-  | {|
-      title: React.Node,
-      visible?: boolean,
-      disabled?: boolean,
-      style?: Object,
-      hover?: boolean,
-      items: MenuItem[],
-      icon?: React.Node,
-    |}
+  | MenuItemWithChildren
   | MenuSeparator
   | MenuHeading;
 

@@ -1,4 +1,5 @@
 // @flow
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +29,7 @@ function SidebarAction({ action, ...rest }: Props) {
   };
 
   const menuItem = actionToMenuItem(action, context);
+  invariant(menuItem.onClick, "passed action must have perform");
 
   return (
     <SidebarLink
