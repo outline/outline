@@ -9,8 +9,6 @@ function Dialogs() {
   const { dialogs } = useStores();
   const { guide, modalStack } = dialogs;
 
-  console.log(modalStack.keys());
-
   return (
     <>
       {guide ? (

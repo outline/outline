@@ -5,7 +5,6 @@ import {
   SearchIcon,
   ShapesIcon,
   HomeIcon,
-  PlusIcon,
   SettingsIcon,
 } from "outline-icons";
 import * as React from "react";
@@ -13,19 +12,19 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Invite from "scenes/Invite";
 import Bubble from "components/Bubble";
 import Flex from "components/Flex";
-import Modal from "components/Modal";
 import Scrollable from "components/Scrollable";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
+import SidebarAction from "./components/SidebarAction";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
+import { inviteUser } from "actions/definitions/users";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
@@ -43,21 +42,11 @@ function MainSidebar() {
   const { policies, documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
-  const [inviteModalOpen, setInviteModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     documents.fetchDrafts();
     documents.fetchTemplates();
   }, [documents]);
-
-  const handleInviteModalOpen = React.useCallback((ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    setInviteModalOpen(true);
-  }, []);
-
-  const handleInviteModalClose = React.useCallback(() => {
-    setInviteModalOpen(false);
-  }, []);
 
   const [dndArea, setDndArea] = React.useState();
   const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
@@ -149,25 +138,9 @@ function MainSidebar() {
                 exact={false}
                 label={t("Settings")}
               />
-              {can.inviteUser && (
-                <SidebarLink
-                  to="/settings/members"
-                  onClick={handleInviteModalOpen}
-                  icon={<PlusIcon color="currentColor" />}
-                  label={`${t("Invite people")}…`}
-                />
-              )}
+              <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
-          {can.inviteUser && (
-            <Modal
-              title={t("Invite people")}
-              onRequestClose={handleInviteModalClose}
-              isOpen={inviteModalOpen}
-            >
-              <Invite onSubmit={handleInviteModalClose} />
-            </Modal>
-          )}
         </DndProvider>
       )}
     </Sidebar>
