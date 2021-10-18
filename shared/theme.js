@@ -148,6 +148,7 @@ export const light = {
   backdrop: "rgba(0, 0, 0, 0.2)",
   shadow: "rgba(0, 0, 0, 0.2)",
 
+  menuItemSelected: colors.warmGrey,
   menuBackground: colors.white,
   menuShadow:
     "0 0 0 1px rgb(0 0 0 / 2%), 0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
@@ -207,6 +208,7 @@ export const dark = {
   backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",
 
+  menuItemSelected: lighten(0.1, "#1f2128"),
   menuBackground: "#1f2128",
   menuShadow:
     "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",

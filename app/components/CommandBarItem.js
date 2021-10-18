@@ -71,9 +71,7 @@ const Item = styled.div`
   font-size: 15px;
   padding: 12px 16px;
   background: ${(props) =>
-    props.active
-      ? props.theme.secondaryBackground
-      : props.theme.menuBackground};
+    props.active ? props.theme.menuItemSelected : props.theme.menuBackground};
   display: flex;
   align-items: center;
   justify-content: space-between;
