@@ -4,6 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import Key from "components/Key";
+import { CommandBarOptions } from "./CommandBar";
 import type { CommandBarAction } from "types";
 
 type Props = {
@@ -19,21 +20,18 @@ export default function CommandBarItem({ action, handlers, state }: Props) {
 
   React.useEffect(() => {
     if (active) {
-      // wait for the KBarAnimator to resize, _then_ scrollIntoView.
-      // https://medium.com/@owencm/one-weird-trick-to-performant-touch-response-animations-with-react-9fe4a0838116
-      window.requestAnimationFrame(() =>
-        window.requestAnimationFrame(() => {
-          const element = ownRef.current;
-          if (!element) {
-            return;
-          }
-          element.scrollIntoView({
-            block: "nearest",
-            behavior: "smooth",
-            inline: "start",
-          });
-        })
-      );
+      // wait for the height animtion, _then_ scrollIntoView.
+      setTimeout(() => {
+        const element = ownRef.current;
+        if (!element) {
+          return;
+        }
+        element.scrollIntoView({
+          block: "nearest",
+          behavior: "smooth",
+          inline: "start",
+        });
+      }, CommandBarOptions.animations.enterMs / 2);
     }
   }, [active]);
 
