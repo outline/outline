@@ -26,7 +26,5 @@ export default function useCommandBarActions(actions: Action[]) {
     actions.map((action) => actionToKBar(action, context))
   );
 
-  console.log("registerable", registerable);
-
-  useRegisterActions(registerable);
+  useRegisterActions(registerable, [registerable.length, location.pathname]);
 }

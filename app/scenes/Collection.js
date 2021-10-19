@@ -392,6 +392,7 @@ const DropMessage = styled(HelpText)`
 `;
 
 const DropzoneContainer = styled.div`
+  outline-color: transparent !important;
   min-height: calc(100% - 56px);
   position: relative;
 
