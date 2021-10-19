@@ -32,14 +32,13 @@ At least one worker process is required to process the [queues](../server/queues
 
 ## Collaboration
 
-The service is in alpha and as such is not started by default. It must run
-separately to the `websockets` service, and will not start in the same process.
-The `COLLABORATION_URL` must be set to the publicly accessible URL when running
-the service. For example, if the app is hosted at `https://docs.example.com` you
-may use something like: `COLLABORATION_URL=wss://docs-collaboration.example.com`.
-
-Start the service with:
+The service is in alpha and as such is not started by default. Start the service with:
 
 ```bash
 yarn start --services=collaboration
 ```
+
+The collaboration service is ideally run on a separate server. If this is the
+case the `COLLABORATION_URL` env can be set to the publicly accessible URL. For
+example, if the app is hosted at `https://docs.example.com` you may use something
+like: `COLLABORATION_URL=wss://docs-collaboration.example.com`.

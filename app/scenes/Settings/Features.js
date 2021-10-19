@@ -9,7 +9,6 @@ import Checkbox from "components/Checkbox";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
 import Scene from "components/Scene";
-import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -53,16 +52,13 @@ function Features() {
           all team members.
         </Trans>
       </HelpText>
-
-      {env.COLLABORATION_URL && (
-        <Checkbox
-          label={t("Collaborative editing")}
-          name="collaborativeEditing"
-          checked={data.collaborativeEditing}
-          onChange={handleChange}
-          note="When enabled multiple people can edit documents at the same time (Beta)"
-        />
-      )}
+      <Checkbox
+        label={t("Collaborative editing")}
+        name="collaborativeEditing"
+        checked={data.collaborativeEditing}
+        onChange={handleChange}
+        note="When enabled multiple people can edit documents at the same time (Beta)"
+      />
     </Scene>
   );
 }
