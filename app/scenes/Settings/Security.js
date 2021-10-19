@@ -28,7 +28,6 @@ function Security() {
   });
 
   const notes = {
-    admin: t("New user accounts will be given admin permissions by default"),
     member: t("New user accounts will be given member permissions by default"),
     viewer: t("New user accounts will be given viewer permissions by default"),
   };
@@ -110,7 +109,6 @@ function Security() {
         options={[
           { label: t("Member"), value: "member" },
           { label: t("Viewer"), value: "viewer" },
-          { label: t("Admin"), value: "admin" },
         ]}
         onChange={handleDefaultRoleChange}
         ariaLabel={t("Default role")}

@@ -136,8 +136,7 @@ export default async function userCreator({
         name,
         email,
         username,
-        isAdmin:
-          typeof isAdmin === "boolean" ? isAdmin : defaultUserRole === "admin",
+        isAdmin: typeof isAdmin === "boolean" && isAdmin,
         isViewer: isAdmin === true ? false : defaultUserRole === "viewer",
         teamId,
         avatarUrl,
