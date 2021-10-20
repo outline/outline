@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Arrow from "components/Arrow";
@@ -12,9 +13,16 @@ type Props = {
 
 const Toggle = React.forwardRef<Props, HTMLButtonElement>(
   ({ direction = "left", onClick, style }: Props, ref) => {
+    const { t } = useTranslation();
+
     return (
       <Positioner style={style}>
-        <ToggleButton ref={ref} $direction={direction} onClick={onClick}>
+        <ToggleButton
+          ref={ref}
+          $direction={direction}
+          onClick={onClick}
+          aria-label={t("Toggle sidebar")}
+        >
           <Arrow />
         </ToggleButton>
       </Positioner>

@@ -128,12 +128,7 @@ const InputSelect = (props: Props) => {
             wrappedLabel
           ))}
 
-        <Select
-          {...select}
-          disabled={disabled}
-          aria-label={ariaLabel}
-          ref={buttonRef}
-        >
+        <Select {...select} disabled={disabled} ref={buttonRef}>
           {(props) => (
             <StyledButton
               neutral
@@ -149,7 +144,7 @@ const InputSelect = (props: Props) => {
             </StyledButton>
           )}
         </Select>
-        <SelectPopover {...select} {...popOver}>
+        <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
           {(props) => {
             const topAnchor = props.style.top === "0";
             const rightAnchor = props.placement === "bottom-end";

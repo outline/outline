@@ -11,6 +11,7 @@ type Props = {|
   size: number,
   icon?: React.Node,
   user?: User,
+  alt?: string,
   onClick?: () => void,
   className?: string,
 |};

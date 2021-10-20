@@ -14,7 +14,6 @@ type Props = {|
   collectionId: string,
   documentId?: string,
   disabled: boolean,
-  staticContext: Object,
 |};
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
@@ -56,7 +55,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
       }) => (
         <DropzoneContainer
           {...getRootProps()}
-          {...{ isDragActive }}
+          $isDragActive={isDragActive}
           tabIndex="-1"
         >
           <input {...getInputProps()} />
@@ -71,8 +70,8 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
 const DropzoneContainer = styled.div`
   border-radius: 4px;
 
-  ${({ isDragActive, theme }) =>
-    isDragActive &&
+  ${({ $isDragActive, theme }) =>
+    $isDragActive &&
     css`
       background: ${theme.slateDark};
       a {
