@@ -122,7 +122,81 @@ describe("userCreator", () => {
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual("test@example.com");
     expect(user.username).toEqual("tname");
+    expect(user.isAdmin).toEqual(false);
+    expect(user.isViewer).toEqual(false);
     expect(isNewUser).toEqual(true);
+  });
+
+  it("should prefer isAdmin argument over defaultUserRole", async () => {
+    const team = await buildTeam({ defaultUserRole: "viewer" });
+    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProvider = authenticationProviders[0];
+
+    const result = await userCreator({
+      name: "Test Name",
+      email: "test@example.com",
+      username: "tname",
+      teamId: team.id,
+      isAdmin: true,
+      ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    const { user } = result;
+
+    expect(user.isAdmin).toEqual(true);
+  });
+
+  it("should prefer defaultUserRole when isAdmin is undefined or false", async () => {
+    const team = await buildTeam({ defaultUserRole: "viewer" });
+    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProvider = authenticationProviders[0];
+
+    const result = await userCreator({
+      name: "Test Name",
+      email: "test@example.com",
+      username: "tname",
+      teamId: team.id,
+      ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    const { user: tname } = result;
+
+    expect(tname.username).toEqual("tname");
+    expect(tname.isAdmin).toEqual(false);
+    expect(tname.isViewer).toEqual(true);
+
+    const tname2Result = await userCreator({
+      name: "Test2 Name",
+      email: "tes2@example.com",
+      username: "tname2",
+      teamId: team.id,
+      isAdmin: false,
+      ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    const { user: tname2 } = tname2Result;
+
+    expect(tname2.username).toEqual("tname2");
+    expect(tname2.isAdmin).toEqual(false);
+    expect(tname2.isViewer).toEqual(true);
   });
 
   it("should create a user from an invited user", async () => {

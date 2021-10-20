@@ -21,6 +21,23 @@ describe("#team.update", () => {
     expect(body.data.name).toEqual("New name");
   });
 
+  it("should only allow member,viewer or admin as default role", async () => {
+    const { admin } = await seed();
+    const res = await server.post("/api/team.update", {
+      body: { token: admin.getJwtToken(), defaultUserRole: "New name" },
+    });
+
+    expect(res.status).toEqual(400);
+
+    const successRes = await server.post("/api/team.update", {
+      body: { token: admin.getJwtToken(), defaultUserRole: "viewer" },
+    });
+
+    const body = await successRes.json();
+    expect(successRes.status).toEqual(200);
+    expect(body.data.defaultUserRole).toBe("viewer");
+  });
+
   it("should allow identical team details", async () => {
     const { admin, team } = await seed();
     const res = await server.post("/api/team.update", {

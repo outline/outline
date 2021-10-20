@@ -12,6 +12,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import Button, { Inner } from "components/Button";
+import HelpText from "components/HelpText";
 import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
@@ -30,6 +31,7 @@ export type Props = {
   labelHidden?: boolean,
   icon?: React.Node,
   options: Option[],
+  note?: React.Node,
   onChange: (string) => Promise<void> | void,
 };
 
@@ -49,6 +51,7 @@ const InputSelect = (props: Props) => {
     onChange,
     disabled,
     nude,
+    note,
     icon,
   } = props;
 
@@ -124,6 +127,7 @@ const InputSelect = (props: Props) => {
           ) : (
             wrappedLabel
           ))}
+
         <Select
           {...select}
           disabled={disabled}
@@ -201,6 +205,8 @@ const InputSelect = (props: Props) => {
           }}
         </SelectPopover>
       </Wrapper>
+      {note && <HelpText small>{note}</HelpText>}
+
       {(select.visible || select.animating) && <Backdrop />}
     </>
   );

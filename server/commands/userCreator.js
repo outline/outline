@@ -1,6 +1,6 @@
 // @flow
 import Sequelize from "sequelize";
-import { Event, User, UserAuthentication } from "../models";
+import { Event, Team, User, UserAuthentication } from "../models";
 import { sequelize } from "../sequelize";
 
 const Op = Sequelize.Op;
@@ -126,12 +126,18 @@ export default async function userCreator({
   let transaction = await sequelize.transaction();
 
   try {
+    const { defaultUserRole } = await Team.findByPk(teamId, {
+      attributes: ["defaultUserRole"],
+      transaction,
+    });
+
     const user = await User.create(
       {
         name,
         email,
         username,
-        isAdmin,
+        isAdmin: typeof isAdmin === "boolean" && isAdmin,
+        isViewer: isAdmin === true ? false : defaultUserRole === "viewer",
         teamId,
         avatarUrl,
         service: null,

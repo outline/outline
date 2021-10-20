@@ -8,6 +8,7 @@ import { useTranslation, Trans } from "react-i18next";
 import Checkbox from "components/Checkbox";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
+import InputSelect from "components/InputSelect";
 import Scene from "components/Scene";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -23,13 +24,20 @@ function Security() {
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
+    defaultUserRole: team.defaultUserRole,
   });
 
-  const showSuccessMessage = React.useCallback(
-    debounce(() => {
-      showToast(t("Settings saved"), { type: "success" });
-    }, 250),
-    [t, showToast]
+  const notes = {
+    member: t("New user accounts will be given member permissions by default"),
+    viewer: t("New user accounts will be given viewer permissions by default"),
+  };
+
+  const showSuccessMessage = React.useMemo(
+    () =>
+      debounce(() => {
+        showToast(t("Settings saved"), { type: "success" });
+      }, 250),
+    [showToast, t]
   );
 
   const handleChange = React.useCallback(
@@ -43,6 +51,15 @@ function Security() {
     },
     [auth, data, showSuccessMessage]
   );
+
+  const handleDefaultRoleChange = async (newDefaultRole: string) => {
+    const newData = { ...data, defaultUserRole: newDefaultRole };
+    setData(newData);
+
+    await auth.updateTeam(newData);
+
+    showSuccessMessage();
+  };
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -85,6 +102,18 @@ function Security() {
         note={t(
           "Links to supported services are shown as rich embeds within your documents"
         )}
+      />
+      <InputSelect
+        value={data.defaultUserRole}
+        label="Default role"
+        options={[
+          { label: t("Member"), value: "member" },
+          { label: t("Viewer"), value: "viewer" },
+        ]}
+        onChange={handleDefaultRoleChange}
+        ariaLabel={t("Default role")}
+        note={notes[data.defaultUserRole]}
+        short
       />
     </Scene>
   );

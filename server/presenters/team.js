@@ -16,5 +16,6 @@ export default function present(team: Team) {
     subdomain: team.subdomain,
     domain: team.domain,
     url: team.url,
+    defaultUserRole: team.defaultUserRole,
   };
 }
