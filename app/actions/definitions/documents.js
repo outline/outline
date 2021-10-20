@@ -7,13 +7,14 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { createAction } from "actions";
+import { DocumentSection } from "actions/sections";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import history from "utils/history";
 import { newDocumentPath } from "utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
-  section: ({ t }) => t("Documents"),
+  section: DocumentSection,
   shortcut: ["o", "d"],
   icon: <DocumentIcon />,
   children: ({ stores }) => {
@@ -28,7 +29,7 @@ export const openDocument = createAction({
           stores.documents.get(path.id)?.isStarred ? (
             <StarredIcon />
           ) : undefined,
-        section: ({ t }) => t("Documents"),
+        section: DocumentSection,
         perform: () => history.push(path.url),
       }));
   },
@@ -36,7 +37,7 @@ export const openDocument = createAction({
 
 export const createDocument = createAction({
   name: ({ t }) => t("New document"),
-  section: ({ t }) => t("Documents"),
+  section: DocumentSection,
   icon: <NewDocumentIcon />,
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
@@ -47,7 +48,7 @@ export const createDocument = createAction({
 
 export const importDocument = createAction({
   name: ({ t }) => t("Import document"),
-  section: ({ t }) => t("Documents"),
+  section: DocumentSection,
   icon: <ImportIcon />,
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&

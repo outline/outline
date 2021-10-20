@@ -4,12 +4,13 @@ import * as React from "react";
 import stores from "stores";
 import Invite from "scenes/Invite";
 import { createAction } from "actions";
+import { UserSection } from "actions/sections";
 
 export const inviteUser = createAction({
   name: ({ t }) => `${t("Invite people")}…`,
   icon: <PlusIcon />,
   keywords: "team member user",
-  section: ({ t }) => t("Members"),
+  section: UserSection,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").inviteUser,
   perform: ({ t }) => {

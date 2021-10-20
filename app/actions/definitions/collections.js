@@ -6,11 +6,12 @@ import CollectionEdit from "scenes/CollectionEdit";
 import CollectionNew from "scenes/CollectionNew";
 import DynamicCollectionIcon from "components/CollectionIcon";
 import { createAction } from "actions";
+import { CollectionSection } from "actions/sections";
 import history from "utils/history";
 
 export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),
-  section: ({ t }) => t("Collections"),
+  section: CollectionSection,
   shortcut: ["o", "c"],
   icon: <CollectionIcon />,
   children: ({ stores }) => {
@@ -20,7 +21,7 @@ export const openCollection = createAction({
       id: collection.id,
       name: collection.name,
       icon: <DynamicCollectionIcon collection={collection} />,
-      section: ({ t }) => t("Collections"),
+      section: CollectionSection,
       perform: () => history.push(collection.url),
     }));
   },
@@ -28,7 +29,7 @@ export const openCollection = createAction({
 
 export const createCollection = createAction({
   name: ({ t }) => t("New collection"),
-  section: ({ t }) => t("Collections"),
+  section: CollectionSection,
   icon: <PlusIcon />,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
@@ -45,7 +46,7 @@ export const createCollection = createAction({
 
 export const editCollection = createAction({
   name: ({ t }) => t("Edit collection"),
-  section: ({ t }) => t("Collections"),
+  section: CollectionSection,
   icon: <EditIcon />,
   visible: ({ stores, activeCollectionId }) =>
     !!activeCollectionId &&

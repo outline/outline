@@ -1,4 +1,5 @@
 // @flow
+import { useResultItem } from "kbar";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -7,16 +8,13 @@ import Key from "components/Key";
 import { CommandBarOptions } from "./CommandBar";
 import type { CommandBarAction } from "types";
 
-type Props = {
+type Props = {|
   action: CommandBarAction,
-  handlers: Object,
-  state: { index: number, activeIndex: number },
-};
+|};
 
-export default function CommandBarItem({ action, handlers, state }: Props) {
+export default function CommandBarItem({ action }: Props) {
+  const { handlers, active } = useResultItem({ action });
   const ownRef = React.useRef<?HTMLDivElement>(null);
-
-  const active = state.index === state.activeIndex;
 
   React.useEffect(() => {
     if (active) {
@@ -69,7 +67,7 @@ const Item = styled.div`
   font-size: 15px;
   padding: 12px 16px;
   background: ${(props) =>
-    props.active ? props.theme.menuItemSelected : props.theme.menuBackground};
+    props.active ? props.theme.menuItemSelected : "none"};
   display: flex;
   align-items: center;
   justify-content: space-between;

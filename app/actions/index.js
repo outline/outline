@@ -81,6 +81,7 @@ export function actionToKBar(
   const resolvedChildren = resolve<Action[]>(action.children);
   const resolvedSection = resolve<string>(action.section);
   const resolvedName = resolve<string>(action.name);
+  const resolvedPlaceholder = resolve<string>(action.placeholder);
 
   const children = resolvedChildren
     ? flattenDeep(resolvedChildren.map((a) => actionToKBar(a, context))).filter(
@@ -93,6 +94,7 @@ export function actionToKBar(
       id: action.id,
       name: resolvedName,
       section: resolvedSection,
+      placeholder: resolvedPlaceholder,
       keywords: `${action.keywords || ""} ${children
         .filter((c) => !!c.keywords)
         .map((c) => c.keywords)
@@ -104,7 +106,7 @@ export function actionToKBar(
       perform: action.perform
         ? () => action.perform && action.perform(context)
         : undefined,
-      children: children.map((a) => a.id),
+      children: children.length ? children.map((a) => a.id) : undefined,
     },
   ].concat(
     children.map((child) => ({

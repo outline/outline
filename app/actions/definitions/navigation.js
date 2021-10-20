@@ -21,6 +21,7 @@ import {
 import stores from "stores";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import { createAction } from "actions";
+import { NavigationSection } from "actions/sections";
 import history from "utils/history";
 import {
   settingsPath,
@@ -34,7 +35,7 @@ import {
 
 export const navigateToHome = createAction({
   name: ({ t }) => t("Home"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   shortcut: ["d"],
   icon: <HomeIcon />,
   perform: () => history.push(homePath()),
@@ -43,7 +44,7 @@ export const navigateToHome = createAction({
 
 export const navigateToSearch = createAction({
   name: ({ t }) => t("Search"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   shortcut: ["/"],
   icon: <SearchIcon />,
   perform: () => history.push(searchUrl()),
@@ -52,7 +53,7 @@ export const navigateToSearch = createAction({
 
 export const navigateToDrafts = createAction({
   name: ({ t }) => t("Drafts"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   icon: <EditIcon />,
   perform: () => history.push(draftsPath()),
   visible: ({ location }) => location.pathname !== draftsPath(),
@@ -60,7 +61,7 @@ export const navigateToDrafts = createAction({
 
 export const navigateToTemplates = createAction({
   name: ({ t }) => t("Templates"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   icon: <ShapesIcon />,
   perform: () => history.push(templatesPath()),
   visible: ({ location }) => location.pathname !== templatesPath(),
@@ -68,7 +69,7 @@ export const navigateToTemplates = createAction({
 
 export const navigateToArchive = createAction({
   name: ({ t }) => t("Archive"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   icon: <ArchiveIcon />,
   perform: () => history.push(archivePath()),
   visible: ({ location }) => location.pathname !== archivePath(),
@@ -76,7 +77,7 @@ export const navigateToArchive = createAction({
 
 export const navigateToTrash = createAction({
   name: ({ t }) => t("Trash"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   icon: <TrashIcon />,
   perform: () => history.push(trashPath()),
   visible: ({ location }) => location.pathname !== trashPath(),
@@ -84,7 +85,7 @@ export const navigateToTrash = createAction({
 
 export const navigateToSettings = createAction({
   name: ({ t }) => t("Settings"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   shortcut: ["g", "s"],
   iconInContextMenu: false,
   icon: <SettingsIcon />,
@@ -93,7 +94,7 @@ export const navigateToSettings = createAction({
 
 export const openAPIDocumentation = createAction({
   name: ({ t }) => t("API documentation"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
   perform: () => window.open(developersUrl()),
@@ -101,7 +102,7 @@ export const openAPIDocumentation = createAction({
 
 export const openFeedbackUrl = createAction({
   name: ({ t }) => t("Send us feedback"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
   perform: () => window.open(mailToUrl()),
@@ -109,13 +110,13 @@ export const openFeedbackUrl = createAction({
 
 export const openBugReportUrl = createAction({
   name: ({ t }) => t("Report a bug"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   perform: () => window.open(githubIssuesUrl()),
 });
 
 export const openChangelog = createAction({
   name: ({ t }) => t("Changelog"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
   perform: () => window.open(changelogUrl()),
@@ -123,7 +124,7 @@ export const openChangelog = createAction({
 
 export const openKeyboardShortcuts = createAction({
   name: ({ t }) => t("Keyboard shortcuts"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   shortcut: ["?"],
   iconInContextMenu: false,
   icon: <KeyboardIcon />,
@@ -137,7 +138,7 @@ export const openKeyboardShortcuts = createAction({
 
 export const logout = createAction({
   name: ({ t }) => t("Log out"),
-  section: ({ t }) => t("Navigation"),
+  section: NavigationSection,
   perform: () => stores.auth.logout(),
 });
 
