@@ -1,16 +1,17 @@
 // @flow
 import http from "http";
+import url from "url";
 import { Server } from "@hocuspocus/server";
 import Koa from "koa";
-import websocket from "koa-easy-ws";
-import Router from "koa-router";
+import WebSocket from "ws";
 import AuthenticationExtension from "../collaboration/authentication";
 import LoggerExtension from "../collaboration/logger";
 import PersistenceExtension from "../collaboration/persistence";
 import TracingExtension from "../collaboration/tracing";
 
 export default function init(app: Koa, server: http.Server) {
-  const router = new Router();
+  const path = "/collaboration";
+  const wss = new WebSocket.Server({ noServer: true });
 
   const hocuspocus = Server.configure({
     extensions: [
@@ -21,21 +22,15 @@ export default function init(app: Koa, server: http.Server) {
     ],
   });
 
-  // Websockets for collaborative editing
-  router.get("/collaboration/:documentName", async (ctx) => {
-    let { documentName } = ctx.params;
+  server.on("upgrade", function (req, socket, head) {
+    if (req.url.indexOf(path) > -1) {
+      const documentName = url.parse(req.url).pathname?.split("/").pop();
 
-    if (ctx.ws) {
-      const ws = await ctx.ws();
-      hocuspocus.handleConnection(ws, ctx.request, documentName);
+      wss.handleUpgrade(req, socket, Buffer.alloc(0), (client) => {
+        hocuspocus.handleConnection(client, req, documentName);
+      });
     }
-
-    ctx.response.status = 101;
   });
-
-  app.use(websocket());
-  app.use(router.routes());
-  app.use(router.allowedMethods());
 
   server.on("shutdown", () => {
     hocuspocus.destroy();

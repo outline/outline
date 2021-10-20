@@ -96,15 +96,13 @@ function SettingsSidebar() {
                 label={t("Security")}
               />
             )}
-            {can.update &&
-              env.COLLABORATION_URL &&
-              env.DEPLOYMENT !== "hosted" && (
-                <SidebarLink
-                  to="/settings/features"
-                  icon={<BeakerIcon color="currentColor" />}
-                  label={t("Features")}
-                />
-              )}
+            {can.update && env.DEPLOYMENT !== "hosted" && (
+              <SidebarLink
+                to="/settings/features"
+                icon={<BeakerIcon color="currentColor" />}
+                label={t("Features")}
+              />
+            )}
             <SidebarLink
               to="/settings/members"
               icon={<UserIcon color="currentColor" />}
