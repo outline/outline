@@ -63,7 +63,10 @@ router.post("groups.info", auth(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
-  const group = await Group.findByPk(id);
+  const group = await Group.scope({
+    method: ["withCollection", user.id],
+  }).findByPk(id);
+
   authorize(user, "read", group);
 
   ctx.body = {
@@ -166,7 +169,10 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
   ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
-  const group = await Group.findByPk(id);
+  const group = await Group.scope({
+    method: ["withCollection", user.id],
+  }).findByPk(id);
+
   authorize(user, "read", group);
 
   let userWhere;

@@ -75,6 +75,26 @@ Group.associate = (models) => {
     ],
     order: [["name", "ASC"]],
   });
+  Group.addScope("withCollection", (userId) => ({
+    include: [
+      {
+        association: "groupMemberships",
+        required: false,
+      },
+      {
+        model: models.CollectionGroup,
+        as: "collectionGroupMemberships",
+        required: false,
+        include: {
+          model: models.Collection.scope({
+            method: ["withMembership", userId],
+          }),
+          as: "collection",
+        },
+      },
+    ],
+    order: [["name", "ASC"]],
+  }));
 };
 
 // Cascade deletes to group and collection relations

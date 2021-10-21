@@ -157,14 +157,16 @@ router.post("collections.add_group", auth(), async (ctx) => {
   const { id, groupId, permission = "read_write" } = ctx.body;
   ctx.assertUuid(id, "id is required");
   ctx.assertUuid(groupId, "groupId is required");
+  const user = ctx.state.user;
 
   const collection = await Collection.scope({
-    method: ["withMembership", ctx.state.user.id],
+    method: ["withMembership", user.id],
   }).findByPk(id);
-  authorize(ctx.state.user, "update", collection);
+  authorize(user, "update", collection);
 
-  const group = await Group.findByPk(groupId);
-  authorize(ctx.state.user, "read", group);
+  const group = await Group.scope({
+    method: ["withCollection", user.id],
+  }).findByPk(groupId);
 
   let membership = await CollectionGroup.findOne({
     where: {
@@ -174,13 +176,15 @@ router.post("collections.add_group", auth(), async (ctx) => {
   });
 
   if (!membership) {
+    authorize(user, "use", group);
     membership = await CollectionGroup.create({
       collectionId: id,
       groupId,
       permission,
-      createdById: ctx.state.user.id,
+      createdById: user.id,
     });
-  } else if (permission) {
+  } else {
+    authorize(user, "read", group);
     membership.permission = permission;
     await membership.save();
   }
@@ -189,7 +193,7 @@ router.post("collections.add_group", auth(), async (ctx) => {
     name: "collections.add_group",
     collectionId: collection.id,
     teamId: collection.teamId,
-    actorId: ctx.state.user.id,
+    actorId: user.id,
     data: { name: group.name, groupId },
     ip: ctx.request.ip,
   });
@@ -207,14 +211,17 @@ router.post("collections.remove_group", auth(), async (ctx) => {
   const { id, groupId } = ctx.body;
   ctx.assertUuid(id, "id is required");
   ctx.assertUuid(groupId, "groupId is required");
+  const user = ctx.state.user;
 
   const collection = await Collection.scope({
-    method: ["withMembership", ctx.state.user.id],
+    method: ["withMembership", user.id],
   }).findByPk(id);
-  authorize(ctx.state.user, "update", collection);
+  authorize(user, "update", collection);
 
-  const group = await Group.findByPk(groupId);
-  authorize(ctx.state.user, "read", group);
+  const group = await Group.scope({
+    method: ["withCollection", user.id],
+  }).findByPk(groupId);
+  authorize(user, "read", group);
 
   await collection.removeGroup(group);
 
@@ -222,7 +229,7 @@ router.post("collections.remove_group", auth(), async (ctx) => {
     name: "collections.remove_group",
     collectionId: collection.id,
     teamId: collection.teamId,
-    actorId: ctx.state.user.id,
+    actorId: user.id,
     data: { name: group.name, groupId },
     ip: ctx.request.ip,
   });
