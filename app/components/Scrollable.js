@@ -11,14 +11,17 @@ type Props = {|
   flex?: boolean,
 |};
 
-function Scrollable({ shadow, topShadow, bottomShadow, flex, ...rest }: Props) {
-  const ref = React.useRef<?HTMLDivElement>();
+function Scrollable(
+  { shadow, topShadow, bottomShadow, flex, ...rest }: Props,
+  ref: any
+) {
+  const fallbackRef = React.useRef<?HTMLDivElement>();
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
   const { height } = useWindowSize();
 
   const updateShadows = React.useCallback(() => {
-    const c = ref.current;
+    const c = (ref || fallbackRef).current;
     if (!c) return;
 
     const scrollTop = c.scrollTop;
@@ -33,7 +36,14 @@ function Scrollable({ shadow, topShadow, bottomShadow, flex, ...rest }: Props) {
     if (bsv !== bottomShadowVisible) {
       setBottomShadow(bsv);
     }
-  }, [shadow, topShadow, bottomShadow, topShadowVisible, bottomShadowVisible]);
+  }, [
+    shadow,
+    topShadow,
+    bottomShadow,
+    ref,
+    topShadowVisible,
+    bottomShadowVisible,
+  ]);
 
   React.useEffect(() => {
     updateShadows();
@@ -41,7 +51,7 @@ function Scrollable({ shadow, topShadow, bottomShadow, flex, ...rest }: Props) {
 
   return (
     <Wrapper
-      ref={ref}
+      ref={ref || fallbackRef}
       onScroll={updateShadows}
       $flex={flex}
       $topShadowVisible={topShadowVisible}
@@ -75,4 +85,4 @@ const Wrapper = styled.div`
   transition: all 100ms ease-in-out;
 `;
 
-export default observer(Scrollable);
+export default observer(React.forwardRef(Scrollable));
