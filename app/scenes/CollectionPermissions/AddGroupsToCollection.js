@@ -45,9 +45,9 @@ const AddGroupsToCollection = ({ collection, onSubmit }: Props) => {
     });
   }, 250);
 
-  const handleAddGroup = (group: Group) => {
+  const handleAddGroup = async (group: Group) => {
     try {
-      collectionGroupMemberships.create({
+      await collectionGroupMemberships.create({
         collectionId: collection.id,
         groupId: group.id,
         permission: "read_write",
@@ -59,7 +59,7 @@ const AddGroupsToCollection = ({ collection, onSubmit }: Props) => {
         { type: "success" }
       );
     } catch (err) {
-      showToast(t("Could not add user"), { type: "error" });
+      showToast(t("Could not add group"), { type: "error" });
       console.error(err);
     }
   };
