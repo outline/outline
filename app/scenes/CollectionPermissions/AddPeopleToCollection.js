@@ -31,16 +31,23 @@ const AddPeopleToCollection = ({ collection, onSubmit }: Props) => {
   const { showToast } = useToasts();
   const can = policies.abilities(team.id);
 
-  const handleFilter = (ev: SyntheticInputEvent<>) => {
-    setQuery(ev.target.value);
-    debouncedFetch();
-  };
+  const debouncedFetch = React.useMemo(
+    () =>
+      debounce(async (query) => {
+        await users.fetchPage({
+          query,
+        });
+      }, 250),
+    [users]
+  );
 
-  const debouncedFetch = debounce(() => {
-    users.fetchPage({
-      query,
-    });
-  }, 250);
+  const handleFilter = React.useCallback(
+    (ev: SyntheticInputEvent<>) => {
+      setQuery(ev.target.value);
+      debouncedFetch(ev.target.value);
+    },
+    [debouncedFetch]
+  );
 
   const handleAddUser = (user: User) => {
     try {

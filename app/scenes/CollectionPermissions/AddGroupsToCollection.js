@@ -34,16 +34,24 @@ const AddGroupsToCollection = ({ collection, onSubmit }: Props) => {
 
   const can = policies.abilities(team.id);
   const groupsExist = !!groups.orderedData.length;
-  const handleFilter = (ev: SyntheticInputEvent<>) => {
-    setQuery(ev.target.value);
-    debouncedFetch();
-  };
 
-  const debouncedFetch = debounce(() => {
-    groups.fetchPage({
-      query,
-    });
-  }, 250);
+  const debouncedFetch = React.useMemo(
+    () =>
+      debounce(async (query) => {
+        await groups.fetchPage({
+          query,
+        });
+      }, 250),
+    [groups]
+  );
+
+  const handleFilter = React.useCallback(
+    (ev: SyntheticInputEvent<>) => {
+      setQuery(ev.target.value);
+      debouncedFetch(ev.target.value);
+    },
+    [debouncedFetch]
+  );
 
   const handleAddGroup = async (group: Group) => {
     try {
