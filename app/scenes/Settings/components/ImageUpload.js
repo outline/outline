@@ -133,8 +133,8 @@ class ImageUpload extends React.Component<Props> {
         style={EMPTY_OBJECT}
         disablePreview
       >
-        {({ getRootProps, getInputProps, isDragActive }) => (
-          <div {...getRootProps()} {...{ isDragActive }}>
+        {({ getRootProps, getInputProps }) => (
+          <div {...getRootProps()}>
             <input {...getInputProps()} />
             {this.props.children}
           </div>

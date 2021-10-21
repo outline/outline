@@ -177,8 +177,6 @@ function CollectionLink({
               icon={
                 <CollectionIcon collection={collection} expanded={expanded} />
               }
-              iconColor={collection.color}
-              expanded={expanded}
               showActions={menuOpen || expanded}
               isActiveDrop={isOver && canDrop}
               label={

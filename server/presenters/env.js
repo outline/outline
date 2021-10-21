@@ -6,7 +6,7 @@ export default function present(env: Object): Object {
   return {
     URL: env.URL.replace(/\/$/, ""),
     CDN_URL: (env.CDN_URL || "").replace(/\/$/, ""),
-    COLLABORATION_URL: (env.COLLABORATION_URL || "")
+    COLLABORATION_URL: (env.COLLABORATION_URL || env.URL)
       .replace(/\/$/, "")
       .replace(/^http/, "ws"),
     DEPLOYMENT: env.DEPLOYMENT,

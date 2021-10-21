@@ -9291,14 +9291,6 @@ koa-convert@1.2.0, koa-convert@^1.2.0:
     co "^4.6.0"
     koa-compose "^3.0.0"
 
-koa-easy-ws@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/koa-easy-ws/-/koa-easy-ws-1.3.0.tgz#dbf8eeb126ca11eed4c4e3af7904a47c25be2347"
-  integrity sha512-06lHAwm25HBdplTpwHiZqKcl39vS4KiVzRPneUExCHVvQ9TPHmFlUFO/gjQrUdLj3+kvqQpqdlIPNb91wn6EwA==
-  dependencies:
-    debug "^4.1.1"
-    ws "^7.3.1"
-
 koa-helmet@5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/koa-helmet/-/koa-helmet-5.2.0.tgz#6529f64dd4539261a9bb0a56e201e4976f0200f0"
@@ -10946,10 +10938,10 @@ os-name@^3.1.0:
     macos-release "^2.2.0"
     windows-release "^3.1.0"
 
-outline-icons@^1.26.1, outline-icons@^1.33.0:
-  version "1.33.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.33.0.tgz#eb022b170977eb977ab531941f2976f95860a6df"
-  integrity sha512-Ib2kEZ+2rlidyLJa9istA5k0GSV6731PXlKMJ2o4qzzO9h+AoxPeSmE7Rx3ZzrZDCYDMuruWcOLyNWjwu1/bLw==
+outline-icons@^1.26.1, outline-icons@^1.33.1:
+  version "1.33.1"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.33.1.tgz#2abe0dbd8604d2740ad8a0cb1e3d5baea2a91d2e"
+  integrity sha512-PRpk5cPZHhrc1o1oRwIaJTaXCtUA1Rc2L/ywLvdVmXOLoADBJT6ak7TV9/g75IFCive54oIx8JQ1tt5k0RtQPw==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -12778,10 +12770,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.18.9:
-  version "11.18.9"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.9.tgz#46fd86c34a5fae49378c3efd53aa5951298ec9cc"
-  integrity sha512-XiC9A5Efd64ezJjacthMcbtpbOkFXUNPZHW0ujpPQ01GFYMuBVSNht5ngBR0zhVNaRmZV4vtf/Knpw4J8YoAjQ==
+rich-markdown-editor@^11.18.10:
+  version "11.18.10"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.10.tgz#eb3e22c6a6764ef1110dfb3a15c09f1ff94aa002"
+  integrity sha512-MToC2pAOLMv1viBzFIhaTrfiXEBWyYZTGVpNZn1N8ZU7R6maAPlXqkvlQkq9VIee4T2Ji4cbI5ZYAz15dnclQA==
   dependencies:
     copy-to-clipboard "^3.0.8"
     fuzzy-search "^3.2.1"
@@ -15539,10 +15531,10 @@ write@1.0.3:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@^7.2.3, ws@^7.3.1, ws@^7.4.3:
-  version "7.5.3"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.3.tgz#160835b63c7d97bfab418fc1b8a9fced2ac01a74"
-  integrity sha512-kQ/dHIzuLrS6Je9+uv81ueZomEwH0qVYstcAQ4/Z93K8zeko9gtAbttJWzoC5ukqXY1PpoouV3+VSOqEAFt5wg==
+ws@^7.2.3, ws@^7.4.3, ws@^7.5.3:
+  version "7.5.5"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.5.tgz#8b4bc4af518cfabd0473ae4f99144287b33eb881"
+  integrity sha512-BAkMFcAzl8as1G/hArkxOxq3G7pjUqQ3gzYbLL0/5zNkph70e+lCoxBGnm6AW1+/aiNeV4fnKqZ8m4GZewmH2w==
 
 ws@~7.4.2:
   version "7.4.6"

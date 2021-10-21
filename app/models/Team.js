@@ -13,6 +13,7 @@ class Team extends BaseModel {
   subdomain: ?string;
   domain: ?string;
   url: string;
+  defaultUserRole: string;
 
   @computed
   get signinMethods(): string {

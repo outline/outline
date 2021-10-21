@@ -1,12 +1,10 @@
 // @flow
 import { transparentize } from "polished";
 import * as React from "react";
-import { withRouter, type RouterHistory, type Match } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
 import NavLink from "./NavLink";
-import { type Theme } from "types";
 
 type Props = {|
   to?: string | Object,
@@ -20,12 +18,8 @@ type Props = {|
   label?: React.Node,
   menu?: React.Node,
   showActions?: boolean,
-  iconColor?: string,
   active?: boolean,
   isActiveDrop?: boolean,
-  history: RouterHistory,
-  match: Match,
-  theme: Theme,
   exact?: boolean,
   depth?: number,
   scrollIntoViewIfNeeded?: boolean,
@@ -47,18 +41,16 @@ function SidebarLink(
     isActiveDrop,
     menu,
     showActions,
-    theme,
     exact,
     href,
     depth,
-    history,
-    match,
     className,
     scrollIntoViewIfNeeded,
     ...rest
   }: Props,
   ref
 ) {
+  const theme = useTheme();
   const style = React.useMemo(
     () => ({
       paddingLeft: `${(depth || 0) * 16 + 12}px`,
@@ -191,4 +183,4 @@ const Label = styled.div`
   }
 `;
 
-export default withRouter(withTheme(React.forwardRef(SidebarLink)));
+export default React.forwardRef<Props, HTMLAnchorElement>(SidebarLink);

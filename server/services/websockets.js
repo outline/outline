@@ -16,11 +16,26 @@ import { getUserForJWT } from "../utils/jwt";
 const { can } = policy;
 
 export default function init(app: Koa, server: http.Server) {
+  const path = "/realtime";
+
   // Websockets for events and non-collaborative documents
   const io = IO(server, {
-    path: "/realtime",
+    path,
     serveClient: false,
     cookie: false,
+  });
+
+  // Remove the upgrade handler that we just added when registering the IO engine
+  // And re-add it with a check to only handle the realtime path, this allows
+  // collaboration websockets to exist in the same process as engine.io.
+  const listeners = server.listeners("upgrade");
+  const ioHandleUpgrade = listeners.pop();
+  server.removeListener("upgrade", ioHandleUpgrade);
+
+  server.on("upgrade", function (req, socket, head) {
+    if (req.url.indexOf(path) > -1) {
+      ioHandleUpgrade(req, socket, head);
+    }
   });
 
   server.on("shutdown", () => {

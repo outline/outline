@@ -76,7 +76,7 @@ export default async function accountProvisioner({
       name: userParams.name,
       email: userParams.email,
       username: userParams.username,
-      isAdmin: isNewTeam,
+      isAdmin: isNewTeam || undefined,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
       ip,

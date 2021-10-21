@@ -33,9 +33,17 @@ const serviceNames = uniq(
 
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
-const processCount = serviceNames.includes("collaboration")
-  ? 1
-  : env.WEB_CONCURRENCY || undefined;
+let processCount = env.WEB_CONCURRENCY || undefined;
+
+if (serviceNames.includes("collaboration")) {
+  if (env.WEB_CONCURRENCY !== 1) {
+    Logger.info(
+      "lifecycle",
+      "Note: Restricting process count to 1 due to use of collaborative service"
+    );
+  }
+  processCount = 1;
+}
 
 // This function will only be called once in the original process
 function master() {
@@ -71,15 +79,6 @@ async function start(id: string, disconnect: () => void) {
   // install health check endpoint for all services
   router.get("/_health", (ctx) => (ctx.body = "OK"));
   app.use(router.routes());
-
-  if (
-    serviceNames.includes("websockets") &&
-    serviceNames.includes("collaboration")
-  ) {
-    throw new Error(
-      "Cannot run websockets and collaboration services in the same process"
-    );
-  }
 
   // loop through requested services at startup
   for (const name of serviceNames) {

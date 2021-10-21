@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { withRouter, type RouterHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import User from "models/User";
 import Avatar from "components/Avatar";
@@ -21,7 +21,6 @@ import { settingsPath } from "utils/routeHelpers";
 
 type Props = {|
   user: User,
-  history: RouterHistory,
   onRequestClose: () => void,
 |};
 
@@ -29,6 +28,7 @@ function UserProfile(props: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
   const currentUser = useCurrentUser();
+  const history = useHistory();
   const { user, ...rest } = props;
 
   if (!user) return null;
@@ -38,7 +38,7 @@ function UserProfile(props: Props) {
     <Modal
       title={
         <Flex align="center">
-          <Avatar src={user.avatarUrl} size={38} />
+          <Avatar src={user.avatarUrl} size={38} alt={t("Profile picture")} />
           <span>&nbsp;{user.name}</span>
         </Flex>
       }
@@ -61,7 +61,7 @@ function UserProfile(props: Props) {
           {isCurrentUser && (
             <Edit>
               <Button
-                onClick={() => props.history.push(settingsPath())}
+                onClick={() => history.push(settingsPath())}
                 icon={<EditIcon />}
                 neutral
               >
@@ -104,4 +104,4 @@ const Meta = styled(HelpText)`
   margin-top: -12px;
 `;
 
-export default withRouter(observer(UserProfile));
+export default observer(UserProfile);
