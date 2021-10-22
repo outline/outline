@@ -9205,10 +9205,10 @@ jws@^3.2.2:
     jwa "^1.4.1"
     safe-buffer "^5.0.1"
 
-kbar@^0.1.0-beta.12:
-  version "0.1.0-beta.12"
-  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.12.tgz#6f8a057f037b589b0da6a16a95a3a3f2e1831abf"
-  integrity sha512-uOBWaiwX5ZY3sLLTNth/rqhrBATUdGnmxg/2OsaoOTmEtfP3/MZCO8vo6ebJ2dra7wBNGsl5kiaDNJ7vEydoVw==
+kbar@^0.1.0-beta.14:
+  version "0.1.0-beta.14"
+  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.14.tgz#576f39beec2c5e046256004bd054d106f9c6be45"
+  integrity sha512-20Oauie3wam2ZOY/Im5csoHyiskv5B+Gi9QRoj0buj2kewN1S2rKIB/nSvVzzvnL/QZ8EHSVK+PAWqKzzdrqIw==
   dependencies:
     "@reach/portal" "^0.16.0"
     fast-equals "^2.0.3"
