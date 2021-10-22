@@ -17,6 +17,7 @@ import MemberListItem from "./components/MemberListItem";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   collection: Collection,
   onSubmit: () => void,
