@@ -11,15 +11,6 @@ allow(User, "createGroup", Team, (actor, team) => {
   throw new AdminRequiredError();
 });
 
-allow(User, "use", Group, (actor, group) => {
-  if (!group || actor.teamId !== group.teamId) return false;
-  if (actor.isAdmin || !group.isPrivate) return true;
-  if (group.groupMemberships.filter((gm) => gm.userId === actor.id).length) {
-    return true;
-  }
-  return false;
-});
-
 allow(User, "read", Group, (actor, group) => {
   if (!group || actor.teamId !== group.teamId) return false;
   if (actor.isAdmin || !group.isPrivate) return true;

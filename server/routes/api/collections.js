@@ -168,6 +168,8 @@ router.post("collections.add_group", auth(), async (ctx) => {
     method: ["withCollection", user.id],
   }).findByPk(groupId);
 
+  authorize(user, "read", group);
+
   let membership = await CollectionGroup.findOne({
     where: {
       collectionId: id,
@@ -176,7 +178,6 @@ router.post("collections.add_group", auth(), async (ctx) => {
   });
 
   if (!membership) {
-    authorize(user, "use", group);
     membership = await CollectionGroup.create({
       collectionId: id,
       groupId,
@@ -184,7 +185,6 @@ router.post("collections.add_group", auth(), async (ctx) => {
       createdById: user.id,
     });
   } else {
-    authorize(user, "read", group);
     membership.permission = permission;
     await membership.save();
   }
