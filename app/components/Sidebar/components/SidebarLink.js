@@ -4,15 +4,15 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
-import NavLink from "./NavLink";
+import NavLink, { type Props as NavLinkProps } from "./NavLink";
 
 type Props = {|
+  ...NavLinkProps,
   to?: string | Object,
   href?: string | Object,
   innerRef?: (?HTMLElement) => void,
-  onClick?: (SyntheticEvent<>) => void,
+  onClick?: (SyntheticEvent<>) => mixed,
   onMouseEnter?: (SyntheticEvent<>) => void,
-  className?: string,
   children?: React.Node,
   icon?: React.Node,
   label?: React.Node,
@@ -20,7 +20,6 @@ type Props = {|
   showActions?: boolean,
   active?: boolean,
   isActiveDrop?: boolean,
-  exact?: boolean,
   depth?: number,
   scrollIntoViewIfNeeded?: boolean,
 |};

@@ -112,7 +112,6 @@ function Collections({ onCreateCollection }: Props) {
         <SidebarLink
           label={t("Collections")}
           icon={<Disclosure expanded={expanded} color="currentColor" />}
-          disabled
         />
         <PlaceholderCollections />
       </Flex>

@@ -13,7 +13,7 @@ import PlaceholderList from "components/List/Placeholder";
 import { dateToHeading } from "utils/dates";
 
 type Props = {
-  fetch?: (options: ?Object) => Promise<void>,
+  fetch?: (options: ?Object) => Promise<any>,
   options?: Object,
   heading?: React.Node,
   empty?: React.Node,
