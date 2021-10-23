@@ -47,6 +47,7 @@ export function buildTeam(overrides: Object = {}) {
   return Team.create(
     {
       name: `Team ${count}`,
+      collaborativeEditing: false,
       authenticationProviders: [
         {
           name: "slack",
