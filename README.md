@@ -26,7 +26,7 @@ Outline requires the following dependencies:
 - [Postgres](https://www.postgresql.org/download/) >=9.5
 - [Redis](https://redis.io/) >= 4
 - AWS S3 bucket or compatible API for file storage
-- Slack or Google developer application for authentication
+- Slack, Google, Azure, or OIDC application for authentication
 
 ## Self-Hosted Production
 
