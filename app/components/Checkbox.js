@@ -12,7 +12,7 @@ export type Props = {|
   name?: string,
   disabled?: boolean,
   onChange: (event: SyntheticInputEvent<HTMLInputElement>) => mixed,
-  note?: string,
+  note?: React.Node,
   short?: boolean,
   small?: boolean,
 |};
