@@ -70,11 +70,7 @@ class Layout extends React.Component<Props> {
     this.props.ui.toggleCollapsedSidebar();
   }
 
-  @keydown([
-    "t",
-    "/",
-    env.ENVIRONMENT === "development" ? undefined : `${meta}+k`,
-  ])
+  @keydown(["t", "/"])
   goToSearch(ev: SyntheticEvent<>) {
     ev.preventDefault();
     ev.stopPropagation();
