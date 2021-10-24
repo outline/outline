@@ -26,7 +26,6 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
-import env from "env";
 import { meta } from "utils/keyboard";
 import {
   searchUrl,
