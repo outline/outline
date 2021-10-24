@@ -1,5 +1,5 @@
 // @flow
-import { compose, deburr, replace } from "lodash/fp";
+import { deburr } from "lodash";
 import naturalSort from "natural-sort";
 
 type NaturalSortOptions = {
@@ -9,14 +9,15 @@ type NaturalSortOptions = {
 
 const sorter = naturalSort();
 
-const stripEmojis = replace(
-  /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
-  ""
-);
+const stripEmojis = (value: string) =>
+  value.replace(
+    /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+    ""
+  );
 
-const cleanValue = compose(stripEmojis, deburr);
+const cleanValue = (value: string) => stripEmojis(deburr(value));
 
-function getSortByField<T>(
+function getSortByField<T: Object>(
   item: T,
   keyOrCallback: string | ((obj: T) => string)
 ) {
