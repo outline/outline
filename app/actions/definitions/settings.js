@@ -1,5 +1,5 @@
 // @flow
-import { SunIcon, MoonIcon, ToolsIcon } from "outline-icons";
+import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
 import * as React from "react";
 import stores from "stores";
 import { createAction } from "actions";
@@ -27,7 +27,7 @@ export const changeToLightTheme = createAction({
 
 export const changeToSystemTheme = createAction({
   name: ({ t }) => t("System"),
-  icon: <ToolsIcon />,
+  icon: <BrowserIcon />,
   iconInContextMenu: false,
   keywords: "theme system default",
   section: SettingsSection,

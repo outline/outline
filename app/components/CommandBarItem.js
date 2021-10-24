@@ -1,5 +1,4 @@
 // @flow
-import { useResultItem } from "kbar";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -9,28 +8,12 @@ import type { CommandBarAction } from "types";
 
 type Props = {|
   action: CommandBarAction,
+  active: Boolean,
 |};
 
-export default function CommandBarItem({ action }: Props) {
-  const { handlers, active } = useResultItem({ action });
-  const ownRef = React.useRef<?HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (active) {
-      const element = ownRef.current;
-      if (!element) {
-        return;
-      }
-      element.scrollIntoView({
-        block: "nearest",
-        behavior: "smooth",
-        inline: "start",
-      });
-    }
-  }, [active]);
-
+function CommandBarItem({ action, active }: Props, ref) {
   return (
-    <Item ref={ownRef} active={active} {...handlers}>
+    <Item active={active} ref={ref}>
       <Flex align="center" gap={8}>
         <Icon>
           {action.icon ? (
@@ -73,3 +56,5 @@ const Item = styled.div`
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);
 `;
+
+export default React.forwardRef<Props, HTMLDivElement>(CommandBarItem);
