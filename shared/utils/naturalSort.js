@@ -1,4 +1,5 @@
 // @flow
+import emojiRegex from "emoji-regex";
 import { deburr } from "lodash";
 import naturalSort from "natural-sort";
 
@@ -9,11 +10,8 @@ type NaturalSortOptions = {
 
 const sorter = naturalSort();
 
-const stripEmojis = (value: string) =>
-  value.replace(
-    /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
-    ""
-  );
+const regex = emojiRegex();
+const stripEmojis = (value: string) => value.replace(regex, "");
 
 const cleanValue = (value: string) => stripEmojis(deburr(value));
 
