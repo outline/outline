@@ -126,6 +126,7 @@ export const base = {
     popover: 9000,
     titleBarDivider: 10000,
     loadingIndicatorBar: 20000,
+    commandBar: 30000,
   },
 };
 
@@ -147,9 +148,10 @@ export const light = {
   backdrop: "rgba(0, 0, 0, 0.2)",
   shadow: "rgba(0, 0, 0, 0.2)",
 
+  menuItemSelected: colors.warmGrey,
   menuBackground: colors.white,
   menuShadow:
-    "0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08), 0 30px 40px rgb(0 0 0 / 8%)",
+    "0 0 0 1px rgb(0 0 0 / 2%), 0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
   divider: colors.slateLight,
   titleBarDivider: colors.slateLight,
   inputBorder: colors.slateLight,
@@ -206,10 +208,10 @@ export const dark = {
   backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",
 
-  menuBorder: lighten(0.1, colors.almostBlack),
-  menuBackground: lighten(0.015, colors.almostBlack),
+  menuItemSelected: lighten(0.1, "#1f2128"),
+  menuBackground: "#1f2128",
   menuShadow:
-    "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 0 1px rgba(255,255,255,.4)",
+    "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
   divider: lighten(0.1, colors.almostBlack),
   titleBarDivider: darken(0.4, colors.slate),
   inputBorder: colors.slateDark,

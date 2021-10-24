@@ -31,7 +31,7 @@ import TableOfContentsMenu from "menus/TableOfContentsMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
 import { type NavigationNode } from "types";
 import { metaDisplay } from "utils/keyboard";
-import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
+import { newDocumentPath, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
@@ -255,7 +255,7 @@ function DocumentHeader({
                 <Button
                   icon={<PlusIcon />}
                   as={Link}
-                  to={newDocumentUrl(document.collectionId, {
+                  to={newDocumentPath(document.collectionId, {
                     templateId: document.id,
                   })}
                   primary

@@ -42,24 +42,16 @@ export function mailToUrl(): string {
   return "mailto:hello@getoutline.com";
 }
 
-export function developers(): string {
+export function developersUrl(): string {
   return `https://www.getoutline.com/developers`;
 }
 
-export function changelog(): string {
+export function changelogUrl(): string {
   return `https://www.getoutline.com/changelog`;
 }
 
 export function signin(service: string = "slack"): string {
   return `${process.env.URL}/auth/${service}`;
-}
-
-export function settings(): string {
-  return `/settings`;
-}
-
-export function groupSettings(): string {
-  return `/settings/groups`;
 }
 
 export const SLUG_URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;

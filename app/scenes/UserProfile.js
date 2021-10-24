@@ -6,7 +6,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
-import { settings } from "shared/utils/routeHelpers";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
@@ -18,6 +17,7 @@ import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+import { settingsPath } from "utils/routeHelpers";
 
 type Props = {|
   user: User,
@@ -61,7 +61,7 @@ function UserProfile(props: Props) {
           {isCurrentUser && (
             <Edit>
               <Button
-                onClick={() => history.push(settings())}
+                onClick={() => history.push(settingsPath())}
                 icon={<EditIcon />}
                 neutral
               >

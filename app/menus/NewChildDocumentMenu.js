@@ -7,7 +7,7 @@ import Document from "models/Document";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import useStores from "hooks/useStores";
-import { newDocumentUrl } from "utils/routeHelpers";
+import { newDocumentPath } from "utils/routeHelpers";
 
 type Props = {
   label?: (any) => React.Node,
@@ -38,11 +38,11 @@ function NewChildDocumentMenu({ document, label }: Props) {
                   />
                 </span>
               ),
-              to: newDocumentUrl(document.collectionId),
+              to: newDocumentPath(document.collectionId),
             },
             {
               title: t("New nested document"),
-              to: newDocumentUrl(document.collectionId, {
+              to: newDocumentPath(document.collectionId, {
                 parentDocumentId: document.id,
               }),
             },

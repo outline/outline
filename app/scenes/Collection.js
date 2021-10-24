@@ -39,13 +39,15 @@ import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import Collection from "../models/Collection";
 import { updateCollectionUrl } from "../utils/routeHelpers";
+import { editCollection } from "actions/definitions/collections";
 import useBoolean from "hooks/useBoolean";
+import useCommandBarActions from "hooks/useCommandBarActions";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import CollectionMenu from "menus/CollectionMenu";
-import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
+import { newDocumentPath, collectionUrl } from "utils/routeHelpers";
 
 function CollectionScene() {
   const params = useParams();
@@ -109,6 +111,8 @@ function CollectionScene() {
     load();
   }, [collections, isFetching, collection, error, id, can]);
 
+  useCommandBarActions([editCollection]);
+
   const handleRejection = React.useCallback(() => {
     showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),
@@ -158,7 +162,7 @@ function CollectionScene() {
                 >
                   <Button
                     as={Link}
-                    to={collection ? newDocumentUrl(collection.id) : ""}
+                    to={collection ? newDocumentPath(collection.id) : ""}
                     disabled={!collection}
                     icon={<PlusIcon />}
                   >
@@ -227,7 +231,7 @@ function CollectionScene() {
                   </HelpText>
                   <Empty>
                     {canUser.createDocument && (
-                      <Link to={newDocumentUrl(collection.id)}>
+                      <Link to={newDocumentPath(collection.id)}>
                         <Button icon={<NewDocumentIcon color="currentColor" />}>
                           {t("Create a document")}
                         </Button>
@@ -388,6 +392,7 @@ const DropMessage = styled(HelpText)`
 `;
 
 const DropzoneContainer = styled.div`
+  outline-color: transparent !important;
   min-height: calc(100% - 56px);
   position: relative;
 

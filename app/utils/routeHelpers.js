@@ -3,12 +3,32 @@ import queryString from "query-string";
 import Collection from "models/Collection";
 import Document from "models/Document";
 
-export function homeUrl(): string {
+export function homePath(): string {
   return "/home";
 }
 
-export function newCollectionUrl(): string {
-  return "/collection/new";
+export function draftsPath(): string {
+  return "/drafts";
+}
+
+export function templatesPath(): string {
+  return "/templates";
+}
+
+export function settingsPath(): string {
+  return "/settings";
+}
+
+export function archivePath(): string {
+  return "/archive";
+}
+
+export function trashPath(): string {
+  return "/trash";
+}
+
+export function groupSettingsPath(): string {
+  return "/settings/groups";
 }
 
 export function collectionUrl(url: string, section: ?string): string {
@@ -54,7 +74,7 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
   return oldUrl.replace(new RegExp("/doc/[0-9a-zA-Z-_~]*"), document.url);
 }
 
-export function newDocumentUrl(
+export function newDocumentPath(
   collectionId: string,
   params?: {
     parentDocumentId?: string,

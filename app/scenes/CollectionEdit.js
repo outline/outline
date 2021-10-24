@@ -1,23 +1,28 @@
 // @flow
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Input from "components/Input";
 import InputSelect from "components/InputSelect";
+import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
 type Props = {
-  collection: Collection,
+  collectionId: string,
   onSubmit: () => void,
 };
 
-const CollectionEdit = ({ collection, onSubmit }: Props) => {
+const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
+  const { collections } = useStores();
+  const collection = collections.get(collectionId);
+  invariant(collection, "Collection not found");
+
   const [name, setName] = useState(collection.name);
   const [icon, setIcon] = useState(collection.icon);
   const [color, setColor] = useState(collection.color || "#4E5C6E");

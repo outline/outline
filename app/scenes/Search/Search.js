@@ -36,8 +36,7 @@ import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 import { type LocationWithState } from "types";
-import { metaDisplay } from "utils/keyboard";
-import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
+import { newDocumentPath, searchUrl } from "utils/routeHelpers";
 import { decodeURIComponentSafe } from "utils/urls";
 
 type Props = {
@@ -153,7 +152,7 @@ class Search extends React.Component<Props> {
 
   handleNewDoc = () => {
     if (this.collectionId) {
-      this.props.history.push(newDocumentUrl(this.collectionId));
+      this.props.history.push(newDocumentPath(this.collectionId));
     }
   };
 
@@ -289,8 +288,8 @@ class Search extends React.Component<Props> {
             <Fade>
               <HelpText small>
                 <Trans
-                  defaults="Use the <em>{{ meta }}+K</em> shortcut to search from anywhere in your knowledge base"
-                  values={{ meta: metaDisplay }}
+                  defaults="Use the <em>{{ shortcut }}</em> shortcut to search from anywhere in your knowledge base"
+                  values={{ shortcut: "/" }}
                   components={{ em: <strong /> }}
                 />
               </HelpText>
