@@ -60,7 +60,7 @@ const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
 export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   let filtered = items.filter((item) => item.visible !== false);
 
-  // this block literally just trims unneccessary separators
+  // this block literally just trims unnecessary separators
   filtered = filtered.reduce((acc, item, index) => {
     // trim separators from start / end
     if (item.type === "separator" && index === 0) return acc;

@@ -27,7 +27,7 @@ const joinClassnames = (...classnames) => {
   return classnames.filter((i) => i).join(" ");
 };
 
-type Props = {|
+export type Props = {|
   activeClassName?: String,
   activeStyle?: Object,
   className?: string,

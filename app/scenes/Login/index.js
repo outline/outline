@@ -21,10 +21,35 @@ import Provider from "./Provider";
 import env from "env";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
+import { isCustomDomain } from "utils/domains";
 
 type Props = {|
   location: Location,
 |};
+
+function Header({ config }) {
+  const { t } = useTranslation();
+  const isHosted = env.DEPLOYMENT === "hosted";
+  const isSubdomain = !!config.hostname;
+
+  if (!isHosted || isCustomDomain()) {
+    return null;
+  }
+
+  if (isSubdomain) {
+    return (
+      <Back href={env.URL}>
+        <BackIcon color="currentColor" /> {t("Back to home")}
+      </Back>
+    );
+  }
+
+  return (
+    <Back href="https://www.getoutline.com">
+      <BackIcon color="currentColor" /> {t("Back to website")}
+    </Back>
+  );
+}
 
 function Login({ location }: Props) {
   const query = useQuery();
@@ -79,22 +104,10 @@ function Login({ location }: Props) {
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
 
-  const header =
-    env.DEPLOYMENT === "hosted" &&
-    (config.hostname ? (
-      <Back href={env.URL}>
-        <BackIcon color="currentColor" /> {t("Back to home")}
-      </Back>
-    ) : (
-      <Back href="https://www.getoutline.com">
-        <BackIcon color="currentColor" /> {t("Back to website")}
-      </Back>
-    ));
-
   if (emailLinkSentTo) {
     return (
       <Background>
-        {header}
+        <Header config={config} />
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Check your email" />
           <CheckEmailIcon size={38} color="currentColor" />
@@ -117,7 +130,7 @@ function Login({ location }: Props) {
 
   return (
     <Background>
-      {header}
+      <Header config={config} />
       <Centered align="center" justify="center" column auto>
         <PageTitle title="Login" />
         <Logo>
