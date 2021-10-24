@@ -12,7 +12,7 @@ import Header from "components/ContextMenu/Header";
 import Template from "components/ContextMenu/Template";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
-import { newDocumentUrl } from "utils/routeHelpers";
+import { newDocumentPath } from "utils/routeHelpers";
 
 function NewTemplateMenu() {
   const menu = useMenuState({ modal: true });
@@ -27,7 +27,7 @@ function NewTemplateMenu() {
         const can = policies.abilities(collection.id);
         if (can.update) {
           filtered.push({
-            to: newDocumentUrl(collection.id, { template: true }),
+            to: newDocumentPath(collection.id, { template: true }),
             title: <CollectionName>{collection.name}</CollectionName>,
             icon: <CollectionIcon collection={collection} />,
           });

@@ -20,7 +20,7 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
-import { newDocumentUrl } from "utils/routeHelpers";
+import { newDocumentPath } from "utils/routeHelpers";
 
 type Props = {|
   document: Document,
@@ -132,7 +132,7 @@ function DocumentListItem(props: Props, ref) {
             <>
               <Button
                 as={Link}
-                to={newDocumentUrl(document.collectionId, {
+                to={newDocumentPath(document.collectionId, {
                   templateId: document.id,
                 })}
                 icon={<PlusIcon />}

@@ -1,7 +1,7 @@
 // @flow
 import "focus-visible";
 import { LazyMotion } from "framer-motion";
-import { createBrowserHistory } from "history";
+import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
@@ -9,19 +9,21 @@ import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
 import stores from "stores";
 import Analytics from "components/Analytics";
+import { CommandBarOptions } from "components/CommandBar";
+import Dialogs from "components/Dialogs";
 import ErrorBoundary from "components/ErrorBoundary";
 import PageTheme from "components/PageTheme";
 import ScrollToTop from "components/ScrollToTop";
 import Theme from "components/Theme";
 import Toasts from "components/Toasts";
 import Routes from "./routes";
+import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
 import env from "env";
 
 initI18n();
 
 const element = window.document.getElementById("root");
-const history = createBrowserHistory();
 
 if (env.SENTRY_DSN) {
   initSentry(history);
@@ -61,17 +63,20 @@ if (element) {
         <Analytics>
           <Theme>
             <ErrorBoundary>
-              <LazyMotion features={loadFeatures}>
-                <Router history={history}>
-                  <>
-                    <PageTheme />
-                    <ScrollToTop>
-                      <Routes />
-                    </ScrollToTop>
-                    <Toasts />
-                  </>
-                </Router>
-              </LazyMotion>
+              <KBarProvider actions={[]} options={CommandBarOptions}>
+                <LazyMotion features={loadFeatures}>
+                  <Router history={history}>
+                    <>
+                      <PageTheme />
+                      <ScrollToTop>
+                        <Routes />
+                      </ScrollToTop>
+                      <Toasts />
+                      <Dialogs />
+                    </>
+                  </Router>
+                </LazyMotion>
+              </KBarProvider>
             </ErrorBoundary>
           </Theme>
         </Analytics>

@@ -1,29 +1,27 @@
 // @flow
 import { observer } from "mobx-react";
-import { MoonIcon, SunIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import {
-  changelog,
-  developers,
-  githubIssuesUrl,
-  mailToUrl,
-  settings,
-} from "shared/utils/routeHelpers";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
-import Guide from "components/Guide";
-import env from "env";
-import useBoolean from "hooks/useBoolean";
+import { development } from "actions/definitions/debug";
+import {
+  navigateToSettings,
+  openKeyboardShortcuts,
+  openChangelog,
+  openAPIDocumentation,
+  openBugReportUrl,
+  openFeedbackUrl,
+  logout,
+} from "actions/definitions/navigation";
+import { changeTheme } from "actions/definitions/settings";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
 import useSessions from "hooks/useSessions";
 import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-import { deleteAllDatabases } from "utils/developer";
+import separator from "menus/separator";
 
 type Props = {|
   children: (props: any) => React.Node,
@@ -36,18 +34,11 @@ function AccountMenu(props: Props) {
     placement: "bottom-start",
     modal: true,
   });
-  const { showToast } = useToasts();
-  const { auth, ui } = useStores();
-  const { theme, resolvedTheme } = ui;
+  const { ui } = useStores();
+  const { theme } = ui;
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
-  const [includeAlt, setIncludeAlt] = React.useState(false);
-  const [
-    keyboardShortcutsOpen,
-    handleKeyboardShortcutsOpen,
-    handleKeyboardShortcutsClose,
-  ] = useBoolean();
 
   React.useEffect(() => {
     if (theme !== previousTheme) {
@@ -55,132 +46,43 @@ function AccountMenu(props: Props) {
     }
   }, [menu, theme, previousTheme]);
 
-  const handleDeleteAllDatabases = React.useCallback(async () => {
-    await deleteAllDatabases();
-    showToast("IndexedDB cache deleted");
-    menu.hide();
-  }, [showToast, menu]);
-
-  const handleOpenMenu = React.useCallback((event) => {
-    setIncludeAlt(event.altKey);
-  }, []);
-
-  const items = React.useMemo(() => {
+  const actions = React.useMemo(() => {
     const otherSessions = sessions.filter(
       (session) => session.teamId !== team.id && session.url !== team.url
     );
 
     return [
-      {
-        title: t("Settings"),
-        to: settings(),
-      },
-      {
-        title: t("Keyboard shortcuts"),
-        onClick: handleKeyboardShortcutsOpen,
-      },
-      {
-        title: t("API documentation"),
-        href: developers(),
-      },
-      {
-        type: "separator",
-      },
-      {
-        title: t("Changelog"),
-        href: changelog(),
-      },
-      {
-        title: t("Send us feedback"),
-        href: mailToUrl(),
-      },
-      {
-        title: t("Report a bug"),
-        href: githubIssuesUrl(),
-      },
-      ...(includeAlt || env.ENVIRONMENT === "development"
-        ? [
-            {
-              title: t("Development"),
-              items: [
-                {
-                  title: "Delete IndexedDB cache",
-                  icon: <TrashIcon />,
-                  onClick: handleDeleteAllDatabases,
-                },
-              ],
-            },
-          ]
-        : []),
-      {
-        title: t("Appearance"),
-        icon: resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
-        items: [
-          {
-            title: t("System"),
-            onClick: () => ui.setTheme("system"),
-            selected: theme === "system",
-          },
-          {
-            title: t("Light"),
-            onClick: () => ui.setTheme("light"),
-            selected: theme === "light",
-          },
-          {
-            title: t("Dark"),
-            onClick: () => ui.setTheme("dark"),
-            selected: theme === "dark",
-          },
-        ],
-      },
-      {
-        type: "separator",
-      },
+      navigateToSettings,
+      openKeyboardShortcuts,
+      openAPIDocumentation,
+      separator(),
+      openChangelog,
+      openFeedbackUrl,
+      openBugReportUrl,
+      development,
+      changeTheme,
+      separator(),
       ...(otherSessions.length
         ? [
             {
-              title: t("Switch team"),
-              items: otherSessions.map((session) => ({
-                title: session.name,
+              name: t("Switch team"),
+              children: otherSessions.map((session) => ({
+                name: session.name,
                 icon: <Logo alt={session.name} src={session.logoUrl} />,
-                href: session.url,
+                perform: () => (window.location.href = session.url),
               })),
             },
           ]
         : []),
-      {
-        title: t("Log out"),
-        onClick: auth.logout,
-      },
+      logout,
     ];
-  }, [
-    auth.logout,
-    team.id,
-    team.url,
-    sessions,
-    handleKeyboardShortcutsOpen,
-    handleDeleteAllDatabases,
-    resolvedTheme,
-    includeAlt,
-    theme,
-    t,
-    ui,
-  ]);
+  }, [team.id, team.url, sessions, t]);
 
   return (
     <>
-      <Guide
-        isOpen={keyboardShortcutsOpen}
-        onRequestClose={handleKeyboardShortcutsClose}
-        title={t("Keyboard shortcuts")}
-      >
-        <KeyboardShortcuts />
-      </Guide>
-      <MenuButton {...menu} onClick={handleOpenMenu}>
-        {props.children}
-      </MenuButton>
+      <MenuButton {...menu}>{props.children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <Template {...menu} items={items} />
+        <Template {...menu} actions={actions} />
       </ContextMenu>
     </>
   );

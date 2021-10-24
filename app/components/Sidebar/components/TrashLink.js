@@ -7,8 +7,9 @@ import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import DocumentDelete from "scenes/DocumentDelete";
 import Modal from "components/Modal";
-import useStores from "../../../hooks/useStores";
 import SidebarLink from "./SidebarLink";
+import useStores from "hooks/useStores";
+import { trashPath } from "utils/routeHelpers";
 
 function TrashLink({ documents }) {
   const { policies } = useStores();
@@ -33,7 +34,7 @@ function TrashLink({ documents }) {
     <>
       <div ref={dropToTrashDocument}>
         <SidebarLink
-          to="/trash"
+          to={trashPath()}
           icon={<TrashIcon color="currentColor" open={isDocumentDropping} />}
           exact={false}
           label={t("Trash")}

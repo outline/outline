@@ -162,8 +162,6 @@ const CardContent = styled.div`
 const Card = styled.div`
   backdrop-filter: blur(10px);
   background: ${(props) => props.theme.background};
-  border: ${(props) =>
-    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 4px;
   box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
     0 0 1px 1px rgba(0, 0, 0, 0.05);
