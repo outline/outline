@@ -49,7 +49,7 @@ function Features() {
       <HelpText>
         <Trans>
           Manage optional and beta features. Changing these settings will affect
-          all team members.
+          the experience for all team members.
         </Trans>
       </HelpText>
       <Checkbox
@@ -57,7 +57,13 @@ function Features() {
         name="collaborativeEditing"
         checked={data.collaborativeEditing}
         onChange={handleChange}
-        note="When enabled multiple people can edit documents at the same time (Beta)"
+        note={
+          <Trans>
+            When enabled multiple people can edit documents at the same time.
+            Please note that this feature is in beta and currently disables
+            updating the document via the API.
+          </Trans>
+        }
       />
     </Scene>
   );
