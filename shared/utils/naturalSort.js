@@ -1,4 +1,5 @@
 // @flow
+import emojiRegex from "emoji-regex";
 import { deburr } from "lodash";
 import naturalSort from "natural-sort";
 
@@ -9,20 +10,25 @@ type NaturalSortOptions = {
 
 const sorter = naturalSort();
 
+const regex = emojiRegex();
+const stripEmojis = (value: string) => value.replace(regex, "");
+
+const cleanValue = (value: string) => stripEmojis(deburr(value));
+
 function getSortByField<T: Object>(
   item: T,
-  keyOrCallback: string | ((T) => string)
+  keyOrCallback: string | ((obj: T) => string)
 ) {
-  if (typeof keyOrCallback === "string") {
-    return deburr(item[keyOrCallback]);
-  }
-
-  return keyOrCallback(item);
+  const field =
+    typeof keyOrCallback === "string"
+      ? item[keyOrCallback]
+      : keyOrCallback(item);
+  return cleanValue(field);
 }
 
 function naturalSortBy<T>(
   items: T[],
-  key: string | ((T) => string),
+  key: string | ((obj: T) => string),
   sortOptions?: NaturalSortOptions
 ): T[] {
   if (!items) return [];
