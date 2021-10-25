@@ -14,7 +14,7 @@ type Props = {|
 function CommandBarItem({ action, active }: Props, ref) {
   return (
     <Item active={active} ref={ref}>
-      <Flex align="center" gap={8}>
+      <Text align="center" gap={8}>
         <Icon>
           {action.icon ? (
             React.cloneElement(action.icon, { size: 22 })
@@ -24,7 +24,7 @@ function CommandBarItem({ action, active }: Props, ref) {
         </Icon>
         {action.name}
         {action.children?.length ? "…" : ""}
-      </Flex>
+      </Text>
       {action.shortcut?.length ? (
         <div style={{ display: "grid", gridAutoFlow: "column", gap: "4px" }}>
           {action.shortcut.map((sc) => (
@@ -42,6 +42,12 @@ const Icon = styled.div`
   color: ${(props) => props.theme.textSecondary};
 `;
 
+const Text = styled(Flex)`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+`;
+
 const Item = styled.div`
   font-size: 15px;
   padding: 12px 16px;
@@ -51,6 +57,11 @@ const Item = styled.div`
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
 `;
 
 const ForwardIcon = styled(BackIcon)`
