@@ -287,7 +287,7 @@
   "Recently published": "Recientemente publicado",
   "Least recently updated": "Menos recientemente actualizado",
   "A–Z": "A–Z",
-  "Drop documents to import": "Drop documents to import",
+  "Drop documents to import": "Arrastra los documentos a importar",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
   "Deleting": "Deleting",
   "I’m sure – Delete": "I’m sure – Delete",
