@@ -4,6 +4,7 @@ import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { MAX_TITLE_LENGTH } from "shared/constants";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import Fade from "components/Fade";
@@ -242,6 +243,7 @@ function DocumentLink(
                       title={node.title || t("Untitled")}
                       onSubmit={handleTitleChange}
                       canUpdate={canUpdate}
+                      maxLength={MAX_TITLE_LENGTH}
                     />
                   </>
                 }

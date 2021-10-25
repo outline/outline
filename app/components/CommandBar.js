@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import CommandBarResults from "components/CommandBarResults";
 import rootActions from "actions/root";
 import useCommandBarActions from "hooks/useCommandBarActions";
@@ -74,7 +75,7 @@ const SearchInput = styled(KBarSearch)`
 `;
 
 const Animator = styled(KBarAnimator)`
-  max-width: 540px;
+  max-width: 600px;
   max-height: 75vh;
   width: 90vw;
   background: ${(props) => props.theme.menuBackground};
@@ -82,6 +83,11 @@ const Animator = styled(KBarAnimator)`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: rgb(0 0 0 / 40%) 0px 16px 60px;
+  transition: max-width 0.2s ease-in-out;
+
+  ${breakpoint("desktopLarge")`
+    max-width: 740px;
+  `};
 `;
 
 export default observer(CommandBar);

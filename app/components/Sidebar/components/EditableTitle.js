@@ -7,9 +7,10 @@ type Props = {|
   onSubmit: (title: string) => Promise<void>,
   title: string,
   canUpdate: boolean,
+  maxLength?: number,
 |};
 
-function EditableTitle({ title, onSubmit, canUpdate }: Props) {
+function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
@@ -79,6 +80,7 @@ function EditableTitle({ title, onSubmit, canUpdate }: Props) {
             onChange={handleChange}
             onBlur={handleSave}
             autoFocus
+            {...rest}
           />
         </form>
       ) : (

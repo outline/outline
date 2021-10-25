@@ -18,7 +18,9 @@ export const openCollection = createAction({
     const collections = stores.collections.orderedData;
 
     return collections.map((collection) => ({
-      id: collection.id,
+      // Note: using url which includes the slug rather than id here to bust
+      // cache if the collection is renamed
+      id: collection.url,
       name: collection.name,
       icon: <DynamicCollectionIcon collection={collection} />,
       section: CollectionSection,

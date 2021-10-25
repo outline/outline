@@ -4,6 +4,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { MAX_TITLE_LENGTH } from "shared/constants";
 import Fade from "components/Fade";
 import useStores from "../../../hooks/useStores";
 import Disclosure from "./Disclosure";
@@ -85,6 +86,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
                 title={title || t("Untitled")}
                 onSubmit={handleTitleChange}
                 canUpdate={canUpdate}
+                maxLength={MAX_TITLE_LENGTH}
               />
             </>
           }

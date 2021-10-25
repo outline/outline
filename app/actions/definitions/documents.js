@@ -23,7 +23,9 @@ export const openDocument = createAction({
     return paths
       .filter((path) => path.type === "document")
       .map((path) => ({
-        id: path.id,
+        // Note: using url which includes the slug rather than id here to bust
+        // cache if the document is renamed
+        id: path.url,
         name: path.title,
         icon: () =>
           stores.documents.get(path.id)?.isStarred ? (
