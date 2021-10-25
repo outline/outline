@@ -2,7 +2,7 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router";
+import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import Editor, { type Props as EditorProps } from "components/Editor";
