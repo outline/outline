@@ -16,6 +16,7 @@ export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
   section: DocumentSection,
   shortcut: ["o", "d"],
+  keywords: "go to",
   icon: <DocumentIcon />,
   children: ({ stores }) => {
     const paths = stores.collections.pathsToDocuments;
@@ -41,6 +42,7 @@ export const createDocument = createAction({
   name: ({ t }) => t("New document"),
   section: DocumentSection,
   icon: <NewDocumentIcon />,
+  keywords: "create",
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
@@ -52,6 +54,7 @@ export const importDocument = createAction({
   name: ({ t }) => t("Import document"),
   section: DocumentSection,
   icon: <ImportIcon />,
+  keywords: "upload",
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
@@ -87,4 +90,8 @@ export const importDocument = createAction({
   },
 });
 
-export const rootDocumentActions = [openDocument, importDocument];
+export const rootDocumentActions = [
+  openDocument,
+  createDocument,
+  importDocument,
+];

@@ -33,6 +33,7 @@ export const createCollection = createAction({
   name: ({ t }) => t("New collection"),
   section: CollectionSection,
   icon: <PlusIcon />,
+  keywords: "create",
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
   perform: ({ t, event }) => {
