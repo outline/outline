@@ -674,6 +674,20 @@ Document.prototype.unarchive = async function (userId: string) {
   return this;
 };
 
+Document.prototype.restore = async function (
+  revision: Revision,
+  userId: string
+) {
+  if (revision.state) {
+    throw new Error("cannot restore document with snapshot");
+  }
+
+  this.text = revision.text;
+  this.title = revision.title;
+  this.lastModifiedById = userId;
+  return await this.save();
+};
+
 // Delete a document, archived or otherwise.
 Document.prototype.delete = function (userId: string) {
   return sequelize.transaction(
