@@ -204,12 +204,11 @@ export const createTemplate = createAction({
     if (!activeDocumentId) return false;
 
     const document = stores.documents.get(activeDocumentId);
-    invariant(document, "Document must exist");
 
     return (
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).update &&
-      !document.isTemplate
+      !document?.isTemplate
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
