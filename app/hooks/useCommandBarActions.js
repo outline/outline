@@ -27,7 +27,7 @@ export default function useCommandBarActions(actions: Action[]) {
   );
 
   useRegisterActions(registerable, [
-    ...registerable.map((r) => r.id),
+    registerable.map((r) => r.id).join(""),
     location.pathname,
   ]);
 }
