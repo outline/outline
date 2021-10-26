@@ -3,6 +3,9 @@ import { Document } from "../../models";
 import { globalEventQueue } from "../../queues";
 import type { Event } from "../../types";
 
+const delay =
+  process.env.NODE_ENV === "development" ? 1 * 60 * 1000 : 5 * 60 * 1000;
+
 export default class DebounceProcessor {
   async on(event: Event) {
     switch (event.name) {
@@ -13,7 +16,7 @@ export default class DebounceProcessor {
             name: "documents.update.delayed",
           },
           {
-            delay: 5 * 60 * 1000,
+            delay,
           }
         );
         break;

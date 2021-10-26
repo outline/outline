@@ -1,5 +1,6 @@
 // @flow
 import MarkdownSerializer from "slate-md-serializer";
+import * as Y from "yjs";
 import { DataTypes, sequelize } from "../sequelize";
 
 const serializer = new MarkdownSerializer();
@@ -12,6 +13,7 @@ const Revision = sequelize.define("revision", {
   },
   version: DataTypes.SMALLINT,
   editorVersion: DataTypes.STRING,
+  state: DataTypes.BLOB,
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
 });
@@ -45,8 +47,17 @@ Revision.findLatest = function (documentId) {
 };
 
 Revision.createFromDocument = function (document, options) {
+  let snapshot;
+
+  if (document.state) {
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, document.state);
+    snapshot = Buffer.from(Y.encodeSnapshot(Y.snapshot(ydoc)));
+  }
+
   return Revision.create(
     {
+      state: snapshot,
       title: document.title,
       text: document.text,
       userId: document.lastModifiedById,
