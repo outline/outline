@@ -1,26 +1,30 @@
 // @flow
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
+import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import { documentUrl } from "utils/routeHelpers";
 
 type Props = {
-  document: Document,
+  documentId: string,
   onSubmit: () => void,
 };
 
-function DocumentTemplatize({ document, onSubmit }: Props) {
+function DocumentTemplatize({ documentId, onSubmit }: Props) {
   const [isSaving, setIsSaving] = useState();
   const history = useHistory();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+  const { documents } = useStores();
+  const document = documents.get(documentId);
+  invariant(document, "Document must exist");
 
   const handleSubmit = React.useCallback(
     async (ev: SyntheticEvent<>) => {

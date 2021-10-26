@@ -26,5 +26,8 @@ export default function useCommandBarActions(actions: Action[]) {
     actions.map((action) => actionToKBar(action, context))
   );
 
-  useRegisterActions(registerable, [registerable.length, location.pathname]);
+  useRegisterActions(registerable, [
+    ...registerable.map((r) => r.id),
+    location.pathname,
+  ]);
 }

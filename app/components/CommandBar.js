@@ -88,6 +88,10 @@ const Animator = styled(KBarAnimator)`
   ${breakpoint("desktopLarge")`
     max-width: 740px;
   `};
+
+  @media print {
+    display: none;
+  }
 `;
 
 export default observer(CommandBar);

@@ -479,7 +479,7 @@ function DocumentMenu({
               isOpen={showTemplateModal}
             >
               <DocumentTemplatize
-                document={document}
+                documentId={document.id}
                 onSubmit={() => setShowTemplateModal(false)}
               />
             </Modal>
