@@ -67,6 +67,7 @@ class Gist extends React.Component<Props> {
         frameBorder="0"
         width="100%"
         height="200px"
+        scrolling="no"
         id={`gist-${id}`}
         title={`Github Gist (${id})`}
         onLoad={this.updateIframeContent}
