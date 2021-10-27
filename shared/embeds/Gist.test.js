@@ -15,6 +15,12 @@ describe("Gist", () => {
         match
       )
     ).toBeTruthy();
+
+    expect(
+      "https://gist.github.com/ShubhanjanMedhi-dev/900c9c14093611898a4a085938bb90d9".match(
+        match
+      )
+    ).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {
