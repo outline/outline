@@ -21,7 +21,7 @@ export async function findExistingTeam(authenticationProvider: {|
   if (process.env.DEPLOYMENT === "hosted") return null;
 
   // get the first team that exists, ordered by createdAt
-  const team = await Team.findOne({ limit: 1, order: "createdAt" });
+  const team = await Team.findOne({ limit: 1, order: ["createdAt"] });
   if (team === null) {
     return null;
   }
