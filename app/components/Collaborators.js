@@ -1,5 +1,5 @@
 // @flow
-import { sortBy, filter, uniq } from "lodash";
+import { sortBy, filter, uniq, isEqual } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -23,6 +23,7 @@ function Collaborators(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const currentUserId = user?.id;
+  const [requestedUserIds, setRequestedUserIds] = React.useState<string[]>([]);
   const { users, presence } = useStores();
   const { document } = props;
 
@@ -51,18 +52,21 @@ function Collaborators(props: Props) {
     [document.collaboratorIds, users.orderedData, presentIds]
   );
 
-  // load any users we don't know about
+  // load any users we don't yet have in memory
   React.useEffect(() => {
-    if (users.isFetching) {
-      return;
+    const userIdsToFetch = uniq([
+      ...document.collaboratorIds,
+      ...presentIds,
+    ]).filter((userId) => users.get(userId));
+
+    if (!isEqual(requestedUserIds, userIdsToFetch)) {
+      setRequestedUserIds(userIdsToFetch);
     }
 
-    uniq([...document.collaboratorIds, ...presentIds]).forEach((userId) => {
-      if (!users.get(userId)) {
-        return users.fetch(userId);
-      }
-    });
-  }, [document, users, presentIds, document.collaboratorIds]);
+    userIdsToFetch
+      .filter((userId) => requestedUserIds.includes(userId))
+      .forEach((userId) => users.fetch(userId));
+  }, [document, users, presentIds, document.collaboratorIds, requestedUserIds]);
 
   const popover = usePopoverState({
     gutter: 0,
