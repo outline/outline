@@ -674,7 +674,7 @@ Document.prototype.unarchive = async function (userId: string) {
   return this;
 };
 
-Document.prototype.restore = async function (
+Document.prototype.restoreFromRevision = async function (
   revision: Revision,
   userId: string
 ) {
@@ -685,7 +685,9 @@ Document.prototype.restore = async function (
   this.text = revision.text;
   this.title = revision.title;
   this.lastModifiedById = userId;
-  return await this.save();
+  await this.save();
+
+  return this;
 };
 
 // Delete a document, archived or otherwise.
