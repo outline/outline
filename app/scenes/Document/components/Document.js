@@ -376,7 +376,8 @@ class DocumentScene extends React.Component<Props> {
       team?.collaborativeEditing &&
       !document.isArchived &&
       !document.isDeleted &&
-      !revision;
+      !revision &&
+      !isShare;
 
     return (
       <ErrorBoundary>
