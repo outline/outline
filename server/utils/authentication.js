@@ -7,20 +7,6 @@ import Logger from "../logging/logger";
 import { User, Event, Team, Collection, View } from "../models";
 import { getCookieDomain } from "../utils/domains";
 
-export async function findExistingTeam(team: Team): Team {
-  // Should outline deployed in a multi-tenant environment, skip searching
-  // for an existing team.
-  if (process.env.DEPLOYMENT === "hosted") return team;
-
-  // Should a team already exist, choose that team,
-  // sadly we are unable to choose the first team, as there is not createdAt
-  // field.
-  const teams = await Team.findAll({ limit: 1 });
-  if (teams.length === 0) return team;
-
-  return teams[0];
-}
-
 export function getAllowedDomains(): string[] {
   // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability
   const env = process.env.ALLOWED_DOMAINS || process.env.GOOGLE_ALLOWED_DOMAINS;

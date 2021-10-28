@@ -10,10 +10,7 @@ import {
   GoogleWorkspaceInvalidError,
 } from "../../../errors";
 import passportMiddleware from "../../../middlewares/passport";
-import {
-  findExistingTeam,
-  getAllowedDomains,
-} from "../../../utils/authentication";
+import { getAllowedDomains } from "../../../utils/authentication";
 import { StateStore } from "../../../utils/passport";
 
 const router = new Router();
@@ -60,11 +57,11 @@ if (GOOGLE_CLIENT_ID) {
 
           const result = await accountProvisioner({
             ip: req.ip,
-            team: await findExistingTeam({
+            team: {
               name: teamName,
               domain,
               subdomain,
-            }),
+            },
             user: {
               name: profile.displayName,
               email: profile.email,

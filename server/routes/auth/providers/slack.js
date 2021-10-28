@@ -12,7 +12,6 @@ import {
   Integration,
   Team,
 } from "../../../models";
-import { findExistingTeam } from "../../../utils/authentication";
 import { StateStore } from "../../../utils/passport";
 import * as Slack from "../../../utils/slack";
 
@@ -47,11 +46,11 @@ if (SLACK_CLIENT_ID) {
       try {
         const result = await accountProvisioner({
           ip: req.ip,
-          team: await findExistingTeam({
+          team: {
             name: profile.team.name,
             subdomain: profile.team.domain,
             avatarUrl: profile.team.image_230,
-          }),
+          },
           user: {
             name: profile.user.name,
             email: profile.user.email,

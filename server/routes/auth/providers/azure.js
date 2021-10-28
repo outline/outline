@@ -7,7 +7,6 @@ import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
 import { MicrosoftGraphError } from "../../../errors";
 import passportMiddleware from "../../../middlewares/passport";
-import { findExistingTeam } from "../../../utils/authentication";
 import { StateStore, request } from "../../../utils/passport";
 
 const router = new Router();
@@ -79,11 +78,11 @@ if (AZURE_CLIENT_ID) {
 
         const result = await accountProvisioner({
           ip: req.ip,
-          team: await findExistingTeam({
+          team: {
             name: teamName,
             domain,
             subdomain,
-          }),
+          },
           user: {
             name: profile.name,
             email,

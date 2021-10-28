@@ -10,10 +10,7 @@ import {
   AuthenticationError,
 } from "../../../errors";
 import passportMiddleware from "../../../middlewares/passport";
-import {
-  findExistingTeam,
-  getAllowedDomains,
-} from "../../../utils/authentication";
+import { getAllowedDomains } from "../../../utils/authentication";
 import { StateStore, request } from "../../../utils/passport";
 
 const router = new Router();
@@ -93,12 +90,12 @@ if (OIDC_CLIENT_ID) {
 
           const result = await accountProvisioner({
             ip: req.ip,
-            team: await findExistingTeam({
+            team: {
               // https://github.com/outline/outline/pull/2388#discussion_r681120223
               name: "Wiki",
               domain,
               subdomain,
-            }),
+            },
             user: {
               name: profile.name,
               email: profile.email,
