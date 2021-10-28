@@ -12,6 +12,44 @@ type TeamCreatorResult = {|
   isNewTeam: boolean,
 |};
 
+export async function findExistingTeam(authenticationProvider: {|
+  name: string,
+  providerId: string,
+|}): Promise<TeamCreatorResult | null> {
+  // Should outline deployed in a multi-tenant environment, skip searching
+  // for an existing team.
+  if (process.env.DEPLOYMENT === "hosted") return null;
+
+  // get the first team that exists, ordered by createdAt
+  const team = await Team.findOne({ limit: 1, order: "createdAt" });
+  if (team === null) {
+    return null;
+  }
+
+  // query if a corresponding authenticationProvider already exists
+  let authenticationProviders = await team.getAuthenticationProviders({
+    where: {
+      name: authenticationProvider.name,
+    },
+  });
+
+  // ... if this is not the case, create a new authentication provider
+  // that we use instead, overwriting the providerId with the domain of the team
+  let authP =
+    authenticationProviders.length === 0
+      ? await team.createAuthenticationProvider({
+          ...authenticationProvider,
+          providerId: team.domain,
+        })
+      : authenticationProviders[0];
+
+  return {
+    authenticationProvider: authP,
+    team: team,
+    isNewTeam: false,
+  };
+}
+
 export default async function teamCreator({
   name,
   domain,

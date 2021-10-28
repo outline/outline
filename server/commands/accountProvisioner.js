@@ -8,7 +8,7 @@ import {
 } from "../errors";
 import mailer from "../mailer";
 import { Collection, Team, User } from "../models";
-import teamCreator from "./teamCreator";
+import teamCreator, { findExistingTeam } from "./teamCreator";
 import userCreator from "./userCreator";
 
 type Props = {|
@@ -53,13 +53,15 @@ export default async function accountProvisioner({
 }: Props): Promise<AccountProvisionerResult> {
   let result;
   try {
-    result = await teamCreator({
-      name: teamParams.name,
-      domain: teamParams.domain,
-      subdomain: teamParams.subdomain,
-      avatarUrl: teamParams.avatarUrl,
-      authenticationProvider: authenticationProviderParams,
-    });
+    result =
+      (await findExistingTeam(authenticationProviderParams)) ||
+      (await teamCreator({
+        name: teamParams.name,
+        domain: teamParams.domain,
+        subdomain: teamParams.subdomain,
+        avatarUrl: teamParams.avatarUrl,
+        authenticationProvider: authenticationProviderParams,
+      }));
   } catch (err) {
     throw new AuthenticationError(err.message);
   }
