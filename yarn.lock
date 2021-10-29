@@ -1229,10 +1229,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hocuspocus/provider@^1.0.0-alpha.18":
-  version "1.0.0-alpha.18"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.18.tgz#670b052a2bd8b634e05ec282f4453bfd92779906"
-  integrity sha512-KLszadquMZHKTdR9CQhAn97Gcn6TED6DKPpJ+9Ni68gCOfYUSZrI4pwIeOOgskYXAE/pI3Gfb0qW/OBMhKdT1w==
+"@hocuspocus/provider@^1.0.0-alpha.20":
+  version "1.0.0-alpha.20"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.20.tgz#2be84b2279c5087bc1f17e94bbc648a5c6ba4b16"
+  integrity sha512-eaq3MrTrS6dpzBX7PX2qlts2zxR3tPM6ji3goga9frkOSAroMQ91ADap1RUpfFFKQYt1Q03F0WdVA5FV/BUuOA==
   dependencies:
     "@lifeomic/attempt" "^3.0.0"
     lib0 "^0.2.42"
