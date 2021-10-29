@@ -370,7 +370,8 @@ class DocumentScene extends React.Component<Props> {
     const headings = this.editor.current
       ? this.editor.current.getHeadings()
       : [];
-    const showContents = ui.tocVisible && readOnly;
+    const showContents =
+      ui.tocVisible && (readOnly || team?.collaborativeEditing);
 
     const collaborativeEditing =
       team?.collaborativeEditing &&
@@ -434,7 +435,7 @@ class DocumentScene extends React.Component<Props> {
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
-              isEditing={!readOnly}
+              isEditing={!readOnly && !team?.collaborativeEditing}
               isSaving={this.isSaving}
               isPublishing={this.isPublishing}
               publishingIsDisabled={

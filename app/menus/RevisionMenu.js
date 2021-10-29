@@ -57,11 +57,7 @@ function RevisionMenu({ document, revisionId, className }: Props) {
         {...menu}
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>
-        <MenuItem
-          {...menu}
-          onClick={handleRestore}
-          disabled={team.collaborativeEditing}
-        >
+        <MenuItem {...menu} onClick={handleRestore}>
           <MenuIconWrapper>
             <RestoreIcon />
           </MenuIconWrapper>

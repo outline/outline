@@ -86,7 +86,10 @@ class DataLoader extends React.Component<Props> {
   }
 
   get isEditing() {
-    return this.props.match.path === matchDocumentEdit;
+    return (
+      this.props.match.path === matchDocumentEdit ||
+      this.props.auth?.team?.collaborativeEditing
+    );
   }
 
   onSearchLink = async (term: string) => {
@@ -258,7 +261,9 @@ class DataLoader extends React.Component<Props> {
 
     return (
       <React.Fragment key={key}>
-        {this.isEditing && <HideSidebar ui={ui} />}
+        {this.isEditing && !team.collaborativeEditing && (
+          <HideSidebar ui={ui} />
+        )}
         {this.props.children({
           document,
           revision,
