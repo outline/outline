@@ -10,13 +10,18 @@ import {
   NotificationSetting,
 } from "../../models";
 import { Op } from "../../sequelize";
-import type { DocumentEvent, CollectionEvent, Event } from "../../types";
+import type {
+  DocumentEvent,
+  CollectionEvent,
+  RevisionEvent,
+  Event,
+} from "../../types";
 
 export default class NotificationsProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":
-      case "documents.update.debounced":
+      case "revisions.create":
         return this.documentUpdated(event);
       case "collections.create":
         return this.collectionCreated(event);
@@ -24,18 +29,17 @@ export default class NotificationsProcessor {
     }
   }
 
-  async documentUpdated(event: DocumentEvent) {
+  async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
     if (event.data && event.data.source === "import") return;
 
-    const document = await Document.findByPk(event.documentId);
-    if (!document) return;
+    const [document, team] = await Promise.all([
+      Document.findByPk(event.documentId),
+      Team.findByPk(event.teamId),
+    ]);
 
+    if (!document || !team || !document.collection) return;
     const { collection } = document;
-    if (!collection) return;
-
-    const team = await Team.findByPk(document.teamId);
-    if (!team) return;
 
     const notificationSettings = await NotificationSetting.findAll({
       where: {
