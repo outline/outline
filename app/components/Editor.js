@@ -12,6 +12,7 @@ import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
+import { fadeOutCursor } from "styles/animations";
 import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
@@ -269,6 +270,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
         bottom: 0;
       }
       > div {
+        animation: ${fadeOutCursor} 2000ms ease-out;
         opacity: 0;
         position: absolute;
         top: -1.8em;
@@ -285,6 +287,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
         pointer-events: none;
         left: -1px;
       }
+
       &:hover {
         > div {
           opacity: 1;
