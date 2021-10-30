@@ -57,7 +57,7 @@ function Collaborators(props: Props) {
     const userIdsToFetch = uniq([
       ...document.collaboratorIds,
       ...presentIds,
-    ]).filter((userId) => users.get(userId));
+    ]).filter((userId) => !users.get(userId));
 
     if (!isEqual(requestedUserIds, userIdsToFetch)) {
       setRequestedUserIds(userIdsToFetch);

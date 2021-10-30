@@ -1,7 +1,6 @@
 // @flow
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
@@ -65,7 +64,6 @@ class AvatarWithPresence extends React.Component<Props> {
                   : this.handleOpenProfile
               }
               size={32}
-              icon={isEditing ? <EditIcon size={16} color="#FFF" /> : undefined}
             />
           </AvatarWrapper>
         </Tooltip>
