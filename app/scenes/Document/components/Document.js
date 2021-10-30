@@ -6,7 +6,6 @@ import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { type TFunction, Trans, withTranslation } from "react-i18next";
-import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
@@ -27,6 +26,7 @@ import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import PlaceholderDocument from "components/PlaceholderDocument";
+import RegisterKeyDown from "components/RegisterKeyDown";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -39,7 +39,7 @@ import References from "./References";
 import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
-import { meta } from "utils/keyboard";
+import { isModKey } from "utils/keyboard";
 import {
   documentMoveUrl,
   documentHistoryUrl,
@@ -148,8 +148,7 @@ class DocumentScene extends React.Component<Props> {
     this.updateIsDirty();
   };
 
-  @keydown("m")
-  goToMove(ev) {
+  goToMove = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -158,10 +157,9 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.move) {
       this.props.history.push(documentMoveUrl(document));
     }
-  }
+  };
 
-  @keydown("e")
-  goToEdit(ev) {
+  goToEdit = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -170,18 +168,16 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.update) {
       this.props.history.push(editDocumentUrl(document));
     }
-  }
+  };
 
-  @keydown("esc")
-  goBack(ev) {
+  goBack = (ev) => {
     if (this.props.readOnly) return;
 
     ev.preventDefault();
     this.props.history.goBack();
-  }
+  };
 
-  @keydown("h")
-  goToHistory(ev) {
+  goToHistory = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -192,18 +188,16 @@ class DocumentScene extends React.Component<Props> {
     } else {
       this.props.history.push(documentHistoryUrl(document));
     }
-  }
+  };
 
-  @keydown(`${meta}+shift+p`)
-  onPublish(ev) {
+  onPublish = (ev) => {
     ev.preventDefault();
     const { document } = this.props;
     if (document.publishedAt) return;
     this.onSave({ publish: true, done: true });
-  }
+  };
 
-  @keydown("ctrl+alt+h")
-  onToggleTableOfContents(ev) {
+  onToggleTableOfContents = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -214,7 +208,7 @@ class DocumentScene extends React.Component<Props> {
     } else {
       ui.showTableOfContents();
     }
-  }
+  };
 
   onSave = async (
     options: {
@@ -381,6 +375,26 @@ class DocumentScene extends React.Component<Props> {
 
     return (
       <ErrorBoundary>
+        <RegisterKeyDown trigger="m" handler={this.goToMove} />
+        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
+        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
+        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
+        <RegisterKeyDown
+          trigger="p"
+          handler={(event) => {
+            if (isModKey(event) && event.shiftKey) {
+              this.onPublish(event);
+            }
+          }}
+        />
+        <RegisterKeyDown
+          trigger="h"
+          handler={(event) => {
+            if (event.ctrlKey && event.altKey) {
+              this.onToggleTableOfContents(event);
+            }
+          }}
+        />
         <Background
           key={revision ? revision.id : document.id}
           isShare={isShare}

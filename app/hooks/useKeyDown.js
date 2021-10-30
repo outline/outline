@@ -2,7 +2,7 @@
 import * as React from "react";
 import isTextInput from "utils/isTextInput";
 
-type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
+export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
 
 // Registered keyboard event callbacks
 let callbacks = [];
@@ -30,6 +30,7 @@ export default function useKeyDown(
   const predicate = createKeyPredicate(key);
 
   const handler = React.useCallback((event: KeyboardEvent) => {
+    console.log(event);
     if (predicate(event)) {
       fn(event);
     }
