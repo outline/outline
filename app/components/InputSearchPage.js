@@ -1,20 +1,17 @@
 // @flow
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
-import { withTranslation, type TFunction } from "react-i18next";
-import keydown from "react-keydown";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import styled, { withTheme } from "styled-components";
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
+import styled, { useTheme } from "styled-components";
 import Input from "./Input";
-import { type Theme } from "types";
-import { meta } from "utils/keyboard";
+import useBoolean from "hooks/useBoolean";
+import useKeyDown from "hooks/useKeyDown";
+import { isModKey } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
 
-type Props = {
-  history: RouterHistory,
-  theme: Theme,
+type Props = {|
   source: string,
   placeholder?: string,
   label?: string,
@@ -23,78 +20,77 @@ type Props = {
   value: string,
   onChange: (event: SyntheticInputEvent<>) => mixed,
   onKeyDown: (event: SyntheticKeyboardEvent<HTMLInputElement>) => mixed,
-  t: TFunction,
-};
+|};
 
-@observer
-class InputSearchPage extends React.Component<Props> {
-  input: ?Input;
-  @observable focused: boolean = false;
+function InputSearchPage({
+  onKeyDown,
+  value,
+  onChange,
+  placeholder,
+  label,
+  collectionId,
+  source,
+}: Props) {
+  const inputRef = React.useRef();
+  const theme = useTheme();
+  const history = useHistory();
+  const { t } = useTranslation();
+  const [isFocused, setFocused, setUnfocused] = useBoolean(false);
 
-  @keydown(`${meta}+f`)
-  focus(ev: SyntheticEvent<>) {
-    ev.preventDefault();
+  const focus = React.useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
 
-    if (this.input) {
-      this.input.focus();
-    }
-  }
-
-  handleKeyDown = (ev: SyntheticKeyboardEvent<HTMLInputElement>) => {
-    if (ev.key === "Enter") {
+  useKeyDown("f", (ev: KeyboardEvent) => {
+    if (isModKey(ev)) {
       ev.preventDefault();
-      this.props.history.push(
-        searchUrl(ev.currentTarget.value, {
-          collectionId: this.props.collectionId,
-          ref: this.props.source,
-        })
-      );
+      focus();
     }
+  });
 
-    if (this.props.onKeyDown) {
-      this.props.onKeyDown(ev);
-    }
-  };
+  const handleKeyDown = React.useCallback(
+    (ev: SyntheticKeyboardEvent<HTMLInputElement>) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        history.push(
+          searchUrl(ev.currentTarget.value, {
+            collectionId,
+            ref: source,
+          })
+        );
+      }
 
-  handleFocus = () => {
-    this.focused = true;
-  };
+      if (onKeyDown) {
+        onKeyDown(ev);
+      }
+    },
+    [history, collectionId, source, onKeyDown]
+  );
 
-  handleBlur = () => {
-    this.focused = false;
-  };
-
-  render() {
-    const { t, value, onChange } = this.props;
-    const { theme, placeholder = `${t("Search")}…` } = this.props;
-
-    return (
-      <InputMaxWidth
-        ref={(ref) => (this.input = ref)}
-        type="search"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        onKeyDown={this.handleKeyDown}
-        icon={
-          <SearchIcon
-            color={this.focused ? theme.inputBorderFocused : theme.inputBorder}
-          />
-        }
-        label={this.props.label}
-        onFocus={this.handleFocus}
-        onBlur={this.handleBlur}
-        margin={0}
-        labelHidden
-      />
-    );
-  }
+  return (
+    <InputMaxWidth
+      ref={inputRef}
+      type="search"
+      placeholder={placeholder || `${t("Search")}…`}
+      value={value}
+      onChange={onChange}
+      onKeyDown={handleKeyDown}
+      icon={
+        <SearchIcon
+          color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
+        />
+      }
+      label={label}
+      onFocus={setFocused}
+      onBlur={setUnfocused}
+      margin={0}
+      labelHidden
+    />
+  );
 }
 
 const InputMaxWidth = styled(Input)`
   max-width: 30vw;
 `;
 
-export default withTranslation()<InputSearchPage>(
-  withTheme(withRouter(InputSearchPage))
-);
+export default observer(InputSearchPage);
