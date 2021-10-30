@@ -65,12 +65,12 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
     });
 
     provider.on("awarenessChange", ({ states }) => {
-      states.forEach(({ user }) => {
+      states.forEach(({ user, cursor }) => {
         if (user) {
           // could know if the user is editing here using `state.cursor` but it
           // feels distracting in the UI, once multiplayer is on for everyone we
           // can stop diffentiating
-          presence.touch(documentId, user.id, false);
+          presence.touch(documentId, user.id, !!cursor);
         }
       });
     });
@@ -105,7 +105,17 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
 
       ui.setMultiplayerStatus(undefined);
     };
-  }, [history, showToast, t, documentId, ui, presence, token, ydoc]);
+  }, [
+    history,
+    showToast,
+    t,
+    documentId,
+    ui,
+    presence,
+    token,
+    ydoc,
+    currentUser.id,
+  ]);
 
   const user = React.useMemo(() => {
     return {

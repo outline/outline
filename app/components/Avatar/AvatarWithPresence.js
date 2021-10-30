@@ -65,7 +65,6 @@ class AvatarWithPresence extends React.Component<Props> {
                   : this.handleOpenProfile
               }
               size={32}
-              icon={isEditing ? <EditIcon size={16} color="#FFF" /> : undefined}
             />
           </AvatarWrapper>
         </Tooltip>
