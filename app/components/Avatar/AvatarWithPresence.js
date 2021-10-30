@@ -1,7 +1,6 @@
 // @flow
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { withTranslation, type TFunction } from "react-i18next";
 import styled from "styled-components";
