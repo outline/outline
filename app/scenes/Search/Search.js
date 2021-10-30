@@ -82,9 +82,9 @@ class Search extends React.Component<Props> {
     }
   }
 
-  goBack() {
+  goBack = () => {
     this.props.history.goBack();
-  }
+  };
 
   handleKeyDown = (ev: SyntheticKeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
