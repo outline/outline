@@ -2,13 +2,18 @@
 import fetch from "fetch-with-proxy";
 import { Document, Integration, Collection, Team } from "../../models";
 import { presentSlackAttachment } from "../../presenters";
-import type { DocumentEvent, IntegrationEvent, Event } from "../../types";
+import type {
+  DocumentEvent,
+  IntegrationEvent,
+  RevisionEvent,
+  Event,
+} from "../../types";
 
 export default class SlackProcessor {
   async on(event: Event) {
     switch (event.name) {
       case "documents.publish":
-      case "documents.update.debounced":
+      case "revisions.create":
         return this.documentUpdated(event);
       case "integrations.create":
         return this.integrationCreated(event);
@@ -55,11 +60,15 @@ export default class SlackProcessor {
     });
   }
 
-  async documentUpdated(event: DocumentEvent) {
+  async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
     if (event.data && event.data.source === "import") return;
 
-    const document = await Document.findByPk(event.documentId);
+    const [document, team] = await Promise.all([
+      Document.findByPk(event.documentId),
+      Team.findByPk(event.teamId),
+    ]);
+
     if (!document) return;
 
     // never send notifications for draft documents
@@ -74,8 +83,6 @@ export default class SlackProcessor {
       },
     });
     if (!integration) return;
-
-    const team = await Team.findByPk(document.teamId);
 
     let text = `${document.updatedBy.name} updated a document`;
 
