@@ -2,7 +2,7 @@
 import * as React from "react";
 
 const URL_REGEX = new RegExp(
-  "^https://gist.github.com/([a-z\\d](?:[a-z\\d]|-(?=[a-z\\d])){0,38})/(.*)$"
+  "^https://gist.github.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
 );
 
 type Props = {|
@@ -67,6 +67,7 @@ class Gist extends React.Component<Props> {
         frameBorder="0"
         width="100%"
         height="200px"
+        scrolling="no"
         id={`gist-${id}`}
         title={`Github Gist (${id})`}
         onLoad={this.updateIframeContent}

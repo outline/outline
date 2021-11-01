@@ -1229,10 +1229,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hocuspocus/provider@^1.0.0-alpha.18":
-  version "1.0.0-alpha.18"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.18.tgz#670b052a2bd8b634e05ec282f4453bfd92779906"
-  integrity sha512-KLszadquMZHKTdR9CQhAn97Gcn6TED6DKPpJ+9Ni68gCOfYUSZrI4pwIeOOgskYXAE/pI3Gfb0qW/OBMhKdT1w==
+"@hocuspocus/provider@^1.0.0-alpha.20":
+  version "1.0.0-alpha.20"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.20.tgz#2be84b2279c5087bc1f17e94bbc648a5c6ba4b16"
+  integrity sha512-eaq3MrTrS6dpzBX7PX2qlts2zxR3tPM6ji3goga9frkOSAroMQ91ADap1RUpfFFKQYt1Q03F0WdVA5FV/BUuOA==
   dependencies:
     "@lifeomic/attempt" "^3.0.0"
     lib0 "^0.2.42"
@@ -9205,10 +9205,10 @@ jws@^3.2.2:
     jwa "^1.4.1"
     safe-buffer "^5.0.1"
 
-kbar@^0.1.0-beta.15:
-  version "0.1.0-beta.15"
-  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.15.tgz#10122a278b3575bdb2db3c0bed62b0fc38b1175a"
-  integrity sha512-haAKaGZLenbONpK4FsF4FVaXudCMcNK2lzjdMM3itvMXiaaVZd5sVW/iHd7ZQ8S4T+zgXkXJE3GxCRMmvpuP7g==
+kbar@^0.1.0-beta.16:
+  version "0.1.0-beta.16"
+  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.16.tgz#ed8517c6f3ec1994dc965bff288a0df25b64bfde"
+  integrity sha512-e/jOX5XZRoACgMMQylXdmOko2+2gvKNRC7H6xqZ/6qP9uJfPoh7Tg66RIzGlmms0OVcYkgMHy9Z0a66SNby3Ig==
   dependencies:
     "@reach/portal" "^0.16.0"
     fast-equals "^2.0.3"
