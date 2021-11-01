@@ -338,8 +338,8 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  onChangeTitle = (event) => {
-    this.title = event.target.value;
+  onChangeTitle = (value) => {
+    this.title = value;
     this.updateIsDirtyDebounced();
     this.autosave();
   };

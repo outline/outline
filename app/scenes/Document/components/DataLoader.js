@@ -244,7 +244,9 @@ class DataLoader extends React.Component<Props> {
       return (
         <>
           <Loading location={location} />
-          {this.isEditing && <HideSidebar ui={ui} />}
+          {this.isEditing && !team?.collaborativeEditing && (
+            <HideSidebar ui={ui} />
+          )}
         </>
       );
     }
