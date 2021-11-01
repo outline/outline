@@ -69,8 +69,6 @@ function ContentEditable({
     }
   }, [value]);
 
-  console.log({ value });
-
   return (
     <div className={className}>
       <Content
