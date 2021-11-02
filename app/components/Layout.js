@@ -5,7 +5,6 @@ import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation } from "react-i18next";
-import keydown from "react-keydown";
 import {
   Switch,
   Route,
@@ -22,11 +21,12 @@ import ErrorSuspended from "scenes/ErrorSuspended";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
+import RegisterKeyDown from "components/RegisterKeyDown";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
-import { meta } from "utils/keyboard";
+import { isModKey } from "utils/keyboard";
 import {
   searchUrl,
   matchDocumentSlug as slug,
@@ -64,20 +64,13 @@ class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  @keydown(`${meta}+.`)
-  handleToggleSidebar() {
-    this.props.ui.toggleCollapsedSidebar();
-  }
-
-  @keydown(["t", "/"])
-  goToSearch(ev: SyntheticEvent<>) {
+  goToSearch = (ev: KeyboardEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.history.push(searchUrl());
-  }
+  };
 
-  @keydown("n")
-  goToNewDocument() {
+  goToNewDocument = () => {
     const { activeCollectionId } = this.props.ui;
     if (!activeCollectionId) return;
 
@@ -85,7 +78,7 @@ class Layout extends React.Component<Props> {
     if (!can.update) return;
 
     this.props.history.push(newDocumentPath(activeCollectionId));
-  }
+  };
 
   render() {
     const { auth, ui } = this.props;
@@ -97,6 +90,17 @@ class Layout extends React.Component<Props> {
 
     return (
       <Container column auto>
+        <RegisterKeyDown trigger="n" handler={this.goToNewDocument} />
+        <RegisterKeyDown trigger="t" handler={this.goToSearch} />
+        <RegisterKeyDown trigger="/" handler={this.goToSearch} />
+        <RegisterKeyDown
+          trigger="."
+          handler={(event) => {
+            if (isModKey(event)) {
+              ui.toggleCollapsedSidebar();
+            }
+          }}
+        />
         <Helmet>
           <title>{team && team.name ? team.name : "Outline"}</title>
           <meta
