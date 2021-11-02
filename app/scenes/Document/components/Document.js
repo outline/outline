@@ -37,6 +37,7 @@ import MarkAsViewed from "./MarkAsViewed";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 import { type LocationWithState, type NavigationNode, type Theme } from "types";
+import { client } from "utils/ApiClient";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
 import { meta } from "utils/keyboard";
@@ -125,7 +126,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  onSelectTemplate = (template: Document) => {
+  replaceDocument = (template: Document) => {
     this.title = template.title;
     this.isDirty = true;
 
@@ -146,6 +147,38 @@ class DocumentScene extends React.Component<Props> {
     this.props.document.text = template.text;
 
     this.updateIsDirty();
+  };
+
+  onRemoteSynced = async () => {
+    const { toasts, location, t } = this.props;
+    const restore = location.state?.restore;
+    const revisionId = location.state?.revisionId;
+
+    const editorRef = this.editor.current;
+    if (!editorRef || !restore) {
+      return;
+    }
+
+    const response = await client.post("/revisions.info", {
+      id: revisionId,
+    });
+
+    if (response) {
+      const revision = response.data;
+      const { view, parser } = editorRef;
+      view.dispatch(
+        view.state.tr
+          .setSelection(new AllSelection(view.state.doc))
+          .replaceSelectionWith(parser.parse(revision.text))
+      );
+
+      this.props.document.title = revision.title;
+      this.props.document.text = revision.text;
+      this.updateIsDirty();
+      toasts.showToast(t("Document restored"));
+
+      this.props.history.replace(this.props.document.url);
+    }
   };
 
   @keydown("m")
@@ -443,7 +476,7 @@ class DocumentScene extends React.Component<Props> {
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
               goBack={this.goBack}
-              onSelectTemplate={this.onSelectTemplate}
+              onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
               headings={headings}
             />
@@ -515,6 +548,7 @@ class DocumentScene extends React.Component<Props> {
                     value={readOnly ? value : undefined}
                     defaultValue={value}
                     disableEmbeds={disableEmbeds}
+                    onRemoteSynced={this.onRemoteSynced}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}
                     onSearchLink={this.props.onSearchLink}

@@ -35,7 +35,8 @@ function RevisionMenu({ document, revisionId, className }: Props) {
 
       if (team.collaborativeEditing) {
         history.push(document.url, {
-          snapshotId: revisionId,
+          restore: true,
+          revisionId,
         });
       } else {
         await document.restore({ revisionId });
