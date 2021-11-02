@@ -28,7 +28,7 @@ export default class Persistence {
     const document = await Document.findByPk(documentId);
 
     if (document.state) {
-      const ydoc = new Y.Doc();
+      const ydoc = new Y.Doc({ gc: false });
       Logger.info("database", `Document ${documentId} is in database state`);
       Y.applyUpdate(ydoc, document.state);
       return ydoc;

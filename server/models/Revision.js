@@ -50,7 +50,7 @@ Revision.createFromDocument = function (document, options) {
   let snapshot;
 
   if (document.state) {
-    const ydoc = new Y.Doc();
+    const ydoc = new Y.Doc({ gc: false });
     Y.applyUpdate(ydoc, document.state);
     snapshot = Buffer.from(Y.encodeSnapshot(Y.snapshot(ydoc)));
   }

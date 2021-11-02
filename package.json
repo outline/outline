@@ -179,7 +179,7 @@
     "ws": "^7.5.3",
     "y-indexeddb": "^9.0.6",
     "y-prosemirror": "^1.0.9",
-    "yjs": "^13.5.12"
+    "yjs": "^13.5.17"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",

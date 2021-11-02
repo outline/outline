@@ -1,9 +1,12 @@
 // @flow
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
+import invariant from "invariant";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
+import { schema } from "rich-markdown-editor";
 import { IndexeddbPersistence } from "y-indexeddb";
+import { yDocToProsemirror } from "y-prosemirror";
 import * as Y from "yjs";
 import Editor, { type Props as EditorProps } from "components/Editor";
 import env from "env";
@@ -14,6 +17,7 @@ import usePageVisibility from "hooks/usePageVisibility";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
+import { client } from "utils/ApiClient";
 import { homePath } from "utils/routeHelpers";
 
 type Props = {|
@@ -24,6 +28,7 @@ type Props = {|
 function MultiplayerEditor({ ...props }: Props, ref: any) {
   const documentId = props.id;
   const history = useHistory();
+  const location = useLocation();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { presence, ui } = useStores();
@@ -31,10 +36,40 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
   const [remoteProvider, setRemoteProvider] = React.useState();
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
-  const [ydoc] = React.useState(() => new Y.Doc());
+  const [ydoc] = React.useState(() => new Y.Doc({ gc: false }));
   const { showToast } = useToasts();
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
+
+  // $FlowIssue - incorrect flow type for location state
+  const snapshotId = location.state?.snapshotId;
+
+  React.useEffect(() => {
+    async function load() {
+      if (snapshotId && isRemoteSynced) {
+        const buffer = await client.post(
+          `/revisions.snapshot`,
+          {
+            id: snapshotId,
+          },
+          {
+            buffer: true,
+          }
+        );
+        invariant(buffer, "Snapshot not found");
+        console.log({ buffer });
+
+        const snapshot = Y.decodeSnapshot(new Uint8Array(buffer));
+        console.log({ snapshot });
+
+        const newDoc = Y.createDocFromSnapshot(ydoc, snapshot);
+        const pm = yDocToProsemirror(schema, newDoc);
+        console.log(newDoc, pm);
+        //Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(newDoc));
+      }
+    }
+    load();
+  }, [snapshotId, isRemoteSynced, ydoc]);
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
