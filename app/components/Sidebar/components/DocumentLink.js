@@ -263,6 +263,7 @@ function DocumentLink(
                         document={document}
                         onOpen={handleMenuOpen}
                         onClose={handleMenuClose}
+                        isOverlay
                       />
                     </Fade>
                   ) : undefined
