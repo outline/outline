@@ -24,17 +24,15 @@ const createKeyPredicate = (keyFilter: KeyFilter) =>
 
 export default function useKeyDown(
   key: KeyFilter,
-  fn: (event: KeyboardEvent) => void,
-  deps?: $ReadOnlyArray<mixed> = [key]
+  fn: (event: KeyboardEvent) => void
 ): void {
   const predicate = createKeyPredicate(key);
 
   const handler = React.useCallback((event: KeyboardEvent) => {
-    console.log(event);
     if (predicate(event)) {
       fn(event);
     }
-  }, deps);
+  }, []);
 
   React.useEffect(() => {
     callbacks.push(handler);
