@@ -28,19 +28,19 @@ export default function useKeyDown(
 ): void {
   const predicate = createKeyPredicate(key);
 
-  const handler = React.useCallback((event: KeyboardEvent) => {
-    if (predicate(event)) {
-      fn(event);
-    }
-  }, []);
-
   React.useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (predicate(event)) {
+        fn(event);
+      }
+    };
+
     callbacks.push(handler);
 
     return () => {
       callbacks = callbacks.filter((cb) => cb !== handler);
     };
-  });
+  }, []);
 }
 
 window.addEventListener("keydown", (event) => {
