@@ -602,7 +602,7 @@ const MaxWidth = styled(Flex)`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
 
-  // Adds space to the left gutter to make room for heading annotations
+  // Adds space to the left gutter to make room for heading annotations on mobile
   padding: ${(props) => (props.isEditing ? "0 12px 0 32px" : "0 12px")};
   transition: padding 100ms;
 
