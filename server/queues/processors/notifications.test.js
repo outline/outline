@@ -93,8 +93,8 @@ describe("documents.publish", () => {
   });
 });
 
-describe("documents.update.debounced", () => {
-  test("should send a notification to other collaborator", async () => {
+describe("revisions.create", () => {
+  test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
@@ -107,7 +107,7 @@ describe("documents.update.debounced", () => {
     });
 
     await Notifications.on({
-      name: "documents.update.debounced",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
@@ -132,7 +132,7 @@ describe("documents.update.debounced", () => {
     await View.touch(document.id, collaborator.id, true);
 
     await Notifications.on({
-      name: "documents.update.debounced",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
@@ -156,7 +156,7 @@ describe("documents.update.debounced", () => {
     });
 
     await Notifications.on({
-      name: "documents.update.debounced",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,

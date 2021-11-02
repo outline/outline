@@ -1046,6 +1046,7 @@ router.post("documents.update", auth(), async (ctx) => {
 
   document.lastModifiedById = user.id;
   const { collection } = document;
+  const changed = document.changed();
 
   let transaction;
   try {
@@ -1064,30 +1065,32 @@ router.post("documents.update", auth(), async (ctx) => {
     throw err;
   }
 
-  if (publish) {
-    await Event.create({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: { title: document.title },
-      ip: ctx.request.ip,
-    });
-  } else {
-    await Event.create({
-      name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        autosave,
-        done,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
+  if (changed) {
+    if (publish) {
+      await Event.create({
+        name: "documents.publish",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: { title: document.title },
+        ip: ctx.request.ip,
+      });
+    } else {
+      await Event.create({
+        name: "documents.update",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          autosave,
+          done,
+          title: document.title,
+        },
+        ip: ctx.request.ip,
+      });
+    }
   }
 
   if (document.title !== previousTitle) {
