@@ -126,7 +126,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  replaceDocument = (template: Document) => {
+  replaceDocument = (template: Document | Revision) => {
     this.title = template.title;
     this.isDirty = true;
 
@@ -142,15 +142,17 @@ class DocumentScene extends React.Component<Props> {
         .replaceSelectionWith(parser.parse(template.text))
     );
 
-    this.props.document.templateId = template.id;
+    if (template instanceof Document) {
+      this.props.document.templateId = template.id;
+    }
     this.props.document.title = template.title;
     this.props.document.text = template.text;
 
     this.updateIsDirty();
   };
 
-  onRemoteSynced = async () => {
-    const { toasts, location, t } = this.props;
+  onSynced = async () => {
+    const { toasts, history, location, t } = this.props;
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
 
@@ -164,20 +166,9 @@ class DocumentScene extends React.Component<Props> {
     });
 
     if (response) {
-      const revision = response.data;
-      const { view, parser } = editorRef;
-      view.dispatch(
-        view.state.tr
-          .setSelection(new AllSelection(view.state.doc))
-          .replaceSelectionWith(parser.parse(revision.text))
-      );
-
-      this.props.document.title = revision.title;
-      this.props.document.text = revision.text;
-      this.updateIsDirty();
+      this.replaceDocument(response.data);
       toasts.showToast(t("Document restored"));
-
-      this.props.history.replace(this.props.document.url);
+      history.replace(this.props.document.url);
     }
   };
 
@@ -548,7 +539,7 @@ class DocumentScene extends React.Component<Props> {
                     value={readOnly ? value : undefined}
                     defaultValue={value}
                     disableEmbeds={disableEmbeds}
-                    onRemoteSynced={this.onRemoteSynced}
+                    onSynced={this.onSynced}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}
                     onSearchLink={this.props.onSearchLink}

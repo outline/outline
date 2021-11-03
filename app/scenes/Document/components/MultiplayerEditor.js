@@ -19,10 +19,10 @@ import { homePath } from "utils/routeHelpers";
 type Props = {|
   ...EditorProps,
   id: string,
-  onRemoteSynced?: () => void,
+  onSynced?: () => void,
 |};
 
-function MultiplayerEditor({ onRemoteSynced, ...props }: Props, ref: any) {
+function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -32,7 +32,7 @@ function MultiplayerEditor({ onRemoteSynced, ...props }: Props, ref: any) {
   const [remoteProvider, setRemoteProvider] = React.useState();
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
-  const [ydoc] = React.useState(() => new Y.Doc({ gc: false }));
+  const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
@@ -83,7 +83,6 @@ function MultiplayerEditor({ onRemoteSynced, ...props }: Props, ref: any) {
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
       setRemoteSynced(true);
-      onRemoteSynced?.();
     });
 
     if (debug) {
@@ -117,7 +116,6 @@ function MultiplayerEditor({ onRemoteSynced, ...props }: Props, ref: any) {
     token,
     ydoc,
     currentUser.id,
-    onRemoteSynced,
   ]);
 
   const user = React.useMemo(() => {
@@ -141,6 +139,12 @@ function MultiplayerEditor({ onRemoteSynced, ...props }: Props, ref: any) {
       }),
     ];
   }, [remoteProvider, user, ydoc]);
+
+  React.useEffect(() => {
+    if (isLocalSynced && isRemoteSynced) {
+      onSynced?.();
+    }
+  }, [onSynced, isLocalSynced, isRemoteSynced]);
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
