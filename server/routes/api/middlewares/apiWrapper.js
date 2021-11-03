@@ -13,8 +13,7 @@ export default function apiWrapper() {
 
     if (
       typeof ctx.body !== "string" &&
-      !(ctx.body instanceof stream.Readable) &&
-      !(ctx.body instanceof Buffer)
+      !(ctx.body instanceof stream.Readable)
     ) {
       // $FlowFixMe
       ctx.body = {

@@ -1,6 +1,6 @@
 // @flow
 import Router from "koa-router";
-import { NotFoundError, InvalidRequestError } from "../../errors";
+import { NotFoundError } from "../../errors";
 import auth from "../../middlewares/authentication";
 import { Document, Revision } from "../../models";
 import policy from "../../policies";
@@ -29,27 +29,6 @@ router.post("revisions.info", auth(), async (ctx) => {
     pagination: ctx.state.pagination,
     data: await presentRevision(revision),
   };
-});
-
-router.post("revisions.snapshot", auth(), async (ctx) => {
-  let { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
-
-  const user = ctx.state.user;
-  const revision = await Revision.findByPk(id);
-  if (!revision) {
-    throw new NotFoundError();
-  }
-  if (!revision.state) {
-    throw new InvalidRequestError("No snapshot for revision");
-  }
-
-  const document = await Document.findByPk(revision.documentId, {
-    userId: user.id,
-  });
-  authorize(user, "read", document);
-
-  ctx.body = revision.state;
 });
 
 router.post("revisions.list", auth(), pagination(), async (ctx) => {

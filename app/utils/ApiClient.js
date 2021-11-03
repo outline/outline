@@ -113,9 +113,7 @@ class ApiClient {
 
     const success = response.status >= 200 && response.status < 300;
 
-    if (options.buffer && success) {
-      return response.arrayBuffer();
-    } else if (options.download && success) {
+    if (options.download && success) {
       const blob = await response.blob();
       const fileName = (
         response.headers.get("content-disposition") || ""
