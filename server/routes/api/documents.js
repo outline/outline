@@ -713,7 +713,9 @@ router.post("documents.restore", auth(), async (ctx) => {
     const revision = await Revision.findByPk(revisionId);
     authorize(document, "restore", revision);
 
-    await document.restore(revision, user.id);
+    document.text = revision.text;
+    document.title = revision.title;
+    await document.save();
 
     await Event.create({
       name: "documents.restore",
