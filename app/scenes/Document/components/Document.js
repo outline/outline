@@ -464,6 +464,7 @@ class DocumentScene extends React.Component<Props> {
             <MaxWidth
               archived={document.isArchived}
               showContents={showContents}
+              isEditing={!readOnly}
               column
               auto
             >
@@ -600,11 +601,15 @@ const ReferencesWrapper = styled("div")`
 const MaxWidth = styled(Flex)`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-  padding: 0 12px;
+
+  // Adds space to the left gutter to make room for heading annotations on mobile
+  padding: ${(props) => (props.isEditing ? "0 12px 0 32px" : "0 12px")};
+  transition: padding 100ms;
+
   max-width: 100vw;
   width: 100%;
 
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     padding: 0 24px;
     margin: 4px auto 12px;
     max-width: calc(48px + ${(props) =>
