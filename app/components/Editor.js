@@ -276,7 +276,6 @@ const StyledEditor = styled(RichMarkdownEditor)`
         bottom: 0;
       }
       > div {
-        animation: ${fadeOutCursor} 2000ms ease-out;
         opacity: 0;
         position: absolute;
         top: -1.8em;

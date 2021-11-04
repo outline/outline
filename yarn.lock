@@ -11765,10 +11765,10 @@ prosemirror-markdown@^1.5.2:
     markdown-it "^10.0.0"
     prosemirror-model "^1.0.0"
 
-prosemirror-model@^1.0.0, prosemirror-model@^1.1.0, prosemirror-model@^1.13.3, prosemirror-model@^1.8.1:
-  version "1.13.3"
-  resolved "https://registry.yarnpkg.com/prosemirror-model/-/prosemirror-model-1.13.3.tgz#3ccfde73b9c9e706933c72bdf7462906509ff1c9"
-  integrity sha512-wujIYYQEcxdkbKmIJiekVjqtylKxuoEcc+w2PnN7Itc58m/75J4rCUz2dibygVQJFi3gZrD2DNFLjOS6LP4w1g==
+prosemirror-model@^1.0.0, prosemirror-model@^1.13.3, prosemirror-model@^1.14.3, prosemirror-model@^1.8.1:
+  version "1.15.0"
+  resolved "https://registry.yarnpkg.com/prosemirror-model/-/prosemirror-model-1.15.0.tgz#23bc09098daa7c309dba90a76a1b989ce6f61405"
+  integrity sha512-hQJv7SnIhlAy9ga3lhPPgaufhvCbQB9tHwscJ9E1H1pPHmN8w5V/lURueoYv9Kc3/bpNWoyHa8r3g//m7N0ChQ==
   dependencies:
     orderedmap "^1.1.0"
 
@@ -11811,12 +11811,12 @@ prosemirror-utils@^0.9.6:
   resolved "https://registry.yarnpkg.com/prosemirror-utils/-/prosemirror-utils-0.9.6.tgz#3d97bd85897e3b535555867dc95a51399116a973"
   integrity sha512-UC+j9hQQ1POYfMc5p7UFxBTptRiGPR7Kkmbl3jVvU8VgQbkI89tR/GK+3QYC8n+VvBZrtAoCrJItNhWSxX3slA==
 
-prosemirror-view@1.18.1, prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3:
-  version "1.18.1"
-  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.18.1.tgz#52ad1c67f51144e27e368bba129142ce87c7791e"
-  integrity sha512-TZd8byDRfdopLiokBY7T27msCSfWqqRxWs/LnBbdI030F+iI2kS+tO59/XFnpZxMLFKlJgOgGGhM9SzD1Nwdxw==
+prosemirror-view@1.18.1, prosemirror-view@1.21.0, prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3:
+  version "1.21.0"
+  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.21.0.tgz#d793cd338eda224026b8fe18a4f3163204963b8b"
+  integrity sha512-Pjh0vXw/l2Ifc3QcBVKJ/qHej33MX4sdq4/uAVqkSmHLf//bVWTYSZibihMya3lsIxTbDzNl/Z03KrhXWMHaoA==
   dependencies:
-    prosemirror-model "^1.1.0"
+    prosemirror-model "^1.14.3"
     prosemirror-state "^1.0.0"
     prosemirror-transform "^1.1.0"
 
@@ -12783,10 +12783,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^11.18.12:
-  version "11.18.12"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.12.tgz#389ac35bda688acc1d60e30db36698f93409c5a5"
-  integrity sha512-NWgV1qqV6xu//FE3aQJq7PVlsJH3HxF6B9F2UVgYYBO3AUU/Ld5z6EhbJ5EnTw3/16JG/hc38t1yvmcjd9BypQ==
+rich-markdown-editor@^11.18.17:
+  version "11.18.17"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.18.17.tgz#bab7f14708e61d4baaf1173892ada06844390a35"
+  integrity sha512-0NJ08igupcoI/DsxkuivAi9ouKIGzmZdGv2L2W4jz/M0Z8p7SaW4vnTJ1Kk8cT9ryPF/Hvbuimnco5xaqiCCHg==
   dependencies:
     copy-to-clipboard "^3.0.8"
     fuzzy-search "^3.2.1"
