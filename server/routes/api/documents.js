@@ -1048,6 +1048,7 @@ router.post("documents.update", auth(), async (ctx) => {
 
   document.lastModifiedById = user.id;
   const { collection } = document;
+  const changed = document.changed();
 
   let transaction;
   try {
@@ -1076,7 +1077,7 @@ router.post("documents.update", auth(), async (ctx) => {
       data: { title: document.title },
       ip: ctx.request.ip,
     });
-  } else {
+  } else if (changed) {
     await Event.create({
       name: "documents.update",
       documentId: document.id,
