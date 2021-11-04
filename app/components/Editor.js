@@ -12,7 +12,6 @@ import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
-import { fadeOutCursor } from "styles/animations";
 import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
