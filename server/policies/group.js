@@ -12,8 +12,9 @@ allow(User, "createGroup", Team, (actor, team) => {
 });
 
 allow(User, "read", Group, (actor, group) => {
-  // for the time being, we're going to let everyone see every group
+  // for the time being, we're going to let everyone on the team see every group
   // we may need to make this more granular in the future
+  if (!group || actor.teamId !== group.teamId) return false;
   return true;
 });
 
