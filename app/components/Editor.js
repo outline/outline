@@ -40,6 +40,7 @@ export type Props = {|
   maxLength?: number,
   scrollTo?: string,
   theme?: Theme,
+  className?: string,
   handleDOMEvents?: Object,
   readOnlyWriteCheckboxes?: boolean,
   onBlur?: (event: SyntheticEvent<>) => any,
@@ -276,6 +277,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
       }
       > div {
         opacity: 0;
+        transition: opacity 100ms ease-in-out;
         position: absolute;
         top: -1.8em;
         font-size: 13px;
@@ -295,10 +297,13 @@ const StyledEditor = styled(RichMarkdownEditor)`
       &:hover {
         > div {
           opacity: 1;
-          transition: opacity 100ms ease-in-out;
         }
       }
     }
+  }
+
+  &.show-cursor-names .ProseMirror-yjs-cursor > div {
+    opacity: 1;
   }
 `;
 
