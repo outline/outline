@@ -12,7 +12,6 @@ import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
-import { fadeOutCursor } from "styles/animations";
 import { type Theme } from "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
@@ -228,7 +227,8 @@ const StyledEditor = styled(RichMarkdownEditor)`
     visibility: hidden;
   }
 
-  .heading-name:first-child {
+  .heading-name:first-child,
+  .heading-name:first-child + .ProseMirror-yjs-cursor {
     & + h1,
     & + h2,
     & + h3,
@@ -252,6 +252,10 @@ const StyledEditor = styled(RichMarkdownEditor)`
   }
 
   .ProseMirror {
+    & > .ProseMirror-yjs-cursor {
+      display: none;
+    }
+
     .ProseMirror-yjs-cursor {
       position: relative;
       margin-left: -1px;
@@ -260,6 +264,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
       border-right: 1px solid black;
       height: 1em;
       word-break: normal;
+
       &:after {
         content: "";
         display: block;
@@ -270,7 +275,6 @@ const StyledEditor = styled(RichMarkdownEditor)`
         bottom: 0;
       }
       > div {
-        animation: ${fadeOutCursor} 2000ms ease-out;
         opacity: 0;
         position: absolute;
         top: -1.8em;
