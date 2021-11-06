@@ -4,11 +4,17 @@ import * as React from "react";
 import { MenuButton } from "reakit/Menu";
 import NudeButton from "components/NudeButton";
 
+type Props = {
+  iconColor?: string,
+  className?: string,
+  isOverlay?: boolean,
+};
+
 export default function OverflowMenuButton({
   iconColor,
   className,
   ...rest
-}: any) {
+}: Props) {
   return (
     <MenuButton {...rest}>
       {(props) => (
