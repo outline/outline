@@ -424,6 +424,8 @@ describe("#shares.info", () => {
       expect(body.data.shares[0].documentId).toBe(document.id);
       expect(body.data.shares[0].published).toBe(true);
       expect(body.data.shares[0].includeChildDocuments).toBe(true);
+      expect(body.policies.length).toBe(1);
+      expect(body.policies[0].abilities.update).toBe(true);
     });
 
     it("should not return share for parent document with includeChildDocuments=false", async () => {

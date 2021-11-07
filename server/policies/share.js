@@ -12,7 +12,7 @@ allow(User, "read", Share, (user, share) => {
 allow(User, "update", Share, (user, share) => {
   if (user.isViewer) return false;
 
-  // only the user who can share the document publicaly can update the share.
+  // only the user who can share the document publicly can update the share.
   if (cannot(user, "share", share.document)) return false;
   return user.teamId === share.teamId;
 });
