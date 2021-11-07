@@ -56,7 +56,6 @@ type Props = {|
   modal?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
-  isOverlay?: boolean,
   label?: (any) => React.Node,
   onOpen?: () => void,
   onClose?: () => void,
@@ -67,7 +66,6 @@ function DocumentMenu({
   isRevision,
   className,
   modal = true,
-  isOverlay = false,
   showToggleEmbeds,
   showPrint,
   showPin,
@@ -258,7 +256,6 @@ function DocumentMenu({
         <MenuButton {...menu}>{label}</MenuButton>
       ) : (
         <OverflowMenuButton
-          isOverlay={isOverlay}
           className={className}
           aria-label={t("Show menu")}
           {...menu}

@@ -7,7 +7,6 @@ import NudeButton from "components/NudeButton";
 type Props = {
   iconColor?: string,
   className?: string,
-  isOverlay?: boolean,
 };
 
 export default function OverflowMenuButton({
