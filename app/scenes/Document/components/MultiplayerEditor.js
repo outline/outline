@@ -20,9 +20,10 @@ import { homePath } from "utils/routeHelpers";
 type Props = {|
   ...EditorProps,
   id: string,
+  onSynced?: () => void,
 |};
 
-function MultiplayerEditor({ ...props }: Props, ref: any) {
+function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -153,6 +154,12 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
       }),
     ];
   }, [remoteProvider, user, ydoc]);
+
+  React.useEffect(() => {
+    if (isLocalSynced && isRemoteSynced) {
+      onSynced?.();
+    }
+  }, [onSynced, isLocalSynced, isRemoteSynced]);
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.

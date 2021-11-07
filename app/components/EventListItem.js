@@ -137,7 +137,8 @@ const ListItem = styled(Item)`
 
   &:nth-child(2)::before {
     height: 50%;
-    top: 50%;
+    top: auto;
+    bottom: -4px;
   }
 
   &:last-child::before {

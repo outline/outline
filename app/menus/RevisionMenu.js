@@ -32,11 +32,19 @@ function RevisionMenu({ document, revisionId, className }: Props) {
   const handleRestore = React.useCallback(
     async (ev: SyntheticEvent<>) => {
       ev.preventDefault();
-      await document.restore({ revisionId });
-      showToast(t("Document restored"), { type: "success" });
-      history.push(document.url);
+
+      if (team.collaborativeEditing) {
+        history.push(document.url, {
+          restore: true,
+          revisionId,
+        });
+      } else {
+        await document.restore({ revisionId });
+        showToast(t("Document restored"), { type: "success" });
+        history.push(document.url);
+      }
     },
-    [history, showToast, t, document, revisionId]
+    [history, showToast, t, team.collaborativeEditing, document, revisionId]
   );
 
   const handleCopy = React.useCallback(() => {
@@ -57,11 +65,7 @@ function RevisionMenu({ document, revisionId, className }: Props) {
         {...menu}
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>
-        <MenuItem
-          {...menu}
-          onClick={handleRestore}
-          disabled={team.collaborativeEditing}
-        >
+        <MenuItem {...menu} onClick={handleRestore}>
           <MenuIconWrapper>
             <RestoreIcon />
           </MenuIconWrapper>
