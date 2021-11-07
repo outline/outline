@@ -2,14 +2,14 @@
 import Metrics from "../logging/metrics";
 
 export default class Tracing {
-  onCreateDocument({
+  onLoadDocument({
     documentName,
     instance,
   }: {
     documentName: string,
     instance: any,
   }) {
-    Metrics.increment("collaboration.create_document", { documentName });
+    Metrics.increment("collaboration.load_document", { documentName });
 
     Metrics.gaugePerInstance(
       "collaboration.documents_count",

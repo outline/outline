@@ -6,7 +6,6 @@ import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { type TFunction, Trans, withTranslation } from "react-i18next";
-import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
@@ -27,6 +26,7 @@ import Modal from "components/Modal";
 import Notice from "components/Notice";
 import PageTitle from "components/PageTitle";
 import PlaceholderDocument from "components/PlaceholderDocument";
+import RegisterKeyDown from "components/RegisterKeyDown";
 import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -40,7 +40,7 @@ import { type LocationWithState, type NavigationNode, type Theme } from "types";
 import { client } from "utils/ApiClient";
 import { isCustomDomain } from "utils/domains";
 import { emojiToUrl } from "utils/emoji";
-import { meta } from "utils/keyboard";
+import { isModKey } from "utils/keyboard";
 import {
   documentMoveUrl,
   documentHistoryUrl,
@@ -172,8 +172,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  @keydown("m")
-  goToMove(ev) {
+  goToMove = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -182,10 +181,9 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.move) {
       this.props.history.push(documentMoveUrl(document));
     }
-  }
+  };
 
-  @keydown("e")
-  goToEdit(ev) {
+  goToEdit = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -194,18 +192,16 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.update) {
       this.props.history.push(editDocumentUrl(document));
     }
-  }
+  };
 
-  @keydown("esc")
-  goBack(ev) {
+  goBack = (ev) => {
     if (this.props.readOnly) return;
 
     ev.preventDefault();
     this.props.history.goBack();
-  }
+  };
 
-  @keydown("h")
-  goToHistory(ev) {
+  goToHistory = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -216,18 +212,16 @@ class DocumentScene extends React.Component<Props> {
     } else {
       this.props.history.push(documentHistoryUrl(document));
     }
-  }
+  };
 
-  @keydown(`${meta}+shift+p`)
-  onPublish(ev) {
+  onPublish = (ev) => {
     ev.preventDefault();
     const { document } = this.props;
     if (document.publishedAt) return;
     this.onSave({ publish: true, done: true });
-  }
+  };
 
-  @keydown("ctrl+alt+h")
-  onToggleTableOfContents(ev) {
+  onToggleTableOfContents = (ev) => {
     if (!this.props.readOnly) return;
 
     ev.preventDefault();
@@ -238,7 +232,7 @@ class DocumentScene extends React.Component<Props> {
     } else {
       ui.showTableOfContents();
     }
-  }
+  };
 
   onSave = async (
     options: {
@@ -405,6 +399,26 @@ class DocumentScene extends React.Component<Props> {
 
     return (
       <ErrorBoundary>
+        <RegisterKeyDown trigger="m" handler={this.goToMove} />
+        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
+        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
+        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
+        <RegisterKeyDown
+          trigger="p"
+          handler={(event) => {
+            if (isModKey(event) && event.shiftKey) {
+              this.onPublish(event);
+            }
+          }}
+        />
+        <RegisterKeyDown
+          trigger="h"
+          handler={(event) => {
+            if (event.ctrlKey && event.altKey) {
+              this.onToggleTableOfContents(event);
+            }
+          }}
+        />
         <Background
           key={revision ? revision.id : document.id}
           isShare={isShare}
@@ -474,6 +488,7 @@ class DocumentScene extends React.Component<Props> {
             <MaxWidth
               archived={document.isArchived}
               showContents={showContents}
+              isEditing={!readOnly}
               column
               auto
             >
@@ -611,11 +626,15 @@ const ReferencesWrapper = styled("div")`
 const MaxWidth = styled(Flex)`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-  padding: 0 12px;
+
+  // Adds space to the left gutter to make room for heading annotations on mobile
+  padding: ${(props) => (props.isEditing ? "0 12px 0 32px" : "0 12px")};
+  transition: padding 100ms;
+
   max-width: 100vw;
   width: 100%;
 
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     padding: 0 24px;
     margin: 4px auto 12px;
     max-width: calc(48px + ${(props) =>

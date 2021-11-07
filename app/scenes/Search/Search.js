@@ -7,7 +7,6 @@ import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { withTranslation, Trans, type TFunction } from "react-i18next";
-import keydown from "react-keydown";
 import { withRouter, Link } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
@@ -29,6 +28,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
+import RegisterKeyDown from "components/RegisterKeyDown";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
 import SearchInput from "./components/SearchInput";
@@ -82,10 +82,9 @@ class Search extends React.Component<Props> {
     }
   }
 
-  @keydown("esc")
-  goBack() {
+  goBack = () => {
     this.props.history.goBack();
-  }
+  };
 
   handleKeyDown = (ev: SyntheticKeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
@@ -269,6 +268,7 @@ class Search extends React.Component<Props> {
     return (
       <Container auto>
         <PageTitle title={this.title} />
+        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         {this.isLoading && <LoadingIndicator />}
         {notFound && (
           <div>

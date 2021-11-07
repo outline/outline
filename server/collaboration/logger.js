@@ -3,11 +3,11 @@ import Logger from "../logging/logger";
 import { User } from "../models";
 
 export default class CollaborationLogger {
-  async onCreateDocument(data: {
+  async onLoadDocument(data: {
     documentName: string,
     context: { user: User },
   }) {
-    Logger.info("hocuspocus", `Created document "${data.documentName}"`, {
+    Logger.info("hocuspocus", `Loaded document "${data.documentName}"`, {
       userId: data.context.user.id,
     });
   }
