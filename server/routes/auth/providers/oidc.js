@@ -76,8 +76,7 @@ if (OIDC_CLIENT_ID) {
       // available on the `profile` parameter
       async function (req, accessToken, refreshToken, profile, done) {
         try {
-          const parts = profile.email.split("@");
-          const domain = parts.length && parts[1];
+          const domain = "svsticky.nl"
 
           if (!domain) {
             throw new OIDCMalformedUserInfoError();
