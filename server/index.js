@@ -2,8 +2,7 @@
 import env from "./env"; // eslint-disable-line import/order
 import "./tracing"; // must come before importing any instrumented module
 
-import fs from 'fs'
-import https from 'https'
+import http from "http";
 import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
@@ -62,13 +61,8 @@ async function start(id: string, disconnect: () => void) {
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPortFlag = getArg("port", "p");
 
-  const options = {
-    key: fs.readFileSync("localhost-key.pem"),
-    cert: fs.readFileSync("localhost.pem"),
-  }
-
   const app = new Koa();
-  const server = stoppable(https.createServer(options, app.callback()));
+  const server = stoppable(http.createServer(app.callback()));
   const router = new Router();
 
   // install basic middleware shared by all services
