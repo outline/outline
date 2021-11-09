@@ -14,6 +14,7 @@ import {
   User,
   UserAuthentication,
   Integration,
+  IntegrationAuthentication,
   SearchQuery,
   Share,
 } from "../models";
@@ -125,6 +126,12 @@ export default async function teamPermanentDeleter(team: Team) {
     });
 
     await Integration.destroy({
+      where: { teamId },
+      force: true,
+      transaction,
+    });
+
+    await IntegrationAuthentication.destroy({
       where: { teamId },
       force: true,
       transaction,

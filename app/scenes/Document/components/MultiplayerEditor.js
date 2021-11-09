@@ -10,6 +10,7 @@ import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
 import useIdle from "hooks/useIdle";
+import useIsMounted from "hooks/useIsMounted";
 import usePageVisibility from "hooks/usePageVisibility";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -19,15 +20,17 @@ import { homePath } from "utils/routeHelpers";
 type Props = {|
   ...EditorProps,
   id: string,
+  onSynced?: () => void,
 |};
 
-function MultiplayerEditor({ ...props }: Props, ref: any) {
+function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { presence, ui } = useStores();
   const token = useCurrentToken();
+  const [showCursorNames, setShowCursorNames] = React.useState(false);
   const [remoteProvider, setRemoteProvider] = React.useState();
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
@@ -35,6 +38,7 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
   const { showToast } = useToasts();
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
+  const isMounted = useIsMounted();
 
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
@@ -74,6 +78,18 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
         }
       });
     });
+
+    const showCursorNames = () => {
+      setShowCursorNames(true);
+      setTimeout(() => {
+        if (isMounted()) {
+          setShowCursorNames(false);
+        }
+      }, 2000);
+      provider.off("awarenessChange", showCursorNames);
+    };
+
+    provider.on("awarenessChange", showCursorNames);
 
     localProvider.on("synced", () =>
       // only set local storage to "synced" if it's loaded a non-empty doc
@@ -139,6 +155,12 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
     ];
   }, [remoteProvider, user, ydoc]);
 
+  React.useEffect(() => {
+    if (isLocalSynced && isRemoteSynced) {
+      onSynced?.();
+    }
+  }, [onSynced, isLocalSynced, isRemoteSynced]);
+
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
   React.useEffect(() => {
@@ -180,6 +202,7 @@ function MultiplayerEditor({ ...props }: Props, ref: any) {
         extensions={extensions}
         ref={showCache ? undefined : ref}
         style={showCache ? { display: "none" } : undefined}
+        className={showCursorNames ? "show-cursor-names" : undefined}
       />
     </>
   );

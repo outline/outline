@@ -62,7 +62,9 @@ router.post("shares.info", auth(), async (ctx) => {
     const parentIds = document?.collection?.getDocumentParents(documentId);
 
     const parentShare = parentIds
-      ? await Share.findOne({
+      ? await Share.scope({
+          method: ["withCollection", user.id],
+        }).findOne({
           where: {
             documentId: parentIds,
             teamId: user.teamId,

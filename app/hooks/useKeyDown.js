@@ -17,7 +17,9 @@ const createKeyPredicate = (keyFilter: KeyFilter) =>
   typeof keyFilter === "function"
     ? keyFilter
     : typeof keyFilter === "string"
-    ? (event: KeyboardEvent) => event.key === keyFilter
+    ? (event: KeyboardEvent) =>
+        event.key === keyFilter ||
+        event.code === `Key${keyFilter.toUpperCase()}`
     : keyFilter
     ? (_event) => true
     : (_event) => false;

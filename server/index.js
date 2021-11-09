@@ -26,7 +26,11 @@ const normalizedServiceFlag = getArg("services");
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
-  (normalizedServiceFlag || env.SERVICES || "websockets,worker,web")
+  (
+    normalizedServiceFlag ||
+    env.SERVICES ||
+    "collaboration,websockets,worker,web"
+  )
     .split(",")
     .map((service) => service.trim())
 );

@@ -15,6 +15,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Notice from "components/Notice";
 import Switch from "components/Switch";
+import useKeyDown from "hooks/useKeyDown";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
@@ -22,7 +23,7 @@ type Props = {|
   document: Document,
   share: Share,
   sharedParent: ?Share,
-  onSubmit: () => void,
+  onRequestClose: () => void,
   visible: boolean,
 |};
 
@@ -30,7 +31,7 @@ function SharePopover({
   document,
   share,
   sharedParent,
-  onSubmit,
+  onRequestClose,
   visible,
 }: Props) {
   const { t } = useTranslation();
@@ -38,6 +39,7 @@ function SharePopover({
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
   const timeout = React.useRef<?TimeoutID>();
+  const buttonRef = React.useRef<?HTMLButtonElement>();
   const can = policies.abilities(share ? share.id : "");
   const documentAbilities = policies.abilities(document.id);
   const canPublish =
@@ -47,8 +49,13 @@ function SharePopover({
     documentAbilities.share;
   const isPubliclyShared = (share && share.published) || sharedParent;
 
+  useKeyDown("Escape", onRequestClose);
+
   React.useEffect(() => {
-    if (visible) document.share();
+    if (visible) {
+      document.share();
+      buttonRef.current?.focus();
+    }
     return () => clearTimeout(timeout.current);
   }, [document, visible]);
 
@@ -87,11 +94,11 @@ function SharePopover({
 
     timeout.current = setTimeout(() => {
       setIsCopied(false);
-      onSubmit();
+      onRequestClose();
 
       showToast(t("Share link copied"), { type: "info" });
     }, 250);
-  }, [t, onSubmit, showToast]);
+  }, [t, onRequestClose, showToast]);
 
   return (
     <>
@@ -176,7 +183,12 @@ function SharePopover({
           readOnly
         />
         <CopyToClipboard text={share ? share.url : ""} onCopy={handleCopied}>
-          <Button type="submit" disabled={isCopied || !share} primary>
+          <Button
+            type="submit"
+            disabled={isCopied || !share}
+            ref={buttonRef}
+            primary
+          >
             {t("Copy link")}
           </Button>
         </CopyToClipboard>

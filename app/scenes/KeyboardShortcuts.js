@@ -21,6 +21,7 @@ function KeyboardShortcuts() {
           },
           { shortcut: <Key>e</Key>, label: t("Edit current document") },
           { shortcut: <Key>m</Key>, label: t("Move current document") },
+          { shortcut: <Key>h</Key>, label: t("Open document history") },
           {
             shortcut: (
               <>

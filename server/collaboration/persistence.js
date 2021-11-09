@@ -9,7 +9,7 @@ import markdownToYDoc from "./utils/markdownToYDoc";
 const DELAY = 3000;
 
 export default class Persistence {
-  async onCreateDocument({
+  async onLoadDocument({
     documentName,
     ...data
   }: {
@@ -52,7 +52,7 @@ export default class Persistence {
       documentName,
     }: {
       document: Y.Doc,
-      context: { user: User },
+      context: { user: ?User },
       documentName: string,
     }) => {
       const [, documentId] = documentName.split(".");
@@ -63,7 +63,7 @@ export default class Persistence {
         await documentUpdater({
           documentId,
           ydoc: document,
-          userId: context.user.id,
+          userId: context.user?.id,
         });
       } catch (err) {
         Logger.error("Unable to persist document", err, {
