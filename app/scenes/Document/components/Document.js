@@ -203,11 +203,12 @@ class DocumentScene extends React.Component<Props> {
 
   goToHistory = (ev) => {
     if (!this.props.readOnly) return;
+    if (ev.ctrlKey) return;
 
     ev.preventDefault();
-    const { document, revision } = this.props;
+    const { document, location } = this.props;
 
-    if (revision) {
+    if (location.pathname.endsWith("history")) {
       this.props.history.push(document.url);
     } else {
       this.props.history.push(documentHistoryUrl(document));
