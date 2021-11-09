@@ -230,7 +230,7 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && editAction}
+            {canEdit && !team.collaborativeEditing && editAction}
             {canEdit && can.createChildDocument && !isMobile && (
               <Action>
                 <NewChildDocumentMenu
