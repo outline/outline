@@ -99,6 +99,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
                   document={document}
                   onOpen={handleMenuOpen}
                   onClose={handleMenuClose}
+                  isOverlay
                 />
               </Fade>
             ) : undefined
