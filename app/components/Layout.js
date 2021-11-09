@@ -143,7 +143,7 @@ class Layout extends React.Component<Props> {
             {this.props.children}
           </Content>
 
-          <React.Suspense>
+          <React.Suspense fallback={null}>
             <Switch>
               <Route
                 path={`/doc/${slug}/history/:revisionId?`}
