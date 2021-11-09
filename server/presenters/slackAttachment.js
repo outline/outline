@@ -18,7 +18,7 @@ export default function present(
   // the context contains <b> tags around search terms, we convert them here
   // to the markdown format that slack expects to receive.
   const text = context
-    ? context.replace(/<\/?b>/g, "*").replace("\n", "")
+    ? context.replace(/<\/?b>/g, "*").replace(/\n/g, "")
     : document.getSummary();
 
   return {

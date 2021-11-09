@@ -96,7 +96,7 @@ export function searchUrl(
   let route = "/search";
 
   if (query) {
-    route += `/${encodeURIComponent(query.replace("%", "%25"))}`;
+    route += `/${encodeURIComponent(query.replace(/%/g, "%25"))}`;
   }
 
   search = search ? `?${search}` : "";
