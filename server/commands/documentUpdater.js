@@ -13,7 +13,7 @@ export default async function documentUpdater({
 }: {
   documentId: string,
   ydoc: Y.Doc,
-  userId: string,
+  userId?: string,
 }) {
   const document = await Document.findByPk(documentId);
   const state = Y.encodeStateAsUpdate(ydoc);
@@ -38,7 +38,8 @@ export default async function documentUpdater({
       text,
       state: Buffer.from(state),
       updatedAt: isUnchanged ? document.updatedAt : new Date(),
-      lastModifiedById: isUnchanged ? document.lastModifiedById : userId,
+      lastModifiedById:
+        isUnchanged || !userId ? document.lastModifiedById : userId,
       collaboratorIds,
     },
     {

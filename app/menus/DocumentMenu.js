@@ -325,7 +325,7 @@ function DocumentMenu({
             {
               title: t("Edit"),
               to: editDocumentUrl(document),
-              visible: !!can.update,
+              visible: !!can.update && !team.collaborativeEditing,
               icon: <EditIcon />,
             },
             {
