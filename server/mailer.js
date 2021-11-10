@@ -207,7 +207,7 @@ export class Mailer {
     const signInLink = signinEmailText(opts);
 
     if (process.env.NODE_ENV === "development") {
-      Logger.info(`Sign-In link: ${signInLink}`);
+      Logger.debug("email", `Sign-In link: ${signInLink}`);
     }
 
     this.sendMail({
