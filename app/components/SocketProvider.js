@@ -243,6 +243,10 @@ class SocketProvider extends React.Component<Props> {
           }
         }
       }
+
+      if (event.teamIds) {
+        await auth.fetch();
+      }
     });
 
     this.socket.on("documents.star", (event) => {

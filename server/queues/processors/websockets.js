@@ -499,6 +499,17 @@ export default class WebsocketsProcessor {
         return;
       }
 
+      case "teams.update": {
+        return socketio.to(`team-${event.teamId}`).emit("entities", {
+          event: event.name,
+          teamIds: [
+            {
+              id: event.teamId,
+            },
+          ],
+        });
+      }
+
       default:
     }
   }

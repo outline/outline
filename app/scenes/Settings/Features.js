@@ -59,9 +59,8 @@ function Features() {
         onChange={handleChange}
         note={
           <Trans>
-            When enabled multiple people can edit documents at the same time.
-            Please note that this feature is in beta and currently disables
-            updating the document via the API.
+            When enabled multiple people can edit documents at the same time
+            with shared presence and live cursors.
           </Trans>
         }
       />
