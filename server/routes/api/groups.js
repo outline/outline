@@ -33,13 +33,6 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
-  if (!user.isAdmin) {
-    groups = groups.filter(
-      (group) =>
-        group.groupMemberships.filter((gm) => gm.userId === user.id).length
-    );
-  }
-
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
