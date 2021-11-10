@@ -531,7 +531,7 @@
   "Your knowledge base will be accessible at": "Ваша база знаний будет доступна по адресу",
   "Manage optional and beta features. Changing these settings will affect the experience for all team members.": "Manage optional and beta features. Changing these settings will affect the experience for all team members.",
   "Collaborative editing": "Collaborative editing",
-  "When enabled multiple people can edit documents at the same time. Please note that this feature is in beta and currently disables updating the document via the API.": "When enabled multiple people can edit documents at the same time. Please note that this feature is in beta and currently disables updating the document via the API.",
+  "When enabled multiple people can edit documents at the same time with shared presence and live cursors.": "When enabled multiple people can edit documents at the same time with shared presence and live cursors.",
   "New group": "Новая группа",
   "Groups can be used to organize and manage the people on your team.": "Группы могут быть использованы для организации и управления людьми в вашей команде.",
   "All groups": "Все группы",
