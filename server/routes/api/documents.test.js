@@ -1137,7 +1137,7 @@ describe("#documents.search", () => {
   });
 
   it("should not return draft documents created by other users", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     await buildDocument({
       title: "search term",
       text: "search term",

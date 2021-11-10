@@ -56,8 +56,8 @@ export const seed = async () => {
   const user = await User.create(
     {
       id: "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-      email: "user1@example.com",
-      name: "User 1",
+      email: "user0@example.com",
+      name: "User 0",
       teamId: team.id,
       createdAt: new Date("2018-01-02T00:00:00.000Z"),
       authentications: [
