@@ -531,7 +531,7 @@
   "Your knowledge base will be accessible at": "Votre base de connaissances sera accessible à l'adresse",
   "Manage optional and beta features. Changing these settings will affect the experience for all team members.": "Gérer les fonctionnalités optionnelles et bêta. La modification de ces paramètres sera effective pour tous les membres de l'équipe.",
   "Collaborative editing": "Édition collaborative",
-  "When enabled multiple people can edit documents at the same time. Please note that this feature is in beta and currently disables updating the document via the API.": "Lorsque cette option est activée, plusieurs personnes peuvent modifier un document simultanément. Veuillez noter que cette fonctionnalité est en version bêta et ne permet pas encore la mise à jour du document via l'API.",
+  "When enabled multiple people can edit documents at the same time with shared presence and live cursors.": "When enabled multiple people can edit documents at the same time with shared presence and live cursors.",
   "New group": "Nouveau Groupe",
   "Groups can be used to organize and manage the people on your team.": "Les groupes peuvent être utilisés pour organiser et gérer les membres de votre équipe.",
   "All groups": "Tous les groupes",
