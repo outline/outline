@@ -30,7 +30,6 @@ import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
 import Logger from "./logging/logger";
-import logger from "./logging/logger";
 import { emailsQueue } from "./queues";
 
 const useTestEmailService =
