@@ -30,6 +30,7 @@ import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
 import Logger from "./logging/logger";
+import logger from "./logging/logger";
 import { emailsQueue } from "./queues";
 
 const useTestEmailService =
@@ -204,12 +205,18 @@ export class Mailer {
   };
 
   signin = async (opts: { to: string, token: string, teamUrl: string }) => {
+    const signInLink = signinEmailText(opts);
+
+    if (process.env.NODE_ENV === "development") {
+      Logger.info(`Sign-In link: ${signInLink}`);
+    }
+
     this.sendMail({
       to: opts.to,
       title: "Magic signin link",
       previewText: "Here’s your link to signin to Outline.",
       html: <SigninEmail {...opts} />,
-      text: signinEmailText(opts),
+      text: signInLink,
     });
   };
 
