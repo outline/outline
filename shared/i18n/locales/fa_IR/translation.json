@@ -531,7 +531,7 @@
   "Your knowledge base will be accessible at": "پایگاه دانش شما در دسترس خواهد بود",
   "Manage optional and beta features. Changing these settings will affect the experience for all team members.": "Manage optional and beta features. Changing these settings will affect the experience for all team members.",
   "Collaborative editing": "ویرایش مشارکتی",
-  "When enabled multiple people can edit documents at the same time. Please note that this feature is in beta and currently disables updating the document via the API.": "When enabled multiple people can edit documents at the same time. Please note that this feature is in beta and currently disables updating the document via the API.",
+  "When enabled multiple people can edit documents at the same time with shared presence and live cursors.": "When enabled multiple people can edit documents at the same time with shared presence and live cursors.",
   "New group": "گروه جدید",
   "Groups can be used to organize and manage the people on your team.": "از گروه‌ها برای دسته‌بندی و مدیریت افراد تیم خود استفاده نمایید.",
   "All groups": "همه گروه‌ها",
