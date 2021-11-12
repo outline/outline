@@ -5,6 +5,7 @@ import styled from "styled-components";
 
 type Props = {|
   disabled?: boolean,
+  readOnly?: boolean,
   onChange?: (text: string) => void,
   onBlur?: (event: SyntheticInputEvent<>) => void,
   onInput?: (event: SyntheticInputEvent<>) => void,
@@ -33,6 +34,7 @@ function ContentEditable({
   maxLength,
   autoFocus,
   placeholder,
+  readOnly,
   ...rest
 }: Props) {
   const ref = React.useRef<?HTMLSpanElement>();
@@ -72,7 +74,7 @@ function ContentEditable({
   return (
     <div className={className}>
       <Content
-        contentEditable={!disabled}
+        contentEditable={!disabled && !readOnly}
         onInput={wrappedEvent(onInput)}
         onBlur={wrappedEvent(onBlur)}
         onKeyDown={wrappedEvent(onKeyDown)}
