@@ -110,6 +110,11 @@ const ListItem = styled("li")`
   line-height: 1.3;
   border-right: 3px solid
     ${(props) => (props.active ? props.theme.divider : "transparent")};
+
+  a {
+    color: ${(props) =>
+      props.active ? props.theme.primary : props.theme.text};
+  }
 `;
 
 const Link = styled("a")`
