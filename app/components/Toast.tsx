@@ -2,8 +2,8 @@ import { CheckboxIcon, InfoIcon, WarningIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
-import { fadeAndScaleIn, pulse } from "styles/animations";
-import type { Toast as TToast } from "types";
+import { fadeAndScaleIn, pulse } from "../styles/animations";
+import { Toast as TToast } from "../types";
 
 type Props = {
   onRequestClose: () => void;
@@ -15,37 +15,29 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
   const timeout = React.useRef();
   const [pulse, setPulse] = React.useState(false);
   const { action, type = "info", reoccurring } = toast;
+
   React.useEffect(() => {
     timeout.current = setTimeout(onRequestClose, toast.timeout || closeAfterMs);
     return () => clearTimeout(timeout.current);
   }, [onRequestClose, toast, closeAfterMs]);
+
   React.useEffect(() => {
     if (reoccurring) {
-      setPulse(reoccurring);
+      setPulse(!!reoccurring);
       // must match animation time in css below vvv
       setTimeout(() => setPulse(false), 250);
     }
   }, [reoccurring]);
-  const message =
-    typeof toast.message === "string"
-      ? toast.message
-      : toast.message.toString();
+
   return (
     <ListItem $pulse={pulse}>
-      <Container
-        onClick={action ? undefined : onRequestClose}
-        type={toast.type || "success"}
-      >
+      <Container onClick={action ? undefined : onRequestClose}>
         {type === "info" && <InfoIcon color="currentColor" />}
         {type === "success" && <CheckboxIcon checked color="currentColor" />}
         {type === "warning" ||
           (type === "error" && <WarningIcon color="currentColor" />)}
-        <Message>{message}</Message>
-        {action && (
-          <Action type={toast.type || "success"} onClick={action.onClick}>
-            {action.text}
-          </Action>
-        )}
+        <Message>{toast.message}</Message>
+        {action && <Action onClick={action.onClick}>{action.text}</Action>}
       </Container>
     </ListItem>
   );
@@ -66,7 +58,7 @@ const Action = styled.span`
     background: ${(props) => darken(0.1, props.theme.toastBackground)};
   }
 `;
-const ListItem = styled.li`
+const ListItem = styled.li<{ $pulse?: boolean }>`
   ${(props) =>
     props.$pulse &&
     css`
@@ -89,6 +81,7 @@ const Container = styled.div`
     background: ${(props) => darken(0.05, props.theme.toastBackground)};
   }
 `;
+
 const Message = styled.div`
   display: inline-block;
   font-weight: 500;

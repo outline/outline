@@ -14,7 +14,7 @@ export default class Lucidchart extends React.Component<Props> {
     /^https?:\/\/(www\.|app\.)?lucid.app\/lucidchart\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/(embeddedchart|view)(?:\/.*)?$/,
   ];
 
-  render() {
+  override render() {
     const { matches } = this.props.attrs;
     const { chartId } = matches.groups;
     return (

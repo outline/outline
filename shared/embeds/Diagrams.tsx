@@ -29,7 +29,7 @@ export default class Diagrams extends React.Component<Props> {
     return title;
   }
 
-  render() {
+  override render() {
     return (
       <Frame
         {...this.props}

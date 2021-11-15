@@ -12,7 +12,7 @@ type Props = {
 export default class Cawemo extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     const { matches } = this.props.attrs;
     const shareId = matches[1];
     return (

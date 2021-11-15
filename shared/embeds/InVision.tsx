@@ -15,7 +15,7 @@ type Props = {
 export default class InVision extends React.Component<Props> {
   static ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
 
-  render() {
+  override render() {
     if (IMAGE_REGEX.test(this.props.attrs.href)) {
       return (
         <ImageZoom

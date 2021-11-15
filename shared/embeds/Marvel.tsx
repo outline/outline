@@ -12,7 +12,7 @@ type Props = {
 export default class Marvel extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     return (
       <Frame
         {...this.props}

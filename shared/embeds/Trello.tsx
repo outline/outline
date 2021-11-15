@@ -12,7 +12,7 @@ type Props = {
 export default class Trello extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     const { matches } = this.props.attrs;
     const objectId = matches[2];
 

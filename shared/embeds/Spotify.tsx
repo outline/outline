@@ -21,7 +21,7 @@ export default class Spotify extends React.Component<Props> {
     }
   }
 
-  render() {
+  override render() {
     const normalizedPath = this.pathname.replace(/^\/embed/, "/");
     let height;
 

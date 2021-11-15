@@ -8,11 +8,11 @@
     }
   },
   "extends": [
+    "plugin:@typescript-eslint/recommended",
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:react-hooks/recommended",
-    "plugin:prettier/recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:prettier/recommended"
   ],
   "plugins": [
     "@typescript-eslint",

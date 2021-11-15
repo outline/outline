@@ -48,19 +48,14 @@ export default function pagination(options?: Record<string, any>) {
       );
     }
 
-    /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
-     * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
     ctx.state.pagination = {
       limit,
       offset,
     };
 
     query.limit = ctx.state.pagination.limit;
-
     query.offset = ctx.state.pagination.offset + query.limit;
 
-    /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
-     * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
     ctx.state.pagination.nextPath = `/api${
       ctx.request.path
     }?${querystring.stringify(query)}`;

@@ -53,7 +53,7 @@ class Gist extends React.Component<Props> {
     doc.close();
   };
 
-  render() {
+  override render() {
     const id = this.id;
     return (
       <iframe

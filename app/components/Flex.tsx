@@ -1,4 +1,3 @@
-import * as React from "react";
 import styled from "styled-components";
 
 type JustifyValues =
@@ -7,32 +6,22 @@ type JustifyValues =
   | "space-between"
   | "flex-start"
   | "flex-end";
+
 type AlignValues =
   | "stretch"
   | "center"
   | "baseline"
   | "flex-start"
   | "flex-end";
-type Props = {
-  column?: boolean | null | undefined;
-  shrink?: boolean | null | undefined;
+
+const Flex = styled.div<{
+  auto?: boolean;
+  column?: boolean;
   align?: AlignValues;
   justify?: JustifyValues;
-  auto?: boolean | null | undefined;
-  className?: string;
-  children?: React.ReactNode;
-  role?: string;
+  shrink?: boolean;
   gap?: number;
-};
-const Flex = React.forwardRef<Props, HTMLDivElement>((props: Props, ref) => {
-  const { children, ...restProps } = props;
-  return (
-    <Container ref={ref} {...restProps}>
-      {children}
-    </Container>
-  );
-});
-const Container = styled.div`
+}>`
   display: flex;
   flex: ${({ auto }) => (auto ? "1 1 auto" : "initial")};
   flex-direction: ${({ column }) => (column ? "column" : "row")};

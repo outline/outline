@@ -79,7 +79,7 @@ class AvatarWithPresence extends React.Component<Props> {
 const Centered = styled.div`
   text-align: center;
 `;
-const AvatarWrapper = styled.div`
+const AvatarWrapper = styled.div<{ isPresent: boolean }>`
   opacity: ${(props) => (props.isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
 `;

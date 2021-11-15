@@ -112,7 +112,7 @@ const Backdrop = styled.div`
     opacity: 1;
   }
 `;
-const Scene = styled.div`
+const Scene = styled.div<{ $nested: boolean }>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   position: absolute;
@@ -129,7 +129,7 @@ const Scene = styled.div`
   outline: none;
 
   ${breakpoint("tablet")`
-  ${(props) =>
+  ${(props: any) =>
     props.$nested &&
     `
       box-shadow: 0 -2px 10px ${props.theme.shadow};

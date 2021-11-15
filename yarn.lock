@@ -2715,7 +2715,7 @@
   dependencies:
     "@types/koa" "*"
 
-"@types/koa@*", "@types/koa@^2.13.1":
+"@types/koa@*", "@types/koa@^2.13.1", "@types/koa@^2.13.4":
   version "2.13.4"
   resolved "https://registry.yarnpkg.com/@types/koa/-/koa-2.13.4.tgz#10620b3f24a8027ef5cbae88b393d1b31205726b"
   integrity sha512-dfHYMfU+z/vKtQB7NUrthdAEiSvnLebvBjwHtfFmpZmB7em2N3WVQdHgnFq+xvyVgxW5jKDmjWfLD3lw4g4uTw==
@@ -2810,6 +2810,13 @@
   version "17.0.11"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-17.0.11.tgz#e1eadc3c5e86bdb5f7684e00274ae228e7bcc466"
   integrity sha512-f96K3k+24RaLGVu/Y2Ng3e1EbZ8/cVJvypZWd7cy0ofCBaf2lcM46xNhycMZ2xGwbBjRql7hOlZ+e2WlJ5MH3Q==
+  dependencies:
+    "@types/react" "*"
+
+"@types/react-medium-image-zoom@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/react-medium-image-zoom/-/react-medium-image-zoom-3.0.1.tgz#3c7440edb29515b9d5d3eab808b46d604f8a030b"
+  integrity sha512-jZejvKxPGOZDiNME3z6Grjex2xTDEXGo+FIrqMTfCClYU4qWR3yOHKI0Hv0C3DzzK99o38CD3bMw6TQ0f5yy4w==
   dependencies:
     "@types/react" "*"
 

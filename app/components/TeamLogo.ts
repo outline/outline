@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const TeamLogo = styled.img`
+const TeamLogo = styled.img<{ size: string }>`
   width: ${(props) =>
     props.width ? `${props.width}px` : props.size || "auto"};
   height: ${(props) =>

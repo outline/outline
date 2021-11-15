@@ -12,7 +12,7 @@ type Props = {
 export default class Vimeo extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     const { matches } = this.props.attrs;
     const videoId = matches[2];
     return (

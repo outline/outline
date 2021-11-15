@@ -57,7 +57,7 @@ const IconWrapper = styled.div`
   width: 20px;
   height: 20px;
 `;
-const CircleImg = styled.img`
+const CircleImg = styled.img<{ size: number }>`
   display: block;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;

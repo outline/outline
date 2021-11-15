@@ -57,7 +57,11 @@ function Scrollable(
   );
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{
+  $flex?: boolean;
+  $topShadowVisible?: boolean;
+  $bottomShadowVisible?: boolean;
+}>`
   display: ${(props) => (props.$flex ? "flex" : "block")};
   flex-direction: column;
   height: 100%;

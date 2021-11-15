@@ -22,6 +22,7 @@ type Props = {
   width?: string;
   height?: string;
 };
+
 type PropsWithRef = Props & {
   forwardedRef: React.Ref<typeof StyledIframe>;
 };
@@ -33,12 +34,12 @@ class Frame extends React.Component<PropsWithRef> {
   @observable
   isLoaded = false;
 
-  componentDidMount() {
+  override componentDidMount() {
     this.mounted = true;
     setImmediate(this.loadIframe);
   }
 
-  componentWillUnmount() {
+  override componentWillUnmount() {
     this.mounted = false;
   }
 
@@ -47,7 +48,7 @@ class Frame extends React.Component<PropsWithRef> {
     this.isLoaded = true;
   };
 
-  render() {
+  override render() {
     const {
       border,
       width = "100%",
@@ -61,6 +62,7 @@ class Frame extends React.Component<PropsWithRef> {
     } = this.props;
     const Component = border ? StyledIframe : "iframe";
     const withBar = !!(icon || canonicalUrl);
+
     return (
       <Rounded
         width={width}
@@ -84,7 +86,7 @@ class Frame extends React.Component<PropsWithRef> {
           />
         )}
         {withBar && (
-          <Bar align="center">
+          <Bar>
             {icon} <Title>{title}</Title>
             {canonicalUrl && (
               <Open
@@ -102,7 +104,7 @@ class Frame extends React.Component<PropsWithRef> {
   }
 }
 
-const Rounded = styled.div`
+const Rounded = styled.div<{ width: string; height: string; $withBar: boolean}>`
   border: 1px solid ${(props) => props.theme.embedBorder};
   border-radius: 6px;
   overflow: hidden;
@@ -136,6 +138,6 @@ const Bar = styled.div`
   user-select: none;
 `;
 
-export default React.forwardRef<Props, typeof Frame>((props, ref) => (
+export default React.forwardRef((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));

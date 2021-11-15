@@ -13,7 +13,7 @@ type Props = {
 export default class GoogleSheets extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     return (
       <Frame
         {...this.props}

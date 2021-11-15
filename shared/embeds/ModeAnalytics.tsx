@@ -14,7 +14,7 @@ type Props = {
 export default class ModeAnalytics extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     // Allow users to paste embed or standard urls and handle them the same
     const normalizedUrl = this.props.attrs.href.replace(/\/embed$/, "");
     return (

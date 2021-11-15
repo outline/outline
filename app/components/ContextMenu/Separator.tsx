@@ -9,6 +9,7 @@ export default function Separator(rest: any) {
     </MenuSeparator>
   );
 }
+
 const HorizontalRule = styled.hr`
   margin: 0.5em 12px;
 `;

@@ -12,7 +12,7 @@ type Props = {
 export default class Loom extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  render() {
+  override render() {
     const normalizedUrl = this.props.attrs.href.replace("share", "embed");
     return <Frame {...this.props} src={normalizedUrl} title="Loom Embed" />;
   }

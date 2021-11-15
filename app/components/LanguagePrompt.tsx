@@ -6,11 +6,11 @@ import { languages, languageOptions } from "shared/i18n";
 import ButtonLink from "components/ButtonLink";
 import Flex from "components/Flex";
 import NoticeTip from "components/NoticeTip";
+import { detectLanguage } from "../utils/language";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
-import { detectLanguage } from "utils/language";
 
-function Icon(props) {
+function Icon(props: any) {
   return (
     <svg
       width="32"

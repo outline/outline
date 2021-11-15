@@ -13,9 +13,10 @@ import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import ToastsStore from "stores/ToastsStore";
 import ViewsStore from "stores/ViewsStore";
-import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
+import { getVisibilityListener, getPageVisible } from "../utils/pageVisibility";
 
-export const SocketContext: any = React.createContext();
+export const SocketContext: any = React.createContext<Socket>(null);
+
 type Props = {
   children: React.ReactNode;
   documents: DocumentsStore;
@@ -35,12 +36,12 @@ class SocketProvider extends React.Component<Props> {
   @observable
   socket: Socket;
 
-  componentDidMount() {
+  override componentDidMount() {
     this.createConnection();
     document.addEventListener(getVisibilityListener(), this.checkConnection);
   }
 
-  componentWillUnmount() {
+  override componentWillUnmount() {
     if (this.socket) {
       this.socket.authenticated = false;
       this.socket.disconnect();
@@ -104,7 +105,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("authenticated", () => {
       this.socket.authenticated = true;
     });
-    this.socket.on("unauthorized", (err) => {
+    this.socket.on("unauthorized", (err: Error) => {
       this.socket.authenticated = false;
       toasts.showToast(err.message, {
         type: "error",
@@ -331,7 +332,7 @@ class SocketProvider extends React.Component<Props> {
     });
   };
 
-  render() {
+  override render() {
     return (
       <SocketContext.Provider value={this.socket}>
         {this.props.children}

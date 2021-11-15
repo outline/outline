@@ -6,6 +6,7 @@ import NavLinkWithChildrenFunc from "components/NavLink";
 type Props = {
   children: React.ReactNode;
 };
+
 const TabLink = styled(NavLinkWithChildrenFunc)`
   position: relative;
   display: inline-flex;
@@ -20,6 +21,7 @@ const TabLink = styled(NavLinkWithChildrenFunc)`
     color: ${(props) => props.theme.textSecondary};
   }
 `;
+
 const Active = styled(m.div)`
   position: absolute;
   bottom: 0;
@@ -31,6 +33,7 @@ const Active = styled(m.div)`
   border-top-right-radius: 2px;
   background: ${(props) => props.theme.textSecondary};
 `;
+
 const transition = {
   type: "spring",
   stiffness: 500,

@@ -10,6 +10,7 @@ type MenuItem = {
   title: React.ReactNode;
   to?: string;
 };
+
 type Props = {
   items: MenuItem[];
   max?: number;
@@ -40,7 +41,7 @@ function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
             <Item
               to={item.to}
               $withIcon={!!item.icon}
-              $highlight={highlightFirstItem && index === 0}
+              $highlight={!!highlightFirstItem && index === 0}
             >
               {item.title}
             </Item>
@@ -59,7 +60,8 @@ const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   fill: ${(props) => props.theme.divider};
 `;
-const Item = styled(Link)`
+
+const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   display: flex;
   flex-shrink: 1;
   min-width: 0;
