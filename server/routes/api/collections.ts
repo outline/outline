@@ -646,4 +646,5 @@ router.post("collections.move", auth(), async (ctx) => {
     },
   };
 });
+
 export default router;

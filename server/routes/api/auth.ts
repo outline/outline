@@ -119,4 +119,5 @@ router.post("auth.info", auth(), async (ctx) => {
     policies: presentPolicies(user, [team]),
   };
 });
+
 export default router;

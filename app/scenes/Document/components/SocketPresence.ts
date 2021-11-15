@@ -7,6 +7,7 @@ type Props = {
   documentId: string;
   isEditing: boolean;
 };
+
 export default class SocketPresence extends React.Component<Props> {
   static contextType = SocketContext;
 

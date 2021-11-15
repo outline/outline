@@ -13,6 +13,7 @@ import { client, subscriber } from "../redis";
 import { getUserForJWT } from "../utils/jwt";
 
 const { can } = policy;
+
 export default function init(app: Koa, server: http.Server) {
   const path = "/realtime";
   // Websockets for events and non-collaborative documents

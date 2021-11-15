@@ -17,4 +17,5 @@ const Notice = styled.p`
     text-decoration: underline;
   }
 `;
+
 export default Notice;

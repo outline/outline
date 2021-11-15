@@ -10,6 +10,7 @@ export function AuthenticationError(
     id: "authentication_required",
   });
 }
+
 export function AuthorizationError(
   message = "You do not have permission to access this resource"
 ) {
@@ -17,6 +18,7 @@ export function AuthorizationError(
     id: "permission_required",
   });
 }
+
 export function AdminRequiredError(
   message = "An admin role is required to access this resource"
 ) {
@@ -24,6 +26,7 @@ export function AdminRequiredError(
     id: "admin_required",
   });
 }
+
 export function UserSuspendedError({ adminEmail }: { adminEmail: string }) {
   return httpErrors(403, "Your access has been suspended by the team admin", {
     id: "user_suspended",
@@ -32,26 +35,31 @@ export function UserSuspendedError({ adminEmail }: { adminEmail: string }) {
     },
   });
 }
+
 export function InvalidRequestError(message = "Request invalid") {
   return httpErrors(400, message, {
     id: "invalid_request",
   });
 }
+
 export function NotFoundError(message = "Resource not found") {
   return httpErrors(404, message, {
     id: "not_found",
   });
 }
+
 export function ParamRequiredError(message = "Required parameter missing") {
   return httpErrors(400, message, {
     id: "param_required",
   });
 }
+
 export function ValidationError(message = "Validation failed") {
   return httpErrors(400, message, {
     id: "validation_error",
   });
 }
+
 export function EditorUpdateError(
   message = "The client editor is out of date and must be reloaded"
 ) {
@@ -59,11 +67,13 @@ export function EditorUpdateError(
     id: "editor_update_required",
   });
 }
+
 export function FileImportError(message = "The file could not be imported") {
   return httpErrors(400, message, {
     id: "import_error",
   });
 }
+
 export function OAuthStateMismatchError(
   message = "State returned in OAuth flow did not match"
 ) {
@@ -71,6 +81,7 @@ export function OAuthStateMismatchError(
     id: "state_mismatch",
   });
 }
+
 export function MaximumTeamsError(
   message = "The maximum number of teams has been reached"
 ) {
@@ -78,6 +89,7 @@ export function MaximumTeamsError(
     id: "maximum_teams",
   });
 }
+
 export function EmailAuthenticationRequiredError(
   message = "User must authenticate with email",
   redirectUrl: string = env.URL
@@ -87,6 +99,7 @@ export function EmailAuthenticationRequiredError(
     id: "email_auth_required",
   });
 }
+
 export function MicrosoftGraphError(
   message = "Microsoft Graph API did not return required fields"
 ) {
@@ -94,6 +107,7 @@ export function MicrosoftGraphError(
     id: "graph_error",
   });
 }
+
 export function GoogleWorkspaceRequiredError(
   message = "Google Workspace is required to authenticate"
 ) {
@@ -101,6 +115,7 @@ export function GoogleWorkspaceRequiredError(
     id: "google_hd",
   });
 }
+
 export function GoogleWorkspaceInvalidError(
   message = "Google Workspace is invalid"
 ) {
@@ -108,6 +123,7 @@ export function GoogleWorkspaceInvalidError(
     id: "hd_not_allowed",
   });
 }
+
 export function OIDCMalformedUserInfoError(
   message = "User profile information malformed"
 ) {
@@ -115,6 +131,7 @@ export function OIDCMalformedUserInfoError(
     id: "malformed_user_info",
   });
 }
+
 export function AuthenticationProviderDisabledError(
   message = "Authentication method has been disabled by an admin",
   redirectUrl: string = env.URL

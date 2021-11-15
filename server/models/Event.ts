@@ -119,4 +119,5 @@ Event.AUDIT_EVENTS = [
   "users.activate",
   "users.delete",
 ];
+
 export default Event;

@@ -11,6 +11,7 @@ import { Op } from "../sequelize";
 const cache = {};
 const page = 0;
 const limit = 100;
+
 export default async function main(exit = false) {
   const work = async (page: number) => {
     Logger.info("database", "Starting authentication migration");

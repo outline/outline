@@ -52,4 +52,5 @@ const Button = styled(NudeButton)`
 const Centered = styled.div`
   text-align: center;
 `;
+
 export default observer(ConnectionStatus);

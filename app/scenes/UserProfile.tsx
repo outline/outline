@@ -100,4 +100,5 @@ const StyledBadge = styled(Badge)`
 const Meta = styled(HelpText)`
   margin-top: -12px;
 `;
+
 export default observer(UserProfile);

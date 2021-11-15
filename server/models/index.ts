@@ -55,6 +55,7 @@ Object.keys(models).forEach((modelName) => {
     models[modelName].associate(models);
   }
 });
+
 export {
   ApiKey,
   Attachment,

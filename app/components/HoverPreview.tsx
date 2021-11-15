@@ -228,4 +228,5 @@ const Pointer = styled.div`
     border-bottom-color: ${(props) => props.theme.background};
   }
 `;
+
 export default inject("documents")(HoverPreview);

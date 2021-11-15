@@ -31,4 +31,5 @@ router.get("/:type/:format", async (ctx) => {
   }
 });
 emailPreviews.use(router.routes());
+
 export default emailPreviews;

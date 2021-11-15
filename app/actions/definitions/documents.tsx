@@ -42,6 +42,7 @@ export const openDocument = createAction({
       }));
   },
 });
+
 export const createDocument = createAction({
   name: ({ t }) => t("New document"),
   section: DocumentSection,
@@ -53,6 +54,7 @@ export const createDocument = createAction({
   perform: ({ activeCollectionId }) =>
     activeCollectionId && history.push(newDocumentPath(activeCollectionId)),
 });
+
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),
   section: DocumentSection,
@@ -71,6 +73,7 @@ export const starDocument = createAction({
     document?.star();
   },
 });
+
 export const unstarDocument = createAction({
   name: ({ t }) => t("Unstar"),
   section: DocumentSection,
@@ -90,6 +93,7 @@ export const unstarDocument = createAction({
     document?.unstar();
   },
 });
+
 export const downloadDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Download") : t("Download document"),
@@ -104,6 +108,7 @@ export const downloadDocument = createAction({
     document?.download();
   },
 });
+
 export const duplicateDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Duplicate") : t("Duplicate document"),
@@ -124,6 +129,7 @@ export const duplicateDocument = createAction({
     });
   },
 });
+
 export const printDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Print") : t("Print document"),
@@ -134,6 +140,7 @@ export const printDocument = createAction({
     window.print();
   },
 });
+
 export const importDocument = createAction({
   name: ({ t, activeDocumentId }) => t("Import document"),
   section: DocumentSection,
@@ -181,6 +188,7 @@ export const importDocument = createAction({
     input.click();
   },
 });
+
 export const createTemplate = createAction({
   name: ({ t }) => t("Templatize"),
   section: DocumentSection,
@@ -209,6 +217,7 @@ export const createTemplate = createAction({
     });
   },
 });
+
 export const rootDocumentActions = [
   openDocument,
   createDocument,

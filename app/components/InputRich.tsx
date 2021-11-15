@@ -62,4 +62,5 @@ const StyledOutline = styled(Outline)`
     display: block;
   }
 `;
+
 export default observer(withTheme(InputRich));

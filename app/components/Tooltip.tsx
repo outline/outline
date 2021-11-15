@@ -66,4 +66,5 @@ const StyledTippy = styled(Tippy)`
     fill: ${(props) => props.theme.tooltipBackground};
   }
 `;
+
 export default Tooltip;

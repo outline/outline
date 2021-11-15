@@ -100,10 +100,12 @@ const Subtitle = styled.p`
     props.$selected ? props.theme.white50 : props.theme.textTertiary};
   margin-top: -2px;
 `;
+
 export const Actions = styled(Flex)`
   align-self: center;
   justify-content: center;
   color: ${(props) =>
     props.$selected ? props.theme.white : props.theme.textSecondary};
 `;
+
 export default React.forwardRef<Props, HTMLDivElement>(ListItem);

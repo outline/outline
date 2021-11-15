@@ -65,4 +65,5 @@ const Avatars = styled(Flex)`
   flex-direction: row-reverse;
   cursor: pointer;
 `;
+
 export default observer(Facepile);

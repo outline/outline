@@ -13,6 +13,7 @@ const Button = styled.button`
   user-select: none;
   color: inherit;
 `;
+
 export default React.forwardRef<any, typeof Button>(
   ({ size = 24, ...props }, ref) => <Button size={size} {...props} ref={ref} />
 );

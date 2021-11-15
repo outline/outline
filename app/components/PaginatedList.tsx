@@ -185,4 +185,5 @@ class PaginatedList extends React.Component<Props> {
 }
 
 export const Component = PaginatedList;
+
 export default withTranslation()<PaginatedList>(inject("auth")(PaginatedList));

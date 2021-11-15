@@ -438,4 +438,5 @@ const Label = styled.dd`
   align-items: center;
   color: ${(props) => props.theme.textSecondary};
 `;
+
 export default KeyboardShortcuts;

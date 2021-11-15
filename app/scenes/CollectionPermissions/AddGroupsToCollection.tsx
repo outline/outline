@@ -147,6 +147,7 @@ class AddGroupsToCollection extends React.Component<Props> {
 const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
+
 export default withTranslation()<AddGroupsToCollection>(
   inject(
     "auth",

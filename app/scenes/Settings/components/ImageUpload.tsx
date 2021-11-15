@@ -180,4 +180,5 @@ const RangeInput = styled.input`
 const CropButton = styled(Button)`
   width: 300px;
 `;
+
 export default inject("ui")(ImageUpload);

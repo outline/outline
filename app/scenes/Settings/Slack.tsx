@@ -161,4 +161,5 @@ const Code = styled.code`
   background: ${(props) => props.theme.codeBackground};
   border-radius: 4px;
 `;
+
 export default observer(Slack);

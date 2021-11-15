@@ -23,6 +23,7 @@ export function createAction(
     ...definition,
   };
 }
+
 export function actionToMenuItem(
   action: Action,
   context: ActionContext
@@ -65,6 +66,7 @@ export function actionToMenuItem(
     selected: action.selected ? action.selected(context) : undefined,
   };
 }
+
 export function actionToKBar(
   action: Action,
   context: ActionContext

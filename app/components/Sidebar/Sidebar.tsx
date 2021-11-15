@@ -251,4 +251,5 @@ const Container = styled(Flex)`
     }
   `};
 `;
+
 export default observer(Sidebar);

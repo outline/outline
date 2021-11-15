@@ -1,4 +1,5 @@
 const CHECKBOX_REGEX = /\[(X|\s|_|-)\]\s(.*)?/gi;
+
 export default function getTasks(text: string) {
   const matches = [...text.matchAll(CHECKBOX_REGEX)];
   const total = matches.length;

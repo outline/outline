@@ -167,4 +167,5 @@ const ListItem = styled(Item)`
     }
   }
 `;
+
 export default EventListItem;

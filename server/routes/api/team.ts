@@ -62,4 +62,5 @@ router.post("team.update", auth(), async (ctx) => {
     policies: presentPolicies(user, [team]),
   };
 });
+
 export default router;

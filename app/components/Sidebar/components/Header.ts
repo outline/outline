@@ -10,4 +10,5 @@ const Header = styled(Flex)`
   letter-spacing: 0.04em;
   margin: 4px 12px;
 `;
+
 export default Header;

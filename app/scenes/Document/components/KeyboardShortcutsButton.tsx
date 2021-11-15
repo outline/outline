@@ -49,4 +49,5 @@ const Button = styled(NudeButton)`
     display: none;
   }
 `;
+
 export default KeyboardShortcutsButton;

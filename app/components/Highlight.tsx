@@ -46,4 +46,5 @@ const Mark = styled.mark`
   border-radius: 2px;
   padding: 0 4px;
 `;
+
 export default Highlight;

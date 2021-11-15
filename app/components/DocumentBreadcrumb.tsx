@@ -135,4 +135,5 @@ const SmallSlash = styled(GoToIcon)`
   fill: ${(props) => props.theme.slate};
   opacity: 0.5;
 `;
+
 export default observer(DocumentBreadcrumb);

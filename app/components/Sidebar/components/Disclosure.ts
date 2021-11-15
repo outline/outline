@@ -8,4 +8,5 @@ const Disclosure = styled(CollapsedIcon)`
 
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
+
 export default Disclosure;

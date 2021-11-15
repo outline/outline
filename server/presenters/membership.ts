@@ -6,6 +6,7 @@ type Membership = {
   collectionId: string;
   permission: string;
 };
+
 export default (membership: CollectionUser): Membership => {
   return {
     id: `${membership.userId}-${membership.collectionId}`,

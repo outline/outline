@@ -23,6 +23,7 @@ const getPosition = () => ({
 const defaultOptions = {
   throttle: 100,
 };
+
 export default function useWindowScrollPosition(options: {
   throttle: number;
 }): {

@@ -7,6 +7,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class Abstract extends React.Component<Props> {
   static ENABLED = [
     new RegExp("https?://share.(?:go)?abstract.com/(.*)$"),

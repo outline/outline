@@ -87,4 +87,5 @@ const Animator = styled(KBarAnimator)`
     display: none;
   }
 `;
+
 export default observer(CommandBar);

@@ -655,6 +655,7 @@ const MaxWidth = styled(Flex)`
     max-width: calc(48px + 52em);
   `};
 `;
+
 export default withRouter(
   withTranslation()<DocumentScene>(
     inject("ui", "auth", "toasts")(DocumentScene)

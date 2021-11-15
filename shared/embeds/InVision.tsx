@@ -11,6 +11,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class InVision extends React.Component<Props> {
   static ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
 

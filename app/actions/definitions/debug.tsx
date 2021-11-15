@@ -16,6 +16,7 @@ export const clearIndexedDB = createAction({
     stores.toasts.showToast(t("IndexedDB cache deleted"));
   },
 });
+
 export const development = createAction({
   name: ({ t }) => t("Development"),
   keywords: "debug",
@@ -27,4 +28,5 @@ export const development = createAction({
     (event instanceof KeyboardEvent && event.altKey),
   children: [clearIndexedDB],
 });
+
 export const rootDebugActions = [development];

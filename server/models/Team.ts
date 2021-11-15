@@ -255,4 +255,5 @@ Team.prototype.collectionIds = async function (paranoid = true) {
 };
 
 Team.beforeSave(uploadAvatar);
+
 export default Team;

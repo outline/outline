@@ -34,4 +34,5 @@ const Count = styled.div`
   margin-left: 8px;
   user-select: none;
 `;
+
 export default Bubble;

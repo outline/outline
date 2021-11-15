@@ -40,4 +40,5 @@ export function serialize(
   });
   return output;
 }
+
 export default policy;

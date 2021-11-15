@@ -25,4 +25,5 @@ const subscriber = new Redis(process.env.REDIS_URL, options);
 // https://github.com/OptimalBits/bull/issues/1192
 client.setMaxListeners(100);
 subscriber.setMaxListeners(100);
+
 export { client, subscriber };

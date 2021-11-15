@@ -29,6 +29,7 @@ import { emailsQueue } from "./queues";
 
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
+
 export type EmailTypes =
   | "welcome"
   | "export"
@@ -36,6 +37,7 @@ export type EmailTypes =
   | "signin"
   | "exportFailure"
   | "exportSuccess";
+
 export type EmailSendOptions = {
   to: string;
   properties?: any;
@@ -257,4 +259,5 @@ export class Mailer {
   };
 }
 const mailer = new Mailer();
+
 export default mailer;

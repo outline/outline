@@ -24,6 +24,7 @@ const scopes = [
   "identity.avatar",
   "identity.team",
 ];
+
 export const config = {
   name: "Slack",
   enabled: !!SLACK_CLIENT_ID,

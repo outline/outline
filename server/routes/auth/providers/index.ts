@@ -31,4 +31,5 @@ requireDirectory(__dirname).forEach(([module, id]) => {
     });
   }
 });
+
 export default providers;

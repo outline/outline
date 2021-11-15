@@ -101,4 +101,5 @@ const Title = styled.span`
     cursor: pointer;
   }
 `;
+
 export default inject("groupMemberships")(GroupListItem);

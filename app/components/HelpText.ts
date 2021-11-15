@@ -5,4 +5,5 @@ const HelpText = styled.p`
   color: ${(props) => props.theme.textSecondary};
   font-size: ${(props) => (props.small ? "13px" : "inherit")};
 `;
+
 export default HelpText;

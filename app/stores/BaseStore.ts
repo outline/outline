@@ -14,7 +14,9 @@ function modelNameFromClassName(string) {
 }
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
+
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
+
 export default class BaseStore<T extends BaseModel> {
   @observable
   data: Map<string, T> = new Map();

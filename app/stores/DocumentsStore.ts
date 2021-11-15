@@ -20,6 +20,7 @@ import { client } from "utils/ApiClient";
 type ImportOptions = {
   publish?: boolean;
 };
+
 export default class DocumentsStore extends BaseStore<Document> {
   @observable
   searchCache: Map<string, SearchResult[]> = new Map();

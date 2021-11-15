@@ -36,6 +36,7 @@ const transition = {
   stiffness: 500,
   damping: 30,
 };
+
 export default function Tab({ children, ...rest }: Props) {
   const theme = useTheme();
   const activeStyle = {

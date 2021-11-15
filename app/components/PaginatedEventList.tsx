@@ -46,4 +46,5 @@ const Heading = styled("h3")`
   font-size: 14px;
   padding: 0 12px;
 `;
+
 export default PaginatedEventList;

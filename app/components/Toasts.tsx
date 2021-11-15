@@ -28,4 +28,5 @@ const List = styled.ol`
   padding: 0;
   z-index: ${(props) => props.theme.depths.toasts};
 `;
+
 export default observer(Toasts);

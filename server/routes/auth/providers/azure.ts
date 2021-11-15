@@ -14,6 +14,7 @@ const AZURE_CLIENT_ID = process.env.AZURE_CLIENT_ID;
 const AZURE_CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET;
 const AZURE_RESOURCE_APP_ID = process.env.AZURE_RESOURCE_APP_ID;
 const scopes = [];
+
 export const config = {
   name: "Microsoft",
   enabled: !!AZURE_CLIENT_ID,

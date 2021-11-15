@@ -37,4 +37,5 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
     />
   );
 });
+
 export default PaginatedDocumentList;

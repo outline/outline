@@ -30,6 +30,7 @@ const Label = styled.label`
   align-items: center;
   user-select: none;
 `;
+
 export default function Checkbox({
   label,
   labelHidden,

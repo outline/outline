@@ -102,4 +102,5 @@ const Content = styled.span`
     height: 0;
   }
 `;
+
 export default React.memo<Props>(ContentEditable);

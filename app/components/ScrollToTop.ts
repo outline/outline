@@ -6,6 +6,7 @@ import usePrevious from "hooks/usePrevious";
 type Props = {
   children: React.ReactNode;
 };
+
 export default function ScrollToTop({ children }: Props) {
   const location = useLocation();
   const previousLocationPathname = usePrevious(location.pathname);

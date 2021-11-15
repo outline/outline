@@ -16,6 +16,7 @@ import { isCustomDomain } from "../../../utils/domains";
 import { getUserForEmailSigninToken } from "../../../utils/jwt";
 
 const router = new Router();
+
 export const config = {
   name: "Email",
   enabled: true,
@@ -156,4 +157,5 @@ router.get("email.callback", async (ctx) => {
     ctx.redirect(`/?notice=expired-token`);
   }
 });
+
 export default router;

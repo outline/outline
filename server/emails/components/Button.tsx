@@ -4,6 +4,7 @@ type Props = {
   href: string;
   children: React.ReactNode;
 };
+
 export default (props: Props) => {
   const style = {
     display: "inline-block",

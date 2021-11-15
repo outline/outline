@@ -21,6 +21,7 @@ const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
 ];
+
 export const config = {
   name: "Google",
   enabled: !!GOOGLE_CLIENT_ID,

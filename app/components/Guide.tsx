@@ -106,4 +106,5 @@ const Content = styled(Scrollable)`
   width: 100%;
   padding: 16px;
 `;
+
 export default observer(Guide);

@@ -66,4 +66,5 @@ router.post("notificationSettings.unsubscribe", async (ctx) => {
 
   ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
 });
+
 export default router;

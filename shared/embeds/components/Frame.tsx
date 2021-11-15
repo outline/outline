@@ -135,6 +135,7 @@ const Bar = styled.div`
   border-bottom-right-radius: 6px;
   user-select: none;
 `;
+
 export default React.forwardRef<Props, typeof Frame>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));

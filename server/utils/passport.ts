@@ -42,6 +42,7 @@ export class StateStore {
     callback(null, true);
   };
 }
+
 export async function request(endpoint: string, accessToken: string) {
   const response = await fetch(endpoint, {
     method: "GET",

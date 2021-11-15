@@ -5,6 +5,7 @@ export function getCookieDomain(domain: string) {
     ? stripSubdomain(domain)
     : domain;
 }
+
 export function isCustomDomain(hostname: string) {
   const parsed = parseDomain(hostname);
   const main = parseDomain(process.env.URL);

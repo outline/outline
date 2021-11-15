@@ -24,6 +24,7 @@ const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const OIDC_USERNAME_CLAIM =
   process.env.OIDC_USERNAME_CLAIM || "preferred_username";
 const allowedDomains = getAllowedDomains();
+
 export const config = {
   name: OIDC_DISPLAY_NAME,
   enabled: !!OIDC_CLIENT_ID,

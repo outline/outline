@@ -17,6 +17,7 @@ if ("hidden" in document) {
 export function getVisibilityListener(): string {
   return visibilityChange;
 }
+
 export function getPageVisible(): boolean {
   return !document[hidden];
 }

@@ -196,4 +196,5 @@ const Back = styled(NudeButton)`
     display: flex;
   `};
 `;
+
 export default observer(Modal);

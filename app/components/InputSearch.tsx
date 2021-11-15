@@ -11,6 +11,7 @@ type Props = InputProps & {
   onChange: (event: React.SyntheticEvent) => unknown;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
+
 export default function InputSearch(props: Props) {
   const { t } = useTranslation();
   const theme = useTheme();

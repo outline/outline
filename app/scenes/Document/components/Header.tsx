@@ -324,4 +324,5 @@ const TocWrapper = styled(Action)`
   position: absolute;
   left: 42px;
 `;
+
 export default observer(DocumentHeader);

@@ -13,9 +13,11 @@ export type DocumentPathItem = {
   url: string;
   type: "collection" | "document";
 };
+
 export type DocumentPath = DocumentPathItem & {
   path: DocumentPathItem[];
 };
+
 export default class CollectionsStore extends BaseStore<Collection> {
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);

@@ -173,4 +173,5 @@ const AvatarContainer = styled(Flex)`
 const Avatar = styled.img`
   ${avatarStyles};
 `;
+
 export default observer(Details);

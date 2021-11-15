@@ -16,6 +16,7 @@ export type Props = {
   eventName: string;
   unsubscribeUrl: string;
 };
+
 export const documentNotificationEmailText = ({
   actor,
   team,
@@ -29,6 +30,7 @@ ${actor.name} ${eventName} the document "${document.title}", in the ${collection
 
 Open Document: ${team.url}${document.url}
 `;
+
 export const DocumentNotificationEmail = ({
   actor,
   team,

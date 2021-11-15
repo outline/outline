@@ -17,4 +17,5 @@ const Wrapper = styled.div`
   margin-left: 40px;
   width: 75%;
 `;
+
 export default PlaceholderCollections;

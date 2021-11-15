@@ -271,4 +271,5 @@ router.post("shares.revoke", auth(), async (ctx) => {
     success: true,
   };
 });
+
 export default router;

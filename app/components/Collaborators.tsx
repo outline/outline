@@ -103,4 +103,5 @@ const FacepileHiddenOnMobile = styled(Facepile)`
     display: none;
   `};
 `;
+
 export default observer(Collaborators);

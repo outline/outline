@@ -150,4 +150,5 @@ function MainSidebar() {
 const Drafts = styled(Flex)`
   height: 24px;
 `;
+
 export default observer(MainSidebar);

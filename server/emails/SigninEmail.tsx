@@ -11,6 +11,7 @@ export type Props = {
   token: string;
   teamUrl: string;
 };
+
 export const signinEmailText = ({ token, teamUrl }: Props) => `
 Use the link below to signin to Outline:
 
@@ -19,6 +20,7 @@ ${process.env.URL}/auth/email.callback?token=${token}
 If your magic link expired you can request a new one from your team’s
 signin page at: ${teamUrl}
 `;
+
 export const SigninEmail = ({ token, teamUrl }: Props) => {
   return (
     <EmailTemplate>

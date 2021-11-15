@@ -7,6 +7,7 @@ type Props = {
   exact?: boolean;
   to: string;
 };
+
 export default function NavLinkWithChildrenFunc({
   to,
   exact = false,

@@ -12,6 +12,7 @@ type Props = {
   showDraft?: boolean;
   showTemplate?: boolean;
 };
+
 export default function DocumentList({ limit, documents, ...rest }: Props) {
   const items = limit ? documents.splice(0, limit) : documents;
   return (

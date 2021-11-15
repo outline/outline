@@ -90,4 +90,5 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     data: events.map((event) => presentEvent(event, auditLog)),
   };
 });
+
 export default router;

@@ -7,6 +7,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class Descript extends React.Component<Props> {
   static ENABLED = [new RegExp("https?://share.descript.com/view/(\\w+)$")];
 

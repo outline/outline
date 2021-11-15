@@ -24,6 +24,7 @@ const eventProcessors = {
   revisions: new Revisions(),
   slack: new Slack(),
 };
+
 export default function init() {
   // this queue processes global events and hands them off to services
   globalEventQueue.process(function (job) {

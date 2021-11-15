@@ -5,6 +5,7 @@ import EmptySpace from "./EmptySpace";
 type Props = {
   children: React.ReactNode;
 };
+
 export default ({ children }: Props) => {
   return (
     <Table width="100%">

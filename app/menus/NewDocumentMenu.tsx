@@ -74,4 +74,5 @@ const CollectionName = styled.div`
   white-space: nowrap;
   text-overflow: ellipsis;
 `;
+
 export default observer(NewDocumentMenu);

@@ -38,4 +38,5 @@ const Link = styled.a`
     background: ${(props) => props.theme.sidebarBackground};
   }
 `;
+
 export default Branding;

@@ -27,6 +27,7 @@ type Config = {
   hostname?: string;
   providers: Provider[];
 };
+
 export default class AuthStore {
   @observable
   user: User | null | undefined;

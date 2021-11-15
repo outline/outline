@@ -6,4 +6,5 @@ const MenuIconWrapper = styled.span`
   margin-right: 6px;
   margin-left: -4px;
 `;
+
 export default MenuIconWrapper;

@@ -8,6 +8,7 @@ type UserCreatorResult = {
   isNewUser: boolean;
   authentication: UserAuthentication;
 };
+
 export default async function userCreator({
   name,
   email,

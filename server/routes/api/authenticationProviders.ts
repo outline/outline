@@ -75,4 +75,5 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
     },
   };
 });
+
 export default router;

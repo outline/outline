@@ -12,4 +12,5 @@ const Section = styled(Flex)`
     margin-top: 20px;
   }
 `;
+
 export default Section;

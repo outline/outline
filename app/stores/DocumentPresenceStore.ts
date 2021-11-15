@@ -8,6 +8,7 @@ type DocumentPresence = Map<
     userId: string;
   }
 >;
+
 export default class PresenceStore {
   @observable
   data: Map<string, DocumentPresence> = new Map();

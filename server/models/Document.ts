@@ -16,6 +16,7 @@ import Revision from "./Revision";
 
 const Op = Sequelize.Op;
 const serializer = new MarkdownSerializer();
+
 export const DOCUMENT_VERSION = 2;
 
 const createUrlId = (doc) => {

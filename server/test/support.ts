@@ -8,9 +8,11 @@ const tables = Object.keys(sequelize.models).map((model) => {
   return sql.queryGenerator.quoteTable(typeof n === "string" ? n : n.tableName);
 });
 const flushQuery = `TRUNCATE ${tables.join(", ")}`;
+
 export function flushdb() {
   return sequelize.query(flushQuery);
 }
+
 export const seed = async () => {
   const team = await Team.create(
     {

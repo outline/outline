@@ -3,6 +3,7 @@ export function detectLanguage() {
   const region = (r || ln).toUpperCase();
   return `${ln}_${region}`;
 }
+
 export function changeLanguage(
   toLanguageString: string | null | undefined,
   i18n: any

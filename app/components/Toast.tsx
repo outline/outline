@@ -94,4 +94,5 @@ const Message = styled.div`
   font-weight: 500;
   padding: 10px 4px;
 `;
+
 export default Toast;

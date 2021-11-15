@@ -10,4 +10,5 @@ const InputLarge = styled(Input)`
     height: 38px;
   }
 `;
+
 export default InputLarge;

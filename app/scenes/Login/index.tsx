@@ -276,4 +276,5 @@ const Centered = styled(Flex)`
   max-width: 320px;
   margin: 0 auto;
 `;
+
 export default observer(Login);

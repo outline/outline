@@ -132,4 +132,5 @@ const Form = styled.form`
   display: flex;
   justify-content: space-between;
 `;
+
 export default withTranslation()<Provider>(Provider);

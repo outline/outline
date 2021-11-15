@@ -11,6 +11,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class GoogleDataStudio extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 

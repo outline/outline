@@ -7,6 +7,7 @@ import RootStore from "stores/RootStore";
 import Document from "models/Document";
 
 export type Theme = typeof theme;
+
 export type MenuItemClickable = {
   title: React.ReactNode;
   onClick: (event: React.SyntheticEvent) => void | Promise<void>;
@@ -15,6 +16,7 @@ export type MenuItemClickable = {
   disabled?: boolean;
   icon?: React.ReactNode;
 };
+
 export type MenuItemWithChildren = {
   title: React.ReactNode;
   visible?: boolean;
@@ -24,15 +26,18 @@ export type MenuItemWithChildren = {
   items: MenuItem[];
   icon?: React.ReactNode;
 };
+
 export type MenuSeparator = {
   type: "separator";
   visible?: boolean;
 };
+
 export type MenuHeading = {
   type: "heading";
   visible?: boolean;
   title: React.ReactNode;
 };
+
 export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
@@ -43,6 +48,7 @@ export type ActionContext = {
   event?: Event;
   t: TFunction;
 };
+
 export type Action = {
   id: string;
   name: ((arg0: ActionContext) => string) | string;
@@ -57,6 +63,7 @@ export type Action = {
   perform?: (arg0: ActionContext) => any;
   children?: ((arg0: ActionContext) => Action[]) | Action[];
 };
+
 export type CommandBarAction = {
   id: string;
   name: string;
@@ -69,9 +76,11 @@ export type CommandBarAction = {
   children?: string[];
   parent?: string;
 };
+
 export type LocationWithState = Location & {
   state: Record<string, string>;
 };
+
 export type Toast = {
   id: string;
   createdAt: string;
@@ -84,24 +93,28 @@ export type Toast = {
     onClick: () => void;
   };
 };
+
 export type FetchOptions = {
   prefetch?: boolean;
   revisionId?: string;
   shareId?: string;
   force?: boolean;
 };
+
 export type NavigationNode = {
   id: string;
   title: string;
   url: string;
   children: NavigationNode[];
 };
+
 // Pagination response in an API call
 export type Pagination = {
   limit: number;
   nextPath: string;
   offset: number;
 };
+
 // Pagination request params
 export type PaginationParams = {
   limit?: number;
@@ -109,11 +122,13 @@ export type PaginationParams = {
   sort?: string;
   direction?: "ASC" | "DESC";
 };
+
 export type SearchResult = {
   ranking: number;
   context: string;
   document: Document;
 };
+
 export type MenuItem =
   | {
       title: React.ReactNode;
@@ -136,6 +151,7 @@ export type MenuItem =
   | MenuItemWithChildren
   | MenuSeparator
   | MenuHeading;
+
 export type ToastOptions = {
   type: "warning" | "error" | "info" | "success";
   timeout?: number;

@@ -26,6 +26,7 @@ const Toggle = React.forwardRef<Props, HTMLButtonElement>(
     );
   }
 );
+
 export const ToggleButton = styled.button`
   opacity: 0;
   background: none;
@@ -48,6 +49,7 @@ export const ToggleButton = styled.button`
     cursor: pointer;
   `}
 `;
+
 export const Positioner = styled.div`
   display: none;
   z-index: 2;
@@ -65,4 +67,5 @@ export const Positioner = styled.div`
     display: block;
   `}
 `;
+
 export default Toggle;

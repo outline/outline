@@ -84,6 +84,7 @@ const Spacer = styled.svg`
   height: 24px;
   flex-shrink: 0;
 `;
+
 export const MenuAnchorCSS = css`
   display: flex;
   margin: 0;
@@ -134,7 +135,9 @@ export const MenuAnchorCSS = css`
     font-size: 14px;
   `};
 `;
+
 export const MenuAnchor = styled.a`
   ${MenuAnchorCSS}
 `;
+
 export default MenuItem;

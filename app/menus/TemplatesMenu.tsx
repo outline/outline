@@ -80,4 +80,5 @@ const TemplateItem = styled.div`
 const Author = styled.div`
   font-size: 13px;
 `;
+
 export default observer(TemplatesMenu);

@@ -31,6 +31,7 @@ const locales = {
   ru_RU: ru,
   pl_PL: pl,
 };
+
 export function dateLocale(userLocale: string | null | undefined) {
   return userLocale ? locales[userLocale] : undefined;
 }

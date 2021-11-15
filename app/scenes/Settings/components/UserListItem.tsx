@@ -73,4 +73,5 @@ const Title = styled.span`
     cursor: pointer;
   }
 `;
+
 export default UserListItem;

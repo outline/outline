@@ -46,6 +46,7 @@ const Sticky = styled.div`
   transition: ${(props) => props.theme.backgroundTransition};
   z-index: 1;
 `;
+
 export const Separator = styled.span`
   border-left: 1px solid ${(props) => props.theme.divider};
   position: relative;

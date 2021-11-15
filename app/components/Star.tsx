@@ -49,6 +49,7 @@ function Star({ size, document, ...rest }: Props) {
 const Button = styled(NudeButton)`
   color: ${(props) => props.theme.text};
 `;
+
 export const AnimatedStar = styled(StarredIcon)`
   flex-shrink: 0;
   transition: all 100ms ease-in-out;
@@ -64,4 +65,5 @@ export const AnimatedStar = styled(StarredIcon)`
     display: none;
   }
 `;
+
 export default Star;

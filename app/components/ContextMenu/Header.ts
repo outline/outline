@@ -8,4 +8,5 @@ const Header = styled.h3`
   letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
 `;
+
 export default Header;

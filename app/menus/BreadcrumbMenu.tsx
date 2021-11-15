@@ -13,6 +13,7 @@ type MenuItem = {
 type Props = {
   items: MenuItem[];
 };
+
 export default function BreadcrumbMenu({ items }: Props) {
   const { t } = useTranslation();
   const menu = useMenuState({

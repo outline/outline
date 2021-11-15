@@ -73,4 +73,5 @@ router.post("utils.gc", async (ctx) => {
     success: true,
   };
 });
+
 export default router;

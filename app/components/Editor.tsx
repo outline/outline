@@ -26,6 +26,7 @@ const RichMarkdownEditor = React.lazy(
     )
 );
 const EMPTY_ARRAY = [];
+
 export type Props = {
   id?: string;
   value?: string;
@@ -322,6 +323,7 @@ const Span = styled.span`
   outline: none;
 `;
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
+
 export default React.forwardRef<Props, typeof Editor>((props, ref) => (
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));

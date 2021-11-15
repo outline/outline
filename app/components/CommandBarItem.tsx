@@ -71,4 +71,5 @@ const Item = styled.div`
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);
 `;
+
 export default React.forwardRef<Props, HTMLDivElement>(CommandBarItem);

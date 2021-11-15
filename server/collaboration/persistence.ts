@@ -6,6 +6,7 @@ import { Document, User } from "../models";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
 const DELAY = 3000;
+
 export default class Persistence {
   async onLoadDocument({
     documentName,

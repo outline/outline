@@ -185,6 +185,7 @@
     "@relative-ci/agent": "^3.0.0",
     "@types/react": "^17.0.34",
     "@types/react-dom": "^17.0.11",
+    "@types/styled-components": "^5.1.15",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
     "babel-eslint": "^10.1.0",

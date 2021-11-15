@@ -54,4 +54,5 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
     data,
   };
 });
+
 export default router;

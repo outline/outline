@@ -150,4 +150,5 @@ koa.use(async (ctx, next) => {
 });
 koa.use(apexRedirect());
 koa.use(router.routes());
+
 export default koa;

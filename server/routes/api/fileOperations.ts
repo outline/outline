@@ -96,4 +96,5 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 export default router;

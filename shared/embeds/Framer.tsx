@@ -8,6 +8,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class Framer extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 

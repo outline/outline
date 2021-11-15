@@ -144,4 +144,5 @@ router.post("attachments.redirect", auth(), async (ctx) => {
     ctx.redirect(attachment.url);
   }
 });
+
 export default router;

@@ -6,6 +6,7 @@ type Options = {
   documentId?: string;
   public?: boolean;
 };
+
 export const uploadFile = async (
   file: File | Blob,
   options: Options = {
@@ -42,6 +43,7 @@ export const uploadFile = async (
   invariant(uploadResponse.ok, "Upload failed, try again?");
   return attachment;
 };
+
 export const dataUrlToBlob = (dataURL: string) => {
   const blobBin = atob(dataURL.split(",")[1]);
   const array = [];

@@ -45,4 +45,5 @@ router.post("integrations.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 export default router;

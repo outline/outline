@@ -10,6 +10,7 @@ type TeamCreatorResult = {
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
 };
+
 export default async function teamCreator({
   name,
   domain,

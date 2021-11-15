@@ -5,6 +5,7 @@ type Props = {
   onClick: (ev: React.SyntheticEvent) => void;
   children: React.ReactNode;
 };
+
 export default function ButtonLink(props: Props) {
   return <Button {...props} />;
 }

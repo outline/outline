@@ -82,4 +82,5 @@ const Wrapper = styled.div`
   }};
   transition: all 100ms ease-in-out;
 `;
+
 export default observer(React.forwardRef(Scrollable));

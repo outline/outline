@@ -14,6 +14,7 @@ export type Props = {
   teamName: string;
   teamUrl: string;
 };
+
 export const inviteEmailText = ({
   teamName,
   actorName,
@@ -26,6 +27,7 @@ ${actorName} (${actorEmail}) has invited you to join Outline, a place for your t
 
 Join now: ${teamUrl}
 `;
+
 export const InviteEmail = ({
   teamName,
   actorName,

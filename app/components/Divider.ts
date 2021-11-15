@@ -6,4 +6,5 @@ const Divider = styled.hr`
   margin: 0;
   padding: 0;
 `;
+
 export default Divider;

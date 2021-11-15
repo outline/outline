@@ -116,4 +116,5 @@ const Header = styled(Flex)`
   color: ${(props) => props.theme.text};
   flex-shrink: 0;
 `;
+
 export default observer(DocumentHistory);

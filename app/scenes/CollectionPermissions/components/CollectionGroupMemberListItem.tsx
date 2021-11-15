@@ -79,4 +79,5 @@ const Select = styled(InputSelect)`
     margin: 0;
   }
 ` as React.ComponentType<SelectProps>;
+
 export default CollectionGroupMemberListItem;

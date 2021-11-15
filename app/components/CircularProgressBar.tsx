@@ -75,4 +75,5 @@ const CircularProgressBar = ({
 const SVG = styled.svg`
   flex-shrink: 0;
 `;
+
 export default CircularProgressBar;

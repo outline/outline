@@ -81,4 +81,5 @@ const DropzoneContainer = styled.div`
       }
     `}
 `;
+
 export default observer(DropToImport);

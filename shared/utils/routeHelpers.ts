@@ -21,25 +21,33 @@ export function slackAuth(
     .join("&");
   return `${baseUrl}?${urlParams}`;
 }
+
 export function githubUrl(): string {
   return "https://www.github.com/outline";
 }
+
 export function githubIssuesUrl(): string {
   return "https://www.github.com/outline/outline/issues";
 }
+
 export function twitterUrl(): string {
   return "https://twitter.com/outlinewiki";
 }
+
 export function mailToUrl(): string {
   return "mailto:hello@getoutline.com";
 }
+
 export function developersUrl(): string {
   return `https://www.getoutline.com/developers`;
 }
+
 export function changelogUrl(): string {
   return `https://www.getoutline.com/changelog`;
 }
+
 export function signin(service = "slack"): string {
   return `${process.env.URL}/auth/${service}`;
 }
+
 export const SLUG_URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;

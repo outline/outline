@@ -5,24 +5,31 @@ import Document from "models/Document";
 export function homePath(): string {
   return "/home";
 }
+
 export function draftsPath(): string {
   return "/drafts";
 }
+
 export function templatesPath(): string {
   return "/templates";
 }
+
 export function settingsPath(): string {
   return "/settings";
 }
+
 export function archivePath(): string {
   return "/archive";
 }
+
 export function trashPath(): string {
   return "/trash";
 }
+
 export function groupSettingsPath(): string {
   return "/settings/groups";
 }
+
 export function collectionUrl(
   url: string,
   section: string | null | undefined
@@ -30,6 +37,7 @@ export function collectionUrl(
   if (section) return `${url}/${section}`;
   return url;
 }
+
 export function updateCollectionUrl(
   oldUrl: string,
   collection: Collection
@@ -40,15 +48,19 @@ export function updateCollectionUrl(
     collection.url
   );
 }
+
 export function documentUrl(doc: Document): string {
   return doc.url;
 }
+
 export function editDocumentUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
+
 export function documentMoveUrl(doc: Document): string {
   return `${doc.url}/move`;
 }
+
 export function documentHistoryUrl(doc: Document, revisionId?: string): string {
   let base = `${doc.url}/history`;
   if (revisionId) base += `/${revisionId}`;
@@ -63,6 +75,7 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
   // Update url to match the current one
   return oldUrl.replace(new RegExp("/doc/[0-9a-zA-Z-_~]*"), document.url);
 }
+
 export function newDocumentPath(
   collectionId: string,
   params?: {
@@ -73,6 +86,7 @@ export function newDocumentPath(
 ): string {
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
+
 export function searchUrl(
   query?: string,
   params?: {
@@ -90,9 +104,12 @@ export function searchUrl(
   search = search ? `?${search}` : "";
   return `${route}${search}`;
 }
+
 export function notFoundUrl(): string {
   return "/404";
 }
+
 export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;

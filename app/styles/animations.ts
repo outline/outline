@@ -4,11 +4,13 @@ export const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
 `;
+
 export const fadeOutCursor = keyframes`
   0% { opacity: 1; }
   90% { opacity: 1; }
   100% { opacity: 0; }
 `;
+
 export const fadeAndScaleIn = keyframes`
   from {
     opacity: 0;
@@ -20,6 +22,7 @@ export const fadeAndScaleIn = keyframes`
     transform: scale(1);
   }
 `;
+
 export const fadeAndSlideDown = keyframes`
   from {
     opacity: 0;
@@ -31,6 +34,7 @@ export const fadeAndSlideDown = keyframes`
     transform: scale(1) translateY(0px);
   }
 `;
+
 export const fadeAndSlideUp = keyframes`
   from {
     opacity: 0;
@@ -42,6 +46,7 @@ export const fadeAndSlideUp = keyframes`
     transform: scale(1) translateY(0px);
   }
 `;
+
 export const mobileContextMenu = keyframes`
   from {
     opacity: 0;
@@ -53,6 +58,7 @@ export const mobileContextMenu = keyframes`
     transform: scale(1) translateY(0px);
   }
 `;
+
 export const bounceIn = keyframes`
   from,
   20%,
@@ -97,11 +103,13 @@ export const bounceIn = keyframes`
     transform: scale3d(1, 1, 1);
   }
 `;
+
 export const pulsate = keyframes`
   0% { opacity: 1; }
   50% { opacity: 0.5; }
   100% { opacity: 1; }
 `;
+
 export const pulse = keyframes`
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }

@@ -21,4 +21,5 @@ export const Label = styled(Flex)`
   display: inline-block;
   color: ${(props) => props.theme.text};
 `;
+
 export default observer(Labeled);

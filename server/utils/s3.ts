@@ -40,6 +40,7 @@ export const makeCredential = () => {
     "/s3/aws4_request";
   return credential;
 };
+
 export const makePolicy = (
   credential: string,
   longDate: string,
@@ -73,6 +74,7 @@ export const makePolicy = (
   };
   return Buffer.from(JSON.stringify(policy)).toString("base64");
 };
+
 export const getSignature = (policy: any) => {
   const kDate = hmac(
     "AWS4" + AWS_SECRET_ACCESS_KEY,
@@ -84,6 +86,7 @@ export const getSignature = (policy: any) => {
   const signature = hmac(kCredentials, policy, "hex");
   return signature;
 };
+
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
   // for access outside of docker containers in local development
@@ -104,6 +107,7 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
     isServerUpload && isDocker ? "s3/" : ""
   }${AWS_S3_UPLOAD_BUCKET_NAME}`;
 };
+
 export const uploadToS3FromBuffer = async (
   buffer: Buffer,
   contentType: string,
@@ -123,6 +127,7 @@ export const uploadToS3FromBuffer = async (
   const endpoint = publicS3Endpoint(true);
   return `${endpoint}/${key}`;
 };
+
 export const uploadToS3FromUrl = async (
   url: string,
   key: string,
@@ -151,6 +156,7 @@ export const uploadToS3FromUrl = async (
     });
   }
 };
+
 export const deleteFromS3 = (key: string) => {
   return s3
     .deleteObject({
@@ -159,6 +165,7 @@ export const deleteFromS3 = (key: string) => {
     })
     .promise();
 };
+
 export const getSignedUrl = async (key: string) => {
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
@@ -170,11 +177,13 @@ export const getSignedUrl = async (key: string) => {
     ? `${publicS3Endpoint()}/${key}`
     : s3.getSignedUrl("getObject", params);
 };
+
 // function assumes that acl is private
 export const getAWSKeyForFileOp = (teamId: string, name: string) => {
   const bucket = "uploads";
   return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
+
 export const getFileByKey = async (key: string) => {
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,

@@ -225,4 +225,5 @@ const SwitchText = styled(HelpText)`
   margin: 0;
   font-size: 15px;
 `;
+
 export default observer(SharePopover);

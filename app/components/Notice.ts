@@ -7,4 +7,5 @@ const Notice = styled.p`
   border-radius: 4px;
   position: relative;
 `;
+
 export default Notice;

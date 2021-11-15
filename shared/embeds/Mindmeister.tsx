@@ -10,6 +10,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class Mindmeister extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 

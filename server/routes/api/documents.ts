@@ -1454,4 +1454,5 @@ router.post("documents.create", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   });
 });
+
 export default router;

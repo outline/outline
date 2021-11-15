@@ -14,6 +14,7 @@ type Props = {
   location: LocationWithState;
   match: Match;
 };
+
 export default function DocumentScene(props: Props) {
   const { ui } = useStores();
   const team = useCurrentTeam();

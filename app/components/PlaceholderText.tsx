@@ -44,4 +44,5 @@ const Mask = styled(Flex)`
     margin-bottom: 0;
   }
 `;
+
 export default PlaceholderText;

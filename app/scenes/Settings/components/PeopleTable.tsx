@@ -96,4 +96,5 @@ function PeopleTable({ canManage, ...rest }: Props) {
 const Badges = styled.div`
   margin-left: -10px;
 `;
+
 export default PeopleTable;

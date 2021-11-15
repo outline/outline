@@ -9,6 +9,7 @@ import type { LocationWithState } from "types";
 type Props = {
   location: LocationWithState;
 };
+
 export default function Loading({ location }: Props) {
   const { t } = useTranslation();
   return (

@@ -8,6 +8,7 @@ type Invite = {
   email: string;
   role: Role;
 };
+
 export default async function userInviter({
   user,
   invites,

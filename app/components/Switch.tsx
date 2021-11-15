@@ -100,4 +100,5 @@ const HiddenInput = styled.input`
     transform: translateX(${(props) => props.width - props.height}px);
   }
 `;
+
 export default Switch;

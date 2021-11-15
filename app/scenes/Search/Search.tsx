@@ -454,6 +454,7 @@ const Filters = styled(Flex)`
     opacity: 1;
   }
 `;
+
 export default withTranslation()<Search>(
   withRouter(inject("documents", "auth", "policies")(Search))
 );

@@ -12,6 +12,7 @@ Your Data Export
 
 Your requested data export is complete, the exported files are also available in the admin section.
 `;
+
 export const ExportSuccessEmail = ({
   id,
   teamUrl,

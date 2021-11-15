@@ -65,4 +65,5 @@ const CircleImg = styled.img`
   border: 2px solid ${(props) => props.theme.background};
   flex-shrink: 0;
 `;
+
 export default Avatar;

@@ -59,4 +59,5 @@ Object.values(manifestData).forEach((filename) => {
     );
   }
 });
+
 export default ReactDOMServer.renderToString(prefetchTags);

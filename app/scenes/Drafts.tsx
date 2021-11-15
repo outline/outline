@@ -146,4 +146,5 @@ const Filters = styled(Flex)`
     opacity: 1;
   }
 `;
+
 export default withTranslation()<Drafts>(inject("documents")(Drafts));

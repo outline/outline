@@ -152,4 +152,5 @@ const Title = styled(ContentEditable)`
     background: none;
   }
 `;
+
 export default observer(EditableTitle);

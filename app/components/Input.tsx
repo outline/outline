@@ -58,6 +58,7 @@ const IconWrapper = styled.span`
   width: 24px;
   height: 24px;
 `;
+
 export const Outline = styled(Flex)`
   flex: 1;
   margin: ${(props) =>
@@ -76,11 +77,13 @@ export const Outline = styled(Flex)`
   align-items: center;
   overflow: hidden;
 `;
+
 export const LabelText = styled.div`
   font-weight: 500;
   padding-bottom: 4px;
   display: inline-block;
 `;
+
 export type Props = {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
   value?: string;

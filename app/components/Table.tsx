@@ -276,4 +276,5 @@ const Head = styled.th`
     padding-right: 0;
   }
 `;
+
 export default observer(Table);

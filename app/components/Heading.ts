@@ -13,4 +13,5 @@ const Heading = styled.h1`
     flex-shrink: 0;
   }
 `;
+
 export default Heading;

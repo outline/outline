@@ -258,4 +258,5 @@ const SidebarLinkWithPadding = styled(SidebarLink)`
 const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`
   margin-right: 4px;
 `;
+
 export default observer(CollectionLink);

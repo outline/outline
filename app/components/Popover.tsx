@@ -27,4 +27,5 @@ const Contents = styled.div`
   width: ${(props) => props.width}px;
   box-shadow: ${(props) => props.theme.menuShadow};
 `;
+
 export default Popover;

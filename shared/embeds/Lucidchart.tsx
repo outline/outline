@@ -7,6 +7,7 @@ type Props = {
     matches: Record<string, any>;
   };
 };
+
 export default class Lucidchart extends React.Component<Props> {
   static ENABLED = [
     /^https?:\/\/(www\.|app\.)?lucidchart.com\/documents\/(embeddedchart|view)\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\/.*)?$/,

@@ -104,6 +104,7 @@ const Label = styled.span`
 
   ${(props) => props.hasIcon && "padding-left: 4px;"};
 `;
+
 export const Inner = styled.span`
   display: flex;
   padding: 0 8px;
@@ -116,6 +117,7 @@ export const Inner = styled.span`
   ${(props) => props.hasIcon && props.hasText && "padding-left: 4px;"};
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
+
 export type Props = {
   type?: "button" | "submit";
   value?: string;
@@ -167,4 +169,5 @@ const Button = React.forwardRef<Props, HTMLButtonElement>(
     );
   }
 );
+
 export default Button;

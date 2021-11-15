@@ -25,4 +25,5 @@ const ListPlaceHolder = ({ count }: Props) => {
 const Item = styled(Flex)`
   padding: 10px 0;
 `;
+
 export default ListPlaceHolder;

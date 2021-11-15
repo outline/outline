@@ -21,6 +21,7 @@ export type Option = {
   label: string;
   value: string;
 };
+
 export type Props = {
   value?: string;
   label?: string;
@@ -237,6 +238,7 @@ const StyledButton = styled(Button)`
     margin-left: auto;
   }
 `;
+
 export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
 
@@ -266,4 +268,5 @@ const Positioner = styled(Position)`
     }
   }
 `;
+
 export default InputSelect;

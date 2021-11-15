@@ -3,6 +3,7 @@ import * as React from "react";
 type Props = {
   color?: string;
 };
+
 export default function SlackIcon({ color = "#4E5C6E" }: Props) {
   return (
     <svg

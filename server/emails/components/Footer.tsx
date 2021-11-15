@@ -6,6 +6,7 @@ import { twitterUrl } from "../../../shared/utils/routeHelpers";
 type Props = {
   unsubscribeUrl?: string;
 };
+
 export default ({ unsubscribeUrl }: Props) => {
   const footerStyle = {
     padding: "20px 0",

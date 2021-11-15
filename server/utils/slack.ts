@@ -3,6 +3,7 @@ import fetch from "fetch-with-proxy";
 import { InvalidRequestError } from "../errors";
 
 const SLACK_API_URL = "https://slack.com/api";
+
 export async function post(endpoint: string, body: Record<string, any>) {
   let data;
   const token = body.token;
@@ -24,6 +25,7 @@ export async function post(endpoint: string, body: Record<string, any>) {
   if (!data.ok) throw new InvalidRequestError(data.error);
   return data;
 }
+
 export async function request(endpoint: string, body: Record<string, any>) {
   let data;
 
@@ -39,6 +41,7 @@ export async function request(endpoint: string, body: Record<string, any>) {
   if (!data.ok) throw new InvalidRequestError(data.error);
   return data;
 }
+
 export async function oauthAccess(
   code: string,
   redirect_uri = `${process.env.URL || ""}/auth/slack.callback`

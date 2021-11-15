@@ -15,6 +15,7 @@ type SaveOptions = {
   autosave?: boolean;
   lastRevision?: number;
 };
+
 export default class Document extends BaseModel {
   @observable
   isSaving = false;

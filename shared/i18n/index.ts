@@ -62,6 +62,7 @@ export const languageOptions = [
     value: "pl_PL",
   },
 ];
+
 export const languages: string[] = languageOptions.map((i) => i.value);
 
 // Languages are stored in en_US format in the database, however the

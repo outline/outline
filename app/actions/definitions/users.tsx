@@ -19,4 +19,5 @@ export const inviteUser = createAction({
     });
   },
 });
+
 export const rootUserActions = [inviteUser];

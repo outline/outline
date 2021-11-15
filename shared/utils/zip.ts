@@ -10,6 +10,7 @@ export type Item = {
   type: "collection" | "document" | "attachment";
   item: ZipObject;
 };
+
 export async function parseOutlineExport(
   input: File | Buffer
 ): Promise<Item[]> {

@@ -8,6 +8,7 @@ type Props = {
   width?: number;
   height?: number;
 };
+
 export default function Image({ src, alt, ...rest }: Props) {
   return <img src={cdnPath(src)} alt={alt} {...rest} />;
 }

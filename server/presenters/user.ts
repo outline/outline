@@ -14,6 +14,7 @@ type UserPresentation = {
   isViewer: boolean;
   language: string;
 };
+
 export default (
   user: User,
   options: Options = {}

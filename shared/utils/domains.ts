@@ -5,6 +5,7 @@ type Domain = {
   subdomain: string;
   domain: string;
 };
+
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
@@ -49,12 +50,14 @@ export function parseDomain(url: string): Domain | null | undefined {
 
   return null;
 }
+
 export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
   if (!parsed) return hostname;
   if (parsed.tld) return `${parsed.domain}.${parsed.tld}`;
   return parsed.domain;
 }
+
 export function isCustomSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
 
@@ -69,6 +72,7 @@ export function isCustomSubdomain(hostname: string) {
 
   return true;
 }
+
 export const RESERVED_SUBDOMAINS = [
   "about",
   "account",

@@ -197,4 +197,5 @@ const Input = styled.div`
     display: none !important;
   }
 `;
+
 export default observer(CollectionDescription);

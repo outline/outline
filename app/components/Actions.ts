@@ -14,6 +14,7 @@ export const Action = styled(Flex)`
     display: none;
   }
 `;
+
 export const Separator = styled.div`
   flex-shrink: 0;
   margin-left: 12px;
@@ -41,4 +42,5 @@ const Actions = styled(Flex)`
     padding: 24px;
   `};
 `;
+
 export default Actions;

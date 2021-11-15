@@ -83,4 +83,5 @@ const AvatarWrapper = styled.div`
   opacity: ${(props) => (props.isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
 `;
+
 export default withTranslation()<AvatarWithPresence>(AvatarWithPresence);

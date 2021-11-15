@@ -59,4 +59,5 @@ const Done = styled(DoneIcon)`
   animation: ${(props) => (props.$animated ? bounceIn : "none")} 600ms;
   transform-origin: center center;
 `;
+
 export default DocumentTasks;

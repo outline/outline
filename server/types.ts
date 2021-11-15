@@ -9,6 +9,7 @@ export type ContextWithState = Context & {
     authType: "app" | "api";
   };
 };
+
 export type UserEvent =
   | {
   name: "users.create" // eslint-disable-line
@@ -32,6 +33,7 @@ export type UserEvent =
       };
       ip: string;
     };
+
 export type DocumentEvent =
   | {
   name: "documents.create" // eslint-disable-line
@@ -96,12 +98,14 @@ export type DocumentEvent =
       };
       ip: string;
     };
+
 export type RevisionEvent = {
   name: "revisions.create";
   documentId: string;
   collectionId: string;
   teamId: string;
 };
+
 export type CollectionImportEvent = {
   name: "collections.import";
   modelId: string;
@@ -112,6 +116,7 @@ export type CollectionImportEvent = {
   };
   ip: string;
 };
+
 export type CollectionExportEvent = {
   name: "collections.export";
   teamId: string;
@@ -119,12 +124,14 @@ export type CollectionExportEvent = {
   collectionId: string;
   modelId: string;
 };
+
 export type CollectionExportAllEvent = {
   name: "collections.export_all";
   teamId: string;
   actorId: string;
   modelId: string;
 };
+
 export type FileOperationEvent = {
   name: "fileOperations.update" | "fileOperation.delete";
   teamId: string;
@@ -138,6 +145,7 @@ export type FileOperationEvent = {
     collectionId: string;
   };
 };
+
 export type CollectionEvent =
   | {
   name: "collections.create" // eslint-disable-line
@@ -192,6 +200,7 @@ export type CollectionEvent =
       ip: string;
     }
   | CollectionExportEvent;
+
 export type GroupEvent =
   | {
       name: "groups.create" | "groups.delete" | "groups.update";
@@ -214,6 +223,7 @@ export type GroupEvent =
       };
       ip: string;
     };
+
 export type IntegrationEvent = {
   name: "integrations.create" | "integrations.update";
   modelId: string;
@@ -221,6 +231,7 @@ export type IntegrationEvent = {
   actorId: string;
   ip: string;
 };
+
 export type TeamEvent = {
   name: "teams.update";
   teamId: string;
@@ -228,6 +239,7 @@ export type TeamEvent = {
   data: Record<string, any>;
   ip: string;
 };
+
 export type Event =
   | UserEvent
   | DocumentEvent

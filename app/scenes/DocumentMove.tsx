@@ -193,4 +193,5 @@ const Results = styled.div`
 const Section = styled(Flex)`
   margin-bottom: 24px;
 `;
+
 export default observer(DocumentMove);

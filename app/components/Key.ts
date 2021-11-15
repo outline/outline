@@ -14,4 +14,5 @@ const Key = styled.kbd`
   border-radius: 3px;
   box-shadow: inset 0 -1px 0 ${(props) => props.theme.slate};
 `;
+
 export default Key;

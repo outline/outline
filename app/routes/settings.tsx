@@ -16,6 +16,7 @@ import Route from "components/ProfiledRoute";
 import env from "env";
 
 const isHosted = env.DEPLOYMENT === "hosted";
+
 export default function SettingsRoutes() {
   return (
     <Switch>

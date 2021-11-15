@@ -77,4 +77,5 @@ const Header = styled.button`
     background: ${(props) => props.theme.sidebarItemBackground};
   }
 `;
+
 export default observer(TeamButton);

@@ -46,6 +46,7 @@ const spacing = {
   sidebarMinWidth: 200,
   sidebarMaxWidth: 400,
 };
+
 export const base = {
   ...colors,
   ...spacing,
@@ -118,6 +119,7 @@ export const base = {
     commandBar: 30000,
   },
 };
+
 export const light = {
   ...base,
   background: colors.white,
@@ -165,6 +167,7 @@ export const light = {
   scrollbarBackground: colors.smoke,
   scrollbarThumb: darken(0.15, colors.smokeDark),
 };
+
 export const dark = {
   ...base,
   background: colors.almostBlack,
@@ -219,10 +222,13 @@ export const dark = {
   scrollbarBackground: colors.black,
   scrollbarThumb: colors.lightBlack,
 };
+
 export const lightMobile = {
   background: colors.white,
 };
+
 export const darkMobile = {
   background: colors.black,
 };
+
 export default light;

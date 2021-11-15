@@ -115,4 +115,5 @@ const Title = styled("div")`
     flex-grow: 0 !important;
   }
 `;
+
 export default observer(Header);

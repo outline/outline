@@ -150,4 +150,5 @@ function Notifications() {
 const Separator = styled.hr`
   padding-bottom: 12px;
 `;
+
 export default observer(Notifications);

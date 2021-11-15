@@ -17,6 +17,7 @@ export function isInternalUrl(href: string) {
 
   return false;
 }
+
 export function isHash(href: string) {
   if (href[0] === "#") return true;
 
@@ -37,6 +38,7 @@ export function isHash(href: string) {
 
   return false;
 }
+
 export function decodeURIComponentSafe(text: string) {
   return text
     ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))

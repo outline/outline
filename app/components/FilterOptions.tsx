@@ -110,4 +110,5 @@ const StyledButton = styled(Button)`
 const Wrapper = styled.div`
   margin-right: 8px;
 `;
+
 export default FilterOptions;

@@ -35,12 +35,14 @@ type Props = {
     refreshToken?: string;
   };
 };
+
 export type AccountProvisionerResult = {
   user: User;
   team: Team;
   isNewTeam: boolean;
   isNewUser: boolean;
 };
+
 export default async function accountProvisioner({
   ip,
   user: userParams,

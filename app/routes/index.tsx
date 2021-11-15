@@ -40,6 +40,7 @@ const Logout = React.lazy(
       "scenes/Logout"
     )
 );
+
 export default function Routes() {
   return (
     <React.Suspense

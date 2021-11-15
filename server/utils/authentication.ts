@@ -12,6 +12,7 @@ export function getAllowedDomains(): string[] {
   const env = process.env.ALLOWED_DOMAINS || process.env.GOOGLE_ALLOWED_DOMAINS;
   return env ? env.split(",") : [];
 }
+
 export async function signIn(
   ctx: Context,
   user: User,

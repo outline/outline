@@ -14,6 +14,7 @@ export type Props = {
   eventName: string;
   unsubscribeUrl: string;
 };
+
 export const collectionNotificationEmailText = ({
   actor,
   collection,
@@ -25,6 +26,7 @@ ${actor.name} ${eventName} the collection "${collection.name}"
 
 Open Collection: ${process.env.URL}${collection.url}
 `;
+
 export const CollectionNotificationEmail = ({
   actor,
   collection,

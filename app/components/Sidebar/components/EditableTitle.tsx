@@ -99,4 +99,5 @@ const Input = styled.input`
     outline-color: ${(props) => props.theme.primary};
   }
 `;
+
 export default EditableTitle;

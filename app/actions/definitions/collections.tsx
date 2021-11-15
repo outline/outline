@@ -26,6 +26,7 @@ export const openCollection = createAction({
     }));
   },
 });
+
 export const createCollection = createAction({
   name: ({ t }) => t("New collection"),
   section: CollectionSection,
@@ -42,6 +43,7 @@ export const createCollection = createAction({
     });
   },
 });
+
 export const editCollection = createAction({
   name: ({ t }) => t("Edit collection"),
   section: CollectionSection,
@@ -61,4 +63,5 @@ export const editCollection = createAction({
     });
   },
 });
+
 export const rootCollectionActions = [openCollection, createCollection];

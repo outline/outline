@@ -120,4 +120,5 @@ const Relative = styled.div`
   position: relative;
 `;
 const ObserveredStarredLink = observer(StarredLink);
+
 export default ObserveredStarredLink;

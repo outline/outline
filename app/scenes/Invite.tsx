@@ -259,4 +259,5 @@ const Remove = styled("div")`
   position: absolute;
   right: -32px;
 `;
+
 export default observer(Invite);

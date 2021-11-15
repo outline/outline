@@ -194,6 +194,7 @@ const Content = styled(Flex)`
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
 `;
+
 export default withTranslation()<Layout>(
   inject("auth", "ui", "documents", "policies")(withRouter(Layout))
 );

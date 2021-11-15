@@ -5,6 +5,7 @@ import theme from "../../../shared/theme";
 type Props = {
   children: React.ReactNode;
 };
+
 export default (props: Props) => (
   <Table width="550" padding="40">
     <TBody>
@@ -14,6 +15,7 @@ export default (props: Props) => (
     </TBody>
   </Table>
 );
+
 export const baseStyles = `
   #__bodyTable__ {
     font-family: ${theme.fontFamily};

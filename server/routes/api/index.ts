@@ -67,4 +67,5 @@ router.post("*", (ctx) => {
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());
+
 export default api;

@@ -10,6 +10,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class Figma extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 

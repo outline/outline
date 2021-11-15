@@ -16,6 +16,7 @@ import {
 } from "../models";
 
 let count = 1;
+
 export async function buildShare(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -42,6 +43,7 @@ export async function buildShare(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export function buildTeam(overrides: Record<string, any> = {}) {
   count++;
   return Team.create(
@@ -61,6 +63,7 @@ export function buildTeam(overrides: Record<string, any> = {}) {
     }
   );
 }
+
 export function buildEvent(overrides: Record<string, any> = {}) {
   return Event.create({
     name: "documents.publish",
@@ -68,6 +71,7 @@ export function buildEvent(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildGuestUser(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -83,6 +87,7 @@ export async function buildGuestUser(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildUser(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -115,9 +120,11 @@ export async function buildUser(overrides: Record<string, any> = {}) {
     }
   );
 }
+
 export async function buildAdmin(overrides: Record<string, any> = {}) {
   return buildUser({ ...overrides, isAdmin: true });
 }
+
 export async function buildInvite(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -132,6 +139,7 @@ export async function buildInvite(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildIntegration(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -158,6 +166,7 @@ export async function buildIntegration(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildCollection(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -180,6 +189,7 @@ export async function buildCollection(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildGroup(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -200,6 +210,7 @@ export async function buildGroup(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildGroupUser(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -219,6 +230,7 @@ export async function buildGroupUser(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildDocument(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -245,6 +257,7 @@ export async function buildDocument(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildFileOperation(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -268,6 +281,7 @@ export async function buildFileOperation(overrides: Record<string, any> = {}) {
     ...overrides,
   });
 }
+
 export async function buildAttachment(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();

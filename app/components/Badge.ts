@@ -15,4 +15,5 @@ const Badge = styled.span`
   font-weight: 500;
   user-select: none;
 `;
+
 export default Badge;

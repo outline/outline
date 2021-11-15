@@ -51,4 +51,5 @@ router.get("/redirect", auth(), async (ctx) => {
 app.use(bodyParser());
 app.use(validation());
 app.use(router.routes());
+
 export default app;

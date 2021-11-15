@@ -16,6 +16,7 @@ type Props = {
   match: Match;
   location: LocationWithState;
 };
+
 export default function SharedDocumentScene(props: Props) {
   const theme = useTheme();
   const [response, setResponse] = React.useState();

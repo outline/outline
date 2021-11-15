@@ -40,6 +40,7 @@ export const navigateToHome = createAction({
   perform: () => history.push(homePath()),
   visible: ({ location }) => location.pathname !== homePath(),
 });
+
 export const navigateToSearch = createAction({
   name: ({ t }) => t("Search"),
   section: NavigationSection,
@@ -48,6 +49,7 @@ export const navigateToSearch = createAction({
   perform: () => history.push(searchUrl()),
   visible: ({ location }) => location.pathname !== searchUrl(),
 });
+
 export const navigateToDrafts = createAction({
   name: ({ t }) => t("Drafts"),
   section: NavigationSection,
@@ -55,6 +57,7 @@ export const navigateToDrafts = createAction({
   perform: () => history.push(draftsPath()),
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
+
 export const navigateToTemplates = createAction({
   name: ({ t }) => t("Templates"),
   section: NavigationSection,
@@ -62,6 +65,7 @@ export const navigateToTemplates = createAction({
   perform: () => history.push(templatesPath()),
   visible: ({ location }) => location.pathname !== templatesPath(),
 });
+
 export const navigateToArchive = createAction({
   name: ({ t }) => t("Archive"),
   section: NavigationSection,
@@ -69,6 +73,7 @@ export const navigateToArchive = createAction({
   perform: () => history.push(archivePath()),
   visible: ({ location }) => location.pathname !== archivePath(),
 });
+
 export const navigateToTrash = createAction({
   name: ({ t }) => t("Trash"),
   section: NavigationSection,
@@ -76,6 +81,7 @@ export const navigateToTrash = createAction({
   perform: () => history.push(trashPath()),
   visible: ({ location }) => location.pathname !== trashPath(),
 });
+
 export const navigateToSettings = createAction({
   name: ({ t }) => t("Settings"),
   section: NavigationSection,
@@ -84,6 +90,7 @@ export const navigateToSettings = createAction({
   icon: <SettingsIcon />,
   perform: () => history.push(settingsPath()),
 });
+
 export const openAPIDocumentation = createAction({
   name: ({ t }) => t("API documentation"),
   section: NavigationSection,
@@ -91,6 +98,7 @@ export const openAPIDocumentation = createAction({
   icon: <OpenIcon />,
   perform: () => window.open(developersUrl()),
 });
+
 export const openFeedbackUrl = createAction({
   name: ({ t }) => t("Send us feedback"),
   section: NavigationSection,
@@ -98,11 +106,13 @@ export const openFeedbackUrl = createAction({
   icon: <EmailIcon />,
   perform: () => window.open(mailToUrl()),
 });
+
 export const openBugReportUrl = createAction({
   name: ({ t }) => t("Report a bug"),
   section: NavigationSection,
   perform: () => window.open(githubIssuesUrl()),
 });
+
 export const openChangelog = createAction({
   name: ({ t }) => t("Changelog"),
   section: NavigationSection,
@@ -110,6 +120,7 @@ export const openChangelog = createAction({
   icon: <OpenIcon />,
   perform: () => window.open(changelogUrl()),
 });
+
 export const openKeyboardShortcuts = createAction({
   name: ({ t }) => t("Keyboard shortcuts"),
   section: NavigationSection,
@@ -123,11 +134,13 @@ export const openKeyboardShortcuts = createAction({
     });
   },
 });
+
 export const logout = createAction({
   name: ({ t }) => t("Log out"),
   section: NavigationSection,
   perform: () => stores.auth.logout(),
 });
+
 export const rootNavigationActions = [
   navigateToHome,
   navigateToSearch,

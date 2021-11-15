@@ -6,6 +6,7 @@ type Action = {
   name: string;
   value: string;
 };
+
 export default function present(
   document: Document,
   collection: Collection,

@@ -11,4 +11,5 @@ const TeamLogo = styled.img`
   overflow: hidden;
   flex-shrink: 0;
 `;
+
 export default TeamLogo;

@@ -160,4 +160,5 @@ const Disclosure = styled(CollapsedIcon)`
   transition: transform 100ms ease, fill 50ms !important;
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
+
 export default observer(Starred);

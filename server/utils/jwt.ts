@@ -59,6 +59,7 @@ export async function getUserForJWT(token: string): Promise<User> {
 
   return user;
 }
+
 export async function getUserForEmailSigninToken(token: string): Promise<User> {
   const payload = getJWTPayload(token);
 

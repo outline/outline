@@ -9,6 +9,7 @@ type Props = {
     matches: string[];
   };
 };
+
 export default class Diagrams extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 

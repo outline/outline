@@ -10,6 +10,7 @@ import Heading from "./components/Heading";
 export type Props = {
   teamUrl: string;
 };
+
 export const welcomeEmailText = ({ teamUrl }: Props) => `
 Welcome to Outline!
 
@@ -21,6 +22,7 @@ You can also import existing Markdown documents by dragging and dropping them to
 
 ${teamUrl}/home
 `;
+
 export const WelcomeEmail = ({ teamUrl }: Props) => {
   return (
     <EmailTemplate>

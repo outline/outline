@@ -5,6 +5,7 @@ import env from "env";
 type Props = {
   children?: React.ReactNode;
 };
+
 export default class Analytics extends React.Component<Props> {
   componentDidMount() {
     if (!env.GOOGLE_ANALYTICS_ID) {

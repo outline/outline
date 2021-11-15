@@ -13,6 +13,7 @@ Your Data Export
 Sorry, your requested data export has failed, please visit the admin
 section to try again – if the problem persists please contact support.
 `;
+
 export const ExportFailureEmail = ({ teamUrl }: { teamUrl: string }) => {
   return (
     <EmailTemplate>

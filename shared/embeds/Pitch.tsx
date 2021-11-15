@@ -10,6 +10,7 @@ type Props = {
     matches: any;
   };
 };
+
 export default class Pitch extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 

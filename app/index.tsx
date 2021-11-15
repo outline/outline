@@ -51,8 +51,7 @@ if ("serviceWorker" in window.navigator) {
 }
 
 // Make sure to return the specific export containing the feature bundle.
-const loadFeatures = () =>
-  import("./utils/motion.js").then((res) => res.default);
+const loadFeatures = () => import("./utils/motion").then((res) => res.default);
 
 if (element) {
   const App = () => (

@@ -12,6 +12,7 @@ type Props = {
     id: string;
   }[];
 };
+
 export default function Contents({ headings }: Props) {
   const [activeSlug, setActiveSlug] = React.useState();
   const position = useWindowScrollPosition({

@@ -448,4 +448,5 @@ const Empty = styled(Flex)`
   justify-content: center;
   margin: 10px 0;
 `;
+
 export default observer(CollectionScene);

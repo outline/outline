@@ -136,4 +136,5 @@ const Pre = styled.pre`
   font-size: 12px;
   white-space: pre-wrap;
 `;
+
 export default withTranslation()<ErrorBoundary>(ErrorBoundary);

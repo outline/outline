@@ -5,4 +5,5 @@ const List = styled.ol`
   padding: 0;
   list-style: none;
 `;
+
 export default List;

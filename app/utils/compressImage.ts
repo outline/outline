@@ -4,6 +4,7 @@ type Options = {
   maxWidth?: number;
   maxHeight?: number;
 };
+
 export const compressImage = async (
   file: File | Blob,
   options?: Options

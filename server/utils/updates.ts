@@ -7,6 +7,7 @@ import { client } from "../redis";
 
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
+
 export async function checkUpdates() {
   invariant(
     process.env.SECRET_KEY && process.env.URL,

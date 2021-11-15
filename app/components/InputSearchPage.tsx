@@ -87,4 +87,5 @@ function InputSearchPage({
 const InputMaxWidth = styled(Input)`
   max-width: 30vw;
 `;
+
 export default observer(InputSearchPage);

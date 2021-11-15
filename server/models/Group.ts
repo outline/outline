@@ -90,4 +90,5 @@ Group.addHook("afterDestroy", async (group, options) => {
     },
   });
 });
+
 export default Group;

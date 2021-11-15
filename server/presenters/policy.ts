@@ -4,6 +4,7 @@ type Policy = {
   id: string;
   abilities: Record<string, boolean>;
 };
+
 export default function present(
   user: User,
   objects: Record<string, any>[]

@@ -52,6 +52,7 @@ const TwitterPicker = React.lazy(
       "react-color/lib/components/twitter/Twitter"
     )
 );
+
 export const icons = {
   bookmark: {
     component: BookmarkedIcon,
@@ -294,4 +295,5 @@ const Wrapper = styled("div")`
   display: inline-block;
   position: relative;
 `;
+
 export default IconPicker;

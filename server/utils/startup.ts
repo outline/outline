@@ -20,6 +20,7 @@ $ node ./build/server/scripts/20210226232041-migrate-authentication.js
     process.exit(1);
   }
 }
+
 export function checkEnv() {
   const errors = [];
 

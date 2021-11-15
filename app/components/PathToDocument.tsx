@@ -105,4 +105,5 @@ const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
     }
   }
 `;
+
 export default PathToDocument;

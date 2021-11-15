@@ -162,4 +162,5 @@ const BackIcon = styled(ExpandedIcon)`
 const ReturnToApp = styled(Flex)`
   height: 16px;
 `;
+
 export default observer(SettingsSidebar);

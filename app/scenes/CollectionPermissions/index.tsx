@@ -347,4 +347,5 @@ const PermissionExplainer = styled(HelpText)`
 const Actions = styled.div`
   margin-bottom: 12px;
 `;
+
 export default observer(CollectionPermissions);

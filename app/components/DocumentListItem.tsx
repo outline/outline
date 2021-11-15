@@ -252,4 +252,5 @@ const ResultContext = styled(Highlight)`
   margin-top: -0.25em;
   margin-bottom: 0.25em;
 `;
+
 export default observer(React.forwardRef(DocumentListItem));

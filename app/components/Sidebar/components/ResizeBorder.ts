@@ -8,4 +8,5 @@ const ResizeBorder = styled.div`
   width: 12px;
   cursor: col-resize;
 `;
+
 export default ResizeBorder;

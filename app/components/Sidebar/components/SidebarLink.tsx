@@ -174,4 +174,5 @@ const Label = styled.div`
     unicode-bidi: plaintext;
   }
 `;
+
 export default React.forwardRef<Props, HTMLAnchorElement>(SidebarLink);

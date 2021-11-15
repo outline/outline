@@ -6,6 +6,7 @@ import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 
 let importingLock = false;
+
 export default function useImportDocument(
   collectionId: string,
   documentId?: string

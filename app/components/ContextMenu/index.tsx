@@ -25,6 +25,7 @@ type Props = {
   onClose?: () => void;
   hide?: () => void;
 };
+
 export default function ContextMenu({
   children,
   onOpen,
@@ -87,6 +88,7 @@ export default function ContextMenu({
     </>
   );
 }
+
 export const Backdrop = styled.div`
   animation: ${fadeIn} 200ms ease-in-out;
   position: fixed;
@@ -101,6 +103,7 @@ export const Backdrop = styled.div`
     display: none;
   `};
 `;
+
 export const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
@@ -114,6 +117,7 @@ export const Position = styled.div`
     left: 8px !important;
   `};
 `;
+
 export const Background = styled.div`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;

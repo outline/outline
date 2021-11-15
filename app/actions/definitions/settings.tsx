@@ -13,6 +13,7 @@ export const changeToDarkTheme = createAction({
   selected: () => stores.ui.theme === "dark",
   perform: () => stores.ui.setTheme("dark"),
 });
+
 export const changeToLightTheme = createAction({
   name: ({ t }) => t("Light"),
   icon: <SunIcon />,
@@ -22,6 +23,7 @@ export const changeToLightTheme = createAction({
   selected: () => stores.ui.theme === "light",
   perform: () => stores.ui.setTheme("light"),
 });
+
 export const changeToSystemTheme = createAction({
   name: ({ t }) => t("System"),
   icon: <BrowserIcon />,
@@ -31,6 +33,7 @@ export const changeToSystemTheme = createAction({
   selected: () => stores.ui.theme === "system",
   perform: () => stores.ui.setTheme("system"),
 });
+
 export const changeTheme = createAction({
   name: ({ t }) => t("Change theme"),
   placeholder: ({ t }) => t("Change theme to"),
@@ -40,4 +43,5 @@ export const changeTheme = createAction({
   section: SettingsSection,
   children: [changeToLightTheme, changeToDarkTheme, changeToSystemTheme],
 });
+
 export const rootSettingsActions = [changeTheme];

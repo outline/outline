@@ -6,6 +6,7 @@ type GroupMembership = {
   userId: string;
   groupId: string;
 };
+
 export default (membership: GroupUser): GroupMembership => {
   return {
     id: `${membership.userId}-${membership.groupId}`,

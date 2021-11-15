@@ -59,4 +59,5 @@ export function requestErrorHandler(error: any, ctx: ContextWithState) {
     console.error(error);
   }
 }
+
 export default Sentry;
