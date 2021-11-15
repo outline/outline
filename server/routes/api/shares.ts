@@ -6,6 +6,7 @@ import { Document, User, Event, Share, Team, Collection } from "../../models";
 import policy from "../../policies";
 import { presentShare, presentPolicies } from "../../presenters";
 import pagination from "./middlewares/pagination";
+
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();

@@ -2,6 +2,7 @@ import { reduce, filter, find, orderBy } from "lodash";
 import View from "models/View";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+
 export default class ViewsStore extends BaseStore<View> {
   actions = ["list", "create"];
 

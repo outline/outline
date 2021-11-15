@@ -2,6 +2,7 @@ import { AuthenticationError, UserSuspendedError } from "../errors";
 import { User, Team, ApiKey } from "../models";
 import type { ContextWithState } from "../types";
 import { getUserForJWT } from "../utils/jwt";
+
 export default function auth(
   options: {
     required?: boolean;

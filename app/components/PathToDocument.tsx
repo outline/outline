@@ -7,6 +7,7 @@ import Collection from "models/Collection";
 import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
+
 type Props = {
   result: DocumentPath;
   document?: Document | null | undefined;

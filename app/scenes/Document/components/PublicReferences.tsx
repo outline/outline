@@ -5,6 +5,7 @@ import Subheading from "components/Subheading";
 import ReferenceListItem from "./ReferenceListItem";
 import type { NavigationNode } from "types";
 import "types";
+
 type Props = {
   shareId: string;
   documentId: string;

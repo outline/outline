@@ -1,5 +1,6 @@
 import * as React from "react";
 import Frame from "./components/Frame";
+
 const URL_REGEX = /^https:\/\/(realtimeboard|miro).com\/app\/board\/(.*)$/;
 type Props = {
   attrs: {

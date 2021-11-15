@@ -6,6 +6,7 @@ import CircularProgressBar from "components/CircularProgressBar";
 import usePrevious from "../hooks/usePrevious";
 import Document from "../models/Document";
 import { bounceIn } from "styles/animations";
+
 type Props = {
   document: Document;
 };

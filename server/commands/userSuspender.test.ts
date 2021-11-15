@@ -2,6 +2,7 @@ import { GroupUser } from "../models";
 import { buildGroup, buildAdmin, buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import userSuspender from "./userSuspender";
+
 beforeEach(() => flushdb());
 describe("userSuspender", () => {
   const ip = "127.0.0.1";

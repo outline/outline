@@ -9,6 +9,7 @@ import useBoolean from "hooks/useBoolean";
 import useKeyDown from "hooks/useKeyDown";
 import { isModKey } from "utils/keyboard";
 import { searchUrl } from "utils/routeHelpers";
+
 type Props = {
   source: string;
   placeholder?: string;

@@ -10,6 +10,7 @@ import Flex from "components/Flex";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+
 const Container = styled(Flex)`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   color: ${(props) => props.theme.textTertiary};

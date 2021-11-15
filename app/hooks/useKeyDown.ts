@@ -1,5 +1,6 @@
 import * as React from "react";
 import isTextInput from "utils/isTextInput";
+
 export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
 // Registered keyboard event callbacks
 let callbacks = [];

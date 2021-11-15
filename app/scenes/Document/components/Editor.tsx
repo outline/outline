@@ -14,6 +14,7 @@ import HoverPreview from "components/HoverPreview";
 import EditableTitle from "./EditableTitle";
 import MultiplayerEditor from "./MultiplayerEditor";
 import { documentHistoryUrl } from "utils/routeHelpers";
+
 type Props = EditorProps & {
   onChangeTitle: (text: string) => void;
   title: string;
@@ -38,17 +39,21 @@ type Props = EditorProps & {
 class DocumentEditor extends React.Component<Props> {
   @observable
   activeLinkEvent: MouseEvent | null | undefined;
+
   ref = React.createRef<HTMLDivElement | HTMLInputElement>();
+
   focusAtStart = () => {
     if (this.props.innerRef.current) {
       this.props.innerRef.current.focusAtStart();
     }
   };
+
   focusAtEnd = () => {
     if (this.props.innerRef.current) {
       this.props.innerRef.current.focusAtEnd();
     }
   };
+
   insertParagraph = () => {
     if (this.props.innerRef.current) {
       const { view } = this.props.innerRef.current;
@@ -56,12 +61,15 @@ class DocumentEditor extends React.Component<Props> {
       dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
     }
   };
+
   handleLinkActive = (event: MouseEvent) => {
     this.activeLinkEvent = event;
   };
+
   handleLinkInactive = () => {
     this.activeLinkEvent = null;
   };
+
   handleGoToNextInput = (insertParagraph: boolean) => {
     if (insertParagraph) {
       this.insertParagraph();

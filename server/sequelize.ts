@@ -1,6 +1,7 @@
 import Sequelize from "sequelize";
 import EncryptedField from "sequelize-encrypted";
 import Logger from "./logging/logger";
+
 const isProduction = process.env.NODE_ENV === "production";
 const isSSLDisabled = process.env.PGSSLMODE === "disable";
 export const encryptedFields = () =>

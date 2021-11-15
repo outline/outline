@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { Document, Revision, User, Team } from "../models";
 import policy from "./policy";
+
 const { allow, cannot } = policy;
 allow(User, "createDocument", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;

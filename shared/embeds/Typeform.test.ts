@@ -1,4 +1,5 @@
 import Typeform from "./Typeform";
+
 describe("Typeform", () => {
   const match = Typeform.ENABLED[0];
   test("to be enabled on share link", () => {

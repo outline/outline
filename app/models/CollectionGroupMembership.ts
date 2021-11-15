@@ -3,8 +3,11 @@ import BaseModel from "./BaseModel";
 
 class CollectionGroupMembership extends BaseModel {
   id: string;
+
   groupId: string;
+
   collectionId: string;
+
   permission: string;
 
   @computed

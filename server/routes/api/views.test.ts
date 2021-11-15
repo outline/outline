@@ -3,6 +3,7 @@ import { View, CollectionUser } from "../../models";
 import webService from "../../services/web";
 import { buildUser } from "../../test/factories";
 import { flushdb, seed } from "../../test/support";
+
 const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());

@@ -7,6 +7,7 @@ import env from "../../../env";
 import { MicrosoftGraphError } from "../../../errors";
 import passportMiddleware from "../../../middlewares/passport";
 import { StateStore, request } from "../../../utils/passport";
+
 const router = new Router();
 const providerName = "azure";
 const AZURE_CLIENT_ID = process.env.AZURE_CLIENT_ID;

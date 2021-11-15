@@ -8,6 +8,7 @@ import Avatar from "components/Avatar";
 import ListItem from "components/List/Item";
 import PaginatedList from "components/PaginatedList";
 import useStores from "hooks/useStores";
+
 type Props = {
   document: Document;
   isOpen?: boolean;

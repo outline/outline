@@ -13,6 +13,7 @@ import Imports from "../queues/processors/imports";
 import Notifications from "../queues/processors/notifications";
 import Revisions from "../queues/processors/revisions";
 import Slack from "../queues/processors/slack";
+
 const EmailsProcessor = new Emails();
 const eventProcessors = {
   backlinks: new Backlinks(),

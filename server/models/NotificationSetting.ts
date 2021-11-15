@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { DataTypes, sequelize } from "../sequelize";
+
 const NotificationSetting = sequelize.define(
   "notification_setting",
   {

@@ -12,6 +12,7 @@ import Facepile from "components/Facepile";
 import Flex from "components/Flex";
 import ListItem from "components/List/Item";
 import Modal from "components/Modal";
+
 type Props = {
   group: Group;
   groupMemberships: GroupMembershipsStore;
@@ -25,9 +26,11 @@ type Props = {
 class GroupListItem extends React.Component<Props> {
   @observable
   membersModalOpen = false;
+
   handleMembersModalOpen = () => {
     this.membersModalOpen = true;
   };
+
   handleMembersModalClose = () => {
     this.membersModalOpen = false;
   };

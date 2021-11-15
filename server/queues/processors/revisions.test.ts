@@ -2,6 +2,7 @@ import { Revision } from "../../models";
 import { buildDocument } from "../../test/factories";
 import { flushdb } from "../../test/support";
 import RevisionsService from "./revisions";
+
 const Revisions = new RevisionsService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

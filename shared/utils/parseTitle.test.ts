@@ -1,4 +1,5 @@
 import parseTitle from "./parseTitle";
+
 it("should trim the title", () => {
   expect(parseTitle(`#    Lots of space     `).title).toBe("Lots of space");
 });

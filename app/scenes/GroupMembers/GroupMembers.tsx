@@ -15,6 +15,7 @@ import AddPeopleToGroup from "./AddPeopleToGroup";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   group: Group;
 };

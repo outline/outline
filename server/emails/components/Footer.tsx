@@ -2,6 +2,7 @@ import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "../../../shared/theme";
 import { twitterUrl } from "../../../shared/utils/routeHelpers";
+
 type Props = {
   unsubscribeUrl?: string;
 };

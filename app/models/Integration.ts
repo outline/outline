@@ -1,6 +1,7 @@
 import { extendObservable, action } from "mobx";
 import BaseModel from "models/BaseModel";
 import { client } from "utils/ApiClient";
+
 type Settings = {
   url: string;
   channel: string;
@@ -10,10 +11,15 @@ type Events = "documents.create" | "collections.create";
 
 class Integration extends BaseModel {
   id: string;
+
   service: string;
+
   collectionId: string;
+
   events: Events;
+
   settings: Settings;
+
   @action
   update = async (data: Record<string, any>) => {
     await client.post("/integrations.update", {
@@ -23,6 +29,7 @@ class Integration extends BaseModel {
     extendObservable(this, data);
     return true;
   };
+
   @action
   delete = () => {
     return this.store.delete(this);

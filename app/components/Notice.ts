@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 const Notice = styled.p`
   background: ${(props) => props.theme.sidebarBackground};
   color: ${(props) => props.theme.sidebarText};

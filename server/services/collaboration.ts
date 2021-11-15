@@ -7,6 +7,7 @@ import AuthenticationExtension from "../collaboration/authentication";
 import LoggerExtension from "../collaboration/logger";
 import PersistenceExtension from "../collaboration/persistence";
 import TracingExtension from "../collaboration/tracing";
+
 export default function init(app: Koa, server: http.Server) {
   const path = "/collaboration";
   const wss = new WebSocket.Server({

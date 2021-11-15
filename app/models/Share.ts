@@ -3,15 +3,25 @@ import User from "./User";
 
 class Share extends BaseModel {
   id: string;
+
   url: string;
+
   published: boolean;
+
   documentId: string;
+
   documentTitle: string;
+
   documentUrl: string;
+
   lastAccessedAt: string | null | undefined;
+
   includeChildDocuments: boolean;
+
   createdBy: User;
+
   createdAt: string;
+
   updatedAt: string;
 }
 

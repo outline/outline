@@ -16,6 +16,7 @@ import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
 import { homePath } from "utils/routeHelpers";
+
 type Props = EditorProps & {
   id: string;
   onSynced?: () => void;

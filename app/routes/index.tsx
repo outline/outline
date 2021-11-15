@@ -4,6 +4,7 @@ import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
 import Route from "components/ProfiledRoute";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
+
 const Authenticated = React.lazy(
   () =>
     import(

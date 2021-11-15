@@ -1,6 +1,7 @@
 import * as React from "react";
 import { USER_PRESENCE_INTERVAL } from "shared/constants";
 import { SocketContext } from "components/SocketProvider";
+
 type Props = {
   children?: React.ReactNode;
   documentId: string;
@@ -8,7 +9,9 @@ type Props = {
 };
 export default class SocketPresence extends React.Component<Props> {
   static contextType = SocketContext;
+
   previousContext: any;
+
   editingInterval: IntervalID;
 
   componentDidMount() {
@@ -52,6 +55,7 @@ export default class SocketPresence extends React.Component<Props> {
       });
     }
   };
+
   emitJoin = () => {
     if (!this.context) return;
     this.context.emit("join", {
@@ -59,6 +63,7 @@ export default class SocketPresence extends React.Component<Props> {
       isEditing: this.props.isEditing,
     });
   };
+
   emitPresence = () => {
     if (!this.context) return;
     this.context.emit("presence", {

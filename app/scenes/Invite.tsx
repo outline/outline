@@ -17,6 +17,7 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 const MAX_INVITES = 20;
 type Props = {
   onSubmit: () => void;

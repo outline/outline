@@ -21,6 +21,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
+
 type Props = {
   toasts: ToastsStore;
   auth: AuthStore;
@@ -35,23 +36,29 @@ type Props = {
 class AddGroupsToCollection extends React.Component<Props> {
   @observable
   newGroupModalOpen = false;
+
   @observable
   query = "";
+
   handleNewGroupModalOpen = () => {
     this.newGroupModalOpen = true;
   };
+
   handleNewGroupModalClose = () => {
     this.newGroupModalOpen = false;
   };
+
   handleFilter = (ev: React.SyntheticEvent) => {
     this.query = ev.target.value;
     this.debouncedFetch();
   };
+
   debouncedFetch = debounce(() => {
     this.props.groups.fetchPage({
       query: this.query,
     });
   }, 250);
+
   handleAddGroup = (group: Group) => {
     const { t } = this.props;
 

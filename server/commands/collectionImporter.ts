@@ -12,6 +12,7 @@ import { Attachment, Event, Document, Collection, User } from "../models";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
+
 export default async function collectionImporter({
   file,
   type,

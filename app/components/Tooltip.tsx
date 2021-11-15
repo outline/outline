@@ -1,6 +1,7 @@
 import Tippy from "@tippy.js/react";
 import * as React from "react";
 import styled from "styled-components";
+
 type Props = {
   tooltip: React.ReactNode;
   shortcut?: React.ReactNode;

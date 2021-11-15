@@ -3,6 +3,7 @@ import path from "path";
 import * as React from "react";
 import ReactDOMServer from "react-dom/server";
 import env from "../env";
+
 const prefetchTags = [];
 
 if (process.env.AWS_S3_UPLOAD_BUCKET_URL) {

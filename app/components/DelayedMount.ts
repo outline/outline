@@ -1,4 +1,5 @@
 import * as React from "react";
+
 type Props = {
   delay?: number;
   children: React.ReactNode;

@@ -22,6 +22,7 @@ import Team from "./Team";
 import User from "./User";
 import UserAuthentication from "./UserAuthentication";
 import View from "./View";
+
 const models = {
   ApiKey,
   Attachment,

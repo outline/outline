@@ -19,27 +19,48 @@ import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
+
 export default class RootStore {
   apiKeys: ApiKeysStore;
+
   auth: AuthStore;
+
   collections: CollectionsStore;
+
   collectionGroupMemberships: CollectionGroupMembershipsStore;
+
   dialogs: DialogsStore;
+
   documents: DocumentsStore;
+
   events: EventsStore;
+
   groups: GroupsStore;
+
   groupMemberships: GroupMembershipsStore;
+
   integrations: IntegrationsStore;
+
   memberships: MembershipsStore;
+
   notificationSettings: NotificationSettingsStore;
+
   presence: DocumentPresenceStore;
+
   policies: PoliciesStore;
+
   revisions: RevisionsStore;
+
   shares: SharesStore;
+
   ui: UiStore;
+
   users: UsersStore;
+
   views: ViewsStore;
+
   toasts: ToastsStore;
+
   fileOperations: FileOperationsStore;
 
   constructor() {

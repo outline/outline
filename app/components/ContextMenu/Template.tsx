@@ -24,6 +24,7 @@ import type {
   MenuSeparator,
   MenuHeading,
 } from "types";
+
 type Props = {
   items: TMenuItem[];
   actions: (Action | MenuSeparator | MenuHeading)[];

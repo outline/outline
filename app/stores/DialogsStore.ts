@@ -1,6 +1,7 @@
 import { observable, action } from "mobx";
 import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
+
 export default class DialogsStore {
   @observable
   guide: {
@@ -8,6 +9,7 @@ export default class DialogsStore {
     content: React.ReactNode;
     isOpen: boolean;
   };
+
   @observable
   modalStack = new Map<
     string,
@@ -17,6 +19,7 @@ export default class DialogsStore {
       isOpen: boolean;
     }
   >();
+
   openGuide = ({
     title,
     content,
@@ -35,12 +38,14 @@ export default class DialogsStore {
       0
     );
   };
+
   @action
   closeGuide = () => {
     if (this.guide) {
       this.guide.isOpen = false;
     }
   };
+
   openModal = ({
     title,
     content,
@@ -67,10 +72,12 @@ export default class DialogsStore {
       0
     );
   };
+
   @action
   closeModal = (id: string) => {
     this.modalStack.delete(id);
   };
+
   @action
   closeAllModals = () => {
     this.modalStack.clear();

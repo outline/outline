@@ -5,6 +5,7 @@ import validator from "validator";
 import { validateColorHex } from "../../shared/utils/color";
 import { validateIndexCharacters } from "../../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "../errors";
+
 export default function validation() {
   return function validationMiddleware(ctx: Context, next: () => Promise<any>) {
     ctx.assertPresent = (value, message) => {

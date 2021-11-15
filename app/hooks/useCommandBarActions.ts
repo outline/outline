@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { actionToKBar } from "actions";
 import useStores from "hooks/useStores";
 import type { Action } from "types";
+
 export default function useCommandBarActions(actions: Action[]) {
   const stores = useStores();
   const { t } = useTranslation();

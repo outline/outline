@@ -1,6 +1,7 @@
 import { buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import userInviter from "./userInviter";
+
 beforeEach(() => flushdb());
 describe("userInviter", () => {
   const ip = "127.0.0.1";

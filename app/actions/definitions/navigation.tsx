@@ -31,6 +31,7 @@ import {
   archivePath,
   trashPath,
 } from "utils/routeHelpers";
+
 export const navigateToHome = createAction({
   name: ({ t }) => t("Home"),
   section: NavigationSection,

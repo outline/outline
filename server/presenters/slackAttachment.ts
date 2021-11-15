@@ -1,4 +1,5 @@
 import { Document, Collection, Team } from "../models";
+
 type Action = {
   type: string;
   text: string;

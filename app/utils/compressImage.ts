@@ -1,4 +1,5 @@
 import Compressor from "compressorjs";
+
 type Options = {
   maxWidth?: number;
   maxHeight?: number;

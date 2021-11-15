@@ -1,4 +1,5 @@
 import Diagrams from "./Diagrams";
+
 describe("Diagrams", () => {
   const match = Diagrams.ENABLED[0];
   test("to be enabled on viewer link", () => {

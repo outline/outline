@@ -5,6 +5,7 @@ import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
+
 export type DocumentPathItem = {
   id: string;
   collectionId: string;
@@ -91,6 +92,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
       attachmentId,
     });
   };
+
   @action
   move = async (collectionId: string, index: string) => {
     const res = await client.post("/collections.move", {
@@ -166,6 +168,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
     this.rootStore.documents.fetchRecentlyUpdated();
     this.rootStore.documents.fetchRecentlyViewed();
   };
+
   export = () => {
     return client.post("/collections.export_all");
   };

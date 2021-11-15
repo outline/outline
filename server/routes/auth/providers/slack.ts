@@ -13,6 +13,7 @@ import {
 } from "../../../models";
 import { StateStore } from "../../../utils/passport";
 import * as Slack from "../../../utils/slack";
+
 const router = new Router();
 const providerName = "slack";
 const SLACK_CLIENT_ID = process.env.SLACK_KEY;

@@ -1,5 +1,6 @@
 import { debounce } from "lodash";
 import * as React from "react";
+
 export default function useWindowSize() {
   const [windowSize, setWindowSize] = React.useState({
     width: parseInt(window.innerWidth),

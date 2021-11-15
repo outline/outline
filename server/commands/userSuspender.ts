@@ -2,6 +2,7 @@ import { Transaction } from "sequelize";
 import { ValidationError } from "../errors";
 import { User, Event, GroupUser } from "../models";
 import { sequelize } from "../sequelize";
+
 export default async function userSuspender({
   user,
   actorId,

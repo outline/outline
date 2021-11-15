@@ -4,6 +4,7 @@ import { slackAuth } from "shared/utils/routeHelpers";
 import Button from "components/Button";
 import SlackIcon from "components/SlackIcon";
 import env from "env";
+
 type Props = {
   scopes?: string[];
   redirectUri: string;

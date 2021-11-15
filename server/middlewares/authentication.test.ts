@@ -3,6 +3,7 @@ import { ApiKey } from "../models";
 import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import auth from "./authentication";
+
 beforeEach(() => flushdb());
 describe("Authentication middleware", () => {
   describe("with JWT", () => {

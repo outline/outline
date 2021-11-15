@@ -1,4 +1,5 @@
 import { serializeFilename, deserializeFilename } from "./fs";
+
 describe("serializeFilename", () => {
   it("should serialize forward slashes", () => {
     expect(serializeFilename(`/`)).toBe("%2F");

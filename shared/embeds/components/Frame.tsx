@@ -29,6 +29,7 @@ type PropsWithRef = Props & {
 @observer
 class Frame extends React.Component<PropsWithRef> {
   mounted: boolean;
+
   @observable
   isLoaded = false;
 

@@ -3,6 +3,7 @@ import * as React from "react";
 import stores from "stores";
 import { createAction } from "actions";
 import { SettingsSection } from "actions/sections";
+
 export const changeToDarkTheme = createAction({
   name: ({ t }) => t("Dark"),
   icon: <MoonIcon />,

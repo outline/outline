@@ -1,4 +1,5 @@
 import { Team } from "../models";
+
 export default function present(team: Team) {
   return {
     id: team.id,

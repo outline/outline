@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { User, Document, Collection, Team } from "../models";
 import { sequelize } from "../sequelize";
+
 const sql = sequelize.getQueryInterface();
 const tables = Object.keys(sequelize.models).map((model) => {
   const n = sequelize.models[model].getTableName();

@@ -3,6 +3,7 @@ import auth from "../../middlewares/authentication";
 import { Team, NotificationSetting } from "../../models";
 import policy from "../../policies";
 import { presentNotificationSetting } from "../../presenters";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("notificationSettings.create", auth(), async (ctx) => {

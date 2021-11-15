@@ -10,6 +10,7 @@ import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import ReferenceListItem from "./ReferenceListItem";
 import useStores from "hooks/useStores";
+
 type Props = {
   document: Document;
   documents: DocumentsStore;

@@ -1,4 +1,5 @@
 import * as React from "react";
+
 type InitialState = boolean | (() => boolean);
 /**
  * React hook to manage booleans

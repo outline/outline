@@ -28,6 +28,7 @@ import {
   newDocumentPath,
   settingsPath,
 } from "utils/routeHelpers";
+
 const DocumentHistory = React.lazy(
   () =>
     import(
@@ -57,13 +58,16 @@ type Props = {
 @observer
 class Layout extends React.Component<Props> {
   scrollable: HTMLDivElement | null | undefined;
+
   @observable
   keyboardShortcutsOpen = false;
+
   goToSearch = (ev: KeyboardEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.history.push(searchUrl());
   };
+
   goToNewDocument = () => {
     const { activeCollectionId } = this.props.ui;
     if (!activeCollectionId) return;

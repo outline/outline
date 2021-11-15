@@ -9,6 +9,7 @@ import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import { collectionUrl, documentUrl } from "utils/routeHelpers";
+
 type Props = {
   document: Document;
   onSubmit: () => void;

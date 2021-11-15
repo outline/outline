@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const Backlink = sequelize.define("backlink", {
   id: {
     type: DataTypes.UUID,

@@ -3,6 +3,7 @@ import { Integrations } from "@sentry/tracing";
 import type { RouterHistory } from "react-router-dom";
 import "react-router-dom";
 import env from "env";
+
 export function initSentry(history: RouterHistory) {
   Sentry.init({
     dsn: env.SENTRY_DSN,

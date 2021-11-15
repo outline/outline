@@ -1,4 +1,5 @@
 import GoogleDocs from "./GoogleDocs";
+
 describe("GoogleDocs", () => {
   const match = GoogleDocs.ENABLED[0];
   test("to be enabled on share link", () => {

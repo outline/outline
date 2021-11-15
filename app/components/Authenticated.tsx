@@ -7,6 +7,7 @@ import LoadingIndicator from "components/LoadingIndicator";
 import useStores from "../hooks/useStores";
 import { changeLanguage } from "../utils/language";
 import env from "env";
+
 type Props = {
   children: React.ReactNode;
 };

@@ -5,6 +5,7 @@ import { createAction } from "actions";
 import { DebugSection } from "actions/sections";
 import env from "env";
 import { deleteAllDatabases } from "utils/developer";
+
 export const clearIndexedDB = createAction({
   name: ({ t }) => t("Delete IndexedDB cache"),
   icon: <TrashIcon />,

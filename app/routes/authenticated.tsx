@@ -16,6 +16,7 @@ import PlaceholderDocument from "components/PlaceholderDocument";
 import Route from "components/ProfiledRoute";
 import SocketProvider from "components/SocketProvider";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
+
 const SettingsRoutes = React.lazy(
   () =>
     import(

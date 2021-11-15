@@ -1,4 +1,5 @@
 import { AuthenticationProvider } from "../models";
+
 export default function present(
   authenticationProvider: AuthenticationProvider
 ) {

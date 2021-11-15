@@ -16,6 +16,7 @@ import Labeled from "components/Labeled";
 import PathToDocument from "components/PathToDocument";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   document: Document;
   onRequestClose: () => void;

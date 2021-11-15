@@ -8,6 +8,7 @@ import policy from "../../policies";
 import { presentUser, presentPolicies } from "../../presenters";
 import { Op } from "../../sequelize";
 import pagination from "./middlewares/pagination";
+
 const { can, authorize } = policy;
 const router = new Router();
 router.post("users.list", auth(), pagination(), async (ctx) => {

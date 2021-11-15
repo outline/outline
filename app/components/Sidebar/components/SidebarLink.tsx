@@ -5,6 +5,7 @@ import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
 import type { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
+
 type Props = NavLinkProps & {
   to?: string | Record<string, any>;
   href?: string | Record<string, any>;

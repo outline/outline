@@ -6,6 +6,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   collection: Collection;
   onSubmit: () => void;

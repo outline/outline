@@ -12,6 +12,7 @@ import {
   makeCredential,
   getSignedUrl,
 } from "../../utils/s3";
+
 const { authorize } = policy;
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";

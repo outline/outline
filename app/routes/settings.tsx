@@ -14,6 +14,7 @@ import Tokens from "scenes/Settings/Tokens";
 import Zapier from "scenes/Settings/Zapier";
 import Route from "components/ProfiledRoute";
 import env from "env";
+
 const isHosted = env.DEPLOYMENT === "hosted";
 export default function SettingsRoutes() {
   return (

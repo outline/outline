@@ -4,6 +4,7 @@ import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
 import Scrollable from "components/Scrollable";
 import usePrevious from "hooks/usePrevious";
+
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;

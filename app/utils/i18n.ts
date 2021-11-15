@@ -14,6 +14,7 @@ import {
   ru,
   pl,
 } from "date-fns/locale";
+
 const locales = {
   en_US: enUS,
   de_DE: de,

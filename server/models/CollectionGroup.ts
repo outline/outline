@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const CollectionGroup = sequelize.define(
   "collection_group",
   {

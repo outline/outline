@@ -7,6 +7,7 @@ import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   onRequestClose: () => void;
 };

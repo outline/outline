@@ -3,6 +3,7 @@ import { computed } from "mobx";
 import FileOperation from "models/FileOperation";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+
 export default class FileOperationsStore extends BaseStore<FileOperation> {
   actions = ["list", "info", "delete"];
 

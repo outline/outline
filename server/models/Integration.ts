@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const Integration = sequelize.define("integration", {
   id: {
     type: DataTypes.UUID,

@@ -6,6 +6,7 @@ import EmptySpace from "./components/EmptySpace";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
+
 export type Props = {
   token: string;
   teamUrl: string;

@@ -6,6 +6,7 @@ import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 import useStores from "hooks/useStores";
+
 type Props = {
   url: string;
   children: (arg0: React.ReactNode) => React.ReactNode;

@@ -3,6 +3,7 @@ import auth from "../../middlewares/authentication";
 import { Event, Team } from "../../models";
 import policy from "../../policies";
 import { presentTeam, presentPolicies } from "../../presenters";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("team.update", auth(), async (ctx) => {

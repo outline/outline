@@ -1,5 +1,6 @@
 import MarkdownSerializer from "slate-md-serializer";
 import { DataTypes, sequelize } from "../sequelize";
+
 const serializer = new MarkdownSerializer();
 const Revision = sequelize.define("revision", {
   id: {

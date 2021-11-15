@@ -2,6 +2,7 @@ import { FileOperation } from "../models";
 import { buildAdmin, buildFileOperation } from "../test/factories";
 import { flushdb } from "../test/support";
 import fileOperationDeleter from "./fileOperationDeleter";
+
 jest.mock("aws-sdk", () => {
   const mS3 = {
     deleteObject: jest.fn().mockReturnThis(),

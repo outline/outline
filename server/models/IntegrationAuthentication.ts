@@ -1,4 +1,5 @@
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+
 const IntegrationAuthentication = sequelize.define("authentication", {
   id: {
     type: DataTypes.UUID,

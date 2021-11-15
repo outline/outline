@@ -7,6 +7,7 @@ import AuthLogo from "components/AuthLogo";
 import ButtonLarge from "components/ButtonLarge";
 import InputLarge from "components/InputLarge";
 import { client } from "utils/ApiClient";
+
 type Props = {
   id: string;
   name: string;
@@ -27,11 +28,13 @@ class Provider extends React.Component<Props, State> {
     isSubmitting: false,
     email: "",
   };
+
   handleChangeEmail = (event: React.SyntheticEvent<HTMLInputElement>) => {
     this.setState({
       email: event.target.value,
     });
   };
+
   handleSubmitEmail = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 

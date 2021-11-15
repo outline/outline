@@ -1,6 +1,7 @@
 import { AdminRequiredError } from "../errors";
 import { User, Team } from "../models";
 import policy from "./policy";
+
 const { allow } = policy;
 allow(
   User,

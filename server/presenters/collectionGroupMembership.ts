@@ -1,4 +1,5 @@
 import { CollectionGroup } from "../models";
+
 type Membership = {
   id: string;
   groupId: string;

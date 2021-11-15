@@ -1,5 +1,6 @@
 import { Attachment, User, Team } from "../models";
 import policy from "./policy";
+
 const { allow } = policy;
 allow(User, "createAttachment", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;

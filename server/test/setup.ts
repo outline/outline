@@ -1,4 +1,5 @@
 import "../env";
+
 // test environment variables
 process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
 process.env.NODE_ENV = "test";

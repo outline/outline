@@ -4,6 +4,7 @@ import invariant from "invariant";
 import packageInfo from "../../package.json";
 import { User, Team, Collection, Document } from "../models";
 import { client } from "../redis";
+
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
 export async function checkUpdates() {

@@ -5,6 +5,7 @@ import { Document, Revision } from "../../models";
 import policy from "../../policies";
 import { presentRevision } from "../../presenters";
 import pagination from "./middlewares/pagination";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("revisions.info", auth(), async (ctx) => {

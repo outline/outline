@@ -1,6 +1,7 @@
 import { AdminRequiredError } from "../errors";
 import { Share, User } from "../models";
 import policy from "./policy";
+
 const { allow, cannot } = policy;
 allow(User, "read", Share, (user, share) => {
   return user.teamId === share.teamId;

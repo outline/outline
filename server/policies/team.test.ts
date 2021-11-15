@@ -1,6 +1,7 @@
 import { buildUser, buildTeam, buildAdmin } from "../test/factories";
 import { flushdb } from "../test/support";
 import { serialize } from "./index";
+
 beforeEach(() => flushdb());
 it("should allow reading only", async () => {
   const team = await buildTeam();

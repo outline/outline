@@ -1,6 +1,7 @@
 import * as React from "react";
 import replace from "string-replace-to-array";
 import styled from "styled-components";
+
 type Props = {
   highlight: (string | null | undefined) | RegExp;
   processResult?: (tag: string) => string;

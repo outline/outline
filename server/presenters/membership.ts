@@ -1,4 +1,5 @@
 import { CollectionUser } from "../models";
+
 type Membership = {
   id: string;
   userId: string;

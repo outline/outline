@@ -1,6 +1,7 @@
 import * as React from "react";
 import Frame from "./components/Frame";
 import Image from "./components/Image";
+
 const URL_REGEX = new RegExp(
   "^https?://datastudio.google.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
 );

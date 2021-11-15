@@ -10,6 +10,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
 import useStores from "hooks/useStores";
+
 type Props = {
   group: Group;
   onMembers: () => void;

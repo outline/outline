@@ -10,6 +10,7 @@ import {
 } from "../test/factories";
 import { flushdb, seed } from "../test/support";
 import slugify from "../utils/slugify";
+
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 describe("#url", () => {

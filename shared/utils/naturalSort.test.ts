@@ -1,4 +1,5 @@
 import naturalSort from "./naturalSort";
+
 describe("#naturalSort", () => {
   it("should sort a list of objects by the given key", () => {
     const items = [

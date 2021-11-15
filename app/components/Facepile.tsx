@@ -4,6 +4,7 @@ import styled from "styled-components";
 import User from "models/User";
 import Avatar from "components/Avatar";
 import Flex from "components/Flex";
+
 type Props = {
   users: User[];
   size?: number;

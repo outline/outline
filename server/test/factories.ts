@@ -14,6 +14,7 @@ import {
   AuthenticationProvider,
   FileOperation,
 } from "../models";
+
 let count = 1;
 export async function buildShare(overrides: Record<string, any> = {}) {
   if (!overrides.teamId) {

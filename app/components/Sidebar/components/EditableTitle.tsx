@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   onSubmit: (title: string) => Promise<void>;
   title: string;

@@ -1,4 +1,5 @@
 import Metrics from "../logging/metrics";
+
 export default class Tracing {
   onLoadDocument({
     documentName,

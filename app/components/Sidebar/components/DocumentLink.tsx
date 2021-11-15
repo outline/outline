@@ -17,6 +17,7 @@ import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import type { NavigationNode } from "types";
 import "types";
+
 type Props = {
   node: NavigationNode;
   canUpdate: boolean;

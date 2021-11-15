@@ -1,4 +1,5 @@
 import Mindmeister from "./Mindmeister";
+
 describe("Mindmeister", () => {
   const match = Mindmeister.ENABLED[0];
   test("to be enabled on mm.tt link", () => {

@@ -8,6 +8,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useToasts from "hooks/useToasts";
 import { groupSettingsPath } from "utils/routeHelpers";
+
 type Props = {
   group: Group;
   onSubmit: () => void;

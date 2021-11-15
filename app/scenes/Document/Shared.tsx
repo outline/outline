@@ -10,6 +10,7 @@ import Loading from "./components/Loading";
 import type { LocationWithState } from "types";
 import { OfflineError } from "utils/errors";
 import "types";
+
 const EMPTY_OBJECT = {};
 type Props = {
   match: Match;

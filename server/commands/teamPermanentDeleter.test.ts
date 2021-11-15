@@ -8,6 +8,7 @@ import {
 } from "../test/factories";
 import { flushdb } from "../test/support";
 import teamPermanentDeleter from "./teamPermanentDeleter";
+
 jest.mock("aws-sdk", () => {
   const mS3 = {
     deleteObject: jest.fn().mockReturnThis(),

@@ -8,6 +8,7 @@ import {
 } from "../../models";
 import { Op } from "../../sequelize";
 import type { Event } from "../../types";
+
 export default class WebsocketsProcessor {
   async on(event: Event, socketio: any) {
     switch (event.name) {

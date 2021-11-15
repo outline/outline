@@ -1,4 +1,5 @@
 import * as React from "react";
+
 const URL_REGEX = new RegExp(
   "^https://gist.github.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
 );
@@ -12,6 +13,7 @@ type Props = {
 
 class Gist extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
+
   ref = React.createRef<HTMLIFrameElement>();
 
   get id() {

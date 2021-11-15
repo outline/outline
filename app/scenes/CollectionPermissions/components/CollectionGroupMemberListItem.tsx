@@ -7,6 +7,7 @@ import GroupListItem from "components/GroupListItem";
 import type { Props as SelectProps } from "components/InputSelect";
 import InputSelect from "components/InputSelect";
 import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
+
 type Props = {
   group: Group;
   collectionGroupMembership: CollectionGroupMembership | null | undefined;

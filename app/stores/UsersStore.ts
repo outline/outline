@@ -6,6 +6,7 @@ import User from "models/User";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
+
 export default class UsersStore extends BaseStore<User> {
   @observable
   counts: {
@@ -73,6 +74,7 @@ export default class UsersStore extends BaseStore<User> {
       this.updateCounts(user.role, "admin");
     }
   };
+
   @action
   demote = async (user: User, to: Role) => {
     try {
@@ -82,6 +84,7 @@ export default class UsersStore extends BaseStore<User> {
       this.updateCounts(user.role, to);
     }
   };
+
   @action
   suspend = async (user: User) => {
     try {
@@ -93,6 +96,7 @@ export default class UsersStore extends BaseStore<User> {
       this.counts.active += 1;
     }
   };
+
   @action
   activate = async (user: User) => {
     try {
@@ -104,6 +108,7 @@ export default class UsersStore extends BaseStore<User> {
       this.counts.active -= 1;
     }
   };
+
   @action
   invite = async (
     invites: {
@@ -123,6 +128,7 @@ export default class UsersStore extends BaseStore<User> {
     });
     return res.data;
   };
+
   @action
   fetchCounts = async (teamId: string): Promise<any> => {
     const res = await client.post(`/users.count`, {
@@ -188,6 +194,7 @@ export default class UsersStore extends BaseStore<User> {
       }
     }
   };
+
   notInCollection = (collectionId: string, query = "") => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
@@ -201,6 +208,7 @@ export default class UsersStore extends BaseStore<User> {
     if (!query) return users;
     return queriedUsers(users, query);
   };
+
   inCollection = (collectionId: string, query: string) => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
@@ -213,6 +221,7 @@ export default class UsersStore extends BaseStore<User> {
     if (!query) return users;
     return queriedUsers(users, query);
   };
+
   notInGroup = (groupId: string, query = "") => {
     const memberships = filter(
       this.rootStore.groupMemberships.orderedData,
@@ -226,6 +235,7 @@ export default class UsersStore extends BaseStore<User> {
     if (!query) return users;
     return queriedUsers(users, query);
   };
+
   inGroup = (groupId: string, query: string) => {
     const groupMemberships = filter(
       this.rootStore.groupMemberships.orderedData,
@@ -238,6 +248,7 @@ export default class UsersStore extends BaseStore<User> {
     if (!query) return users;
     return queriedUsers(users, query);
   };
+
   actionOnUser = async (action: string, user: User, to?: Role) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,

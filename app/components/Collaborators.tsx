@@ -13,6 +13,7 @@ import NudeButton from "components/NudeButton";
 import Popover from "components/Popover";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+
 type Props = {
   document: Document;
 };

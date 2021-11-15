@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const SearchQuery = sequelize.define(
   "search_queries",
   {

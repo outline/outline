@@ -1,4 +1,5 @@
 import { decodeURIComponentSafe } from "./urls";
+
 describe("decodeURIComponentSafe", () => {
   test("to handle % symbols", () => {
     expect(decodeURIComponentSafe("%")).toBe("%");

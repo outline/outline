@@ -24,6 +24,7 @@ import "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 import { isInternalUrl } from "utils/urls";
+
 type Props = {
   match: Match;
   auth: AuthStore;
@@ -42,12 +43,16 @@ const sharedTreeCache = {};
 @observer
 class DataLoader extends React.Component<Props> {
   sharedTree: NavigationNode | null | undefined;
+
   @observable
   document: Document | null | undefined;
+
   @observable
   revision: Revision | null | undefined;
+
   @observable
   shapshot: Blob | null | undefined;
+
   @observable
   error: Error | null | undefined;
 
@@ -147,6 +152,7 @@ class DataLoader extends React.Component<Props> {
           : 1
     );
   };
+
   onCreateLink = async (title: string) => {
     const document = this.document;
     invariant(document, "document must be loaded to create link");
@@ -158,10 +164,12 @@ class DataLoader extends React.Component<Props> {
     });
     return newDocument.url;
   };
+
   loadRevision = async () => {
     const { revisionId } = this.props.match.params;
     this.revision = await this.props.revisions.fetch(revisionId);
   };
+
   loadDocument = async () => {
     const { shareId, documentSlug, revisionId } = this.props.match.params;
 

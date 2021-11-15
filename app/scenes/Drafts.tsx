@@ -22,6 +22,7 @@ import Subheading from "components/Subheading";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 import type { LocationWithState } from "types";
 import "types";
+
 type Props = {
   documents: DocumentsStore;
   history: RouterHistory;
@@ -43,6 +44,7 @@ class Drafts extends React.Component<Props> {
   handleQueryChange = () => {
     this.params = new URLSearchParams(this.props.location.search);
   };
+
   handleFilterChange = (search: {
     dateFilter?: string | null | undefined;
     collectionId?: string | null | undefined;

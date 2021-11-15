@@ -1,4 +1,5 @@
 import parseImages from "./parseImages";
+
 it("should not return non images", () => {
   expect(parseImages(`# Header`).length).toBe(0);
 });

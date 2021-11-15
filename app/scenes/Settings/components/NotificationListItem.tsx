@@ -1,6 +1,7 @@
 import * as React from "react";
 import NotificationSetting from "models/NotificationSetting";
 import Checkbox from "components/Checkbox";
+
 type Props = {
   setting?: NotificationSetting;
   title: string;

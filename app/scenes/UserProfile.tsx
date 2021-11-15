@@ -17,6 +17,7 @@ import Subheading from "components/Subheading";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import { settingsPath } from "utils/routeHelpers";
+
 type Props = {
   user: User;
   onRequestClose: () => void;

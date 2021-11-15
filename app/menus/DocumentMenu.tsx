@@ -46,6 +46,7 @@ import {
   editDocumentUrl,
   newDocumentPath,
 } from "utils/routeHelpers";
+
 type Props = {
   document: Document;
   className: string;

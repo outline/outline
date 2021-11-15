@@ -4,6 +4,7 @@ import { Attachment, Document, Collection } from "../models";
 import { buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import collectionImporter from "./collectionImporter";
+
 jest.mock("../utils/s3");
 beforeEach(() => flushdb());
 describe("collectionImporter", () => {

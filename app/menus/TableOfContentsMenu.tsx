@@ -8,6 +8,7 @@ import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import type { MenuItem } from "types";
 import "types";
+
 type Props = {
   headings: {
     title: string;

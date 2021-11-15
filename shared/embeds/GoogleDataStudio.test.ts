@@ -1,4 +1,5 @@
 import GoogleDataStudio from "./GoogleDataStudio";
+
 describe("GoogleDataStudio", () => {
   const match = GoogleDataStudio.ENABLED[0];
   test("to be enabled on share link", () => {

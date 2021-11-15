@@ -6,6 +6,7 @@ import styled from "styled-components";
 import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
 import type { NavigationNode } from "types";
+
 type Props = {
   shareId?: string;
   document: Document | NavigationNode;

@@ -5,6 +5,7 @@ import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import type { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
+
 export default class CollectionGroupMembershipsStore extends BaseStore<
   CollectionGroupMembership
 > {

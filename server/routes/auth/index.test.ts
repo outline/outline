@@ -2,6 +2,7 @@ import TestServer from "fetch-test-server";
 import webService from "../../services/web";
 import { buildUser, buildCollection } from "../../test/factories";
 import { flushdb } from "../../test/support";
+
 const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());

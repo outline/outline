@@ -5,6 +5,7 @@ import Integration from "../../models/Integration";
 import policy from "../../policies";
 import { presentIntegration } from "../../presenters";
 import pagination from "./middlewares/pagination";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("integrations.list", auth(), pagination(), async (ctx) => {

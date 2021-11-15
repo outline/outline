@@ -4,6 +4,7 @@ import webService from "../../services/web";
 import { buildDocument, buildIntegration } from "../../test/factories";
 import { flushdb, seed } from "../../test/support";
 import * as Slack from "../../utils/slack";
+
 const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());

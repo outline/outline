@@ -9,6 +9,7 @@ import Button from "components/Button";
 import Empty from "components/Empty";
 import Flex from "components/Flex";
 import PlaceholderText from "components/PlaceholderText";
+
 export type Props = {
   data: any[];
   offset?: number;

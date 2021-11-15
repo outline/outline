@@ -3,6 +3,7 @@ import de_DE from "./locales/de_DE/translation.json";
 import en_US from "./locales/en_US/translation.json";
 import pt_PT from "./locales/pt_PT/translation.json";
 import { initI18n } from ".";
+
 describe("i18n process.env is unset", () => {
   beforeEach(() => {
     delete process.env.DEFAULT_LANGUAGE;

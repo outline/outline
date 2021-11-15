@@ -3,6 +3,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import useWindowSize from "hooks/useWindowSize";
+
 const Nav = styled.nav`
   border-bottom: 1px solid ${(props) => props.theme.divider};
   margin: 12px 0;

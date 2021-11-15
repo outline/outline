@@ -4,6 +4,7 @@ import { useMenuState } from "reakit/Menu";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
+
 type Props = {
   id: string;
   onDelete: (ev: React.SyntheticEvent) => Promise<void>;

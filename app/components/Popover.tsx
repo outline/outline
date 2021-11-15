@@ -2,6 +2,7 @@ import * as React from "react";
 import { Popover as ReakitPopover } from "reakit/Popover";
 import styled from "styled-components";
 import { fadeAndScaleIn } from "styles/animations";
+
 type Props = {
   children: React.ReactNode;
   width?: number;

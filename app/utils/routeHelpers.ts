@@ -1,6 +1,7 @@
 import queryString from "query-string";
 import Collection from "models/Collection";
 import Document from "models/Document";
+
 export function homePath(): string {
   return "/home";
 }

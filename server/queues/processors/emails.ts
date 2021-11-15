@@ -1,5 +1,6 @@
 import type { EmailSendOptions, EmailTypes } from "../../mailer";
 import mailer from "../../mailer";
+
 type EmailEvent = {
   type: EmailTypes;
   opts: EmailSendOptions;

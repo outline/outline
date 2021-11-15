@@ -1,5 +1,6 @@
 import { buildTeam, buildCollection } from "../test/factories";
 import { flushdb } from "../test/support";
+
 beforeEach(() => flushdb());
 describe("collectionIds", () => {
   it("should return non-private collection ids", async () => {

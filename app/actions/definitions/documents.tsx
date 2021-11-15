@@ -17,6 +17,7 @@ import { DocumentSection } from "actions/sections";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import history from "utils/history";
 import { newDocumentPath } from "utils/routeHelpers";
+
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
   section: DocumentSection,

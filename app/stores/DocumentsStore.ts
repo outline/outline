@@ -16,18 +16,23 @@ import type {
   SearchResult,
 } from "types";
 import { client } from "utils/ApiClient";
+
 type ImportOptions = {
   publish?: boolean;
 };
 export default class DocumentsStore extends BaseStore<Document> {
   @observable
   searchCache: Map<string, SearchResult[]> = new Map();
+
   @observable
   starredIds: Map<string, boolean> = new Map();
+
   @observable
   backlinks: Map<string, string[]> = new Map();
+
   @observable
   movingDocumentId: string | null | undefined;
+
   importFileTypes: string[] = [
     ".md",
     ".doc",
@@ -272,6 +277,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
   };
+
   @action
   fetchNamedPage = async (
     request = "list",
@@ -292,30 +298,35 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.isFetching = false;
     }
   };
+
   @action
   fetchArchived = async (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("archived", options);
   };
+
   @action
   fetchDeleted = async (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("deleted", options);
   };
+
   @action
   fetchRecentlyUpdated = async (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("list", options);
   };
+
   @action
   fetchTemplates = async (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("list", { ...options, template: true });
   };
+
   @action
   fetchAlphabetical = async (
     options: PaginationParams | null | undefined
@@ -326,6 +337,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       ...options,
     });
   };
+
   @action
   fetchLeastRecentlyUpdated = async (
     options: PaginationParams | null | undefined
@@ -336,6 +348,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       ...options,
     });
   };
+
   @action
   fetchRecentlyPublished = async (
     options: PaginationParams | null | undefined
@@ -346,34 +359,40 @@ export default class DocumentsStore extends BaseStore<Document> {
       ...options,
     });
   };
+
   @action
   fetchRecentlyViewed = async (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("viewed", options);
   };
+
   @action
   fetchStarred = (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("starred", options);
   };
+
   @action
   fetchDrafts = (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("drafts", options);
   };
+
   @action
   fetchPinned = (
     options: PaginationParams | null | undefined
   ): Promise<any> => {
     return this.fetchNamedPage("pinned", options);
   };
+
   @action
   fetchOwned = (options: PaginationParams | null | undefined): Promise<any> => {
     return this.fetchNamedPage("list", options);
   };
+
   @action
   searchTitles = async (query: string) => {
     const res = await client.get("/documents.search_titles", {
@@ -385,6 +404,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.addPolicies(res.policies);
     return res.data;
   };
+
   @action
   search = async (
     query: string,
@@ -426,6 +446,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.searchCache.set(query, existing);
     return res.data;
   };
+
   @action
   prefetchDocument = (id: string) => {
     if (!this.data.get(id) && !this.getByUrl(id)) {
@@ -434,6 +455,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       });
     }
   };
+
   @action
   templatize = async (id: string): Promise<Document | null | undefined> => {
     const doc: Document | null | undefined = this.data.get(id);
@@ -451,6 +473,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.add(res.data);
     return this.data.get(res.data.id);
   };
+
   @action
   fetch = async (
     id: string,
@@ -488,6 +511,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.isFetching = false;
     }
   };
+
   @action
   move = async (
     documentId: string,
@@ -512,6 +536,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.movingDocumentId = undefined;
     }
   };
+
   @action
   duplicate = async (document: Document): any => {
     const append = " (duplicate)";
@@ -532,6 +557,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.addPolicies(res.policies);
     return this.add(res.data);
   };
+
   @action
   import = async (
     file: File,
@@ -593,7 +619,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.addPolicies(res.policies);
     return this.add(res.data);
   };
+
   _add = this.add;
+
   @action
   add = (item: Record<string, any>) => {
     const document = this._add(item);
@@ -660,6 +688,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
   };
+
   @action
   restore = async (
     document: Document,
@@ -681,6 +710,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
   };
+
   @action
   unpublish = async (document: Document) => {
     const res = await client.post("/documents.unpublish", {
@@ -694,16 +724,19 @@ export default class DocumentsStore extends BaseStore<Document> {
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
   };
+
   pin = (document: Document) => {
     return client.post("/documents.pin", {
       id: document.id,
     });
   };
+
   unpin = (document: Document) => {
     return client.post("/documents.unpin", {
       id: document.id,
     });
   };
+
   star = async (document: Document) => {
     this.starredIds.set(document.id, true);
 
@@ -715,6 +748,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.starredIds.set(document.id, false);
     }
   };
+
   unstar = (document: Document) => {
     this.starredIds.set(document.id, false);
 
@@ -726,6 +760,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.starredIds.set(document.id, false);
     }
   };
+
   getByUrl = (url = ""): Document | null | undefined => {
     return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
   };

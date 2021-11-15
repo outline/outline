@@ -1,4 +1,5 @@
 import { trim } from "lodash";
+
 type Domain = {
   tld: string;
   subdomain: string;

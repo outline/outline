@@ -4,15 +4,25 @@ import BaseModel from "./BaseModel";
 
 class User extends BaseModel {
   avatarUrl: string;
+
   id: string;
+
   name: string;
+
   email: string;
+
   color: string;
+
   isAdmin: boolean;
+
   isViewer: boolean;
+
   lastActiveAt: string;
+
   isSuspended: boolean;
+
   createdAt: string;
+
   language: string;
 
   @computed

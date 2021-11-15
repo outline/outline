@@ -11,6 +11,7 @@ import HelpText from "components/HelpText";
 import PageTitle from "components/PageTitle";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
 import env from "env";
+
 type Props = {
   children: React.ReactNode;
   reloadOnChunkMissing?: boolean;
@@ -21,6 +22,7 @@ type Props = {
 class ErrorBoundary extends React.Component<Props> {
   @observable
   error: Error | null | undefined;
+
   @observable
   showDetails = false;
 
@@ -48,9 +50,11 @@ class ErrorBoundary extends React.Component<Props> {
   handleReload = () => {
     window.location.reload(true);
   };
+
   handleShowDetails = () => {
     this.showDetails = true;
   };
+
   handleReportBug = () => {
     window.open(githubIssuesUrl());
   };

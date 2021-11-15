@@ -1,4 +1,5 @@
 import GoogleSlides from "./GoogleSlides";
+
 describe("GoogleSlides", () => {
   const match = GoogleSlides.ENABLED[0];
   test("to be enabled on share link", () => {

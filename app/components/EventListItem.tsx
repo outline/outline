@@ -16,6 +16,7 @@ import Item, { Actions } from "components/List/Item";
 import Time from "components/Time";
 import RevisionMenu from "menus/RevisionMenu";
 import { documentHistoryUrl } from "utils/routeHelpers";
+
 type Props = {
   document: Document;
   event: Event;

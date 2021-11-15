@@ -1,5 +1,6 @@
 import emojiRegex from "emoji-regex";
 import unescape from "./unescape";
+
 export default function parseTitle(text = "") {
   const regex = emojiRegex();
   // find and extract title

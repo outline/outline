@@ -1,6 +1,7 @@
 import type { Context } from "koa";
 import "koa";
 import { User } from "./models";
+
 export type ContextWithState = Context & {
   state: {
     user: User;

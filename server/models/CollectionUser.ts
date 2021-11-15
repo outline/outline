@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const CollectionUser = sequelize.define(
   "collection_user",
   {

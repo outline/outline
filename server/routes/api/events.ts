@@ -5,6 +5,7 @@ import { Event, User, Collection } from "../../models";
 import policy from "../../policies";
 import { presentEvent } from "../../presenters";
 import pagination from "./middlewares/pagination";
+
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();

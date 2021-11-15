@@ -1,4 +1,5 @@
 import Lucidchart from "./Lucidchart";
+
 describe("Lucidchart", () => {
   const match = Lucidchart.ENABLED[0];
   test("to be enabled on view link", () => {

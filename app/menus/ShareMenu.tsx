@@ -10,6 +10,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import CopyToClipboard from "components/CopyToClipboard";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   share: Share;
 };

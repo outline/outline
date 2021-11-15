@@ -7,6 +7,7 @@ import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import type { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
+
 export default class GroupsStore extends BaseStore<Group> {
   constructor(rootStore: RootStore) {
     super(rootStore, Group);
@@ -37,6 +38,7 @@ export default class GroupsStore extends BaseStore<Group> {
       this.isFetching = false;
     }
   };
+
   inCollection = (collectionId: string, query: string) => {
     const memberships = filter(
       this.rootStore.collectionGroupMemberships.orderedData,
@@ -49,6 +51,7 @@ export default class GroupsStore extends BaseStore<Group> {
     if (!query) return groups;
     return queriedGroups(groups, query);
   };
+
   notInCollection = (collectionId: string, query = "") => {
     const memberships = filter(
       this.rootStore.collectionGroupMemberships.orderedData,

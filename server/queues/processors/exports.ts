@@ -5,6 +5,7 @@ import { FileOperation, Collection, Event, Team, User } from "../../models";
 import type { Event as TEvent } from "../../types";
 import { uploadToS3FromBuffer } from "../../utils/s3";
 import { archiveCollections } from "../../utils/zip";
+
 export default class ExportsProcessor {
   async on(event: TEvent) {
     switch (event.name) {

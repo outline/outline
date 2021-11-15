@@ -4,6 +4,7 @@ import { Team, AuthenticationProvider } from "../models";
 import { sequelize } from "../sequelize";
 import { getAllowedDomains } from "../utils/authentication";
 import { generateAvatarUrl } from "../utils/avatars";
+
 type TeamCreatorResult = {
   team: Team;
   authenticationProvider: AuthenticationProvider;

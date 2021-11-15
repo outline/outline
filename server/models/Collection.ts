@@ -7,6 +7,7 @@ import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import User from "./User";
+
 const Collection = sequelize.define(
   "collection",
   {

@@ -1,4 +1,5 @@
 import Prezi from "./Prezi";
+
 describe("Prezi", () => {
   const match = Prezi.ENABLED[0];
   test("to be enabled on share link", () => {

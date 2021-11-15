@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type { Props as InputProps } from "./Input";
 import Input from "./Input";
+
 type Props = InputProps & {
   placeholder?: string;
   value?: string;

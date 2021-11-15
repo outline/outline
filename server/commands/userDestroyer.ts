@@ -1,6 +1,7 @@
 import { ValidationError } from "../errors";
 import { Event, User } from "../models";
 import { Op, sequelize } from "../sequelize";
+
 export default async function userDestroyer({
   user,
   actor,

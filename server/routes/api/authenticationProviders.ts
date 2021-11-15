@@ -7,6 +7,7 @@ import {
   presentPolicies,
 } from "../../presenters";
 import allAuthenticationProviders from "../auth/providers";
+
 const router = new Router();
 const { authorize } = policy;
 router.post("authenticationProviders.info", auth(), async (ctx) => {

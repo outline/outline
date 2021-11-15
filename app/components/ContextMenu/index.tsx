@@ -11,6 +11,7 @@ import {
   fadeAndSlideDown,
   mobileContextMenu,
 } from "styles/animations";
+
 type Props = {
   "aria-label": string;
   visible?: boolean;

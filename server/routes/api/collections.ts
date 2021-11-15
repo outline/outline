@@ -27,6 +27,7 @@ import { Op, sequelize } from "../../sequelize";
 import collectionIndexing from "../../utils/collectionIndexing";
 import removeIndexCollision from "../../utils/removeIndexCollision";
 import pagination from "./middlewares/pagination";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("collections.create", auth(), async (ctx) => {

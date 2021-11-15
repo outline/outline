@@ -2,10 +2,13 @@ import { orderBy } from "lodash";
 import { observable, action, computed } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import type { Toast, ToastOptions } from "types";
+
 export default class ToastsStore {
   @observable
   toasts: Map<string, Toast> = new Map();
+
   lastToastId: string;
+
   @action
   showToast = (
     message: string,
@@ -37,6 +40,7 @@ export default class ToastsStore {
     this.lastToastId = id;
     return id;
   };
+
   @action
   hideToast = (id: string) => {
     this.toasts.delete(id);

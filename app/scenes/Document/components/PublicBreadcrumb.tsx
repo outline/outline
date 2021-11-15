@@ -1,6 +1,7 @@
 import * as React from "react";
 import Breadcrumb from "components/Breadcrumb";
 import type { NavigationNode } from "types";
+
 type Props = {
   documentId: string;
   shareId: string;

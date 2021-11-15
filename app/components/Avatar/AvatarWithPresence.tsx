@@ -8,6 +8,7 @@ import User from "models/User";
 import UserProfile from "scenes/UserProfile";
 import Avatar from "components/Avatar";
 import Tooltip from "components/Tooltip";
+
 type Props = {
   user: User;
   isPresent: boolean;
@@ -21,9 +22,11 @@ type Props = {
 class AvatarWithPresence extends React.Component<Props> {
   @observable
   isOpen = false;
+
   handleOpenProfile = () => {
     this.isOpen = true;
   };
+
   handleCloseProfile = () => {
     this.isOpen = false;
   };

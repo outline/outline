@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import useWindowSize from "hooks/useWindowSize";
+
 type Props = {
   shadow?: boolean;
   topShadow?: boolean;

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { getCookie } from "tiny-cookie";
+
 type Session = {
   url: string;
   logoUrl: string;

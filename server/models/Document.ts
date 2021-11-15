@@ -13,6 +13,7 @@ import { Collection, User } from "../models";
 import { DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import Revision from "./Revision";
+
 const Op = Sequelize.Op;
 const serializer = new MarkdownSerializer();
 export const DOCUMENT_VERSION = 2;

@@ -11,6 +11,7 @@ import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import type { NavigationNode } from "types";
 import "types";
+
 type Props = {
   document: Document;
   item: {

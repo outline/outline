@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 let importingLock = false;
 export default function useImportDocument(
   collectionId: string,

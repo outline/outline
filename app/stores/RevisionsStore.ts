@@ -6,6 +6,7 @@ import RootStore from "stores/RootStore";
 import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams } from "types";
 import { client } from "utils/ApiClient";
+
 export default class RevisionsStore extends BaseStore<Revision> {
   actions = ["list"];
 
@@ -67,6 +68,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       this.isFetching = false;
     }
   };
+
   @action
   fetchPage = async (
     options: PaginationParams | null | undefined

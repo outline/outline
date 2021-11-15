@@ -1,6 +1,7 @@
 import { AdminRequiredError } from "../errors";
 import { AuthenticationProvider, User, Team } from "../models";
 import policy from "./policy";
+
 const { allow } = policy;
 allow(User, "createAuthenticationProvider", Team, (actor, team) => {
   if (!team || actor.teamId !== team.id) return false;

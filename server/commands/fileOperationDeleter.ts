@@ -1,5 +1,6 @@
 import { FileOperation, Event, User } from "../models";
 import { sequelize } from "../sequelize";
+
 export default async function fileOperationDeleter(
   fileOp: FileOperation,
   user: User,

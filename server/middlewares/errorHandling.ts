@@ -2,6 +2,7 @@ import type { Context } from "koa";
 import "koa";
 import { snakeCase } from "lodash";
 import Sequelize from "sequelize";
+
 export default function errorHandling() {
   return async function errorHandlingMiddleware(
     ctx: Context,

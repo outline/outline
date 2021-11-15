@@ -1,4 +1,5 @@
 import Marvel from "./Marvel";
+
 describe("Marvel", () => {
   const match = Marvel.ENABLED[0];
   test("to be enabled on share link", () => {

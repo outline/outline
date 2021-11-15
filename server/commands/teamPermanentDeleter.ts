@@ -18,6 +18,7 @@ import {
   Share,
 } from "../models";
 import { sequelize } from "../sequelize";
+
 export default async function teamPermanentDeleter(team: Team) {
   if (!team.deletedAt) {
     throw new Error(

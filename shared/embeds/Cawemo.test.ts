@@ -1,4 +1,5 @@
 import Cawemo from "./Cawemo";
+
 describe("Cawemo", () => {
   const match = Cawemo.ENABLED[0];
   test("to be enabled on embed link", () => {

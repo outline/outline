@@ -1,4 +1,5 @@
 import { parser } from "rich-markdown-editor";
+
 export default function parseDocumentIds(text: string): string[] {
   const value = parser.parse(text);
   const links = [];

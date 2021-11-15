@@ -7,6 +7,7 @@ import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import useStores from "hooks/useStores";
 import { newDocumentPath } from "utils/routeHelpers";
+
 type Props = {
   label?: (arg0: any) => React.ReactNode;
   document: Document;

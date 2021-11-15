@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 const Key = styled.kbd`
   display: inline-block;
   padding: 4px 6px;

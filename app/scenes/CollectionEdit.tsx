@@ -12,6 +12,7 @@ import Input from "components/Input";
 import InputSelect from "components/InputSelect";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   collectionId: string;
   onSubmit: () => void;

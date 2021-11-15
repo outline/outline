@@ -7,6 +7,7 @@ import type {
   RevisionEvent,
   Event,
 } from "../../types";
+
 export default class SlackProcessor {
   async on(event: Event) {
     switch (event.name) {

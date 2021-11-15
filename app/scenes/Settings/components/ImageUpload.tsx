@@ -11,6 +11,7 @@ import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
 import { compressImage } from "utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
+
 const EMPTY_OBJECT = {};
 type Props = {
   children?: React.ReactNode;
@@ -25,27 +26,35 @@ type Props = {
 class ImageUpload extends React.Component<Props> {
   @observable
   isUploading = false;
+
   @observable
   isCropping = false;
+
   @observable
   zoom = 1;
+
   @observable
   file: File;
+
   avatarEditorRef: AvatarEditor;
+
   static defaultProps = {
     submitText: "Crop Picture",
     borderRadius: 150,
   };
+
   onDropAccepted = async (files: File[]) => {
     this.isCropping = true;
     this.file = files[0];
   };
+
   handleCrop = () => {
     this.isUploading = true;
     // allow the UI to update before converting the canvas to a Blob
     // for large images this can cause the page rendering to hang.
     setImmediate(this.uploadImage);
   };
+
   uploadImage = async () => {
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
@@ -67,10 +76,12 @@ class ImageUpload extends React.Component<Props> {
       this.isCropping = false;
     }
   };
+
   handleClose = () => {
     this.isUploading = false;
     this.isCropping = false;
   };
+
   handleZoom = (event: React.DragEvent<any>) => {
     const target = event.target;
 

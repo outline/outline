@@ -1,4 +1,5 @@
 import Vimeo from "./Vimeo";
+
 describe("Vimeo", () => {
   const match = Vimeo.ENABLED[0];
   test("to be enabled on video link", () => {

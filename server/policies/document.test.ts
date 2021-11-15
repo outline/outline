@@ -6,6 +6,7 @@ import {
 } from "../test/factories";
 import { flushdb } from "../test/support";
 import { serialize } from "./index";
+
 beforeEach(() => flushdb());
 describe("read_write collection", () => {
   it("should allow read write permissions for team member", async () => {

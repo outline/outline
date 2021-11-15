@@ -13,6 +13,7 @@ import { generateAvatarUrl } from "../utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import Collection from "./Collection";
 import Document from "./Document";
+
 const readFile = util.promisify(fs.readFile);
 const Team = sequelize.define(
   "team",

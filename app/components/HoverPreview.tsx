@@ -8,6 +8,7 @@ import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
 import { fadeAndSlideDown } from "styles/animations";
 import { isInternalUrl } from "utils/urls";
+
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
 type Props = {

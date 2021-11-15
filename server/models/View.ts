@@ -2,6 +2,7 @@ import { subMilliseconds } from "date-fns";
 import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 import { User } from "../models";
 import { DataTypes, Op, sequelize } from "../sequelize";
+
 const View = sequelize.define("view", {
   id: {
     type: DataTypes.UUID,

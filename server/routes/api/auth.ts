@@ -6,6 +6,7 @@ import { Team } from "../../models";
 import { presentUser, presentTeam, presentPolicies } from "../../presenters";
 import { isCustomDomain } from "../../utils/domains";
 import providers from "../auth/providers";
+
 const router = new Router();
 
 function filterProviders(team) {

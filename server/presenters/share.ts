@@ -1,5 +1,6 @@
 import { Share } from "../models";
 import { presentUser } from ".";
+
 export default function present(share: Share, isAdmin = false) {
   const data = {
     id: share.id,

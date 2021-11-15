@@ -1,4 +1,5 @@
 import Spotify from "./Spotify";
+
 describe("Spotify", () => {
   const match = Spotify.ENABLED[0];
   test("to be enabled on song link", () => {

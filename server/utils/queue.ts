@@ -3,6 +3,7 @@ import Redis from "ioredis";
 import { snakeCase } from "lodash";
 import Metrics from "../logging/metrics";
 import { client, subscriber } from "../redis";
+
 export function createQueue(name: string) {
   const prefix = `queue.${snakeCase(name)}`;
   const queue = new Queue(name, {

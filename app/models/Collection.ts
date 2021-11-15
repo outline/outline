@@ -4,28 +4,45 @@ import BaseModel from "models/BaseModel";
 import Document from "models/Document";
 import type { NavigationNode } from "types";
 import { client } from "utils/ApiClient";
+
 export default class Collection extends BaseModel {
   @observable
   isSaving: boolean;
+
   @observable
   isLoadingUsers: boolean;
+
   id: string;
+
   name: string;
+
   description: string;
+
   icon: string;
+
   color: string;
+
   permission: "read" | "read_write" | void;
+
   sharing: boolean;
+
   index: string;
+
   documents: NavigationNode[];
+
   createdAt: string;
+
   updatedAt: string;
+
   deletedAt: string | null | undefined;
+
   sort: {
     field: string;
     direction: "asc" | "desc";
   };
+
   url: string;
+
   urlId: string;
 
   @computed
@@ -130,6 +147,7 @@ export default class Collection extends BaseModel {
       "index",
     ]);
   };
+
   export = () => {
     return client.get("/collections.export", {
       id: this.id,

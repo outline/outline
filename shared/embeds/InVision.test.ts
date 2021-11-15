@@ -1,4 +1,5 @@
 import InVision from "./InVision";
+
 describe("InVision", () => {
   const match = InVision.ENABLED[0];
   test("to be enabled on shortlink", () => {

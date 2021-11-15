@@ -1,6 +1,7 @@
 import { UserAuthentication, CollectionUser } from "../models";
 import { buildUser, buildTeam, buildCollection } from "../test/factories";
 import { flushdb } from "../test/support";
+
 beforeEach(() => flushdb());
 describe("user model", () => {
   describe("destroy", () => {

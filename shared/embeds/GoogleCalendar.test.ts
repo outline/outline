@@ -1,4 +1,5 @@
 import GoogleCalendar from "./GoogleCalendar";
+
 describe("GoogleCalendar", () => {
   const match = GoogleCalendar.ENABLED[0];
   test("to be enabled on share link", () => {

@@ -17,6 +17,7 @@ import Switch from "components/Switch";
 import useKeyDown from "hooks/useKeyDown";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   document: Document;
   share: Share;

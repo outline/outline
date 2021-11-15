@@ -6,6 +6,7 @@ import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import { runAllPromises } from "../test/support";
 import { Component as PaginatedList } from "./PaginatedList";
+
 describe("PaginatedList", () => {
   const render = () => null;
 

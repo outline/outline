@@ -2,6 +2,7 @@ import { CollectionUser, Collection } from "../models";
 import { buildUser, buildTeam, buildCollection } from "../test/factories";
 import { flushdb } from "../test/support";
 import { serialize } from "./index";
+
 beforeEach(() => flushdb());
 describe("read_write permission", () => {
   it("should allow read write permissions for team member", async () => {

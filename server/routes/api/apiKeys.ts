@@ -4,6 +4,7 @@ import { ApiKey, Event } from "../../models";
 import policy from "../../policies";
 import { presentApiKey } from "../../presenters";
 import pagination from "./middlewares/pagination";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("apiKeys.create", auth(), async (ctx) => {

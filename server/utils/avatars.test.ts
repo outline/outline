@@ -1,4 +1,5 @@
 import { generateAvatarUrl } from "./avatars";
+
 it("should return clearbit url if available", async () => {
   const url = await generateAvatarUrl({
     id: "google",

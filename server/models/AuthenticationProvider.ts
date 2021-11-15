@@ -1,6 +1,7 @@
 import { ValidationError } from "../errors";
 import providers from "../routes/auth/providers";
 import { DataTypes, Op, sequelize } from "../sequelize";
+
 const AuthenticationProvider = sequelize.define(
   "authentication_providers",
   {

@@ -1,5 +1,6 @@
 import { observable, action } from "mobx";
 import { USER_PRESENCE_INTERVAL } from "shared/constants";
+
 type DocumentPresence = Map<
   string,
   {
@@ -10,6 +11,7 @@ type DocumentPresence = Map<
 export default class PresenceStore {
   @observable
   data: Map<string, DocumentPresence> = new Map();
+
   timeouts: Map<string, TimeoutID> = new Map();
 
   // called to setup when we get the initial state from document.presence

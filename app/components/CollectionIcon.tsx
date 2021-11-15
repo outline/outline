@@ -5,6 +5,7 @@ import * as React from "react";
 import Collection from "models/Collection";
 import { icons } from "components/IconPicker";
 import useStores from "hooks/useStores";
+
 type Props = {
   collection: Collection;
   expanded?: boolean;

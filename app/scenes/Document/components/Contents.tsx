@@ -3,6 +3,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import HelpText from "components/HelpText";
 import useWindowScrollPosition from "hooks/useWindowScrollPosition";
+
 const HEADING_OFFSET = 20;
 type Props = {
   headings: {

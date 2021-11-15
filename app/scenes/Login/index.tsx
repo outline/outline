@@ -22,6 +22,7 @@ import env from "env";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 import { isCustomDomain } from "utils/domains";
+
 type Props = {
   location: Location;
 };

@@ -6,6 +6,7 @@ import RootStore from "stores/RootStore";
 import BaseModel from "../models/BaseModel";
 import type { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
+
 type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
 function modelNameFromClassName(string) {
@@ -17,15 +18,22 @@ export const PAGINATION_SYMBOL = Symbol.for("pagination");
 export default class BaseStore<T extends BaseModel> {
   @observable
   data: Map<string, T> = new Map();
+
   @observable
   isFetching = false;
+
   @observable
   isSaving = false;
+
   @observable
   isLoaded = false;
+
   model: Class<T>;
+
   modelName: string;
+
   rootStore: RootStore;
+
   actions: Action[] = ["list", "info", "create", "update", "delete", "count"];
 
   constructor(rootStore: RootStore, model: Class<T>) {
@@ -44,6 +52,7 @@ export default class BaseStore<T extends BaseModel> {
       policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
+
   @action
   add = (item: Record<string, any>): T => {
     const Model = this.model;

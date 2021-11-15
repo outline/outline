@@ -7,6 +7,7 @@ import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import useStores from "hooks/useStores";
+
 type Props = {
   user: User;
 };

@@ -4,6 +4,7 @@ import stores from "stores";
 import Invite from "scenes/Invite";
 import { createAction } from "actions";
 import { UserSection } from "actions/sections";
+
 export const inviteUser = createAction({
   name: ({ t }) => `${t("Invite people")}…`,
   icon: <PlusIcon />,

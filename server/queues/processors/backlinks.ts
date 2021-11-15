@@ -3,6 +3,7 @@ import { Op } from "../../sequelize";
 import type { DocumentEvent, RevisionEvent } from "../../types";
 import parseDocumentIds from "../../utils/parseDocumentIds";
 import slugify from "../../utils/slugify";
+
 export default class BacklinksProcessor {
   async on(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {

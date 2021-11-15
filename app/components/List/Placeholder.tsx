@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
 import PlaceholderText from "components/PlaceholderText";
+
 type Props = {
   count?: number;
 };

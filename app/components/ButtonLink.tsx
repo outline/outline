@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+
 type Props = {
   onClick: (ev: React.SyntheticEvent) => void;
   children: React.ReactNode;

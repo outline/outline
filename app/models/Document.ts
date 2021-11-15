@@ -8,6 +8,7 @@ import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
 import User from "models/User";
 import View from "./View";
+
 type SaveOptions = {
   publish?: boolean;
   done?: boolean;
@@ -17,35 +18,60 @@ type SaveOptions = {
 export default class Document extends BaseModel {
   @observable
   isSaving = false;
+
   @observable
   embedsDisabled = false;
+
   @observable
   lastViewedAt: string | null | undefined;
+
   store: DocumentsStore;
+
   collaboratorIds: string[];
+
   collectionId: string;
+
   createdAt: string;
+
   createdBy: User;
+
   updatedAt: string;
+
   updatedBy: User;
+
   id: string;
+
   team: string;
+
   pinned: boolean;
+
   text: string;
+
   title: string;
+
   emoji: string;
+
   template: boolean;
+
   templateId: string | null | undefined;
+
   parentDocumentId: string | null | undefined;
+
   publishedAt: string | null | undefined;
+
   archivedAt: string;
+
   deletedAt: string | null | undefined;
+
   url: string;
+
   urlId: string;
+
   tasks: {
     completed: number;
     total: number;
   };
+
   revision: number;
 
   constructor(fields: Record<string, any>, store: DocumentsStore) {
@@ -171,27 +197,34 @@ export default class Document extends BaseModel {
       documentId: this.id,
     });
   };
+
   @action
   updateFromJson = (data: Record<string, any>) => {
     set(this, data);
   };
+
   archive = () => {
     return this.store.archive(this);
   };
+
   restore = (options: { revisionId?: string; collectionId?: string }) => {
     return this.store.restore(this, options);
   };
+
   unpublish = () => {
     return this.store.unpublish(this);
   };
+
   @action
   enableEmbeds = () => {
     this.embedsDisabled = false;
   };
+
   @action
   disableEmbeds = () => {
     this.embedsDisabled = true;
   };
+
   @action
   pin = async () => {
     this.pinned = true;
@@ -205,6 +238,7 @@ export default class Document extends BaseModel {
       throw err;
     }
   };
+
   @action
   unpin = async () => {
     this.pinned = false;
@@ -218,14 +252,17 @@ export default class Document extends BaseModel {
       throw err;
     }
   };
+
   @action
   star = () => {
     return this.store.star(this);
   };
+
   @action
   unstar = async () => {
     return this.store.unstar(this);
   };
+
   @action
   view = () => {
     // we don't record views for documents in the trash
@@ -237,14 +274,17 @@ export default class Document extends BaseModel {
       documentId: this.id,
     });
   };
+
   @action
   updateLastViewed = (view: View) => {
     this.lastViewedAt = view.lastViewedAt;
   };
+
   @action
   templatize = async () => {
     return this.store.templatize(this.id);
   };
+
   @action
   update = async (
     options: SaveOptions & {
@@ -269,6 +309,7 @@ export default class Document extends BaseModel {
       this.isSaving = false;
     }
   };
+
   @action
   save = async (options: SaveOptions | null | undefined) => {
     if (this.isSaving) return this;
@@ -306,19 +347,23 @@ export default class Document extends BaseModel {
       this.isSaving = false;
     }
   };
+
   move = (
     collectionId: string,
     parentDocumentId: string | null | undefined
   ) => {
     return this.store.move(this.id, collectionId, parentDocumentId);
   };
+
   duplicate = () => {
     return this.store.duplicate(this);
   };
+
   getSummary = (paragraphs = 4) => {
     const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
     return result;
   };
+
   download = async () => {
     // Ensure the document is upto date with latest server contents
     await this.fetch();

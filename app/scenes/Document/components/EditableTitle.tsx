@@ -11,6 +11,7 @@ import ContentEditable from "components/ContentEditable";
 import Star, { AnimatedStar } from "components/Star";
 import useStores from "hooks/useStores";
 import { isModKey } from "utils/keyboard";
+
 type Props = {
   value: string;
   document: Document;

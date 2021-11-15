@@ -2,6 +2,7 @@ import { Attachment, Document } from "../models";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
 import { getSignedUrl } from "../utils/s3";
 import presentUser from "./user";
+
 type Options = {
   isPublic?: boolean;
 };

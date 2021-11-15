@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const Notification = sequelize.define(
   "notification",
   {

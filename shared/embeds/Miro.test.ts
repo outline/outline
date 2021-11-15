@@ -1,4 +1,5 @@
 import Miro from "./Miro";
+
 describe("Miro", () => {
   const match = Miro.ENABLED[0];
   test("to be enabled on old domain share link", () => {

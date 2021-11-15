@@ -9,6 +9,7 @@ import type {
   MenuItemClickable,
   MenuItemWithChildren,
 } from "types";
+
 export function createAction(
   definition: $Diff<
     Action,

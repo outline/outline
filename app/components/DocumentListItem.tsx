@@ -20,6 +20,7 @@ import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
 import { newDocumentPath } from "utils/routeHelpers";
+
 type Props = {
   document: Document;
   highlight?: string | null | undefined;

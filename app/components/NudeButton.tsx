@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+
 const Button = styled.button`
   width: ${(props) => props.width || props.size}px;
   height: ${(props) => props.height || props.size}px;

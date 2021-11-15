@@ -8,6 +8,7 @@ import {
   redo,
 } from "y-prosemirror";
 import * as Y from "yjs";
+
 export default class MultiplayerExtension extends Extension {
   get name() {
     return "multiplayer";

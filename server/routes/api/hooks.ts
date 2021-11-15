@@ -13,6 +13,7 @@ import {
 } from "../../models";
 import { presentSlackAttachment } from "../../presenters";
 import * as Slack from "../../utils/slack";
+
 const router = new Router();
 // triggered by a user posting a getoutline.com link in Slack
 router.post("hooks.unfurl", async (ctx) => {

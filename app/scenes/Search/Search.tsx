@@ -37,6 +37,7 @@ import type { LocationWithState } from "types";
 import "types";
 import { newDocumentPath, searchUrl } from "utils/routeHelpers";
 import { decodeURIComponentSafe } from "utils/urls";
+
 type Props = {
   history: RouterHistory;
   match: Match;
@@ -52,18 +53,26 @@ type Props = {
 @observer
 class Search extends React.Component<Props> {
   firstDocument: React.Component<any> | null | undefined;
+
   lastQuery = "";
+
   lastParams: Record<string, any>;
+
   @observable
   query: string = decodeURIComponentSafe(this.props.match.params.term || "");
+
   @observable
   params: URLSearchParams = new URLSearchParams();
+
   @observable
   offset = 0;
+
   @observable
   allowLoadMore = true;
+
   @observable
   isLoading = false;
+
   @observable
   pinToTop = !!this.props.match.params.term;
 
@@ -88,6 +97,7 @@ class Search extends React.Component<Props> {
   goBack = () => {
     this.props.history.goBack();
   };
+
   handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
       this.updateLocation(ev.currentTarget.value);
@@ -110,6 +120,7 @@ class Search extends React.Component<Props> {
       }
     }
   };
+
   handleQueryChange = () => {
     this.params = new URLSearchParams(this.props.location.search);
     this.offset = 0;
@@ -118,6 +129,7 @@ class Search extends React.Component<Props> {
     this.isLoading = true;
     this.fetchResults();
   };
+
   handleTermChange = () => {
     const query = decodeURIComponentSafe(this.props.match.params.term || "");
     this.query = query ? query : "";
@@ -127,6 +139,7 @@ class Search extends React.Component<Props> {
     this.isLoading = true;
     this.fetchResults();
   };
+
   handleFilterChange = (search: {
     collectionId?: string | null | undefined;
     userId?: string | null | undefined;
@@ -143,6 +156,7 @@ class Search extends React.Component<Props> {
       ),
     });
   };
+
   handleNewDoc = () => {
     if (this.collectionId) {
       this.props.history.push(newDocumentPath(this.collectionId));
@@ -191,6 +205,7 @@ class Search extends React.Component<Props> {
     // Fetch more results
     await this.fetchResults();
   };
+
   @action
   fetchResults = async () => {
     if (this.query) {
@@ -235,12 +250,14 @@ class Search extends React.Component<Props> {
       this.lastQuery = this.query;
     }
   };
+
   updateLocation = (query: string) => {
     this.props.history.replace({
       pathname: searchUrl(query),
       search: this.props.location.search,
     });
   };
+
   setFirstDocumentRef = (ref: any) => {
     this.firstDocument = ref;
   };

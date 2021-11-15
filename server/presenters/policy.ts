@@ -1,4 +1,5 @@
 import { User } from "../models";
+
 type Policy = {
   id: string;
   abilities: Record<string, boolean>;

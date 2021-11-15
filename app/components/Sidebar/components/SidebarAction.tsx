@@ -7,6 +7,7 @@ import SidebarLink from "./SidebarLink";
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
 import type { Action } from "types";
+
 type Props = {
   action: Action;
 };

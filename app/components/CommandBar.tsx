@@ -8,6 +8,7 @@ import breakpoint from "styled-components-breakpoint";
 import CommandBarResults from "components/CommandBarResults";
 import rootActions from "actions/root";
 import useCommandBarActions from "hooks/useCommandBarActions";
+
 export const CommandBarOptions = {
   animations: {
     enterMs: 250,

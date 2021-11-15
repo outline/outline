@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import Logger from "../logging/logger";
 import { Team, AuthenticationProvider } from "../models";
+
 export async function checkMigrations() {
   if (process.env.DEPLOYMENT === "hosted") {
     return;

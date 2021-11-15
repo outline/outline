@@ -6,6 +6,7 @@ import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import type { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
+
 export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   actions = ["create", "delete"];
 
@@ -67,6 +68,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
       }
     });
   };
+
   inGroup = (groupId: string) => {
     return filter(this.orderedData, (member) => member.groupId === groupId);
   };

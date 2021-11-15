@@ -3,6 +3,7 @@ import auth from "../../middlewares/authentication";
 import { View, Document, Event } from "../../models";
 import policy from "../../policies";
 import { presentView } from "../../presenters";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("views.list", auth(), async (ctx) => {

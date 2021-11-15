@@ -6,6 +6,7 @@ import {
 } from "../models";
 import { flushdb } from "../test/support";
 import script from "./20210226232041-migrate-authentication";
+
 beforeEach(() => flushdb());
 describe("#work", () => {
   it("should create authentication record for users", async () => {

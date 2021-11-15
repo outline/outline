@@ -15,6 +15,7 @@ import Logger from "../logging/logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+
 const isProduction = env.NODE_ENV === "production";
 const isTest = env.NODE_ENV === "test";
 // Construct scripts CSP based on services in use by this installation

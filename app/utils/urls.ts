@@ -1,4 +1,5 @@
 import { parseDomain } from "../../shared/utils/domains";
+
 export function isInternalUrl(href: string) {
   if (href[0] === "/") return true;
   const outline = parseDomain(window.location.href);

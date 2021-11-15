@@ -7,6 +7,7 @@ import Collection from "models/Collection";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import NudeButton from "components/NudeButton";
+
 type Props = {
   collection: Collection;
   onOpen?: () => void;

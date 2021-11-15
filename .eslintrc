@@ -33,6 +33,8 @@
         "ignoreRestSiblings": true
       }
     ],
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+    "import/newline-after-import": 2,
     "import/order": [
       "error",
       {

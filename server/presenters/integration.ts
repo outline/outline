@@ -1,4 +1,5 @@
 import { Integration } from "../models";
+
 export default function present(integration: Integration) {
   return {
     id: integration.id,

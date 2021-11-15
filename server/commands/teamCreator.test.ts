@@ -1,6 +1,7 @@
 import { buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import teamCreator from "./teamCreator";
+
 jest.mock("aws-sdk", () => {
   const mS3 = {
     putObject: jest.fn().mockReturnThis(),

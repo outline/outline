@@ -9,6 +9,7 @@ import Badge from "components/Badge";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
 import UserMenu from "menus/UserMenu";
+
 type Props = {
   user: User;
   showMenu: boolean;
@@ -18,9 +19,11 @@ type Props = {
 class UserListItem extends React.Component<Props> {
   @observable
   profileOpen = false;
+
   handleOpenProfile = () => {
     this.profileOpen = true;
   };
+
   handleCloseProfile = () => {
     this.profileOpen = false;
   };

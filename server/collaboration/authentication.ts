@@ -2,6 +2,7 @@ import { AuthenticationError } from "../errors";
 import { Document } from "../models";
 import policy from "../policies";
 import { getUserForJWT } from "../utils/jwt";
+
 const { can } = policy;
 export default class Authentication {
   async onAuthenticate({

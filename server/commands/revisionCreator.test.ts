@@ -2,6 +2,7 @@ import { Event } from "../models";
 import { buildDocument, buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import revisionCreator from "./revisionCreator";
+
 beforeEach(() => flushdb());
 describe("revisionCreator", () => {
   const ip = "127.0.0.1";

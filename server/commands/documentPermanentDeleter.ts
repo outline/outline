@@ -2,6 +2,7 @@ import Logger from "../logging/logger";
 import { Document, Attachment } from "../models";
 import { sequelize } from "../sequelize";
 import parseAttachmentIds from "../utils/parseAttachmentIds";
+
 export default async function documentPermanentDeleter(documents: Document[]) {
   const activeDocument = documents.find((doc) => !doc.deletedAt);
 

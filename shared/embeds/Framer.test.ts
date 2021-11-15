@@ -1,4 +1,5 @@
 import Framer from "./Framer";
+
 describe("Framer", () => {
   const match = Framer.ENABLED[0];
   test("to be enabled on share link", () => {

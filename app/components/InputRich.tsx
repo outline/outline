@@ -6,6 +6,7 @@ import Editor from "components/Editor";
 import HelpText from "components/HelpText";
 import { LabelText, Outline } from "components/Input";
 import useStores from "hooks/useStores";
+
 type Props = {
   label: string;
   minHeight?: number;

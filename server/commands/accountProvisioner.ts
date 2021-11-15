@@ -9,6 +9,7 @@ import mailer from "../mailer";
 import { Collection, Team, User } from "../models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
+
 type Props = {
   ip: string;
   user: {

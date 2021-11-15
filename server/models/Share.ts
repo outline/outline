@@ -1,4 +1,5 @@
 import { DataTypes, sequelize } from "../sequelize";
+
 const Share = sequelize.define(
   "share",
   {

@@ -14,6 +14,7 @@ import MenuIconWrapper from "components/MenuIconWrapper";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useToasts from "hooks/useToasts";
 import { documentHistoryUrl } from "utils/routeHelpers";
+
 type Props = {
   document: Document;
   revisionId: string;

@@ -3,6 +3,7 @@ import { Collection, UserAuthentication } from "../models";
 import { buildUser, buildTeam } from "../test/factories";
 import { flushdb } from "../test/support";
 import accountProvisioner from "./accountProvisioner";
+
 jest.mock("../mailer");
 jest.mock("aws-sdk", () => {
   const mS3 = {

@@ -7,6 +7,7 @@ import Flex from "components/Flex";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
 import GroupMemberMenu from "menus/GroupMemberMenu";
+
 type Props = {
   user: User;
   onAdd?: () => Promise<void>;

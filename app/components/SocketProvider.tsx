@@ -14,6 +14,7 @@ import PoliciesStore from "stores/PoliciesStore";
 import ToastsStore from "stores/ToastsStore";
 import ViewsStore from "stores/ViewsStore";
 import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
+
 export const SocketContext: any = React.createContext();
 type Props = {
   children: React.ReactNode;
@@ -57,6 +58,7 @@ class SocketProvider extends React.Component<Props> {
       this.createConnection();
     }
   };
+
   createConnection = () => {
     this.socket = io(window.location.origin, {
       path: "/realtime",

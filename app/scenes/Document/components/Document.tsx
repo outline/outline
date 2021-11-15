@@ -48,6 +48,7 @@ import {
   editDocumentUrl,
   documentUrl,
 } from "utils/routeHelpers";
+
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 type Props = {
@@ -72,20 +73,28 @@ type Props = {
 class DocumentScene extends React.Component<Props> {
   @observable
   editor = React.createRef();
+
   @observable
   isUploading = false;
+
   @observable
   isSaving = false;
+
   @observable
   isPublishing = false;
+
   @observable
   isDirty = false;
+
   @observable
   isEmpty = true;
+
   @observable
   lastRevision: number = this.props.document.revision;
+
   @observable
   title: string = this.props.document.title;
+
   getEditorText: () => string = () => this.props.document.text;
 
   componentDidMount() {
@@ -158,6 +167,7 @@ class DocumentScene extends React.Component<Props> {
     this.props.document.text = template.text;
     this.updateIsDirty();
   };
+
   onSynced = async () => {
     const { toasts, history, location, t } = this.props;
     const restore = location.state?.restore;
@@ -178,6 +188,7 @@ class DocumentScene extends React.Component<Props> {
       history.replace(this.props.document.url);
     }
   };
+
   goToMove = (ev) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
@@ -187,6 +198,7 @@ class DocumentScene extends React.Component<Props> {
       this.props.history.push(documentMoveUrl(document));
     }
   };
+
   goToEdit = (ev) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
@@ -196,11 +208,13 @@ class DocumentScene extends React.Component<Props> {
       this.props.history.push(editDocumentUrl(document));
     }
   };
+
   goBack = (ev) => {
     if (this.props.readOnly) return;
     ev.preventDefault();
     this.props.history.goBack();
   };
+
   goToHistory = (ev) => {
     if (!this.props.readOnly) return;
     if (ev.ctrlKey) return;
@@ -213,6 +227,7 @@ class DocumentScene extends React.Component<Props> {
       this.props.history.push(documentHistoryUrl(document));
     }
   };
+
   onPublish = (ev) => {
     ev.preventDefault();
     const { document } = this.props;
@@ -222,6 +237,7 @@ class DocumentScene extends React.Component<Props> {
       done: true,
     });
   };
+
   onToggleTableOfContents = (ev) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
@@ -233,6 +249,7 @@ class DocumentScene extends React.Component<Props> {
       ui.showTableOfContents();
     }
   };
+
   onSave = async (
     options: {
       done?: boolean;
@@ -299,12 +316,14 @@ class DocumentScene extends React.Component<Props> {
       this.isPublishing = false;
     }
   };
+
   autosave = debounce(() => {
     this.onSave({
       done: false,
       autosave: true,
     });
   }, AUTOSAVE_DELAY);
+
   updateIsDirty = () => {
     const { document } = this.props;
     const editorText = this.getEditorText().trim();
@@ -314,13 +333,17 @@ class DocumentScene extends React.Component<Props> {
     this.isEmpty = (!editorText || editorText === "#") && !this.title;
     this.isDirty = bodyChanged || titleChanged;
   };
+
   updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
+
   onImageUploadStart = () => {
     this.isUploading = true;
   };
+
   onImageUploadStop = () => {
     this.isUploading = false;
   };
+
   onChange = (getEditorText) => {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
@@ -348,11 +371,13 @@ class DocumentScene extends React.Component<Props> {
       this.autosave();
     }
   };
+
   onChangeTitle = (value) => {
     this.title = value;
     this.updateIsDirtyDebounced();
     this.autosave();
   };
+
   goBack = () => {
     this.props.history.push(this.props.document.url);
   };

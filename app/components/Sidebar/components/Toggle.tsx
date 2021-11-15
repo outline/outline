@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Arrow from "components/Arrow";
+
 type Props = {
   direction: "left" | "right";
   style?: Record<string, any>;

@@ -2,6 +2,7 @@
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 import usePrevious from "hooks/usePrevious";
+
 type Props = {
   children: React.ReactNode;
 };

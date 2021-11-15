@@ -1,5 +1,6 @@
 import { Event } from "../models";
 import presentUser from "./user";
+
 export default function present(event: Event, isAdmin = false) {
   const data = {
     id: event.id,

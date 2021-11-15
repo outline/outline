@@ -1,5 +1,6 @@
 import httpErrors from "http-errors";
 import env from "./env";
+
 export function AuthenticationError(
   message = "Invalid authentication",
   redirectUrl: string = env.URL

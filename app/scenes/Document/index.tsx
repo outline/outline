@@ -9,6 +9,7 @@ import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import type { LocationWithState } from "types";
 import "types";
+
 type Props = {
   location: LocationWithState;
   match: Match;

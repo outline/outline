@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import * as React from "react";
+
 type Props = {
   text: string;
   children?: React.ReactNode;

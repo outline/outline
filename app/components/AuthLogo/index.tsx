@@ -3,6 +3,7 @@ import styled from "styled-components";
 import GoogleLogo from "./GoogleLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
+
 type Props = {
   providerName: string;
   size?: number;

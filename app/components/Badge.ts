@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 const Badge = styled.span`
   margin-left: 10px;
   padding: 1px 5px 2px;

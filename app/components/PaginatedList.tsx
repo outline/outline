@@ -11,6 +11,7 @@ import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
 import { dateToHeading } from "utils/dates";
+
 type Props = {
   fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
   options?: Record<string, any>;
@@ -26,16 +27,22 @@ type Props = {
 @observer
 class PaginatedList extends React.Component<Props> {
   isInitiallyLoaded = false;
+
   @observable
   isLoaded = false;
+
   @observable
   isFetchingMore = false;
+
   @observable
   isFetching = false;
+
   @observable
   renderCount: number = DEFAULT_PAGINATION_LIMIT;
+
   @observable
   offset = 0;
+
   @observable
   allowLoadMore = true;
 
@@ -66,6 +73,7 @@ class PaginatedList extends React.Component<Props> {
     this.isFetchingMore = false;
     this.isLoaded = false;
   };
+
   fetchResults = async () => {
     if (!this.props.fetch) return;
     this.isFetching = true;
@@ -87,6 +95,7 @@ class PaginatedList extends React.Component<Props> {
     this.isFetching = false;
     this.isFetchingMore = false;
   };
+
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re currently fetching

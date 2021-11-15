@@ -1,4 +1,5 @@
 import { sequelize } from "../sequelize";
+
 const GroupUser = sequelize.define(
   "group_user",
   {},

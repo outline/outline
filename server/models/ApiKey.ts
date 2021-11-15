@@ -1,5 +1,6 @@
 import randomstring from "randomstring";
 import { DataTypes, sequelize } from "../sequelize";
+
 const ApiKey = sequelize.define(
   "apiKey",
   {

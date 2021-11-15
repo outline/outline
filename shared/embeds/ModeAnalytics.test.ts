@@ -1,4 +1,5 @@
 import ModeAnalytics from "./ModeAnalytics";
+
 describe("ModeAnalytics", () => {
   const match = ModeAnalytics.ENABLED[0];
   test("to be enabled on report link", () => {

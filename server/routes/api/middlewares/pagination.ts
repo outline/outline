@@ -2,6 +2,7 @@ import querystring from "querystring";
 import type { Context } from "koa";
 import "koa";
 import { InvalidRequestError } from "../../../errors";
+
 export default function pagination(options?: Record<string, any>) {
   return async function paginationMiddleware(
     ctx: Context,

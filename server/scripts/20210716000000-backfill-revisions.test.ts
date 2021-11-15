@@ -2,6 +2,7 @@ import { Revision, Event } from "../models";
 import { buildDocument } from "../test/factories";
 import { flushdb } from "../test/support";
 import script from "./20210716000000-backfill-revisions";
+
 beforeEach(() => flushdb());
 describe("#work", () => {
   it("should create events for revisions", async () => {

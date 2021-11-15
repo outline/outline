@@ -5,11 +5,17 @@ import User from "./User";
 
 class FileOperation extends BaseModal {
   id: string;
+
   state: string;
+
   collection: Collection | null | undefined;
+
   size: number;
+
   type: string;
+
   user: User;
+
   createdAt: string;
 
   @computed

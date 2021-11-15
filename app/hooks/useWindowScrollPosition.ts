@@ -2,6 +2,7 @@
 // maintained.
 import { throttle } from "lodash";
 import { useState, useEffect } from "react";
+
 let supportsPassive = false;
 
 try {

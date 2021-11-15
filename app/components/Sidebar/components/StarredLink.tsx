@@ -11,6 +11,7 @@ import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 import useBoolean from "hooks/useBoolean";
 import DocumentMenu from "menus/DocumentMenu";
+
 type Props = {
   depth: number;
   title: string;

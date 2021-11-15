@@ -5,6 +5,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "components/Flex";
+
 const RealTextarea = styled.textarea`
   border: 0;
   flex: 1;
@@ -110,8 +111,10 @@ export type Props = {
 @observer
 class Input extends React.Component<Props> {
   input: HTMLInputElement | null | undefined;
+
   @observable
   focused = false;
+
   handleBlur = (ev: React.SyntheticEvent) => {
     this.focused = false;
 
@@ -119,6 +122,7 @@ class Input extends React.Component<Props> {
       this.props.onBlur(ev);
     }
   };
+
   handleFocus = (ev: React.SyntheticEvent) => {
     this.focused = true;
 

@@ -1,4 +1,5 @@
 import parseDocumentIds from "./parseDocumentIds";
+
 it("should not return non links", () => {
   expect(parseDocumentIds(`# Header`).length).toBe(0);
 });

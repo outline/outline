@@ -1,5 +1,6 @@
 import * as React from "react";
 import Frame from "./components/Frame";
+
 const URL_REGEX = new RegExp(
   "https://([w.-]+.)?figma.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
 );

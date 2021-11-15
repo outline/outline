@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "models/Document";
 import NudeButton from "./NudeButton";
+
 type Props = {
   document: Document;
   size?: number;

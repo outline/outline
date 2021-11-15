@@ -11,6 +11,7 @@ import "./share";
 import "./user";
 import "./team";
 import "./group";
+
 const { can, abilities } = policy;
 type Policy = Record<string, boolean>;
 

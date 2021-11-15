@@ -1,6 +1,7 @@
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import Frame from "./components/Frame";
+
 const IFRAME_REGEX = /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;
 const IMAGE_REGEX = /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/;
 type Props = {

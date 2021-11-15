@@ -1,5 +1,6 @@
 import Redis from "ioredis";
 import Logger from "./logging/logger";
+
 const options = {
   maxRetriesPerRequest: 20,
 

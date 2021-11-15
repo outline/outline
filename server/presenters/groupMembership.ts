@@ -1,5 +1,6 @@
 import { GroupUser } from "../models";
 import { presentUser } from ".";
+
 type GroupMembership = {
   id: string;
   userId: string;

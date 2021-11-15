@@ -21,6 +21,7 @@ import useBoolean from "hooks/useBoolean";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   collection: Collection;
 };

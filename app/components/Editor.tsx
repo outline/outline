@@ -17,6 +17,7 @@ import "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";
 import { isInternalUrl, isHash } from "utils/urls";
+
 const RichMarkdownEditor = React.lazy(
   () =>
     import(

@@ -19,6 +19,7 @@ import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import GroupMemberListItem from "./components/GroupMemberListItem";
+
 type Props = {
   toasts: ToastsStore;
   auth: AuthStore;
@@ -33,23 +34,29 @@ type Props = {
 class AddPeopleToGroup extends React.Component<Props> {
   @observable
   inviteModalOpen = false;
+
   @observable
   query = "";
+
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
   };
+
   handleInviteModalClose = () => {
     this.inviteModalOpen = false;
   };
+
   handleFilter = (ev: React.SyntheticEvent) => {
     this.query = ev.target.value;
     this.debouncedFetch();
   };
+
   debouncedFetch = debounce(() => {
     this.props.users.fetchPage({
       query: this.query,
     });
   }, 250);
+
   handleAddUser = async (user: User) => {
     const { t } = this.props;
 

@@ -14,6 +14,7 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
+
 type Options = {
   baseUrl?: string;
 };
@@ -25,6 +26,7 @@ const fetchWithRetry = retry(fetch);
 
 class ApiClient {
   baseUrl: string;
+
   userAgent: string;
 
   constructor(options: Options = {}) {
@@ -173,6 +175,7 @@ class ApiClient {
 
     throw new RequestError(error.message);
   };
+
   get = (
     path: string,
     data: Record<string, any> | null | undefined,
@@ -180,6 +183,7 @@ class ApiClient {
   ) => {
     return this.fetch(path, "GET", data, options);
   };
+
   post = (
     path: string,
     data: Record<string, any> | null | undefined,
@@ -187,6 +191,7 @@ class ApiClient {
   ) => {
     return this.fetch(path, "POST", data, options);
   };
+
   // Helpers
   constructQueryString = (data: Record<string, string>) => {
     return map(

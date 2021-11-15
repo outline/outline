@@ -1,4 +1,5 @@
 import Loom from "./Loom";
+
 describe("Loom", () => {
   const match = Loom.ENABLED[0];
   test("to be enabled on share link", () => {

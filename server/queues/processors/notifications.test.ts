@@ -7,6 +7,7 @@ import {
 } from "../../test/factories";
 import { flushdb } from "../../test/support";
 import NotificationsService from "./notifications";
+
 jest.mock("../../mailer");
 const Notifications = new NotificationsService();
 beforeEach(() => flushdb());

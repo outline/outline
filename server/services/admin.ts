@@ -9,6 +9,7 @@ import {
   processorEventQueue,
   websocketsQueue,
 } from "../queues";
+
 export default function init(app: Koa, server?: http.Server) {
   const serverAdapter = new KoaAdapter();
   createBullBoard({

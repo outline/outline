@@ -3,6 +3,7 @@ import styled from "styled-components";
 import CenteredContent from "components/CenteredContent";
 import Header from "components/Header";
 import PageTitle from "components/PageTitle";
+
 type Props = {
   icon?: React.ReactNode;
   title: React.ReactNode;

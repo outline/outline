@@ -1,5 +1,6 @@
 import * as React from "react";
 import Frame from "./components/Frame";
+
 const URL_REGEX = new RegExp("https?://open.spotify.com/(.*)$");
 type Props = {
   attrs: {

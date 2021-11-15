@@ -1,9 +1,12 @@
 import { set, observable } from "mobx";
+
 export default class BaseModel {
   @observable
   id: string;
+
   @observable
   isSaving: boolean;
+
   store: any;
 
   constructor(fields: Record<string, any>, store: any) {
@@ -25,14 +28,17 @@ export default class BaseModel {
       this.isSaving = false;
     }
   };
+
   fetch = (options?: any) => {
     return this.store.fetch(this.id, options);
   };
+
   refresh = () => {
     return this.fetch({
       force: true,
     });
   };
+
   delete = async () => {
     this.isSaving = true;
 
@@ -42,6 +48,7 @@ export default class BaseModel {
       this.isSaving = false;
     }
   };
+
   toJS = (): Record<string, any> => {
     return { ...this };
   };

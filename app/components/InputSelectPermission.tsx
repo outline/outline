@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { $Diff } from "utility-types";
 import type { Props, Option } from "./InputSelect";
 import InputSelect from "./InputSelect";
+
 export default function InputSelectPermission(
   props: $Diff<
     Props,

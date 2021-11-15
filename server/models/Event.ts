@@ -1,5 +1,6 @@
 import { globalEventQueue } from "../queues";
 import { DataTypes, sequelize } from "../sequelize";
+
 const Event = sequelize.define("event", {
   id: {
     type: DataTypes.UUID,

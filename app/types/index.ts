@@ -5,6 +5,7 @@ import "react-router-dom";
 import theme from "shared/theme";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
+
 export type Theme = typeof theme;
 export type MenuItemClickable = {
   title: React.ReactNode;

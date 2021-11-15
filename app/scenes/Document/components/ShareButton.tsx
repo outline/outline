@@ -9,6 +9,7 @@ import Popover from "components/Popover";
 import Tooltip from "components/Tooltip";
 import SharePopover from "./SharePopover";
 import useStores from "hooks/useStores";
+
 type Props = {
   document: Document;
 };

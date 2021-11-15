@@ -7,6 +7,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   group: Group;
   onSubmit: () => void;

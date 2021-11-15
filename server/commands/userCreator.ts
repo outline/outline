@@ -1,6 +1,7 @@
 import Sequelize from "sequelize";
 import { Event, Team, User, UserAuthentication } from "../models";
 import { sequelize } from "../sequelize";
+
 const Op = Sequelize.Op;
 type UserCreatorResult = {
   user: User;

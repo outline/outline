@@ -7,6 +7,7 @@ import LoadingIndicator from "components/LoadingIndicator";
 import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   children: React.ReactNode;
   collectionId: string;

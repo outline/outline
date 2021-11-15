@@ -5,6 +5,7 @@ import PageTitle from "components/PageTitle";
 import PlaceholderDocument from "components/PlaceholderDocument";
 import Container from "./Container";
 import type { LocationWithState } from "types";
+
 type Props = {
   location: LocationWithState;
 };

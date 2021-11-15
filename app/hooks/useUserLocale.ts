@@ -1,4 +1,5 @@
 import useStores from "./useStores";
+
 export default function useUserLocale() {
   const { auth } = useStores();
 

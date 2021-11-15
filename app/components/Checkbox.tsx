@@ -2,6 +2,7 @@ import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
+
 export type Props = {
   checked?: boolean;
   label?: React.ReactNode;

@@ -11,6 +11,7 @@ import {
 } from "../../presenters";
 import { Op } from "../../sequelize";
 import pagination from "./middlewares/pagination";
+
 const { authorize } = policy;
 const router = new Router();
 router.post("groups.list", auth(), pagination(), async (ctx) => {

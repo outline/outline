@@ -5,6 +5,7 @@ import { Op } from "../../sequelize";
 import webService from "../../services/web";
 import { buildDocument, buildFileOperation } from "../../test/factories";
 import { flushdb } from "../../test/support";
+
 const app = webService();
 const server = new TestServer(app.callback());
 jest.mock("aws-sdk", () => {

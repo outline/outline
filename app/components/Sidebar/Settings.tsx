@@ -29,6 +29,7 @@ import Version from "./components/Version";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
+
 const isHosted = env.DEPLOYMENT === "hosted";
 
 function SettingsSidebar() {

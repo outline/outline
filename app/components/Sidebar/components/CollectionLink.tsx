@@ -19,6 +19,7 @@ import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import CollectionMenu from "menus/CollectionMenu";
 import CollectionSortMenu from "menus/CollectionSortMenu";
+
 type Props = {
   collection: Collection;
   canUpdate: boolean;

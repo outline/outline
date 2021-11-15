@@ -5,6 +5,7 @@ import { dark, light, lightMobile, darkMobile } from "shared/theme";
 import useMediaQuery from "hooks/useMediaQuery";
 import useStores from "hooks/useStores";
 import GlobalStyles from "styles/globals";
+
 const empty = {};
 type Props = {
   children: React.ReactNode;

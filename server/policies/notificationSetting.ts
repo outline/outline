@@ -1,5 +1,6 @@
 import { NotificationSetting, Team, User } from "../models";
 import policy from "./policy";
+
 const { allow } = policy;
 allow(User, "createNotificationSetting", Team, (user, team) => {
   if (!team || user.teamId !== team.id) return false;

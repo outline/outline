@@ -17,6 +17,7 @@ import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
 import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
+
 type Props = {
   history: RouterHistory;
   auth: AuthStore;
@@ -30,17 +31,24 @@ type Props = {
 class CollectionNew extends React.Component<Props> {
   @observable
   name = "";
+
   @observable
   icon = "";
+
   @observable
   color = "#4E5C6E";
+
   @observable
   sharing = true;
+
   @observable
   permission = "read_write";
+
   @observable
   isSaving: boolean;
+
   hasOpenedIconPicker = false;
+
   handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
     this.isSaving = true;
@@ -67,6 +75,7 @@ class CollectionNew extends React.Component<Props> {
       this.isSaving = false;
     }
   };
+
   handleNameChange = (ev: React.SyntheticEvent) => {
     this.name = ev.target.value;
 
@@ -90,15 +99,19 @@ class CollectionNew extends React.Component<Props> {
       this.icon = "collection";
     }
   };
+
   handleIconPickerOpen = () => {
     this.hasOpenedIconPicker = true;
   };
+
   handlePermissionChange = (newPermission: string) => {
     this.permission = newPermission;
   };
+
   handleSharingChange = (ev: React.SyntheticEvent<HTMLInputElement>) => {
     this.sharing = ev.target.checked;
   };
+
   handleChange = (color: string, icon: string) => {
     this.color = color;
     this.icon = icon;

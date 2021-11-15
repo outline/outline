@@ -1,4 +1,5 @@
 import ClickUp from "./ClickUp";
+
 describe("ClickUp", () => {
   const match = ClickUp.ENABLED[0];
   test("to be enabled on share link", () => {

@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs-extra";
+
 export function serializeFilename(text: string): string {
   return text.replace(/\//g, "%2F").replace(/\\/g, "%5C");
 }

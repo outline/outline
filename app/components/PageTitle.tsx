@@ -3,6 +3,7 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import { cdnPath } from "../../shared/utils/urls";
 import useStores from "hooks/useStores";
+
 type Props = {
   title: string;
   favicon?: string;

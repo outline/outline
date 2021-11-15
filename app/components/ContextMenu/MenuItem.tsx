@@ -4,6 +4,7 @@ import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import MenuIconWrapper from "../MenuIconWrapper";
+
 type Props = {
   onClick?: (arg0: React.SyntheticEvent) => void | Promise<void>;
   children?: React.ReactNode;

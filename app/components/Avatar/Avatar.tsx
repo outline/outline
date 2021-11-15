@@ -4,6 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import User from "models/User";
 import placeholder from "./placeholder.png";
+
 type Props = {
   src: string;
   size: number;
@@ -18,9 +19,11 @@ type Props = {
 class Avatar extends React.Component<Props> {
   @observable
   error: boolean;
+
   static defaultProps = {
     size: 24,
   };
+
   handleError = () => {
     this.error = true;
   };

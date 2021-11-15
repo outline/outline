@@ -15,6 +15,7 @@ import type {
   RevisionEvent,
   Event,
 } from "../../types";
+
 export default class NotificationsProcessor {
   async on(event: Event) {
     switch (event.name) {

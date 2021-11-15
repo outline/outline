@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 const Notice = styled.p`
   background: ${(props) => props.theme.brand.marine};
   color: ${(props) => props.theme.almostBlack};

@@ -26,6 +26,7 @@ import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
 import Logger from "./logging/logger";
 import { emailsQueue } from "./queues";
+
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
 export type EmailTypes =
@@ -154,6 +155,7 @@ export class Mailer {
       }
     }
   };
+
   welcome = async (opts: { to: string; teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
@@ -164,6 +166,7 @@ export class Mailer {
       text: welcomeEmailText(opts),
     });
   };
+
   exportSuccess = async (opts: { to: string; id: string; teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
@@ -173,6 +176,7 @@ export class Mailer {
       text: exportEmailSuccessText,
     });
   };
+
   exportFailure = async (opts: { to: string; teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
@@ -182,6 +186,7 @@ export class Mailer {
       text: exportEmailFailureText,
     });
   };
+
   invite = async (
     opts: {
       to: string;
@@ -196,6 +201,7 @@ export class Mailer {
       text: inviteEmailText(opts),
     });
   };
+
   signin = async (opts: { to: string; token: string; teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
@@ -205,6 +211,7 @@ export class Mailer {
       text: signinEmailText(opts),
     });
   };
+
   documentNotification = async (
     opts: {
       to: string;
@@ -218,6 +225,7 @@ export class Mailer {
       text: documentNotificationEmailText(opts),
     });
   };
+
   collectionNotification = async (
     opts: {
       to: string;
@@ -231,6 +239,7 @@ export class Mailer {
       text: collectionNotificationEmailText(opts),
     });
   };
+
   sendTemplate = async (type: EmailTypes, opts: Record<string, any> = {}) => {
     await emailsQueue.add(
       {

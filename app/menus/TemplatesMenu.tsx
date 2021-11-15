@@ -10,6 +10,7 @@ import ContextMenu from "components/ContextMenu";
 import MenuItem from "components/ContextMenu/MenuItem";
 import Separator from "components/ContextMenu/Separator";
 import useStores from "hooks/useStores";
+
 type Props = {
   document: Document;
   onSelectTemplate: (template: Document) => void;

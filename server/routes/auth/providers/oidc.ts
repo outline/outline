@@ -11,6 +11,7 @@ import {
 import passportMiddleware from "../../../middlewares/passport";
 import { getAllowedDomains } from "../../../utils/authentication";
 import { StateStore, request } from "../../../utils/passport";
+
 const router = new Router();
 const providerName = "oidc";
 const OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME || "OpenID Connect";

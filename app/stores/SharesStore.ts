@@ -5,6 +5,7 @@ import Share from "models/Share";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 import { client } from "utils/ApiClient";
+
 export default class SharesStore extends BaseStore<Share> {
   actions = ["info", "list", "create", "update"];
 
@@ -78,6 +79,7 @@ export default class SharesStore extends BaseStore<Share> {
       }
     }
   };
+
   getByDocumentId = (documentId: string): Share | null | undefined => {
     return find(this.orderedData, (share) => share.documentId === documentId);
   };

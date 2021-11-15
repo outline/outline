@@ -3,6 +3,7 @@ import winston from "winston";
 import env from "../env";
 import Metrics from "../logging/metrics";
 import Sentry from "../logging/sentry";
+
 const isProduction = env.NODE_ENV === "production";
 type LogCategory =
   | "lifecycle"

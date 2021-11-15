@@ -3,6 +3,7 @@ import "koa";
 import pkg from "rich-markdown-editor/package.json";
 import semver from "semver";
 import { EditorUpdateError } from "../../../errors";
+
 export default function editor() {
   return async function editorMiddleware(
     ctx: Context,

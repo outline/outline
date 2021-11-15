@@ -4,6 +4,7 @@ import Document from "models/Document";
 import Event from "models/Event";
 import PaginatedList from "components/PaginatedList";
 import EventListItem from "./EventListItem";
+
 type Props = {
   events: Event[];
   document: Document;

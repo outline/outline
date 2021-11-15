@@ -1,4 +1,5 @@
 import Gist from "./Gist";
+
 describe("Gist", () => {
   const match = Gist.ENABLED[0];
   test("to be enabled on gist link", () => {

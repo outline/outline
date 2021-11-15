@@ -1,4 +1,5 @@
 import Figma from "./Figma";
+
 describe("Figma", () => {
   const match = Figma.ENABLED[0];
   test("to be enabled on file link", () => {

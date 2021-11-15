@@ -9,6 +9,7 @@ import User from "models/User";
 import env from "env";
 import { client } from "utils/ApiClient";
 import { getCookieDomain } from "utils/domains";
+
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 type PersistedData = {
@@ -29,22 +30,31 @@ type Config = {
 export default class AuthStore {
   @observable
   user: User | null | undefined;
+
   @observable
   team: Team | null | undefined;
+
   @observable
   token: string | null | undefined;
+
   @observable
   policies: Policy[] = [];
+
   @observable
   lastSignedIn: string | null | undefined;
+
   @observable
   isSaving = false;
+
   @observable
   isSuspended = false;
+
   @observable
   suspendedContactEmail: string | null | undefined;
+
   @observable
   config: Config | null | undefined;
+
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
@@ -131,6 +141,7 @@ export default class AuthStore {
     invariant(res && res.data, "Config not available");
     this.config = res.data;
   };
+
   @action
   fetch = async () => {
     try {
@@ -170,6 +181,7 @@ export default class AuthStore {
       }
     }
   };
+
   @action
   deleteUser = async () => {
     await client.post(`/users.delete`, {
@@ -181,6 +193,7 @@ export default class AuthStore {
       this.token = null;
     });
   };
+
   @action
   updateUser = async (params: {
     name?: string;
@@ -199,6 +212,7 @@ export default class AuthStore {
       this.isSaving = false;
     }
   };
+
   @action
   updateTeam = async (params: {
     name?: string;
@@ -218,6 +232,7 @@ export default class AuthStore {
       this.isSaving = false;
     }
   };
+
   @action
   logout = async (savePath = false) => {
     // remove user and team from localStorage

@@ -1,4 +1,5 @@
 import parseDocumentSlug from "./parseDocumentSlug";
+
 describe("#parseDocumentSlug", () => {
   it("should work with fully qualified url", () => {
     expect(

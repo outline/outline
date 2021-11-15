@@ -1,5 +1,6 @@
 import type { KeyFilter } from "hooks/useKeyDown";
 import useKeyDown from "hooks/useKeyDown";
+
 type Props = {
   trigger: KeyFilter;
   handler: (event: KeyboardEvent) => void;

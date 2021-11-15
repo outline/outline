@@ -13,6 +13,7 @@ import PaginatedEventList from "components/PaginatedEventList";
 import Scrollable from "components/Scrollable";
 import useStores from "hooks/useStores";
 import { documentUrl } from "utils/routeHelpers";
+
 const EMPTY_ARRAY = [];
 
 function DocumentHistory() {

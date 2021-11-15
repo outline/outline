@@ -1,6 +1,7 @@
 import * as React from "react";
 import Frame from "./components/Frame";
 import Image from "./components/Image";
+
 const URL_REGEX = /^https:\/\/viewer\.diagrams\.net\/.*(title=\\w+)?/;
 type Props = {
   attrs: {

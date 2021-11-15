@@ -7,6 +7,7 @@ import Badge from "components/Badge";
 import Button from "components/Button";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
+
 type Props = {
   user: User;
   canEdit: boolean;

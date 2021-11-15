@@ -1,4 +1,5 @@
 import Bilibili from "./Bilibili";
+
 describe("Bilibili", () => {
   const match = Bilibili.ENABLED[0];
   test("to be enabled on video link", () => {

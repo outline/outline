@@ -14,6 +14,7 @@ import { User, Team } from "../../../models";
 import { signIn } from "../../../utils/authentication";
 import { isCustomDomain } from "../../../utils/domains";
 import { getUserForEmailSigninToken } from "../../../utils/jwt";
+
 const router = new Router();
 export const config = {
   name: "Email",

@@ -12,6 +12,7 @@ import NudeButton from "components/NudeButton";
 import useDebouncedCallback from "hooks/useDebouncedCallback";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+
 type Props = {
   collection: Collection;
 };

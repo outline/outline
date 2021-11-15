@@ -19,6 +19,7 @@ import Routes from "./routes";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
 import env from "env";
+
 initI18n();
 const element = window.document.getElementById("root");
 

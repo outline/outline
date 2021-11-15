@@ -4,6 +4,7 @@ import { schema, serializer } from "rich-markdown-editor";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import { Document, Event } from "../models";
+
 export default async function documentUpdater({
   documentId,
   ydoc,

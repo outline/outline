@@ -6,6 +6,7 @@ import { AuthenticationError } from "../../errors";
 import Logger from "../../logging/logger";
 import { Document, Team, FileOperation } from "../../models";
 import { Op } from "../../sequelize";
+
 const router = new Router();
 router.post("utils.gc", async (ctx) => {
   const { token, limit = 500 } = ctx.body;

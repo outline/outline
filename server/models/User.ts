@@ -16,6 +16,7 @@ import {
   NotificationSetting,
   ApiKey,
 } from ".";
+
 const User = sequelize.define(
   "user",
   {

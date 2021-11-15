@@ -1,5 +1,6 @@
 import { Team, User } from "../models";
 import policy from "./policy";
+
 const { allow } = policy;
 allow(User, "read", Team, (user, team) => team && user.teamId === team.id);
 allow(User, "share", Team, (user, team) => {

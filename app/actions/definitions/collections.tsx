@@ -7,6 +7,7 @@ import DynamicCollectionIcon from "components/CollectionIcon";
 import { createAction } from "actions";
 import { CollectionSection } from "actions/sections";
 import history from "utils/history";
+
 export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),
   section: CollectionSection,

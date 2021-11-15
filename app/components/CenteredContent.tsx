@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+
 type Props = {
   children?: React.ReactNode;
   withStickyHeader?: boolean;

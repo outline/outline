@@ -26,6 +26,7 @@ import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import getDataTransferFiles from "utils/getDataTransferFiles";
 import { newDocumentPath } from "utils/routeHelpers";
+
 type Props = {
   collection: Collection;
   placement?: string;

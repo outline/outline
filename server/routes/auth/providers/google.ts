@@ -11,6 +11,7 @@ import {
 import passportMiddleware from "../../../middlewares/passport";
 import { getAllowedDomains } from "../../../utils/authentication";
 import { StateStore } from "../../../utils/passport";
+
 const router = new Router();
 const providerName = "google";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

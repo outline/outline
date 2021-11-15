@@ -1,5 +1,6 @@
 import Logger from "../logging/logger";
 import { User } from "../models";
+
 export default class CollaborationLogger {
   async onLoadDocument(data: {
     documentName: string;

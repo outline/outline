@@ -14,6 +14,7 @@ import Breadcrumb from "components/Breadcrumb";
 import CollectionIcon from "components/CollectionIcon";
 import useStores from "hooks/useStores";
 import { collectionUrl } from "utils/routeHelpers";
+
 type Props = {
   document: Document;
   children?: React.ReactNode;

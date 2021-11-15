@@ -1,4 +1,5 @@
 import * as React from "react";
+
 type Props = {
   size?: number;
   fill?: string;
