@@ -1,5 +1,4 @@
-import type { EmailSendOptions, EmailTypes } from "../../mailer";
-import mailer from "../../mailer";
+import mailer, { EmailSendOptions, EmailTypes } from "../../mailer";
 
 type EmailEvent = {
   type: EmailTypes;

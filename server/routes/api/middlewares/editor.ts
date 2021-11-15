@@ -1,5 +1,5 @@
-import type { Context } from "koa";
-import "koa";
+import { Context } from "koa";
+
 import pkg from "rich-markdown-editor/package.json";
 import semver from "semver";
 import { EditorUpdateError } from "../../../errors";

@@ -8,3 +8,5 @@ if (process.env.DD_API_KEY) {
     version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
   });
 }
+
+export {};

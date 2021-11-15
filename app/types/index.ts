@@ -1,6 +1,6 @@
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import "react-i18next";
-import type { Location } from "react-router-dom";
+import { Location } from "react-router-dom";
 import "react-router-dom";
 import theme from "shared/theme";
 import RootStore from "stores/RootStore";

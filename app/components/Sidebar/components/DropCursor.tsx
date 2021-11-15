@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled, { withTheme } from "styled-components";
-import type { Theme } from "types";
+import { Theme } from "types";
 import "types";
 
 function DropCursor({

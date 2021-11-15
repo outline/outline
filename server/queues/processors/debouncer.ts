@@ -1,6 +1,6 @@
 import { Document } from "../../models";
 import { globalEventQueue } from "../../queues";
-import type { Event } from "../../types";
+import { Event } from "../../types";
 
 export default class DebounceProcessor {
   async on(event: Event) {

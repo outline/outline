@@ -17,7 +17,7 @@ import Separator from "./Separator";
 import ContextMenu from ".";
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
-import type {
+import {
   MenuItem as TMenuItem,
   Action,
   ActionContext,

@@ -3,7 +3,7 @@ import { action, runInAction } from "mobx";
 import Membership from "models/Membership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import type { PaginationParams } from "types";
+import { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
 
 export default class MembershipsStore extends BaseStore<Membership> {

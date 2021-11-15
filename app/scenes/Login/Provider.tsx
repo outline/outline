@@ -1,6 +1,6 @@
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import { withTranslation } from "react-i18next";
 import styled from "styled-components";
 import AuthLogo from "components/AuthLogo";

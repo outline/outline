@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
-import type { DocumentPath } from "stores/CollectionsStore";
+import { DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
 import "stores/CollectionsStore";
 import Flex from "components/Flex";

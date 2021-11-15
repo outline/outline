@@ -9,7 +9,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 import "types";
 
 type Props = {

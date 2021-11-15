@@ -3,7 +3,7 @@ import { ShapesIcon } from "outline-icons";
 import "react-router-dom";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import type { Match } from "react-router-dom";
+import { Match } from "react-router-dom";
 import { Action } from "components/Actions";
 import Empty from "components/Empty";
 import Heading from "components/Heading";

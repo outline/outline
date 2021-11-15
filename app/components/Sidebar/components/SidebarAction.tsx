@@ -6,7 +6,7 @@ import { useLocation } from "react-router";
 import SidebarLink from "./SidebarLink";
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
-import type { Action } from "types";
+import { Action } from "types";
 
 type Props = {
   action: Action;

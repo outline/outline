@@ -7,7 +7,7 @@ import {
   GroupUser,
 } from "../../models";
 import { Op } from "../../sequelize";
-import type { Event } from "../../types";
+import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
   async on(event: Event, socketio: any) {

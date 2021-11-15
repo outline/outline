@@ -28,7 +28,7 @@ import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "menus/TableOfContentsMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 import "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentPath, editDocumentUrl } from "utils/routeHelpers";

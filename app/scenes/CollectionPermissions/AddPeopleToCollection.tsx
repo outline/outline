@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import { withTranslation } from "react-i18next";
 import AuthStore from "stores/AuthStore";
 import MembershipsStore from "stores/MembershipsStore";

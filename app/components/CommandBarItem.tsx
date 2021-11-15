@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import Key from "components/Key";
-import type { CommandBarAction } from "types";
+import { CommandBarAction } from "types";
 
 type Props = {
   action: CommandBarAction;

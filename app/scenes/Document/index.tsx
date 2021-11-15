@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { Match } from "react-router-dom";
+import { Match } from "react-router-dom";
 import "react-router-dom";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
@@ -7,7 +7,7 @@ import SocketPresence from "./components/SocketPresence";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
-import type { LocationWithState } from "types";
+import { LocationWithState } from "types";
 import "types";
 
 type Props = {

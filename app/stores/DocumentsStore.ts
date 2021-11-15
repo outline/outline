@@ -9,7 +9,7 @@ import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
 import env from "env";
-import type {
+import {
   NavigationNode,
   FetchOptions,
   PaginationParams,

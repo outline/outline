@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { $Diff } from "utility-types";
 import InputSelect from "components/InputSelect";
-import type { Props, Option } from "components/InputSelect";
+import { Props, Option } from "components/InputSelect";
 
 const InputSelectRole = (
   props: $Diff<

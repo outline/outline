@@ -6,7 +6,7 @@ import {
   differenceInCalendarYears,
   format as formatDate,
 } from "date-fns";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import "react-i18next";
 import { dateLocale } from "utils/i18n";
 

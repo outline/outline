@@ -34,7 +34,7 @@ const serviceNames = uniq(
 );
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
-let processCount = env.WEB_CONCURRENCY || undefined;
+let processCount = parseInt(env.WEB_CONCURRENCY, 10) || undefined;
 
 if (serviceNames.includes("collaboration")) {
   if (env.WEB_CONCURRENCY !== 1) {
@@ -59,7 +59,7 @@ function master() {
 }
 
 // This function will only be called in each forked process
-async function start(id: string, disconnect: () => void) {
+async function start(id: number, disconnect: () => void) {
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPortFlag = getArg("port", "p");
   const app = new Koa();
@@ -68,7 +68,7 @@ async function start(id: string, disconnect: () => void) {
 
   // install basic middleware shared by all services
   if ((env.DEBUG || "").includes("http")) {
-    app.use(logger((str, args) => Logger.info("http", str)));
+    app.use(logger((str) => Logger.info("http", str)));
   }
 
   app.use(compress());

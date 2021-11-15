@@ -4,7 +4,7 @@ import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation } from "react-i18next";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import { Switch, Route, withRouter } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";

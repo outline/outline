@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { actionToKBar } from "actions";
 import useStores from "hooks/useStores";
-import type { Action } from "types";
+import { Action } from "types";
 
 export default function useCommandBarActions(actions: Action[]) {
   const stores = useStores();

@@ -2,7 +2,7 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import type { Props as InputProps } from "./Input";
+import { Props as InputProps } from "./Input";
 import Input from "./Input";
 
 type Props = InputProps & {

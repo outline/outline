@@ -1,4 +1,4 @@
-import type { KeyFilter } from "hooks/useKeyDown";
+import { KeyFilter } from "hooks/useKeyDown";
 import useKeyDown from "hooks/useKeyDown";
 
 type Props = {

@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation } from "react-i18next";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";

@@ -1,5 +1,5 @@
 import { computed } from "mobx";
-import type { Role } from "shared/types";
+import { Role } from "shared/types";
 import BaseModel from "./BaseModel";
 
 class User extends BaseModel {

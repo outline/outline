@@ -1,7 +1,7 @@
 import { orderBy } from "lodash";
 import { observable, action, computed } from "mobx";
 import { v4 as uuidv4 } from "uuid";
-import type { Toast, ToastOptions } from "types";
+import { Toast, ToastOptions } from "types";
 
 export default class ToastsStore {
   @observable

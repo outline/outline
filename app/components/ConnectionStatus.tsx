@@ -13,6 +13,7 @@ function ConnectionStatus() {
   const { ui } = useStores();
   const theme = useTheme();
   const { t } = useTranslation();
+
   return ui.multiplayerStatus === "connecting" ||
     ui.multiplayerStatus === "disconnected" ? (
     <Tooltip

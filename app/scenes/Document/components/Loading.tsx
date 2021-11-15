@@ -4,7 +4,7 @@ import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import PlaceholderDocument from "components/PlaceholderDocument";
 import Container from "./Container";
-import type { LocationWithState } from "types";
+import { LocationWithState } from "types";
 
 type Props = {
   location: LocationWithState;

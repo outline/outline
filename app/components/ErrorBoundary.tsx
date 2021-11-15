@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import { withTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Button from "components/Button";

@@ -1,14 +1,14 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import type { TFunction } from "react-i18next";
+import { TFunction } from "react-i18next";
 import { withTranslation } from "react-i18next";
 import PoliciesStore from "stores/PoliciesStore";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
-import type { Props as EditorProps } from "components/Editor";
+import { Props as EditorProps } from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import EditableTitle from "./EditableTitle";

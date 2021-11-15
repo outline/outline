@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
-import type { Props as EditorProps } from "components/Editor";
+import { Props as EditorProps } from "components/Editor";
 import Editor from "components/Editor";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";

@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { Match } from "react-router-dom";
+import { Match } from "react-router-dom";
 import { Switch, Redirect } from "react-router-dom";
 import Archive from "scenes/Archive";
 import Collection from "scenes/Collection";

@@ -1,4 +1,4 @@
-import type { Context } from "koa";
+import { Context } from "koa";
 import "koa";
 import { User } from "./models";
 

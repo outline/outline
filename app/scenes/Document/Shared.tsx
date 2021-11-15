@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { Match } from "react-router-dom";
+import { Match } from "react-router-dom";
 import "react-router-dom";
 import { useTheme } from "styled-components";
 import Error404 from "scenes/Error404";
@@ -7,7 +7,7 @@ import ErrorOffline from "scenes/ErrorOffline";
 import useStores from "../../hooks/useStores";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
-import type { LocationWithState } from "types";
+import { LocationWithState } from "types";
 import { OfflineError } from "utils/errors";
 import "types";
 

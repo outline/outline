@@ -7,7 +7,7 @@ import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Flex from "components/Flex";
-import type { Props as SelectProps } from "components/InputSelect";
+import { Props as SelectProps } from "components/InputSelect";
 import InputSelect from "components/InputSelect";
 import ListItem from "components/List/Item";
 import Time from "components/Time";

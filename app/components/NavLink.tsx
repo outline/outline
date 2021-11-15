@@ -1,9 +1,8 @@
 import * as React from "react";
-import type { Match } from "react-router-dom";
 import { NavLink, Route } from "react-router-dom";
 
 type Props = {
-  children?: (match: Match) => React.ReactNode;
+  children?: (match: any) => React.ReactNode;
   exact?: boolean;
   to: string;
 };

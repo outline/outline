@@ -1,13 +1,13 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import type { TFunction } from "react-i18next";
-import { withTranslation } from "react-i18next";
+import { TFunction, withTranslation } from "react-i18next";
+
 import styled from "styled-components";
 import User from "models/User";
-import UserProfile from "scenes/UserProfile";
 import Avatar from "components/Avatar";
 import Tooltip from "components/Tooltip";
+import UserProfile from "../../scenes/UserProfile";
 
 type Props = {
   user: User;
@@ -31,7 +31,7 @@ class AvatarWithPresence extends React.Component<Props> {
     this.isOpen = false;
   };
 
-  render() {
+  override render() {
     const { user, isPresent, isEditing, isCurrentUser, t } = this.props;
     const action = isPresent
       ? isEditing

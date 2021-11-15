@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { randomInteger } from "shared/random";
 import Flex from "components/Flex";
-import { pulsate } from "styles/animations";
+import { pulsate } from "../styles/animations";
 
 type Props = {
   header?: boolean;
@@ -15,22 +15,25 @@ type Props = {
 class PlaceholderText extends React.Component<Props> {
   width = randomInteger(this.props.minWidth || 75, this.props.maxWidth || 100);
 
-  shouldComponentUpdate() {
+  override shouldComponentUpdate() {
     return false;
   }
 
-  render() {
+  override render() {
     return (
       <Mask
         width={this.width}
         height={this.props.height}
         delay={this.props.delay}
+        header={this.props.header}
       />
     );
   }
 }
 
-const Mask = styled(Flex)`
+const Mask = styled(Flex) <{
+  width: number; height?: number; delay?: number; header?: boolean;
+}>`
   width: ${(props) => (props.header ? props.width / 2 : props.width)}%;
   height: ${(props) =>
     props.height ? props.height : props.header ? 24 : 18}px;

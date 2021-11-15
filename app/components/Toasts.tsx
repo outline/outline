@@ -2,13 +2,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import Toast from "components/Toast";
+import { Toast as TToast } from "../types";
 import useStores from "hooks/useStores";
 
 function Toasts() {
   const { toasts } = useStores();
   return (
     <List>
-      {toasts.orderedData.map((toast) => (
+      {toasts.orderedData.map((toast: TToast) => (
         <Toast
           key={toast.id}
           toast={toast}

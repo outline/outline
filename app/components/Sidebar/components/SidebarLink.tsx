@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
-import type { Props as NavLinkProps } from "./NavLink";
+import { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
 
 type Props = NavLinkProps & {

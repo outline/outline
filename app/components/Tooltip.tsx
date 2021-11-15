@@ -12,8 +12,8 @@ type Props = {
 };
 
 class Tooltip extends React.Component<Props> {
-  render() {
-    const { shortcut, tooltip, delay = 50, className, ...rest } = this.props;
+  override render() {
+    const { shortcut, tooltip, delay = 50, ...rest } = this.props;
     let content = tooltip;
 
     if (!tooltip) {

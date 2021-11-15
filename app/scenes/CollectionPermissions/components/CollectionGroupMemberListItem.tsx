@@ -4,7 +4,7 @@ import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
 import GroupListItem from "components/GroupListItem";
-import type { Props as SelectProps } from "components/InputSelect";
+import { Props as SelectProps } from "components/InputSelect";
 import InputSelect from "components/InputSelect";
 import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 

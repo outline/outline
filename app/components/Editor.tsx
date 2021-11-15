@@ -1,7 +1,7 @@
 import { lighten } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import type { RouterHistory } from "react-router-dom";
+import { RouterHistory } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
@@ -12,7 +12,7 @@ import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
-import type { Theme } from "types";
+import { Theme } from "types";
 import "types";
 import { isModKey } from "utils/keyboard";
 import { uploadFile } from "utils/uploadFile";

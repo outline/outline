@@ -15,7 +15,7 @@ import SidebarLink from "./SidebarLink";
 import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
-import type { NavigationNode } from "types";
+import { NavigationNode } from "types";
 import "types";
 
 type Props = {

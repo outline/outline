@@ -1,7 +1,6 @@
 import { addMinutes, subMinutes } from "date-fns";
 import fetch from "fetch-with-proxy";
-import type { Request } from "koa";
-import "koa";
+import { Request } from "koa";
 import { OAuthStateMismatchError } from "../errors";
 import { getCookieDomain } from "./domains";
 

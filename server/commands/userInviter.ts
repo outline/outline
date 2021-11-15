@@ -1,5 +1,5 @@
 import { uniqBy } from "lodash";
-import type { Role } from "shared/types";
+import { Role } from "shared/types";
 import mailer from "../mailer";
 import { User, Event, Team } from "../models";
 

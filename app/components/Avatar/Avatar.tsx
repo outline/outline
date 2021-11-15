@@ -28,7 +28,7 @@ class Avatar extends React.Component<Props> {
     this.error = true;
   };
 
-  render() {
+  override render() {
     const { src, icon, ...rest } = this.props;
     return (
       <AvatarWrapper>
@@ -46,6 +46,7 @@ class Avatar extends React.Component<Props> {
 const AvatarWrapper = styled.div`
   position: relative;
 `;
+
 const IconWrapper = styled.div`
   display: flex;
   position: absolute;
@@ -57,6 +58,7 @@ const IconWrapper = styled.div`
   width: 20px;
   height: 20px;
 `;
+
 const CircleImg = styled.img<{ size: number }>`
   display: block;
   width: ${(props) => props.size}px;

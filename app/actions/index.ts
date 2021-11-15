@@ -2,13 +2,13 @@ import { flattenDeep } from "lodash";
 import * as React from "react";
 import { $Diff } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
-import type {
+import {
   Action,
   ActionContext,
   CommandBarAction,
   MenuItemClickable,
   MenuItemWithChildren,
-} from "types";
+} from "../types";
 
 export function createAction(
   definition: $Diff<

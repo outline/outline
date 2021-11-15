@@ -4,7 +4,7 @@ import { observable, set, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "stores/RootStore";
 import BaseModel from "../models/BaseModel";
-import type { PaginationParams } from "types";
+import { PaginationParams } from "types";
 import { client } from "utils/ApiClient";
 
 type Action = "list" | "info" | "create" | "update" | "delete" | "count";

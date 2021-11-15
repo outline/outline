@@ -3,14 +3,13 @@ import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import type { TFunction } from "react-i18next";
-import { withTranslation } from "react-i18next";
+import { withTranslation, TFunction } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
-import { dateToHeading } from "utils/dates";
+import { dateToHeading } from "../utils/dates";
 
 type Props = {
   fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
@@ -51,11 +50,11 @@ class PaginatedList extends React.Component<Props> {
     this.isInitiallyLoaded = this.props.items.length > 0;
   }
 
-  componentDidMount() {
+  override componentDidMount() {
     this.fetchResults();
   }
 
-  componentDidUpdate(prevProps: Props) {
+  override componentDidUpdate(prevProps: Props) {
     if (
       prevProps.fetch !== this.props.fetch ||
       !isEqual(prevProps.options, this.props.options)
@@ -116,7 +115,7 @@ class PaginatedList extends React.Component<Props> {
     }
   };
 
-  render() {
+  override render() {
     const { items, heading, auth, empty, renderHeading } = this.props;
     let previousHeading = "";
     const showLoading =

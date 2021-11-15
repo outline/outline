@@ -1,6 +1,5 @@
 import stream from "stream";
-import type { Context } from "koa";
-import "koa";
+import { Context } from "koa";
 
 export default function apiWrapper() {
   return async function apiWrapperMiddleware(

@@ -7,7 +7,7 @@ export default function AlertNotice({
   children: React.ReactNode;
 }) {
   return (
-    <Notice muted>
+    <Notice>
       <svg
         width="16"
         height="16"

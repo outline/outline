@@ -1,12 +1,12 @@
 import nodemailer from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
-import type { Props as CollectionNotificationEmailT } from "./emails/CollectionNotificationEmail";
+import { Props as CollectionNotificationEmailT } from "./emails/CollectionNotificationEmail";
 import {
   CollectionNotificationEmail,
   collectionNotificationEmailText,
 } from "./emails/CollectionNotificationEmail";
-import type { Props as DocumentNotificationEmailT } from "./emails/DocumentNotificationEmail";
+import { Props as DocumentNotificationEmailT } from "./emails/DocumentNotificationEmail";
 import {
   DocumentNotificationEmail,
   documentNotificationEmailText,
@@ -19,7 +19,7 @@ import {
   ExportSuccessEmail,
   exportEmailSuccessText,
 } from "./emails/ExportSuccessEmail";
-import type { Props as InviteEmailT } from "./emails/InviteEmail";
+import { Props as InviteEmailT } from "./emails/InviteEmail";
 import { InviteEmail, inviteEmailText } from "./emails/InviteEmail";
 import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";

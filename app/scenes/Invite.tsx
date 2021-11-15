@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import type { Role } from "shared/types";
+import { Role } from "shared/types";
 import Button from "components/Button";
 import CopyToClipboard from "components/CopyToClipboard";
 import Flex from "components/Flex";

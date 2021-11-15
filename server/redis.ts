@@ -4,7 +4,7 @@ import Logger from "./logging/logger";
 const options = {
   maxRetriesPerRequest: 20,
 
-  retryStrategy(times) {
+  retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
     return Math.min(times * 100, 3000);
   },

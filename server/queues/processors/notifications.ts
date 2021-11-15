@@ -9,7 +9,7 @@ import {
   NotificationSetting,
 } from "../../models";
 import { Op } from "../../sequelize";
-import type {
+import {
   DocumentEvent,
   CollectionEvent,
   RevisionEvent,

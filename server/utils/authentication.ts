@@ -1,6 +1,6 @@
 import querystring from "querystring";
 import { addMonths } from "date-fns";
-import type { Context } from "koa";
+import { Context } from "koa";
 import "koa";
 import { pick } from "lodash";
 import Logger from "../logging/logger";

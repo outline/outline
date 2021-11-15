@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ElementRef } from "reakit";
+import { ElementRef } from "reakit";
 import "reakit";
 import useMobile from "hooks/useMobile";
 import useWindowSize from "hooks/useWindowSize";

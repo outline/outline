@@ -24,6 +24,7 @@ export default function init(app: Koa, server: http.Server) {
   server.on("upgrade", function (req, socket, head) {
     if (req.url.indexOf(path) > -1) {
       const documentName = url.parse(req.url).pathname?.split("/").pop();
+
       wss.handleUpgrade(req, socket, head, (client) => {
         hocuspocus.handleConnection(client, req, documentName);
       });
