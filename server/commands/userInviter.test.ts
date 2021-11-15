@@ -1,4 +1,3 @@
-
 import { buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
 import userInviter from "./userInviter";

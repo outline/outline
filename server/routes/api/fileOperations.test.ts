@@ -1,4 +1,3 @@
-
 import TestServer from "fetch-test-server";
 import { Collection, User, Event, FileOperation } from "../../models";
 import webService from "../../services/web";

@@ -1,4 +1,3 @@
-
 import mailer from "../../mailer";
 import { View, NotificationSetting } from "../../models";
 import {

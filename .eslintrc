@@ -18,10 +18,21 @@
     "@typescript-eslint",
     "prettier"
   ],
+  "ignorePatterns": [
+    "server/migrations/**/*"
+  ],
   "rules": {
     "eqeqeq": 2,
-    "no-unused-vars": 2,
     "no-mixed-operators": "off",
+    "no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "argsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
     "import/order": [
       "error",
       {

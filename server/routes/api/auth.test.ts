@@ -1,4 +1,3 @@
-
 import TestServer from "fetch-test-server";
 import webService from "../../services/web";
 import { buildUser, buildTeam } from "../../test/factories";

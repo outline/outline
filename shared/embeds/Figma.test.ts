@@ -1,4 +1,3 @@
-
 import Figma from "./Figma";
 describe("Figma", () => {
   const match = Figma.ENABLED[0];

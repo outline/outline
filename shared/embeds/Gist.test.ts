@@ -1,4 +1,3 @@
-
 import Gist from "./Gist";
 describe("Gist", () => {
   const match = Gist.ENABLED[0];

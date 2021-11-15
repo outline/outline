@@ -1,4 +1,3 @@
-
 import Loom from "./Loom";
 describe("Loom", () => {
   const match = Loom.ENABLED[0];

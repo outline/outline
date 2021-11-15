@@ -1,4 +1,3 @@
-
 import Lucidchart from "./Lucidchart";
 describe("Lucidchart", () => {
   const match = Lucidchart.ENABLED[0];

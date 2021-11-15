@@ -30,7 +30,7 @@ export function createQueue(name: string) {
   queue.on("completed", () => {
     Metrics.increment(`${prefix}.jobs.completed`);
   });
-  queue.on("error", (err) => {
+  queue.on("error", () => {
     Metrics.increment(`${prefix}.jobs.errored`);
   });
   queue.on("failed", () => {

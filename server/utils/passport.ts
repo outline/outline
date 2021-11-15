@@ -6,10 +6,7 @@ import { OAuthStateMismatchError } from "../errors";
 import { getCookieDomain } from "./domains";
 export class StateStore {
   key = "state";
-  store = (
-    req: Request,
-    callback: (err: Error | null | undefined, state?: string) => void
-  ) => {
+  store = (req: Request, callback: () => void) => {
     // Produce an 8-character random string as state
     const state = Math.random().toString(36).slice(-8);
     // $FlowFixMe
@@ -20,14 +17,7 @@ export class StateStore {
     });
     callback(null, state);
   };
-  verify = (
-    req: Request,
-    providedState: string,
-    callback: (
-      err: Error | null | undefined,
-      arg1: boolean | null | undefined
-    ) => void
-  ) => {
+  verify = (req: Request, providedState: string, callback: () => void) => {
     // $FlowFixMe
     const state = req.cookies.get(this.key);
 

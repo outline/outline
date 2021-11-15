@@ -15,13 +15,13 @@ import HelpText from "components/HelpText";
 import OutlineLogo from "components/OutlineLogo";
 import PageTitle from "components/PageTitle";
 import TeamLogo from "components/TeamLogo";
-import { isCustomDomain } from "utils/domains";
 import { changeLanguage, detectLanguage } from "../../utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
 import env from "env";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
+import { isCustomDomain } from "utils/domains";
 type Props = {
   location: Location;
 };

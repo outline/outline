@@ -1,4 +1,3 @@
-
 import { Document } from "../models";
 import {
   buildDocument,

@@ -1,4 +1,3 @@
-
 import TestServer from "fetch-test-server";
 import { Document, CollectionUser, CollectionGroup } from "../../models";
 import webService from "../../services/web";

@@ -1,5 +1,3 @@
-import http from "http";
-import Koa from "koa";
 import Logger from "../logging/logger";
 import {
   globalEventQueue,
@@ -25,7 +23,7 @@ const eventProcessors = {
   revisions: new Revisions(),
   slack: new Slack(),
 };
-export default function init(app: Koa, server?: http.Server) {
+export default function init() {
   // this queue processes global events and hands them off to services
   globalEventQueue.process(function (job) {
     Object.keys(eventProcessors).forEach((name) => {

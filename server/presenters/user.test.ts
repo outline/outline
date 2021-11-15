@@ -1,4 +1,3 @@
-
 import presentUser from "./user";
 it("presents a user", async () => {
   const user = presentUser({

@@ -1,4 +1,3 @@
-
 import Spotify from "./Spotify";
 describe("Spotify", () => {
   const match = Spotify.ENABLED[0];

@@ -1,4 +1,3 @@
-
 import GoogleDrawings from "./GoogleDrawings";
 describe("GoogleDrawings", () => {
   const match = GoogleDrawings.ENABLED[0];

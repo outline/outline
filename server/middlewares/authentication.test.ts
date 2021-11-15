@@ -1,4 +1,3 @@
-
 import randomstring from "randomstring";
 import { ApiKey } from "../models";
 import { buildUser, buildTeam } from "../test/factories";

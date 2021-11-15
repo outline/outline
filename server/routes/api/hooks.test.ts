@@ -1,4 +1,3 @@
-
 import TestServer from "fetch-test-server";
 import { IntegrationAuthentication, SearchQuery } from "../../models";
 import webService from "../../services/web";

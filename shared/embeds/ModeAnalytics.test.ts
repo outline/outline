@@ -1,4 +1,3 @@
-
 import ModeAnalytics from "./ModeAnalytics";
 describe("ModeAnalytics", () => {
   const match = ModeAnalytics.ENABLED[0];

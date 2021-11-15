@@ -1,4 +1,3 @@
-
 import { CollectionGroup, GroupUser } from "../models";
 import { buildUser, buildGroup, buildCollection } from "../test/factories";
 import { flushdb } from "../test/support";

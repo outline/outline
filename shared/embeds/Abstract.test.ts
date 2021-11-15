@@ -1,4 +1,3 @@
-
 import Abstract from "./Abstract";
 describe("Abstract", () => {
   const match = Abstract.ENABLED[0];

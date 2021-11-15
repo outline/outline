@@ -37,8 +37,8 @@ import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import Collection from "../models/Collection";
-import { newDocumentPath, collectionUrl } from "utils/routeHelpers";
 import { updateCollectionUrl } from "../utils/routeHelpers";
+import { editCollection } from "actions/definitions/collections";
 import useBoolean from "hooks/useBoolean";
 import useCommandBarActions from "hooks/useCommandBarActions";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -46,7 +46,7 @@ import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import CollectionMenu from "menus/CollectionMenu";
-import { editCollection } from "actions/definitions/collections";
+import { newDocumentPath, collectionUrl } from "utils/routeHelpers";
 
 function CollectionScene() {
   const params = useParams();

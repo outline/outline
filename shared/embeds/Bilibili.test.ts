@@ -1,4 +1,3 @@
-
 import Bilibili from "./Bilibili";
 describe("Bilibili", () => {
   const match = Bilibili.ENABLED[0];

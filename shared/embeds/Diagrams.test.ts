@@ -1,4 +1,3 @@
-
 import Diagrams from "./Diagrams";
 describe("Diagrams", () => {
   const match = Diagrams.ENABLED[0];

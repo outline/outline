@@ -1,4 +1,3 @@
-
 import Cawemo from "./Cawemo";
 describe("Cawemo", () => {
   const match = Cawemo.ENABLED[0];

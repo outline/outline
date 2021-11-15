@@ -1,4 +1,3 @@
-
 import Typeform from "./Typeform";
 describe("Typeform", () => {
   const match = Typeform.ENABLED[0];

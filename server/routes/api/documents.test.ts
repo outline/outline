@@ -1,4 +1,3 @@
-
 import TestServer from "fetch-test-server";
 import {
   Document,

@@ -1,4 +1,3 @@
-
 import ClickUp from "./ClickUp";
 describe("ClickUp", () => {
   const match = ClickUp.ENABLED[0];

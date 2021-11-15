@@ -1,4 +1,3 @@
-
 import { stripSubdomain, parseDomain, isCustomSubdomain } from "./domains";
 // test suite is based on subset of parse-domain module we want to support
 // https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js

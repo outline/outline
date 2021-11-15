@@ -1,4 +1,3 @@
-
 import Airtable from "./Airtable";
 describe("Airtable", () => {
   const match = Airtable.ENABLED[0];

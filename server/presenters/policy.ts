@@ -7,6 +7,7 @@ export default function present(
   user: User,
   objects: Record<string, any>[]
 ): Policy[] {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { serialize } = require("../policies");
 
   return objects.map((object) => ({

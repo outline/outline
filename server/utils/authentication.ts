@@ -16,7 +16,7 @@ export async function signIn(
   user: User,
   team: Team,
   service: string,
-  isNewUser = false,
+  _isNewUser = false,
   isNewTeam = false
 ) {
   if (user.isSuspended) {

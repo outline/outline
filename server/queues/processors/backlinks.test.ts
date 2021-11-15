@@ -1,4 +1,3 @@
-
 import { Backlink } from "../../models";
 import { buildDocument } from "../../test/factories";
 import { flushdb } from "../../test/support";

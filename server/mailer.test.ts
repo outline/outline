@@ -1,4 +1,3 @@
-
 import mailer from "./mailer";
 describe("Mailer", () => {
   const fakeMailer = mailer;

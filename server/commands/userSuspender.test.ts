@@ -1,4 +1,3 @@
-
 import { GroupUser } from "../models";
 import { buildGroup, buildAdmin, buildUser } from "../test/factories";
 import { flushdb } from "../test/support";
