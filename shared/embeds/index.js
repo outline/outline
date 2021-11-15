@@ -26,6 +26,7 @@ import Marvel from "./Marvel";
 import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
+import Pitch from "./Pitch";
 import Prezi from "./Prezi";
 import Spotify from "./Spotify";
 import Trello from "./Trello";
@@ -231,6 +232,14 @@ export default [
     icon: () => <Img src="/images/mode-analytics.png" />,
     component: ModeAnalytics,
     matcher: matcher(ModeAnalytics),
+  },
+  {
+    title: "Pitch",
+    keywords: "presentation",
+    defaultHidden: true,
+    icon: () => <Img src="/images/pitch.png" />,
+    component: Pitch,
+    matcher: matcher(Pitch),
   },
   {
     title: "Prezi",
