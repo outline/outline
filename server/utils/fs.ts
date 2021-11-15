@@ -19,7 +19,6 @@ export function requireDirectory<T>(dirName: string): [T, string][] {
     .map((fileName) => {
       const filePath = path.join(dirName, fileName);
       const name = path.basename(filePath.replace(/\.js$/, ""));
-      // $FlowIssue
       return [require(filePath), name];
     });
 }

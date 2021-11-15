@@ -31,7 +31,7 @@ class Gist extends React.Component<Props> {
     const iframe = this.ref.current;
     if (!iframe) return;
     const id = this.id;
-    // $FlowFixMe
+
     let doc = iframe.document;
 
     if (iframe.contentDocument) {

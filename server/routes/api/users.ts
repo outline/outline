@@ -11,7 +11,8 @@ import pagination from "./middlewares/pagination";
 const { can, authorize } = policy;
 const router = new Router();
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  let { sort = "createdAt", query, direction, filter } = ctx.body;
+  let { direction } = ctx.body;
+  const { sort = "createdAt", query, filter } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertSort(sort, User);
 

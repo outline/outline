@@ -8,7 +8,7 @@ export default function download(
   strFileName: string,
   strMimeType?: string
 ) {
-  let self = window,
+  const self = window,
     // this script is only for browsers anyway...
     u = "application/octet-stream",
     // this default mime also triggers iframe downloads
@@ -35,10 +35,8 @@ export default function download(
 
   //go ahead and download dataURLs right away
   if (String(x).match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
-    // $FlowIssue
     return navigator.msSaveBlob // IE10 can't do a[download], only Blobs:
-      ? // $FlowIssue
-        navigator.msSaveBlob(d2b(x), fn)
+      ? navigator.msSaveBlob(d2b(x), fn)
       : saver(x); // everyone else can save dataURLs un-processed
   }
 
@@ -63,7 +61,7 @@ export default function download(
       throw Error("Attempted to pass non-string to d2b");
     }
 
-    let p = u.split(/[:;,]/),
+    const p = u.split(/[:;,]/),
       t = p[1],
       dec = p[2] === "base64" ? atob : decodeURIComponent,
       bin = dec(p.pop()),
@@ -116,10 +114,9 @@ export default function download(
     }, 333);
   }
 
-  // $FlowIssue
   if (navigator.msSaveBlob) {
     // IE10+ : (has Blob, but not a[download] or URL)
-    // $FlowIssue
+
     return navigator.msSaveBlob(blob, fn);
   }
 
@@ -136,7 +133,6 @@ export default function download(
       try {
         return saver("data:" + m + ";base64," + self.btoa(blob));
       } catch (y) {
-        // $FlowIssue
         return saver("data:" + m + "," + encodeURIComponent(blob));
       }
     }

@@ -53,7 +53,7 @@ export default async function collectionImporter({
   for (const item of items) {
     if (item.type === "collection") {
       // check if collection with name exists
-      let [collection, isCreated] = await Collection.findOrCreate({
+      const [collection, isCreated] = await Collection.findOrCreate({
         where: {
           teamId: user.teamId,
           name: item.name,

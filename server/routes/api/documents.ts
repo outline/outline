@@ -37,12 +37,8 @@ const Op = Sequelize.Op;
 const { authorize, cannot, can } = policy;
 const router = new Router();
 router.post("documents.list", auth(), pagination(), async (ctx) => {
-  let {
-    sort = "updatedAt",
-    template,
-    backlinkDocumentId,
-    parentDocumentId,
-  } = ctx.body;
+  let { sort = "updatedAt" } = ctx.body;
+  const { template, backlinkDocumentId, parentDocumentId } = ctx.body;
   // collection and user are here for backwards compatibility
   const collectionId = ctx.body.collectionId || ctx.body.collection;
   const createdById = ctx.body.userId || ctx.body.user;
@@ -304,7 +300,8 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   };
 });
 router.post("documents.viewed", auth(), pagination(), async (ctx) => {
-  let { sort = "updatedAt", direction } = ctx.body;
+  let { direction } = ctx.body;
+  const { sort = "updatedAt" } = ctx.body;
   ctx.assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
@@ -360,7 +357,8 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   };
 });
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
-  let { sort = "updatedAt", direction } = ctx.body;
+  let { direction } = ctx.body;
+  const { sort = "updatedAt" } = ctx.body;
   ctx.assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
@@ -408,7 +406,8 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
   };
 });
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
-  let { collectionId, dateFilter, sort = "updatedAt", direction } = ctx.body;
+  let { direction } = ctx.body;
+  const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
   ctx.assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;

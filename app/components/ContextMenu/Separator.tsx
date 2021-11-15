@@ -1,7 +1,8 @@
 import * as React from "react";
 import { MenuSeparator } from "reakit/Menu";
 import styled from "styled-components";
-export default function Separator(rest: {}) {
+
+export default function Separator(rest: any) {
   return (
     <MenuSeparator {...rest}>
       {(props) => <HorizontalRule {...props} />}

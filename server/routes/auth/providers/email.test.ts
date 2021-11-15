@@ -8,7 +8,6 @@ const server = new TestServer(app.callback());
 jest.mock("../../../mailer");
 beforeEach(async () => {
   await flushdb();
-  // $FlowFixMe – does not understand Jest mocks
   mailer.sendTemplate.mockReset();
 });
 afterAll(() => server.close());

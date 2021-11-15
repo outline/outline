@@ -93,7 +93,8 @@ router.post("shares.info", auth(), async (ctx) => {
   };
 });
 router.post("shares.list", auth(), pagination(), async (ctx) => {
-  let { sort = "updatedAt", direction } = ctx.body;
+  let { direction } = ctx.body;
+  const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertSort(sort, Share);
   const user = ctx.state.user;

@@ -15,9 +15,9 @@ export default function pagination(options?: Record<string, any>) {
     };
     const query = ctx.request.query;
     const body = ctx.request.body;
-    // $FlowFixMe
+
     let limit = query.limit || body.limit;
-    // $FlowFixMe
+
     let offset = query.offset || body.offset;
 
     if (limit && isNaN(limit)) {
@@ -53,9 +53,9 @@ export default function pagination(options?: Record<string, any>) {
       limit,
       offset,
     };
-    // $FlowFixMe
+
     query.limit = ctx.state.pagination.limit;
-    // $FlowFixMe
+
     query.offset = ctx.state.pagination.offset + query.limit;
 
     /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading

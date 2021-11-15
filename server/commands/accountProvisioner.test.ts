@@ -15,7 +15,6 @@ jest.mock("aws-sdk", () => {
   };
 });
 beforeEach(() => {
-  // $FlowFixMe
   mailer.sendTemplate.mockReset();
   return flushdb();
 });

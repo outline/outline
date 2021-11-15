@@ -13,9 +13,7 @@ export default function apiWrapper() {
       typeof ctx.body !== "string" &&
       !(ctx.body instanceof stream.Readable)
     ) {
-      // $FlowFixMe
       ctx.body = {
-        // $FlowFixMe
         ...ctx.body,
         status: ctx.status,
         ok,

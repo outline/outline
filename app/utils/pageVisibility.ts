@@ -18,6 +18,5 @@ export function getVisibilityListener(): string {
   return visibilityChange;
 }
 export function getPageVisible(): boolean {
-  // $FlowFixMe
   return !document[hidden];
 }

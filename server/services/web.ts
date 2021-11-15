@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 import http from "http";
 import Koa from "koa";
 import {
@@ -49,17 +51,11 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     // trust header fields set by our proxy. eg X-Forwarded-For
     app.proxy = true;
   } else if (!isTest) {
-    /* eslint-disable global-require */
     const convert = require("koa-convert");
-
     const webpack = require("webpack");
-
     const devMiddleware = require("koa-webpack-dev-middleware");
-
     const hotMiddleware = require("koa-webpack-hot-middleware");
-
     const config = require("../../webpack.config.dev");
-
     const compile = webpack(config);
 
     /* eslint-enable global-require */

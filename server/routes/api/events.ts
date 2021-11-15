@@ -10,12 +10,12 @@ const { authorize } = policy;
 const router = new Router();
 router.post("events.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
-  let {
+  let { direction } = ctx.body;
+  const {
     sort = "createdAt",
     actorId,
     documentId,
     collectionId,
-    direction,
     name,
     auditLog = false,
   } = ctx.body;

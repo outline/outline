@@ -1,4 +1,7 @@
 import { observer } from "mobx-react";
+import * as React from "react";
+import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import { $Diff } from "utility-types";
 import User from "models/User";
 import Avatar from "components/Avatar";
@@ -9,9 +12,7 @@ import "components/Table";
 import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import UserMenu from "menus/UserMenu";
-import * as React from "react";
-import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+
 const Table = React.lazy<TableProps>(
   () =>
     import(

@@ -17,7 +17,6 @@ router.get("/:type/:format", async (ctx) => {
     //   break;
     default:
       if (Object.getOwnPropertyNames(mailer).includes(ctx.params.type)) {
-        // $FlowIssue flow doesn't like this but we're ok with it
         mailer[ctx.params.type]("user@example.com");
       } else throw new NotFoundError("Email template could not be found");
   }

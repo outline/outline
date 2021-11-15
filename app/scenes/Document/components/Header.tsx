@@ -19,6 +19,8 @@ import Collaborators from "components/Collaborators";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
+import PublicBreadcrumb from "./PublicBreadcrumb";
+import ShareButton from "./ShareButton";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
@@ -30,8 +32,7 @@ import type { NavigationNode } from "types";
 import "types";
 import { metaDisplay } from "utils/keyboard";
 import { newDocumentPath, editDocumentUrl } from "utils/routeHelpers";
-import PublicBreadcrumb from "./PublicBreadcrumb";
-import ShareButton from "./ShareButton";
+
 type Props = {
   document: Document;
   sharedTree: NavigationNode | null | undefined;

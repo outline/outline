@@ -3,7 +3,6 @@ export default function getDataTransferFiles(
 ): File[] {
   let dataTransferItemsList = [];
 
-  // $FlowFixMe
   if (event.dataTransfer) {
     const dt = event.dataTransfer;
 
@@ -13,7 +12,7 @@ export default function getDataTransferFiles(
       // During the drag even the dataTransfer.files is null
       // but Chrome implements some drag store, which is accesible via dataTransfer.items
       dataTransferItemsList = dt.items;
-    } // $FlowFixMe
+    }
   } else if (event.target && event.target.files) {
     dataTransferItemsList = event.target.files;
   }

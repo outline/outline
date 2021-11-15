@@ -13,12 +13,10 @@ export default class Analytics extends React.Component<Props> {
     // standard Google Analytics script
     window.ga =
       window.ga ||
-      function () {
-        // $FlowIssue
-        (ga.q = ga.q || []).push(arguments);
+      function (...args) {
+        (ga.q = ga.q || []).push(args);
       };
 
-    // $FlowIssue
     ga.l = +new Date();
     ga("create", env.GOOGLE_ANALYTICS_ID, "auto");
     ga("set", {

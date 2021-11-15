@@ -2284,7 +2284,7 @@ describe("#documents.delete", () => {
 });
 describe("#documents.unpublish", () => {
   it("should unpublish a document", async () => {
-    let { user, document } = await seed();
+    const { user, document } = await seed();
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),

@@ -26,7 +26,8 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   };
 });
 router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
-  let { sort = "createdAt", direction, type } = ctx.body;
+  let { direction } = ctx.body;
+  const { sort = "createdAt", type } = ctx.body;
   ctx.assertPresent(type, "type is required");
   ctx.assertIn(
     type,

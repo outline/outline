@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
-import Document from "models/Document.js";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";

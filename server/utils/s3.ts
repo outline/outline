@@ -128,7 +128,6 @@ export const uploadToS3FromUrl = async (
   acl: string
 ) => {
   try {
-    // $FlowIssue https://github.com/facebook/flow/issues/2171
     const res = await fetch(url);
     const buffer = await res.buffer();
     await s3

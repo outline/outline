@@ -7,7 +7,6 @@ export default function methodOverride() {
     next: () => Promise<any>
   ) {
     if (ctx.method === "POST") {
-      // $FlowFixMe
       ctx.body = ctx.request.body;
     } else if (ctx.method === "GET") {
       ctx.method = 'POST'; // eslint-disable-line

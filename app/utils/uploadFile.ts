@@ -28,9 +28,7 @@ export const uploadFile = async (
     formData.append(key, data.form[key]);
   }
 
-  // $FlowFixMe
   if (file.blob) {
-    // $FlowFixMe
     formData.append("file", file.file);
   } else {
     formData.append("file", file);
