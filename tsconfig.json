@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "jsx": "react",
+    "lib": ["dom", "es2017", "dom.iterable", "esnext.asynciterable"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "strictNullChecks": true,
+    "noEmit": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "es2017",
+    "paths": {
+      "env": ["./app/env"],
+      "components/*": ["./app/components/*"],
+      "hooks/*": ["./app/hooks/*"],
+      "menus/*": ["./app/menus/*"],
+      "models/*": ["./app/models/*"],
+      "stores/*": ["./app/stores/*"],
+      "shared/*": ["./shared/*"],
+    }
+  },
+  "exclude": ["node_modules", "build"]
+}
