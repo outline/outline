@@ -18,7 +18,7 @@ module.exports = {
   module: {
     rules: [
       {
-       test: /\.js$/,
+       test: /\.[jt]sx?$/,
        loader: 'babel-loader',
        exclude: [
          path.join(__dirname, 'node_modules')
@@ -41,6 +41,7 @@ module.exports = {
     ]
   },
   resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.json'],
     modules: [
       path.resolve(__dirname, 'app'),
       'node_modules'

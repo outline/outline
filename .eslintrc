@@ -1,15 +1,22 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "extraFileExtensions": [".json"],
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "extends": [
-    "react-app",
     "plugin:import/errors",
     "plugin:import/warnings",
-    "plugin:flowtype/recommended",
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "plugins": [
-    "prettier",
-    "flowtype"
+    "@typescript-eslint",
+    "prettier"
   ],
   "rules": {
     "eqeqeq": 2,
@@ -55,21 +62,6 @@
         ]
       }
     ],
-    "flowtype/require-valid-file-annotation": [
-      2,
-      "always",
-      {
-        "annotationStyle": "line"
-      }
-    ],
-    "flowtype/space-after-type-colon": [
-      2,
-      "always"
-    ],
-    "flowtype/space-before-type-colon": [
-      2,
-      "never"
-    ],
     "prettier/prettier": [
       "error",
       {
@@ -86,14 +78,12 @@
     },
     "import/resolver": {
       "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"],
         "paths": [
           "app",
           "."
         ]
       }
-    },
-    "flowtype": {
-      "onlyFilesWithFlowAnnotation": false
     }
   },
   "env": {
