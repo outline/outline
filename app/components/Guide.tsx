@@ -23,6 +23,7 @@ const Guide = ({
     animated: 250,
   });
   const wasOpen = usePrevious(isOpen);
+
   React.useEffect(() => {
     if (!wasOpen && isOpen) {
       dialog.show();
@@ -32,6 +33,7 @@ const Guide = ({
       dialog.hide();
     }
   }, [dialog, wasOpen, isOpen]);
+
   return (
     <DialogBackdrop {...dialog}>
       {(props) => (
@@ -45,8 +47,6 @@ const Guide = ({
           >
             {(props) => (
               <Scene {...props} {...rest}>
-                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches
-                this call.
                 <Content>
                   {title && <Header>{title}</Header>}
                   {children}
@@ -65,6 +65,7 @@ const Header = styled.h1`
   margin-top: 0;
   margin-bottom: 1em;
 `;
+
 const Backdrop = styled.div`
   position: fixed;
   top: 0;
@@ -80,6 +81,7 @@ const Backdrop = styled.div`
     opacity: 1;
   }
 `;
+
 const Scene = styled.div`
   position: absolute;
   top: 0;
@@ -104,6 +106,7 @@ const Scene = styled.div`
     transform: translateX(0px);
   }
 `;
+
 const Content = styled(Scrollable)`
   width: 100%;
   padding: 16px;

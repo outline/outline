@@ -244,7 +244,6 @@ function ImportExport() {
       <br />
       <br />
       <PaginatedList
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; fetch: any; options: { type: s... Remove this comment to see the full error message
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
         options={{
@@ -255,7 +254,6 @@ function ImportExport() {
             <Trans>Recent exports</Trans>
           </Subheading>
         }
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           <FileOperationListItem
             key={item.id + item.state}

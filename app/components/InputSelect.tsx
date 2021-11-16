@@ -230,7 +230,7 @@ const Spacer = styled.div`
   flex-shrink: 0;
 `;
 
-const StyledButton = styled(Button)`
+const StyledButton = styled(Button)<{ nude?: boolean }>`
   font-weight: normal;
   text-transform: none;
   margin-bottom: 16px;
@@ -238,7 +238,6 @@ const StyledButton = styled(Button)`
   width: 100%;
 
   ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'nude' does not exist on type 'ThemedStyl... Remove this comment to see the full error message
     props.nude &&
     css`
       border-color: transparent;

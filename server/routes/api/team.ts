@@ -6,6 +6,7 @@ import { presentTeam, presentPolicies } from "../../presenters";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("team.update", auth(), async (ctx) => {
   const {
     name,

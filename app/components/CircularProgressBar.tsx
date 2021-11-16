@@ -63,7 +63,6 @@ const CircularProgressBar = ({
         <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (
           <Circle
-            // @ts-expect-error ts-migrate(2339) FIXME: Property 'primary' does not exist on type 'Default... Remove this comment to see the full error message
             color={theme.primary}
             percentage={percentage}
             offset={offset}

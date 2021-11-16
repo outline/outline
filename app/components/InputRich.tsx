@@ -23,11 +23,11 @@ function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
   const handleFocus = React.useCallback(() => {
     setFocused(true);
   }, []);
+
   return (
     <>
       <LabelText>{label}</LabelText>
       <StyledOutline
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         maxHeight={maxHeight}
         minHeight={minHeight}
         focused={focused}
@@ -52,12 +52,14 @@ function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
   );
 }
 
-const StyledOutline = styled(Outline)`
+const StyledOutline = styled(Outline)<{
+  minHeight?: number;
+  maxHeight?: number;
+  focused?: boolean;
+}>`
   display: block;
   padding: 8px 12px;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'minHeight' does not exist on type 'Pick<... Remove this comment to see the full error message
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'maxHeight' does not exist on type 'Pick<... Remove this comment to see the full error message
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "auto")};
   overflow-y: auto;
 
@@ -66,5 +68,4 @@ const StyledOutline = styled(Outline)`
   }
 `;
 
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ label, minHeight, maxHeight, ... Remove this comment to see the full error message
 export default observer(withTheme(InputRich));

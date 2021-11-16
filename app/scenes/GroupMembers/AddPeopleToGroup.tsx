@@ -20,17 +20,20 @@ import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
-type Props = WithTranslation & {
+type InjectedStores = {
   toasts: ToastsStore;
   auth: AuthStore;
-  group: Group;
-  groupMemberships: GroupMembershipsStore;
   users: UsersStore;
+  groupMemberships: GroupMembershipsStore;
+};
+
+type Props = WithTranslation & {
+  group: Group;
   onSubmit: () => void;
 };
 
 @observer
-class AddPeopleToGroup extends React.Component<Props> {
+class AddPeopleToGroup extends React.Component<Props & InjectedStores> {
   @observable
   inviteModalOpen = false;
 
@@ -84,6 +87,7 @@ class AddPeopleToGroup extends React.Component<Props> {
     const { users, group, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
+
     return (
       <Flex column>
         <HelpText>

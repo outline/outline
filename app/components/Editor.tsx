@@ -191,7 +191,6 @@ function Editor(props: PropsWithRef) {
     };
   }, [t]);
   return (
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; reloadOnChunkMissing: t... Remove this comment to see the full error message
     <ErrorBoundary reloadOnChunkMissing>
       <StyledEditor
         ref={props.forwardedRef}

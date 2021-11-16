@@ -136,7 +136,6 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
   overflow: hidden;
 
   svg {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property '$isActiveDrop' does not exist on type 'T... Remove this comment to see the full error message
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
     transition: fill 50ms;
   }

@@ -19,6 +19,7 @@ function Shares() {
   const { shares, auth, policies } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
   const can = policies.abilities(team.id);
+
   return (
     <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
       <Heading>{t("Share Links")}</Heading>
@@ -44,11 +45,9 @@ function Shares() {
       )}
       <Subheading>{t("Shared documents")}</Subheading>
       <PaginatedList
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; empty: Element; fetch: any; re... Remove this comment to see the full error message
         items={shares.published}
         empty={<Empty>{t("No share links, yet.")}</Empty>}
         fetch={shares.fetchPage}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => <ShareListItem key={item.id} share={item} />}
       />
     </Scene>

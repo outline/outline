@@ -31,8 +31,6 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
             t("Never signed in")
           )}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }

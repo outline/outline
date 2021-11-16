@@ -116,9 +116,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
     return (
       <>
         {collection.name}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'n' implicitly has
-        an 'any' type.
-        {path.map((n) => (
+        {path.map((n: any) => (
           <React.Fragment key={n.id}>
             <SmallSlash />
             {n.title}

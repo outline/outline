@@ -32,7 +32,6 @@ export type Props = {
 
 function Table({
   data,
-  offset,
   isLoading,
   totalPages,
   empty,
@@ -118,6 +117,7 @@ function Table({
 
   const isEmpty = !isLoading && data.length === 0;
   const showPlaceholder = isLoading && data.length === 0;
+
   return (
     <>
       <Anchor ref={topRef} />
@@ -130,9 +130,6 @@ function Table({
                 <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
                   <SortWrapper align="center" gap={4}>
                     {column.render("Header")}
-                    // @ts-expect-error ts-migrate(2339) FIXME: Property
-                    'isSorted' does not exist on type 'Header... Remove this
-                    comment to see the full error message
                     {column.isSorted &&
                       // @ts-expect-error ts-migrate(2339) FIXME: Property 'isSortedDesc' does not exist on type 'He... Remove this comment to see the full error message
                       (column.isSortedDesc ? (
@@ -202,13 +199,9 @@ export const Placeholder = ({
 }) => {
   return (
     <tbody>
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments, but
-      got 0.
-      {new Array(rows).fill().map((_, row) => (
+      {new Array(rows).fill(1).map((_, row) => (
         <Row key={row}>
-          // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments,
-          but got 0.
-          {new Array(columns).fill().map((_, col) => (
+          {new Array(columns).fill(1).map((_, col) => (
             <Cell key={col}>
               <PlaceholderText minWidth={25} maxWidth={75} />
             </Cell>
@@ -218,29 +211,36 @@ export const Placeholder = ({
     </tbody>
   );
 };
+
 const Anchor = styled.div`
   top: -32px;
   position: relative;
 `;
+
 const Pagination = styled(Flex)`
   margin: 0 0 32px;
 `;
+
 const DescSortIcon = styled(CollapsedIcon)`
   &:hover {
     fill: ${(props) => props.theme.text};
   }
 `;
+
 const AscSortIcon = styled(DescSortIcon)`
   transform: rotate(180deg);
 `;
+
 const InnerTable = styled.table`
   border-collapse: collapse;
   margin: 16px 0;
   width: 100%;
 `;
+
 const SortWrapper = styled(Flex)`
   height: 24px;
 `;
+
 const Cell = styled.td`
   padding: 6px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
@@ -257,6 +257,7 @@ const Cell = styled.td`
     vertical-align: bottom;
   }
 `;
+
 const Row = styled.tr`
   ${Cell} {
     &:first-child {
@@ -272,6 +273,7 @@ const Row = styled.tr`
     }
   }
 `;
+
 const Head = styled.th`
   text-align: left;
   position: sticky;

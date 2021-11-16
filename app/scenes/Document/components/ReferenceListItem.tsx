@@ -14,6 +14,7 @@ type Props = {
   anchor?: string;
   showCollection?: boolean;
 };
+
 const DocumentLink = styled(Link)`
   display: block;
   margin: 2px -8px;
@@ -30,6 +31,7 @@ const DocumentLink = styled(Link)`
     background: ${(props) => props.theme.listItemHoverBackground};
   }
 `;
+
 const Title = styled.h3`
   display: flex;
   align-items: center;
@@ -43,10 +45,12 @@ const Title = styled.h3`
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
+
 const StyledDocumentIcon = styled(DocumentIcon)`
   margin-left: -4px;
   color: ${(props) => props.theme.textSecondary};
 `;
+
 const Emoji = styled.span`
   display: inline-flex;
   align-items: center;
@@ -86,7 +90,6 @@ function ReferenceListItem({
           : document.title}
       </Title>
       {document.updatedBy && (
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'children' is missing in type '{ document... Remove this comment to see the full error message
         <DocumentMeta document={document} showCollection={showCollection} />
       )}
     </DocumentLink>

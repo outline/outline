@@ -75,8 +75,6 @@ function PeopleTable({ canManage, ...rest }: Props) {
           Cell: observer(({ row }) => (
             <Badges>
               {!row.original.lastActiveAt && <Badge>{t("Invited")}</Badge>}
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches
-              this call.
               {row.original.isAdmin && <Badge primary>{t("Admin")}</Badge>}
               {row.original.isViewer && <Badge>{t("Viewer")}</Badge>}
               {row.original.isSuspended && <Badge>{t("Suspended")}</Badge>}

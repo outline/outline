@@ -44,7 +44,6 @@ function DocumentTasks({ document }: Props) {
     <>
       {completed === total ? (
         <Done
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'primary' does not exist on type 'Default... Remove this comment to see the full error message
           color={theme.primary}
           size={20}
           $animated={done && previousDone === false}

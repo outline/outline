@@ -5,11 +5,13 @@ type Props = {
   children: React.ReactNode;
   sticky?: boolean;
 };
+
 const H3 = styled.h3`
   border-bottom: 1px solid ${(props) => props.theme.divider};
   margin: 12px 0;
   line-height: 1;
 `;
+
 const Underline = styled.div`
   margin-top: -1px;
   display: inline-block;
@@ -21,12 +23,11 @@ const Underline = styled.div`
   padding-top: 6px;
   padding-bottom: 4px;
 `;
+
 // When sticky we need extra background coverage around the sides otherwise
 // items that scroll past can "stick out" the sides of the heading
-const Background = styled.div`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'sticky' does not exist on type 'ThemedSt... Remove this comment to see the full error message
+const Background = styled.div<{ sticky?: boolean }>`
   position: ${(props) => (props.sticky ? "sticky" : "relative")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'sticky' does not exist on type 'ThemedSt... Remove this comment to see the full error message
   ${(props) => (props.sticky ? "top: 54px;" : "")}
   margin: 0 -8px;
   padding: 0 8px;
@@ -37,7 +38,6 @@ const Background = styled.div`
 
 const Subheading = ({ children, sticky, ...rest }: Props) => {
   return (
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <Background sticky={sticky}>
       <H3 {...rest}>
         <Underline>{children}</Underline>

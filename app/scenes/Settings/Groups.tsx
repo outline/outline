@@ -28,6 +28,7 @@ function Groups() {
     handleNewGroupModalOpen,
     handleNewGroupModalClose,
   ] = useBoolean();
+
   return (
     <Scene
       title={t("Groups")}
@@ -56,11 +57,9 @@ function Groups() {
       </HelpText>
       <Subheading>{t("All groups")}</Subheading>
       <PaginatedList
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; empty: Element; fetch: any; re... Remove this comment to see the full error message
         items={groups.orderedData}
         empty={<Empty>{t("No groups have been created yet")}</Empty>}
         fetch={groups.fetchPage}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <GroupListItem

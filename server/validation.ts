@@ -24,10 +24,9 @@ export const assertIn = (value, options, message) => {
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
 export const assertSort = (
-  value,
-  model,
+  value: string,
+  model: any,
   message = "Invalid sort parameter"
 ) => {
   if (!Object.keys(model.rawAttributes).includes(value)) {

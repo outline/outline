@@ -143,11 +143,13 @@ const Disclosure = styled(NudeButton)`
     color: ${(props) => props.theme.sidebarText};
   }
 `;
+
 const Placeholder = styled(ButtonLink)`
   color: ${(props) => props.theme.placeholder};
   cursor: text;
   min-height: 27px;
 `;
+
 const MaxHeight = styled.div`
   position: relative;
   max-height: 25vh;
@@ -171,6 +173,7 @@ const MaxHeight = styled.div`
     opacity: 1;
   }
 `;
+
 const Input = styled.div`
   margin: -8px;
   padding: 8px;

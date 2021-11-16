@@ -3,12 +3,15 @@ import auth from "../../middlewares/authentication";
 import { View, Document, Event } from "../../models";
 import policy from "../../policies";
 import { presentView } from "../../presenters";
+import { assertUuid } from "../../validation";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("views.list", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   assertUuid(documentId, "documentId is required");
+
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
@@ -19,9 +22,11 @@ router.post("views.list", auth(), async (ctx) => {
     data: views.map(presentView),
   };
 });
+
 router.post("views.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   assertUuid(documentId, "documentId is required");
+
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, {
     userId: user.id,

@@ -12,6 +12,5 @@ allow(
   User,
   ["read", "update", "delete"],
   NotificationSetting,
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
   (user, setting) => user && user.id === setting.userId
 );

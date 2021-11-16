@@ -49,20 +49,24 @@ const CommandBar = React.lazy(
       "components/CommandBar"
     )
 );
+
+type InjectedStors = {
+  auth: AuthStore;
+  ui: UiStore;
+  policies: PoliciesStore;
+  documents: DocumentsStore;
+};
+
 type Props = WithTranslation &
   RouteComponentProps & {
-    documents: DocumentsStore;
     children?: React.ReactNode | null | undefined;
     actions?: React.ReactNode | null | undefined;
     title?: React.ReactNode | null | undefined;
-    auth: AuthStore;
-    ui: UiStore;
-    policies: PoliciesStore;
     notifications?: React.ReactNode;
   };
 
 @observer
-class Layout extends React.Component<Props> {
+class Layout extends React.Component<Props & InjectedStors> {
   scrollable: HTMLDivElement | null | undefined;
 
   @observable
@@ -133,7 +137,6 @@ class Layout extends React.Component<Props> {
           <Content
             auto
             justify="center"
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             $isResizing={ui.sidebarIsResizing}
             $sidebarCollapsed={sidebarCollapsed}
             style={
@@ -185,10 +188,12 @@ const MobileMenuButton = styled(Button)`
   }
 `;
 
-const Content = styled(Flex)`
+const Content = styled(Flex)<{
+  $isResizing?: boolean;
+  $sidebarCollapsed?: boolean;
+}>`
   margin: 0;
   transition: ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property '$isResizing' does not exist on type 'The... Remove this comment to see the full error message
     props.$isResizing ? "none" : `margin-left 100ms ease-out`};
 
   @media print {
@@ -200,7 +205,6 @@ const Content = styled(Flex)`
   `}
 
   ${breakpoint("tablet")`
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
     ${(props: any) =>
       props.$sidebarCollapsed &&
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}

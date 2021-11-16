@@ -11,8 +11,7 @@ import Time from "components/Time";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 
-const Container = styled(Flex)`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'rtl' does not exist on type 'ThemedStyle... Remove this comment to see the full error message
+const Container = styled(Flex)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   color: ${(props) => props.theme.textTertiary};
   font-size: 13px;
@@ -20,13 +19,14 @@ const Container = styled(Flex)`
   overflow: hidden;
   min-width: 0;
 `;
+
 const Viewed = styled.span`
   text-overflow: ellipsis;
   overflow: hidden;
 `;
-const Modified = styled.span<{ highlight: boolean }>`
+
+const Modified = styled.span<{ highlight?: boolean }>`
   color: ${(props) => props.theme.textTertiary};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'highlight' does not exist on type 'Theme... Remove this comment to see the full error message
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
@@ -109,7 +109,6 @@ function DocumentMeta({
     );
   } else {
     content = (
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Modified highlight={modifiedSinceViewed && !lastUpdatedByCurrentUser}>
         {t("updated")} <Time dateTime={updatedAt} addSuffix />
       </Modified>
@@ -129,8 +128,7 @@ function DocumentMeta({
     if (!lastViewedAt) {
       return (
         <Viewed>
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call. •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
+          •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
         </Viewed>
       );
     }
@@ -143,7 +141,6 @@ function DocumentMeta({
   };
 
   return (
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {lastUpdatedByCurrentUser ? t("You") : updatedBy.name}&nbsp;
       {to ? <Link to={to}>{content}</Link> : content}

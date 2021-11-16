@@ -37,13 +37,12 @@ function DocumentViews({ document, isOpen }: Props) {
   const users = React.useMemo(() => sortedViews.map((v) => v.user), [
     sortedViews,
   ]);
+
   return (
     <>
       {isOpen && (
         <PaginatedList
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any[]; renderItem: (item: any) => E... Remove this comment to see the full error message
           items={users}
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
           renderItem={(item) => {
             // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'v' implicitly has an 'any' type.
             const view = documentViews.find((v) => v.user.id === item.id);
@@ -62,7 +61,6 @@ function DocumentViews({ document, isOpen }: Props) {
               <ListItem
                 key={item.id}
                 title={item.name}
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; title: any; subtitle: string; im... Remove this comment to see the full error message
                 subtitle={subtitle}
                 image={<Avatar key={item.id} src={item.avatarUrl} size={32} />}
                 border={false}

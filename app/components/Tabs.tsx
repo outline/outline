@@ -4,7 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import useWindowSize from "hooks/useWindowSize";
 
-const Nav = styled.nav`
+const Nav = styled.nav<{ $shadowVisible?: boolean }>`
   border-bottom: 1px solid ${(props) => props.theme.divider};
   margin: 12px 0;
   overflow-y: auto;
@@ -26,7 +26,6 @@ const Nav = styled.nav`
     height: 100%;
     pointer-events: none;
     background: ${(props) =>
-      // @ts-expect-error ts-migrate(2339) FIXME: Property '$shadowVisible' does not exist on type '... Remove this comment to see the full error message
       props.$shadowVisible
         ? `linear-gradient(
       90deg,
@@ -36,6 +35,7 @@ const Nav = styled.nav`
         : `transparent`};
   }
 `;
+
 // When sticky we need extra background coverage around the sides otherwise
 // items that scroll past can "stick out" the sides of the heading
 const Sticky = styled.div`
@@ -57,9 +57,10 @@ export const Separator = styled.span`
 `;
 
 const Tabs = ({ children }: { children: React.ReactNode }) => {
-  const ref = React.useRef<HTMLDivElement>();
+  const ref = React.useRef<any>();
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
+
   const updateShadows = React.useCallback(() => {
     const c = ref.current;
     if (!c) return;
@@ -71,14 +72,14 @@ const Tabs = ({ children }: { children: React.ReactNode }) => {
       setShadow(fade);
     }
   }, [shadowVisible]);
+
   React.useEffect(() => {
     updateShadows();
   }, [width, updateShadows]);
+
   return (
     <AnimateSharedLayout>
       <Sticky>
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-        call.
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
         </Nav>

@@ -131,7 +131,7 @@ router.get("/locales/:lng.json", async (ctx) => {
   );
 });
 router.get("/robots.txt", (ctx) => {
-  ctx.body = robotsResponse(ctx);
+  ctx.body = robotsResponse();
 });
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";

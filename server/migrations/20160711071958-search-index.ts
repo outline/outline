@@ -1,5 +1,5 @@
 module.exports = {
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
+  
   up: async (queryInterface, Sequelize) => {
     const searchDocument = `
 ALTER TABLE documents ADD COLUMN "searchVector" tsvector;
@@ -36,7 +36,7 @@ ON atlases FOR EACH ROW EXECUTE PROCEDURE atlases_search_trigger();
     await queryInterface.sequelize.query(searchDocument);
     await queryInterface.sequelize.query(searchCollection);
   },
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
+  
   down: async (queryInterface, Sequelize) => {
     // TODO?
   },

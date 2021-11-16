@@ -44,6 +44,7 @@ import pagination from "./middlewares/pagination";
 const Op = Sequelize.Op;
 const { authorize, cannot, can } = policy;
 const router = new Router();
+
 router.post("documents.list", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt" } = ctx.body;
   const { template, backlinkDocumentId, parentDocumentId } = ctx.body;
@@ -183,6 +184,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.pinned", auth(), pagination(), async (ctx) => {
   const { collectionId, sort = "updatedAt" } = ctx.body;
   let direction = ctx.body.direction;
@@ -233,6 +235,7 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const { sort = "updatedAt" } = ctx.body;
 
@@ -438,6 +441,7 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;

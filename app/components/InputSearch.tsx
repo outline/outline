@@ -28,7 +28,6 @@ export default function InputSearch(props: Props) {
       placeholder={placeholder}
       icon={
         <SearchIcon
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'inputBorderFocused' does not exist on ty... Remove this comment to see the full error message
           color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
         />
       }

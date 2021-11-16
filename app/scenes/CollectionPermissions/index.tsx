@@ -188,12 +188,14 @@ function CollectionPermissions({ collection }: Props) {
   const isEmpty = !collectionGroups.length && !collectionUsers.length;
   const sharing = collection.sharing;
   const teamSharingEnabled = !!auth.team && auth.team.sharing;
+
   return (
     <Flex column>
       <InputSelectPermission
         onChange={handleChangePermission}
         value={collection.permission || ""}
         short
+        nude
       />
       <PermissionExplainer>
         {!collection.permission && (
@@ -278,11 +280,9 @@ function CollectionPermissions({ collection }: Props) {
         </Empty>
       )}
       <PaginatedList
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; fetch: any; options: { id: str... Remove this comment to see the full error message
         items={collectionGroups}
         fetch={collectionGroupMemberships.fetchPage}
         options={fetchOptions}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
         renderItem={(group) => (
           <CollectionGroupMemberListItem
             key={group.id}
@@ -298,11 +298,9 @@ function CollectionPermissions({ collection }: Props) {
       {collectionGroups.length ? <Divider /> : null}
       <PaginatedList
         key={`collection-users-${collection.permission || "none"}`}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: string; items: any; fetch: any; optio... Remove this comment to see the full error message
         items={collectionUsers}
         fetch={memberships.fetchPage}
         options={fetchOptions}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           <MemberListItem
             key={item.id}
@@ -322,7 +320,6 @@ function CollectionPermissions({ collection }: Props) {
         isOpen={addGroupModalOpen}
       >
         <AddGroupsToCollection
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collection: Collection; onSubmit: boolean ... Remove this comment to see the full error message
           collection={collection}
           onSubmit={handleAddGroupModalClose}
         />
@@ -335,7 +332,6 @@ function CollectionPermissions({ collection }: Props) {
         isOpen={addMemberModalOpen}
       >
         <AddPeopleToCollection
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collection: Collection; onSubmit: boolean ... Remove this comment to see the full error message
           collection={collection}
           onSubmit={handleAddMemberModalClose}
         />

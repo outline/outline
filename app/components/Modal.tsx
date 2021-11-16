@@ -75,8 +75,6 @@ const Modal = ({
                 }}
                 {...props}
               >
-                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches
-                this call.
                 <Content>
                   <Centered onClick={(ev) => ev.stopPropagation()} column>
                     {title && <h1>{title}</h1>}
@@ -115,6 +113,7 @@ const Backdrop = styled.div`
     opacity: 1;
   }
 `;
+
 const Scene = styled.div<{ $nested: boolean }>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
@@ -141,6 +140,7 @@ const Scene = styled.div<{ $nested: boolean }>`
   `}
 `}
 `;
+
 const Content = styled(Scrollable)`
   width: 100%;
   padding: 8vh 2rem 2rem;
@@ -149,18 +149,21 @@ const Content = styled(Scrollable)`
     padding-top: 13vh;
   `};
 `;
+
 const Centered = styled(Flex)`
   width: 640px;
   max-width: 100%;
   position: relative;
   margin: 0 auto;
 `;
+
 const Text = styled.span`
   font-size: 16px;
   font-weight: 500;
   padding-right: 12px;
   user-select: none;
 `;
+
 const Close = styled(NudeButton)`
   position: absolute;
   display: block;
@@ -180,6 +183,7 @@ const Close = styled(NudeButton)`
     display: none;
   `};
 `;
+
 const Back = styled(NudeButton)`
   position: absolute;
   display: none;

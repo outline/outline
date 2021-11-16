@@ -578,7 +578,6 @@ class DocumentScene extends React.Component<Props & InjectedStores> {
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
                   <Editor
-                    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; id: string; key: string; ... Remove this comment to see the full error message
                     id={document.id}
                     key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
@@ -617,8 +616,6 @@ class DocumentScene extends React.Component<Props & InjectedStores> {
                     {!isShare && !revision && (
                       <>
                         <MarkAsViewed document={document} />
-                        // @ts-expect-error ts-migrate(2769) FIXME: No overload
-                        matches this call.
                         <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
                           <References document={document} />
                         </ReferencesWrapper>
@@ -661,6 +658,7 @@ const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
     display: none;
   }
 `;
+
 const MaxWidth = styled(Flex)<{
   isEditing?: boolean;
   archived?: boolean;

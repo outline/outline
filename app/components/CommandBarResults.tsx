@@ -28,13 +28,13 @@ export default function CommandBarResults() {
         typeof item === "string" ? (
           <Header>{item}</Header>
         ) : (
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ action: Action; active: boolean; }' is not... Remove this comment to see the full error message
           <CommandBarItem action={item} active={active} />
         )
       }
     />
   );
 }
+
 const Header = styled.h3`
   font-size: 13px;
   letter-spacing: 0.04em;

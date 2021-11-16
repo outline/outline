@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
+  
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("file_operations", {
       id: {
@@ -64,7 +64,7 @@ module.exports = {
     });
     await queryInterface.addIndex("file_operations", ["type", "state"]);
   },
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
+  
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeIndex("file_operations", ["type", "state"]);
     await queryInterface.dropTable("file_operations");

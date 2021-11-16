@@ -97,14 +97,12 @@ function GroupMembers({ group }: Props) {
         <Trans>Members</Trans>
       </Subheading>
       <PaginatedList
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; fetch: any; options: { id: str... Remove this comment to see the full error message
         items={users.inGroup(group.id)}
         fetch={groupMemberships.fetchPage}
         options={{
           id: group.id,
         }}
         empty={<Empty>{t("This group has no members.")}</Empty>}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           <GroupMemberListItem
             key={item.id}
@@ -123,7 +121,6 @@ function GroupMembers({ group }: Props) {
           isOpen={addModalOpen}
         >
           <AddPeopleToGroup
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ group: Group; onSubmit: () => void; }' is ... Remove this comment to see the full error message
             group={group}
             onSubmit={() => handleAddModal(false)}
           />
