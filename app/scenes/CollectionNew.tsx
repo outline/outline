@@ -1,6 +1,6 @@
 import { intersection } from "lodash";
 import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import { RouteComponentProps, withRouter } from "react-router-dom";
@@ -23,12 +23,12 @@ type StoreProps = {
   collections: CollectionsStore;
 };
 
-interface Props extends StoreProps, WithTranslation, RouteComponentProps {
+interface Props extends WithTranslation, RouteComponentProps {
   onSubmit: () => void;
 }
 
 @observer
-class CollectionNew extends React.Component<Props> {
+class CollectionNew extends React.Component<StoreProps & Props> {
   @observable
   name = "";
 
@@ -186,4 +186,4 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
-export default withStores(withTranslation()(withRouter(CollectionNew)));
+export default withTranslation()(withRouter(withStores<Props>(CollectionNew)));
