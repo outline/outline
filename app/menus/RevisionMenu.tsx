@@ -68,7 +68,6 @@ function RevisionMenu({ document, revisionId, className }: Props) {
         aria-label={t("Show menu")}
         {...menu}
       />
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; "aria-label": string;... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Revision options")}>
         <MenuItem {...menu} onClick={handleRestore}>
           <MenuIconWrapper>

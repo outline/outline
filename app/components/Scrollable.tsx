@@ -8,6 +8,7 @@ type Props = {
   topShadow?: boolean;
   bottomShadow?: boolean;
   flex?: boolean;
+  children: React.ReactNode;
 };
 
 function Scrollable(

@@ -6,10 +6,9 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "components/Flex";
 
-const RealTextarea = styled.textarea`
+const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   border: 0;
   flex: 1;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'hasIcon' does not exist on type 'ThemedS... Remove this comment to see the full error message
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
@@ -20,10 +19,10 @@ const RealTextarea = styled.textarea`
     color: ${(props) => props.theme.placeholder};
   }
 `;
-const RealInput = styled.input`
+
+const RealInput = styled.input<{ hasIcon?: boolean }>`
   border: 0;
   flex: 1;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'hasIcon' does not exist on type 'ThemedS... Remove this comment to see the full error message
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
@@ -47,18 +46,15 @@ const RealInput = styled.input`
     font-size: 16px;
   `};
 `;
-const Wrapper = styled.div`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'flex' does not exist on type 'ThemedStyl... Remove this comment to see the full error message
+
+const Wrapper = styled.div<{ flex?: boolean; short?: boolean; minHeight?: number; maxHeight?: number }>`
   flex: ${(props) => (props.flex ? "1" : "0")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'short' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   width: ${(props) => (props.short ? "49%" : "auto")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'short' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   max-width: ${(props) => (props.short ? "350px" : "100%")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'minHeight' does not exist on type 'Pick<... Remove this comment to see the full error message
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'maxHeight' does not exist on type 'Pick<... Remove this comment to see the full error message
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "initial")};
 `;
+
 const IconWrapper = styled.span`
   position: relative;
   left: 4px;
@@ -66,19 +62,17 @@ const IconWrapper = styled.span`
   height: 24px;
 `;
 
-export const Outline = styled(Flex)`
+export const Outline = styled(Flex)<{ margin?: string | number; hasError?: boolean; focused?: boolean  }>`
   flex: 1;
   margin: ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'margin' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     props.margin !== undefined ? props.margin : "0 0 16px"};
   color: inherit;
   border-width: 1px;
   border-style: solid;
   border-color: ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'hasError' does not exist on type 'Themed... Remove this comment to see the full error message
     props.hasError
       ? props.theme.danger
-      : // @ts-expect-error ts-migrate(2339) FIXME: Property 'focused' does not exist on type 'ThemedS... Remove this comment to see the full error message
+      :
       props.focused
       ? props.theme.inputBorderFocused
       : props.theme.inputBorder};
@@ -123,7 +117,7 @@ export type Props = {
 
 @observer
 class Input extends React.Component<Props> {
-  input: HTMLInputElement | null | undefined;
+  input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
 
   @observable
   focused = false;
@@ -145,9 +139,7 @@ class Input extends React.Component<Props> {
   };
 
   focus() {
-    if (this.input) {
-      this.input.focus();
-    }
+    this.input.current?.focus();
   }
 
   render() {
@@ -166,8 +158,8 @@ class Input extends React.Component<Props> {
     } = this.props;
     const InputComponent = type === "textarea" ? RealTextarea : RealInput;
     const wrappedLabel = <LabelText>{label}</LabelText>;
+
     return (
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Wrapper className={className} short={short} flex={flex}>
         <label>
           {label &&
@@ -176,16 +168,10 @@ class Input extends React.Component<Props> {
             ) : (
               wrappedLabel
             ))}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           <Outline focused={this.focused} margin={margin}>
             {icon && <IconWrapper>{icon}</IconWrapper>}
-            // @ts-expect-error ts-migrate(2604) FIXME: JSX element type
-            'InputComponent' does not have an... Remove this comment to see the
-            full error message
             <InputComponent
-              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-              ref={(ref) => (this.input = ref)}
+              ref={this.input}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
               type={type === "textarea" ? undefined : type}

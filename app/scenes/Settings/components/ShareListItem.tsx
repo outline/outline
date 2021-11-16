@@ -12,10 +12,10 @@ type Props = {
 const ShareListItem = ({ share }: Props) => {
   const { t } = useTranslation();
   const { lastAccessedAt } = share;
+
   return (
     <ListItem
       title={share.documentTitle}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; subtitle: Element; actions:... Remove this comment to see the full error message
       subtitle={
         <>
           {t("Shared")} <Time dateTime={share.createdAt} addSuffix />{" "}

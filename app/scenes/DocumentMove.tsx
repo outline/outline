@@ -1,13 +1,10 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'js-s... Remove this comment to see the full error message
 import { Search } from "js-search";
 import { last } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import AutoSizer from "react-virtualized-auto-sizer";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
 import { DocumentPath } from "stores/CollectionsStore";
@@ -58,6 +55,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
       } else {
+        // @ts-expect-error 
         results = searchIndex._documents;
       }
     }
@@ -165,7 +163,6 @@ function DocumentMove({ document, onRequestClose }: Props) {
                     itemData={data}
                     itemCount={data.length}
                     itemSize={40}
-                    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'index' implicitly has an 'any' type.
                     itemKey={(index, data) => data[index].id}
                   >
                     {row}

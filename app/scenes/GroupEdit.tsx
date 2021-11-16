@@ -68,9 +68,6 @@ function GroupEdit({ group, onSubmit }: Props) {
       </Flex>
 
       <Button type="submit" disabled={isSaving || !name}>
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-        HTMLCollection' is not assignable t... Remove this comment to see the
-        full error message
         {isSaving ? `${t("Saving")}…` : t("Save")}
       </Button>
     </form>

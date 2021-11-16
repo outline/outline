@@ -41,7 +41,6 @@ class Frame extends React.Component<PropsWithRef> {
     setImmediate(this.loadIframe);
   }
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
   componentWillUnmount() {
     this.mounted = false;
   }
@@ -51,7 +50,6 @@ class Frame extends React.Component<PropsWithRef> {
     this.isLoaded = true;
   };
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
   render() {
     const {
       border,

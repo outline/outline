@@ -54,14 +54,12 @@ function UserProfile(props: Props) {
             time: formatDistanceToNow(Date.parse(user.createdAt)),
           })}
           {user.isAdmin && (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <StyledBadge primary={user.isAdmin}>{t("Admin")}</StyledBadge>
           )}
           {user.isSuspended && <StyledBadge>{t("Suspended")}</StyledBadge>}
           {isCurrentUser && (
             <Edit>
               <Button
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
                 onClick={() => history.push(settingsPath())}
                 icon={<EditIcon />}
                 neutral
@@ -97,10 +95,12 @@ const Edit = styled.span`
   top: 46px;
   right: 0;
 `;
+
 const StyledBadge = styled(Badge)`
   position: relative;
   top: -2px;
 `;
+
 const Meta = styled(HelpText)`
   margin-top: -12px;
 `;

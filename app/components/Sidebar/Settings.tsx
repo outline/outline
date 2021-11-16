@@ -42,7 +42,6 @@ function SettingsSidebar() {
     history.push("/home");
   }, [history]);
   return (
-    // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
     <Sidebar>
       <TeamButton
         subheading={
@@ -56,25 +55,21 @@ function SettingsSidebar() {
       />
 
       <Flex auto column>
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; topShadow: true; }' is no... Remove this comment to see the full error message
         <Scrollable topShadow>
           <Section>
             <Header>{t("Account")}</Header>
             <SidebarLink
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
               to="/settings"
               icon={<ProfileIcon color="currentColor" />}
               label={t("Profile")}
             />
             <SidebarLink
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
               to="/settings/notifications"
               icon={<EmailIcon color="currentColor" />}
               label={t("Notifications")}
             />
             {can.createApiKey && (
               <SidebarLink
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                 to="/settings/tokens"
                 icon={<CodeIcon color="currentColor" />}
                 label={t("API Tokens")}
@@ -85,7 +80,6 @@ function SettingsSidebar() {
             <Header>{t("Team")}</Header>
             {can.update && (
               <SidebarLink
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                 to="/settings/details"
                 icon={<TeamIcon color="currentColor" />}
                 label={t("Details")}
@@ -93,7 +87,6 @@ function SettingsSidebar() {
             )}
             {can.update && (
               <SidebarLink
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                 to="/settings/security"
                 icon={<PadlockIcon color="currentColor" />}
                 label={t("Security")}
@@ -101,35 +94,30 @@ function SettingsSidebar() {
             )}
             {can.update && env.DEPLOYMENT !== "hosted" && (
               <SidebarLink
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                 to="/settings/features"
                 icon={<BeakerIcon color="currentColor" />}
                 label={t("Features")}
               />
             )}
             <SidebarLink
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; exact: boolean;... Remove this comment to see the full error message
               to="/settings/members"
               icon={<UserIcon color="currentColor" />}
               exact={false}
               label={t("Members")}
             />
             <SidebarLink
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; exact: boolean;... Remove this comment to see the full error message
               to="/settings/groups"
               icon={<GroupIcon color="currentColor" />}
               exact={false}
               label={t("Groups")}
             />
             <SidebarLink
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
               to="/settings/shares"
               icon={<LinkIcon color="currentColor" />}
               label={t("Share Links")}
             />
             {can.export && (
               <SidebarLink
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                 to="/settings/import-export"
                 icon={<DocumentIcon color="currentColor" />}
                 label={`${t("Import")} / ${t("Export")}`}
@@ -141,7 +129,6 @@ function SettingsSidebar() {
               <Header>{t("Integrations")}</Header>
               {env.SLACK_KEY && (
                 <SidebarLink
-                  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                   to="/settings/integrations/slack"
                   icon={<SlackIcon color="currentColor" />}
                   label="Slack"
@@ -149,7 +136,6 @@ function SettingsSidebar() {
               )}
               {isHosted && (
                 <SidebarLink
-                  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: string; icon: Element; label: string; ... Remove this comment to see the full error message
                   to="/settings/integrations/zapier"
                   icon={<ZapierIcon color="currentColor" />}
                   label="Zapier"

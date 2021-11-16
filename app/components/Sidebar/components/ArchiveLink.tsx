@@ -30,10 +30,10 @@ function ArchiveLink({ documents }) {
       isDocumentDropping: monitor.isOver(),
     }),
   });
+
   return (
     <div ref={dropToArchiveDocument}>
       <SidebarLink
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: any; icon: Element; exact: boolean; la... Remove this comment to see the full error message
         to={archivePath()}
         icon={<ArchiveIcon color="currentColor" open={isDocumentDropping} />}
         exact={false}

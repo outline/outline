@@ -253,7 +253,6 @@ function CollectionPermissions({ collection }: Props) {
         <Actions>
           <Button
             type="button"
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; type: string; on... Remove this comment to see the full error message
             onClick={handleAddGroupModalOpen}
             icon={<PlusIcon />}
             neutral
@@ -262,7 +261,6 @@ function CollectionPermissions({ collection }: Props) {
           </Button>{" "}
           <Button
             type="button"
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; type: string; on... Remove this comment to see the full error message
             onClick={handleAddMemberModalOpen}
             icon={<PlusIcon />}
             neutral
@@ -320,9 +318,7 @@ function CollectionPermissions({ collection }: Props) {
         title={t(`Add groups to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleAddGroupModalClose}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={addGroupModalOpen}
       >
         <AddGroupsToCollection
@@ -335,9 +331,7 @@ function CollectionPermissions({ collection }: Props) {
         title={t(`Add people to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleAddMemberModalClose}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={addMemberModalOpen}
       >
         <AddPeopleToCollection
@@ -353,10 +347,12 @@ function CollectionPermissions({ collection }: Props) {
 const Empty = styled(HelpText)`
   margin-top: 8px;
 `;
+
 const PermissionExplainer = styled(HelpText)`
   margin-top: -8px;
   margin-bottom: 24px;
 `;
+
 const Actions = styled.div`
   margin-bottom: 12px;
 `;

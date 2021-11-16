@@ -59,16 +59,13 @@ function NewDocumentMenu() {
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <Button icon={<PlusIcon />} {...props} small>
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type 'HTMLColle... Remove this comment to see the full error message
+          <Button icon={<PlusIcon />} {...props}>
             {`${t("New doc")}…`}
           </Button>
         )}
       </MenuButton>
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; "aria-label": string;... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("New document")}>
         <Header>{t("Choose a collection")}</Header>
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: an... Remove this comment to see the full error message
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

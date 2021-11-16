@@ -217,6 +217,5 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 }
 
 export default React.forwardRef<typeof MultiplayerEditor, any>(
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ onSynced, ...props }: Props, ... Remove this comment to see the full error message
   MultiplayerEditor
 );

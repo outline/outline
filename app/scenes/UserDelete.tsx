@@ -17,6 +17,7 @@ function UserDelete({ onRequestClose }: Props) {
   const { auth } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -37,6 +38,7 @@ function UserDelete({ onRequestClose }: Props) {
     },
     [auth, showToast]
   );
+
   return (
     <Modal isOpen title={t("Delete Account")} onRequestClose={onRequestClose}>
       <Flex column>
@@ -58,9 +60,6 @@ function UserDelete({ onRequestClose }: Props) {
             />
           </HelpText>
           <Button type="submit" danger>
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-            HTMLCollection' is not assignable t... Remove this comment to see
-            the full error message
             {isDeleting ? `${t("Deleting")}…` : t("Delete My Account")}
           </Button>
         </form>

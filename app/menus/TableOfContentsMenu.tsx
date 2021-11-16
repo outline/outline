@@ -30,6 +30,7 @@ function TableOfContentsMenu({ headings }: Props) {
     (memo, heading) => (heading.level < memo ? heading.level : memo),
     Infinity
   );
+
   const items: MenuItem[] = React.useMemo(() => {
     const i = [
       {
@@ -55,13 +56,13 @@ function TableOfContentsMenu({ headings }: Props) {
 
     return i;
   }, [t, headings, minHeading]);
+
   return (
     <>
       <MenuButton {...menu}>
         {(props) => (
           <Button
             {...props}
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ icon: Element; iconColor: string; borderOn... Remove this comment to see the full error message
             icon={<TableOfContentsIcon />}
             iconColor="currentColor"
             borderOnHover
@@ -69,9 +70,7 @@ function TableOfContentsMenu({ headings }: Props) {
           />
         )}
       </MenuButton>
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Table of contents")}>
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: an... Remove this comment to see the full error message
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

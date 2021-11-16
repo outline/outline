@@ -64,6 +64,7 @@ function CollectionMenu({
   const [showCollectionEdit, setShowCollectionEdit] = React.useState(false);
   const [showCollectionDelete, setShowCollectionDelete] = React.useState(false);
   const [showCollectionExport, setShowCollectionExport] = React.useState(false);
+
   const handleOpen = React.useCallback(() => {
     setRenderModals(true);
 
@@ -71,6 +72,7 @@ function CollectionMenu({
       onOpen();
     }
   }, [onOpen]);
+
   const handleNewDocument = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -78,9 +80,11 @@ function CollectionMenu({
     },
     [history, collection.id]
   );
+
   const stopPropagation = React.useCallback((ev: React.SyntheticEvent) => {
     ev.stopPropagation();
   }, []);
+
   const handleImportDocument = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -93,6 +97,7 @@ function CollectionMenu({
     },
     [file]
   );
+
   const handleFilePicked = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       const files = getDataTransferFiles(ev);

@@ -1,7 +1,6 @@
 import { inject } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
@@ -14,6 +13,7 @@ import { isInternalUrl } from "utils/urls";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
+
 type Props = {
   node: HTMLAnchorElement;
   event: MouseEvent;
@@ -21,12 +21,12 @@ type Props = {
   onClose: () => void;
 };
 
-function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
+function HoverPreviewInternal({ node, documents, onClose }: Props) {
   const slug = parseDocumentSlug(node.href);
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef();
   const timerOpen = React.useRef();
-  const cardRef = React.useRef<HTMLDivElement | null | undefined>();
+  const cardRef = React.useRef<HTMLDivElement>();
 
   const startCloseTimer = () => {
     stopOpenTimer();
@@ -93,34 +93,30 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
       }
     };
   }, [node]);
+
   const anchorBounds = node.getBoundingClientRect();
-  const cardBounds = cardRef.current
-    ? cardRef.current.getBoundingClientRect()
-    : undefined;
+  const cardBounds = cardRef.current?.getBoundingClientRect()
   const left = cardBounds
     ? Math.min(anchorBounds.left, window.innerWidth - 16 - 350)
     : anchorBounds.left;
   const leftOffset = anchorBounds.left - left;
+
   return (
     <Portal>
       <Position
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         top={anchorBounds.bottom + window.scrollY}
         left={left}
         aria-hidden
       >
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLDivElement | null | und... Remove this comment to see the full error message
         <div ref={cardRef}>
           <HoverPreviewDocument url={node.href}>
-            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'content' implicitly has an 'any' type.
-            {(content) =>
+            {(content: React.ReactNode) =>
               isVisible ? (
                 <Animate>
                   <Card>
                     <Margin />
                     <CardContent>{content}</CardContent>
                   </Card>
-                  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                   <Pointer offset={leftOffset + anchorBounds.width / 2} />
                 </Animate>
               ) : null
@@ -148,6 +144,7 @@ const Animate = styled.div`
     display: none;
   }
 `;
+
 // fills the gap between the card and pointer to avoid a dead zone
 const Margin = styled.div`
   position: absolute;
@@ -156,11 +153,13 @@ const Margin = styled.div`
   right: 0;
   height: 11px;
 `;
+
 const CardContent = styled.div`
   overflow: hidden;
   max-height: 350px;
   user-select: none;
 `;
+
 // &:after — gradient mask for overflow text
 const Card = styled.div`
   backdrop-filter: blur(10px);
@@ -198,22 +197,20 @@ const Card = styled.div`
     border-bottom-right-radius: 4px;
   }
 `;
-const Position = styled.div`
+
+const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
   margin-top: 10px;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'fixed' does not exist on type 'Pick<Deta... Remove this comment to see the full error message
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   z-index: ${(props) => props.theme.depths.hoverPreview};
   display: flex;
   max-height: 75%;
 
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'top' does not exist on type 'Pick<Detail... Remove this comment to see the full error message
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'left' does not exist on type 'Pick<Detai... Remove this comment to see the full error message
   ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
 `;
-const Pointer = styled.div`
+
+const Pointer = styled.div<{ offset: number }>`
   top: -22px;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'offset' does not exist on type 'ThemedSt... Remove this comment to see the full error message
   left: ${(props) => props.offset}px;
   width: 22px;
   height: 22px;

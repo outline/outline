@@ -32,6 +32,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     ? collection.getDocumentChildren(documentId)
     : [];
   const hasChildDocuments = childDocuments.length > 0;
+
   useEffect(() => {
     async function load() {
       if (!document) {
@@ -41,6 +42,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
 
     load();
   }, [collection, collectionId, collections, document, documentId, documents]);
+
   const handleDisclosureClick = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -49,6 +51,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     },
     []
   );
+
   const handleTitleChange = React.useCallback(
     async (title: string) => {
       if (!document) return;
@@ -61,11 +64,11 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     },
     [documents, document]
   );
+
   return (
     <>
       <Relative>
         <SidebarLink
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ depth: number; to: string; isActive: (matc... Remove this comment to see the full error message
           depth={depth}
           to={`${to}?starred`}
           // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'match' implicitly has an 'any' type.
@@ -95,9 +98,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
               <Fade>
                 <DocumentMenu
                   document={document}
-                  // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                   onOpen={handleMenuOpen}
-                  // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                   onClose={handleMenuClose}
                 />
               </Fade>

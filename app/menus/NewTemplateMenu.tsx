@@ -51,16 +51,13 @@ function NewTemplateMenu() {
     <>
       <MenuButton {...menu}>
         {(props) => (
-          // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
-          <Button icon={<PlusIcon />} {...props} small>
+          <Button icon={<PlusIcon />} {...props}>
             {t("New template")}…
           </Button>
         )}
       </MenuButton>
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; baseId: string; unsta... Remove this comment to see the full error message
       <ContextMenu aria-label={t("New template")} {...menu}>
         <Header>{t("Choose a collection")}</Header>
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: an... Remove this comment to see the full error message
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

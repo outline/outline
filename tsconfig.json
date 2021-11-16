@@ -22,6 +22,7 @@
     "target": "es2017",
     "paths": {
       "env": ["./app/env"],
+      "actions": ["./app/actions"],
       "components/*": ["./app/components/*"],
       "scenes/*": ["./app/scenes/*"],
       "hooks/*": ["./app/hooks/*"],

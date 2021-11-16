@@ -22,20 +22,22 @@ import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions' or its corresponding ... Remove this comment to see the full error message
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
 
 type Props = {
-  items: TMenuItem[];
   actions: (Action | MenuSeparator | MenuHeading)[];
+} | {
+  items: TMenuItem[];
   context?: $Shape<ActionContext>;
 };
+
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
   position: absolute;
   right: 8px;
 `;
+
 // @ts-expect-error ts-migrate(2339) FIXME: Property 'templateItems' does not exist on type '{... Remove this comment to see the full error message
 const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   const { t } = useTranslation();
@@ -100,6 +102,7 @@ function Template({ items, actions, context, ...menu }: Props) {
   const iconIsPresentInAnyMenuItem = filteredTemplates.find(
     (item) => !item.type && !!item.icon
   );
+
   return filteredTemplates.map((item, index) => {
     if (iconIsPresentInAnyMenuItem && !item.type) {
       item.icon = item.icon || <MenuIconWrapper />;
@@ -176,12 +179,11 @@ function Template({ items, actions, context, ...menu }: Props) {
     }
 
     console.warn("Unrecognized menu item", item);
-    return null;
+    return <></>;
   });
 }
 
-// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'title' implicitly has an 'any' ty... Remove this comment to see the full error message
-function Title({ title, icon }) {
+function Title({ title, icon }: { title: React.ReactNode; icon?: React.ReactNode }) {
   return (
     <Flex align="center">
       {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}

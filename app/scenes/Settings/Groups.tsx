@@ -41,9 +41,6 @@ function Groups() {
                 onClick={handleNewGroupModalOpen}
                 icon={<PlusIcon />}
               >
-                // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not
-                assignable to type 'HTMLColle... Remove this comment to see the
-                full error message
                 {`${t("New group")}…`}
               </Button>
             </Action>
@@ -79,9 +76,7 @@ function Groups() {
 
       <Modal
         title={t("Create a group")}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleNewGroupModalClose}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={newGroupModalOpen}
       >
         <GroupNew onSubmit={handleNewGroupModalClose} />

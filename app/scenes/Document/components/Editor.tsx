@@ -123,14 +123,11 @@ class DocumentEditor extends React.Component<Props> {
           placeholder={t("…the rest is up to you")}
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id?: string | undefined; value?: string | ... Remove this comment to see the full error message
           readOnly={readOnly}
           shareId={shareId}
           grow
           {...rest}
         />
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-        call.
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
         {this.activeLinkEvent && !shareId && readOnly && (
           <HoverPreview

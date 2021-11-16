@@ -28,13 +28,9 @@ import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "menus/TableOfContentsMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
-import "types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
-import { metaDisplay } from "utils/keyboard";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { newDocumentPath, editDocumentUrl } from "utils/routeHelpers";
+import { NavigationNode } from "../../../types";
+import { metaDisplay } from "../../../utils/keyboard";
+import { newDocumentPath, editDocumentUrl } from "../../../utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -49,7 +45,7 @@ type Props = {
   savingIsDisabled: boolean;
   onSelectTemplate: (template: Document) => void;
   onDiscard: () => void;
-  onSave: (arg0: {
+  onSave: (options: {
     done?: boolean;
     publish?: boolean;
     autosave?: boolean;
@@ -81,17 +77,20 @@ function DocumentHeader({
   const { ui, policies } = useStores();
   const { resolvedTheme } = ui;
   const isMobile = useMobile();
+
   const handleSave = React.useCallback(() => {
     onSave({
       done: true,
     });
   }, [onSave]);
+
   const handlePublish = React.useCallback(() => {
     onSave({
       done: true,
       publish: true,
     });
   }, [onSave]);
+
   const isNew = document.isNewDocument;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
@@ -105,7 +104,6 @@ function DocumentHeader({
       placement="bottom"
     >
       <Button
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ onClick: any; icon: Element; iconColor: st... Remove this comment to see the full error message
         onClick={
           ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents
         }
@@ -148,7 +146,6 @@ function DocumentHeader({
         placement="bottom"
       >
         <Button
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ icon: Element; onClick: () => any; neutral... Remove this comment to see the full error message
           icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
           onClick={() =>
             ui.setTheme(resolvedTheme === "light" ? "dark" : "light")
@@ -187,7 +184,6 @@ function DocumentHeader({
     <>
       <Header
         breadcrumb={
-          // @ts-expect-error ts-migrate(2741) FIXME: Property 'onlyText' is missing in type '{ children... Remove this comment to see the full error message
           <DocumentBreadcrumb document={document}>
             {!isEditing && toc}
           </DocumentBreadcrumb>
@@ -232,7 +228,6 @@ function DocumentHeader({
                     placement="bottom"
                   >
                     <Button
-                      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
                       onClick={handleSave}
                       disabled={savingIsDisabled}
                       neutral={isDraft}
@@ -266,7 +261,6 @@ function DocumentHeader({
             {canEdit && isTemplate && !isDraft && !isRevision && (
               <Action>
                 <Button
-                  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; icon: Element; a... Remove this comment to see the full error message
                   icon={<PlusIcon />}
                   as={Link}
                   to={newDocumentPath(document.collectionId, {
@@ -290,7 +284,6 @@ function DocumentHeader({
                     onClick={handlePublish}
                     disabled={publishingIsDisabled}
                   >
-                    // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | HTMLCollection' is not assignable t... Remove this comment to see the full error message
                     {isPublishing ? `${t("Publishing")}…` : t("Publish")}
                   </Button>
                 </Tooltip>
@@ -300,7 +293,6 @@ function DocumentHeader({
               <>
                 <Separator />
                 <Action>
-                  // @ts-expect-error ts-migrate(2741) FIXME: Property 'className' is missing in type '{ documen... Remove this comment to see the full error message
                   <DocumentMenu
                     document={document}
                     isRevision={isRevision}
@@ -331,6 +323,7 @@ const Status = styled(Action)`
   padding-right: 4px;
   color: ${(props) => props.theme.slate};
 `;
+
 const TocWrapper = styled(Action)`
   position: absolute;
   left: 42px;

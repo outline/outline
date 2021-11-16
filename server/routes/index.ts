@@ -5,7 +5,6 @@ import Koa from "koa";
 import Router from "koa-router";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'koa-... Remove this comment to see the full error message
 import sendfile from "koa-sendfile";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'koa-... Remove this comment to see the full error message
 import serve from "koa-static";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "../../shared/i18n";

@@ -48,7 +48,7 @@ function CollectionLink({
     handlePermissionOpen,
     handlePermissionClose,
   ] = useBoolean();
-  const itemRef = React.useRef();
+  const itemRef = React.useRef<{ id: string, collectionId: string }>();
   const handleTitleChange = React.useCallback(
     async (name: string) => {
       await collection.save({
@@ -62,6 +62,7 @@ function CollectionLink({
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
   );
+
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
     // touch the expanded / collapsed state of the collections
@@ -78,6 +79,7 @@ function CollectionLink({
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
+
   // Drop to re-parent
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
@@ -96,7 +98,6 @@ function CollectionLink({
       ) {
         // @ts-expect-error ts-migrate(2322) FIXME: Type 'unknown' is not assignable to type 'undefine... Remove this comment to see the full error message
         itemRef.current = item;
-        // @ts-expect-error ts-migrate(2349) FIXME: This expression is not callable.
         handlePermissionOpen();
       } else {
         documents.move(id, collection.id);
@@ -112,6 +113,7 @@ function CollectionLink({
       canDrop: monitor.canDrop(),
     }),
   });
+
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
@@ -124,6 +126,7 @@ function CollectionLink({
       isOverReorder: !!monitor.isOver(),
     }),
   });
+
   // Drop to reorder Collection
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
@@ -146,6 +149,7 @@ function CollectionLink({
       isCollectionDropping: monitor.isOver(),
     }),
   });
+
   // Drag to reorder Collection
   const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
     type: "collection",
@@ -165,6 +169,7 @@ function CollectionLink({
       onChangeDragging(false);
     },
   });
+
   return (
     <>
       <div
@@ -176,13 +181,11 @@ function CollectionLink({
         <Draggable
           key={collection.id}
           ref={dragToReorderCollection}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           $isDragging={isCollectionDragging}
           $isMoving={isCollectionDragging}
         >
           <DropToImport collectionId={collection.id}>
             <SidebarLinkWithPadding
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               to={collection.url}
               icon={
                 <CollectionIcon collection={collection} expanded={expanded} />
@@ -201,7 +204,6 @@ function CollectionLink({
               menu={
                 <>
                   {can.update && (
-                    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                     <CollectionSortMenuWithMargin
                       collection={collection}
                       onOpen={handleMenuOpen}
@@ -210,9 +212,7 @@ function CollectionLink({
                   )}
                   <CollectionMenu
                     collection={collection}
-                    // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                     onOpen={handleMenuOpen}
-                    // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                     onClose={handleMenuClose}
                   />
                 </>
@@ -248,9 +248,7 @@ function CollectionLink({
         ))}
       <Modal
         title={t("Move document")}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handlePermissionClose}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={permissionOpen}
       >
         <DocumentReparent
@@ -264,15 +262,15 @@ function CollectionLink({
   );
 }
 
-const Draggable = styled("div")`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isDragging' does not exist on type 'The... Remove this comment to see the full error message
+const Draggable = styled("div") <{ $isDragging: boolean; $isMoving: boolean; }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isMoving' does not exist on type 'Theme... Remove this comment to see the full error message
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
 `;
+
 const SidebarLinkWithPadding = styled(SidebarLink)`
   padding-right: 60px;
 `;
+
 const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`
   margin-right: 4px;
 `;

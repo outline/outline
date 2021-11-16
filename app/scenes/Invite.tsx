@@ -173,7 +173,6 @@ function Invite({ onSubmit }: Props) {
               <Button
                 type="button"
                 icon={<LinkIcon />}
-                // @ts-expect-error ts-migrate(2740) FIXME: Type '{ marginBottom: string; }' is missing the fo... Remove this comment to see the full error message
                 style={{
                   marginBottom: "16px",
                 }}
@@ -231,7 +230,6 @@ function Invite({ onSubmit }: Props) {
 
       <Flex justify="space-between">
         {invites.length <= MAX_INVITES ? (
-          // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
           <Button type="button" onClick={handleAdd} neutral>
             <Trans>Add another</Trans>…
           </Button>
@@ -241,15 +239,11 @@ function Invite({ onSubmit }: Props) {
 
         <Button
           type="submit"
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not assignable to type 'boolea... Remove this comment to see the full error message
           disabled={isSaving}
           data-on="click"
           data-event-category="invite"
           data-event-action="sendInvites"
         >
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {isSaving ? `${t("Inviting")}…` : t("Send Invites")}
         </Button>
       </Flex>

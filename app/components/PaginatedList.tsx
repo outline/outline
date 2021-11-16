@@ -54,7 +54,6 @@ class PaginatedList extends React.Component<Props> {
     this.fetchResults();
   }
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
   componentDidUpdate(prevProps: Props) {
     if (
       prevProps.fetch !== this.props.fetch ||
@@ -116,7 +115,6 @@ class PaginatedList extends React.Component<Props> {
     }
   };
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
   render() {
     const { items, heading, auth, empty, renderHeading } = this.props;
     let previousHeading = "";

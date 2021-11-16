@@ -3,7 +3,6 @@ import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import Collection from "models/Collection";
-import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -13,7 +12,6 @@ import { NavigationNode } from "../types";
 import "types";
 
 type Props = {
-  document: Document;
   item: {
     active: boolean | null | undefined;
     children: Array<NavigationNode>;
@@ -29,7 +27,6 @@ type Props = {
 };
 
 function DocumentReparent({
-  document,
   collection,
   item,
   onSubmit,
@@ -45,6 +42,7 @@ function DocumentReparent({
     read: t("view only access"),
     null: t("no access"),
   };
+
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -68,6 +66,7 @@ function DocumentReparent({
     },
     [documents, item.id, collection.id, showToast, t, onSubmit]
   );
+
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>

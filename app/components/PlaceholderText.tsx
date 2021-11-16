@@ -19,7 +19,6 @@ class PlaceholderText extends React.Component<Props> {
     return false;
   }
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
   render() {
     return (
       <Mask

@@ -1,6 +1,5 @@
 import * as React from "react";
-// @ts-expect-error ts-migrate(2724) FIXME: '"react-router-dom"' has no exported member named ... Remove this comment to see the full error message
-import { Match } from "react-router-dom";
+import { RouteComponentProps } from "react-router-dom";
 import "react-router-dom";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
@@ -8,16 +7,8 @@ import SocketPresence from "./components/SocketPresence";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { LocationWithState } from "types";
-import "types";
 
-type Props = {
-  location: LocationWithState;
-  match: Match;
-};
-
-export default function DocumentScene(props: Props) {
+export default function DocumentScene(props: RouteComponentProps<{ documentSlug: string, revisionId: string }>) {
   const { ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
@@ -33,6 +24,7 @@ export default function DocumentScene(props: Props) {
   const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
   const key = [urlId, revisionId].join("/");
   const isMultiplayer = team.collaborativeEditing;
+
   return (
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: ({ document, isEditing, ...rest ... Remove this comment to see the full error message
     <DataLoader key={key} match={props.match}>

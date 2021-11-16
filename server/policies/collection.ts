@@ -5,19 +5,19 @@ import { Collection, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+
 allow(User, "createCollection", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;
   return true;
 });
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'actor' implicitly has an 'any' type.
+
 allow(User, "importCollection", Team, (actor, team) => {
   if (!team || actor.teamId !== team.id) return false;
   if (actor.isAdmin) return true;
   // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
   throw new AdminRequiredError();
 });
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+
 allow(User, "move", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
   if (collection.deletedAt) return false;
@@ -25,7 +25,7 @@ allow(User, "move", Collection, (user, collection) => {
   // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
   throw new AdminRequiredError();
 });
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+
 allow(User, "read", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
 
@@ -45,7 +45,7 @@ allow(User, "read", Collection, (user, collection) => {
 
   return true;
 });
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+
 allow(User, "share", Collection, (user, collection) => {
   if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
@@ -67,7 +67,7 @@ allow(User, "share", Collection, (user, collection) => {
 
   return true;
 });
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+
 allow(User, ["publish", "update"], Collection, (user, collection) => {
   if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;
@@ -88,7 +88,7 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
 
   return true;
 });
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+
 allow(User, "delete", Collection, (user, collection) => {
   if (user.isViewer) return false;
   if (!collection || user.teamId !== collection.teamId) return false;

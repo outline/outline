@@ -16,6 +16,7 @@ function TrashLink({ documents }) {
   const { policies } = useStores();
   const { t } = useTranslation();
   const [document, setDocument] = useState();
+
   const [{ isDocumentDropping }, dropToTrashDocument] = useDrop({
     accept: "document",
     drop: (item, monitor) => {
@@ -31,11 +32,11 @@ function TrashLink({ documents }) {
       isDocumentDropping: monitor.isOver(),
     }),
   });
+
   return (
     <>
       <div ref={dropToTrashDocument}>
         <SidebarLink
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: any; icon: Element; exact: boolean; la... Remove this comment to see the full error message
           to={trashPath()}
           icon={<TrashIcon color="currentColor" open={isDocumentDropping} />}
           exact={false}

@@ -12,6 +12,7 @@ import ListItem from "components/List/Item";
 import Notice from "components/Notice";
 import Scene from "components/Scene";
 import SlackIcon from "components/SlackIcon";
+import Collection from "models/Collection";
 import SlackButton from "./components/SlackButton";
 import env from "env";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -24,6 +25,7 @@ function Slack() {
   const { t } = useTranslation();
   const query = useQuery();
   const error = query.get("error");
+
   React.useEffect(() => {
     collections.fetchPage({
       limit: 100,
@@ -35,6 +37,7 @@ function Slack() {
   const commandIntegration = find(integrations.slackIntegrations, {
     type: "command",
   });
+
   return (
     <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
       <Heading>Slack</Heading>
@@ -70,7 +73,6 @@ function Slack() {
         <>
           <p>
             {commandIntegration ? (
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: any; }'... Remove this comment to see the full error message
               <Button onClick={commandIntegration.delete}>
                 {t("Disconnect")}
               </Button>
@@ -94,10 +96,7 @@ function Slack() {
           </HelpText>
 
           <List>
-            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection'
-            implicitly has an 'any' typ... Remove this comment to see the full
-            error message
-            {collections.orderedData.map((collection) => {
+            {collections.orderedData.map((collection: Collection) => {
               const integration = find(integrations.slackIntegrations, {
                 collectionId: collection.id,
               });
@@ -107,7 +106,6 @@ function Slack() {
                   <ListItem
                     key={integration.id}
                     title={collection.name}
-                    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; title: any; image: Element; subt... Remove this comment to see the full error message
                     image={<CollectionIcon collection={collection} />}
                     subtitle={
                       <Trans
@@ -121,7 +119,6 @@ function Slack() {
                       />
                     }
                     actions={
-                      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: any; ne... Remove this comment to see the full error message
                       <Button onClick={integration.delete} neutral>
                         {t("Disconnect")}
                       </Button>
@@ -134,7 +131,6 @@ function Slack() {
                 <ListItem
                   key={collection.id}
                   title={collection.name}
-                  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; title: any; image: Element; acti... Remove this comment to see the full error message
                   image={<CollectionIcon collection={collection} />}
                   actions={
                     <SlackButton

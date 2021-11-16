@@ -61,13 +61,11 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     <>
       <MenuButton {...menu}>
         {(props) => (
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; disclosure: true... Remove this comment to see the full error message
           <Button {...props} disclosure neutral>
             {t("Templates")}
           </Button>
         )}
       </MenuButton>
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; "aria-label": string; bas... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Templates")}>
         {templatesInCollection.map(renderTemplate)}
         {otherTemplates.length && templatesInCollection.length ? (
@@ -82,6 +80,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
 const TemplateItem = styled.div`
   text-align: left;
 `;
+
 const Author = styled.div`
   font-size: 13px;
 `;

@@ -12,7 +12,7 @@ type Props = {
   children: JSX.Element;
   collectionId: string;
   documentId?: string;
-  disabled: boolean;
+  disabled?: boolean;
 };
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
@@ -49,18 +49,13 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
         getRootProps,
         getInputProps,
         isDragActive,
-        isDragAccept,
-        isDragReject,
       }) => (
         <DropzoneContainer
           {...getRootProps()}
           $isDragActive={isDragActive}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-          tabIndex="-1"
+          tabIndex={-1}
         >
           <input {...getInputProps()} />
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           {isImporting && <LoadingIndicator />}
           {children}
         </DropzoneContainer>
@@ -69,10 +64,9 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   );
 }
 
-const DropzoneContainer = styled.div`
+const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
   border-radius: 4px;
 
-  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isDragActive' does not exist on type 'P... Remove this comment to see the full error message
   ${({ $isDragActive, theme }) =>
     $isDragActive &&
     css`
@@ -86,5 +80,4 @@ const DropzoneContainer = styled.div`
     `}
 `;
 
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ disabled, children, collectio... Remove this comment to see the full error message
 export default observer(DropToImport);

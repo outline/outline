@@ -19,7 +19,7 @@ import { collectionUrl } from "utils/routeHelpers";
 type Props = {
   document: Document;
   children?: React.ReactNode;
-  onlyText: boolean;
+  onlyText?: boolean;
 };
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.

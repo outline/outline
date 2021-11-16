@@ -229,6 +229,7 @@ export default function init(app: Koa, server: http.Server) {
       });
     },
   });
+
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
   websocketsQueue.process(async function websocketEventsProcessor(job) {

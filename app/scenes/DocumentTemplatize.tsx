@@ -25,6 +25,7 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
   const { documents } = useStores();
   const document = documents.get(documentId);
   invariant(document, "Document must exist");
+
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -49,6 +50,7 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
     },
     [document, showToast, history, onSubmit, t]
   );
+
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
@@ -64,9 +66,6 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
           />
         </HelpText>
         <Button type="submit">
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {isSaving ? `${t("Creating")}…` : t("Create template")}
         </Button>
       </form>

@@ -32,21 +32,22 @@ function InputSearchPage({
   collectionId,
   source,
 }: Props) {
-  const inputRef = React.useRef();
+  const inputRef = React.useRef<HTMLInputElement>();
   const theme = useTheme();
   const history = useHistory();
   const { t } = useTranslation();
   const [isFocused, setFocused, setUnfocused] = useBoolean(false);
   const focus = React.useCallback(() => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'focus' does not exist on type 'never'.
     inputRef.current?.focus();
   }, []);
+
   useKeyDown("f", (ev: KeyboardEvent) => {
     if (isModKey(ev)) {
       ev.preventDefault();
       focus();
     }
   });
+
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       if (ev.key === "Enter") {
@@ -65,8 +66,8 @@ function InputSearchPage({
     },
     [history, collectionId, source, onKeyDown]
   );
+
   return (
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <InputMaxWidth
       ref={inputRef}
       type="search"
@@ -76,7 +77,6 @@ function InputSearchPage({
       onKeyDown={handleKeyDown}
       icon={
         <SearchIcon
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'inputBorderFocused' does not exist on ty... Remove this comment to see the full error message
           color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
         />
       }

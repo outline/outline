@@ -60,14 +60,12 @@ function DocumentHistory() {
           <Header>
             <Title>{t("History")}</Title>
             <Button
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ icon: Element; onClick: () => void; border... Remove this comment to see the full error message
               icon={<CloseIcon />}
               onClick={onCloseHistory}
               borderOnHover
               neutral
             />
           </Header>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; topShadow: true; }' is ... Remove this comment to see the full error message
           <Scrollable topShadow>
             <PaginatedEventList
               fetch={events.fetchPage}

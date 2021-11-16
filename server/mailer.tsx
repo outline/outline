@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'node... Remove this comment to see the full error message
 import nodemailer from "nodemailer";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'oy-v... Remove this comment to see the full error message
 import Oy from "oy-vey";
@@ -100,6 +99,7 @@ export class Mailer {
         };
       }
 
+      // @ts-expect-error
       this.transporter = nodemailer.createTransport(smtpConfig);
       return;
     }

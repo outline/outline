@@ -11,13 +11,13 @@ const activityEvents = [
   "touchmove",
   "focus",
 ];
+
 /**
  * Hook to detect user idle state.
  *
  * @param {number} timeToIdle
  * @returns boolean if the user is idle
  */
-
 export default function useIdle(timeToIdle: number = 3 * 60 * 1000) {
   const [isIdle, setIsIdle] = React.useState(false);
   const timeout = React.useRef();
@@ -31,6 +31,7 @@ export default function useIdle(timeToIdle: number = 3 * 60 * 1000) {
       setIsIdle(true);
     }, timeToIdle);
   }, [timeToIdle]);
+
   React.useEffect(() => {
     const handleUserActivityEvent = () => {
       setIsIdle(false);
@@ -46,5 +47,6 @@ export default function useIdle(timeToIdle: number = 3 * 60 * 1000) {
       );
     };
   }, [onActivity]);
+
   return isIdle;
 }

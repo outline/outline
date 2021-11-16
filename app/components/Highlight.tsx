@@ -1,5 +1,4 @@
 import * as React from "react";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'stri... Remove this comment to see the full error message
 import replace from "string-replace-to-array";
 import styled from "styled-components";
 

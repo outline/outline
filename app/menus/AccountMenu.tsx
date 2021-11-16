@@ -82,7 +82,6 @@ function AccountMenu(props: Props) {
   return (
     <>
       <MenuButton {...menu}>{props.children}</MenuButton>
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Account")}>
         <Template {...menu} actions={actions} />
       </ContextMenu>

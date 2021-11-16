@@ -24,6 +24,7 @@ function ShareMenu({ share }: Props) {
   const { t } = useTranslation();
   const history = useHistory();
   const can = policies.abilities(share.id);
+
   const handleGoToDocument = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -31,6 +32,7 @@ function ShareMenu({ share }: Props) {
     },
     [history, share]
   );
+
   const handleRevoke = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -48,15 +50,16 @@ function ShareMenu({ share }: Props) {
     },
     [t, shares, share, showToast]
   );
+
   const handleCopy = React.useCallback(() => {
     showToast(t("Share link copied"), {
       type: "info",
     });
   }, [t, showToast]);
+
   return (
     <>
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; "aria-label": string; bas... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Share options")}>
         <CopyToClipboard text={share.url} onCopy={handleCopy}>
           <MenuItem {...menu}>{t("Copy link")}</MenuItem>

@@ -107,6 +107,7 @@ function People(props) {
     users.viewers,
     userIds,
   ]);
+
   const handleFilter = React.useCallback(
     (filter) => {
       if (filter) {
@@ -123,6 +124,7 @@ function People(props) {
     },
     [params, history, location.pathname]
   );
+
   const handleSearch = React.useCallback(
     (event) => {
       const { value } = event.target;
@@ -141,6 +143,7 @@ function People(props) {
     },
     [params, history, location.pathname]
   );
+
   const handleChangeSort = React.useCallback(
     (sort, direction) => {
       if (sort) {
@@ -162,6 +165,7 @@ function People(props) {
     },
     [params, history, location.pathname]
   );
+
   const handleChangePage = React.useCallback(
     (page) => {
       if (page) {
@@ -176,16 +180,16 @@ function People(props) {
       });
 
       if (topRef.current) {
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         scrollIntoView(topRef.current, {
           scrollMode: "if-needed",
-          behavior: "instant",
+          behavior: "auto",
           block: "start",
         });
       }
     },
     [params, history, location.pathname]
   );
+
   return (
     <Scene
       title={t("Members")}
@@ -194,9 +198,6 @@ function People(props) {
         <>
           {can.inviteUser && (
             <Action>
-              // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's
-              'children' prop expects a single ch... Remove this comment to see
-              the full error message
               <Button
                 type="button"
                 data-on="click"
@@ -243,9 +244,7 @@ function People(props) {
       {can.inviteUser && (
         <Modal
           title={t("Invite people")}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
           onRequestClose={handleInviteModalClose}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
           isOpen={inviteModalOpen}
         >
           <Invite onSubmit={handleInviteModalClose} />

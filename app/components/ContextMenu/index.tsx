@@ -20,9 +20,7 @@ type Props = {
   placement?: Placement;
   animating?: boolean;
   children: React.ReactNode;
-  unstable_disclosureRef?: {
-    current: null | React.ElementRef<"button">;
-  };
+  unstable_disclosureRef?: React.RefObject<HTMLElement | null>;
   onOpen?: () => void;
   onClose?: () => void;
   hide?: () => void;

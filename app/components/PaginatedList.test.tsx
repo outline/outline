@@ -1,5 +1,4 @@
 import "../stores";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'enzy... Remove this comment to see the full error message
 import { shallow } from "enzyme";
 import * as React from "react";
 import AuthStore from "stores/AuthStore";

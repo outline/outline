@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import Collection from "models/Collection";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
@@ -29,6 +30,7 @@ function Collections() {
   const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
     false
   );
+
   React.useEffect(() => {
     async function load() {
       if (!collections.isLoaded && !isFetching && !fetchError) {
@@ -53,6 +55,7 @@ function Collections() {
 
     load();
   }, [collections, isFetching, showToast, fetchError, t]);
+
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
     drop: async (item, monitor) => {
@@ -70,6 +73,7 @@ function Collections() {
       isCollectionDropping: monitor.isOver(),
     }),
   });
+
   const content = (
     <>
       <DropCursor
@@ -77,8 +81,7 @@ function Collections() {
         innerRef={dropToReorderCollection}
         from="collections"
       />
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
-      {orderedCollections.map((collection, index) => (
+      {orderedCollections.map((collection: Collection, index: number) => (
         <CollectionLink
           key={collection.id}
           collection={collection}
@@ -92,7 +95,6 @@ function Collections() {
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ action: any; depth: number; }' is not assi... Remove this comment to see the full error message
       <SidebarAction action={createCollection} depth={0.5} />
     </>
   );
@@ -101,7 +103,6 @@ function Collections() {
     return (
       <Flex column>
         <SidebarLink
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ label: string; icon: Element; }' is not as... Remove this comment to see the full error message
           label={t("Collections")}
           icon={<Disclosure expanded={expanded} color="currentColor" />}
         />
@@ -113,7 +114,6 @@ function Collections() {
   return (
     <Flex column>
       <SidebarLink
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ onClick: () => void; label: string; icon: ... Remove this comment to see the full error message
         onClick={() => setExpanded((prev) => !prev)}
         label={t("Collections")}
         icon={<Disclosure expanded={expanded} color="currentColor" />}

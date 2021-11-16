@@ -1,7 +1,5 @@
 import * as React from "react";
-// @ts-expect-error ts-migrate(2724) FIXME: '"react-router-dom"' has no exported member named ... Remove this comment to see the full error message
-import { Match } from "react-router-dom";
-import "react-router-dom";
+import { RouteComponentProps } from "react-router-dom";
 import { useTheme } from "styled-components";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
@@ -15,22 +13,19 @@ import { OfflineError } from "utils/errors";
 import "types";
 
 const EMPTY_OBJECT = {};
-type Props = {
-  match: Match;
-  location: LocationWithState;
-};
 
-export default function SharedDocumentScene(props: Props) {
+export default function SharedDocumentScene(props: RouteComponentProps<{ shareId: string; documentSlug: string }>) {
   const theme = useTheme();
   const [response, setResponse] = React.useState();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
+
   // ensure the wider page color always matches the theme
   React.useEffect(() => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'background' does not exist on type 'Defa... Remove this comment to see the full error message
     window.document.body.style.background = theme.background;
   }, [theme]);
+
   React.useEffect(() => {
     async function fetchData() {
       try {

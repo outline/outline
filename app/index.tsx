@@ -88,18 +88,14 @@ if (element) {
 window.addEventListener("load", async () => {
   // installation does not use Google Analytics, or tracking is blocked on client
   // no point loading the rest of the analytics bundles
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   if (!env.GOOGLE_ANALYTICS_ID || !window.ga) return;
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
   await import(
     /* webpackChunkName: "autotrack" */
     "autotrack/autotrack.js"
   );
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   window.ga("require", "outboundLinkTracker");
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   window.ga("require", "urlChangeTracker");
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   window.ga("require", "eventTracker", {
     attributePrefix: "data-",
   });

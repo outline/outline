@@ -247,6 +247,7 @@ function DocumentMenu({
     },
     [history, showToast, collection, documents, document.id]
   );
+
   return (
     <>
       <VisuallyHidden>
@@ -257,8 +258,7 @@ function DocumentMenu({
           onChange={handleFilePicked}
           onClick={stopPropagation}
           accept={documents.importFileTypes.join(", ")}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type 'number | ... Remove this comment to see the full error message
-          tabIndex="-1"
+          tabIndex={-1}
         />
       </VisuallyHidden>
       {label ? (
@@ -270,14 +270,12 @@ function DocumentMenu({
           {...menu}
         />
       )}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; o... Remove this comment to see the full error message
       <ContextMenu
         {...menu}
         aria-label={t("Document options")}
         onOpen={handleOpen}
         onClose={onClose}
       >
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: ({... Remove this comment to see the full error message
         <Template
           {...menu}
           items={[

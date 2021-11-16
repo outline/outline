@@ -22,6 +22,7 @@ function Tokens() {
   const { apiKeys, policies } = useStores();
   const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
   const can = policies.abilities(team.id);
+
   return (
     <Scene
       title={t("API Tokens")}
@@ -33,7 +34,6 @@ function Tokens() {
               <Button
                 type="submit"
                 value={`${t("New token")}…`}
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ type: string; value: string; onClick: bool... Remove this comment to see the full error message
                 onClick={handleNewModalOpen}
               />
             </Action>
@@ -68,9 +68,7 @@ function Tokens() {
 
       <Modal
         title={t("Create a token")}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleNewModalClose}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={newModalOpen}
       >
         <APITokenNew onSubmit={handleNewModalClose} />

@@ -47,7 +47,6 @@ const MemberListItem = ({
   return (
     <ListItem
       title={user.name}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; subtitle: Element; image: E... Remove this comment to see the full error message
       subtitle={
         <>
           {user.lastActiveAt ? (
@@ -58,8 +57,6 @@ const MemberListItem = ({
             t("Never signed in")
           )}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
@@ -83,7 +80,6 @@ const MemberListItem = ({
               <Spacer />
               {onRemove && <MemberMenu onRemove={onRemove} />}
               {onAdd && (
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => a... Remove this comment to see the full error message
                 <Button onClick={onAdd} neutral>
                   {t("Add")}
                 </Button>
@@ -99,6 +95,7 @@ const MemberListItem = ({
 const Spacer = styled.div`
   width: 8px;
 `;
+
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;

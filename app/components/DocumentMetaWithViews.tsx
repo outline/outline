@@ -22,6 +22,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
+
   React.useEffect(() => {
     if (!document.isDeleted) {
       views.fetchPage({
@@ -29,11 +30,13 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
       });
     }
   }, [views, document.id, document.isDeleted]);
+
   const popover = usePopoverState({
     gutter: 8,
     placement: "bottom",
     modal: true,
   });
+
   return (
     <Meta document={document} to={to} {...rest}>
       {totalViewers && !isDraft ? (
@@ -53,7 +56,6 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
           )}
         </PopoverDisclosure>
       ) : null}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; width: number; "aria-la... Remove this comment to see the full error message
       <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
         <DocumentViews document={document} isOpen={popover.visible} />
       </Popover>
@@ -61,8 +63,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   );
 }
 
-const Meta = styled(DocumentMeta)`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'rtl' does not exist on type 'ThemedStyle... Remove this comment to see the full error message
+const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   margin: -12px 0 2em 0;
   font-size: 14px;
