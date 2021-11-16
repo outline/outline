@@ -24,6 +24,7 @@ const StatusFilter = ({ includeArchived, onSelect }: Props) => {
     ],
     [t]
   );
+
   return (
     <FilterOptions
       options={options}

@@ -14,6 +14,7 @@ type Props = {
 
 function ResolvedCollectionIcon({ collection, expanded, size }: Props) {
   const { ui } = useStores();
+
   // If the chosen icon color is very dark then we invert it in dark mode
   // otherwise it will be impossible to see against the dark background.
   const color =

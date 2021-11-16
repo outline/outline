@@ -3,10 +3,9 @@ import { filter } from "lodash";
 import { action, runInAction, computed } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
 import Group from "models/Group";
+import { PaginationParams } from "../types";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { PaginationParams } from "types";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
@@ -41,7 +40,7 @@ export default class GroupsStore extends BaseStore<Group> {
     }
   };
 
-  inCollection = (collectionId: string, query: string) => {
+  inCollection = (collectionId: string, query?: string) => {
     const memberships = filter(
       this.rootStore.collectionGroupMemberships.orderedData,
       (member) => member.collectionId === collectionId

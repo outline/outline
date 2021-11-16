@@ -44,6 +44,7 @@ const MemberListItem = ({
     ],
     [t]
   );
+
   return (
     <ListItem
       title={user.name}

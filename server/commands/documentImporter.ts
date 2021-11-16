@@ -41,6 +41,7 @@ interface ImportableFile {
   type: string;
   getMarkdown: (file: any) => Promise<string>;
 }
+
 const importMapping: ImportableFile[] = [
   {
     type: "application/msword",

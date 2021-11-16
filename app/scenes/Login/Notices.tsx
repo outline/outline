@@ -6,6 +6,7 @@ export default function Notices() {
   const query = useQuery();
   const notice = query.get("notice");
   const description = query.get("description");
+
   return (
     <>
       {notice === "google-hd" && (

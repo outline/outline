@@ -13,6 +13,7 @@ export default function FullscreenLoading() {
     </Fade>
   );
 }
+
 const Centered = styled(Flex)`
   text-align: center;
   width: 100%;

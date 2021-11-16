@@ -29,11 +29,9 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
   }
 
   const templatesInCollection = templates.filter(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
     (t) => t.collectionId === document.collectionId
   );
   const otherTemplates = templates.filter(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
     (t) => t.collectionId !== document.collectionId
   );
 

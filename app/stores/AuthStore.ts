@@ -205,7 +205,8 @@ export default class AuthStore {
   @action
   updateUser = async (params: {
     name?: string;
-    avatarUrl: string | null | undefined;
+    avatarUrl?: string | null;
+    language?: string;
   }) => {
     this.isSaving = true;
 

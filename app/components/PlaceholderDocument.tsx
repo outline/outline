@@ -48,6 +48,7 @@ export default function PlaceholderDocument({
     </DelayedMount>
   );
 }
+
 const Wrapper = styled(Fade)`
   display: block;
   margin: 40px 0;

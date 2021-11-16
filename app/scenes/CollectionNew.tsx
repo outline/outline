@@ -16,16 +16,20 @@ import Input from "components/Input";
 import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 
-type Props = WithTranslation &
-  RouteComponentProps & {
-    auth: AuthStore;
-    toasts: ToastsStore;
-    collections: CollectionsStore;
-    onSubmit: () => void;
-  };
+type StoreProps = {
+  auth: AuthStore;
+  toasts: ToastsStore;
+  collections: CollectionsStore;
+};
+
+interface Props extends StoreProps, WithTranslation, RouteComponentProps {
+  onSubmit: () => void;
+}
 
 @observer
 class CollectionNew extends React.Component<Props> {
+  static defaultProps = {} as StoreProps;
+
   @observable
   name = "";
 

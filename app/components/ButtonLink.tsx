@@ -9,6 +9,7 @@ type Props = {
 export default function ButtonLink(props: Props) {
   return <Button {...props} />;
 }
+
 const Button = styled.button`
   margin: 0;
   padding: 0;

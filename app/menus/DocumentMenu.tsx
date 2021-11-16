@@ -36,6 +36,7 @@ import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
+import { MenuItem } from "../types";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -181,13 +182,11 @@ function DocumentMenu({
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'filtered' implicitly has an 'any' type.
-      ...collections.orderedData.reduce((filtered, collection) => {
+      ...collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
         if (can.update) {
           filtered.push({
-            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
             onClick: (ev) =>
               handleRestore(ev, {
                 collectionId: collection.id,

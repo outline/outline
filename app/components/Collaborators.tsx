@@ -26,6 +26,7 @@ function Collaborators(props: Props) {
   const { users, presence } = useStores();
   const { document } = props;
   let documentPresence = presence.get(document.id);
+
   documentPresence = documentPresence
     ? Array.from(documentPresence.values())
     : [];
@@ -69,6 +70,7 @@ function Collaborators(props: Props) {
     gutter: 0,
     placement: "bottom-end",
   });
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -83,7 +85,6 @@ function Collaborators(props: Props) {
                 return (
                   <AvatarWithPresence
                     key={user.id}
-                    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: string; user: User; isPresent: any; i... Remove this comment to see the full error message
                     user={user}
                     isPresent={isPresent}
                     isEditing={isEditing}

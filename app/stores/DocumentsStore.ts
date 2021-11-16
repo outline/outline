@@ -8,14 +8,13 @@ import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-import env from "env";
 import {
   NavigationNode,
   FetchOptions,
   PaginationParams,
   SearchResult,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-} from "types";
+} from "../types";
+import env from "env";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 

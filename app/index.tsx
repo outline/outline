@@ -6,7 +6,6 @@ import * as React from "react";
 import { render } from "react-dom";
 import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
 import Analytics from "components/Analytics";
 import { CommandBarOptions } from "components/CommandBar";

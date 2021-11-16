@@ -268,6 +268,7 @@ export class Mailer {
     );
   };
 }
+
 const mailer = new Mailer();
 
 export default mailer;

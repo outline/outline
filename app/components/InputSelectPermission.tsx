@@ -24,6 +24,7 @@ export default function InputSelectPermission(
     },
     [onChange]
   );
+
   return (
     <InputSelect
       label={t("Default access")}

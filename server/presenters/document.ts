@@ -20,6 +20,7 @@ async function replaceImageAttachments(text: string) {
       }
     })
   );
+
   return text;
 }
 

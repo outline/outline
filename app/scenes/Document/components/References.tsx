@@ -52,8 +52,7 @@ function References({ document }: Props) {
           )}
         </Tabs>
         {isBacklinksTab
-          ? // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'backlinkedDocument' implicitly has an '... Remove this comment to see the full error message
-            backlinks.map((backlinkedDocument) => (
+          ? backlinks.map((backlinkedDocument) => (
               <ReferenceListItem
                 anchor={document.urlId}
                 key={backlinkedDocument.id}
@@ -63,8 +62,7 @@ function References({ document }: Props) {
                 }
               />
             ))
-          : // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
-            children.map((node) => {
+          : children.map((node) => {
               // If we have the document in the store already then use it to get the extra
               // contextual info, otherwise the collection node will do (only has title and id)
               const document = documents.get(node.id);

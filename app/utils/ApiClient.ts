@@ -2,7 +2,6 @@ import retry from "fetch-retry";
 import invariant from "invariant";
 import { map, trim } from "lodash";
 import { getCookie } from "tiny-cookie";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
 import download from "./download";
 import {
@@ -21,6 +20,7 @@ type Options = {
 };
 // authorization cookie set by a Cloudflare Access proxy
 const CF_AUTHORIZATION = getCookie("CF_Authorization");
+
 // if the cookie is set, we must pass it with all ApiClient requests
 const CREDENTIALS = CF_AUTHORIZATION ? "same-origin" : "omit";
 const fetchWithRetry = retry(fetch);

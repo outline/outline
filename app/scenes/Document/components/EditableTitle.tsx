@@ -38,6 +38,7 @@ function EditableTitle({
   const startsWithEmojiAndSpace = !!(emoji && value.startsWith(`${emoji} `));
   const normalizedTitle =
     !value && readOnly ? document.titleWithDefault : value;
+
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key === "Enter") {
@@ -77,6 +78,7 @@ function EditableTitle({
     },
     [onGoToNextInput, onSave]
   );
+
   return (
     <Title
       // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
@@ -107,7 +109,10 @@ const StarButton = styled(Star)`
   left: 4px;
 `;
 
-const Title = styled(ContentEditable)`
+const Title = styled(ContentEditable)<{
+  $startsWithEmojiAndSpace: boolean;
+  $isStarred: boolean;
+}>`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
@@ -132,12 +137,11 @@ const Title = styled(ContentEditable)`
   }
 
   ${breakpoint("tablet")`
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
-    margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
+    margin-left: ${(props: any) =>
+      props.$startsWithEmojiAndSpace ? "-1.2em" : 0};
   `};
 
   ${AnimatedStar} {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property '$isStarred' does not exist on type 'Them... Remove this comment to see the full error message
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 

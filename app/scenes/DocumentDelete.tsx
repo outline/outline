@@ -61,6 +61,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
     },
     [showToast, onSubmit, ui, document, documents, history, collection]
   );
+
   const handleArchive = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -79,6 +80,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
     },
     [showToast, onSubmit, document]
   );
+
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>

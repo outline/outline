@@ -9,6 +9,7 @@ import CollectionIcon from "components/CollectionIcon";
 import ContextMenu from "components/ContextMenu";
 import Header from "components/ContextMenu/Header";
 import Template from "components/ContextMenu/Template";
+import { MenuItem } from "../types";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
@@ -22,10 +23,10 @@ function NewTemplateMenu() {
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
   const can = policies.abilities(team.id);
+
   const items = React.useMemo(
     () =>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'filtered' implicitly has an 'any' type.
-      collections.orderedData.reduce((filtered, collection) => {
+      collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
         if (can.update) {

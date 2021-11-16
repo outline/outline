@@ -38,6 +38,7 @@ const UserStatusFilter = ({ activeKey, onSelect }: Props) => {
     ],
     [t]
   );
+
   return (
     <FilterOptions
       options={options}

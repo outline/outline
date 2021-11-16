@@ -29,6 +29,7 @@
       "hooks/*": ["./app/hooks/*"],
       "menus/*": ["./app/menus/*"],
       "models/*": ["./app/models/*"],
+      "stores": ["./app/stores"],
       "stores/*": ["./app/stores/*"],
       "shared/*": ["./shared/*"],
     }

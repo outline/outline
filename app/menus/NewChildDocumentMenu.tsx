@@ -22,6 +22,7 @@ function NewChildDocumentMenu({ document, label }: Props) {
   const { t } = useTranslation();
   const collection = collections.get(document.collectionId);
   const collectionName = collection ? collection.name : t("collection");
+
   return (
     <>
       <MenuButton {...menu}>{label}</MenuButton>

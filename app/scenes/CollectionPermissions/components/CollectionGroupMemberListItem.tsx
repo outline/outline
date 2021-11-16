@@ -35,6 +35,7 @@ const CollectionGroupMemberListItem = ({
     ],
     [t]
   );
+
   return (
     <GroupListItem
       group={group}

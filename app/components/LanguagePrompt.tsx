@@ -57,6 +57,7 @@ export default function LanguagePrompt() {
 
   const option = find(languageOptions, (o) => o.value === language);
   const optionLabel = option ? option.label : "";
+
   return (
     <NoticeTip>
       <Flex align="center">
@@ -87,6 +88,7 @@ export default function LanguagePrompt() {
     </NoticeTip>
   );
 }
+
 const Link = styled(ButtonLink)`
   color: ${(props) => props.theme.almostBlack};
   font-weight: 500;

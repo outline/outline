@@ -64,6 +64,7 @@ export default function useImportDocument(
     },
     [t, documents, history, showToast, collectionId, documentId]
   );
+
   return {
     handleFiles,
     isImporting,

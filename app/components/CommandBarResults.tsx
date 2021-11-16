@@ -1,5 +1,4 @@
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"kbar"' has no exported member 'NO_GROUP'.
-import { useMatches, KBarResults, NO_GROUP } from "kbar";
+import { useMatches, KBarResults } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
 import CommandBarItem from "components/CommandBarItem";
@@ -17,9 +16,10 @@ export default function CommandBarResults() {
           acc.push(...actions);
           return acc;
         }, [])
-        .filter((i) => i !== NO_GROUP),
+        .filter((i) => i !== "none"),
     [matches]
   );
+
   return (
     <KBarResults
       items={items}

@@ -14,7 +14,6 @@ function CollectionFilter(props: Props) {
   const { collections } = useStores();
   const { onSelect, collectionId } = props;
   const options = React.useMemo(() => {
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
     const collectionOptions = collections.orderedData.map((user) => ({
       key: user.id,
       label: user.name,

@@ -30,6 +30,7 @@ function RevisionMenu({ document, revisionId, className }: Props) {
   });
   const { t } = useTranslation();
   const history = useHistory();
+
   const handleRestore = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -51,15 +52,18 @@ function RevisionMenu({ document, revisionId, className }: Props) {
     },
     [history, showToast, t, team.collaborativeEditing, document, revisionId]
   );
+
   const handleCopy = React.useCallback(() => {
     showToast(t("Link copied"), {
       type: "info",
     });
   }, [showToast, t]);
+
   const url = `${window.location.origin}${documentHistoryUrl(
     document,
     revisionId
   )}`;
+
   return (
     <>
       <OverflowMenuButton

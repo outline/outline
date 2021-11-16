@@ -17,7 +17,6 @@ import {
   mailToUrl,
   githubIssuesUrl,
 } from "shared/utils/routeHelpers";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import { createAction } from "actions";

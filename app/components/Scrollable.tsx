@@ -13,7 +13,7 @@ type Props = {
 
 function Scrollable(
   { shadow, topShadow, bottomShadow, flex, ...rest }: Props,
-  ref: any
+  ref: React.RefObject<HTMLDivElement>
 ) {
   const fallbackRef = React.useRef<HTMLDivElement>();
   const [topShadowVisible, setTopShadow] = React.useState(false);

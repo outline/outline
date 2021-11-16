@@ -1,1 +1,1 @@
-server/migrations/*.js
+server/migrations/*.ts

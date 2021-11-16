@@ -41,6 +41,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
     },
     [showToast, onSubmit, collection, history]
   );
+
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>

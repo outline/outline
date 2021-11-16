@@ -34,6 +34,7 @@ const DateFilter = ({ dateFilter, onSelect }: Props) => {
     ],
     [t]
   );
+
   return (
     <FilterOptions
       options={options}

@@ -6,9 +6,9 @@ type Props = {
   disabled?: boolean;
   readOnly?: boolean;
   onChange?: (text: string) => void;
-  onBlur?: (event: React.FocusEventHandler<HTMLSpanElement>) => void;
-  onInput?: (event: React.FormEventHandler<HTMLSpanElement>) => void;
-  onKeyDown?: (event: React.KeyboardEventHandler<HTMLSpanElement>) => void;
+  onBlur?: React.FocusEventHandler<HTMLSpanElement>;
+  onInput?: React.FormEventHandler<HTMLSpanElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement>;
   placeholder?: string;
   maxLength?: number;
   autoFocus?: boolean;

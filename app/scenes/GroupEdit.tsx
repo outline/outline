@@ -47,6 +47,7 @@ function GroupEdit({ group, onSubmit }: Props) {
     },
     []
   );
+
   return (
     <form onSubmit={handleSubmit}>
       <HelpText>

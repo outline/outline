@@ -2,10 +2,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Subheading from "components/Subheading";
+import { NavigationNode } from "../../../types";
 import ReferenceListItem from "./ReferenceListItem";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
-import "types";
 
 type Props = {
   shareId: string;
@@ -16,23 +14,20 @@ type Props = {
 function PublicReferences(props: Props) {
   const { t } = useTranslation();
   const { shareId, documentId, sharedTree } = props;
+
   // The sharedTree is the entire document tree starting at the shared document
   // we must filter down the tree to only the part with the document we're
   // currently viewing
   const children = React.useMemo(() => {
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'result' implicitly has type 'any' in som... Remove this comment to see the full error message
-    let result;
+    let result: NavigationNode[];
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
-    function findChildren(node) {
+    function findChildren(node: NavigationNode) {
       if (!node) return;
 
       if (node.id === documentId) {
         result = node.children;
       } else {
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
         node.children.forEach((node) => {
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'result' implicitly has an 'any' type.
           if (result) {
             return;
           }
@@ -41,7 +36,6 @@ function PublicReferences(props: Props) {
         });
       }
 
-      // @ts-expect-error ts-migrate(7005) FIXME: Variable 'result' implicitly has an 'any' type.
       return result;
     }
 
@@ -55,8 +49,6 @@ function PublicReferences(props: Props) {
   return (
     <>
       <Subheading>{t("Nested documents")}</Subheading>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly
-      has an 'any' type.
       {children.map((node) => (
         <ReferenceListItem key={node.id} document={node} shareId={shareId} />
       ))}

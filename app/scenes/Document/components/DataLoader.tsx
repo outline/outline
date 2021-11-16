@@ -4,9 +4,7 @@ import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { RouterHistory, Match } from "react-router-dom";
-import { withRouter } from "react-router-dom";
+import { RouteComponentProps, withRouter } from "react-router-dom";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -22,7 +20,6 @@ import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { LocationWithState, NavigationNode } from "types";
-import "types";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/errors' or its correspon... Remove this comment to see the full error message
 import { NotFoundError, OfflineError } from "utils/errors";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
@@ -30,8 +27,11 @@ import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl } from "utils/urls";
 
-type Props = {
-  match: Match;
+type Props = RouteComponentProps<{
+  documentSlug: string;
+  revisionId?: string;
+  shareId?: string;
+}> & {
   // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'auth'.
   auth: AuthStore;
   location: LocationWithState;
@@ -42,9 +42,9 @@ type Props = {
   // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'auth'.
   auth: AuthStore;
   ui: UiStore;
-  history: RouterHistory;
   children: (arg0: any) => React.ReactNode;
 };
+
 const sharedTreeCache = {};
 
 @observer
@@ -177,7 +177,10 @@ class DataLoader extends React.Component<Props> {
 
   loadRevision = async () => {
     const { revisionId } = this.props.match.params;
-    this.revision = await this.props.revisions.fetch(revisionId);
+
+    if (revisionId) {
+      this.revision = await this.props.revisions.fetch(revisionId);
+    }
   };
 
   loadDocument = async () => {

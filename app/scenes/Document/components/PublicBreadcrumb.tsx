@@ -53,6 +53,7 @@ const PublicBreadcrumb = ({
         }),
     [sharedTree, shareId, documentId]
   );
+
   return <Breadcrumb items={items} children={children} />;
 };
 

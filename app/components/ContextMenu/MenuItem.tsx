@@ -87,7 +87,7 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchorCSS = css<{ level: number; disabled?: boolean }>`
+export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
   display: flex;
   margin: 0;
   border: 0;

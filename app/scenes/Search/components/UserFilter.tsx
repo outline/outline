@@ -19,7 +19,6 @@ function UserFilter(props: Props) {
     });
   }, [users]);
   const options = React.useMemo(() => {
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,

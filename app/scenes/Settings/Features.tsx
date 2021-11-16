@@ -38,6 +38,7 @@ function Features() {
     },
     [auth, data, showSuccessMessage]
   );
+
   return (
     <Scene title={t("Features")} icon={<BeakerIcon color="currentColor" />}>
       <Heading>

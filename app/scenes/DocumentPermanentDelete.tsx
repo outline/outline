@@ -44,6 +44,7 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
     },
     [document, onSubmit, showToast, t, history, documents]
   );
+
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>

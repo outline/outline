@@ -23,9 +23,6 @@
     "eslint-plugin-react-hooks",
     "import"
   ],
-  "ignorePatterns": [
-    "server/migrations/**/*"
-  ],
   "rules": {
     "eqeqeq": 2,
     "no-mixed-operators": "off",

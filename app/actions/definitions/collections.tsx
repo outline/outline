@@ -1,12 +1,10 @@
 import { CollectionIcon, EditIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
 import CollectionEdit from "scenes/CollectionEdit";
 import CollectionNew from "scenes/CollectionNew";
 import DynamicCollectionIcon from "components/CollectionIcon";
 import { createAction } from "actions";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/sections' or its corre... Remove this comment to see the full error message
 import { CollectionSection } from "actions/sections";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/history' or its correspo... Remove this comment to see the full error message
 import history from "utils/history";
@@ -55,6 +53,8 @@ export const editCollection = createAction({
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
   perform: ({ t, activeCollectionId }) => {
+    if (!activeCollectionId) return;
+
     stores.dialogs.openModal({
       title: t("Edit collection"),
       content: (

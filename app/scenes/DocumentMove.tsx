@@ -27,6 +27,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
   const { collections, documents } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+
   const searchIndex = useMemo(() => {
     const paths = collections.pathsToDocuments;
     const index = new Search("id");
@@ -34,7 +35,6 @@ function DocumentMove({ document, onRequestClose }: Props) {
     // Build index
     // @ts-expect-error ts-migrate(7034) FIXME: Variable 'indexeableDocuments' implicitly has type... Remove this comment to see the full error message
     const indexeableDocuments = [];
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'path' implicitly has an 'any' type.
     paths.forEach((path) => {
       const doc = documents.get(path.id);
 

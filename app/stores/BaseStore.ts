@@ -4,8 +4,7 @@ import { observable, set, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "stores/RootStore";
 import BaseModel from "../models/BaseModel";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { PaginationParams } from "types";
+import { PaginationParams } from "../types";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 

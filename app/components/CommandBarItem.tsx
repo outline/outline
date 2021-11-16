@@ -3,18 +3,18 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import Key from "components/Key";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { CommandBarAction } from "types";
+import { CommandBarAction } from "../types";
 
 type Props = {
   action: CommandBarAction;
   active: boolean;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-function CommandBarItem({ action, active }: Props, ref) {
+function CommandBarItem(
+  { action, active }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   return (
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <Item active={active} ref={ref}>
       <Text align="center" gap={8}>
         <Icon>
@@ -58,11 +58,10 @@ const Text = styled(Flex)`
   flex-shrink: 1;
 `;
 
-const Item = styled.div`
+const Item = styled.div<{ active?: boolean }>`
   font-size: 15px;
   padding: 12px 16px;
   background: ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'active' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     props.active ? props.theme.menuItemSelected : "none"};
   display: flex;
   align-items: center;

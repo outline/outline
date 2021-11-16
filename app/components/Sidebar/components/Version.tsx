@@ -45,6 +45,7 @@ export default function Version() {
     />
   );
 }
+
 const LilBadge = styled(Badge)`
   margin-left: 0;
 `;
