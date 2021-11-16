@@ -12,6 +12,7 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Integration);
   const user = ctx.state.user;
   const integrations = await Integration.findAll({

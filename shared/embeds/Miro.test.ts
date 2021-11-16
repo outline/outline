@@ -12,6 +12,7 @@ describe("Miro", () => {
   });
   test("to extract the domain as part of the match for later use", () => {
     expect(
+      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       "https://realtimeboard.com/app/board/o9J_k0fwiss=".match(match)[1]
     ).toBe("realtimeboard");
   });

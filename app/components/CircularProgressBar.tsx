@@ -1,7 +1,7 @@
 import React from "react";
 import styled, { useTheme } from "styled-components";
 
-const cleanPercentage = (percentage) => {
+const cleanPercentage = (percentage: number) => {
   const tooLow = !Number.isFinite(+percentage) || percentage < 0;
   const tooHigh = percentage > 100;
   return tooLow ? 0 : tooHigh ? 100 : +percentage;
@@ -56,12 +56,14 @@ const CircularProgressBar = ({
   const theme = useTheme();
   percentage = cleanPercentage(percentage);
   const offset = Math.floor(size / 2);
+
   return (
     <SVG width={size} height={size}>
       <g transform={`rotate(-90 ${offset} ${offset})`}>
         <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (
           <Circle
+            // @ts-expect-error ts-migrate(2339) FIXME: Property 'primary' does not exist on type 'Default... Remove this comment to see the full error message
             color={theme.primary}
             percentage={percentage}
             offset={offset}

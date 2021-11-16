@@ -9,6 +9,7 @@ const GroupUser = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 GroupUser.associate = (models) => {
   GroupUser.belongsTo(models.Group, {
     as: "group",

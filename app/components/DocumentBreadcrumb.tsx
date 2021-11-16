@@ -13,6 +13,7 @@ import Document from "models/Document";
 import Breadcrumb from "components/Breadcrumb";
 import CollectionIcon from "components/CollectionIcon";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -21,6 +22,7 @@ type Props = {
   onlyText: boolean;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
 function useCategory(document) {
   const { t } = useTranslation();
 
@@ -96,6 +98,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
       });
     }
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     path.forEach((p) => {
       output.push({
         title: p.title,
@@ -113,6 +116,8 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
     return (
       <>
         {collection.name}
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'n' implicitly has
+        an 'any' type.
         {path.map((n) => (
           <React.Fragment key={n.id}>
             <SmallSlash />

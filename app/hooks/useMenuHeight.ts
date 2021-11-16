@@ -1,4 +1,5 @@
 import * as React from "react";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"reakit"' has no exported member 'ElementR... Remove this comment to see the full error message
 import { ElementRef } from "reakit";
 import "reakit";
 import useMobile from "hooks/useMobile";
@@ -18,6 +19,7 @@ const useMenuHeight = (
 
     if (visible && !isMobile) {
       setMaxHeight(
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'number | undefined' is not assig... Remove this comment to see the full error message
         unstable_disclosureRef?.current
           ? windowHeight -
               unstable_disclosureRef.current.getBoundingClientRect().bottom -

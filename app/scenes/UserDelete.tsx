@@ -20,6 +20,7 @@ function UserDelete({ onRequestClose }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsDeleting(true);
 
       try {
@@ -30,6 +31,7 @@ function UserDelete({ onRequestClose }: Props) {
           type: "error",
         });
       } finally {
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsDeleting(false);
       }
     },
@@ -56,6 +58,9 @@ function UserDelete({ onRequestClose }: Props) {
             />
           </HelpText>
           <Button type="submit" danger>
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+            HTMLCollection' is not assignable t... Remove this comment to see
+            the full error message
             {isDeleting ? `${t("Deleting")}…` : t("Delete My Account")}
           </Button>
         </form>

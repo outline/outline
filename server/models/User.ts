@@ -109,6 +109,7 @@ const User = sequelize.define(
 );
 
 // Class methods
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 User.associate = (models) => {
   User.hasMany(models.ApiKey, {
     as: "apiKeys",
@@ -150,17 +151,22 @@ User.prototype.collectionIds = async function (options = {}) {
     paranoid: true,
     ...options,
   });
-  return collectionStubs
-    .filter(
-      (c) =>
-        c.permission === "read" ||
-        c.permission === "read_write" ||
-        c.memberships.length > 0 ||
-        c.collectionGroupMemberships.length > 0
-    )
-    .map((c) => c.id);
+  return (
+    collectionStubs
+      .filter(
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'c' implicitly has an 'any' type.
+        (c) =>
+          c.permission === "read" ||
+          c.permission === "read_write" ||
+          c.memberships.length > 0 ||
+          c.collectionGroupMemberships.length > 0
+      )
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'c' implicitly has an 'any' type.
+      .map((c) => c.id)
+  );
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ip' implicitly has an 'any' type.
 User.prototype.updateActiveAt = function (ip, force = false) {
   const fiveMinutesAgo = subMinutes(new Date(), 5);
 
@@ -175,6 +181,7 @@ User.prototype.updateActiveAt = function (ip, force = false) {
   }
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ip' implicitly has an 'any' type.
 User.prototype.updateSignedIn = function (ip) {
   this.lastSignedInAt = new Date();
   this.lastSignedInIp = ip;
@@ -223,6 +230,7 @@ User.prototype.getEmailSigninToken = function () {
   );
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 const uploadAvatar = async (model) => {
   const endpoint = publicS3Endpoint();
   const { avatarUrl } = model;
@@ -248,10 +256,12 @@ const uploadAvatar = async (model) => {
   }
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 const setRandomJwtSecret = (model) => {
   model.jwtSecret = crypto.randomBytes(64).toString("hex");
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 const removeIdentifyingInfo = async (model, options) => {
   await NotificationSetting.destroy({
     where: {
@@ -297,6 +307,7 @@ User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 // By default when a user signs up we subscribe them to email notifications
 // when documents they created are edited by other team members and onboarding
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
 User.afterCreate(async (user, options) => {
   await Promise.all([
     NotificationSetting.findOrCreate({
@@ -357,7 +368,9 @@ User.getCounts = async function (teamId: string) {
 };
 
 User.findAllInBatches = async (
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'query' implicitly has an 'any' type.
   query,
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   callback: (users: Array<User>, query: Record<string, any>) => Promise<void>
 ) => {
   if (!query.offset) query.offset = 0;
@@ -399,6 +412,7 @@ User.prototype.demote = async function (
       });
     }
   } else {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new ValidationError("At least one admin is required");
   }
 };

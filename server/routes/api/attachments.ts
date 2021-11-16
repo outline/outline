@@ -97,6 +97,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
   const attachment = await Attachment.findByPk(id);
 
   if (!attachment) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 
@@ -126,6 +127,7 @@ router.post("attachments.redirect", auth(), async (ctx) => {
   const attachment = await Attachment.findByPk(id);
 
   if (!attachment) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 

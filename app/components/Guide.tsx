@@ -45,6 +45,8 @@ const Guide = ({
           >
             {(props) => (
               <Scene {...props} {...rest}>
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches
+                this call.
                 <Content>
                   {title && <Header>{title}</Header>}
                   {children}

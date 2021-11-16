@@ -9,6 +9,7 @@ import Flex from "components/Flex";
 const RealTextarea = styled.textarea`
   border: 0;
   flex: 1;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'hasIcon' does not exist on type 'ThemedS... Remove this comment to see the full error message
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
@@ -22,6 +23,7 @@ const RealTextarea = styled.textarea`
 const RealInput = styled.input`
   border: 0;
   flex: 1;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'hasIcon' does not exist on type 'ThemedS... Remove this comment to see the full error message
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
@@ -46,10 +48,15 @@ const RealInput = styled.input`
   `};
 `;
 const Wrapper = styled.div`
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'flex' does not exist on type 'ThemedStyl... Remove this comment to see the full error message
   flex: ${(props) => (props.flex ? "1" : "0")};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'short' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   width: ${(props) => (props.short ? "49%" : "auto")};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'short' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   max-width: ${(props) => (props.short ? "350px" : "100%")};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'minHeight' does not exist on type 'Pick<... Remove this comment to see the full error message
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'maxHeight' does not exist on type 'Pick<... Remove this comment to see the full error message
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "initial")};
 `;
 const IconWrapper = styled.span`
@@ -62,14 +69,17 @@ const IconWrapper = styled.span`
 export const Outline = styled(Flex)`
   flex: 1;
   margin: ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'margin' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     props.margin !== undefined ? props.margin : "0 0 16px"};
   color: inherit;
   border-width: 1px;
   border-style: solid;
   border-color: ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'hasError' does not exist on type 'Themed... Remove this comment to see the full error message
     props.hasError
       ? props.theme.danger
-      : props.focused
+      : // @ts-expect-error ts-migrate(2339) FIXME: Property 'focused' does not exist on type 'ThemedS... Remove this comment to see the full error message
+      props.focused
       ? props.theme.inputBorderFocused
       : props.theme.inputBorder};
   border-radius: 4px;
@@ -157,6 +167,7 @@ class Input extends React.Component<Props> {
     const InputComponent = type === "textarea" ? RealTextarea : RealInput;
     const wrappedLabel = <LabelText>{label}</LabelText>;
     return (
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Wrapper className={className} short={short} flex={flex}>
         <label>
           {label &&
@@ -165,9 +176,15 @@ class Input extends React.Component<Props> {
             ) : (
               wrappedLabel
             ))}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           <Outline focused={this.focused} margin={margin}>
             {icon && <IconWrapper>{icon}</IconWrapper>}
+            // @ts-expect-error ts-migrate(2604) FIXME: JSX element type
+            'InputComponent' does not have an... Remove this comment to see the
+            full error message
             <InputComponent
+              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
               ref={(ref) => (this.input = ref)}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}

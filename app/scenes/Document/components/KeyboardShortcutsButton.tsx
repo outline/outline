@@ -19,13 +19,17 @@ function KeyboardShortcutsButton() {
   return (
     <>
       <Guide
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={keyboardShortcutsOpen}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleCloseKeyboardShortcuts}
         title={t("Keyboard shortcuts")}
       >
         <KeyboardShortcuts />
       </Guide>
       <Tooltip tooltip={t("Keyboard shortcuts")} shortcut="?" delay={500}>
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+        call.
         <Button onClick={handleOpenKeyboardShortcuts}>
           <KeyboardIcon />
         </Button>

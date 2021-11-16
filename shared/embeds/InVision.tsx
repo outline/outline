@@ -15,10 +15,11 @@ type Props = {
 export default class InVision extends React.Component<Props> {
   static ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
 
-  override render() {
+  render() {
     if (IMAGE_REGEX.test(this.props.attrs.href)) {
       return (
         <ImageZoom
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
           image={{
             src: this.props.attrs.href,
@@ -36,6 +37,7 @@ export default class InVision extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; isSelected: bo... Remove this comment to see the full error message
         src={this.props.attrs.href}
         title="InVision Embed"
       />

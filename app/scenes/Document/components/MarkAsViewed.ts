@@ -8,6 +8,7 @@ type Props = {
 };
 
 class MarkAsViewed extends React.Component<Props> {
+  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'TimeoutID'.
   viewTimeout: TimeoutID;
 
   componentDidMount() {

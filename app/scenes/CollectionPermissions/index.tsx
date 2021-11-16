@@ -168,6 +168,7 @@ function CollectionPermissions({ collection }: Props) {
     async (ev: React.SyntheticEvent<any>) => {
       try {
         await collection.save({
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'checked' does not exist on type 'EventTa... Remove this comment to see the full error message
           sharing: ev.target.checked,
         });
         showToast(t("Public document sharing permissions were updated"), {
@@ -252,6 +253,7 @@ function CollectionPermissions({ collection }: Props) {
         <Actions>
           <Button
             type="button"
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; type: string; on... Remove this comment to see the full error message
             onClick={handleAddGroupModalOpen}
             icon={<PlusIcon />}
             neutral
@@ -260,6 +262,7 @@ function CollectionPermissions({ collection }: Props) {
           </Button>{" "}
           <Button
             type="button"
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; type: string; on... Remove this comment to see the full error message
             onClick={handleAddMemberModalOpen}
             icon={<PlusIcon />}
             neutral
@@ -277,9 +280,11 @@ function CollectionPermissions({ collection }: Props) {
         </Empty>
       )}
       <PaginatedList
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; fetch: any; options: { id: str... Remove this comment to see the full error message
         items={collectionGroups}
         fetch={collectionGroupMemberships.fetchPage}
         options={fetchOptions}
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
         renderItem={(group) => (
           <CollectionGroupMemberListItem
             key={group.id}
@@ -295,9 +300,11 @@ function CollectionPermissions({ collection }: Props) {
       {collectionGroups.length ? <Divider /> : null}
       <PaginatedList
         key={`collection-users-${collection.permission || "none"}`}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: string; items: any; fetch: any; optio... Remove this comment to see the full error message
         items={collectionUsers}
         fetch={memberships.fetchPage}
         options={fetchOptions}
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           <MemberListItem
             key={item.id}
@@ -313,10 +320,13 @@ function CollectionPermissions({ collection }: Props) {
         title={t(`Add groups to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleAddGroupModalClose}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={addGroupModalOpen}
       >
         <AddGroupsToCollection
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collection: Collection; onSubmit: boolean ... Remove this comment to see the full error message
           collection={collection}
           onSubmit={handleAddGroupModalClose}
         />
@@ -325,10 +335,13 @@ function CollectionPermissions({ collection }: Props) {
         title={t(`Add people to {{ collectionName }}`, {
           collectionName: collection.name,
         })}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleAddMemberModalClose}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={addMemberModalOpen}
       >
         <AddPeopleToCollection
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collection: Collection; onSubmit: boolean ... Remove this comment to see the full error message
           collection={collection}
           onSubmit={handleAddMemberModalClose}
         />

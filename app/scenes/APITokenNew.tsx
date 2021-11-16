@@ -66,6 +66,9 @@ function APITokenNew({ onSubmit }: Props) {
         />
       </Flex>
       <Button type="submit" disabled={isSaving || !name}>
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not
+        assignable to type 'HTMLColle... Remove this comment to see the full
+        error message
         {isSaving ? "Creating…" : "Create"}
       </Button>
     </form>

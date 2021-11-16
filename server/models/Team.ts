@@ -109,6 +109,7 @@ const Team = sequelize.define(
           return process.env.URL;
         }
 
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
         const url = new URL(process.env.URL);
         url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
         return url.href.replace(/\/$/, "");
@@ -127,6 +128,7 @@ const Team = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Team.associate = (models) => {
   Team.hasMany(models.Collection, {
     as: "collections",
@@ -150,6 +152,7 @@ Team.associate = (models) => {
   });
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 const uploadAvatar = async (model) => {
   const endpoint = publicS3Endpoint();
   const { avatarUrl } = model;
@@ -200,6 +203,7 @@ Team.prototype.provisionSubdomain = async function (
   return subdomain;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
 Team.prototype.provisionFirstCollection = async function (userId) {
   const collection = await Collection.create({
     name: "Welcome",
@@ -251,6 +255,7 @@ Team.prototype.collectionIds = async function (paranoid = true) {
     },
     paranoid,
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'c' implicitly has an 'any' type.
   return models.map((c) => c.id);
 };
 

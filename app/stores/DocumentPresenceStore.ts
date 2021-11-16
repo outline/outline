@@ -13,6 +13,7 @@ export default class PresenceStore {
   @observable
   data: Map<string, DocumentPresence> = new Map();
 
+  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'TimeoutID'.
   timeouts: Map<string, TimeoutID> = new Map();
 
   // called to setup when we get the initial state from document.presence

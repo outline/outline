@@ -11,19 +11,20 @@ import styled from "styled-components";
 import { $Shape } from "utility-types";
 import Flex from "components/Flex";
 import MenuIconWrapper from "components/MenuIconWrapper";
-import Header from "./Header";
-import MenuItem, { MenuAnchor } from "./MenuItem";
-import Separator from "./Separator";
-import ContextMenu from ".";
-import { actionToMenuItem } from "actions";
-import useStores from "hooks/useStores";
 import {
   MenuItem as TMenuItem,
   Action,
   ActionContext,
   MenuSeparator,
   MenuHeading,
-} from "types";
+} from "../../types";
+import Header from "./Header";
+import MenuItem, { MenuAnchor } from "./MenuItem";
+import Separator from "./Separator";
+import ContextMenu from ".";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions' or its corresponding ... Remove this comment to see the full error message
+import { actionToMenuItem } from "actions";
+import useStores from "hooks/useStores";
 
 type Props = {
   items: TMenuItem[];
@@ -35,6 +36,7 @@ const Disclosure = styled(ExpandedIcon)`
   position: absolute;
   right: 8px;
 `;
+// @ts-expect-error ts-migrate(2339) FIXME: Property 'templateItems' does not exist on type '{... Remove this comment to see the full error message
 const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   const { t } = useTranslation();
   const menu = useMenuState({
@@ -73,12 +75,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   return filtered;
 }
 
-function Template({
-  items,
-  actions,
-  context,
-  ...menu
-}: Props): React.ReactNode {
+function Template({ items, actions, context, ...menu }: Props) {
   const { t } = useTranslation();
   const location = useLocation();
   const stores = useStores();
@@ -162,6 +159,7 @@ function Template({
         <BaseMenuItem
           key={index}
           as={Submenu}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           templateItems={item.items}
           title={<Title title={item.title} icon={item.icon} />}
           {...menu}
@@ -182,6 +180,7 @@ function Template({
   });
 }
 
+// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'title' implicitly has an 'any' ty... Remove this comment to see the full error message
 function Title({ title, icon }) {
   return (
     <Flex align="center">
@@ -191,4 +190,5 @@ function Title({ title, icon }) {
   );
 }
 
+// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ items, actions, context, ...m... Remove this comment to see the full error message
 export default React.memo<Props>(Template);

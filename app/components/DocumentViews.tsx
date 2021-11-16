@@ -21,9 +21,12 @@ function DocumentViews({ document, isOpen }: Props) {
   documentPresence = documentPresence
     ? Array.from(documentPresence.values())
     : [];
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
   const presentIds = documentPresence.map((p) => p.userId);
   const editingIds = documentPresence
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     .filter((p) => p.isEditing)
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     .map((p) => p.userId);
   // ensure currently present via websocket are always ordered first
   const documentViews = views.inDocument(document.id);
@@ -38,8 +41,11 @@ function DocumentViews({ document, isOpen }: Props) {
     <>
       {isOpen && (
         <PaginatedList
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any[]; renderItem: (item: any) => E... Remove this comment to see the full error message
           items={users}
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
           renderItem={(item) => {
+            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'v' implicitly has an 'any' type.
             const view = documentViews.find((v) => v.user.id === item.id);
             const isPresent = presentIds.includes(item.id);
             const isEditing = editingIds.includes(item.id);
@@ -56,6 +62,7 @@ function DocumentViews({ document, isOpen }: Props) {
               <ListItem
                 key={item.id}
                 title={item.name}
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; title: any; subtitle: string; im... Remove this comment to see the full error message
                 subtitle={subtitle}
                 image={<Avatar key={item.id} src={item.avatarUrl} size={32} />}
                 border={false}

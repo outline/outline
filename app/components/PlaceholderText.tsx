@@ -15,11 +15,12 @@ type Props = {
 class PlaceholderText extends React.Component<Props> {
   width = randomInteger(this.props.minWidth || 75, this.props.maxWidth || 100);
 
-  override shouldComponentUpdate() {
+  shouldComponentUpdate() {
     return false;
   }
 
-  override render() {
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
+  render() {
     return (
       <Mask
         width={this.width}
@@ -31,8 +32,11 @@ class PlaceholderText extends React.Component<Props> {
   }
 }
 
-const Mask = styled(Flex) <{
-  width: number; height?: number; delay?: number; header?: boolean;
+const Mask = styled(Flex)<{
+  width: number;
+  height?: number;
+  delay?: number;
+  header?: boolean;
 }>`
   width: ${(props) => (props.header ? props.width / 2 : props.width)}%;
   height: ${(props) =>

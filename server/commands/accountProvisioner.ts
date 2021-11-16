@@ -37,7 +37,9 @@ type Props = {
 };
 
 export type AccountProvisionerResult = {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team;
   isNewTeam: boolean;
   isNewUser: boolean;
@@ -61,6 +63,7 @@ export default async function accountProvisioner({
       authenticationProvider: authenticationProviderParams,
     });
   } catch (err) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new AuthenticationError(err.message);
   }
 
@@ -68,6 +71,7 @@ export default async function accountProvisioner({
   const { authenticationProvider, team, isNewTeam } = result;
 
   if (!authenticationProvider.enabled) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new AuthenticationProviderDisabledError();
   }
 
@@ -130,11 +134,13 @@ export default async function accountProvisioner({
       });
 
       if (exists) {
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
         throw new EmailAuthenticationRequiredError(
           "Email authentication required",
           team.url
         );
       } else {
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
         throw new AuthenticationError(err.message, team.url);
       }
     }

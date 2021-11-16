@@ -1,4 +1,5 @@
 import "../stores";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'enzy... Remove this comment to see the full error message
 import { shallow } from "enzyme";
 import * as React from "react";
 import AuthStore from "stores/AuthStore";
@@ -13,6 +14,7 @@ describe("PaginatedList", () => {
   const rootStore = new RootStore();
   const props = {
     auth: new AuthStore(rootStore),
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.
     t: (string) => "test",
   };
   it("with no items renders nothing", () => {
@@ -53,6 +55,7 @@ describe("PaginatedList", () => {
     });
   });
   it("calls fetch when options prop changes", async () => {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments, but got 0.
     const fetchedItems = Array(DEFAULT_PAGINATION_LIMIT).fill();
     const fetch = jest.fn().mockReturnValue(Promise.resolve(fetchedItems));
     const list = shallow(

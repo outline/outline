@@ -12,9 +12,11 @@ type Props = {
 export default class Prezi extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  override render() {
+  
+  render() {
     const url = this.props.attrs.href.replace(/\/embed$/, "");
     return (
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; border: true; ... Remove this comment to see the full error message
       <Frame {...this.props} src={`${url}/embed`} title="Prezi Embed" border />
     );
   }

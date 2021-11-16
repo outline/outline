@@ -2,10 +2,12 @@ import { useKBar, KBarPositioner, KBarAnimator, KBarSearch } from "kbar";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import CommandBarResults from "components/CommandBarResults";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/root' or its correspon... Remove this comment to see the full error message
 import rootActions from "actions/root";
 import useCommandBarActions from "hooks/useCommandBarActions";
 
@@ -20,6 +22,7 @@ function CommandBar() {
   const { t } = useTranslation();
   useCommandBarActions(rootActions);
   const { rootAction } = useKBar((state) => ({
+    // @ts-expect-error ts-migrate(2538) FIXME: Type 'null' cannot be used as an index type.
     rootAction: state.actions[state.currentRootActionId],
   }));
   return (

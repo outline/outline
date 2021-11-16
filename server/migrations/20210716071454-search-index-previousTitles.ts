@@ -1,6 +1,7 @@
 "use strict";
 
 module.exports = {
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   up: async (queryInterface, Sequelize) => {
     const searchDocument = `
     CREATE OR REPLACE FUNCTION documents_search_trigger() RETURNS trigger AS $$
@@ -15,6 +16,7 @@ module.exports = {
         `;
     await queryInterface.sequelize.query(searchDocument);
   },
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   down: async (queryInterface, Sequelize) => {
     const searchDocument = `
     CREATE OR REPLACE FUNCTION documents_search_trigger() RETURNS trigger AS $$

@@ -41,6 +41,7 @@ class GroupListItem extends React.Component<Props> {
     const membershipsInGroup = groupMemberships.inGroup(group.id);
     const users = membershipsInGroup
       .slice(0, MAX_AVATAR_DISPLAY)
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type 'GroupMembe... Remove this comment to see the full error message
       .map((gm) => gm.user);
     const overflow = memberCount - users.length;
     return (
@@ -51,6 +52,7 @@ class GroupListItem extends React.Component<Props> {
               <GroupIcon size={24} />
             </Image>
           }
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'Element' is not assignable to type 'string'.
           title={
             <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
           }

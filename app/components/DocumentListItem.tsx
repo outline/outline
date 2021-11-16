@@ -19,6 +19,7 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { newDocumentPath } from "utils/routeHelpers";
 
 type Props = {
@@ -40,12 +41,14 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
 function DocumentListItem(props: Props, ref) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const currentUser = useCurrentUser();
   const currentTeam = useCurrentTeam();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+
   const {
     document,
     showNestedDocuments,
@@ -64,6 +67,7 @@ function DocumentListItem(props: Props, ref) {
     !document.isDraft && !document.isArchived && !document.isTemplate;
   const can = policies.abilities(currentTeam.id);
   const canCollection = policies.abilities(document.collectionId);
+
   return (
     <DocumentLink
       ref={ref}
@@ -82,9 +86,11 @@ function DocumentListItem(props: Props, ref) {
           <Title
             text={document.titleWithDefault}
             highlight={highlight}
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             dir={document.dir}
           />
           {document.isNew && document.createdBy.id !== currentUser.id && (
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (
@@ -102,12 +108,14 @@ function DocumentListItem(props: Props, ref) {
             </Tooltip>
           )}
           {document.isTemplate && showTemplate && (
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <Badge primary>{t("Template")}</Badge>
           )}
         </Heading>
 
         {!queryIsInTitle && (
           <ResultContext
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             text={context}
             highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
             processResult={replaceResultMarks}
@@ -129,6 +137,7 @@ function DocumentListItem(props: Props, ref) {
           canCollection.update && (
             <>
               <Button
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; as: <S = unknown... Remove this comment to see the full error message
                 as={Link}
                 to={newDocumentPath(document.collectionId, {
                   templateId: document.id,
@@ -158,6 +167,7 @@ const Content = styled.div`
   flex-shrink: 1;
   min-width: 0;
 `;
+
 const Actions = styled(EventBoundary)`
   display: none;
   align-items: center;
@@ -169,7 +179,8 @@ const Actions = styled(EventBoundary)`
     display: flex;
   `};
 `;
-const DocumentLink = styled(Link)`
+
+const DocumentLink = styled(Link)<{ $isStarred?: boolean, $menuOpen?: boolean }>`
   display: flex;
   align-items: center;
   margin: 10px -8px;
@@ -223,7 +234,8 @@ const DocumentLink = styled(Link)`
       }
     `}
 `;
-const Heading = styled.h3`
+
+const Heading = styled.h3<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
@@ -236,15 +248,18 @@ const Heading = styled.h3`
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
+
 const StarPositioner = styled(Flex)`
   margin-left: 4px;
   align-items: center;
 `;
+
 const Title = styled(Highlight)`
   max-width: 90%;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
+
 const ResultContext = styled(Highlight)`
   display: block;
   color: ${(props) => props.theme.textTertiary};

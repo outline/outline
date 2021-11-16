@@ -3,7 +3,9 @@ import path from "path";
 import util from "util";
 import Koa from "koa";
 import Router from "koa-router";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'koa-... Remove this comment to see the full error message
 import sendfile from "koa-sendfile";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'koa-... Remove this comment to see the full error message
 import serve from "koa-static";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "../../shared/i18n";
@@ -21,6 +23,7 @@ const koa = new Koa();
 const router = new Router();
 const readFile = util.promisify(fs.readFile);
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ctx' implicitly has an 'any' type.
 const readIndexFile = async (ctx) => {
   if (isProduction) {
     return readFile(path.join(__dirname, "../../app/index.html"));
@@ -35,6 +38,7 @@ const readIndexFile = async (ctx) => {
   return new Promise((resolve, reject) => {
     middleware.fileSystem.readFile(
       `${ctx.webpackConfig.output.path}/index.html`,
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
       (err, result) => {
         if (err) {
           return reject(err);
@@ -46,6 +50,7 @@ const readIndexFile = async (ctx) => {
   });
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ctx' implicitly has an 'any' type.
 const renderApp = async (ctx, next, title = "Outline") => {
   if (ctx.request.path === "/realtime/") {
     return next();
@@ -55,6 +60,7 @@ const renderApp = async (ctx, next, title = "Outline") => {
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env))};
   `;
+  // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
@@ -63,6 +69,7 @@ const renderApp = async (ctx, next, title = "Outline") => {
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ctx' implicitly has an 'any' type.
 const renderShare = async (ctx, next) => {
   const { shareId } = ctx.params;
   // Find the share record if publicly published so that the document title

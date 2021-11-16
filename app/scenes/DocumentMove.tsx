@@ -1,10 +1,13 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'js-s... Remove this comment to see the full error message
 import { Search } from "js-search";
 import { last } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import AutoSizer from "react-virtualized-auto-sizer";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
 import { DocumentPath } from "stores/CollectionsStore";
@@ -32,7 +35,9 @@ function DocumentMove({ document, onRequestClose }: Props) {
     const index = new Search("id");
     index.addIndex("title");
     // Build index
+    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'indexeableDocuments' implicitly has type... Remove this comment to see the full error message
     const indexeableDocuments = [];
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'path' implicitly has an 'any' type.
     paths.forEach((path) => {
       const doc = documents.get(path.id);
 
@@ -40,9 +45,11 @@ function DocumentMove({ document, onRequestClose }: Props) {
         indexeableDocuments.push(path);
       }
     });
+    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'indexeableDocuments' implicitly has an '... Remove this comment to see the full error message
     index.addDocuments(indexeableDocuments);
     return index;
   }, [documents, collections.pathsToDocuments]);
+
   const results: DocumentPath[] = useMemo(() => {
     const onlyShowCollections = document.isTemplate;
     let results = [];
@@ -56,19 +63,24 @@ function DocumentMove({ document, onRequestClose }: Props) {
     }
 
     if (onlyShowCollections) {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
       results = results.filter((result) => result.type === "collection");
     } else {
       // Exclude root from search results if document is already at the root
       if (!document.parentDocumentId) {
         results = results.filter(
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
           (result) => result.id !== document.collectionId
         );
       }
 
       // Exclude document if on the path to result, or the same result
       results = results.filter(
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
         (result) =>
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
           !result.path.map((doc) => doc.id).includes(document.id) &&
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
           last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
       );
     }
@@ -84,9 +96,11 @@ function DocumentMove({ document, onRequestClose }: Props) {
   };
 
   const handleFilter = (ev: React.SyntheticEvent<any>) => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
     setSearchTerm(ev.target.value);
   };
 
+  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   const renderPathToCurrentDocument = () => {
     const result = collections.getPathForDocument(document.id);
 
@@ -100,6 +114,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
     }
   };
 
+  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'index' implicitly has an 'any' ty... Remove this comment to see the full error message
   const row = ({ index, data, style }) => {
     const result = data[index];
     return (
@@ -141,7 +156,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
           </InputWrapper>
           <Results>
             <AutoSizer>
-              {({ width, height }) => (
+              {({ width, height }: { width: number, height: number }) => (
                 <Flex role="listbox" column>
                   <List
                     key={data.length}
@@ -150,6 +165,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
                     itemData={data}
                     itemCount={data.length}
                     itemSize={40}
+                    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'index' implicitly has an 'any' type.
                     itemKey={(index, data) => data[index].id}
                   >
                     {row}
@@ -168,6 +184,7 @@ const InputWrapper = styled("div")`
   padding: 8px;
   width: 100%;
 `;
+
 const Input = styled("input")`
   width: 100%;
   outline: none;
@@ -181,15 +198,18 @@ const Input = styled("input")`
     color: ${(props) => props.theme.placeholder};
   }
 `;
+
 const NewLocation = styled(Outline)`
   display: block;
   flex: initial;
   height: 40vh;
 `;
+
 const Results = styled.div`
   padding: 8px 0;
   height: calc(100% - 46px);
 `;
+
 const Section = styled(Flex)`
   margin-bottom: 24px;
 `;

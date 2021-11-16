@@ -1,4 +1,5 @@
 import * as React from "react";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'stri... Remove this comment to see the full error message
 import replace from "string-replace-to-array";
 import styled from "styled-components";
 
@@ -31,7 +32,8 @@ function Highlight({
   return (
     <span {...rest}>
       {highlight
-        ? replace(text, regex, (tag) => (
+        ? // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'tag' implicitly has an 'any' type.
+          replace(text, regex, (tag) => (
             <Mark key={index++}>
               {processResult ? processResult(tag) : tag}
             </Mark>

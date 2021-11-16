@@ -4,6 +4,7 @@ import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation } from "react-i18next";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { RouterHistory } from "react-router-dom";
 import { Switch, Route, withRouter } from "react-router-dom";
 import styled from "styled-components";
@@ -21,12 +22,14 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
 import {
   searchUrl,
   matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
+  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 } from "utils/routeHelpers";
 
 const DocumentHistory = React.lazy(
@@ -108,6 +111,7 @@ class Layout extends React.Component<Props> {
         {this.props.notifications}
 
         <MobileMenuButton
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           onClick={ui.toggleMobileSidebar}
           icon={<MenuIcon />}
           iconColor="currentColor"
@@ -126,6 +130,7 @@ class Layout extends React.Component<Props> {
           <Content
             auto
             justify="center"
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             $isResizing={ui.sidebarIsResizing}
             $sidebarCollapsed={sidebarCollapsed}
             style={
@@ -178,6 +183,7 @@ const MobileMenuButton = styled(Button)`
 const Content = styled(Flex)`
   margin: 0;
   transition: ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property '$isResizing' does not exist on type 'The... Remove this comment to see the full error message
     props.$isResizing ? "none" : `margin-left 100ms ease-out`};
 
   @media print {
@@ -189,12 +195,15 @@ const Content = styled(Flex)`
   `}
 
   ${breakpoint("tablet")`
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
     ${(props) =>
       props.$sidebarCollapsed &&
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
 `;
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'Layout' does not satisfy the constraint 'Com... Remove this comment to see the full error message
 export default withTranslation()<Layout>(
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'typeof Layout' is not assignable... Remove this comment to see the full error message
   inject("auth", "ui", "documents", "policies")(withRouter(Layout))
 );

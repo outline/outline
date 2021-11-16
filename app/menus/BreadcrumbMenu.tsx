@@ -23,7 +23,9 @@ export default function BreadcrumbMenu({ items }: Props) {
   return (
     <>
       <OverflowMenuButton aria-label={t("Show path to document")} {...menu} />
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Path to document")}>
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: Me... Remove this comment to see the full error message
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

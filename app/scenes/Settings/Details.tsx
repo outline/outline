@@ -50,19 +50,23 @@ function Details() {
   );
   const handleNameChange = React.useCallback(
     (ev: React.SyntheticEvent<any>) => {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
       setName(ev.target.value);
     },
     []
   );
   const handleSubdomainChange = React.useCallback(
     (ev: React.SyntheticEvent<any>) => {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
       setSubdomain(ev.target.value.toLowerCase());
     },
     []
   );
   const handleAvatarUpload = React.useCallback(
     (avatarUrl: string) => {
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
       setAvatarUrl(avatarUrl);
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       handleSubmit();
     },
     [handleSubmit]
@@ -123,6 +127,7 @@ function Details() {
               short
             />
             {subdomain && (
+              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               <HelpText small>
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
                 <strong>{subdomain}.getoutline.com</strong>
@@ -131,6 +136,9 @@ function Details() {
           </>
         )}
         <Button type="submit" disabled={auth.isSaving || !isValid}>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+          HTMLCollection' is not assignable t... Remove this comment to see the
+          full error message
           {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>

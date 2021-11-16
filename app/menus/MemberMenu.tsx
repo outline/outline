@@ -17,7 +17,9 @@ function MemberMenu({ onRemove }: Props) {
   return (
     <>
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Member options")}>
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: { ... Remove this comment to see the full error message
         <Template
           {...menu}
           items={[

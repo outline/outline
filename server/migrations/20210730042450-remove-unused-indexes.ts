@@ -1,6 +1,7 @@
 "use strict";
 
 module.exports = {
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   up: async (queryInterface, Sequelize) => {
     await queryInterface.removeIndex("documents", "documents_collaborator_ids");
     await queryInterface.removeIndex("documents", "documents_id_deleted_at");
@@ -12,6 +13,7 @@ module.exports = {
       "collection_users_permission"
     );
   },
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   down: async (queryInterface, Sequelize) => {
     await queryInterface.addIndex("documents", ["collaboratorIds"]);
     await queryInterface.addIndex("documents", ["id", "deletedAt"]);

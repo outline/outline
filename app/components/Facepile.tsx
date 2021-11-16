@@ -8,7 +8,7 @@ import Flex from "components/Flex";
 type Props = {
   users: User[];
   size?: number;
-  overflow: number;
+  overflow?: number;
   onClick?: (event: React.SyntheticEvent) => unknown;
   renderAvatar?: (user: User) => React.ReactNode;
 };
@@ -45,7 +45,8 @@ const AvatarWrapper = styled.div`
     margin-right: 0;
   }
 `;
-const More = styled.div`
+
+const More = styled.div<{ size: number }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -60,6 +61,7 @@ const More = styled.div`
   font-size: 11px;
   font-weight: 600;
 `;
+
 const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;

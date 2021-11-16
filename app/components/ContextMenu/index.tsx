@@ -10,12 +10,14 @@ import {
   fadeAndSlideUp,
   fadeAndSlideDown,
   mobileContextMenu,
-} from "styles/animations";
+} from "../../styles/animations";
+
+export type Placement = "auto-start" | "auto" | "auto-end" | "top-start" | "top" | "top-end" | "right-start" | "right" | "right-end" | "bottom-end" | "bottom" | "bottom-start" | "left-end" | "left" | "left-start";
 
 type Props = {
   "aria-label": string;
   visible?: boolean;
-  placement?: string;
+  placement?: Placement;
   animating?: boolean;
   children: React.ReactNode;
   unstable_disclosureRef?: {
@@ -35,6 +37,7 @@ export default function ContextMenu({
   const previousVisible = usePrevious(rest.visible);
   const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
   const backgroundRef = React.useRef();
+
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
       if (onOpen) {
@@ -48,6 +51,7 @@ export default function ContextMenu({
       }
     }
   }, [onOpen, onClose, previousVisible, rest.visible]);
+
   // sets the menu height based on the available space between the disclosure/
   // trigger and the bottom of the window
   return (
@@ -57,7 +61,9 @@ export default function ContextMenu({
           // kind of hacky, but this is an effective way of telling which way
           // the menu will _actually_ be placed when taking into account screen
           // positioning.
+          // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
           const topAnchor = props.style.top === "0";
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'placement' does not exist on type 'Extra... Remove this comment to see the full error message
           const rightAnchor = props.placement === "bottom-end";
           return (
             <Position {...props}>
@@ -65,6 +71,7 @@ export default function ContextMenu({
                 dir="auto"
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                 ref={backgroundRef}
                 style={
                   maxHeight && topAnchor
@@ -118,7 +125,7 @@ export const Position = styled.div`
   `};
 `;
 
-export const Background = styled.div`
+export const Background = styled.div<{ rightAnchor?: boolean }>`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
@@ -138,11 +145,11 @@ export const Background = styled.div`
   }
 
   ${breakpoint("tablet")`
-    animation: ${(props) =>
+    animation: ${(props: any) =>
       props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
-    transform-origin: ${(props) => (props.rightAnchor ? "75%" : "25%")} 0;
+    transform-origin: ${(props: any) => (props.rightAnchor ? "75%" : "25%")} 0;
     max-width: 276px;
-    background: ${(props) => props.theme.menuBackground};
-    box-shadow: ${(props) => props.theme.menuShadow};
+    background: ${(props: any) => props.theme.menuBackground};
+    box-shadow: ${(props: any) => props.theme.menuShadow};
   `};
 `;

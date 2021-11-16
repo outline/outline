@@ -9,6 +9,7 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
           email: "test@example.com",
           name: "Test",
@@ -23,6 +24,7 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
           email: " ",
           name: "Test",
@@ -37,6 +39,7 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
           email: "notanemail",
           name: "Test",
@@ -51,10 +54,12 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
           email: "the@same.com",
           name: "Test",
         },
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
           email: "the@SAME.COM",
           name: "Test",
@@ -69,6 +74,7 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: any; ... Remove this comment to see the full error message
         {
           email: user.email,
           name: user.name,

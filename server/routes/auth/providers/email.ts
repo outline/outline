@@ -33,6 +33,7 @@ router.post("email", errorHandling(), async (ctx) => {
   });
 
   if (users.length) {
+    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'team' implicitly has type 'any' in some ... Remove this comment to see the full error message
     let team;
 
     if (isCustomDomain(ctx.request.hostname)) {
@@ -59,6 +60,7 @@ router.post("email", errorHandling(), async (ctx) => {
 
     // If there are multiple users with this email address then give precedence
     // to the one that is active on this subdomain/domain (if any)
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
     let user = users.find((user) => team && user.teamId === team.id);
 
     // A user was found for the email address, but they don't belong to the team
@@ -95,6 +97,7 @@ router.post("email", errorHandling(), async (ctx) => {
     }
 
     if (!team.guestSignin) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new AuthorizationError();
     }
 
@@ -128,9 +131,11 @@ router.post("email", errorHandling(), async (ctx) => {
 });
 router.get("email.callback", async (ctx) => {
   const { token } = ctx.request.query;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(token, "token is required");
 
   try {
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
     const user = await getUserForEmailSigninToken(token);
 
     if (!user.team.guestSignin) {

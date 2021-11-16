@@ -16,6 +16,7 @@
   ],
   "plugins": [
     "@typescript-eslint",
+    "@typescript-eslint/tslint",
     "prettier"
   ],
   "ignorePatterns": [

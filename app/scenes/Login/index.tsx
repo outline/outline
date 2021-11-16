@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { Location } from "react-router-dom";
 import { Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
@@ -21,12 +22,14 @@ import Provider from "./Provider";
 import env from "env";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
 import { isCustomDomain } from "utils/domains";
 
 type Props = {
   location: Location;
 };
 
+// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'config' implicitly has an 'any' t... Remove this comment to see the full error message
 function Header({ config }) {
   const { t } = useTranslation();
   const isHosted = env.DEPLOYMENT === "hosted";
@@ -106,6 +109,8 @@ function Login({ location }: Props) {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Check your email" />
           <CheckEmailIcon size={38} color="currentColor" />
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans
@@ -119,6 +124,8 @@ function Login({ location }: Props) {
             />
           </Note>
           <br />
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           <ButtonLarge onClick={handleReset} fullwidth neutral>
             {t("Back to login")}
           </ButtonLarge>
@@ -134,14 +141,16 @@ function Login({ location }: Props) {
         <PageTitle title="Login" />
         <Logo>
           {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <TeamLogo src={env.TEAM_LOGO} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />
           )}
         </Logo>
-
         {isCreate ? (
           <>
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+            call.
             <Heading centered>{t("Create an account")}</Heading>
             <GetStarted>
               {t(
@@ -150,15 +159,14 @@ function Login({ location }: Props) {
             </GetStarted>
           </>
         ) : (
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <Heading centered>
             {t("Login to {{ authProviderName }}", {
               authProviderName: config.name || "Outline",
             })}
           </Heading>
         )}
-
         <Notices />
-
         {defaultProvider && (
           <React.Fragment key={defaultProvider.id}>
             <Provider
@@ -178,7 +186,8 @@ function Login({ location }: Props) {
             )}
           </React.Fragment>
         )}
-
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'provider'
+        implicitly has an 'any' type.
         {config.providers.map((provider) => {
           if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
@@ -193,7 +202,6 @@ function Login({ location }: Props) {
             />
           );
         })}
-
         {isCreate && (
           <Note>
             <Trans>

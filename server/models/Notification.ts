@@ -21,6 +21,7 @@ const Notification = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Notification.associate = (models) => {
   Notification.belongsTo(models.User, {
     as: "actor",

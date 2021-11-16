@@ -24,11 +24,13 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
 }: Props) {
   return (
     <PaginatedList
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: Event[]; empty: ReactNode; heading:... Remove this comment to see the full error message
       items={events}
       empty={empty}
       heading={heading}
       fetch={fetch}
       options={options}
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
       renderItem={(item, index) => (
         <EventListItem
           key={item.id}
@@ -38,6 +40,7 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
           {...rest}
         />
       )}
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'name' implicitly has an 'any' type.
       renderHeading={(name) => <Heading>{name}</Heading>}
     />
   );

@@ -28,6 +28,7 @@ export default function Version() {
   return (
     <SidebarLink
       href="https://github.com/outline/outline/releases"
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ href: string; label: Element; }' is not as... Remove this comment to see the full error message
       label={
         <>
           v{version}

@@ -4,6 +4,7 @@ import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
@@ -19,20 +20,26 @@ import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { LocationWithState, NavigationNode } from "types";
 import "types";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/errors' or its correspon... Remove this comment to see the full error message
 import { NotFoundError, OfflineError } from "utils/errors";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl } from "utils/urls";
 
 type Props = {
   match: Match;
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'auth'.
   auth: AuthStore;
   location: LocationWithState;
   shares: SharesStore;
   documents: DocumentsStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'auth'.
   auth: AuthStore;
   ui: UiStore;
   history: RouterHistory;
@@ -108,10 +115,12 @@ class DataLoader extends React.Component<Props> {
       const slug = parseDocumentSlug(term);
 
       try {
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ document: Document | null | undefined; sha... Remove this comment to see the full error message
         const {
           document,
         }: {
           document: Document;
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
         } = await this.props.documents.fetch(slug);
         const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
@@ -134,6 +143,7 @@ class DataLoader extends React.Component<Props> {
     // default search for anything that doesn't look like a URL
     const results = await this.props.documents.searchTitles(term);
     return sortBy(
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
       results.map((document) => {
         const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
@@ -184,6 +194,7 @@ class DataLoader extends React.Component<Props> {
       });
       this.sharedTree = response.sharedTree;
       this.document = response.document;
+      // @ts-expect-error ts-migrate(2533) FIXME: Object is possibly 'null' or 'undefined'.
       sharedTreeCache[this.document.id] = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {

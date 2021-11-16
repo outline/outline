@@ -6,6 +6,7 @@ import * as React from "react";
 import { render } from "react-dom";
 import { Router } from "react-router-dom";
 import { initI18n } from "shared/i18n";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
 import Analytics from "components/Analytics";
 import { CommandBarOptions } from "components/CommandBar";
@@ -87,14 +88,18 @@ if (element) {
 window.addEventListener("load", async () => {
   // installation does not use Google Analytics, or tracking is blocked on client
   // no point loading the rest of the analytics bundles
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   if (!env.GOOGLE_ANALYTICS_ID || !window.ga) return;
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
   await import(
     /* webpackChunkName: "autotrack" */
     "autotrack/autotrack.js"
   );
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   window.ga("require", "outboundLinkTracker");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   window.ga("require", "urlChangeTracker");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'ga' does not exist on type 'Window & typ... Remove this comment to see the full error message
   window.ga("require", "eventTracker", {
     attributePrefix: "data-",
   });

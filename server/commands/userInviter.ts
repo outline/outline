@@ -14,11 +14,13 @@ export default async function userInviter({
   invites,
   ip,
 }: {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   invites: Invite[];
   ip: string;
 }): Promise<{
   sent: Invite[];
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   users: User[];
 }> {
   const team = await Team.findByPk(user.teamId);
@@ -42,6 +44,7 @@ export default async function userInviter({
       email: emails,
     },
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
   const existingEmails = existingUsers.map((user) => user.email);
   const filteredInvites = normalizedInvites.filter(
     (invite) => !existingEmails.includes(invite.email)

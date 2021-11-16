@@ -15,9 +15,11 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", query, filter } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, User);
 
   if (filter) {
+    // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
     ctx.assertIn(filter, [
       "invited",
       "viewers",
@@ -35,16 +37,19 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 
   switch (filter) {
     case "invited": {
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ lastActiveAt: null; teamId: any; }' is not... Remove this comment to see the full error message
       where = { ...where, lastActiveAt: null };
       break;
     }
 
     case "viewers": {
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ isViewer: boolean; teamId: any; }' is not ... Remove this comment to see the full error message
       where = { ...where, isViewer: true };
       break;
     }
 
     case "admins": {
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ isAdmin: boolean; teamId: any; }' is not a... Remove this comment to see the full error message
       where = { ...where, isAdmin: true };
       break;
     }
@@ -52,6 +57,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     case "suspended": {
       where = {
         ...where,
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ suspendedAt: { [Op.ne]: null; }; teamId: a... Remove this comment to see the full error message
         suspendedAt: {
           [Op.ne]: null,
         },
@@ -66,6 +72,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     default: {
       where = {
         ...where,
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ suspendedAt: { [Op.eq]: null; }; teamId: a... Remove this comment to see the full error message
         suspendedAt: {
           [Op.eq]: null,
         },
@@ -77,6 +84,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   if (query) {
     where = {
       ...where,
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ name: { [Op.iLike]: string; }; teamId: any... Remove this comment to see the full error message
       name: {
         [Op.iLike]: `%${query}%`,
       },
@@ -96,6 +104,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   ]);
   ctx.body = {
     pagination: { ...ctx.state.pagination, total },
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
     data: users.map((user) =>
       presentUser(user, {
         includeDetails: can(actor, "readDetails", user),

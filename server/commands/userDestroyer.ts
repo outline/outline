@@ -7,7 +7,9 @@ export default async function userDestroyer({
   actor,
   ip,
 }: {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   actor: User;
   ip: string;
 }) {
@@ -19,6 +21,7 @@ export default async function userDestroyer({
   });
 
   if (usersCount === 1) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new ValidationError("Cannot delete last user on the team.");
   }
 
@@ -34,6 +37,7 @@ export default async function userDestroyer({
     });
 
     if (otherAdminsCount === 0) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new ValidationError(
         "Cannot delete account as only admin. Please make another user admin and try again."
       );

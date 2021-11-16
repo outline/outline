@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
-import { Props as EditorProps } from "components/Editor";
-import Editor from "components/Editor";
+import Editor, { Props as EditorProps } from "components/Editor";
 import env from "env";
 import useCurrentToken from "hooks/useCurrentToken";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -14,7 +13,9 @@ import useIsMounted from "hooks/useIsMounted";
 import usePageVisibility from "hooks/usePageVisibility";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'multiplayer/MultiplayerExtensi... Remove this comment to see the full error message
 import MultiplayerExtension from "multiplayer/MultiplayerExtension";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { homePath } from "utils/routeHelpers";
 
 type Props = EditorProps & {
@@ -48,6 +49,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     const localProvider = new IndexeddbPersistence(name, ydoc);
     const provider = new HocuspocusProvider({
       url: `${env.COLLABORATION_URL}/collaboration`,
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ url: string; debug: boolean; n... Remove this comment to see the full error message
       debug,
       name,
       document: ydoc,
@@ -62,7 +64,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       );
       history.replace(homePath());
     });
+    // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'states' implicitly has an 'any' t... Remove this comment to see the full error message
     provider.on("awarenessChange", ({ states }) => {
+      // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'user' implicitly has an 'any' typ... Remove this comment to see the full error message
       states.forEach(({ user, cursor }) => {
         if (user) {
           // could know if the user is editing here using `state.cursor` but it
@@ -94,19 +98,26 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     if (debug) {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
       provider.on("status", (ev) => console.log("status", ev.status));
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
       provider.on("message", (ev) => console.log("incoming", ev.message));
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
       provider.on("outgoingMessage", (ev) =>
         console.log("outgoing", ev.message)
       );
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
       localProvider.on("synced", (ev) => console.log("local synced"));
     }
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
     provider.on("status", (ev) => ui.setMultiplayerStatus(ev.status));
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'HocuspocusProvider' is not assig... Remove this comment to see the full error message
     setRemoteProvider(provider);
     return () => {
       provider?.destroy();
       localProvider?.destroy();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
       setRemoteProvider(null);
       ui.setMultiplayerStatus(undefined);
     };
@@ -156,15 +167,19 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     if (
       isIdle &&
       !isVisible &&
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.status === WebSocketStatus.Connected
     ) {
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.disconnect();
     }
 
     if (
       (!isIdle || isVisible) &&
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.status === WebSocketStatus.Disconnected
     ) {
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.connect();
     }
   }, [remoteProvider, isIdle, isVisible]);
@@ -179,6 +194,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   return (
     <>
       {showCache && (
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ defaultValue: string | undefined; readOnly... Remove this comment to see the full error message
         <Editor defaultValue={props.defaultValue} readOnly ref={ref} />
       )}
       <Editor
@@ -200,6 +216,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default React.forwardRef<any, typeof MultiplayerEditor>(
+export default React.forwardRef<typeof MultiplayerEditor, any>(
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ onSynced, ...props }: Props, ... Remove this comment to see the full error message
   MultiplayerEditor
 );

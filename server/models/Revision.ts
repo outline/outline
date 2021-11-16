@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'slat... Remove this comment to see the full error message
 import MarkdownSerializer from "slate-md-serializer";
 import { DataTypes, sequelize } from "../sequelize";
 
@@ -14,6 +15,7 @@ const Revision = sequelize.define("revision", {
   text: DataTypes.TEXT,
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Revision.associate = (models) => {
   Revision.belongsTo(models.Document, {
     as: "document",
@@ -41,6 +43,7 @@ Revision.associate = (models) => {
   );
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
 Revision.findLatest = function (documentId) {
   return Revision.findOne({
     where: {
@@ -50,6 +53,7 @@ Revision.findLatest = function (documentId) {
   });
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
 Revision.createFromDocument = function (document, options) {
   return Revision.create(
     {

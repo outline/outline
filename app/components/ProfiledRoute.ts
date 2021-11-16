@@ -10,4 +10,4 @@ if (env.SENTRY_DSN) {
   Component = Route;
 }
 
-export default Component;
+export default Component as typeof Route;

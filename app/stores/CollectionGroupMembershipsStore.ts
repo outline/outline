@@ -3,12 +3,15 @@ import { action, runInAction } from "mobx";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { PaginationParams } from "types";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 export default class CollectionGroupMembershipsStore extends BaseStore<
   CollectionGroupMembership
 > {
+  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'CollectionGroupMembers... Remove this comment to see the full error message
   actions = ["create", "delete"];
 
   constructor(rootStore: RootStore) {
@@ -36,6 +39,7 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
   };
 
   @action
+  // @ts-expect-error ts-migrate(2416) FIXME: Property 'create' in type 'CollectionGroupMembersh... Remove this comment to see the full error message
   async create({
     collectionId,
     groupId,

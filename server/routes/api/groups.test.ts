@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { Event } from "../../models";
 import webService from "../../services/web";
@@ -61,6 +62,7 @@ describe("#groups.update", () => {
     expect(res.status).toEqual(403);
   });
   describe("when user is admin", () => {
+    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'user' implicitly has type 'any' in some ... Remove this comment to see the full error message
     let user, group;
     beforeEach(async () => {
       user = await buildAdmin();
@@ -71,7 +73,9 @@ describe("#groups.update", () => {
     it("allows admin to edit a group", async () => {
       const res = await server.post("/api/groups.update", {
         body: {
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
           token: user.getJwtToken(),
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           id: group.id,
           name: "Test",
         },
@@ -85,8 +89,11 @@ describe("#groups.update", () => {
     it("does not create an event if the update is a noop", async () => {
       const res = await server.post("/api/groups.update", {
         body: {
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
           token: user.getJwtToken(),
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           id: group.id,
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           name: group.name,
         },
       });
@@ -94,16 +101,20 @@ describe("#groups.update", () => {
       expect(events.length).toEqual(0);
       const body = await res.json();
       expect(res.status).toEqual(200);
+      // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
       expect(body.data.name).toBe(group.name);
     });
     it("fails with validation error when name already taken", async () => {
       await buildGroup({
+        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
         teamId: user.teamId,
         name: "test",
       });
       const res = await server.post("/api/groups.update", {
         body: {
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
           token: user.getJwtToken(),
+          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           id: group.id,
           name: "TEST",
         },

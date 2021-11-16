@@ -11,7 +11,9 @@ try {
       supportsPassive = true;
     },
   });
+  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   window.addEventListener("testPassive", null, opts);
+  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   window.removeEventListener("testPassive", null, opts);
 } catch (e) {}
 

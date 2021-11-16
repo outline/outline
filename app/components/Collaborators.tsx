@@ -29,9 +29,12 @@ function Collaborators(props: Props) {
   documentPresence = documentPresence
     ? Array.from(documentPresence.values())
     : [];
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
   const presentIds = documentPresence.map((p) => p.userId);
   const editingIds = documentPresence
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     .filter((p) => p.isEditing)
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     .map((p) => p.userId);
   // ensure currently present via websocket are always ordered first
   const collaborators = React.useMemo(
@@ -70,6 +73,7 @@ function Collaborators(props: Props) {
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <NudeButton width={collaborators.length * 32} height={32} {...props}>
             <FacepileHiddenOnMobile
               users={collaborators}
@@ -79,6 +83,7 @@ function Collaborators(props: Props) {
                 return (
                   <AvatarWithPresence
                     key={user.id}
+                    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: string; user: User; isPresent: any; i... Remove this comment to see the full error message
                     user={user}
                     isPresent={isPresent}
                     isEditing={isEditing}

@@ -1,4 +1,5 @@
 import { darken, lighten } from "polished";
+import { DefaultTheme } from "styled-components";
 
 const colors = {
   transparent: "transparent",
@@ -37,6 +38,7 @@ const colors = {
     yellow: "#F5BE31",
   },
 };
+
 const spacing = {
   padding: "1.5vw 1.875vw",
   vpadding: "1.5vw",
@@ -120,13 +122,13 @@ export const base = {
   },
 };
 
-export const light = {
+export const light: DefaultTheme = {
   ...base,
   background: colors.white,
   secondaryBackground: colors.warmGrey,
   link: colors.primary,
-  text: colors.almostBlack,
   cursor: colors.almostBlack,
+  text: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
   placeholder: "#a2b2c3",
@@ -168,7 +170,7 @@ export const light = {
   scrollbarThumb: darken(0.15, colors.smokeDark),
 };
 
-export const dark = {
+export const dark: DefaultTheme = {
   ...base,
   background: colors.almostBlack,
   secondaryBackground: colors.black50,

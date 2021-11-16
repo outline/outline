@@ -5,10 +5,8 @@ import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
-import { TFunction } from "react-i18next";
-import { withTranslation, Trans } from "react-i18next";
-import { withRouter, Link } from "react-router-dom";
-import { RouterHistory, Match } from "react-router-dom";
+import { WithTranslation, withTranslation, Trans } from "react-i18next";
+import { withRouter, Link, RouteComponentProps } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -27,28 +25,27 @@ import HelpText from "components/HelpText";
 import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
 import RegisterKeyDown from "components/RegisterKeyDown";
+import { newDocumentPath, searchUrl } from "../../utils/routeHelpers";
+import { decodeURIComponentSafe } from "../../utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
 import SearchInput from "./components/SearchInput";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
-import { LocationWithState } from "types";
-import "types";
-import { newDocumentPath, searchUrl } from "utils/routeHelpers";
-import { decodeURIComponentSafe } from "utils/urls";
 
-type Props = {
-  history: RouterHistory;
-  match: Match;
-  location: LocationWithState;
-  documents: DocumentsStore;
-  auth: AuthStore;
-  users: UsersStore;
-  policies: PoliciesStore;
-  notFound: boolean | null | undefined;
-  t: TFunction;
-};
+type Props = RouteComponentProps<
+  { term: string },
+  any,
+  { search: string; fromMenu?: boolean }
+> &
+  WithTranslation & {
+    documents: DocumentsStore;
+    auth: AuthStore;
+    users: UsersStore;
+    policies: PoliciesStore;
+    notFound?: boolean;
+  };
 
 @observer
 class Search extends React.Component<Props> {
@@ -230,6 +227,7 @@ class Search extends React.Component<Props> {
       this.lastParams = params;
 
       try {
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ offset: number; limit: number;... Remove this comment to see the full error message
         const results = await this.props.documents.search(this.query, params);
         this.pinToTop = true;
 
@@ -266,12 +264,12 @@ class Search extends React.Component<Props> {
     const { documents, notFound, location, t, auth, policies } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
-    const showShortcutTip =
-      !this.pinToTop && location.state && location.state.fromMenu;
+    const showShortcutTip = !this.pinToTop && location.state?.fromMenu;
     const can = policies.abilities(auth.team?.id ? auth.team.id : "");
     const canCollection = policies.abilities(this.collectionId || "");
+
     return (
-      <Container auto>
+      <Container>
         <PageTitle title={this.title} />
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         {this.isLoading && <LoadingIndicator />}
@@ -286,6 +284,7 @@ class Search extends React.Component<Props> {
         <ResultsWrapper pinToTop={this.pinToTop} column auto>
           <SearchInput
             placeholder={`${t("Search")}…`}
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ placeholder: string; onKeyDown: (ev: Keybo... Remove this comment to see the full error message
             onKeyDown={this.handleKeyDown}
             defaultValue={this.query}
           />
@@ -371,6 +370,8 @@ class Search extends React.Component<Props> {
               </Centered>
             </Fade>
           )}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
@@ -406,38 +407,45 @@ const Wrapper = styled(Flex)`
   justify-content: center;
   margin: 10px 0;
 `;
+
 const Centered = styled(Flex)`
   text-align: center;
   margin: 30vh auto 0;
   max-width: 380px;
   transform: translateY(-50%);
 `;
+
 const Container = styled(CenteredContent)`
   > div {
     position: relative;
     height: 100%;
   }
 `;
-const ResultsWrapper = styled(Flex)`
+
+const ResultsWrapper = styled(Flex)<{ pinToTop: boolean }>`
   position: absolute;
   transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
   top: ${(props) => (props.pinToTop ? "0%" : "50%")};
   width: 100%;
 
   ${breakpoint("tablet")`	
-    margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
+    margin-top: ${(props: any) => (props.pinToTop ? "40px" : "-75px")};
   `};
 `;
-const ResultList = styled(Flex)`
+
+const ResultList = styled(Flex)<{ visible: boolean }>`
   margin-bottom: 150px;
   opacity: ${(props) => (props.visible ? "1" : "0")};
   transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
+
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   display: flex;
   flex-direction: column;
   flex: 1;
 `;
+
 const Filters = styled(Flex)`
   margin-bottom: 12px;
   opacity: 0.85;
@@ -455,6 +463,6 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()<Search>(
+export default withTranslation()(
   withRouter(inject("documents", "auth", "policies")(Search))
 );

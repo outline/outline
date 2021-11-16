@@ -33,6 +33,7 @@ function Tokens() {
               <Button
                 type="submit"
                 value={`${t("New token")}…`}
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ type: string; value: string; onClick: bool... Remove this comment to see the full error message
                 onClick={handleNewModalOpen}
               />
             </Action>
@@ -55,9 +56,11 @@ function Tokens() {
       </HelpText>
 
       <PaginatedList
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ fetch: any; items: any; heading: Element; ... Remove this comment to see the full error message
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
         heading={<Subheading sticky>{t("Tokens")}</Subheading>}
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'token' implicitly has an 'any' type.
         renderItem={(token) => (
           <TokenListItem key={token.id} token={token} onDelete={token.delete} />
         )}
@@ -65,7 +68,9 @@ function Tokens() {
 
       <Modal
         title={t("Create a token")}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handleNewModalClose}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={newModalOpen}
       >
         <APITokenNew onSubmit={handleNewModalClose} />

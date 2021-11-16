@@ -11,11 +11,13 @@ export default async function collectionIndexing(teamId: string) {
     //no point in maintaining index of deleted collections.
     attributes: ["id", "index", "name"],
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
   let sortableCollections = collections.map((collection) => {
     return [collection, collection.index];
   });
   sortableCollections = naturalSort(
     sortableCollections,
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(collection: any) => any' is not... Remove this comment to see the full error message
     (collection) => collection[0].name
   );
   //for each collection with null index, use previous collection index to create new index
@@ -32,6 +34,7 @@ export default async function collectionIndexing(teamId: string) {
   }
 
   const indexedCollections = {};
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
   sortableCollections.forEach((collection) => {
     indexedCollections[collection[0].id] = collection[0].index;
   });

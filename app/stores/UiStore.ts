@@ -65,6 +65,7 @@ class UiStore {
         "(prefers-color-scheme: dark)"
       );
 
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       const setSystemTheme = (event) => {
         this.systemTheme = event.matches ? "dark" : "light";
       };
@@ -77,10 +78,15 @@ class UiStore {
     }
 
     // persisted keys
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'languagePromptDismissed' does not exist ... Remove this comment to see the full error message
     this.languagePromptDismissed = data.languagePromptDismissed;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'sidebarCollapsed' does not exist on type... Remove this comment to see the full error message
     this.sidebarCollapsed = data.sidebarCollapsed;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'sidebarWidth' does not exist on type '{}... Remove this comment to see the full error message
     this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'tocVisible' does not exist on type '{}'.
     this.tocVisible = data.tocVisible;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'theme' does not exist on type '{}'.
     this.theme = data.theme || "system";
     autorun(() => {
       try {

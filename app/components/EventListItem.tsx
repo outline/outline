@@ -15,6 +15,7 @@ import Avatar from "components/Avatar";
 import Item, { Actions } from "components/List/Item";
 import Time from "components/Time";
 import RevisionMenu from "menus/RevisionMenu";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -88,11 +89,13 @@ const EventListItem = ({ event, latest, document }: Props) => {
       small
       exact
       to={to}
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       title={
         <Time
           dateTime={event.createdAt}
           tooltipDelay={250}
           format="MMMM do, h:mm a"
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ dateTime: string; tooltipDelay: number; fo... Remove this comment to see the full error message
           relative={false}
           addSuffix
         />
@@ -106,6 +109,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
       }
       actions={
         isRevision ? (
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | null | undefined' is not assignable... Remove this comment to see the full error message
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }

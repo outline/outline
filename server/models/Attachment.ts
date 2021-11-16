@@ -54,8 +54,10 @@ const Attachment = sequelize.define(
 );
 
 Attachment.findAllInBatches = async (
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'query' implicitly has an 'any' type.
   query,
   callback: (
+    // @ts-expect-error ts-migrate(2749) FIXME: 'Attachment' refers to a value, but is being used ... Remove this comment to see the full error message
     attachments: Array<Attachment>,
     query: Record<string, any>
   ) => Promise<void>
@@ -71,10 +73,12 @@ Attachment.findAllInBatches = async (
   } while (results.length >= query.limit);
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 Attachment.beforeDestroy(async (model) => {
   await deleteFromS3(model.key);
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Attachment.associate = (models) => {
   Attachment.belongsTo(models.Team);
   Attachment.belongsTo(models.Document);

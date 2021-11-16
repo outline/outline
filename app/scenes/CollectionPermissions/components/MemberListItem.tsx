@@ -7,8 +7,8 @@ import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import Flex from "components/Flex";
-import { Props as SelectProps } from "components/InputSelect";
-import InputSelect from "components/InputSelect";
+import InputSelect, { Props as SelectProps } from "components/InputSelect";
+
 import ListItem from "components/List/Item";
 import Time from "components/Time";
 import MemberMenu from "menus/MemberMenu";
@@ -47,6 +47,7 @@ const MemberListItem = ({
   return (
     <ListItem
       title={user.name}
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; subtitle: Element; image: E... Remove this comment to see the full error message
       subtitle={
         <>
           {user.lastActiveAt ? (
@@ -57,6 +58,8 @@ const MemberListItem = ({
             t("Never signed in")
           )}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
@@ -80,6 +83,7 @@ const MemberListItem = ({
               <Spacer />
               {onRemove && <MemberMenu onRemove={onRemove} />}
               {onAdd && (
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => a... Remove this comment to see the full error message
                 <Button onClick={onAdd} neutral>
                   {t("Add")}
                 </Button>

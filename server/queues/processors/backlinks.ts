@@ -39,6 +39,7 @@ export default class BacklinksProcessor {
         // backlinks are only created for published documents
         if (!document.publishedAt) return;
         const linkIds = parseDocumentIds(document.text);
+        // @ts-expect-error ts-migrate(7034) FIXME: Variable 'linkedDocumentIds' implicitly has type '... Remove this comment to see the full error message
         const linkedDocumentIds = [];
         // create or find existing backlink records for referenced docs
         await Promise.all(
@@ -65,6 +66,7 @@ export default class BacklinksProcessor {
         await Backlink.destroy({
           where: {
             documentId: {
+              // @ts-expect-error ts-migrate(7005) FIXME: Variable 'linkedDocumentIds' implicitly has an 'an... Remove this comment to see the full error message
               [Op.notIn]: linkedDocumentIds,
             },
             reverseDocumentId: event.documentId,
@@ -99,6 +101,7 @@ export default class BacklinksProcessor {
           ],
         });
         await Promise.all(
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'backlink' implicitly has an 'any' type.
           backlinks.map(async (backlink) => {
             const previousUrl = `/doc/${slugify(previousTitle)}-${
               document.urlId

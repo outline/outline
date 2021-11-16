@@ -4,6 +4,8 @@ import styled, { useTheme } from "styled-components";
 import NavLinkWithChildrenFunc from "components/NavLink";
 
 type Props = {
+  to: string;
+  exact?: boolean;
   children: React.ReactNode;
 };
 
@@ -43,9 +45,11 @@ const transition = {
 export default function Tab({ children, ...rest }: Props) {
   const theme = useTheme();
   const activeStyle = {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'textSecondary' does not exist on type 'D... Remove this comment to see the full error message
     color: theme.textSecondary,
   };
   return (
+    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <TabLink {...rest} activeStyle={activeStyle}>
       {(match) => (
         <>

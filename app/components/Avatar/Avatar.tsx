@@ -28,7 +28,7 @@ class Avatar extends React.Component<Props> {
     this.error = true;
   };
 
-  override render() {
+  render() {
     const { src, icon, ...rest } = this.props;
     return (
       <AvatarWrapper>

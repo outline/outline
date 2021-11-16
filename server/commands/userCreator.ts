@@ -4,8 +4,10 @@ import { sequelize } from "../sequelize";
 
 const Op = Sequelize.Op;
 type UserCreatorResult = {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   isNewUser: boolean;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'UserAuthentication' refers to a value, but is bei... Remove this comment to see the full error message
   authentication: UserAuthentication;
 };
 

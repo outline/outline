@@ -1,16 +1,20 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'node... Remove this comment to see the full error message
 import nodemailer from "nodemailer";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'oy-v... Remove this comment to see the full error message
 import Oy from "oy-vey";
 import * as React from "react";
-import { Props as CollectionNotificationEmailT } from "./emails/CollectionNotificationEmail";
 import {
+  Props as CollectionNotificationEmailT,
   CollectionNotificationEmail,
   collectionNotificationEmailText,
 } from "./emails/CollectionNotificationEmail";
-import { Props as DocumentNotificationEmailT } from "./emails/DocumentNotificationEmail";
+
 import {
+  Props as DocumentNotificationEmailT,
   DocumentNotificationEmail,
   documentNotificationEmailText,
 } from "./emails/DocumentNotificationEmail";
+
 import {
   ExportFailureEmail,
   exportEmailFailureText,
@@ -19,8 +23,12 @@ import {
   ExportSuccessEmail,
   exportEmailSuccessText,
 } from "./emails/ExportSuccessEmail";
-import { Props as InviteEmailT } from "./emails/InviteEmail";
-import { InviteEmail, inviteEmailText } from "./emails/InviteEmail";
+import {
+  Props as InviteEmailT,
+  InviteEmail,
+  inviteEmailText,
+} from "./emails/InviteEmail";
+
 import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
@@ -85,6 +93,7 @@ export class Mailer {
       };
 
       if (process.env.SMTP_USERNAME) {
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ user: string; pass: string | undefined; }'... Remove this comment to see the full error message
         smtpConfig.auth = {
           user: process.env.SMTP_USERNAME,
           pass: process.env.SMTP_PASSWORD,
@@ -124,6 +133,7 @@ export class Mailer {
 
   sendMail = async (
     data: EmailSendOptions
+    // @ts-expect-error ts-migrate(1064) FIXME: The return type of an async function or method mus... Remove this comment to see the full error message
   ): Promise<any> | null | undefined => {
     const { transporter } = this;
 

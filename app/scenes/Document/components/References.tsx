@@ -36,18 +36,21 @@ function References({ document }: Props) {
       <Fade>
         <Tabs>
           {showNestedDocuments && (
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; to: string; isActive: (... Remove this comment to see the full error message
             <Tab to="#children" isActive={() => !isBacklinksTab}>
               <Trans>Nested documents</Trans>
             </Tab>
           )}
           {showBacklinks && (
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; to: string; isActive: (... Remove this comment to see the full error message
             <Tab to="#backlinks" isActive={() => isBacklinksTab}>
               <Trans>Referenced by</Trans>
             </Tab>
           )}
         </Tabs>
         {isBacklinksTab
-          ? backlinks.map((backlinkedDocument) => (
+          ? // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'backlinkedDocument' implicitly has an '... Remove this comment to see the full error message
+            backlinks.map((backlinkedDocument) => (
               <ReferenceListItem
                 anchor={document.urlId}
                 key={backlinkedDocument.id}
@@ -57,7 +60,8 @@ function References({ document }: Props) {
                 }
               />
             ))
-          : children.map((node) => {
+          : // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
+            children.map((node) => {
               // If we have the document in the store already then use it to get the extra
               // contextual info, otherwise the collection node will do (only has title and id)
               const document = documents.get(node.id);
@@ -74,4 +78,5 @@ function References({ document }: Props) {
   );
 }
 
+// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ document }: Props) => false |... Remove this comment to see the full error message
 export default observer(References);

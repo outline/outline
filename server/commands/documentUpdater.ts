@@ -17,6 +17,7 @@ export default async function documentUpdater({
   const document = await Document.findByPk(documentId);
   const state = Y.encodeStateAsUpdate(ydoc);
   const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+  // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
   const text = serializer.serialize(node);
   const isUnchanged = document.text === text;
   const hasMultiplayerState = !!document.state;

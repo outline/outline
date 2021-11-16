@@ -29,12 +29,15 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
   }
 
   const templatesInCollection = templates.filter(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
     (t) => t.collectionId === document.collectionId
   );
   const otherTemplates = templates.filter(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
     (t) => t.collectionId !== document.collectionId
   );
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'template' implicitly has an 'any' type.
   const renderTemplate = (template) => (
     <MenuItem
       key={template.id}
@@ -58,11 +61,13 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     <>
       <MenuButton {...menu}>
         {(props) => (
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; disclosure: true... Remove this comment to see the full error message
           <Button {...props} disclosure neutral>
             {t("Templates")}
           </Button>
         )}
       </MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; "aria-label": string; bas... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Templates")}>
         {templatesInCollection.map(renderTemplate)}
         {otherTemplates.length && templatesInCollection.length ? (

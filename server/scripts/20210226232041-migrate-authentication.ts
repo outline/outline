@@ -13,6 +13,7 @@ const page = 0;
 const limit = 100;
 
 export default async function main(exit = false) {
+  // @ts-expect-error ts-migrate(7024) FIXME: Function implicitly has return type 'any' because ... Remove this comment to see the full error message
   const work = async (page: number) => {
     Logger.info("database", "Starting authentication migration");
     const users = await User.findAll({

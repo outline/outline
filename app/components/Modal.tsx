@@ -11,6 +11,7 @@ import NudeButton from "components/NudeButton";
 import Scrollable from "components/Scrollable";
 import usePrevious from "hooks/usePrevious";
 import useUnmount from "hooks/useUnmount";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
 import { fadeAndScaleIn } from "styles/animations";
 
 let openModals = 0;
@@ -74,6 +75,8 @@ const Modal = ({
                 }}
                 {...props}
               >
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches
+                this call.
                 <Content>
                   <Centered onClick={(ev) => ev.stopPropagation()} column>
                     {title && <h1>{title}</h1>}

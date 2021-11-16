@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const Badge = styled.span`
+const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   margin-left: 10px;
   padding: 1px 5px 2px;
   background-color: ${({ yellow, primary, theme }) =>

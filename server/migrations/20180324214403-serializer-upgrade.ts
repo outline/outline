@@ -1,4 +1,5 @@
 module.exports = {
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   up: async (queryInterface, Sequelize) => {
     // upgrade to slate-md-serializer 3.0 means that newlines saved in Markdown are now
     // accurately reflected in the editor. To prevent a change in appearance in current docs
@@ -27,6 +28,7 @@ module.exports = {
       );
     }
   },
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   down: async (queryInterface, Sequelize) => {
     // cannot be reversed
   },

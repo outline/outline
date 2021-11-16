@@ -30,6 +30,7 @@ export default function Contents({ headings }: Props) {
 
         if (bounding.top > HEADING_OFFSET) {
           const last = headings[Math.max(0, key - 1)];
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
           setActiveSlug(last.id);
           return;
         }
@@ -53,6 +54,7 @@ export default function Contents({ headings }: Props) {
             {headings.map((heading) => (
               <ListItem
                 key={heading.id}
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                 level={heading.level - headingAdjustment}
                 active={activeSlug === heading.id}
               >
@@ -102,15 +104,18 @@ const Empty = styled(HelpText)`
   font-size: 14px;
 `;
 const ListItem = styled("li")`
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'level' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   margin-left: ${(props) => (props.level - 1) * 10}px;
   margin-bottom: 8px;
   padding-right: 2em;
   line-height: 1.3;
   border-right: 3px solid
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'active' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     ${(props) => (props.active ? props.theme.divider : "transparent")};
 
   a {
     color: ${(props) =>
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'active' does not exist on type 'ThemedSt... Remove this comment to see the full error message
       props.active ? props.theme.primary : props.theme.text};
   }
 `;

@@ -8,6 +8,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { collectionUrl, documentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -116,11 +117,17 @@ function DocumentDelete({ document, onSubmit }: Props) {
           </HelpText>
         )}
         <Button type="submit" danger>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+          HTMLCollection' is not assignable t... Remove this comment to see the
+          full error message
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>
         &nbsp;&nbsp;
         {canArchive && (
           <Button type="button" onClick={handleArchive} neutral>
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+            HTMLCollection' is not assignable t... Remove this comment to see
+            the full error message
             {isArchiving ? `${t("Archiving")}…` : t("Archive")}
           </Button>
         )}

@@ -1,8 +1,8 @@
 import { lighten } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { RouterHistory } from "react-router-dom";
-import { withRouter } from "react-router-dom";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
+import { withRouter, RouterHistory } from "react-router-dom";
 import { Extension } from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 import embeds from "shared/embeds";
@@ -10,12 +10,14 @@ import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
+import { Theme } from "../types";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
-import { Theme } from "types";
-import "types";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
 import { uploadFile } from "utils/uploadFile";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl, isHash } from "utils/urls";
 
 const RichMarkdownEditor = React.lazy(
@@ -25,6 +27,7 @@ const RichMarkdownEditor = React.lazy(
       "rich-markdown-editor"
     )
 );
+// @ts-expect-error ts-migrate(7034) FIXME: Variable 'EMPTY_ARRAY' implicitly has type 'any[]'... Remove this comment to see the full error message
 const EMPTY_ARRAY = [];
 
 export type Props = {
@@ -35,8 +38,8 @@ export type Props = {
   grow?: boolean;
   disableEmbeds?: boolean;
   ui?: UiStore;
-  style?: Record<string, any>;
-  extensions?: Extension[];
+  style?: React.CSSProperties;
+  extensions: Extension[];
   shareId?: string | null | undefined;
   autoFocus?: boolean;
   template?: boolean;
@@ -45,10 +48,9 @@ export type Props = {
   scrollTo?: string;
   theme?: Theme;
   className?: string;
-  handleDOMEvents?: Record<string, any>;
   readOnlyWriteCheckboxes?: boolean;
-  onBlur?: (event: React.SyntheticEvent) => any;
-  onFocus?: (event: React.SyntheticEvent) => any;
+  onBlur?: () => void;
+  onFocus?: () => void;
   onPublish?: (event: React.SyntheticEvent) => any;
   onSave?: (arg0: {
     done?: boolean;
@@ -189,23 +191,27 @@ function Editor(props: PropsWithRef) {
     };
   }, [t]);
   return (
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; reloadOnChunkMissing: t... Remove this comment to see the full error message
     <ErrorBoundary reloadOnChunkMissing>
       <StyledEditor
         ref={props.forwardedRef}
         uploadImage={onUploadImage}
         onClickLink={onClickLink}
         onShowToast={onShowToast}
+        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'EMPTY_ARRAY' implicitly has an 'any[]' t... Remove this comment to see the full error message
         embeds={props.disableEmbeds ? EMPTY_ARRAY : embeds}
         tooltip={EditorTooltip}
         dictionary={dictionary}
         {...props}
+        placeholder={props.placeholder || ""}
+        defaultValue={props.defaultValue || ""}
         theme={isPrinting ? light : props.theme}
       />
     </ErrorBoundary>
   );
 }
 
-const StyledEditor = styled(RichMarkdownEditor)`
+const StyledEditor = styled(RichMarkdownEditor)<{ grow?: boolean }>`
   flex-grow: ${(props) => (props.grow ? 1 : 0)};
   justify-content: start;
 
@@ -313,7 +319,9 @@ const StyledEditor = styled(RichMarkdownEditor)`
   }
 `;
 
+// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'children' implicitly has an 'any'... Remove this comment to see the full error message
 const EditorTooltip = ({ children, ...props }) => (
+  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   <Tooltip offset="0, 16" delay={150} {...props}>
     <Span>{children}</Span>
   </Tooltip>
@@ -322,8 +330,10 @@ const EditorTooltip = ({ children, ...props }) => (
 const Span = styled.span`
   outline: none;
 `;
+// @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'ForwardRefExoticComponent<WithOp... Remove this comment to see the full error message
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 
-export default React.forwardRef<Props, typeof Editor>((props, ref) => (
+export default React.forwardRef<typeof Editor, Props>((props, ref) => (
+  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ forwardedRef: ForwardedRef<Props>; childre... Remove this comment to see the full error message
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));

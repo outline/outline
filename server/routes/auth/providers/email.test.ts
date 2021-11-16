@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import mailer from "../../../mailer";
 import webService from "../../../services/web";
@@ -9,6 +10,7 @@ const server = new TestServer(app.callback());
 jest.mock("../../../mailer");
 beforeEach(async () => {
   await flushdb();
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'mockReset' does not exist on type '(type... Remove this comment to see the full error message
   mailer.sendTemplate.mockReset();
 });
 afterAll(() => server.close());

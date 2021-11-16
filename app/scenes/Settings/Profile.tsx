@@ -39,6 +39,7 @@ const Profile = () => {
   };
 
   const handleNameChange = (ev: React.SyntheticEvent<any>) => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
     setName(ev.target.value);
   };
 
@@ -69,6 +70,7 @@ const Profile = () => {
   const isValid = form.current && form.current.checkValidity();
   const { user, isSaving } = auth;
   if (!user) return null;
+
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
       <Heading>{t("Profile")}</Heading>
@@ -143,14 +145,17 @@ const Profile = () => {
 const DangerZone = styled.div`
   margin-top: 60px;
 `;
+
 const ProfilePicture = styled(Flex)`
   margin-bottom: 24px;
 `;
+
 const avatarStyles = `
   width: 80px;
   height: 80px;
   border-radius: 8px;
 `;
+
 const AvatarContainer = styled(Flex)`
   ${avatarStyles};
   position: relative;

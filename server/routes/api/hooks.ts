@@ -21,6 +21,7 @@ router.post("hooks.unfurl", async (ctx) => {
   if (challenge) return (ctx.body = ctx.body.challenge);
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new AuthenticationError("Invalid token");
   }
 
@@ -68,13 +69,17 @@ router.post("hooks.unfurl", async (ctx) => {
 // triggered by interactions with actions, dialogs, message buttons in Slack
 router.post("hooks.interactive", async (ctx) => {
   const { payload } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(payload, "payload is required");
   const data = JSON.parse(payload);
   const { callback_id, token } = data;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(token, "token is required");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(callback_id, "callback_id is required");
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new AuthenticationError("Invalid verification token");
   }
 
@@ -84,6 +89,7 @@ router.post("hooks.interactive", async (ctx) => {
   );
 
   if (!document) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new InvalidRequestError("Invalid callback_id");
   }
 
@@ -105,11 +111,15 @@ router.post("hooks.interactive", async (ctx) => {
 // triggered by the /outline command in Slack
 router.post("hooks.slack", async (ctx) => {
   const { token, team_id, user_id, text = "" } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(token, "token is required");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(team_id, "team_id is required");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(user_id, "user_id is required");
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new AuthenticationError("Invalid verification token");
   }
 

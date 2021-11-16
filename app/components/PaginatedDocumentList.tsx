@@ -26,11 +26,13 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
 }: Props) {
   return (
     <PaginatedList
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: Document[]; empty: ReactNode; headi... Remove this comment to see the full error message
       items={documents}
       empty={empty}
       heading={heading}
       fetch={fetch}
       options={options}
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
       renderItem={(item) => (
         <DocumentListItem key={item.id} document={item} {...rest} />
       )}

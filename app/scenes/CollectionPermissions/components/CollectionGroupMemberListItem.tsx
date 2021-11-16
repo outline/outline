@@ -4,8 +4,8 @@ import styled from "styled-components";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
 import GroupListItem from "components/GroupListItem";
-import { Props as SelectProps } from "components/InputSelect";
-import InputSelect from "components/InputSelect";
+import InputSelect, { Props as SelectProps } from "components/InputSelect";
+
 import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
 
 type Props = {
@@ -38,6 +38,7 @@ const CollectionGroupMemberListItem = ({
   return (
     <GroupListItem
       group={group}
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       onRemove={onRemove}
       onUpdate={onUpdate}
       showAvatar

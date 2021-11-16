@@ -22,6 +22,7 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
 function People(props) {
   const topRef = React.useRef();
   const location = useLocation();
@@ -44,6 +45,7 @@ function People(props) {
   const filter = params.get("filter") || "";
   const sort = params.get("sort") || "name";
   const direction = (params.get("direction") || "asc").toUpperCase();
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | 0' is not assignable to... Remove this comment to see the full error message
   const page = parseInt(params.get("page") || 0, 10);
   const limit = 25;
   React.useEffect(() => {
@@ -60,6 +62,7 @@ function People(props) {
           filter,
         });
         setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
         setUserIds(response.map((u) => u.id));
       } finally {
         setIsLoading(false);
@@ -72,20 +75,27 @@ function People(props) {
     let filtered = users.orderedData;
 
     if (!filter) {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.active.filter((u) => userIds.includes(u.id));
     } else if (filter === "all") {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.orderedData.filter((u) => userIds.includes(u.id));
     } else if (filter === "admins") {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.admins.filter((u) => userIds.includes(u.id));
     } else if (filter === "suspended") {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.suspended.filter((u) => userIds.includes(u.id));
     } else if (filter === "invited") {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.invited.filter((u) => userIds.includes(u.id));
     } else if (filter === "viewers") {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.viewers.filter((u) => userIds.includes(u.id));
     }
 
     // sort the resulting data by the original order from the server
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any[]' is not assignable to para... Remove this comment to see the full error message
     setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
   }, [
     filter,
@@ -166,6 +176,7 @@ function People(props) {
       });
 
       if (topRef.current) {
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         scrollIntoView(topRef.current, {
           scrollMode: "if-needed",
           behavior: "instant",
@@ -183,6 +194,9 @@ function People(props) {
         <>
           {can.inviteUser && (
             <Action>
+              // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's
+              'children' prop expects a single ch... Remove this comment to see
+              the full error message
               <Button
                 type="button"
                 data-on="click"
@@ -229,7 +243,9 @@ function People(props) {
       {can.inviteUser && (
         <Modal
           title={t("Invite people")}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
           onRequestClose={handleInviteModalClose}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
           isOpen={inviteModalOpen}
         >
           <Invite onSubmit={handleInviteModalClose} />

@@ -4,6 +4,7 @@ import { computed, action } from "mobx";
 import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 export type DocumentPathItem = {
@@ -50,9 +51,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
    */
   @computed
   get pathsToDocuments(): DocumentPath[] {
+    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'results' implicitly has type 'any[]' in ... Remove this comment to see the full error message
     const results = [];
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentList' implicitly has an 'any' t... Remove this comment to see the full error message
     const travelDocuments = (documentList, collectionId, path) =>
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
       documentList.forEach((document) => {
         const { id, title, url } = document;
         const node = {
@@ -81,8 +85,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
       });
     }
 
+    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'results' implicitly has an 'any[]' type.
     return results.map((result) => {
       const tail = last(result);
+      // @ts-expect-error ts-migrate(2698) FIXME: Spread types may only be created from object types... Remove this comment to see the full error message
       return { ...tail, path: result };
     });
   }
@@ -156,6 +162,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
     return this.pathsToDocuments.find((path) => path.id === documentId);
   }
 
+  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   titleForDocument(documentUrl: string): string | null | undefined {
     const path = this.pathsToDocuments.find((path) => path.url === documentUrl);
     if (path) return path.title;
@@ -167,7 +174,9 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   delete = async (collection: Collection) => {
     await super.delete(collection);
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
     this.rootStore.documents.fetchRecentlyUpdated();
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
     this.rootStore.documents.fetchRecentlyViewed();
   };
 

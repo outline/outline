@@ -31,7 +31,7 @@ class AvatarWithPresence extends React.Component<Props> {
     this.isOpen = false;
   };
 
-  override render() {
+  render() {
     const { user, isPresent, isEditing, isCurrentUser, t } = this.props;
     const action = isPresent
       ? isEditing
@@ -68,6 +68,7 @@ class AvatarWithPresence extends React.Component<Props> {
         </Tooltip>
         <UserProfile
           user={user}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ user: User; isOpen: boolean; onRequestClos... Remove this comment to see the full error message
           isOpen={this.isOpen}
           onRequestClose={this.handleCloseProfile}
         />
@@ -84,4 +85,5 @@ const AvatarWrapper = styled.div<{ isPresent: boolean }>`
   transition: opacity 250ms ease-in-out;
 `;
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'AvatarWithPresence' does not satisfy the con... Remove this comment to see the full error message
 export default withTranslation()<AvatarWithPresence>(AvatarWithPresence);

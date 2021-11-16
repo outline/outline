@@ -2,8 +2,9 @@ import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { TFunction } from "react-i18next";
-import { withTranslation, Trans } from "react-i18next";
+import { TFunction, withTranslation, Trans } from "react-i18next";
+
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { RouterHistory } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
@@ -64,6 +65,7 @@ class CollectionNew extends React.Component<Props> {
     );
 
     try {
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       await collection.save();
       this.props.onSubmit();
       this.props.history.push(collection.url);
@@ -77,6 +79,7 @@ class CollectionNew extends React.Component<Props> {
   };
 
   handleNameChange = (ev: React.SyntheticEvent) => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
     this.name = ev.target.value;
 
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -109,6 +112,7 @@ class CollectionNew extends React.Component<Props> {
   };
 
   handleSharingChange = (ev: React.SyntheticEvent<HTMLInputElement>) => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'checked' does not exist on type 'EventTa... Remove this comment to see the full error message
     this.sharing = ev.target.checked;
   };
 
@@ -176,6 +180,9 @@ class CollectionNew extends React.Component<Props> {
         )}
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+          HTMLCollection' is not assignable t... Remove this comment to see the
+          full error message
           {this.isSaving ? `${t("Creating")}…` : t("Create")}
         </Button>
       </form>
@@ -183,6 +190,8 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'CollectionNew' does not satisfy the constrai... Remove this comment to see the full error message
 export default withTranslation()<CollectionNew>(
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'typeof CollectionNew' is not ass... Remove this comment to see the full error message
   inject("collections", "toasts", "auth")(withRouter(CollectionNew))
 );

@@ -133,6 +133,7 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
         documents.forEach((document) => {
           socketio.to(`collection-${document.collectionId}`).emit("entities", {
             event: event.name,

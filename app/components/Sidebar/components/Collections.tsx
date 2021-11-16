@@ -13,6 +13,7 @@ import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
 import SidebarLink from "./SidebarLink";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/collection... Remove this comment to see the full error message
 import { createCollection } from "actions/definitions/collections";
 import useToasts from "hooks/useToasts";
 
@@ -56,11 +57,13 @@ function Collections() {
     accept: "collection",
     drop: async (item, monitor) => {
       collections.move(
+        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         item.id,
         fractionalIndex(null, orderedCollections[0].index)
       );
     },
     canDrop: (item, monitor) => {
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       return item.id !== orderedCollections[0].id;
     },
     collect: (monitor) => ({
@@ -74,6 +77,7 @@ function Collections() {
         innerRef={dropToReorderCollection}
         from="collections"
       />
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
       {orderedCollections.map((collection, index) => (
         <CollectionLink
           key={collection.id}
@@ -81,12 +85,14 @@ function Collections() {
           activeDocument={documents.active}
           prefetchDocument={documents.prefetchDocument}
           canUpdate={policies.abilities(collection.id).update}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; collection: any; activeDocument:... Remove this comment to see the full error message
           ui={ui}
           isDraggingAnyCollection={isDraggingAnyCollection}
           onChangeDragging={setIsDraggingAnyCollection}
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ action: any; depth: number; }' is not assi... Remove this comment to see the full error message
       <SidebarAction action={createCollection} depth={0.5} />
     </>
   );
@@ -95,6 +101,7 @@ function Collections() {
     return (
       <Flex column>
         <SidebarLink
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ label: string; icon: Element; }' is not as... Remove this comment to see the full error message
           label={t("Collections")}
           icon={<Disclosure expanded={expanded} color="currentColor" />}
         />
@@ -106,6 +113,7 @@ function Collections() {
   return (
     <Flex column>
       <SidebarLink
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ onClick: () => void; label: string; icon: ... Remove this comment to see the full error message
         onClick={() => setExpanded((prev) => !prev)}
         label={t("Collections")}
         icon={<Disclosure expanded={expanded} color="currentColor" />}

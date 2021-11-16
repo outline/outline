@@ -4,20 +4,25 @@
 // it avoids recalculating the link match again.
 import { createLocation } from "history";
 import * as React from "react";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router"' has no exported member 'Lo... Remove this comment to see the full error message
 import { Location } from "react-router";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'to' implicitly has an 'any' type.
 const resolveToLocation = (to, currentLocation) =>
   typeof to === "function" ? to(currentLocation) : to;
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'to' implicitly has an 'any' type.
 const normalizeToLocation = (to, currentLocation) => {
   return typeof to === "string"
-    ? createLocation(to, null, null, currentLocation)
+    ? // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
+      createLocation(to, null, null, currentLocation)
     : to;
 };
 
+// @ts-expect-error ts-migrate(7019) FIXME: Rest parameter 'classnames' implicitly has an 'any... Remove this comment to see the full error message
 const joinClassnames = (...classnames) => {
   return classnames.filter((i) => i).join(" ");
 };
@@ -31,7 +36,7 @@ export type Props = {
   isActive?: any;
   location?: Location;
   strict?: boolean;
-  style?: Record<string, any>;
+  style?: React.CSSProperties;
   to: string;
 };
 
@@ -39,6 +44,7 @@ export type Props = {
  * A <Link> wrapper that knows if it's "active" or not.
  */
 const NavLink = ({
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'aria-current' does not exist on type 'Pr... Remove this comment to see the full error message
   "aria-current": ariaCurrent = "page",
   activeClassName = "active",
   activeStyle,
@@ -76,14 +82,16 @@ const NavLink = ({
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;
   const style = isActive ? { ...styleProp, ...activeStyle } : styleProp;
+
   React.useEffect(() => {
     if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
       scrollIntoView(linkRef.current, {
         scrollMode: "if-needed",
-        behavior: "instant",
+        behavior: "auto",
       });
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
+
   const props = {
     "aria-current": (isActive && ariaCurrent) || null,
     className,
@@ -91,6 +99,7 @@ const NavLink = ({
     to: toLocation,
     ...rest,
   };
+  // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<undefined>' is not assignab... Remove this comment to see the full error message
   return <Link ref={linkRef} {...props} />;
 };
 

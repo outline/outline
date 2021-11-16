@@ -1,24 +1,16 @@
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import UiStore from "stores/UiStore";
+import useStores from "hooks/useStores";
 
-type Props = {
-  ui: UiStore;
-};
+function LoadingIndicator() {
+  const { ui } = useStores();
 
-@observer
-class LoadingIndicator extends React.Component<Props> {
-  componentDidMount() {
-    this.props.ui.enableProgressBar();
-  }
+  React.useEffect(() => {
+    ui.enableProgressBar();
+    return () => ui.disableProgressBar();
+  }, [ui]);
 
-  componentWillUnmount() {
-    this.props.ui.disableProgressBar();
-  }
-
-  render() {
-    return null;
-  }
+  return null;
 }
 
-export default inject("ui")(LoadingIndicator);
+export default observer(LoadingIndicator);

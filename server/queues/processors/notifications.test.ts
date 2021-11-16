@@ -24,6 +24,7 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await Notifications.on({
       name: "documents.publish",
       documentId: document.id,
@@ -43,6 +44,7 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await Notifications.on({
       name: "documents.publish",
       documentId: document.id,
@@ -67,6 +69,7 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await Notifications.on({
       name: "documents.publish",
       documentId: document.id,
@@ -95,6 +98,7 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "revisions.create"; docu... Remove this comment to see the full error message
       actorId: document.createdById,
     });
     expect(mailer.documentNotification).toHaveBeenCalled();
@@ -117,6 +121,7 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "revisions.create"; docu... Remove this comment to see the full error message
       actorId: document.createdById,
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
@@ -137,6 +142,7 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "revisions.create"; docu... Remove this comment to see the full error message
       actorId: document.createdById,
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();

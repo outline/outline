@@ -101,6 +101,7 @@ function Starred() {
     },
     [expanded]
   );
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
   const content = starred.slice(0, upperBound).map((document, index) => {
     return (
       <StarredLink
@@ -109,6 +110,7 @@ function Starred() {
         collectionId={document.collectionId}
         to={document.url}
         title={document.title}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; documentId: any; collectionId: a... Remove this comment to see the full error message
         url={document.url}
         depth={2}
       />

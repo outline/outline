@@ -12,10 +12,11 @@ type Props = {
   onClick: (event: React.SyntheticEvent) => void;
   logoUrl: string;
 };
-const TeamButton = React.forwardRef<Props, any>(
+
+const TeamButton = React.forwardRef<HTMLButtonElement, Props>(
   ({ showDisclosure, teamName, subheading, logoUrl, ...rest }: Props, ref) => (
     <Wrapper>
-      <Header justify="flex-start" align="center" ref={ref} {...rest}>
+      <Header ref={ref} {...rest}>
         <TeamLogo
           alt={`${teamName} logo`}
           src={logoUrl}
@@ -23,7 +24,7 @@ const TeamButton = React.forwardRef<Props, any>(
           height={38}
         />
         <Flex align="flex-start" column>
-          <TeamName showDisclosure>
+          <TeamName>
             {teamName} {showDisclosure && <Disclosure color="currentColor" />}
           </TeamName>
           <Subheading>{subheading}</Subheading>
@@ -32,11 +33,13 @@ const TeamButton = React.forwardRef<Props, any>(
     </Wrapper>
   )
 );
+
 const Disclosure = styled(ExpandedIcon)`
   position: absolute;
   right: 0;
   top: 0;
 `;
+
 const Subheading = styled.div`
   padding-left: 10px;
   font-size: 11px;
@@ -45,6 +48,7 @@ const Subheading = styled.div`
   white-space: nowrap;
   color: ${(props) => props.theme.sidebarText};
 `;
+
 const TeamName = styled.div`
   position: relative;
   padding-left: 10px;
@@ -55,10 +59,12 @@ const TeamName = styled.div`
   text-decoration: none;
   font-size: 16px;
 `;
+
 const Wrapper = styled.div`
   flex-shrink: 0;
   overflow: hidden;
 `;
+
 const Header = styled.button`
   display: flex;
   align-items: center;

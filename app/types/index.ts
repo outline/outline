@@ -1,5 +1,6 @@
 import { TFunction } from "react-i18next";
-import "react-i18next";
+
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { Location } from "react-router-dom";
 import "react-router-dom";
 import theme from "shared/theme";

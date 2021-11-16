@@ -22,10 +22,12 @@ export default function pagination(options?: Record<string, any>) {
     let offset = query.offset || body.offset;
 
     if (limit && isNaN(limit)) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new InvalidRequestError(`Pagination limit must be a valid number`);
     }
 
     if (offset && isNaN(offset)) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new InvalidRequestError(`Pagination offset must be a valid number`);
     }
 
@@ -33,16 +35,19 @@ export default function pagination(options?: Record<string, any>) {
     offset = parseInt(offset || opts.defaultOffset, 10);
 
     if (limit > opts.maxLimit) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new InvalidRequestError(
         `Pagination limit is too large (max ${opts.maxLimit})`
       );
     }
 
     if (limit <= 0) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new InvalidRequestError(`Pagination limit must be greater than 0`);
     }
 
     if (offset < 0) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new InvalidRequestError(
         `Pagination offset must be greater than or equal to 0`
       );

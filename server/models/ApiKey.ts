@@ -18,6 +18,7 @@ const ApiKey = sequelize.define(
   {
     paranoid: true,
     hooks: {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'key' implicitly has an 'any' type.
       beforeValidate: (key) => {
         key.secret = randomstring.generate(38);
       },
@@ -25,6 +26,7 @@ const ApiKey = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 ApiKey.associate = (models) => {
   ApiKey.belongsTo(models.User, {
     as: "user",

@@ -14,6 +14,7 @@ type Props = {
 
 function Switch({ width = 38, height = 20, label, disabled, ...props }: Props) {
   const component = (
+    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <Wrapper width={width} height={height}>
       <HiddenInput
         type="checkbox"
@@ -22,12 +23,14 @@ function Switch({ width = 38, height = 20, label, disabled, ...props }: Props) {
         disabled={disabled}
         {...props}
       />
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Slider width={width} height={height} />
     </Wrapper>
   );
 
   if (label) {
     return (
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Label disabled={disabled} htmlFor={props.id}>
         {component}
         <LabelText>{label}</LabelText>
@@ -42,12 +45,15 @@ const Label = styled.label`
   display: flex;
   align-items: center;
 
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'Themed... Remove this comment to see the full error message
   ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
 const Wrapper = styled.label`
   position: relative;
   display: inline-block;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'width' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   width: ${(props) => props.width}px;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'height' does not exist on type 'ThemedSt... Remove this comment to see the full error message
   height: ${(props) => props.height}px;
   margin-bottom: 4px;
   margin-right: 8px;
@@ -62,12 +68,15 @@ const Slider = styled.span`
   background-color: ${(props) => props.theme.slate};
   -webkit-transition: 0.4s;
   transition: 0.4s;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'height' does not exist on type 'ThemedSt... Remove this comment to see the full error message
   border-radius: ${(props) => props.height}px;
 
   &:before {
     position: absolute;
     content: "";
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'height' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     height: ${(props) => props.height - 8}px;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'height' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     width: ${(props) => props.height - 8}px;
     left: 4px;
     bottom: 4px;
@@ -97,6 +106,7 @@ const HiddenInput = styled.input`
   }
 
   &:checked + ${Slider}:before {
+    // @ts-expect-error ts-migrate(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
     transform: translateX(${(props) => props.width - props.height}px);
   }
 `;

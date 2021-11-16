@@ -5,13 +5,14 @@ import { cdnPath } from "../../shared/utils/urls";
 import useStores from "hooks/useStores";
 
 type Props = {
-  title: string;
+  title: React.ReactNode;
   favicon?: string;
 };
 
 const PageTitle = ({ title, favicon }: Props) => {
   const { auth } = useStores();
   const { team } = auth;
+
   return (
     <Helmet>
       <title>

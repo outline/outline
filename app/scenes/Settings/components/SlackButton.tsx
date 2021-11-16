@@ -26,9 +26,12 @@ function SlackButton({ state = "", scopes, redirectUri, label }: Props) {
   return (
     <Button
       onClick={handleClick}
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ fill: string; }' is not assignable to type... Remove this comment to see the full error message
       icon={<SlackIcon fill="currentColor" />}
       neutral
     >
+      // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | HTMLCollection'
+      is not assignable t... Remove this comment to see the full error message
       {label || t("Add to Slack")}
     </Button>
   );

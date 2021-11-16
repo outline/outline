@@ -1,6 +1,7 @@
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
@@ -9,7 +10,9 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/compressImage' or its co... Remove this comment to see the full error message
 import { compressImage } from "utils/compressImage";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 const EMPTY_OBJECT = {};
@@ -19,7 +22,6 @@ type Props = {
   onError: (arg0: string) => void;
   submitText: string;
   borderRadius: number;
-  ui: UiStore;
 };
 
 @observer
@@ -95,9 +97,12 @@ class ImageUpload extends React.Component<Props> {
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="">
         <Flex auto column align="center" justify="center">
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
+              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
               ref={(ref) => (this.avatarEditorRef = ref)}
               image={this.file}
               width={250}
@@ -117,6 +122,7 @@ class ImageUpload extends React.Component<Props> {
             max="2"
             step="0.01"
             defaultValue="1"
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             onChange={this.handleZoom}
           />
           <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
@@ -136,6 +142,7 @@ class ImageUpload extends React.Component<Props> {
       <Dropzone
         accept="image/png, image/jpeg"
         onDropAccepted={this.onDropAccepted}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: ({ getRootProps, getInputProps }... Remove this comment to see the full error message
         style={EMPTY_OBJECT}
         disablePreview
       >
@@ -153,6 +160,7 @@ class ImageUpload extends React.Component<Props> {
 const AvatarEditorContainer = styled(Flex)`
   margin-bottom: 30px;
 `;
+
 const RangeInput = styled.input`
   display: block;
   width: 300px;
@@ -177,6 +185,7 @@ const RangeInput = styled.input`
     outline: none;
   }
 `;
+
 const CropButton = styled(Button)`
   width: 300px;
 `;

@@ -18,11 +18,13 @@ const View = sequelize.define("view", {
   },
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 View.associate = (models) => {
   View.belongsTo(models.Document);
   View.belongsTo(models.User);
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'where' implicitly has an 'any' type.
 View.increment = async (where) => {
   const [model, created] = await View.findOrCreate({
     where,
@@ -36,6 +38,7 @@ View.increment = async (where) => {
   return model;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
 View.findByDocument = async (documentId) => {
   return View.findAll({
     where: {
@@ -51,6 +54,7 @@ View.findByDocument = async (documentId) => {
   });
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
 View.findRecentlyEditingByDocument = async (documentId) => {
   return View.findAll({
     where: {

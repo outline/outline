@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
 import { bounceIn } from "styles/animations";
 
 type Props = {

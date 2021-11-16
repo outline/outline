@@ -4,6 +4,7 @@ import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class ViewsStore extends BaseStore<View> {
+  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'ViewsStore' is not ass... Remove this comment to see the full error message
   actions = ["list", "create"];
 
   constructor(rootStore: RootStore) {

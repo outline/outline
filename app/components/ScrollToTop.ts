@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import usePrevious from "hooks/usePrevious";
 
 type Props = {
-  children: React.ReactNode;
+  children: JSX.Element;
 };
 
 export default function ScrollToTop({ children }: Props) {

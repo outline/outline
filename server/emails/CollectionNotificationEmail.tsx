@@ -9,7 +9,9 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 export type Props = {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   actor: User;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
   collection: Collection;
   eventName: string;
   unsubscribeUrl: string;

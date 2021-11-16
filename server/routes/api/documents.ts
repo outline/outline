@@ -55,21 +55,27 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   };
 
   if (template) {
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ template: boolean; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, template: true };
   }
 
   // if a specific user is passed then add to filters. If the user doesn't
   // exist in the team then nothing will be returned, so no need to check auth
   if (createdById) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(createdById, "user must be a UUID");
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ createdById: any; teamId: any; archivedAt:... Remove this comment to see the full error message
     where = { ...where, createdById };
   }
 
+  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'documentIds' implicitly has type 'any[]'... Remove this comment to see the full error message
   let documentIds = [];
 
   // if a specific collection is passed then we need to check auth to view it
   if (collectionId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(collectionId, "collection must be a UUID");
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, collectionId };
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -80,17 +86,22 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     // collection.documentStructure rather than a database column
     if (sort === "index") {
       documentIds = collection.documentStructure
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
         .map((node) => node.id)
         .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id: any; teamId: any; archivedAt: { [Seque... Remove this comment to see the full error message
       where = { ...where, id: documentIds };
     } // otherwise, filter by all collections the user has access to
   } else {
     const collectionIds = await user.collectionIds();
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, collectionId: collectionIds };
   }
 
   if (parentDocumentId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(parentDocumentId, "parentDocumentId must be a UUID");
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ parentDocumentId: any; teamId: any; archiv... Remove this comment to see the full error message
     where = { ...where, parentDocumentId };
   }
 
@@ -99,6 +110,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   if (parentDocumentId === null) {
     where = {
       ...where,
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ parentDocumentId: { [Sequelize.Op.eq]: nul... Remove this comment to see the full error message
       parentDocumentId: {
         [Op.eq]: null,
       },
@@ -106,6 +118,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   }
 
   if (backlinkDocumentId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(backlinkDocumentId, "backlinkDocumentId must be a UUID");
     const backlinks = await Backlink.findAll({
       attributes: ["reverseDocumentId"],
@@ -115,6 +128,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     });
     where = {
       ...where,
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id: any; teamId: any; archivedAt: { [Seque... Remove this comment to see the full error message
       id: backlinks.map((backlink) => backlink.reverseDocumentId),
     };
   }
@@ -123,6 +137,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     sort = "updatedAt";
   }
 
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   // add the users starred state to the response by default
   const starredScope = {
@@ -150,11 +165,13 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // collection.documentStructure rather than a database column
   if (documentIds.length) {
     documents.sort(
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'a' implicitly has an 'any' type.
       (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
     );
   }
 
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -168,7 +185,9 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
   const { collectionId, sort = "updatedAt" } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertUuid(collectionId, "collectionId is required");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   const user = ctx.state.user;
   const collection = await Collection.scope({
@@ -202,6 +221,7 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -213,6 +233,7 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
 });
 router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const { sort = "updatedAt" } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
@@ -241,6 +262,7 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -252,6 +274,7 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
 });
 router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const { sort = "deletedAt" } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
@@ -291,6 +314,7 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -303,6 +327,7 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
 router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
@@ -342,12 +367,14 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'view' implicitly has an 'any' type.
   const documents = views.map((view) => {
     const document = view.document;
     document.views = [view];
     return document;
   });
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -360,6 +387,7 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
@@ -395,8 +423,10 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'star' implicitly has an 'any' type.
   const documents = stars.map((star) => star.document);
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -409,11 +439,13 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
 
   if (collectionId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(collectionId, "collectionId must be a UUID");
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -434,11 +466,13 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   };
 
   if (dateFilter) {
+    // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
     ctx.assertIn(
       dateFilter,
       ["day", "week", "month", "year"],
       "dateFilter must be one of day,week,month,year"
     );
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ [Sequelize.Op.gte]: Date; }' is not assign... Remove this comment to see the full error message
     whereConditions.updatedAt = {
       [Op.gte]: subtractDate(new Date(), dateFilter),
     };
@@ -459,6 +493,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -470,12 +505,17 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
 });
 
 async function loadDocument({
+  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'id' implicitly has an 'any' type.
   id,
+  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'shareId' implicitly has an 'any' ... Remove this comment to see the full error message
   shareId,
+  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'user' implicitly has an 'any' typ... Remove this comment to see the full error message
   user,
 }): Promise<{
   document: Document;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Share' refers to a value, but is being used as a ... Remove this comment to see the full error message
   share?: Share;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
   collection: Collection;
 }> {
   let document;
@@ -513,6 +553,7 @@ async function loadDocument({
     });
 
     if (!share || share.document.archivedAt) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new InvalidRequestError("Document could not be found for shareId");
     }
 
@@ -555,6 +596,7 @@ async function loadDocument({
     // We already know that there's either no logged in user or the user doesn't
     // have permission to read the document, so we can throw an error.
     if (!share.published) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new AuthorizationError();
     }
 
@@ -562,6 +604,7 @@ async function loadDocument({
     collection = await Collection.findByPk(document.collectionId);
 
     if (!collection.sharing) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new AuthorizationError();
     }
 
@@ -573,6 +616,7 @@ async function loadDocument({
         !share.includeChildDocuments ||
         !collection.isChildDocument(share.document.id, document.id)
       ) {
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
         throw new AuthorizationError();
       }
     }
@@ -581,6 +625,7 @@ async function loadDocument({
     const team = await Team.findByPk(document.teamId);
 
     if (!team.sharing) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new AuthorizationError();
     }
 
@@ -594,6 +639,7 @@ async function loadDocument({
     });
 
     if (!document) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new NotFoundError();
     }
 
@@ -665,6 +711,7 @@ router.post(
       user,
     });
     ctx.body = {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'toMarkdown' does not exist on type 'Docu... Remove this comment to see the full error message
       data: document.toMarkdown(),
     };
   }
@@ -679,6 +726,7 @@ router.post("documents.restore", auth(), async (ctx) => {
   });
 
   if (!document) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 
@@ -757,6 +805,7 @@ router.post("documents.restore", auth(), async (ctx) => {
   }
 
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -765,6 +814,7 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   const { query } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   const user = ctx.state.user;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(query, "query is required");
   const collectionIds = await user.collectionIds();
   const documents = await Document.scope(
@@ -802,6 +852,7 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   });
   const policies = presentPolicies(user, documents);
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   ctx.body = {
@@ -821,9 +872,11 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   const user = ctx.state.user;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(query, "query is required");
 
   if (collectionId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(collectionId, "collectionId must be a UUID");
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -834,11 +887,13 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   let collaboratorIds = undefined;
 
   if (userId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(userId, "userId must be a UUID");
     collaboratorIds = [userId];
   }
 
   if (dateFilter) {
+    // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
     ctx.assertIn(
       dateFilter,
       ["day", "week", "month", "year"],
@@ -855,9 +910,12 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     offset,
     limit,
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
   const documents = results.map((result) => result.document);
   const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
     results.map(async (result) => {
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
       const document = await presentDocument(result.document);
       return { ...result, document };
     })
@@ -904,6 +962,7 @@ router.post("documents.pin", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -930,6 +989,7 @@ router.post("documents.unpin", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1029,6 +1089,7 @@ router.post("documents.templatize", auth(), async (ctx) => {
     userId: user.id,
   });
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1056,6 +1117,7 @@ router.post("documents.update", auth(), async (ctx) => {
   authorize(user, "update", document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new InvalidRequestError("Document has changed since last revision");
   }
 
@@ -1147,6 +1209,7 @@ router.post("documents.update", auth(), async (ctx) => {
   document.updatedBy = user;
   document.collection = collection;
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1165,6 +1228,7 @@ router.post("documents.move", auth(), async (ctx) => {
   }
 
   if (parentDocumentId === id) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new InvalidRequestError(
       "Infinite loop detected, cannot nest a document inside itself"
     );
@@ -1198,6 +1262,7 @@ router.post("documents.move", auth(), async (ctx) => {
   ctx.body = {
     data: {
       documents: await Promise.all(
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         documents.map((document) => presentDocument(document))
       ),
       collections: await Promise.all(
@@ -1228,6 +1293,7 @@ router.post("documents.archive", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1310,6 +1376,7 @@ router.post("documents.unpublish", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1318,13 +1385,17 @@ router.post("documents.import", auth(), async (ctx) => {
   const { publish, collectionId, parentDocumentId, index } = ctx.body;
 
   if (!ctx.is("multipart/form-data")) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new InvalidRequestError("Request type must be multipart/form-data");
   }
 
+  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   const file: any = Object.values(ctx.request.files)[0];
   ctx.assertPresent(file, "file is required");
 
+  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new InvalidRequestError("The selected file was too large to import");
   }
 
@@ -1376,8 +1447,10 @@ router.post("documents.import", auth(), async (ctx) => {
     user,
     ip: ctx.request.ip,
   });
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'Docu... Remove this comment to see the full error message
   document.collection = collection;
   return (ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   });
@@ -1445,11 +1518,14 @@ router.post("documents.create", auth(), async (ctx) => {
     template,
     index,
     user,
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | string[] | undefined' is not assign... Remove this comment to see the full error message
     editorVersion,
     ip: ctx.request.ip,
   });
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'Docu... Remove this comment to see the full error message
   document.collection = collection;
   return (ctx.body = {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   });

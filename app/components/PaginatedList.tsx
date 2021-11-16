@@ -50,11 +50,12 @@ class PaginatedList extends React.Component<Props> {
     this.isInitiallyLoaded = this.props.items.length > 0;
   }
 
-  override componentDidMount() {
+  componentDidMount() {
     this.fetchResults();
   }
 
-  override componentDidUpdate(prevProps: Props) {
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
+  componentDidUpdate(prevProps: Props) {
     if (
       prevProps.fetch !== this.props.fetch ||
       !isEqual(prevProps.options, this.props.options)
@@ -115,7 +116,8 @@ class PaginatedList extends React.Component<Props> {
     }
   };
 
-  override render() {
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
+  render() {
     const { items, heading, auth, empty, renderHeading } = this.props;
     let previousHeading = "";
     const showLoading =
@@ -185,4 +187,5 @@ class PaginatedList extends React.Component<Props> {
 
 export const Component = PaginatedList;
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'PaginatedList' does not satisfy the constrai... Remove this comment to see the full error message
 export default withTranslation()<PaginatedList>(inject("auth")(PaginatedList));

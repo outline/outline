@@ -32,6 +32,7 @@ export function requestErrorHandler(error: any, ctx: ContextWithState) {
       const requestId = ctx.headers["x-request-id"];
 
       if (requestId) {
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[]' is not assign... Remove this comment to see the full error message
         scope.setTag("request_id", requestId);
       }
 

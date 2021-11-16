@@ -19,8 +19,10 @@ function CollectionExport({ collection, onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsLoading(true);
       await collection.export();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
       setIsLoading(false);
       showToast(
         t("Export started, you will receive an email when it’s complete.")
@@ -43,7 +45,13 @@ function CollectionExport({ collection, onSubmit }: Props) {
             }}
           />
         </HelpText>
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not
+        assignable to type 'boolea... Remove this comment to see the full error
+        message
         <Button type="submit" disabled={isLoading} primary>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+          HTMLCollection' is not assignable t... Remove this comment to see the
+          full error message
           {isLoading ? `${t("Exporting")}…` : t("Export Collection")}
         </Button>
       </form>

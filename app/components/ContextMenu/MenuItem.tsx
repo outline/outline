@@ -90,11 +90,13 @@ export const MenuAnchorCSS = css`
   margin: 0;
   border: 0;
   padding: 12px;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'level' does not exist on type 'ThemeProp... Remove this comment to see the full error message
   padding-left: ${(props) => 12 + (props.level || 0) * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;
   color: ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'ThemeP... Remove this comment to see the full error message
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
@@ -108,10 +110,12 @@ export const MenuAnchorCSS = css`
 
   svg {
     flex-shrink: 0;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'ThemeP... Remove this comment to see the full error message
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
   ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'ThemeP... Remove this comment to see the full error message
     props.disabled
       ? "pointer-events: none;"
       : `

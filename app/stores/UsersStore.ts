@@ -5,10 +5,12 @@ import { Role } from "shared/types";
 import User from "models/User";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 export default class UsersStore extends BaseStore<User> {
   @observable
+  // @ts-expect-error ts-migrate(2740) FIXME: Type '{}' is missing the following properties from... Remove this comment to see the full error message
   counts: {
     active: number;
     admins: number;
@@ -24,6 +26,7 @@ export default class UsersStore extends BaseStore<User> {
 
   @computed
   get active(): User[] {
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | User | (() => string) | (() => str... Remove this comment to see the full error message
     return filter(
       this.orderedData,
       (user) => !user.isSuspended && user.lastActiveAt
@@ -57,6 +60,7 @@ export default class UsersStore extends BaseStore<User> {
 
   @computed
   get all(): User[] {
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | User | (() => string) | (() => str... Remove this comment to see the full error message
     return filter(this.orderedData, (user) => user.lastActiveAt);
   }
 
@@ -262,6 +266,7 @@ export default class UsersStore extends BaseStore<User> {
   };
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'users' implicitly has an 'any' type.
 function queriedUsers(users, query) {
   return filter(users, (user) =>
     user.name.toLowerCase().includes(query.toLowerCase())

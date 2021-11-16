@@ -5,6 +5,7 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/debug' or ... Remove this comment to see the full error message
 import { development } from "actions/definitions/debug";
 import {
   navigateToSettings,
@@ -14,7 +15,9 @@ import {
   openBugReportUrl,
   openFeedbackUrl,
   logout,
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/navigation... Remove this comment to see the full error message
 } from "actions/definitions/navigation";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/settings' ... Remove this comment to see the full error message
 import { changeTheme } from "actions/definitions/settings";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";
@@ -44,7 +47,9 @@ function AccountMenu(props: Props) {
     }
   }, [menu, theme, previousTheme]);
   const actions = React.useMemo(() => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'filter' does not exist on type 'Session[... Remove this comment to see the full error message
     const otherSessions = sessions.filter(
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'session' implicitly has an 'any' type.
       (session) => session.teamId !== team.id && session.url !== team.url
     );
     return [
@@ -62,6 +67,7 @@ function AccountMenu(props: Props) {
         ? [
             {
               name: t("Switch team"),
+              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'session' implicitly has an 'any' type.
               children: otherSessions.map((session) => ({
                 name: session.name,
                 icon: <Logo alt={session.name} src={session.logoUrl} />,
@@ -76,6 +82,7 @@ function AccountMenu(props: Props) {
   return (
     <>
       <MenuButton {...menu}>{props.children}</MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Account")}>
         <Template {...menu} actions={actions} />
       </ContextMenu>

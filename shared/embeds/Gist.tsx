@@ -34,6 +34,7 @@ class Gist extends React.Component<Props> {
     if (!iframe) return;
     const id = this.id;
 
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'document' does not exist on type 'HTMLIF... Remove this comment to see the full error message
     let doc = iframe.document;
 
     if (iframe.contentDocument) {
@@ -53,12 +54,14 @@ class Gist extends React.Component<Props> {
     doc.close();
   };
 
-  override render() {
+  
+  render() {
     const id = this.id;
     return (
       <iframe
         className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
         ref={this.ref}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ className: string; ref: RefObject<HTMLIFra... Remove this comment to see the full error message
         type="text/html"
         frameBorder="0"
         width="100%"

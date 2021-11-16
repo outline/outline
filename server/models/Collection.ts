@@ -46,6 +46,7 @@ const Collection = sequelize.define(
     sort: {
       type: DataTypes.JSONB,
       validate: {
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
         isSort(value) {
           if (
             typeof value !== "object" ||
@@ -71,6 +72,7 @@ const Collection = sequelize.define(
     tableName: "collections",
     paranoid: true,
     hooks: {
+      // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
       beforeValidate: (collection: Collection) => {
         collection.urlId = collection.urlId || randomstring.generate(10);
       },
@@ -87,6 +89,7 @@ Collection.DEFAULT_SORT = {
   field: "index",
   direction: "asc",
 };
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 Collection.addHook("beforeSave", async (model) => {
   if (model.icon === "collection") {
     model.icon = null;
@@ -94,6 +97,7 @@ Collection.addHook("beforeSave", async (model) => {
 });
 
 // Class methods
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Collection.associate = (models) => {
   Collection.hasMany(models.Document, {
     as: "documents",
@@ -127,6 +131,7 @@ Collection.associate = (models) => {
   Collection.belongsTo(models.Team, {
     as: "team",
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
   Collection.addScope("withMembership", (userId) => ({
     include: [
       {
@@ -197,6 +202,7 @@ Collection.associate = (models) => {
   });
 };
 
+// @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 Collection.addHook("afterDestroy", async (model: Collection) => {
   await Document.destroy({
     where: {
@@ -207,6 +213,7 @@ Collection.addHook("afterDestroy", async (model: Collection) => {
     },
   });
 });
+// @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 Collection.addHook("afterCreate", (model: Collection, options) => {
   if (model.permission !== "read_write") {
     return CollectionUser.findOrCreate({
@@ -224,6 +231,7 @@ Collection.addHook("afterCreate", (model: Collection, options) => {
 });
 
 // Class methods
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'id' implicitly has an 'any' type.
 Collection.findByPk = async function (id, options = {}) {
   if (isUUID(id)) {
     return this.findOne({
@@ -248,6 +256,7 @@ Collection.findByPk = async function (id, options = {}) {
  * @param user User object
  * @returns collection First collection in the sidebar order
  */
+// @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
 Collection.findFirstCollectionForUser = async (user: User) => {
   const id = await user.collectionIds();
   return Collection.findOne({
@@ -273,6 +282,7 @@ Collection.membershipUserIds = async (collectionId: string) => {
   }
 
   const groupMemberships = collection.collectionGroupMemberships
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'cgm' implicitly has an 'any' type.
     .map((cgm) => cgm.group.groupMemberships)
     .flat();
   const membershipUserIds = concat(
@@ -296,13 +306,16 @@ Collection.prototype.addDocumentToStructure = async function (
 
   try {
     // documentStructure can only be updated by one request at a time
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'save' does not exist on type '{}'.
     if (options.save !== false) {
       transaction = await sequelize.transaction();
     }
 
     // If moving existing document with children, use existing structure
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'toJSON' does not exist on type 'Document... Remove this comment to see the full error message
     const documentJson = { ...document.toJSON(), ...options.documentJson };
 
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
     if (!document.parentDocumentId) {
       // Note: Index is supported on DB level but it's being ignored
       // by the API presentation until we build product support for it.
@@ -313,8 +326,11 @@ Collection.prototype.addDocumentToStructure = async function (
       );
     } else {
       // Recursively place document
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentList' implicitly has an 'any' t... Remove this comment to see the full error message
       const placeDocument = (documentList) => {
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childDocument' implicitly has an 'any' ... Remove this comment to see the full error message
         return documentList.map((childDocument) => {
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
           if (document.parentDocumentId === childDocument.id) {
             childDocument.children.splice(
               index !== undefined ? index : childDocument.children.length,
@@ -336,6 +352,7 @@ Collection.prototype.addDocumentToStructure = async function (
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
 
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'save' does not exist on type '{}'.
     if (options.save !== false) {
       await this.save({
         ...options,
@@ -370,12 +387,16 @@ Collection.prototype.updateDocument = async function (
   try {
     // documentStructure can only be updated by one request at the time
     transaction = await sequelize.transaction();
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
     const { id } = updatedDocument;
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documents' implicitly has an 'any' type... Remove this comment to see the full error message
     const updateChildren = (documents) => {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
       return documents.map((document) => {
         if (document.id === id) {
           document = {
+            // @ts-expect-error ts-migrate(2339) FIXME: Property 'toJSON' does not exist on type 'Document... Remove this comment to see the full error message
             ...updatedDocument.toJSON(),
             children: document.children,
           };
@@ -407,22 +428,27 @@ Collection.prototype.updateDocument = async function (
   return this;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
 Collection.prototype.deleteDocument = async function (document) {
   await this.removeDocumentInStructure(document);
   await document.deleteWithChildren();
 };
 
 Collection.prototype.isChildDocument = function (
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'parentDocumentId' implicitly has an 'an... Remove this comment to see the full error message
   parentDocumentId,
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
   documentId
 ): boolean {
   let result = false;
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documents' implicitly has an 'any' type... Remove this comment to see the full error message
   const loopChildren = (documents, input) => {
     if (result) {
       return;
     }
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.forEach((document) => {
       const parents = [...input];
 
@@ -440,14 +466,19 @@ Collection.prototype.isChildDocument = function (
 };
 
 Collection.prototype.getDocumentTree = function (documentId: string) {
+  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'result' implicitly has type 'any' in som... Remove this comment to see the full error message
   let result;
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documents' implicitly has an 'any' type... Remove this comment to see the full error message
   const loopChildren = (documents) => {
+    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'result' implicitly has an 'any' type.
     if (result) {
       return;
     }
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.forEach((document) => {
+      // @ts-expect-error ts-migrate(7005) FIXME: Variable 'result' implicitly has an 'any' type.
       if (result) {
         return;
       }
@@ -467,17 +498,22 @@ Collection.prototype.getDocumentTree = function (documentId: string) {
 Collection.prototype.getDocumentParents = function (
   documentId: string
 ): string[] | void {
+  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'result' implicitly has type 'any' in som... Remove this comment to see the full error message
   let result;
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documents' implicitly has an 'any' type... Remove this comment to see the full error message
   const loopChildren = (documents, path = []) => {
+    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'result' implicitly has an 'any' type.
     if (result) {
       return;
     }
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.forEach((document) => {
       if (document.id === documentId) {
         result = path;
       } else {
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'any' is not assignable to type 'never'.
         loopChildren(document.children, [...path, document.id]);
       }
     });
@@ -491,10 +527,13 @@ Collection.prototype.getDocumentParents = function (
 };
 
 Collection.prototype.removeDocumentInStructure = async function (
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
   document,
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'options' implicitly has an 'any' type.
   options
 ) {
   if (!this.documentStructure) return;
+  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'returnValue' implicitly has type 'any' i... Remove this comment to see the full error message
   let returnValue;
   let transaction;
 
@@ -502,8 +541,10 @@ Collection.prototype.removeDocumentInStructure = async function (
     // documentStructure can only be updated by one request at the time
     transaction = await sequelize.transaction();
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'children' implicitly has an 'any' type.
     const removeFromChildren = async (children, id) => {
       children = await Promise.all(
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childDocument' implicitly has an 'any' ... Remove this comment to see the full error message
         children.map(async (childDocument) => {
           return {
             ...childDocument,
@@ -516,6 +557,7 @@ Collection.prototype.removeDocumentInStructure = async function (
       });
 
       if (match) {
+        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'returnValue' implicitly has an 'any' typ... Remove this comment to see the full error message
         if (!returnValue)
           returnValue = [
             match,

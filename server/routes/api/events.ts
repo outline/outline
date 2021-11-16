@@ -21,6 +21,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     auditLog = false,
   } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Event);
   let where = {
     name: Event.ACTIVITY_EVENTS,
@@ -28,17 +29,23 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   };
 
   if (actorId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(actorId, "actorId must be a UUID");
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ actorId: any; name: any; teamId: any; }' i... Remove this comment to see the full error message
     where = { ...where, actorId };
   }
 
   if (documentId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(documentId, "documentId must be a UUID");
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ documentId: any; name: any; teamId: any; }... Remove this comment to see the full error message
     where = { ...where, documentId };
   }
 
   if (collectionId) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(collectionId, "collection must be a UUID");
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; name: any; teamId: any;... Remove this comment to see the full error message
     where = { ...where, collectionId };
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -50,6 +57,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     });
     where = {
       ...where,
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ [Sequelize.Op.or]: { collectionId: any; }[... Remove this comment to see the full error message
       [Op.or]: [
         {
           collectionId: collectionIds,
@@ -87,6 +95,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   });
   ctx.body = {
     pagination: ctx.state.pagination,
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     data: events.map((event) => presentEvent(event, auditLog)),
   };
 });

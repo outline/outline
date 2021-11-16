@@ -15,16 +15,18 @@ export type Props = {
   short?: boolean;
   small?: boolean;
 };
-const LabelText = styled.span`
+const LabelText = styled.span<{ small?: boolean }>`
   font-weight: 500;
   margin-left: ${(props) => (props.small ? "6px" : "10px")};
   ${(props) => (props.small ? `color: ${props.theme.textSecondary}` : "")};
 `;
-const Wrapper = styled.div`
+
+const Wrapper = styled.div<{ small?: boolean }>`
   padding-bottom: 8px;
   ${(props) => (props.small ? "font-size: 14px" : "")};
   width: 100%;
 `;
+
 const Label = styled.label`
   display: flex;
   align-items: center;
@@ -41,6 +43,7 @@ export default function Checkbox({
   ...rest
 }: Props) {
   const wrappedLabel = <LabelText small={small}>{label}</LabelText>;
+
   return (
     <>
       <Wrapper small={small}>

@@ -1,12 +1,15 @@
 import { inject } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'reac... Remove this comment to see the full error message
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
 import { fadeAndSlideDown } from "styles/animations";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl } from "utils/urls";
 
 const DELAY_OPEN = 300;
@@ -27,6 +30,7 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
 
   const startCloseTimer = () => {
     stopOpenTimer();
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timerClose.current = setTimeout(() => {
       if (isVisible) setVisible(false);
       onClose();
@@ -40,6 +44,7 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
   };
 
   const startOpenTimer = () => {
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
   };
 
@@ -51,6 +56,7 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
 
   React.useEffect(() => {
     if (slug) {
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 2.
       documents.prefetchDocument(slug, {
         prefetch: true,
       });
@@ -98,12 +104,15 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
   return (
     <Portal>
       <Position
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         top={anchorBounds.bottom + window.scrollY}
         left={left}
         aria-hidden
       >
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLDivElement | null | und... Remove this comment to see the full error message
         <div ref={cardRef}>
           <HoverPreviewDocument url={node.href}>
+            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'content' implicitly has an 'any' type.
             {(content) =>
               isVisible ? (
                 <Animate>
@@ -111,6 +120,7 @@ function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
                     <Margin />
                     <CardContent>{content}</CardContent>
                   </Card>
+                  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                   <Pointer offset={leftOffset + anchorBounds.width / 2} />
                 </Animate>
               ) : null
@@ -190,16 +200,20 @@ const Card = styled.div`
 `;
 const Position = styled.div`
   margin-top: 10px;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'fixed' does not exist on type 'Pick<Deta... Remove this comment to see the full error message
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   z-index: ${(props) => props.theme.depths.hoverPreview};
   display: flex;
   max-height: 75%;
 
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'top' does not exist on type 'Pick<Detail... Remove this comment to see the full error message
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'left' does not exist on type 'Pick<Detai... Remove this comment to see the full error message
   ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
 `;
 const Pointer = styled.div`
   top: -22px;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'offset' does not exist on type 'ThemedSt... Remove this comment to see the full error message
   left: ${(props) => props.offset}px;
   width: 22px;
   height: 22px;

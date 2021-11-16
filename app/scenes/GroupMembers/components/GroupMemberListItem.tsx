@@ -18,6 +18,7 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
   return (
     <ListItem
       title={user.name}
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; subtitle: Element; image: E... Remove this comment to see the full error message
       subtitle={
         <>
           {user.lastActiveAt ? (
@@ -28,6 +29,8 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
             "Never signed in"
           )}
           {user.isInvited && <Badge>Invited</Badge>}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
         </>
       }
@@ -36,6 +39,7 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
         <Flex align="center">
           {onRemove && <GroupMemberMenu onRemove={onRemove} />}
           {onAdd && (
+            // @ts-expect-error ts-migrate(2747) FIXME: 'Button' components don't accept text as child ele... Remove this comment to see the full error message
             <Button onClick={onAdd} neutral>
               Add
             </Button>

@@ -18,7 +18,9 @@ import FileOperationListItem from "./components/FileOperationListItem";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/getDataTransferFiles' or... Remove this comment to see the full error message
 import getDataTransferFiles from "utils/getDataTransferFiles";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
 import { uploadFile } from "utils/uploadFile";
 
 function ImportExport() {
@@ -35,12 +37,14 @@ function ImportExport() {
   const [importDetails, setImportDetails] = React.useState();
   const handleImport = React.useCallback(
     async (ev) => {
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
       setImported(undefined);
       setImporting(true);
 
       try {
         invariant(file, "File must exist to upload");
         const attachment = await uploadFile(file, {
+          // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
           name: file.name,
         });
         await collections.import(attachment.id);
@@ -50,6 +54,7 @@ function ImportExport() {
         showToast(err.message);
       } finally {
         if (fileRef.current) {
+          // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
           fileRef.current.value = "";
         }
 
@@ -67,8 +72,10 @@ function ImportExport() {
     setFile(file);
 
     try {
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Item[]' is not assignable to par... Remove this comment to see the full error message
       setImportDetails(await parseOutlineExport(file));
     } catch (err) {
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'never[]' is not assignable to pa... Remove this comment to see the full error message
       setImportDetails([]);
     }
   }, []);
@@ -77,6 +84,7 @@ function ImportExport() {
       ev.preventDefault();
 
       if (fileRef.current) {
+        // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
         fileRef.current.click();
       }
     },
@@ -111,10 +119,12 @@ function ImportExport() {
     [fileOperations, showToast, t]
   );
   const hasCollections = importDetails
-    ? !!importDetails.filter((detail) => detail.type === "collection").length
+    ? // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+      !!importDetails.filter((detail) => detail.type === "collection").length
     : false;
   const hasDocuments = importDetails
-    ? !!importDetails.filter((detail) => detail.type === "document").length
+    ? // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+      !!importDetails.filter((detail) => detail.type === "document").length
     : false;
   const isImportable = hasCollections && hasDocuments;
   return (
@@ -133,6 +143,7 @@ function ImportExport() {
       <VisuallyHidden>
         <input
           type="file"
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<undefined>' is not assignab... Remove this comment to see the full error message
           ref={fileRef}
           onChange={handleFilePicked}
           accept="application/zip"
@@ -151,6 +162,7 @@ function ImportExport() {
           <Trans
             defaults="Sorry, the file <em>{{ fileName }}</em> is missing valid collections or documents."
             values={{
+              // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
               fileName: file.name,
             }}
             components={{
@@ -165,6 +177,7 @@ function ImportExport() {
             <Trans
               defaults="<em>{{ fileName }}</em> looks good, the following collections and their documents will be imported:"
               values={{
+                // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
                 fileName: file.name,
               }}
               components={{
@@ -172,8 +185,12 @@ function ImportExport() {
               }}
             />
             <List>
+              // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly
+              'undefined'.
               {importDetails
+                // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'detail' implicitly has an 'any' type.
                 .filter((detail) => detail.type === "collection")
+                // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'detail' implicitly has an 'any' type.
                 .map((detail) => (
                   <ImportPreviewItem key={detail.path}>
                     <CollectionIcon />
@@ -188,10 +205,14 @@ function ImportExport() {
             disabled={isImporting}
             primary
           >
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+            HTMLCollection' is not assignable t... Remove this comment to see
+            the full error message
             {isImporting ? `${t("Uploading")}…` : t("Confirm & Import")}
           </Button>
         </>
       ) : (
+        // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
         <Button type="submit" onClick={handlePickFile} primary>
           {t("Choose File")}…
         </Button>
@@ -214,6 +235,9 @@ function ImportExport() {
         disabled={isLoading || isExporting}
         primary
       >
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+        HTMLCollection' is not assignable t... Remove this comment to see the
+        full error message
         {isExporting
           ? t("Export Requested")
           : isLoading
@@ -223,6 +247,7 @@ function ImportExport() {
       <br />
       <br />
       <PaginatedList
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; fetch: any; options: { type: s... Remove this comment to see the full error message
         items={fileOperations.orderedDataExports}
         fetch={fileOperations.fetchPage}
         options={{
@@ -233,6 +258,7 @@ function ImportExport() {
             <Trans>Recent exports</Trans>
           </Subheading>
         }
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           <FileOperationListItem
             key={item.id + item.state}

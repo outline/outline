@@ -37,6 +37,7 @@ function SharePopover({
   const { policies, shares, auth } = useStores();
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
+  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'TimeoutID'.
   const timeout = React.useRef<TimeoutID | null | undefined>();
   const buttonRef = React.useRef<HTMLButtonElement | null | undefined>();
   const can = policies.abilities(share ? share.id : "");
@@ -190,6 +191,7 @@ function SharePopover({
           <Button
             type="submit"
             disabled={isCopied || !share}
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLButtonElement | null | ... Remove this comment to see the full error message
             ref={buttonRef}
             primary
           >

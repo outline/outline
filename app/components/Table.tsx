@@ -52,10 +52,15 @@ function Table({
     headerGroups,
     rows,
     prepareRow,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'canNextPage' does not exist on type 'Tab... Remove this comment to see the full error message
     canNextPage,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'nextPage' does not exist on type 'TableI... Remove this comment to see the full error message
     nextPage,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'canPreviousPage' does not exist on type ... Remove this comment to see the full error message
     canPreviousPage,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'previousPage' does not exist on type 'Ta... Remove this comment to see the full error message
     previousPage,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'pageIndex' does not exist on type 'Table... Remove this comment to see the full error message
     state: { pageIndex, sortBy },
   } = useTable(
     {
@@ -67,6 +72,7 @@ function Table({
       autoResetPage: false,
       pageCount: totalPages,
       initialState: {
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ sortBy: { id: string; desc: boolean; }[]; ... Remove this comment to see the full error message
         sortBy: [
           {
             id: defaultSort,
@@ -77,6 +83,7 @@ function Table({
         pageIndex: page,
       },
       stateReducer: (newState, action, prevState) => {
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'sortBy' does not exist on type 'TableSta... Remove this comment to see the full error message
         if (!isEqual(newState.sortBy, prevState.sortBy)) {
           return { ...newState, pageIndex: 0 };
         }
@@ -119,10 +126,15 @@ function Table({
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
+                // @ts-expect-error ts-migrate(2339) FIXME: Property 'getSortByToggleProps' does not exist on ... Remove this comment to see the full error message
                 <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
                   <SortWrapper align="center" gap={4}>
                     {column.render("Header")}
+                    // @ts-expect-error ts-migrate(2339) FIXME: Property
+                    'isSorted' does not exist on type 'Header... Remove this
+                    comment to see the full error message
                     {column.isSorted &&
+                      // @ts-expect-error ts-migrate(2339) FIXME: Property 'isSortedDesc' does not exist on type 'He... Remove this comment to see the full error message
                       (column.isSortedDesc ? (
                         <DescSortIcon />
                       ) : (
@@ -143,6 +155,7 @@ function Table({
                   <Cell
                     {...cell.getCellProps([
                       {
+                        // @ts-expect-error ts-migrate(2339) FIXME: Property 'className' does not exist on type 'Colum... Remove this comment to see the full error message
                         className: cell.column.className,
                       },
                     ])}
@@ -165,11 +178,13 @@ function Table({
         >
           {/* Note: the page > 0 check shouldn't be needed here but is */}
           {canPreviousPage && page > 0 && (
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
             <Button onClick={handlePreviousPage} neutral>
               {t("Previous page")}
             </Button>
           )}
           {canNextPage && (
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
             <Button onClick={handleNextPage} neutral>
               {t("Next page")}
             </Button>
@@ -189,8 +204,12 @@ export const Placeholder = ({
 }) => {
   return (
     <tbody>
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments, but
+      got 0.
       {new Array(rows).fill().map((_, row) => (
         <Row key={row}>
+          // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments,
+          but got 0.
           {new Array(columns).fill().map((_, col) => (
             <Cell key={col}>
               <PlaceholderText minWidth={25} maxWidth={75} />

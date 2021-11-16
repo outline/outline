@@ -16,6 +16,7 @@ jest.mock("aws-sdk", () => {
   };
 });
 beforeEach(() => {
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'mockReset' does not exist on type '(type... Remove this comment to see the full error message
   mailer.sendTemplate.mockReset();
   return flushdb();
 });

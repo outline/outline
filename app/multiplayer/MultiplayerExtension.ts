@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pros... Remove this comment to see the full error message
 import { keymap } from "prosemirror-keymap";
 import { Extension } from "rich-markdown-editor";
 import {
@@ -18,6 +19,7 @@ export default class MultiplayerExtension extends Extension {
     const { user, provider, document: doc } = this.options;
     const type = doc.get("default", Y.XmlFragment);
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'tr' implicitly has an 'any' type.
     const assignUser = (tr) => {
       const clientIds = Array.from(doc.store.clients.keys());
 

@@ -8,6 +8,7 @@ type Document = {
   url: string;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'sort' implicitly has an 'any' type.
 const sortDocuments = (documents: Document[], sort): Document[] => {
   const orderedDocs = naturalSort(documents, sort.field, {
     direction: sort.direction,
@@ -18,6 +19,7 @@ const sortDocuments = (documents: Document[], sort): Document[] => {
   }));
 };
 
+// @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 export default function present(collection: Collection) {
   const data = {
     id: collection.id,

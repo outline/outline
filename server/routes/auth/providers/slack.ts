@@ -1,5 +1,7 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
@@ -40,6 +42,7 @@ if (SLACK_CLIENT_ID) {
       store: new StateStore(),
       scope: scopes,
     },
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
     async function (req, accessToken, refreshToken, profile, done) {
       try {
         const result = await accountProvisioner({
@@ -115,6 +118,7 @@ if (SLACK_CLIENT_ID) {
       }
 
       const endpoint = `${process.env.URL || ""}/auth/slack.commands`;
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
       const data = await Slack.oauthAccess(code, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: "slack",
@@ -171,6 +175,7 @@ if (SLACK_CLIENT_ID) {
       }
 
       const endpoint = `${process.env.URL || ""}/auth/slack.post`;
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
       const data = await Slack.oauthAccess(code, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: "slack",

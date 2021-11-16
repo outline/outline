@@ -13,7 +13,7 @@ type Props = {
   document?: Document | null | undefined;
   collection: Collection | null | undefined;
   onSuccess?: () => void;
-  style?: Record<string, any>;
+  style?: React.CSSProperties;
   ref?: (arg0: React.ElementRef<"div"> | null | undefined) => void;
 };
 
@@ -38,6 +38,7 @@ class PathToDocument extends React.Component<Props> {
     const Component = document ? ResultWrapperLink : ResultWrapper;
     if (!result) return <div />;
     return (
+      // @ts-expect-error ts-migrate(2604) FIXME: JSX element type 'Component' does not have any con... Remove this comment to see the full error message
       <Component
         ref={ref}
         onClick={this.handleClick}
@@ -50,6 +51,7 @@ class PathToDocument extends React.Component<Props> {
         &nbsp;
         {result.path
           .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
+          // @ts-expect-error ts-migrate(2739) FIXME: Type 'Element[]' is missing the following properti... Remove this comment to see the full error message
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
           <DocumentTitle>

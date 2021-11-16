@@ -9,7 +9,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
-import { NavigationNode } from "types";
+import { NavigationNode } from "../types";
 import "types";
 
 type Props = {
@@ -48,6 +48,7 @@ function DocumentReparent({
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
@@ -61,6 +62,7 @@ function DocumentReparent({
           type: "error",
         });
       } finally {
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },

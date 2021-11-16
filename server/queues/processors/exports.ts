@@ -16,6 +16,7 @@ export default class ExportsProcessor {
         const user = await User.findByPk(actorId);
         const exportData = await FileOperation.findByPk(event.modelId);
         const collectionIds =
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Co... Remove this comment to see the full error message
           event.collectionId || (await user.collectionIds());
         const collections = await Collection.findAll({
           where: {
@@ -34,7 +35,9 @@ export default class ExportsProcessor {
         let url, state;
 
         try {
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           const readBuffer = await fs.promises.readFile(filePath);
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           const stat = await fs.promises.stat(filePath);
           this.updateFileOperation(exportData, actorId, teamId, {
             state: "uploading",
@@ -88,6 +91,7 @@ export default class ExportsProcessor {
   }
 
   async updateFileOperation(
+    // @ts-expect-error ts-migrate(2749) FIXME: 'FileOperation' refers to a value, but is being us... Remove this comment to see the full error message
     fileOperation: FileOperation,
     actorId: string,
     teamId: string,

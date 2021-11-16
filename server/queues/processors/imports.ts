@@ -1,5 +1,6 @@
 import fs from "fs";
 import os from "os";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'form... Remove this comment to see the full error message
 import File from "formidable/lib/file";
 import collectionImporter from "../../commands/collectionImporter";
 import { Attachment, User } from "../../models";

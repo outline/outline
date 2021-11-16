@@ -6,6 +6,7 @@ import Document from "models/Document";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { newDocumentPath } from "utils/routeHelpers";
 
 type Props = {
@@ -24,7 +25,9 @@ function NewChildDocumentMenu({ document, label }: Props) {
   return (
     <>
       <MenuButton {...menu}>{label}</MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("New child document")}>
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: ({... Remove this comment to see the full error message
         <Template
           {...menu}
           items={[

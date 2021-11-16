@@ -82,6 +82,7 @@ function CollectionLink({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: (item, monitor) => {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'unknown'.
       const { id, collectionId } = item;
       if (monitor.didDrop()) return;
       if (!collection) return;
@@ -93,7 +94,9 @@ function CollectionLink({
         prevCollection.permission === null &&
         prevCollection.permission !== collection.permission
       ) {
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'unknown' is not assignable to type 'undefine... Remove this comment to see the full error message
         itemRef.current = item;
+        // @ts-expect-error ts-migrate(2349) FIXME: This expression is not callable.
         handlePermissionOpen();
       } else {
         documents.move(id, collection.id);
@@ -114,6 +117,7 @@ function CollectionLink({
     accept: "document",
     drop: async (item, monitor) => {
       if (!collection) return;
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       documents.move(item.id, collection.id, undefined, 0);
     },
     collect: (monitor) => ({
@@ -125,13 +129,16 @@ function CollectionLink({
     accept: "collection",
     drop: async (item, monitor) => {
       collections.move(
+        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
       );
     },
     canDrop: (item, monitor) => {
       return (
+        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         collection.id !== item.id &&
+        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         (!belowCollection || item.id !== belowCollection.id)
       );
     },
@@ -169,11 +176,13 @@ function CollectionLink({
         <Draggable
           key={collection.id}
           ref={dragToReorderCollection}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           $isDragging={isCollectionDragging}
           $isMoving={isCollectionDragging}
         >
           <DropToImport collectionId={collection.id}>
             <SidebarLinkWithPadding
+              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               to={collection.url}
               icon={
                 <CollectionIcon collection={collection} expanded={expanded} />
@@ -192,6 +201,7 @@ function CollectionLink({
               menu={
                 <>
                   {can.update && (
+                    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                     <CollectionSortMenuWithMargin
                       collection={collection}
                       onOpen={handleMenuOpen}
@@ -200,7 +210,9 @@ function CollectionLink({
                   )}
                   <CollectionMenu
                     collection={collection}
+                    // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                     onOpen={handleMenuOpen}
+                    // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                     onClose={handleMenuClose}
                   />
                 </>
@@ -209,9 +221,11 @@ function CollectionLink({
           </DropToImport>
         </Draggable>
         {expanded && manualSort && (
+          // @ts-expect-error ts-migrate(2741) FIXME: Property 'from' is missing in type '{ isActiveDrop... Remove this comment to see the full error message
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
         {isDraggingAnyCollection && (
+          // @ts-expect-error ts-migrate(2741) FIXME: Property 'from' is missing in type '{ isActiveDrop... Remove this comment to see the full error message
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}
@@ -234,7 +248,9 @@ function CollectionLink({
         ))}
       <Modal
         title={t("Move document")}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         onRequestClose={handlePermissionClose}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
         isOpen={permissionOpen}
       >
         <DocumentReparent
@@ -249,7 +265,9 @@ function CollectionLink({
 }
 
 const Draggable = styled("div")`
+  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isDragging' does not exist on type 'The... Remove this comment to see the full error message
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isMoving' does not exist on type 'Theme... Remove this comment to see the full error message
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
 `;
 const SidebarLinkWithPadding = styled(SidebarLink)`

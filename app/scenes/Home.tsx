@@ -14,12 +14,14 @@ import Tabs from "components/Tabs";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
 import useStores from "../hooks/useStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
+import useCurrentUser from "hooks/useCurrentUser";
 
 function Home() {
-  const { documents, ui, auth } = useStores();
+  const { documents, ui } = useStores();
+  const user = useCurrentUser();
+  const userId = user?.id;
   const { t } = useTranslation();
-  if (!auth.user || !auth.team) return null;
-  const user = auth.user.id;
+
   return (
     <Scene
       icon={<HomeIcon color="currentColor" />}
@@ -58,10 +60,10 @@ function Home() {
         <Route path="/home/created">
           <PaginatedDocumentList
             key="created"
-            documents={documents.createdByUser(user)}
+            documents={documents.createdByUser(userId)}
             fetch={documents.fetchOwned}
             options={{
-              user,
+              user: userId,
             }}
             empty={<Empty>{t("You haven’t created any documents yet")}</Empty>}
             showCollection

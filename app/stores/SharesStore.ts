@@ -4,9 +4,11 @@ import { action, computed } from "mobx";
 import Share from "models/Share";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 export default class SharesStore extends BaseStore<Share> {
+  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'SharesStore' is not as... Remove this comment to see the full error message
   actions = ["info", "list", "create", "update"];
 
   constructor(rootStore: RootStore) {
@@ -41,6 +43,7 @@ export default class SharesStore extends BaseStore<Share> {
   @action
   async fetch(
     documentId: string,
+    // @ts-expect-error ts-migrate(1015) FIXME: Parameter cannot have question mark and initialize... Remove this comment to see the full error message
     options?: Record<string, any> = {}
   ): Promise<any> {
     const item = this.getByDocumentId(documentId);
@@ -61,6 +64,7 @@ export default class SharesStore extends BaseStore<Share> {
     }
   }
 
+  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   getByDocumentParents = (documentId: string): Share | null | undefined => {
     const document = this.rootStore.documents.get(documentId);
     if (!document) return;
@@ -69,6 +73,7 @@ export default class SharesStore extends BaseStore<Share> {
     const parentIds = collection
       .pathToDocument(documentId)
       .slice(0, -1)
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       .map((p) => p.id);
 
     for (const parentId of parentIds) {

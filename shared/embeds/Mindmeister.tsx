@@ -14,7 +14,8 @@ type Props = {
 export default class Mindmeister extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  override render() {
+  
+  render() {
     const chartId =
       this.props.attrs.matches[4] +
       (this.props.attrs.matches[5] || "") +
@@ -22,6 +23,7 @@ export default class Mindmeister extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; border: true; ... Remove this comment to see the full error message
         src={`https://www.mindmeister.com/maps/public_map_shell/${chartId}`}
         title="Mindmeister Embed"
         border

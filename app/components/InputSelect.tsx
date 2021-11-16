@@ -37,6 +37,7 @@ export type Props = {
   onChange: (arg0: string) => Promise<void> | void;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
 const getOptionFromValue = (options: Option[], value) => {
   return options.find((option) => option.value === value) || {};
 };
@@ -73,6 +74,7 @@ const InputSelect = (props: Props) => {
   const selectedRef = React.useRef();
   const buttonRef = React.useRef();
   const [offset, setOffset] = React.useState(0);
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'offsetWidth' does not exist on type 'nev... Remove this comment to see the full error message
   const minWidth = buttonRef.current?.offsetWidth || 0;
   const maxHeight = useMenuHeight(
     select.visible,
@@ -80,9 +82,11 @@ const InputSelect = (props: Props) => {
   );
   React.useEffect(() => {
     if (previousValue.current === select.selectedValue) return;
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | null' is not assignable to type 'st... Remove this comment to see the full error message
     previousValue.current = select.selectedValue;
 
     async function load() {
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | null' is not assignable... Remove this comment to see the full error message
       await onChange(select.selectedValue);
     }
 
@@ -95,6 +99,7 @@ const InputSelect = (props: Props) => {
   // Ensure selected option is visible when opening the input
   React.useEffect(() => {
     if (!select.animating && selectedRef.current) {
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       scrollIntoView(selectedRef.current, {
         scrollMode: "if-needed",
         behavior: "instant",
@@ -105,7 +110,9 @@ const InputSelect = (props: Props) => {
   React.useLayoutEffect(() => {
     if (select.visible) {
       const offset = Math.round(
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'getBoundingClientRect' does not exist on... Remove this comment to see the full error message
         (selectedRef.current?.getBoundingClientRect().top || 0) -
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'getBoundingClientRect' does not exist on... Remove this comment to see the full error message
           (contentRef.current?.getBoundingClientRect().top || 0)
       );
       setOffset(offset);
@@ -113,6 +120,7 @@ const InputSelect = (props: Props) => {
   }, [select.visible]);
   return (
     <>
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Wrapper short={short}>
         {label &&
           (labelHidden ? (
@@ -126,11 +134,14 @@ const InputSelect = (props: Props) => {
             <StyledButton
               neutral
               disclosure
+              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               className={className}
               nude={nude}
               icon={icon}
               {...props}
             >
+              // @ts-expect-error ts-migrate(2339) FIXME: Property 'label' does
+              not exist on type '{}'.
               {getOptionFromValue(options, select.selectedValue).label || (
                 <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
               )}
@@ -139,11 +150,14 @@ const InputSelect = (props: Props) => {
         </Select>
         <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
           {(props) => {
+            // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
             const topAnchor = props.style.top === "0";
+            // @ts-expect-error ts-migrate(2339) FIXME: Property 'placement' does not exist on type 'Extra... Remove this comment to see the full error message
             const rightAnchor = props.placement === "bottom-end";
 
             // offset top of select to place selected item under the cursor
             if (selectedValueIndex !== -1) {
+              // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
               props.style.top = `-${offset + 32}px`;
             }
 
@@ -151,6 +165,7 @@ const InputSelect = (props: Props) => {
               <Positioner {...props}>
                 <Background
                   dir="auto"
+                  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                   ref={contentRef}
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
@@ -171,6 +186,7 @@ const InputSelect = (props: Props) => {
                           {...select}
                           value={option.value}
                           key={option.value}
+                          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                           animating={select.animating}
                           ref={
                             select.selectedValue === option.value
@@ -198,8 +214,8 @@ const InputSelect = (props: Props) => {
           }}
         </SelectPopover>
       </Wrapper>
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       {note && <HelpText small>{note}</HelpText>}
-
       {(select.visible || select.animating) && <Backdrop />}
     </>
   );
@@ -221,6 +237,7 @@ const StyledButton = styled(Button)`
   width: 100%;
 
   ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'nude' does not exist on type 'ThemedStyl... Remove this comment to see the full error message
     props.nude &&
     css`
       border-color: transparent;
@@ -243,6 +260,7 @@ export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
 
   ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'animating' does not exist on type 'Theme... Remove this comment to see the full error message
     props.animating &&
     css`
       pointer-events: none;
@@ -250,6 +268,7 @@ export const StyledSelectOption = styled(SelectOption)`
 `;
 const Wrapper = styled.label`
   display: block;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'short' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 const Positioner = styled(Position)`

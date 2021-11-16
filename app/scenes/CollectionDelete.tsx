@@ -7,6 +7,7 @@ import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { homePath } from "utils/routeHelpers";
 
 type Props = {
@@ -22,6 +23,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsDeleting(true);
 
       try {
@@ -33,6 +35,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
           type: "error",
         });
       } finally {
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsDeleting(false);
       }
     },
@@ -52,7 +55,13 @@ function CollectionDelete({ collection, onSubmit }: Props) {
             }}
           />
         </HelpText>
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not
+        assignable to type 'boolea... Remove this comment to see the full error
+        message
         <Button type="submit" disabled={isDeleting} autoFocus danger>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+          HTMLCollection' is not assignable t... Remove this comment to see the
+          full error message
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>
       </form>

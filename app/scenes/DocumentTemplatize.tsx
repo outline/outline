@@ -9,6 +9,7 @@ import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { documentUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -27,6 +28,7 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
@@ -41,6 +43,7 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
           type: "error",
         });
       } finally {
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },
@@ -61,6 +64,9 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
           />
         </HelpText>
         <Button type="submit">
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
+          HTMLCollection' is not assignable t... Remove this comment to see the
+          full error message
           {isSaving ? `${t("Creating")}…` : t("Create template")}
         </Button>
       </form>

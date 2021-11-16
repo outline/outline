@@ -14,12 +14,14 @@ export default class Abstract extends React.Component<Props> {
     new RegExp("https?://app.(?:go)?abstract.com/(?:share|embed)/(.*)$"),
   ];
 
-  override render() {
+  
+  render() {
     const { matches } = this.props.attrs;
     const shareId = matches[1];
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; attrs: { href:... Remove this comment to see the full error message
         src={`https://app.goabstract.com/embed/${shareId}`}
         title={`Abstract (${shareId})`}
       />

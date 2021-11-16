@@ -1,4 +1,5 @@
 import { ValidationError } from "../errors";
+// @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
 import providers from "../routes/auth/providers";
 import { DataTypes, Op, sequelize } from "../sequelize";
 
@@ -13,6 +14,7 @@ const AuthenticationProvider = sequelize.define(
     name: {
       type: DataTypes.STRING,
       validate: {
+        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'providers' implicitly has an 'any[]' typ... Remove this comment to see the full error message
         isIn: [providers.map((p) => p.id)],
       },
     },
@@ -30,6 +32,7 @@ const AuthenticationProvider = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 AuthenticationProvider.associate = (models) => {
   AuthenticationProvider.belongsTo(models.Team);
   AuthenticationProvider.hasMany(models.UserAuthentication);
@@ -52,6 +55,7 @@ AuthenticationProvider.prototype.disable = async function () {
       enabled: false,
     });
   } else {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new ValidationError(
       "At least one authentication provider is required"
     );

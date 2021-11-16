@@ -1,6 +1,8 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import { capitalize } from "lodash";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
@@ -38,15 +40,18 @@ if (GOOGLE_CLIENT_ID) {
         store: new StateStore(),
         scope: scopes,
       },
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
       async function (req, accessToken, refreshToken, profile, done) {
         try {
           const domain = profile._json.hd;
 
           if (!domain) {
+            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
             throw new GoogleWorkspaceRequiredError();
           }
 
           if (allowedDomains.length && !allowedDomains.includes(domain)) {
+            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
             throw new GoogleWorkspaceInvalidError();
           }
 

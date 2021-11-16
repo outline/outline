@@ -32,6 +32,7 @@ class UserListItem extends React.Component<Props> {
     const { user, showMenu } = this.props;
     return (
       <ListItem
+        // @ts-expect-error ts-migrate(2322) FIXME: Type 'Element' is not assignable to type 'string'.
         title={<Title onClick={this.handleOpenProfile}>{user.name}</Title>}
         image={
           <>
@@ -57,6 +58,8 @@ class UserListItem extends React.Component<Props> {
             ) : (
               "Invited"
             )}
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+            call.
             {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
             {user.isSuspended && <Badge>Suspended</Badge>}
           </>

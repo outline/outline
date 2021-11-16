@@ -13,12 +13,14 @@ type Props = {
 export default class YouTube extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  override render() {
+  
+  render() {
     const { matches } = this.props.attrs;
     const videoId = matches[1];
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; isSelected: bo... Remove this comment to see the full error message
         src={`https://www.youtube.com/embed/${videoId}?modestbranding=1`}
         title={`YouTube (${videoId})`}
       />

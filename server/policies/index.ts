@@ -21,10 +21,13 @@ type Policy = Record<string, boolean>;
  * and sent in API responses to allow clients to adjust which UI is displayed.
  */
 export function serialize(
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   model: User,
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Attachment' refers to a value, but is being used ... Remove this comment to see the full error message
   target: Attachment | Team | Collection | Document | Group
 ): Policy {
   const output = {};
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ability' implicitly has an 'any' type.
   abilities.forEach((ability) => {
     if (model instanceof ability.model && target instanceof ability.target) {
       let response = true;

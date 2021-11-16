@@ -3,10 +3,9 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "components/EventBoundary";
-import { Props as NavLinkProps } from "./NavLink";
-import NavLink from "./NavLink";
+import NavLink, { Props as NavLinkProps } from "./NavLink";
 
-type Props = NavLinkProps & {
+type Props = Omit<NavLinkProps, "to"> & {
   to?: string | Record<string, any>;
   href?: string | Record<string, any>;
   innerRef?: (arg0: HTMLElement | null | undefined) => void;
@@ -22,6 +21,7 @@ type Props = NavLinkProps & {
   depth?: number;
   scrollIntoViewIfNeeded?: boolean;
 };
+
 const activeDropStyle = {
   fontWeight: 600,
 };
@@ -45,6 +45,7 @@ function SidebarLink(
     scrollIntoViewIfNeeded,
     ...rest
   }: Props,
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
   ref
 ) {
   const theme = useTheme();
@@ -96,7 +97,7 @@ const IconWrapper = styled.span`
   overflow: hidden;
   flex-shrink: 0;
 `;
-const Actions = styled(EventBoundary)`
+const Actions = styled(EventBoundary) <{ showActions?: boolean }>`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
   top: 4px;
@@ -118,7 +119,7 @@ const Actions = styled(EventBoundary)`
     }
   }
 `;
-const Link = styled(NavLink)`
+const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
@@ -135,6 +136,7 @@ const Link = styled(NavLink)`
   overflow: hidden;
 
   svg {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property '$isActiveDrop' does not exist on type 'T... Remove this comment to see the full error message
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
     transition: fill 50ms;
   }
@@ -175,4 +177,4 @@ const Label = styled.div`
   }
 `;
 
-export default React.forwardRef<Props, HTMLAnchorElement>(SidebarLink);
+export default React.forwardRef<HTMLAnchorElement, Props>(SidebarLink);

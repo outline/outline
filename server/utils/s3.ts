@@ -15,11 +15,13 @@ const s3 = new AWS.S3({
   accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
   region: AWS_REGION,
+  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   endpoint: process.env.AWS_S3_UPLOAD_BUCKET_URL.includes(
     AWS_S3_UPLOAD_BUCKET_NAME
   )
     ? undefined
-    : new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+    : // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
+      new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
 
@@ -57,6 +59,7 @@ export const makePolicy = (
       {
         acl,
       },
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
@@ -76,12 +79,16 @@ export const makePolicy = (
 };
 
 export const getSignature = (policy: any) => {
+  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kDate = hmac(
     "AWS4" + AWS_SECRET_ACCESS_KEY,
     format(new Date(), "yyyyMMdd")
   );
+  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kRegion = hmac(kDate, AWS_REGION);
+  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kService = hmac(kRegion, "s3");
+  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kCredentials = hmac(kService, "aws4_request");
   const signature = hmac(kCredentials, policy, "hex");
   return signature;
@@ -90,7 +97,9 @@ export const getSignature = (policy: any) => {
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
   // for access outside of docker containers in local development
+  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   const host = process.env.AWS_S3_UPLOAD_BUCKET_URL.replace(
     "s3:",
     "localhost:"
@@ -128,6 +137,7 @@ export const uploadToS3FromBuffer = async (
   return `${endpoint}/${key}`;
 };
 
+// @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
 export const uploadToS3FromUrl = async (
   url: string,
   key: string,
@@ -135,6 +145,7 @@ export const uploadToS3FromUrl = async (
 ) => {
   try {
     const res = await fetch(url);
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'buffer' does not exist on type 'Response... Remove this comment to see the full error message
     const buffer = await res.buffer();
     await s3
       .putObject({
@@ -167,6 +178,7 @@ export const deleteFromS3 = (key: string) => {
 };
 
 export const getSignedUrl = async (key: string) => {
+  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
@@ -184,6 +196,7 @@ export const getAWSKeyForFileOp = (teamId: string, name: string) => {
   return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
+// @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
 export const getFileByKey = async (key: string) => {
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,

@@ -29,10 +29,12 @@ export default class Diagrams extends React.Component<Props> {
     return title;
   }
 
-  override render() {
+  
+  render() {
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; border: true; ... Remove this comment to see the full error message
         src={this.embedUrl}
         title={this.title}
         border

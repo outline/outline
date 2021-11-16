@@ -14,9 +14,11 @@ function SearchInput({ defaultValue, ...rest }: Props) {
   React.useEffect(() => {
     // ensure that focus is placed at end of input
     const len = (defaultValue || "").length;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'setSelectionRange' does not exist on typ... Remove this comment to see the full error message
     inputRef.current?.setSelectionRange(len, len);
   }, [defaultValue]);
   const focusInput = React.useCallback((ev: React.SyntheticEvent) => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'focus' does not exist on type 'never'.
     inputRef.current?.focus();
   }, []);
   return (
@@ -24,12 +26,14 @@ function SearchInput({ defaultValue, ...rest }: Props) {
       <StyledIcon
         type="Search"
         size={46}
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'textTertiary' does not exist on type 'De... Remove this comment to see the full error message
         color={theme.textTertiary}
         onClick={focusInput}
       />
       <StyledInput
         {...rest}
         defaultValue={defaultValue}
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         ref={inputRef}
         spellCheck="false"
         type="search"

@@ -18,6 +18,7 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Group);
   const user = ctx.state.user;
   let groups = await Group.findAll({
@@ -31,7 +32,9 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
 
   if (!user.isAdmin) {
     groups = groups.filter(
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
       (group) =>
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'gm' implicitly has an 'any' type.
         group.groupMemberships.filter((gm) => gm.userId === user.id).length
     );
   }
@@ -41,8 +44,10 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
     data: {
       groups: groups.map(presentGroup),
       groupMemberships: groups
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'g' implicitly has an 'any' type.
         .map((g) =>
           g.groupMemberships
+            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
             .filter((membership) => !!membership.user)
             .slice(0, MAX_AVATAR_DISPLAY)
         )
@@ -141,6 +146,7 @@ router.post("groups.delete", auth(), async (ctx) => {
 });
 router.post("groups.memberships", auth(), pagination(), async (ctx) => {
   const { id, query } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertUuid(id, "id is required");
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
@@ -175,6 +181,7 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
     pagination: ctx.state.pagination,
     data: {
       groupMemberships: memberships.map(presentGroupMembership),
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
       users: memberships.map((membership) => presentUser(membership.user)),
     },
   };

@@ -84,6 +84,7 @@ export function newDocumentPath(
     template?: boolean;
   }
 ): string {
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ parentDocumentId?: string | un... Remove this comment to see the full error message
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
@@ -94,6 +95,7 @@ export function searchUrl(
     ref?: string;
   }
 ): string {
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ collectionId?: string | undefi... Remove this comment to see the full error message
   let search = queryString.stringify(params);
   let route = "/search";
 

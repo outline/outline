@@ -14,10 +14,12 @@ type Props = {
 export default class Figma extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  override render() {
+  
+  render() {
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; border: true; ... Remove this comment to see the full error message
         src={`https://www.figma.com/embed?embed_host=outline&url=${this.props.attrs.href}`}
         title="Figma Embed"
         border

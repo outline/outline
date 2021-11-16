@@ -4,10 +4,13 @@ import { action, runInAction } from "mobx";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Revision from "models/Revision";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { FetchOptions, PaginationParams } from "types";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 export default class RevisionsStore extends BaseStore<Revision> {
+  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'RevisionsStore' is not... Remove this comment to see the full error message
   actions = ["list"];
 
   constructor(rootStore: RootStore) {
@@ -30,6 +33,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       latestRevision.createdAt !== document.updatedAt
     ) {
       revisions.unshift(
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         new Revision({
           id: "latest",
           documentId: document.id,
@@ -79,6 +83,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       const res = await client.post("/revisions.list", options);
       invariant(res && res.data, "Document revisions not available");
       runInAction("RevisionsStore#fetchPage", () => {
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'revision' implicitly has an 'any' type.
         res.data.forEach((revision) => this.add(revision));
         this.isLoaded = true;
       });

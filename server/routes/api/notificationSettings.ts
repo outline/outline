@@ -46,7 +46,9 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
 });
 router.post("notificationSettings.unsubscribe", async (ctx) => {
   const { id, token } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertUuid(id, "id is required");
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(token, "token is required");
   const setting = await NotificationSetting.findByPk(id, {
     include: [

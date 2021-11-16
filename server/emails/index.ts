@@ -9,6 +9,7 @@ router.get("/:type/:format", async (ctx) => {
   let mailerOutput;
   const mailer = new Mailer();
   mailer.transporter = {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'data' implicitly has an 'any' type.
     sendMail: (data) => (mailerOutput = data),
   };
 
@@ -19,14 +20,17 @@ router.get("/:type/:format", async (ctx) => {
     default:
       if (Object.getOwnPropertyNames(mailer).includes(ctx.params.type)) {
         mailer[ctx.params.type]("user@example.com");
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       } else throw new NotFoundError("Email template could not be found");
   }
 
   if (!mailerOutput) return;
 
   if (ctx.params.format === "text") {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'never'.
     ctx.body = mailerOutput.text;
   } else {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'html' does not exist on type 'never'.
     ctx.body = mailerOutput.html;
   }
 });

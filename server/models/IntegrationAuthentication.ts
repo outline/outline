@@ -11,6 +11,7 @@ const IntegrationAuthentication = sequelize.define("authentication", {
   token: encryptedFields().vault("token"),
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 IntegrationAuthentication.associate = (models) => {
   IntegrationAuthentication.belongsTo(models.User, {
     as: "user",

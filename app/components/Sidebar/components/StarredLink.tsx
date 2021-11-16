@@ -65,8 +65,10 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     <>
       <Relative>
         <SidebarLink
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ depth: number; to: string; isActive: (matc... Remove this comment to see the full error message
           depth={depth}
           to={`${to}?starred`}
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'match' implicitly has an 'any' type.
           isActive={(match, location) =>
             match && location.search === "?starred"
           }
@@ -93,7 +95,9 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
               <Fade>
                 <DocumentMenu
                   document={document}
+                  // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                   onOpen={handleMenuOpen}
+                  // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                   onClose={handleMenuClose}
                 />
               </Fade>
@@ -102,6 +106,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
         />
       </Relative>
       {expanded &&
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childDocument' implicitly has an 'any' ... Remove this comment to see the full error message
         childDocuments.map((childDocument) => (
           <ObserveredStarredLink
             key={childDocument.id}

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { NavigationNode } from "types";
 
 type Props = {
@@ -85,6 +86,7 @@ function ReferenceListItem({
           : document.title}
       </Title>
       {document.updatedBy && (
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'children' is missing in type '{ document... Remove this comment to see the full error message
         <DocumentMeta document={document} showCollection={showCollection} />
       )}
     </DocumentLink>

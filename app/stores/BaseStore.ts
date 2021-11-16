@@ -4,11 +4,14 @@ import { observable, set, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "stores/RootStore";
 import BaseModel from "../models/BaseModel";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { PaginationParams } from "types";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.
 function modelNameFromClassName(string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
 }
@@ -49,8 +52,10 @@ export default class BaseStore<T extends BaseModel> {
     this.data.clear();
   }
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'policies' implicitly has an 'any' type.
   addPolicies = (policies) => {
     if (policies) {
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'policy' implicitly has an 'any' type.
       policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
@@ -70,7 +75,9 @@ export default class BaseStore<T extends BaseModel> {
       }
     }
 
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Record<string, any>' is not assi... Remove this comment to see the full error message
     this.data.set(item.id, item);
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Record<string, any>' is not assignable to ty... Remove this comment to see the full error message
     return item;
   };
 
@@ -107,6 +114,7 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   @action
+  // @ts-expect-error ts-migrate(1064) FIXME: The return type of an async function or method mus... Remove this comment to see the full error message
   async update(params: Record<string, any>): any {
     if (!this.actions.includes("update")) {
       throw new Error(`Cannot update ${this.modelName}`);

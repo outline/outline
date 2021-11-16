@@ -1,6 +1,7 @@
 import { Context } from "koa";
 
 import pkg from "rich-markdown-editor/package.json";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'semv... Remove this comment to see the full error message
 import semver from "semver";
 import { EditorUpdateError } from "../../../errors";
 
@@ -22,6 +23,7 @@ export default function editor() {
         parsedClientVersion.major < parsedCurrentVersion.major ||
         parsedClientVersion.minor < parsedCurrentVersion.minor
       ) {
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
         throw new EditorUpdateError();
       }
     }

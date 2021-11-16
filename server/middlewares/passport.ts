@@ -1,6 +1,7 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
-import "koa";
+
 import { AccountProvisionerResult } from "../commands/accountProvisioner";
 import Logger from "../logging/logger";
 import { signIn } from "../utils/authentication";
@@ -12,6 +13,7 @@ export default function createMiddleware(providerName: string) {
       {
         session: false,
       },
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
       async (err, user, result: AccountProvisionerResult) => {
         if (err) {
           Logger.error("Error during authentication", err);
@@ -43,9 +45,11 @@ export default function createMiddleware(providerName: string) {
         if (error && error_description) {
           Logger.error(
             "Error from Azure during authentication",
+            // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[]' is not assign... Remove this comment to see the full error message
             new Error(error_description)
           );
           // Display only the descriptive message to the user, log the rest
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'split' does not exist on type 'string | ... Remove this comment to see the full error message
           const description = error_description.split("Trace ID")[0];
           return ctx.redirect(`/?notice=auth-error&description=${description}`);
         }

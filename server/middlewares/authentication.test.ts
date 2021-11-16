@@ -13,14 +13,17 @@ describe("Authentication middleware", () => {
       const authMiddleware = auth();
       await authMiddleware(
         {
+          // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
           request: {
             get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
           },
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
           state,
           cache: {},
         },
         jest.fn()
       );
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type '{}'.
       expect(state.user.id).toEqual(user.id);
     });
     it("should return error with invalid token", async () => {
@@ -31,9 +34,11 @@ describe("Authentication middleware", () => {
       try {
         await authMiddleware(
           {
+            // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
             request: {
               get: jest.fn(() => `Bearer ${user.getJwtToken()}error`),
             },
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
             state,
             cache: {},
           },
@@ -54,14 +59,17 @@ describe("Authentication middleware", () => {
       });
       await authMiddleware(
         {
+          // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
           request: {
             get: jest.fn(() => `Bearer ${key.secret}`),
           },
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
           state,
           cache: {},
         },
         jest.fn()
       );
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type '{}'.
       expect(state.user.id).toEqual(user.id);
     });
     it("should return error with invalid API key", async () => {
@@ -71,9 +79,11 @@ describe("Authentication middleware", () => {
       try {
         await authMiddleware(
           {
+            // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
             request: {
               get: jest.fn(() => `Bearer ${randomstring.generate(38)}`),
             },
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
             state,
             cache: {},
           },
@@ -91,9 +101,11 @@ describe("Authentication middleware", () => {
     try {
       await authMiddleware(
         {
+          // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
           request: {
             get: jest.fn(() => "error"),
           },
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
           state,
           cache: {},
         },
@@ -112,17 +124,20 @@ describe("Authentication middleware", () => {
     await authMiddleware(
       {
         request: {
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'Mock<null, []>' is not assignable to type '(... Remove this comment to see the full error message
           get: jest.fn(() => null),
           query: {
             token: user.getJwtToken(),
           },
         },
         body: {},
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
         state,
         cache: {},
       },
       jest.fn()
     );
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type '{}'.
     expect(state.user.id).toEqual(user.id);
   });
   it("should allow passing auth token in body params", async () => {
@@ -132,16 +147,19 @@ describe("Authentication middleware", () => {
     await authMiddleware(
       {
         request: {
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'Mock<null, []>' is not assignable to type '(... Remove this comment to see the full error message
           get: jest.fn(() => null),
         },
         body: {
           token: user.getJwtToken(),
         },
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
         state,
         cache: {},
       },
       jest.fn()
     );
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type '{}'.
     expect(state.user.id).toEqual(user.id);
   });
   it("should return an error for suspended users", async () => {
@@ -157,9 +175,11 @@ describe("Authentication middleware", () => {
     try {
       await authMiddleware(
         {
+          // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
           request: {
             get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
           },
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
           state,
           cache: {},
         },
@@ -187,9 +207,11 @@ describe("Authentication middleware", () => {
     try {
       await authMiddleware(
         {
+          // @ts-expect-error ts-migrate(2740) FIXME: Type '{ get: Mock<string, []>; }' is missing the f... Remove this comment to see the full error message
           request: {
             get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
           },
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{}' is not assignable to type 'DefaultState ... Remove this comment to see the full error message
           state,
           cache: {},
         },

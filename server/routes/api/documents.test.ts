@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import {
   Document,
@@ -1274,6 +1275,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(done: DoneCallback) => Promise<... Remove this comment to see the full error message
   it("should save search term, hits and source", async (done) => {
     const { user } = await seed();
     await server.post("/api/documents.search", {
@@ -2296,6 +2298,7 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'document' because it is a consta... Remove this comment to see the full error message
     document = await Document.unscoped().findByPk(document.id);
     expect(document.userId).toEqual(user.id);
   });

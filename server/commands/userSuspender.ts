@@ -8,11 +8,13 @@ export default async function userSuspender({
   actorId,
   ip,
 }: {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   actorId: string;
   ip: string;
 }): Promise<void> {
   if (user.id === actorId) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new ValidationError("Unable to suspend the current user");
   }
 

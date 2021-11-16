@@ -1,10 +1,15 @@
 import fs from "fs";
 import path from "path";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'form... Remove this comment to see the full error message
 import File from "formidable/lib/file";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'jopl... Remove this comment to see the full error message
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import mammoth from "mammoth";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'quot... Remove this comment to see the full error message
 import quotedPrintable from "quoted-printable";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'turn... Remove this comment to see the full error message
 import TurndownService from "turndown";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'utf8... Remove this comment to see the full error message
 import utf8 from "utf8";
 import parseTitle from "../../shared/utils/parseTitle";
 import { FileImportError, InvalidRequestError } from "../errors";
@@ -27,6 +32,7 @@ turndownService
   .use(tables)
   .addRule("breaks", {
     filter: ["br"],
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'content' implicitly has an 'any' type.
     replacement: function (content) {
       return "\n";
     },
@@ -63,20 +69,24 @@ const importMapping: ImportableFile[] = [
   },
 ];
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
 async function fileToMarkdown(file): Promise<string> {
   return fs.promises.readFile(file.path, "utf8");
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
 async function docxToMarkdown(file): Promise<string> {
   const { value } = await mammoth.convertToHtml(file);
   return turndownService.turndown(value);
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
 async function htmlToMarkdown(file): Promise<string> {
   const value = await fs.promises.readFile(file.path, "utf8");
   return turndownService.turndown(value);
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
 async function confluenceToMarkdown(file): Promise<string> {
   let value = await fs.promises.readFile(file.path, "utf8");
 
@@ -84,6 +94,7 @@ async function confluenceToMarkdown(file): Promise<string> {
   // Word documents should call into the docxToMarkdown importer.
   // See: https://jira.atlassian.com/browse/CONFSERVER-38237
   if (!value.includes("Content-Type: multipart/related")) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new FileImportError("Unsupported Word file");
   }
 
@@ -91,6 +102,7 @@ async function confluenceToMarkdown(file): Promise<string> {
   const boundaryMarker = value.match(/boundary="(.+)"/);
 
   if (!boundaryMarker) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new FileImportError("Unsupported Word file (No boundary marker)");
   }
 
@@ -117,6 +129,7 @@ async function confluenceToMarkdown(file): Promise<string> {
   });
 
   if (!lines.length) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new FileImportError("Unsupported Word file (No content found)");
   }
 
@@ -136,6 +149,7 @@ export default async function documentImporter({
   user,
   ip,
 }: {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   file: File;
   ip: string;
@@ -163,6 +177,7 @@ export default async function documentImporter({
   })[0];
 
   if (!fileInfo) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new InvalidRequestError(`File type ${file.type} not supported`);
   }
 

@@ -15,6 +15,7 @@ const SearchQuery = sequelize.define(
     query: {
       type: DataTypes.STRING,
 
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'val' implicitly has an 'any' type.
       set(val) {
         this.setDataValue("query", val.substring(0, 255));
       },
@@ -32,6 +33,7 @@ const SearchQuery = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 SearchQuery.associate = (models) => {
   SearchQuery.belongsTo(models.User, {
     as: "user",

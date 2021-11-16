@@ -15,6 +15,7 @@ import SidebarLink from "./SidebarLink";
 import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { NavigationNode } from "types";
 import "types";
 
@@ -40,6 +41,7 @@ function DocumentLink(
     index,
     parentId,
   }: Props,
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
   ref
 ) {
   const { documents, policies } = useStores();
@@ -55,6 +57,7 @@ function DocumentLink(
   }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
   const pathToNode = React.useMemo(
     () =>
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       collection && collection.pathToDocument(node.id).map((entry) => entry.id),
     [collection, node]
   );
@@ -65,6 +68,7 @@ function DocumentLink(
       collection &&
       (collection
         .pathToDocument(activeDocument.id)
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
         .map((entry) => entry.id)
         .includes(node.id) ||
         isActiveDocument)
@@ -137,6 +141,7 @@ function DocumentLink(
   // to trigger expansion of children. Clear this timeout when they stop hovering.
   const resetHoverExpanding = React.useCallback(() => {
     if (hoverExpanding.current) {
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       clearTimeout(hoverExpanding.current);
       hoverExpanding.current = null;
     }
@@ -147,9 +152,12 @@ function DocumentLink(
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
       if (!collection) return;
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       documents.move(item.id, collection.id, node.id);
     },
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '(item: unknown, monitor: DropTargetMonitor<u... Remove this comment to see the full error message
     canDrop: (item, monitor) =>
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       pathToNode && !pathToNode.includes(monitor.getItem().id),
     hover: (item, monitor) => {
       // Enables expansion of document children when hovering over the document
@@ -162,6 +170,7 @@ function DocumentLink(
         })
       ) {
         if (!hoverExpanding.current) {
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'null'.
           hoverExpanding.current = setTimeout(() => {
             hoverExpanding.current = null;
 
@@ -188,13 +197,16 @@ function DocumentLink(
     accept: "document",
     drop: (item, monitor) => {
       if (!collection) return;
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       if (item.id === node.id) return;
 
       if (expanded) {
+        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         documents.move(item.id, collection.id, node.id, 0);
         return;
       }
 
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       documents.move(item.id, collection.id, parentId, index + 1);
     },
     collect: (monitor) => ({
@@ -207,12 +219,14 @@ function DocumentLink(
         <Draggable
           key={node.id}
           ref={drag}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           $isDragging={isDragging}
           $isMoving={isMoving}
         >
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ onMouseEnter: (ev: SyntheticEvent<Element,... Remove this comment to see the full error message
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
@@ -236,6 +250,7 @@ function DocumentLink(
                     />
                   </>
                 }
+                // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'match' implicitly has an 'any' type.
                 isActive={(match, location) =>
                   match && location.search !== "?starred"
                 }
@@ -250,7 +265,9 @@ function DocumentLink(
                     <Fade>
                       <DocumentMenu
                         document={document}
+                        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                         onOpen={handleMenuOpen}
+                        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                         onClose={handleMenuClose}
                       />
                     </Fade>
@@ -261,11 +278,15 @@ function DocumentLink(
           </div>
         </Draggable>
         {manualSort && (
+          // @ts-expect-error ts-migrate(2741) FIXME: Property 'from' is missing in type '{ isActiveDrop... Remove this comment to see the full error message
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
       {expanded && !isDragging && (
         <>
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childNode'
+          implicitly has an 'any' type... Remove this comment to see the full
+          error message
           {node.children.map((childNode, index) => (
             <ObservedDocumentLink
               key={childNode.id}
@@ -289,7 +310,9 @@ const Relative = styled.div`
   position: relative;
 `;
 const Draggable = styled.div`
+  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isDragging' does not exist on type 'The... Remove this comment to see the full error message
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
+  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isMoving' does not exist on type 'Theme... Remove this comment to see the full error message
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));

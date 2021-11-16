@@ -4,8 +4,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import SidebarLink from "./SidebarLink";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions' or its corresponding ... Remove this comment to see the full error message
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { Action } from "types";
 
 type Props = {
@@ -29,6 +31,7 @@ function SidebarAction({ action, ...rest }: Props) {
   invariant(menuItem.onClick, "passed action must have perform");
   return (
     <SidebarLink
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ onClick: any; icon: any; label: any; }' is... Remove this comment to see the full error message
       onClick={menuItem.onClick}
       icon={menuItem.icon}
       label={menuItem.title}

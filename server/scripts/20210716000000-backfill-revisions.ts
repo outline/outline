@@ -6,6 +6,7 @@ let page = parseInt(process.argv[2], 10);
 page = Number.isNaN(page) ? 0 : page;
 
 export default async function main(exit = false) {
+  // @ts-expect-error ts-migrate(7024) FIXME: Function implicitly has return type 'any' because ... Remove this comment to see the full error message
   const work = async (page: number) => {
     console.log(`Backfill revision events… page ${page}`);
     const revisions = await Revision.findAll({

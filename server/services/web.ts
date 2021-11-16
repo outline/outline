@@ -42,6 +42,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     if (process.env.FORCE_HTTPS !== "false") {
       app.use(
         enforceHttps({
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ trustProtoHeader: boolean; }' ... Remove this comment to see the full error message
           trustProtoHeader: true,
         })
       );
@@ -86,6 +87,7 @@ export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
     app.use(
       convert(
         hotMiddleware(compile, {
+          // @ts-expect-error ts-migrate(7019) FIXME: Rest parameter 'args' implicitly has an 'any[]' ty... Remove this comment to see the full error message
           log: (...args) => Logger.info("lifecycle", ...args),
           path: "/__webpack_hmr",
           heartbeat: 10 * 1000,

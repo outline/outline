@@ -3,6 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "components/Flex";
 import Key from "components/Key";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { CommandBarAction } from "types";
 
 type Props = {
@@ -10,8 +11,10 @@ type Props = {
   active: boolean;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
 function CommandBarItem({ action, active }: Props, ref) {
   return (
+    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <Item active={active} ref={ref}>
       <Text align="center" gap={8}>
         <Icon>
@@ -34,7 +37,7 @@ function CommandBarItem({ action, active }: Props, ref) {
             gap: "4px",
           }}
         >
-          {action.shortcut.map((sc) => (
+          {action.shortcut.map((sc: string) => (
             <Key key={sc}>{sc}</Key>
           ))}
         </div>
@@ -57,6 +60,7 @@ const Item = styled.div`
   font-size: 15px;
   padding: 12px 16px;
   background: ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'active' does not exist on type 'ThemedSt... Remove this comment to see the full error message
     props.active ? props.theme.menuItemSelected : "none"};
   display: flex;
   align-items: center;
@@ -72,4 +76,4 @@ const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);
 `;
 
-export default React.forwardRef<Props, HTMLDivElement>(CommandBarItem);
+export default React.forwardRef<HTMLDivElement, Props>(CommandBarItem);

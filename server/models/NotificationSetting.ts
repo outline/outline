@@ -39,12 +39,14 @@ const NotificationSetting = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
 NotificationSetting.getUnsubscribeToken = (userId) => {
   const hash = crypto.createHash("sha256");
   hash.update(`${userId}-${process.env.SECRET_KEY}`);
   return hash.digest("hex");
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 NotificationSetting.associate = (models) => {
   NotificationSetting.belongsTo(models.User, {
     as: "user",

@@ -8,6 +8,7 @@ const Star = sequelize.define("star", {
   },
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Star.associate = (models) => {
   Star.belongsTo(models.Document);
   Star.belongsTo(models.User);

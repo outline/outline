@@ -20,6 +20,7 @@ export default class Persistence {
 
     // Check if the given field already exists in the given y-doc. This is import
     // so we don't import a document fresh if it exists already.
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'isEmpty' does not exist on type 'Doc'.
     if (!data.document.isEmpty(fieldName)) {
       return;
     }
@@ -58,6 +59,7 @@ export default class Persistence {
     }: {
       document: Y.Doc;
       context: {
+        // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
         user: User | null | undefined;
       };
       documentName: string;

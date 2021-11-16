@@ -29,6 +29,7 @@ export default createGlobalStyle`
   body {
     font-size: 16px;
     line-height: 1.5;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'DefaultThe... Remove this comment to see the full error message
     color: ${(props) => props.theme.text};
     overscroll-behavior-y: none;
     -moz-osx-font-smoothing: grayscale;
@@ -37,6 +38,7 @@ export default createGlobalStyle`
   }
 
   @media (min-width: ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'breakpoints' does not exist on type 'Def... Remove this comment to see the full error message
     props.theme.breakpoints.tablet}px) and (display-mode: standalone) {
     body:after {
       content: "";
@@ -46,12 +48,15 @@ export default createGlobalStyle`
       left: 0;
       right: 0;
       height: 1px;
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'titleBarDivider' does not exist on type ... Remove this comment to see the full error message
       background: ${(props) => props.theme.titleBarDivider};
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'depths' does not exist on type 'DefaultT... Remove this comment to see the full error message
       z-index: ${(props) => props.theme.depths.titleBarDivider};
     }
   }
 
   a {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'link' does not exist on type 'DefaultThe... Remove this comment to see the full error message
     color: ${(props) => props.theme.link};
     text-decoration: none;
     cursor: pointer;
@@ -88,6 +93,7 @@ export default createGlobalStyle`
   hr {
     border: 0;
     height: 0;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'divider' does not exist on type 'Default... Remove this comment to see the full error message
     border-top: 1px solid ${(props) => props.theme.divider};
   }
 
@@ -96,6 +102,7 @@ export default createGlobalStyle`
   }
 
   .js-focus-visible .focus-visible {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'primary' does not exist on type 'Default... Remove this comment to see the full error message
     outline-color: ${(props) => props.theme.primary};
   }
 `;

@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"kbar"' has no exported member 'NO_GROUP'.
 import { useMatches, KBarResults, NO_GROUP } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
@@ -10,7 +11,9 @@ export default function CommandBarResults() {
       matches
         .reduce((acc, curr) => {
           const { actions, name } = curr;
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
           acc.push(name);
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Action' is not assignable to par... Remove this comment to see the full error message
           acc.push(...actions);
           return acc;
         }, [])
@@ -25,6 +28,7 @@ export default function CommandBarResults() {
         typeof item === "string" ? (
           <Header>{item}</Header>
         ) : (
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ action: Action; active: boolean; }' is not... Remove this comment to see the full error message
           <CommandBarItem action={item} active={active} />
         )
       }

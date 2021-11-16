@@ -8,6 +8,7 @@ export default function PageTheme() {
   React.useEffect(() => {
     // wider page background beyond the React root
     if (document.body) {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'background' does not exist on type 'Defa... Remove this comment to see the full error message
       document.body.style.background = theme.background;
     }
 
@@ -15,6 +16,7 @@ export default function PageTheme() {
     const themeElement = document.querySelector('meta[name="theme-color"]');
 
     if (themeElement) {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'background' does not exist on type 'Defa... Remove this comment to see the full error message
       themeElement.setAttribute("content", theme.background);
     }
 

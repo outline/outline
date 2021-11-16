@@ -44,6 +44,7 @@ function ShareButton({ document }: Props) {
             placement="bottom"
           >
             <Button
+              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; ref?: Ref<any> |... Remove this comment to see the full error message
               icon={isPubliclyShared ? <GlobeIcon /> : undefined}
               neutral
               {...props}

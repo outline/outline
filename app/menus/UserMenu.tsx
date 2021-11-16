@@ -19,6 +19,7 @@ function UserMenu({ user }: Props) {
     modal: true,
   });
   const can = policies.abilities(user.id);
+
   const handlePromote = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -40,6 +41,7 @@ function UserMenu({ user }: Props) {
     },
     [users, user, t]
   );
+
   const handleMember = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -58,6 +60,7 @@ function UserMenu({ user }: Props) {
     },
     [users, user, t]
   );
+
   const handleViewer = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -79,6 +82,7 @@ function UserMenu({ user }: Props) {
     },
     [users, user, t]
   );
+
   const handleSuspend = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -97,6 +101,7 @@ function UserMenu({ user }: Props) {
     },
     [users, user, t]
   );
+
   const handleRevoke = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -106,6 +111,7 @@ function UserMenu({ user }: Props) {
     },
     [users, user]
   );
+
   const handleActivate = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -113,6 +119,7 @@ function UserMenu({ user }: Props) {
     },
     [users, user]
   );
+
   return (
     <>
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />

@@ -16,20 +16,29 @@ export default function download(
     x = data,
     D = document,
     a = D.createElement("a"),
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'a' implicitly has an 'any' type.
     z = function (a, o) {
       return String(a);
     },
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'MozBlob' does not exist on type 'Window ... Remove this comment to see the full error message
     B = self.Blob || self.MozBlob || self.WebKitBlob || z,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'WebKitBlobBuilder' does not exist on typ... Remove this comment to see the full error message
     BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
     fn = strFileName || "download",
+    // @ts-expect-error ts-migrate(1155) FIXME: 'const' declarations must be initialized.
     blob,
+    // @ts-expect-error ts-migrate(1155) FIXME: 'const' declarations must be initialized.
     b,
+    // @ts-expect-error ts-migrate(1155) FIXME: 'const' declarations must be initialized.
     fr;
 
   if (String(this) === "true") {
     //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'x' because it is a constant.
     x = [x, m];
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'm' because it is a constant.
     m = x[0];
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'x' because it is a constant.
     x = x[1];
   }
 
@@ -37,11 +46,13 @@ export default function download(
   if (String(x).match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
     return navigator.msSaveBlob // IE10 can't do a[download], only Blobs:
       ? navigator.msSaveBlob(d2b(x), fn)
-      : saver(x); // everyone else can save dataURLs un-processed
+      : // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
+        saver(x); // everyone else can save dataURLs un-processed
   }
 
   //end if dataURL passed?
   try {
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'blob' because it is a constant.
     blob =
       x instanceof B
         ? x
@@ -50,12 +61,15 @@ export default function download(
           });
   } catch (y) {
     if (BB) {
+      // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'b' because it is a constant.
       b = new BB();
       b.append([x]);
+      // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'blob' because it is a constant.
       blob = b.getBlob(m); // the blob
     }
   }
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
   function d2b(u) {
     if (typeof u !== "string") {
       throw Error("Attempted to pass non-string to d2b");
@@ -64,11 +78,13 @@ export default function download(
     const p = u.split(/[:;,]/),
       t = p[1],
       dec = p[2] === "base64" ? atob : decodeURIComponent,
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       bin = dec(p.pop()),
       mx = bin.length,
       i = 0,
       uia = new Uint8Array(mx);
 
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'i' because it is a constant.
     for (i; i < mx; ++i) uia[i] = bin.charCodeAt(i);
 
     return new B([uia], {
@@ -76,6 +92,7 @@ export default function download(
     });
   }
 
+  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   function saver(url, winMode) {
     if (typeof url !== "string") {
       throw Error("Attempted to pass non-string url to saver");
@@ -131,16 +148,21 @@ export default function download(
       typeof m === "string"
     ) {
       try {
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         return saver("data:" + m + ";base64," + self.btoa(blob));
       } catch (y) {
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         return saver("data:" + m + "," + encodeURIComponent(blob));
       }
     }
 
     // Blob but not URL:
+    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'fr' because it is a constant.
     fr = new FileReader();
 
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'e' implicitly has an 'any' type.
     fr.onload = function (e) {
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
       saver(this.result);
     };
 

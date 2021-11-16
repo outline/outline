@@ -5,7 +5,7 @@ import Flex from "components/Flex";
 
 type Props = {
   label: React.ReactNode | string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 const Labeled = ({ label, children, ...props }: Props) => (

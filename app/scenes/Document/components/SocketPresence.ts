@@ -13,6 +13,7 @@ export default class SocketPresence extends React.Component<Props> {
 
   previousContext: any;
 
+  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'IntervalID'.
   editingInterval: IntervalID;
 
   componentDidMount() {

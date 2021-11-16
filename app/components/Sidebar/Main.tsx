@@ -23,6 +23,7 @@ import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/users' or ... Remove this comment to see the full error message
 import { inviteUser } from "actions/definitions/users";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
@@ -34,6 +35,7 @@ import {
   draftsPath,
   templatesPath,
   settingsPath,
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 } from "utils/routeHelpers";
 
 function MainSidebar() {
@@ -56,6 +58,7 @@ function MainSidebar() {
   const can = policies.abilities(team.id);
   return (
     <Sidebar ref={handleSidebarRef}>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not assignable to type 'HTMLCo... Remove this comment to see the full error message
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <AccountMenu>
@@ -69,15 +72,18 @@ function MainSidebar() {
               />
             )}
           </AccountMenu>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; flex: true; topShadow... Remove this comment to see the full error message
           <Scrollable flex topShadow>
             <Section>
               <SidebarLink
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: any; icon: Element; exact: boolean; la... Remove this comment to see the full error message
                 to={homePath()}
                 icon={<HomeIcon color="currentColor" />}
                 exact={false}
                 label={t("Home")}
               />
               <SidebarLink
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: { pathname: any; state: { fromMenu: bo... Remove this comment to see the full error message
                 to={{
                   pathname: searchUrl(),
                   state: {
@@ -90,6 +96,7 @@ function MainSidebar() {
               />
               {can.createDocument && (
                 <SidebarLink
+                  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: any; icon: Element; label: Element; ac... Remove this comment to see the full error message
                   to={draftsPath()}
                   icon={<EditIcon color="currentColor" />}
                   label={
@@ -116,6 +123,7 @@ function MainSidebar() {
               {can.createDocument && (
                 <>
                   <SidebarLink
+                    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: any; icon: Element; exact: boolean; la... Remove this comment to see the full error message
                     to={templatesPath()}
                     icon={<ShapesIcon color="currentColor" />}
                     exact={false}
@@ -133,6 +141,7 @@ function MainSidebar() {
                 </>
               )}
               <SidebarLink
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ to: any; icon: Element; exact: boolean; la... Remove this comment to see the full error message
                 to={settingsPath()}
                 icon={<SettingsIcon color="currentColor" />}
                 exact={false}

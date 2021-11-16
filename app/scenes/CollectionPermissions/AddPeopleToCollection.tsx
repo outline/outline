@@ -2,8 +2,8 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { TFunction } from "react-i18next";
-import { withTranslation } from "react-i18next";
+import { TFunction, withTranslation } from "react-i18next";
+
 import AuthStore from "stores/AuthStore";
 import MembershipsStore from "stores/MembershipsStore";
 import ToastsStore from "stores/ToastsStore";
@@ -47,6 +47,7 @@ class AddPeopleToCollection extends React.Component<Props> {
   };
 
   handleFilter = (ev: React.SyntheticEvent) => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
     this.query = ev.target.value;
     this.debouncedFetch();
   };
@@ -108,6 +109,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           flex
         />
         <PaginatedList
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ empty: Element; items: any[]; fetch: ((par... Remove this comment to see the full error message
           empty={
             this.query ? (
               <Empty>{t("No people matching your search")}</Empty>
@@ -117,6 +119,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           }
           items={users.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
+          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
           renderItem={(item) => (
             <MemberListItem
               key={item.id}
@@ -138,6 +141,7 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'AddPeopleToCollection' does not satisfy the ... Remove this comment to see the full error message
 export default withTranslation()<AddPeopleToCollection>(
   inject("auth", "users", "memberships", "toasts")(AddPeopleToCollection)
 );

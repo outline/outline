@@ -9,6 +9,7 @@ beforeEach(jest.resetAllMocks);
 describe("documents.publish", () => {
   test("should create a revision", async () => {
     const document = await buildDocument();
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await Revisions.on({
       name: "documents.publish",
       documentId: document.id,
@@ -27,6 +28,7 @@ describe("documents.publish", () => {
 describe("documents.update.debounced", () => {
   test("should create a revision", async () => {
     const document = await buildDocument();
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.update.deboun... Remove this comment to see the full error message
     await Revisions.on({
       name: "documents.update.debounced",
       documentId: document.id,
@@ -44,6 +46,7 @@ describe("documents.update.debounced", () => {
   test("should not create a revision if identical to previous", async () => {
     const document = await buildDocument();
     await Revision.createFromDocument(document);
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.update.deboun... Remove this comment to see the full error message
     await Revisions.on({
       name: "documents.update.debounced",
       documentId: document.id,

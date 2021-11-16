@@ -19,6 +19,7 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
   return (
     <ListItem
       title={user.name}
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; image: Element; subtitle: E... Remove this comment to see the full error message
       image={<Avatar src={user.avatarUrl} size={32} />}
       subtitle={
         <>
@@ -30,11 +31,14 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
             t("Never signed in")
           )}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
       actions={
         canEdit ? (
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; type: string; on... Remove this comment to see the full error message
           <Button type="button" onClick={onAdd} icon={<PlusIcon />} neutral>
             {t("Add")}
           </Button>

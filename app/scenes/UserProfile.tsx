@@ -16,6 +16,7 @@ import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
 import useCurrentUser from "hooks/useCurrentUser";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { settingsPath } from "utils/routeHelpers";
 
 type Props = {
@@ -33,6 +34,7 @@ function UserProfile(props: Props) {
   const isCurrentUser = currentUser.id === user.id;
   return (
     <Modal
+      // @ts-expect-error ts-migrate(2322) FIXME: Type 'Element' is not assignable to type 'string'.
       title={
         <Flex align="center">
           <Avatar src={user.avatarUrl} size={38} alt={t("Profile picture")} />
@@ -52,12 +54,14 @@ function UserProfile(props: Props) {
             time: formatDistanceToNow(Date.parse(user.createdAt)),
           })}
           {user.isAdmin && (
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <StyledBadge primary={user.isAdmin}>{t("Admin")}</StyledBadge>
           )}
           {user.isSuspended && <StyledBadge>{t("Suspended")}</StyledBadge>}
           {isCurrentUser && (
             <Edit>
               <Button
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
                 onClick={() => history.push(settingsPath())}
                 icon={<EditIcon />}
                 neutral

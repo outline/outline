@@ -10,6 +10,7 @@ import pagination from "./middlewares/pagination";
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
+// @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
 router.post("shares.info", auth(), async (ctx) => {
   const { id, documentId, apiVersion } = ctx.body;
   ctx.assertUuid(id || documentId, "id or documentId is required");
@@ -97,6 +98,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertSort(sort, Share);
   const user = ctx.state.user;
   const where = {
@@ -150,6 +152,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   });
   ctx.body = {
     pagination: ctx.state.pagination,
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'share' implicitly has an 'any' type.
     data: shares.map((share) => presentShare(share, user.isAdmin)),
     policies: presentPolicies(user, shares),
   };
@@ -251,6 +254,7 @@ router.post("shares.revoke", auth(), async (ctx) => {
   const document = await Document.findByPk(share.documentId);
 
   if (!document) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 

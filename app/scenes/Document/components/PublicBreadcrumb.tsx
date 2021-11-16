@@ -1,5 +1,6 @@
 import * as React from "react";
 import Breadcrumb from "components/Breadcrumb";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { NavigationNode } from "types";
 
 type Props = {
@@ -9,10 +10,14 @@ type Props = {
   children?: React.ReactNode;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'sharedTree' implicitly has an 'any' typ... Remove this comment to see the full error message
 function pathToDocument(sharedTree, documentId) {
+  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'path' implicitly has type 'any[]' in som... Remove this comment to see the full error message
   let path = [];
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'nodes' implicitly has an 'any' type.
   const traveler = (nodes, previousPath) => {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childNode' implicitly has an 'any' type... Remove this comment to see the full error message
     nodes.forEach((childNode) => {
       const newPath = [...previousPath, childNode];
 
@@ -29,6 +34,7 @@ function pathToDocument(sharedTree, documentId) {
     traveler([sharedTree], []);
   }
 
+  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'path' implicitly has an 'any[]' type.
   return path;
 }
 

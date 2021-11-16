@@ -1,6 +1,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'form... Remove this comment to see the full error message
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import { values, keys } from "lodash";
@@ -20,6 +21,7 @@ export default async function collectionImporter({
   ip,
 }: {
   file: File;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   type: "outline";
   ip: string;
@@ -31,23 +33,30 @@ export default async function collectionImporter({
   try {
     items = await await parseOutlineExport(zipData);
   } catch (err) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new FileImportError(err.message);
   }
 
   if (!items.filter((item) => item.type === "document").length) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new FileImportError(
       "Uploaded file does not contain importable documents"
     );
   }
 
   // store progress and pointers
+  // @ts-expect-error ts-migrate(2741) FIXME: Property 'string' is missing in type '{}' but requ... Remove this comment to see the full error message
   const collections: {
+    // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
     string: Collection;
   } = {};
+  // @ts-expect-error ts-migrate(2741) FIXME: Property 'string' is missing in type '{}' but requ... Remove this comment to see the full error message
   const documents: {
     string: Document;
   } = {};
+  // @ts-expect-error ts-migrate(2741) FIXME: Property 'string' is missing in type '{}' but requ... Remove this comment to see the full error message
   const attachments: {
+    // @ts-expect-error ts-migrate(2749) FIXME: 'Attachment' refers to a value, but is being used ... Remove this comment to see the full error message
     string: Attachment;
   } = {};
 
@@ -70,6 +79,7 @@ export default async function collectionImporter({
       // with right now
       if (!isCreated) {
         const name = `${item.name} (Imported)`;
+        // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'collection' because it is a cons... Remove this comment to see the full error message
         collection = await Collection.create({
           teamId: user.teamId,
           createdById: user.id,
@@ -131,7 +141,9 @@ export default async function collectionImporter({
         collectionId: collection.id,
         createdAt: item.metadata.createdAt
           ? new Date(item.metadata.createdAt)
-          : item.date,
+          : // @ts-expect-error ts-migrate(2339) FIXME: Property 'date' does not exist on type 'Item'.
+            item.date,
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'date' does not exist on type 'Item'.
         updatedAt: item.date,
         parentDocumentId,
         user,
@@ -170,11 +182,13 @@ export default async function collectionImporter({
         /(.*)uploads\//,
         "uploads/"
       );
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'Document'.
       document.text = document.text
         .replace(attachmentPath, attachment.redirectUrl)
         .replace(normalizedAttachmentPath, attachment.redirectUrl)
         .replace(`/${normalizedAttachmentPath}`, attachment.redirectUrl);
       // does nothing if the document text is unchanged
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'save' does not exist on type 'Document'.
       await document.save({
         fields: ["text"],
       });

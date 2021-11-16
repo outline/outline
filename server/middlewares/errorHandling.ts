@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import "koa";
+
 import { snakeCase } from "lodash";
 import Sequelize from "sequelize";
 
@@ -48,7 +48,9 @@ export default function errorHandling() {
         data: err.errorData,
       };
 
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       if (!ctx.body.data) {
+        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         delete ctx.body.data;
       }
     }

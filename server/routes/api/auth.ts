@@ -5,11 +5,14 @@ import auth from "../../middlewares/authentication";
 import { Team } from "../../models";
 import { presentUser, presentTeam, presentPolicies } from "../../presenters";
 import { isCustomDomain } from "../../utils/domains";
+// @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
 import providers from "../auth/providers";
 
 const router = new Router();
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'team' implicitly has an 'any' type.
 function filterProviders(team) {
+  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'providers' implicitly has an 'any[]' typ... Remove this comment to see the full error message
   return providers
     .sort((provider) => (provider.id === "email" ? 1 : -1))
     .filter((provider) => {
@@ -102,6 +105,7 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
+      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       providers: filterProviders(),
     },
   };

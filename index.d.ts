@@ -1,3 +1,5 @@
+declare module "autotrack/autotrack.js";
+
 declare module "boundless-arrow-key-navigation";
 
 declare module "outline-icons";

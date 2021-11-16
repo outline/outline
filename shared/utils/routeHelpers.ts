@@ -6,6 +6,7 @@ export function slackAuth(
     "identity.avatar",
     "identity.team",
   ],
+  // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
   clientId: string = process.env.SLACK_KEY,
   redirectUri = `${process.env.URL}/auth/slack.callback`
 ): string {

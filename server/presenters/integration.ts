@@ -1,5 +1,6 @@
 import { Integration } from "../models";
 
+// @ts-expect-error ts-migrate(2749) FIXME: 'Integration' refers to a value, but is being used... Remove this comment to see the full error message
 export default function present(integration: Integration) {
   return {
     id: integration.id,

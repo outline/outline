@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Flex from "components/Flex";
 import InputSearch from "components/InputSearch";
 import Key from "components/Key";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { metaDisplay } from "utils/keyboard";
 
 function KeyboardShortcuts() {

@@ -6,6 +6,7 @@ import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "../../presenters";
+// @ts-expect-error ts-migrate(7034) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
 import allAuthenticationProviders from "../auth/providers";
 
 const router = new Router();
@@ -55,8 +56,10 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
   const user = ctx.state.user;
   authorize(user, "read", user.team);
   const teamAuthenticationProviders = await user.team.getAuthenticationProviders();
+  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
   const otherAuthenticationProviders = allAuthenticationProviders.filter(
     (p) =>
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
       !teamAuthenticationProviders.find((t) => t.name === p.id) &&
       p.enabled && // email auth is dealt with separetly right now, although it definitely
       // wants to be here in the future – we'll need to migrate more data though

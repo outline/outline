@@ -60,4 +60,5 @@ Object.values(manifestData).forEach((filename) => {
   }
 });
 
+// @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Element[]' is not assignable to ... Remove this comment to see the full error message
 export default ReactDOMServer.renderToString(prefetchTags);

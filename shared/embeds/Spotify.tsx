@@ -21,7 +21,8 @@ export default class Spotify extends React.Component<Props> {
     }
   }
 
-  override render() {
+  
+  render() {
     const normalizedPath = this.pathname.replace(/^\/embed/, "/");
     let height;
 
@@ -36,6 +37,7 @@ export default class Spotify extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ width: string; height: string; src: string... Remove this comment to see the full error message
         width="100%"
         height={`${height}px`}
         src={`https://open.spotify.com/embed${normalizedPath}`}

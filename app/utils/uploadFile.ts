@@ -30,7 +30,9 @@ export const uploadFile = async (
     formData.append(key, data.form[key]);
   }
 
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo... Remove this comment to see the full error message
   if (file.blob) {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo... Remove this comment to see the full error message
     formData.append("file", file.file);
   } else {
     formData.append("file", file);

@@ -9,7 +9,7 @@ import { changeLanguage } from "../utils/language";
 import env from "env";
 
 type Props = {
-  children: React.ReactNode;
+  children: JSX.Element;
 };
 
 const Authenticated = ({ children }: Props) => {

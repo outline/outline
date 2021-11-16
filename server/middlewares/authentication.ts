@@ -26,11 +26,14 @@ export default function auth(
           token = credentials;
         }
       } else {
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
         throw new AuthenticationError(
           `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
         );
       }
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
     } else if (ctx.body && ctx.body.token) {
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
       token = ctx.request.query.token;
@@ -39,6 +42,7 @@ export default function auth(
     }
 
     if (!token && options.required !== false) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new AuthenticationError("Authentication required");
     }
 
@@ -56,10 +60,12 @@ export default function auth(
             },
           });
         } catch (err) {
+          // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
           throw new AuthenticationError("Invalid API key");
         }
 
         if (!apiKey) {
+          // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
           throw new AuthenticationError("Invalid API key");
         }
 
@@ -74,6 +80,7 @@ export default function auth(
         });
 
         if (!user) {
+          // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
           throw new AuthenticationError("Invalid API key");
         }
       } else {
@@ -88,6 +95,7 @@ export default function auth(
           },
           paranoid: false,
         });
+        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
         throw new UserSuspendedError({
           adminEmail: suspendingAdmin.email,
         });

@@ -13,9 +13,11 @@ type Props = {
 export default class GoogleDrive extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  override render() {
+  
+  render() {
     return (
       <Frame
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; icon: Element; title: string;... Remove this comment to see the full error message
         src={this.props.attrs.href.replace("/view", "/preview")}
         icon={
           <Image

@@ -28,6 +28,7 @@ function HoverPreviewDocument({ url, children }: Props) {
       <React.Suspense fallback={<div />}>
         <Editor
           key={document.id}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; defaultValue: any; disableEmbeds... Remove this comment to see the full error message
           defaultValue={document.getSummary()}
           disableEmbeds
           readOnly
@@ -45,4 +46,5 @@ const Heading = styled.h2`
   color: ${(props) => props.theme.text};
 `;
 
+// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ url, children }: Props) => Re... Remove this comment to see the full error message
 export default observer(HoverPreviewDocument);

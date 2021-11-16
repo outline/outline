@@ -4,9 +4,10 @@ import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
-import { TFunction } from "react-i18next";
-import { Trans, withTranslation } from "react-i18next";
+import { TFunction, Trans, withTranslation } from "react-i18next";
+
 import { Prompt, Route, withRouter } from "react-router-dom";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { RouterHistory, Match } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -36,21 +37,28 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { LocationWithState, NavigationNode, Theme } from "types";
 import "types";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
 import { isCustomDomain } from "utils/domains";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/emoji' or its correspond... Remove this comment to see the full error message
 import { emojiToUrl } from "utils/emoji";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
 import {
   documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
   documentUrl,
+  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 } from "utils/routeHelpers";
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
+
 type Props = {
   match: Match;
   history: RouterHistory;
@@ -101,6 +109,7 @@ class DocumentScene extends React.Component<Props> {
     this.updateIsDirty();
   }
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'prevProps' implicitly has an 'any' type... Remove this comment to see the full error message
   componentDidUpdate(prevProps) {
     const { auth, document, t } = this.props;
 
@@ -152,6 +161,7 @@ class DocumentScene extends React.Component<Props> {
       return;
     }
 
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'view' does not exist on type 'unknown'.
     const { view, parser } = editorRef;
     view.dispatch(
       view.state.tr
@@ -189,6 +199,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
   goToMove = (ev) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
@@ -199,6 +210,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
   goToEdit = (ev) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
@@ -209,12 +221,14 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
   goBack = (ev) => {
     if (this.props.readOnly) return;
     ev.preventDefault();
     this.props.history.goBack();
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
   goToHistory = (ev) => {
     if (!this.props.readOnly) return;
     if (ev.ctrlKey) return;
@@ -228,6 +242,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
   onPublish = (ev) => {
     ev.preventDefault();
     const { document } = this.props;
@@ -238,6 +253,7 @@ class DocumentScene extends React.Component<Props> {
     });
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
   onToggleTableOfContents = (ev) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
@@ -264,6 +280,7 @@ class DocumentScene extends React.Component<Props> {
     const text = this.getEditorText ? this.getEditorText() : document.text;
     const title = this.title;
     // prevent save before anything has been written (single hash is empty doc)
+    // @ts-expect-error ts-migrate(2367) FIXME: This condition will always return 'false' since th... Remove this comment to see the full error message
     if (text.trim() === "" && title.trim === "") return;
     // prevent autosave if nothing has changed
     if (
@@ -286,6 +303,7 @@ class DocumentScene extends React.Component<Props> {
         // update does not send "text" field to the API, this is a workaround
         // while the multiplayer editor is toggleable. Once it's finalized
         // this can be cleaned up to single code path
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ lastRevision: number; done?: b... Remove this comment to see the full error message
         savedDocument = await document.update({
           ...options,
           lastRevision: this.lastRevision,
@@ -344,6 +362,7 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'getEditorText' implicitly has an 'any' ... Remove this comment to see the full error message
   onChange = (getEditorText) => {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
@@ -372,12 +391,14 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
   onChangeTitle = (value) => {
     this.title = value;
     this.updateIsDirtyDebounced();
     this.autosave();
   };
 
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'goBack'.
   goBack = () => {
     this.props.history.push(this.props.document.url);
   };
@@ -400,7 +421,8 @@ class DocumentScene extends React.Component<Props> {
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
     const headings = this.editor.current
-      ? this.editor.current.getHeadings()
+      ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+        this.editor.current.getHeadings()
       : [];
     const showContents =
       ui.tocVisible && (readOnly || team?.collaborativeEditing);
@@ -434,6 +456,7 @@ class DocumentScene extends React.Component<Props> {
         />
         <Background
           key={revision ? revision.id : document.id}
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           isShare={isShare}
           column
           auto
@@ -443,6 +466,7 @@ class DocumentScene extends React.Component<Props> {
             component={() => (
               <Modal
                 title={`Move ${document.noun}`}
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '(ev: any) => void' is not assignable to type... Remove this comment to see the full error message
                 onRequestClose={this.goBack}
                 isOpen
               >
@@ -457,8 +481,9 @@ class DocumentScene extends React.Component<Props> {
             title={document.titleWithDefault.replace(document.emoji, "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+          call.
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
-
           <Container justify="center" column auto>
             {!readOnly && (
               <>
@@ -493,12 +518,14 @@ class DocumentScene extends React.Component<Props> {
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
+              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ document: Document; shareId: any; isRevisi... Remove this comment to see the full error message
               goBack={this.goBack}
               onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
               headings={headings}
             />
             <MaxWidth
+              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               archived={document.isArchived}
               showContents={showContents}
               isEditing={!readOnly}
@@ -506,6 +533,7 @@ class DocumentScene extends React.Component<Props> {
               auto
             >
               {document.isTemplate && !readOnly && (
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                 <Notice muted>
                   <Trans>
                     You’re editing a template. Highlight some text and use the{" "}
@@ -516,6 +544,7 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               {document.archivedAt && !document.deletedAt && (
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                 <Notice muted>
                   {t("Archived by {{userName}}", {
                     userName: document.updatedBy.name,
@@ -524,6 +553,7 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               {document.deletedAt && (
+                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                 <Notice muted>
                   <strong>
                     {t("Deleted by {{userName}}", {
@@ -555,6 +585,7 @@ class DocumentScene extends React.Component<Props> {
                 <Flex auto={!readOnly}>
                   {showContents && <Contents headings={headings} />}
                   <Editor
+                    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; id: string; key: string; ... Remove this comment to see the full error message
                     id={document.id}
                     key={disableEmbeds ? "disabled" : "enabled"}
                     innerRef={this.editor}
@@ -582,6 +613,7 @@ class DocumentScene extends React.Component<Props> {
                     ui={this.props.ui}
                   >
                     {shareId && (
+                      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                       <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
                         <PublicReferences
                           shareId={shareId}
@@ -593,6 +625,8 @@ class DocumentScene extends React.Component<Props> {
                     {!isShare && !revision && (
                       <>
                         <MarkAsViewed document={document} />
+                        // @ts-expect-error ts-migrate(2769) FIXME: No overload
+                        matches this call.
                         <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
                           <References document={document} />
                         </ReferencesWrapper>
@@ -627,6 +661,7 @@ const Background = styled(Container)`
   transition: ${(props) => props.theme.backgroundTransition};
 `;
 const ReferencesWrapper = styled("div")`
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'isOnlyTitle' does not exist on type 'The... Remove this comment to see the full error message
   margin-top: ${(props) => (props.isOnlyTitle ? -45 : 16)}px;
 
   @media print {
@@ -635,9 +670,11 @@ const ReferencesWrapper = styled("div")`
 `;
 const MaxWidth = styled(Flex)`
   ${(props) =>
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'archived' does not exist on type 'Themed... Remove this comment to see the full error message
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
 
   // Adds space to the left gutter to make room for heading annotations on mobile
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'isEditing' does not exist on type 'Theme... Remove this comment to see the full error message
   padding: ${(props) => (props.isEditing ? "0 12px 0 32px" : "0 12px")};
   transition: padding 100ms;
 
@@ -647,6 +684,7 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`
     padding: 0 24px;
     margin: 4px auto 12px;
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
     max-width: calc(48px + ${(props) =>
       props.showContents ? "64em" : "46em"});
   `};
@@ -657,6 +695,7 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'ComponentType<Omit<unknown, keyo... Remove this comment to see the full error message
   withTranslation()<DocumentScene>(
     inject("ui", "auth", "toasts")(DocumentScene)
   )

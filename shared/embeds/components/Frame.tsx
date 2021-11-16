@@ -6,6 +6,7 @@ import styled from "styled-components";
 
 // This wrapper allows us to pass non-standard HTML attributes through to the DOM element
 // https://www.styled-components.com/docs/basics#passed-props
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
 const Iframe = (props) => <iframe title="Embed" {...props} />;
 
 const StyledIframe = styled(Iframe)`
@@ -34,12 +35,14 @@ class Frame extends React.Component<PropsWithRef> {
   @observable
   isLoaded = false;
 
-  override componentDidMount() {
+  
+  componentDidMount() {
     this.mounted = true;
     setImmediate(this.loadIframe);
   }
 
-  override componentWillUnmount() {
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
+  componentWillUnmount() {
     this.mounted = false;
   }
 
@@ -48,7 +51,8 @@ class Frame extends React.Component<PropsWithRef> {
     this.isLoaded = true;
   };
 
-  override render() {
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'override'.
+  render() {
     const {
       border,
       width = "100%",
@@ -72,6 +76,7 @@ class Frame extends React.Component<PropsWithRef> {
       >
         {this.isLoaded && (
           <Component
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             ref={forwardedRef}
             $withBar={withBar}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
@@ -139,5 +144,6 @@ const Bar = styled.div`
 `;
 
 export default React.forwardRef((props, ref) => (
+  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   <Frame {...props} forwardedRef={ref} />
 ));

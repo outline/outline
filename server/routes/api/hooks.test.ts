@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { IntegrationAuthentication, SearchQuery } from "../../models";
 import webService from "../../services/web";
@@ -122,6 +123,7 @@ describe("#hooks.slack", () => {
       "This title *contains* a search term"
     );
   });
+  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(done: DoneCallback) => Promise<... Remove this comment to see the full error message
   it("should save search term, hits and source", async (done) => {
     const { user, team } = await seed();
     await server.post("/api/hooks.slack", {

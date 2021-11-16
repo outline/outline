@@ -15,9 +15,11 @@ export default function markdownToYDoc(
   // on the server we need to mimic this behavior.
   function urlsToEmbeds(node: Node): Node {
     if (node.type.name === "paragraph") {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'content' does not exist on type 'Fragmen... Remove this comment to see the full error message
       for (const textNode of node.content.content) {
         for (const embed of embeds) {
           if (textNode.text && embed.matcher(textNode.text)) {
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'ProsemirrorNode<Schema<never, never>> | null... Remove this comment to see the full error message
             return schema.nodes.embed.createAndFill({
               href: textNode.text,
             });
@@ -28,6 +30,7 @@ export default function markdownToYDoc(
 
     if (node.content) {
       const contentAsArray =
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'content' does not exist on type 'Fragmen... Remove this comment to see the full error message
         node.content instanceof Fragment ? node.content.content : node.content;
       node.content = Fragment.fromArray(contentAsArray.map(urlsToEmbeds));
     }

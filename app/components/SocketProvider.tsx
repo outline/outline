@@ -2,6 +2,7 @@ import { find } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'sock... Remove this comment to see the full error message
 import io, { Socket } from "socket.io-client";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
@@ -36,12 +37,12 @@ class SocketProvider extends React.Component<Props> {
   @observable
   socket: Socket;
 
-  override componentDidMount() {
+  componentDidMount() {
     this.createConnection();
     document.addEventListener(getVisibilityListener(), this.checkConnection);
   }
 
-  override componentWillUnmount() {
+  componentWillUnmount() {
     if (this.socket) {
       this.socket.authenticated = false;
       this.socket.disconnect();
@@ -81,6 +82,7 @@ class SocketProvider extends React.Component<Props> {
       fileOperations,
     } = this.props;
     if (!auth.token) return;
+
     this.socket.on("connect", () => {
       // immediately send current users token to the websocket backend where it
       // is verified, if all goes well an 'authenticated' message will be
@@ -89,11 +91,13 @@ class SocketProvider extends React.Component<Props> {
         token: auth.token,
       });
     });
+
     this.socket.on("disconnect", (reason: string) => {
       // when the socket is disconnected we need to clear all presence state as
       // it's no longer reliable.
       presence.clear();
     });
+
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
     this.socket.on("reconnect_attempt", () => {
@@ -112,6 +116,7 @@ class SocketProvider extends React.Component<Props> {
       });
       throw err;
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("entities", async (event) => {
       if (event.documentIds) {
         for (const documentDescriptor of event.documentIds) {
@@ -131,6 +136,7 @@ class SocketProvider extends React.Component<Props> {
 
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'title' does not exist on type '{}'.
           const { title, updatedAt } = document;
 
           if (updatedAt === documentDescriptor.updatedAt) {
@@ -142,6 +148,7 @@ class SocketProvider extends React.Component<Props> {
             const response = await documents.fetch(documentId, {
               force: true,
             });
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'Document | null | undefined' is not assignab... Remove this comment to see the full error message
             document = response.document;
           } catch (err) {
             if (err.statusCode === 404 || err.statusCode === 403) {
@@ -151,17 +158,20 @@ class SocketProvider extends React.Component<Props> {
           }
 
           // if the title changed then we need to update the collection also
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'title' does not exist on type '{}'.
           if (title !== document.title) {
             if (!event.collectionIds) {
               event.collectionIds = [];
             }
 
             const existing = find(event.collectionIds, {
+              // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type '{}... Remove this comment to see the full error message
               id: document.collectionId,
             });
 
             if (!existing) {
               event.collectionIds.push({
+                // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type '{}... Remove this comment to see the full error message
                 id: document.collectionId,
               });
             }
@@ -195,6 +205,7 @@ class SocketProvider extends React.Component<Props> {
 
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedAt' does not exist on type '{}'.
           const { updatedAt } = collection;
 
           if (updatedAt === collectionDescriptor.updatedAt) {
@@ -223,6 +234,7 @@ class SocketProvider extends React.Component<Props> {
           const group = groups.get(groupId) || {};
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedAt' does not exist on type '{}'.
           const { updatedAt } = group;
 
           if (updatedAt === groupDescriptor.updatedAt) {
@@ -245,17 +257,21 @@ class SocketProvider extends React.Component<Props> {
         await auth.fetch();
       }
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("documents.star", (event) => {
       documents.starredIds.set(event.documentId, true);
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("documents.unstar", (event) => {
       documents.starredIds.set(event.documentId, false);
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("documents.permanent_delete", (event) => {
       documents.remove(event.documentId);
     });
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("collections.add_user", (event) => {
       if (auth.user && event.userId === auth.user.id) {
         collections.fetch(event.collectionId, {
@@ -271,6 +287,7 @@ class SocketProvider extends React.Component<Props> {
     // received when a user is removed from having access to a collection
     // to keep state in sync we must update our UI if the user is us,
     // or otherwise just remove any membership state we have for that user.
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("collections.remove_user", (event) => {
       if (auth.user && event.userId === auth.user.id) {
         collections.remove(event.collectionId);
@@ -280,6 +297,7 @@ class SocketProvider extends React.Component<Props> {
         memberships.remove(`${event.userId}-${event.collectionId}`);
       }
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("collections.update_index", (event) => {
       const collection = collections.get(event.collectionId);
 
@@ -287,6 +305,7 @@ class SocketProvider extends React.Component<Props> {
         collection.updateIndex(event.index);
       }
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("fileOperations.update", async (event) => {
       const user = auth.user;
       let collection = null;
@@ -299,27 +318,32 @@ class SocketProvider extends React.Component<Props> {
     });
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("join", (event) => {
       this.socket.emit("join", event);
     });
     // received a message from the API server that we should request
     // to leave a specific room. Forward that to the ws server.
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("leave", (event) => {
       this.socket.emit("leave", event);
     });
     // received whenever we join a document room, the payload includes
     // userIds that are present/viewing and those that are editing.
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("document.presence", (event) => {
       presence.init(event.documentId, event.userIds, event.editingIds);
     });
     // received whenever a new user joins a document room, aka they
     // navigate to / start viewing a document
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("user.join", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
       views.touch(event.documentId, event.userId);
     });
     // received whenever a new user leaves a document room, aka they
     // navigate away / stop viewing a document
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("user.leave", (event) => {
       presence.leave(event.documentId, event.userId);
       views.touch(event.documentId, event.userId);
@@ -327,12 +351,13 @@ class SocketProvider extends React.Component<Props> {
     // received when another client in a document room wants to change
     // or update it's presence. Currently the only property is whether
     // the client is in editing state or not.
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     this.socket.on("user.presence", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
   };
 
-  override render() {
+  render() {
     return (
       <SocketContext.Provider value={this.socket}>
         {this.props.children}

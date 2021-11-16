@@ -6,6 +6,7 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import Button from "components/Button";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
 import { MenuItem } from "types";
 import "types";
 
@@ -47,6 +48,7 @@ function TableOfContentsMenu({ headings }: Props) {
       i.push({
         href: "#",
         title: t("Headings you add to the document will appear here"),
+        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ href: string; title: string; d... Remove this comment to see the full error message
         disabled: true,
       });
     }
@@ -59,6 +61,7 @@ function TableOfContentsMenu({ headings }: Props) {
         {(props) => (
           <Button
             {...props}
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ icon: Element; iconColor: string; borderOn... Remove this comment to see the full error message
             icon={<TableOfContentsIcon />}
             iconColor="currentColor"
             borderOnHover
@@ -66,7 +69,9 @@ function TableOfContentsMenu({ headings }: Props) {
           />
         )}
       </MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; "aria-label": string; b... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Table of contents")}>
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: an... Remove this comment to see the full error message
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

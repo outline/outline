@@ -12,8 +12,10 @@ import Flex from "components/Flex";
 import PaginatedEventList from "components/PaginatedEventList";
 import Scrollable from "components/Scrollable";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { documentUrl } from "utils/routeHelpers";
 
+// @ts-expect-error ts-migrate(7034) FIXME: Variable 'EMPTY_ARRAY' implicitly has type 'any[]'... Remove this comment to see the full error message
 const EMPTY_ARRAY = [];
 
 function DocumentHistory() {
@@ -21,9 +23,11 @@ function DocumentHistory() {
   const { t } = useTranslation();
   const match = useRouteMatch();
   const history = useHistory();
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'documentSlug' does not exist on type '{}... Remove this comment to see the full error message
   const document = documents.getByUrl(match.params.documentSlug);
   const eventsInDocument = document
     ? events.inDocument(document.id)
+    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'EMPTY_ARRAY' implicitly has an 'any[]' t... Remove this comment to see the full error message
     : EMPTY_ARRAY;
 
   const onCloseHistory = () => {
@@ -37,6 +41,7 @@ function DocumentHistory() {
       eventsInDocument[0].createdAt !== document.updatedAt
     ) {
       eventsInDocument.unshift(
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         new Event({
           name: "documents.latest_version",
           documentId: document.id,
@@ -55,12 +60,14 @@ function DocumentHistory() {
           <Header>
             <Title>{t("History")}</Title>
             <Button
+              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ icon: Element; onClick: () => void; border... Remove this comment to see the full error message
               icon={<CloseIcon />}
               onClick={onCloseHistory}
               borderOnHover
               neutral
             />
           </Header>
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; topShadow: true; }' is ... Remove this comment to see the full error message
           <Scrollable topShadow>
             <PaginatedEventList
               fetch={events.fetchPage}

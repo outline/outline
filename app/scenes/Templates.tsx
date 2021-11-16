@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
-import "react-router-dom";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+// @ts-expect-error ts-migrate(2724) FIXME: '"react-router-dom"' has no exported member named ... Remove this comment to see the full error message
 import { Match } from "react-router-dom";
 import { Action } from "components/Actions";
 import Empty from "components/Empty";

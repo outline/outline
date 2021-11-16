@@ -50,6 +50,7 @@ export default class Document extends BaseModel {
 
   title: string;
 
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'emoji'.
   emoji: string;
 
   template: boolean;
@@ -83,6 +84,7 @@ export default class Document extends BaseModel {
     }
   }
 
+  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'emoji'.
   get emoji() {
     const { emoji } = parseTitle(this.title);
     return emoji;
@@ -103,6 +105,7 @@ export default class Document extends BaseModel {
     document.body?.appendChild(element);
     const direction = window.getComputedStyle(element).direction;
     document.body?.removeChild(element);
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type '"rtl" | "... Remove this comment to see the full error message
     return direction;
   }
 
@@ -299,6 +302,7 @@ export default class Document extends BaseModel {
       if (options.lastRevision) {
         return await this.store.update({
           id: this.id,
+          // @ts-expect-error ts-migrate(2783) FIXME: 'title' is specified more than once, so this usage... Remove this comment to see the full error message
           title: this.title,
           lastRevision: options.lastRevision,
           ...options,
@@ -335,6 +339,7 @@ export default class Document extends BaseModel {
           id: this.id,
           title: this.title,
           text: this.text,
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ id: string; title: string; tex... Remove this comment to see the full error message
           templateId: this.templateId,
           lastRevision: options?.lastRevision,
           publish: options?.publish,
@@ -353,6 +358,7 @@ export default class Document extends BaseModel {
     collectionId: string,
     parentDocumentId: string | null | undefined
   ) => {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 4 arguments, but got 3.
     return this.store.move(this.id, collectionId, parentDocumentId);
   };
 

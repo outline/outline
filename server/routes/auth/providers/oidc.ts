@@ -1,6 +1,8 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import get from "lodash/get";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
@@ -31,8 +33,10 @@ export const config = {
 };
 const scopes = OIDC_SCOPES.split(" ");
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'accessToken' implicitly has an 'any' ty... Remove this comment to see the full error message
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
     const response = await request(OIDC_USERINFO_URI, accessToken);
     return done(null, response);
   } catch (err) {
@@ -61,9 +65,11 @@ if (OIDC_CLIENT_ID) {
       // Non-standard claims may be configured by individual identity providers.
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
       async function (req, accessToken, refreshToken, profile, done) {
         try {
           if (!profile.email) {
+            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
             throw new AuthenticationError(
               `An email field was not returned in the profile parameter, but is required.`
             );
@@ -73,10 +79,12 @@ if (OIDC_CLIENT_ID) {
           const domain = parts.length && parts[1];
 
           if (!domain) {
+            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
             throw new OIDCMalformedUserInfoError();
           }
 
           if (allowedDomains.length && !allowedDomains.includes(domain)) {
+            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
             throw new AuthenticationError(
               `Domain ${domain} is not on the whitelist`
             );

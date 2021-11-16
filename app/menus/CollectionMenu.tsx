@@ -17,19 +17,21 @@ import CollectionDelete from "scenes/CollectionDelete";
 import CollectionEdit from "scenes/CollectionEdit";
 import CollectionExport from "scenes/CollectionExport";
 import CollectionPermissions from "scenes/CollectionPermissions";
-import ContextMenu from "components/ContextMenu";
+import ContextMenu, { Placement } from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/getDataTransferFiles' or... Remove this comment to see the full error message
 import getDataTransferFiles from "utils/getDataTransferFiles";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { newDocumentPath } from "utils/routeHelpers";
 
 type Props = {
   collection: Collection;
-  placement?: string;
+  placement?: Placement;
   modal?: boolean;
   label?: (arg0: any) => React.ReactNode;
   onOpen?: () => void;
@@ -183,10 +185,12 @@ function CollectionMenu({
       <VisuallyHidden>
         <input
           type="file"
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLInputElement | null | u... Remove this comment to see the full error message
           ref={file}
           onChange={handleFilePicked}
           onClick={stopPropagation}
           accept={documents.importFileTypes.join(", ")}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type 'number | ... Remove this comment to see the full error message
           tabIndex="-1"
         />
       </VisuallyHidden>

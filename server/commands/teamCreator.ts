@@ -6,7 +6,9 @@ import { getAllowedDomains } from "../utils/authentication";
 import { generateAvatarUrl } from "../utils/avatars";
 
 type TeamCreatorResult = {
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team;
+  // @ts-expect-error ts-migrate(2749) FIXME: 'AuthenticationProvider' refers to a value, but is... Remove this comment to see the full error message
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
 };
@@ -68,6 +70,7 @@ export default async function teamCreator({
     }
 
     if (teamCount >= 1) {
+      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
       throw new MaximumTeamsError();
     }
   }

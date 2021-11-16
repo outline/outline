@@ -13,6 +13,7 @@ const Event = sequelize.define("event", {
   data: DataTypes.JSONB,
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Event.associate = (models) => {
   Event.belongsTo(models.User, {
     as: "user",
@@ -36,18 +37,21 @@ Event.associate = (models) => {
   });
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
 Event.beforeCreate((event) => {
   if (event.ip) {
     // cleanup IPV6 representations of IPV4 addresses
     event.ip = event.ip.replace(/^::ffff:/, "");
   }
 });
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
 Event.afterCreate((event) => {
   globalEventQueue.add(event);
 });
 
 // add can be used to send events into the event system without recording them
 // in the database or audit trail
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
 Event.add = (event) => {
   const now = new Date();
   globalEventQueue.add(

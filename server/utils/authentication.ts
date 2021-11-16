@@ -1,7 +1,7 @@
 import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
-import "koa";
+
 import { pick } from "lodash";
 import Logger from "../logging/logger";
 import { User, Event, Team, Collection, View } from "../models";
@@ -15,7 +15,9 @@ export function getAllowedDomains(): string[] {
 
 export async function signIn(
   ctx: Context,
+  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User,
+  // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team,
   service: string,
   _isNewUser = false,

@@ -1,4 +1,6 @@
+// @ts-expect-error ts-migrate(1208) FIXME: '20160619080644-initial.ts' cannot be compiled und... Remove this comment to see the full error message
 module.exports = {
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("teams", {
       id: {
@@ -170,6 +172,7 @@ module.exports = {
       },
     });
   },
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'queryInterface' implicitly has an 'any'... Remove this comment to see the full error message
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropAllTables();
   },

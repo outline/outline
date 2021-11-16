@@ -222,6 +222,7 @@ router.post(
   pagination(),
   async (ctx) => {
     const { id, query, permission } = ctx.body;
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
     ctx.assertUuid(id, "id is required");
     const user = ctx.state.user;
     const collection = await Collection.scope({
@@ -242,6 +243,7 @@ router.post(
     }
 
     if (permission) {
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ permission: any; collectionId: any; }' is ... Remove this comment to see the full error message
       where = { ...where, permission };
     }
 
@@ -265,6 +267,7 @@ router.post(
         collectionGroupMemberships: memberships.map(
           presentCollectionGroupMembership
         ),
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
         groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };
@@ -359,6 +362,7 @@ router.post("collections.users", auth(), async (ctx) => {
 });
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
   ctx.assertUuid(id, "id is required");
   const user = ctx.state.user;
   const collection = await Collection.scope({
@@ -379,6 +383,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   }
 
   if (permission) {
+    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ permission: any; collectionId: any; }' is ... Remove this comment to see the full error message
     where = { ...where, permission };
   }
 
@@ -400,6 +405,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
     pagination: ctx.state.pagination,
     data: {
       memberships: memberships.map(presentMembership),
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
       users: memberships.map((membership) => presentUser(membership.user)),
     },
   };
@@ -572,11 +578,13 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const nullIndexCollection = collections.findIndex(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
     (collection) => collection.index === null
   );
 
   if (nullIndexCollection !== -1) {
     const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
     collections.forEach((collection) => {
       collection.index = indexedCollections[collection.id];
     });
@@ -597,6 +605,7 @@ router.post("collections.delete", auth(), async (ctx) => {
   }).findByPk(id);
   authorize(user, "delete", collection);
   const total = await Collection.count();
+  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
   if (total === 1) throw new ValidationError("Cannot delete last collection");
   await collection.destroy();
   await Event.create({

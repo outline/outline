@@ -6,9 +6,9 @@ type Props = {
   disabled?: boolean;
   readOnly?: boolean;
   onChange?: (text: string) => void;
-  onBlur?: (event: React.SyntheticEvent) => void;
-  onInput?: (event: React.SyntheticEvent) => void;
-  onKeyDown?: (event: React.SyntheticEvent) => void;
+  onBlur?: (event: React.FocusEventHandler<HTMLSpanElement>) => void;
+  onInput?: (event: React.FormEventHandler<HTMLSpanElement>) => void;
+  onKeyDown?: (event: React.KeyboardEventHandler<HTMLSpanElement>) => void;
   placeholder?: string;
   maxLength?: number;
   autoFocus?: boolean;
@@ -36,15 +36,17 @@ function ContentEditable({
   readOnly,
   ...rest
 }: Props) {
-  const ref = React.useRef<HTMLSpanElement | null | undefined>();
+  const ref = React.useRef<HTMLSpanElement>();
   const [innerHTML, setInnerHTML] = React.useState<string>(value);
   const lastValue = React.useRef("");
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'callback' implicitly has an 'any' type.
   const wrappedEvent = (callback) => (
     event: React.SyntheticEvent<HTMLInputElement>
   ) => {
     const text = ref.current?.innerText || "";
 
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'SyntheticEvent<HTMLInputElement,... Remove this comment to see the full error message
     if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
       event.preventDefault();
       return false;
@@ -63,11 +65,13 @@ function ContentEditable({
       ref.current?.focus();
     }
   });
+
   React.useEffect(() => {
     if (value !== ref.current?.innerText) {
       setInnerHTML(value);
     }
   }, [value]);
+
   return (
     <div className={className}>
       <Content

@@ -56,6 +56,7 @@ function ShareMenu({ share }: Props) {
   return (
     <>
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: any[]; "aria-label": string; bas... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Share options")}>
         <CopyToClipboard text={share.url} onCopy={handleCopy}>
           <MenuItem {...menu}>{t("Copy link")}</MenuItem>

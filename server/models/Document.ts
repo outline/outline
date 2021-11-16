@@ -1,7 +1,9 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@tom... Remove this comment to see the full error message
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
 import Sequelize, { Transaction } from "sequelize";
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'slat... Remove this comment to see the full error message
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "../../shared/constants";
@@ -19,10 +21,12 @@ const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
 const createUrlId = (doc) => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
 const beforeCreate = async (doc) => {
   if (doc.version === undefined) {
     doc.version = DOCUMENT_VERSION;
@@ -31,6 +35,7 @@ const beforeCreate = async (doc) => {
   return beforeSave(doc);
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
 const beforeSave = async (doc) => {
   const { emoji } = parseTitle(doc.text);
   // emoji in the title is split out for easier display
@@ -112,6 +117,7 @@ const Document = sequelize.define(
 );
 
 // Class methods
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Document.associate = (models) => {
   Document.belongsTo(models.Collection, {
     as: "collection",
@@ -172,6 +178,7 @@ Document.associate = (models) => {
       },
     },
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
   Document.addScope("withCollection", (userId, paranoid = true) => {
     if (userId) {
       return {
@@ -210,6 +217,7 @@ Document.associate = (models) => {
       },
     ],
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
   Document.addScope("withViews", (userId) => {
     if (!userId) return {};
     return {
@@ -226,6 +234,7 @@ Document.associate = (models) => {
       ],
     };
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
   Document.addScope("withStarred", (userId) => ({
     include: [
       {
@@ -241,15 +250,18 @@ Document.associate = (models) => {
   }));
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'id' implicitly has an 'any' type.
 Document.findByPk = async function (id, options = {}) {
   // allow default preloading of collection membership if `userId` is passed in find options
   // almost every endpoint needs the collection membership to determine policy permissions.
   const scope = this.scope(
     "withUnpublished",
     {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'userId' does not exist on type '{}'.
       method: ["withCollection", options.userId, options.paranoid],
     },
     {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'userId' does not exist on type '{}'.
       method: ["withViews", options.userId],
     }
   );
@@ -296,7 +308,9 @@ function escape(query: string): string {
 }
 
 Document.searchForTeam = async (
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'team' implicitly has an 'any' type.
   team,
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'query' implicitly has an 'any' type.
   query,
   options: SearchOptions = {}
 ): Promise<SearchResponse> => {
@@ -390,7 +404,9 @@ Document.searchForTeam = async (
 };
 
 Document.searchForUser = async (
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
   user,
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'query' implicitly has an 'any' type.
   query,
   options: SearchOptions = {}
 ): Promise<SearchResponse> => {
@@ -518,6 +534,7 @@ Document.searchForUser = async (
 };
 
 // Hooks
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 Document.addHook("beforeSave", async (model) => {
   if (!model.publishedAt || model.template) {
     return;
@@ -532,6 +549,7 @@ Document.addHook("beforeSave", async (model) => {
   await collection.updateDocument(model);
   model.collection = collection;
 });
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 Document.addHook("afterCreate", async (model) => {
   if (!model.publishedAt || model.template) {
     return;
@@ -591,14 +609,17 @@ Document.prototype.migrateVersion = function () {
 // Note: This method marks the document and it's children as deleted
 // in the database, it does not permanently delete them OR remove
 // from the collection structure.
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'options' implicitly has an 'any' type.
 Document.prototype.deleteWithChildren = async function (options) {
   // Helper to destroy all child documents for a document
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
   const loopChildren = async (documentId, opts) => {
     const childDocuments = await Document.findAll({
       where: {
         parentDocumentId: documentId,
       },
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'child' implicitly has an 'any' type.
     childDocuments.forEach(async (child) => {
       await loopChildren(child.id, opts);
       await child.destroy(opts);
@@ -609,16 +630,19 @@ Document.prototype.deleteWithChildren = async function (options) {
   await this.destroy(options);
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
 Document.prototype.archiveWithChildren = async function (userId, options) {
   const archivedAt = new Date();
 
   // Helper to archive all child documents for a document
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'parentDocumentId' implicitly has an 'an... Remove this comment to see the full error message
   const archiveChildren = async (parentDocumentId) => {
     const childDocuments = await Document.findAll({
       where: {
         parentDocumentId,
       },
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'child' implicitly has an 'any' type.
     childDocuments.forEach(async (child) => {
       await archiveChildren(child.id);
       child.archivedAt = archivedAt;
@@ -633,6 +657,7 @@ Document.prototype.archiveWithChildren = async function (userId, options) {
   return this.save(options);
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'options' implicitly has an 'any' type.
 Document.prototype.publish = async function (userId: string, options) {
   if (this.publishedAt) return this.save(options);
 
@@ -647,6 +672,7 @@ Document.prototype.publish = async function (userId: string, options) {
   return this;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'options' implicitly has an 'any' type.
 Document.prototype.unpublish = async function (userId: string, options) {
   if (!this.publishedAt) return this;
   const collection = await this.getCollection();
@@ -662,6 +688,7 @@ Document.prototype.unpublish = async function (userId: string, options) {
 
 // Moves a document from being visible to the team within a collection
 // to the archived area, where it can be subsequently restored.
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
 Document.prototype.archive = async function (userId) {
   // archive any children and remove from the document structure
   const collection = await this.getCollection();

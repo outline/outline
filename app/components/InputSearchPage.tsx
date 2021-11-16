@@ -7,7 +7,9 @@ import styled, { useTheme } from "styled-components";
 import Input from "./Input";
 import useBoolean from "hooks/useBoolean";
 import useKeyDown from "hooks/useKeyDown";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -16,9 +18,9 @@ type Props = {
   label?: string;
   labelHidden?: boolean;
   collectionId?: string;
-  value: string;
-  onChange: (event: React.SyntheticEvent) => unknown;
-  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
+  value?: string;
+  onChange?: (event: React.SyntheticEvent) => unknown;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
 
 function InputSearchPage({
@@ -36,6 +38,7 @@ function InputSearchPage({
   const { t } = useTranslation();
   const [isFocused, setFocused, setUnfocused] = useBoolean(false);
   const focus = React.useCallback(() => {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'focus' does not exist on type 'never'.
     inputRef.current?.focus();
   }, []);
   useKeyDown("f", (ev: KeyboardEvent) => {
@@ -63,6 +66,7 @@ function InputSearchPage({
     [history, collectionId, source, onKeyDown]
   );
   return (
+    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <InputMaxWidth
       ref={inputRef}
       type="search"
@@ -72,6 +76,7 @@ function InputSearchPage({
       onKeyDown={handleKeyDown}
       icon={
         <SearchIcon
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'inputBorderFocused' does not exist on ty... Remove this comment to see the full error message
           color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
         />
       }

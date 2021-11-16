@@ -17,6 +17,7 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
   const { action, type = "info", reoccurring } = toast;
 
   React.useEffect(() => {
+    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timeout.current = setTimeout(onRequestClose, toast.timeout || closeAfterMs);
     return () => clearTimeout(timeout.current);
   }, [onRequestClose, toast, closeAfterMs]);

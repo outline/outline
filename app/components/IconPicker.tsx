@@ -217,6 +217,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
           </Button>
         )}
       </MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; onOpen: (() => void) ... Remove this comment to see the full error message
       <ContextMenu
         {...menu}
         onOpen={onOpen}
@@ -244,6 +245,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
           <React.Suspense fallback={<Loading>{t("Loading")}…</Loading>}>
             <ColorPicker
               color={color}
+              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'color' implicitly has an 'any' type.
               onChange={(color) => onChange(color.hex, icon)}
               colors={colors}
               triangle="hide"

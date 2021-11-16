@@ -88,7 +88,9 @@ describe("#parseDomain", () => {
     });
   });
   it("should return null if the given value is not a string", () => {
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
     expect(parseDomain(undefined)).toBe(null);
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{}' is not assignable to paramet... Remove this comment to see the full error message
     expect(parseDomain({})).toBe(null);
     expect(parseDomain("")).toBe(null);
   });

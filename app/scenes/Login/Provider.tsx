@@ -1,11 +1,12 @@
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
-import { TFunction } from "react-i18next";
-import { withTranslation } from "react-i18next";
+import { TFunction, withTranslation } from "react-i18next";
+
 import styled from "styled-components";
 import AuthLogo from "components/AuthLogo";
 import ButtonLarge from "components/ButtonLarge";
 import InputLarge from "components/InputLarge";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
 type Props = {
@@ -31,6 +32,7 @@ class Provider extends React.Component<Props, State> {
 
   handleChangeEmail = (event: React.SyntheticEvent<HTMLInputElement>) => {
     this.setState({
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
       email: event.target.value,
     });
   };
@@ -93,11 +95,15 @@ class Provider extends React.Component<Props, State> {
                   required
                   short
                 />
+                // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's
+                'children' prop expects a single ch... Remove this comment to
+                see the full error message
                 <ButtonLarge type="submit" disabled={this.state.isSubmitting}>
                   {t("Sign In")} →
                 </ButtonLarge>
               </>
             ) : (
+              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth>
                 {t("Continue with Email")}
               </ButtonLarge>
@@ -110,6 +116,7 @@ class Provider extends React.Component<Props, State> {
     return (
       <Wrapper key={id}>
         <ButtonLarge
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           onClick={() => (window.location.href = authUrl)}
           icon={<AuthLogo providerName={id} />}
           fullwidth
@@ -133,4 +140,5 @@ const Form = styled.form`
   justify-content: space-between;
 `;
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'Provider' does not satisfy the constraint 'C... Remove this comment to see the full error message
 export default withTranslation()<Provider>(Provider);

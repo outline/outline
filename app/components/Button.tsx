@@ -3,7 +3,13 @@ import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 
-const RealButton = styled.button`
+const RealButton = styled.button<{
+  fullwidth?: boolean;
+  borderOnHover?: boolean;
+  neutral?: boolean;
+  danger?: boolean;
+  iconColor?: string;
+}>`
   display: ${(props) => (props.fullwidth ? "block" : "inline-block")};
   width: ${(props) => (props.fullwidth ? "100%" : "auto")};
   margin: 0;
@@ -49,7 +55,7 @@ const RealButton = styled.button`
   }
 
   ${(props) =>
-    props.$neutral &&
+    props.neutral &&
     `
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
@@ -86,7 +92,9 @@ const RealButton = styled.button`
         fill: ${props.theme.textTertiary};
       }
     }
-  `} ${(props) =>
+  `}
+
+  ${(props) =>
     props.danger &&
     `
       background: ${props.theme.danger};
@@ -97,7 +105,8 @@ const RealButton = styled.button`
       }
   `};
 `;
-const Label = styled.span`
+
+const Label = styled.span<{ hasIcon?: boolean }>`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -105,7 +114,11 @@ const Label = styled.span`
   ${(props) => props.hasIcon && "padding-left: 4px;"};
 `;
 
-export const Inner = styled.span`
+export const Inner = styled.span<{
+  disclosure?: boolean;
+  hasIcon?: boolean;
+  hasText?: boolean;
+}>`
   display: flex;
   padding: 0 8px;
   padding-right: ${(props) => (props.disclosure ? 2 : 8)}px;
@@ -118,48 +131,35 @@ export const Inner = styled.span`
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
-export type Props = {
-  type?: "button" | "submit";
-  value?: string;
+export type Props = React.HTMLProps<HTMLButtonElement> & {
   icon?: React.ReactNode;
   iconColor?: string;
-  className?: string;
   children?: React.ReactNode;
-  innerRef?: React.ElementRef<any>;
   disclosure?: boolean;
   neutral?: boolean;
   danger?: boolean;
   primary?: boolean;
-  disabled?: boolean;
   fullwidth?: boolean;
-  autoFocus?: boolean;
-  style?: Record<string, any>;
   as?: React.ComponentType<any> | string;
   to?: string;
-  onClick?: (event: React.SyntheticEvent) => unknown;
   borderOnHover?: boolean;
   href?: string;
   "data-on"?: string;
   "data-event-category"?: string;
   "data-event-action"?: string;
 };
-const Button = React.forwardRef<Props, HTMLButtonElement>(
+
+const Button = React.forwardRef<HTMLButtonElement, Props>(
   (
-    {
-      type = "text",
-      icon,
-      children,
-      value,
-      disclosure,
-      neutral,
-      ...rest
-    }: Props,
-    innerRef
+    props: Props,
+    ref: React.Ref<HTMLButtonElement>
   ) => {
+    const { type, icon, children, value, disclosure, neutral, ...rest } = props;
     const hasText = children !== undefined || value !== undefined;
     const hasIcon = icon !== undefined;
+
     return (
-      <RealButton type={type} ref={innerRef} $neutral={neutral} {...rest}>
+      <RealButton type={type || "button"} ref={ref} neutral={neutral} {...rest}>
         <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
           {hasIcon && icon}
           {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}

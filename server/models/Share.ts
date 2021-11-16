@@ -23,6 +23,7 @@ const Share = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Share.associate = (models) => {
   Share.belongsTo(models.User, {
     as: "user",
@@ -50,6 +51,7 @@ Share.associate = (models) => {
       },
     ],
   });
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
   Share.addScope("withCollection", (userId) => {
     return {
       include: [
@@ -78,6 +80,7 @@ Share.associate = (models) => {
   });
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
 Share.prototype.revoke = function (userId) {
   this.revokedAt = new Date();
   this.revokedById = userId;

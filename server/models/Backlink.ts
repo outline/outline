@@ -8,6 +8,7 @@ const Backlink = sequelize.define("backlink", {
   },
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Backlink.associate = (models) => {
   Backlink.belongsTo(models.Document, {
     as: "document",

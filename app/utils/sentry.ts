@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
+// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { RouterHistory } from "react-router-dom";
 import "react-router-dom";
 import env from "env";

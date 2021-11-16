@@ -27,6 +27,7 @@ function GroupMembers({ group }: Props) {
   const { t } = useTranslation();
   const can = policies.abilities(group.id);
 
+  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'state' implicitly has an 'any' type.
   const handleAddModal = (state) => {
     setAddModalOpen(state);
   };
@@ -68,6 +69,9 @@ function GroupMembers({ group }: Props) {
             />
           </HelpText>
           <span>
+            // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's
+            'children' prop expects a single ch... Remove this comment to see
+            the full error message
             <Button
               type="button"
               onClick={() => handleAddModal(true)}
@@ -96,12 +100,14 @@ function GroupMembers({ group }: Props) {
         <Trans>Members</Trans>
       </Subheading>
       <PaginatedList
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ items: any; fetch: any; options: { id: str... Remove this comment to see the full error message
         items={users.inGroup(group.id)}
         fetch={groupMemberships.fetchPage}
         options={{
           id: group.id,
         }}
         empty={<Empty>{t("This group has no members.")}</Empty>}
+        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'item' implicitly has an 'any' type.
         renderItem={(item) => (
           <GroupMemberListItem
             key={item.id}
@@ -116,9 +122,11 @@ function GroupMembers({ group }: Props) {
             groupName: group.name,
           })}
           onRequestClose={() => handleAddModal(false)}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not assignable to type 'boolea... Remove this comment to see the full error message
           isOpen={addModalOpen}
         >
           <AddPeopleToGroup
+            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ group: Group; onSubmit: () => void; }' is ... Remove this comment to see the full error message
             group={group}
             onSubmit={() => handleAddModal(false)}
           />

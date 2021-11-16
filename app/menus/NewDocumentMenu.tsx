@@ -12,6 +12,7 @@ import Header from "components/ContextMenu/Header";
 import Template from "components/ContextMenu/Template";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { newDocumentPath } from "utils/routeHelpers";
 
 function NewDocumentMenu() {
@@ -24,6 +25,7 @@ function NewDocumentMenu() {
   const can = policies.abilities(team.id);
   const items = React.useMemo(
     () =>
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'filtered' implicitly has an 'any' type.
       collections.orderedData.reduce((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
@@ -46,6 +48,7 @@ function NewDocumentMenu() {
 
   if (items.length === 1) {
     return (
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; as: <S = unknown... Remove this comment to see the full error message
       <Button as={Link} to={items[0].to} icon={<PlusIcon />}>
         {t("New doc")}
       </Button>
@@ -57,12 +60,15 @@ function NewDocumentMenu() {
       <MenuButton {...menu}>
         {(props) => (
           <Button icon={<PlusIcon />} {...props} small>
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type 'HTMLColle... Remove this comment to see the full error message
             {`${t("New doc")}…`}
           </Button>
         )}
       </MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; "aria-label": string;... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("New document")}>
         <Header>{t("Choose a collection")}</Header>
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: an... Remove this comment to see the full error message
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

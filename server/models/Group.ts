@@ -43,6 +43,7 @@ const Group = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 Group.associate = (models) => {
   Group.hasMany(models.GroupUser, {
     as: "groupMemberships",
@@ -77,6 +78,7 @@ Group.associate = (models) => {
 };
 
 // Cascade deletes to group and collection relations
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
 Group.addHook("afterDestroy", async (group, options) => {
   if (!group.deletedAt) return;
   await GroupUser.destroy({

@@ -15,6 +15,7 @@ const UserAuthentication = sequelize.define("user_authentications", {
   },
 });
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 UserAuthentication.associate = (models) => {
   UserAuthentication.belongsTo(models.AuthenticationProvider);
   UserAuthentication.belongsTo(models.User);

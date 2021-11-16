@@ -17,6 +17,7 @@ const CollectionGroup = sequelize.define(
   }
 );
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 CollectionGroup.associate = (models) => {
   CollectionGroup.belongsTo(models.Collection, {
     as: "collection",

@@ -2,8 +2,7 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { Props as InputProps } from "./Input";
-import Input from "./Input";
+import Input, { Props as InputProps } from "./Input";
 
 type Props = InputProps & {
   placeholder?: string;
@@ -29,6 +28,7 @@ export default function InputSearch(props: Props) {
       placeholder={placeholder}
       icon={
         <SearchIcon
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'inputBorderFocused' does not exist on ty... Remove this comment to see the full error message
           color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
         />
       }

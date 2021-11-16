@@ -11,7 +11,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "noImplicitOverride": true,
+    "noImplicitOverride": false,
     "noImplicitReturns": true,
     "noImplicitThis": false,
     "sourceMap": true,
@@ -23,6 +23,7 @@
     "paths": {
       "env": ["./app/env"],
       "components/*": ["./app/components/*"],
+      "scenes/*": ["./app/scenes/*"],
       "hooks/*": ["./app/hooks/*"],
       "menus/*": ["./app/menus/*"],
       "models/*": ["./app/models/*"],

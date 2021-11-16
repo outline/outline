@@ -41,12 +41,14 @@ function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
           </NudeButton>
         )}
       </MenuButton>
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element; onOpen: (() => void) | ... Remove this comment to see the full error message
       <ContextMenu
         {...menu}
         onOpen={onOpen}
         onClose={onClose}
         aria-label={t("Sort in sidebar")}
       >
+        // @ts-expect-error ts-migrate(2741) FIXME: Property 'actions' is missing in type '{ items: { ... Remove this comment to see the full error message
         <Template
           {...menu}
           items={[

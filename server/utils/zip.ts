@@ -6,6 +6,7 @@ import { Attachment, Collection, Document } from "../models";
 import { serializeFilename } from "./fs";
 import { getFileByKey } from "./s3";
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'zip' implicitly has an 'any' type.
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
@@ -43,6 +44,7 @@ async function addToArchive(zip, documents) {
   }
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'zip' implicitly has an 'any' type.
 async function addImageToArchive(zip, key) {
   try {
     const img = await getFileByKey(key);
@@ -56,6 +58,7 @@ async function addImageToArchive(zip, key) {
   }
 }
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'zip' implicitly has an 'any' type.
 async function archiveToPath(zip) {
   return new Promise((resolve, reject) => {
     tmp.file(
@@ -78,6 +81,7 @@ async function archiveToPath(zip) {
   });
 }
 
+// @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 export async function archiveCollections(collections: Collection[]) {
   const zip = new JSZip();
 

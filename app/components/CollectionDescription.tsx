@@ -36,6 +36,7 @@ function CollectionDescription({ collection }: Props) {
       event.preventDefault();
 
       if (isExpanded && document.activeElement) {
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
         document.activeElement.blur();
       }
 
@@ -73,6 +74,7 @@ function CollectionDescription({ collection }: Props) {
   return (
     <MaxHeight data-editing={isEditing} data-expanded={isExpanded}>
       <Input
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         $isEditable={can.update}
         data-editing={isEditing}
         data-expanded={isExpanded}
@@ -80,9 +82,11 @@ function CollectionDescription({ collection }: Props) {
         <span onClick={can.update ? handleStartEditing : undefined}>
           {collections.isSaving && <LoadingIndicator />}
           {collection.hasDescription || isEditing || isDirty ? (
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
               <Editor
                 key={key}
+                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: string; defaultValue: string; onChang... Remove this comment to see the full error message
                 defaultValue={collection.description || ""}
                 onChange={handleChange}
                 placeholder={placeholder}
@@ -96,6 +100,7 @@ function CollectionDescription({ collection }: Props) {
               />
             </React.Suspense>
           ) : (
+            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             can.update && <Placeholder>{placeholder}</Placeholder>
           )}
         </span>

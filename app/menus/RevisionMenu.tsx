@@ -13,6 +13,7 @@ import CopyToClipboard from "components/CopyToClipboard";
 import MenuIconWrapper from "components/MenuIconWrapper";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useToasts from "hooks/useToasts";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -67,6 +68,7 @@ function RevisionMenu({ document, revisionId, className }: Props) {
         aria-label={t("Show menu")}
         {...menu}
       />
+      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: Element[]; "aria-label": string;... Remove this comment to see the full error message
       <ContextMenu {...menu} aria-label={t("Revision options")}>
         <MenuItem {...menu} onClick={handleRestore}>
           <MenuIconWrapper>

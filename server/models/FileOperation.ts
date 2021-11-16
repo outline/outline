@@ -32,6 +32,7 @@ const FileOperation = sequelize.define("file_operations", {
     allowNull: false,
   },
 });
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 FileOperation.beforeDestroy(async (model) => {
   await deleteFromS3(model.key);
 });
@@ -42,6 +43,7 @@ FileOperation.prototype.expire = async function () {
   await this.save();
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
 FileOperation.associate = (models) => {
   FileOperation.belongsTo(models.User, {
     as: "user",

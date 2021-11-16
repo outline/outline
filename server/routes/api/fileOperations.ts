@@ -19,6 +19,7 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   authorize(user, fileOperation.type, team);
 
   if (!fileOperation) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 
@@ -29,7 +30,9 @@ router.post("fileOperations.info", auth(), async (ctx) => {
 router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", type } = ctx.body;
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
   ctx.assertPresent(type, "type is required");
+  // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
   ctx.assertIn(
     type,
     ["import", "export"],
@@ -67,12 +70,14 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   const fileOp = await FileOperation.unscoped().findByPk(id);
 
   if (!fileOp) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 
   authorize(user, fileOp.type, team);
 
   if (fileOp.state !== "complete") {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new ValidationError(`${fileOp.type} is not complete yet`);
   }
 
@@ -87,6 +92,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   const fileOp = await FileOperation.findByPk(id);
 
   if (!fileOp) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new NotFoundError();
   }
 

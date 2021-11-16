@@ -1,18 +1,19 @@
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { TFunction } from "react-i18next";
-import { withTranslation } from "react-i18next";
+import { TFunction, withTranslation } from "react-i18next";
+
 import PoliciesStore from "stores/PoliciesStore";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
-import Editor from "components/Editor";
-import { Props as EditorProps } from "components/Editor";
+import Editor, { Props as EditorProps } from "components/Editor";
+
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import EditableTitle from "./EditableTitle";
 import MultiplayerEditor from "./MultiplayerEditor";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = EditorProps & {
@@ -98,6 +99,7 @@ class DocumentEditor extends React.Component<Props> {
       <Flex auto column>
         <EditableTitle
           value={title}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | undefined' is not assignable to ty... Remove this comment to see the full error message
           readOnly={readOnly}
           document={document}
           onGoToNextInput={this.handleGoToNextInput}
@@ -121,14 +123,18 @@ class DocumentEditor extends React.Component<Props> {
           placeholder={t("…the rest is up to you")}
           onHoverLink={this.handleLinkActive}
           scrollTo={window.location.hash}
+          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id?: string | undefined; value?: string | ... Remove this comment to see the full error message
           readOnly={readOnly}
           shareId={shareId}
           grow
           {...rest}
         />
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+        call.
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
         {this.activeLinkEvent && !shareId && readOnly && (
           <HoverPreview
+            // @ts-expect-error ts-migrate(2322) FIXME: Type 'EventTarget | null' is not assignable to typ... Remove this comment to see the full error message
             node={this.activeLinkEvent.target}
             event={this.activeLinkEvent}
             onClose={this.handleLinkInactive}
@@ -140,6 +146,7 @@ class DocumentEditor extends React.Component<Props> {
   }
 }
 
+// @ts-expect-error ts-migrate(2344) FIXME: Type 'DocumentEditor' does not satisfy the constra... Remove this comment to see the full error message
 export default withTranslation()<DocumentEditor>(
   inject("policies")(DocumentEditor)
 );

@@ -7,7 +7,9 @@ import Policy from "models/Policy";
 import Team from "models/Team";
 import User from "models/User";
 import env from "env";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
 import { getCookieDomain } from "utils/domains";
 
 const AUTH_STORE = "AUTH_STORE";
@@ -83,6 +85,7 @@ export default class AuthStore {
     window.addEventListener("storage", (event) => {
       if (event.key === AUTH_STORE) {
         const data: PersistedData | null | undefined = JSON.parse(
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | null' is not assignable... Remove this comment to see the full error message
           event.newValue
         );
         // data may be null if key is deleted in localStorage
@@ -103,7 +106,9 @@ export default class AuthStore {
 
   @action
   rehydrate(data: PersistedData) {
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     this.user = new User(data.user);
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     this.team = new Team(data.team);
     this.token = getCookie("accessToken");
     this.lastSignedIn = getCookie("lastSignedIn");
@@ -151,7 +156,9 @@ export default class AuthStore {
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         this.user = new User(user);
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         this.team = new Team(team);
 
         if (env.SENTRY_DSN) {
@@ -207,6 +214,7 @@ export default class AuthStore {
       invariant(res && res.data, "User response not available");
       runInAction("AuthStore#updateUser", () => {
         this.addPolicies(res.policies);
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         this.user = new User(res.data);
       });
     } finally {
@@ -227,6 +235,7 @@ export default class AuthStore {
       invariant(res && res.data, "Team response not available");
       runInAction("AuthStore#updateTeam", () => {
         this.addPolicies(res.policies);
+        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         this.team = new Team(res.data);
       });
     } finally {

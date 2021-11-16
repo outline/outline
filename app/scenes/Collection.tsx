@@ -38,6 +38,7 @@ import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import Collection from "../models/Collection";
 import { updateCollectionUrl } from "../utils/routeHelpers";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/collection... Remove this comment to see the full error message
 import { editCollection } from "actions/definitions/collections";
 import useBoolean from "hooks/useBoolean";
 import useCommandBarActions from "hooks/useCommandBarActions";
@@ -46,6 +47,7 @@ import useImportDocument from "hooks/useImportDocument";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
 import CollectionMenu from "menus/CollectionMenu";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { newDocumentPath, collectionUrl } from "utils/routeHelpers";
 
 function CollectionScene() {
@@ -63,6 +65,7 @@ function CollectionScene() {
     handlePermissionsModalOpen,
     handlePermissionsModalClose,
   ] = useBoolean();
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type '{}'.
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
@@ -84,6 +87,7 @@ function CollectionScene() {
     }
   }, [ui, collection]);
   React.useEffect(() => {
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
     setError(null);
 
     if (collection) {
@@ -96,12 +100,15 @@ function CollectionScene() {
     async function load() {
       if ((!can || !collection) && !error && !isFetching) {
         try {
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
           setError(null);
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
           setFetching(true);
           await collections.fetch(id);
         } catch (err) {
           setError(err);
         } finally {
+          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
           setFetching(false);
         }
       }
@@ -207,7 +214,7 @@ function CollectionScene() {
           <DropzoneContainer
             {...getRootProps()}
             isDragActive={isDragActive}
-            tabIndex="-1"
+            tabIndex={-1}
           >
             <input {...getInputProps()} />
             {isImporting && <LoadingIndicator />}
@@ -400,7 +407,8 @@ const DropMessage = styled(HelpText)`
   opacity: 0;
   pointer-events: none;
 `;
-const DropzoneContainer = styled.div`
+
+const DropzoneContainer = styled.div<{ isDragActive?: boolean }>`
   outline-color: transparent !important;
   min-height: calc(100% - 56px);
   position: relative;
@@ -433,17 +441,20 @@ const DropzoneContainer = styled.div`
       }
     `}
 `;
+
 const Centered = styled(Flex)`
   text-align: center;
   margin: 40vh auto 0;
   max-width: 380px;
   transform: translateY(-50%);
 `;
+
 const TinyPinIcon = styled(PinIcon)`
   position: relative;
   top: 4px;
   opacity: 0.8;
 `;
+
 const Empty = styled(Flex)`
   justify-content: center;
   margin: 10px 0;

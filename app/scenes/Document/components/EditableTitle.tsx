@@ -10,6 +10,7 @@ import Document from "models/Document";
 import ContentEditable from "components/ContentEditable";
 import Star, { AnimatedStar } from "components/Star";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
 
 type Props = {
@@ -78,6 +79,7 @@ function EditableTitle({
   );
   return (
     <Title
+      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       ref={ref}
       onChange={onChange}
       onKeyDown={handleKeyDown}
@@ -129,10 +131,12 @@ const Title = styled(ContentEditable)`
   }
 
   ${breakpoint("tablet")`
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
     margin-left: ${(props) => (props.$startsWithEmojiAndSpace ? "-1.2em" : 0)};
   `};
 
   ${AnimatedStar} {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property '$isStarred' does not exist on type 'Them... Remove this comment to see the full error message
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 

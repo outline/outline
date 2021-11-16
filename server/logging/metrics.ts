@@ -1,3 +1,4 @@
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'data... Remove this comment to see the full error message
 import ddMetrics from "datadog-metrics";
 
 class Metrics {
@@ -23,6 +24,7 @@ class Metrics {
     return ddMetrics.gauge(key, value, tags);
   }
 
+  // @ts-expect-error ts-migrate(1015) FIXME: Parameter cannot have question mark and initialize... Remove this comment to see the full error message
   gaugePerInstance(key: string, value: number, tags?: string[] = []): void {
     if (!this.enabled) {
       return;

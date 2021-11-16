@@ -12,7 +12,7 @@ type Props = {
 };
 
 class Tooltip extends React.Component<Props> {
-  override render() {
+  render() {
     const { shortcut, tooltip, delay = 50, ...rest } = this.props;
     let content = tooltip;
 
@@ -33,6 +33,7 @@ class Tooltip extends React.Component<Props> {
         arrow
         arrowType="round"
         animation="shift-away"
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         content={content}
         delay={delay}
         duration={[200, 150]}

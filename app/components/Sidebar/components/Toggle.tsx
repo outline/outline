@@ -6,10 +6,10 @@ import Arrow from "components/Arrow";
 
 type Props = {
   direction: "left" | "right";
-  style?: Record<string, any>;
+  style?: React.CSSProperties;
   onClick?: () => any;
 };
-const Toggle = React.forwardRef<Props, HTMLButtonElement>(
+const Toggle = React.forwardRef<HTMLButtonElement, Props>(
   ({ direction = "left", onClick, style }: Props, ref) => {
     const { t } = useTranslation();
     return (
@@ -27,7 +27,7 @@ const Toggle = React.forwardRef<Props, HTMLButtonElement>(
   }
 );
 
-export const ToggleButton = styled.button`
+export const ToggleButton = styled.button<{ $direction?: "left" | "right" }>`
   opacity: 0;
   background: none;
   transition: opacity 100ms ease-in-out;

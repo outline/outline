@@ -5,12 +5,14 @@ import styled, { useTheme } from "styled-components";
 import CircularProgressBar from "components/CircularProgressBar";
 import usePrevious from "../hooks/usePrevious";
 import Document from "../models/Document";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
 import { bounceIn } from "styles/animations";
 
 type Props = {
   document: Document;
 };
 
+// @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
 function getMessage(t, total, completed) {
   if (completed === 0) {
     return t(`{{ total }} task`, {
@@ -42,6 +44,7 @@ function DocumentTasks({ document }: Props) {
     <>
       {completed === total ? (
         <Done
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'primary' does not exist on type 'Default... Remove this comment to see the full error message
           color={theme.primary}
           size={20}
           $animated={done && previousDone === false}

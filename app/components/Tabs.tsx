@@ -26,6 +26,7 @@ const Nav = styled.nav`
     height: 100%;
     pointer-events: none;
     background: ${(props) =>
+      // @ts-expect-error ts-migrate(2339) FIXME: Property '$shadowVisible' does not exist on type '... Remove this comment to see the full error message
       props.$shadowVisible
         ? `linear-gradient(
       90deg,
@@ -76,6 +77,8 @@ const Tabs = ({ children }: { children: React.ReactNode }) => {
   return (
     <AnimateSharedLayout>
       <Sticky>
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
+        call.
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
         </Nav>

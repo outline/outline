@@ -11,14 +11,17 @@ import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
+// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
 import { fadeIn } from "styles/animations";
 
 const ANIMATION_MS = 250;
 let isFirstRender = true;
+
 type Props = {
   children: React.ReactNode;
 };
-const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
+
+const Sidebar = React.forwardRef<HTMLButtonElement, Props>(
   ({ children }: Props, ref) => {
     const [isCollapsing, setCollapsing] = React.useState(false);
     const theme = useTheme();
@@ -36,6 +39,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
     const [isAnimating, setAnimating] = React.useState(false);
     const [isResizing, setResizing] = React.useState(false);
     const isSmallerThanMinimum = width < minWidth;
+
     const handleDrag = React.useCallback(
       (event: MouseEvent) => {
         // suppresses text selection
@@ -52,11 +56,13 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
       },
       [theme, offset, minWidth, maxWidth, setWidth]
     );
+
     const handleStopDrag = React.useCallback(
       (event: MouseEvent) => {
         setResizing(false);
 
         if (document.activeElement) {
+          // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
           document.activeElement.blur();
         }
 
@@ -77,6 +83,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
       },
       [ui, isSmallerThanMinimum, minWidth, width, setWidth]
     );
+
     const handleMouseDown = React.useCallback(
       (event: MouseEvent) => {
         setOffset(event.pageX - width);
@@ -85,11 +92,13 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
       },
       [width]
     );
+
     React.useEffect(() => {
       if (isAnimating) {
         setTimeout(() => setAnimating(false), ANIMATION_MS);
       }
     }, [isAnimating]);
+
     React.useEffect(() => {
       if (isCollapsing) {
         setTimeout(() => {
@@ -98,6 +107,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
         }, ANIMATION_MS);
       }
     }, [setWidth, minWidth, isCollapsing]);
+
     React.useEffect(() => {
       if (isResizing) {
         document.addEventListener("mousemove", handleDrag);
@@ -109,24 +119,29 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
         document.removeEventListener("mouseup", handleStopDrag);
       };
     }, [isResizing, handleDrag, handleStopDrag]);
+
     const handleReset = React.useCallback(() => {
       ui.setSidebarWidth(theme.sidebarWidth);
     }, [ui, theme.sidebarWidth]);
+
     React.useEffect(() => {
       ui.setSidebarResizing(isResizing);
     }, [ui, isResizing]);
+
     React.useEffect(() => {
       if (location !== previousLocation) {
         isFirstRender = false;
         ui.hideMobileSidebar();
       }
     }, [ui, location, previousLocation]);
+
     const style = React.useMemo(
       () => ({
         width: `${width}px`,
       }),
       [width]
     );
+
     const toggleStyle = React.useMemo(
       () => ({
         right: "auto",
@@ -134,6 +149,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
       }),
       [width, theme.sidebarCollapsedWidth, collapsed]
     );
+
     const content = (
       <>
         {ui.mobileSidebarVisible && (
@@ -143,6 +159,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
         )}
         {children}
         <ResizeBorder
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           onMouseDown={handleMouseDown}
           onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
           $isResizing={isResizing}
@@ -156,9 +173,11 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
         )}
       </>
     );
+
     return (
       <>
         <Container
+          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           ref={ref}
           style={style}
           $sidebarWidth={ui.sidebarWidth}
@@ -183,6 +202,7 @@ const Sidebar = React.forwardRef<Props, HTMLButtonElement>(
     );
   }
 );
+
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
   position: fixed;
@@ -194,19 +214,15 @@ const Backdrop = styled.a`
   z-index: ${(props) => props.theme.depths.sidebar - 1};
   background: ${(props) => props.theme.backdrop};
 `;
-const Container = styled(Flex)`
+
+const Container = styled(Flex) <{ $mobileSidebarVisible: boolean }>`
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
-  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
-    ${(props) => props.theme.backgroundTransition}
-      ${(props) =>
-        props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
-  transform: translateX(
-    ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
-  );
+  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out, ${(props) => props.theme.backgroundTransition} ${(props: any) => props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
+  transform: translateX(${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")});
   z-index: ${(props) => props.theme.depths.sidebar};
   max-width: 70%;
   min-width: 280px;
@@ -223,13 +239,13 @@ const Container = styled(Flex)`
   ${breakpoint("tablet")`
     margin: 0;
     min-width: 0;
-    transform: translateX(${(props) =>
+    transform: translateX(${(props: any) =>
       props.$collapsed ? "calc(-100% + 16px)" : 0});
 
     &:hover,
     &:focus-within {
       transform: none;
-      box-shadow: ${(props) =>
+      box-shadow: ${(props: any) =>
         props.$collapsed
           ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
           : props.$isSmallerThanMinimum
@@ -246,7 +262,7 @@ const Container = styled(Flex)`
     }
 
     &:not(:hover):not(:focus-within) > div {
-      opacity: ${(props) => (props.$collapsed ? "0" : "1")};
+      opacity: ${(props: any) => (props.$collapsed ? "0" : "1")};
       transition: opacity 100ms ease-in-out;
     }
   `};

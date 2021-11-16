@@ -12,6 +12,7 @@ router.post("utils.gc", async (ctx) => {
   const { token, limit = 500 } = ctx.body;
 
   if (process.env.UTILS_SECRET !== token) {
+    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     throw new AuthenticationError("Invalid secret token");
   }
 
@@ -47,6 +48,7 @@ router.post("utils.gc", async (ctx) => {
     },
   });
   await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'e' implicitly has an 'any' type.
     exports.map(async (e) => {
       await e.expire();
     })

@@ -114,5 +114,6 @@ export function actionToKBar(
         : undefined,
       children: children.length ? children.map((a) => a.id) : undefined,
     },
+    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   ].concat(children.map((child) => ({ ...child, parent: action.id })));
 }
