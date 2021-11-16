@@ -43,6 +43,7 @@ const MenuItem = ({
     },
     [onClick, hide]
   );
+
   // Preventing default mousedown otherwise menu items do not work in Firefox,
   // which triggers the hideOnClickOutside handler first via mousedown – hiding
   // and un-rendering the menu contents.
@@ -50,6 +51,7 @@ const MenuItem = ({
     ev.preventDefault();
     ev.stopPropagation();
   }, []);
+
   return (
     <BaseMenuItem
       onClick={disabled ? undefined : onClick}
@@ -85,18 +87,16 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchorCSS = css`
+export const MenuAnchorCSS = css<{ level: number; disabled?: boolean }>`
   display: flex;
   margin: 0;
   border: 0;
   padding: 12px;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'level' does not exist on type 'ThemeProp... Remove this comment to see the full error message
   padding-left: ${(props) => 12 + (props.level || 0) * 10}px;
   width: 100%;
   min-height: 32px;
   background: none;
   color: ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'ThemeP... Remove this comment to see the full error message
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
@@ -110,12 +110,10 @@ export const MenuAnchorCSS = css`
 
   svg {
     flex-shrink: 0;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'ThemeP... Remove this comment to see the full error message
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
   ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'disabled' does not exist on type 'ThemeP... Remove this comment to see the full error message
     props.disabled
       ? "pointer-events: none;"
       : `

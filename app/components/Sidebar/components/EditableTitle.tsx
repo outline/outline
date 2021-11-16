@@ -14,17 +14,21 @@ function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
   const { showToast } = useToasts();
+
   React.useEffect(() => {
     setValue(title);
   }, [title]);
+
   const handleChange = React.useCallback((event) => {
     setValue(event.target.value);
   }, []);
+
   const handleDoubleClick = React.useCallback((event) => {
     event.preventDefault();
     event.stopPropagation();
     setIsEditing(true);
   }, []);
+
   const handleKeyDown = React.useCallback(
     (event) => {
       if (event.key === "Escape") {
@@ -34,6 +38,7 @@ function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
     },
     [originalValue]
   );
+
   const handleSave = React.useCallback(
     async (ev) => {
       ev.preventDefault();
@@ -60,6 +65,7 @@ function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
     },
     [originalValue, showToast, value, onSubmit]
   );
+
   return (
     <>
       {isEditing ? (

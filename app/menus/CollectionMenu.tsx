@@ -56,7 +56,7 @@ function CollectionMenu({
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
-  const file = React.useRef<HTMLInputElement | null | undefined>();
+  const file = React.useRef<HTMLInputElement>();
   const [
     showCollectionPermissions,
     setShowCollectionPermissions,

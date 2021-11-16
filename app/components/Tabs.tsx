@@ -57,7 +57,7 @@ export const Separator = styled.span`
 `;
 
 const Tabs = ({ children }: { children: React.ReactNode }) => {
-  const ref = React.useRef<HTMLDivElement | null | undefined>();
+  const ref = React.useRef<HTMLDivElement>();
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
   const updateShadows = React.useCallback(() => {

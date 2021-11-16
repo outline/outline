@@ -1,7 +1,6 @@
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { TFunction, withTranslation } from "react-i18next";
-
 import styled from "styled-components";
 import AuthLogo from "components/AuthLogo";
 import ButtonLarge from "components/ButtonLarge";
@@ -103,7 +102,6 @@ class Provider extends React.Component<Props, State> {
                 </ButtonLarge>
               </>
             ) : (
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth>
                 {t("Continue with Email")}
               </ButtonLarge>
@@ -116,7 +114,6 @@ class Provider extends React.Component<Props, State> {
     return (
       <Wrapper key={id}>
         <ButtonLarge
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           onClick={() => (window.location.href = authUrl)}
           icon={<AuthLogo providerName={id} />}
           fullwidth

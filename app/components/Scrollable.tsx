@@ -15,7 +15,7 @@ function Scrollable(
   { shadow, topShadow, bottomShadow, flex, ...rest }: Props,
   ref: any
 ) {
-  const fallbackRef = React.useRef<HTMLDivElement | null | undefined>();
+  const fallbackRef = React.useRef<HTMLDivElement>();
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
   const { height } = useWindowSize();

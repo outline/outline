@@ -93,7 +93,8 @@ function DocumentMenu({
   ] = React.useState(false);
   const [showMoveModal, setShowMoveModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
-  const file = React.useRef<HTMLInputElement | null | undefined>();
+  const file = React.useRef<HTMLInputElement>();
+
   const handleOpen = React.useCallback(() => {
     setRenderModals(true);
 
@@ -101,6 +102,7 @@ function DocumentMenu({
       onOpen();
     }
   }, [onOpen]);
+
   const handleDuplicate = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       const duped = await document.duplicate();
@@ -112,6 +114,7 @@ function DocumentMenu({
     },
     [t, history, showToast, document]
   );
+
   const handleArchive = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       await document.archive();
@@ -121,6 +124,7 @@ function DocumentMenu({
     },
     [showToast, t, document]
   );
+
   const handleRestore = React.useCallback(
     async (
       ev: React.SyntheticEvent,
@@ -136,6 +140,7 @@ function DocumentMenu({
     },
     [showToast, t, document]
   );
+
   const handleUnpublish = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       await document.unpublish();
@@ -145,6 +150,7 @@ function DocumentMenu({
     },
     [showToast, t, document]
   );
+
   const handlePrint = React.useCallback(
     (ev: React.SyntheticEvent) => {
       menu.hide();
@@ -152,6 +158,7 @@ function DocumentMenu({
     },
     [menu]
   );
+
   const handleStar = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -160,6 +167,7 @@ function DocumentMenu({
     },
     [document]
   );
+
   const handleUnstar = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();

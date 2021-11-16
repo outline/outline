@@ -90,7 +90,6 @@ function DocumentListItem(props: Props, ref) {
             dir={document.dir}
           />
           {document.isNew && document.createdBy.id !== currentUser.id && (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (
@@ -108,7 +107,6 @@ function DocumentListItem(props: Props, ref) {
             </Tooltip>
           )}
           {document.isTemplate && showTemplate && (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <Badge primary>{t("Template")}</Badge>
           )}
         </Heading>

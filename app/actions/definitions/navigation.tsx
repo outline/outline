@@ -20,7 +20,6 @@ import {
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions' or its corresponding ... Remove this comment to see the full error message
 import { createAction } from "actions";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/sections' or its corre... Remove this comment to see the full error message
 import { NavigationSection } from "actions/sections";
@@ -38,69 +37,56 @@ import {
 } from "utils/routeHelpers";
 
 export const navigateToHome = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Home"),
   section: NavigationSection,
   shortcut: ["d"],
   icon: <HomeIcon />,
   perform: () => history.push(homePath()),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'location' implicitly has an 'any'... Remove this comment to see the full error message
   visible: ({ location }) => location.pathname !== homePath(),
 });
 
 export const navigateToSearch = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Search"),
   section: NavigationSection,
   shortcut: ["/"],
   icon: <SearchIcon />,
   perform: () => history.push(searchUrl()),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'location' implicitly has an 'any'... Remove this comment to see the full error message
   visible: ({ location }) => location.pathname !== searchUrl(),
 });
 
 export const navigateToDrafts = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Drafts"),
   section: NavigationSection,
   icon: <EditIcon />,
   perform: () => history.push(draftsPath()),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'location' implicitly has an 'any'... Remove this comment to see the full error message
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
 
 export const navigateToTemplates = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Templates"),
   section: NavigationSection,
   icon: <ShapesIcon />,
   perform: () => history.push(templatesPath()),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'location' implicitly has an 'any'... Remove this comment to see the full error message
   visible: ({ location }) => location.pathname !== templatesPath(),
 });
 
 export const navigateToArchive = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Archive"),
   section: NavigationSection,
   icon: <ArchiveIcon />,
   perform: () => history.push(archivePath()),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'location' implicitly has an 'any'... Remove this comment to see the full error message
   visible: ({ location }) => location.pathname !== archivePath(),
 });
 
 export const navigateToTrash = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Trash"),
   section: NavigationSection,
   icon: <TrashIcon />,
   perform: () => history.push(trashPath()),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'location' implicitly has an 'any'... Remove this comment to see the full error message
   visible: ({ location }) => location.pathname !== trashPath(),
 });
 
 export const navigateToSettings = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Settings"),
   section: NavigationSection,
   shortcut: ["g", "s"],
@@ -110,7 +96,6 @@ export const navigateToSettings = createAction({
 });
 
 export const openAPIDocumentation = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("API documentation"),
   section: NavigationSection,
   iconInContextMenu: false,
@@ -119,7 +104,6 @@ export const openAPIDocumentation = createAction({
 });
 
 export const openFeedbackUrl = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Send us feedback"),
   section: NavigationSection,
   iconInContextMenu: false,
@@ -128,14 +112,12 @@ export const openFeedbackUrl = createAction({
 });
 
 export const openBugReportUrl = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Report a bug"),
   section: NavigationSection,
   perform: () => window.open(githubIssuesUrl()),
 });
 
 export const openChangelog = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Changelog"),
   section: NavigationSection,
   iconInContextMenu: false,
@@ -144,13 +126,11 @@ export const openChangelog = createAction({
 });
 
 export const openKeyboardShortcuts = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Keyboard shortcuts"),
   section: NavigationSection,
   shortcut: ["?"],
   iconInContextMenu: false,
   icon: <KeyboardIcon />,
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   perform: ({ t }) => {
     stores.dialogs.openGuide({
       title: t("Keyboard shortcuts"),
@@ -160,7 +140,6 @@ export const openKeyboardShortcuts = createAction({
 });
 
 export const logout = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Log out"),
   section: NavigationSection,
   perform: () => stores.auth.logout(),

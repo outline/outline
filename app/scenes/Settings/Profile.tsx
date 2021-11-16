@@ -18,7 +18,7 @@ import useToasts from "hooks/useToasts";
 
 const Profile = () => {
   const { auth } = useStores();
-  const form = React.useRef<HTMLFormElement | null | undefined>();
+  const form = React.useRef<HTMLFormElement>();
   const [name, setName] = React.useState<string>(auth.user?.name || "");
   const [avatarUrl, setAvatarUrl] = React.useState<string | null | undefined>();
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);

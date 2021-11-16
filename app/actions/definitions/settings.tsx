@@ -2,13 +2,11 @@ import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
 import * as React from "react";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'stores' or its corresponding t... Remove this comment to see the full error message
 import stores from "stores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions' or its corresponding ... Remove this comment to see the full error message
 import { createAction } from "actions";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/sections' or its corre... Remove this comment to see the full error message
 import { SettingsSection } from "actions/sections";
 
 export const changeToDarkTheme = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Dark"),
   icon: <MoonIcon />,
   iconInContextMenu: false,
@@ -19,7 +17,6 @@ export const changeToDarkTheme = createAction({
 });
 
 export const changeToLightTheme = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Light"),
   icon: <SunIcon />,
   iconInContextMenu: false,
@@ -30,7 +27,6 @@ export const changeToLightTheme = createAction({
 });
 
 export const changeToSystemTheme = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("System"),
   icon: <BrowserIcon />,
   iconInContextMenu: false,
@@ -41,9 +37,7 @@ export const changeToSystemTheme = createAction({
 });
 
 export const changeTheme = createAction({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   name: ({ t }) => t("Change theme"),
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 't' implicitly has an 'any' type.
   placeholder: ({ t }) => t("Change theme to"),
   icon: () =>
     stores.ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,

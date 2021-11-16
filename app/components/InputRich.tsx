@@ -40,7 +40,6 @@ function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
           }
         >
           <Editor
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ readOnly?: boolean | undefined; onBlur: ()... Remove this comment to see the full error message
             onBlur={handleBlur}
             onFocus={handleFocus}
             ui={ui}

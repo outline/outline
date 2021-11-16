@@ -39,7 +39,7 @@ export type Props = {
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
 const getOptionFromValue = (options: Option[], value) => {
-  return options.find((option) => option.value === value) || {};
+  return options.find((option) => option.value === value);
 };
 
 const InputSelect = (props: Props) => {
@@ -53,22 +53,24 @@ const InputSelect = (props: Props) => {
     ariaLabel,
     onChange,
     disabled,
-    nude,
     note,
     icon,
   } = props;
+
   const select = useSelectState({
     gutter: 0,
     modal: true,
     selectedValue: value,
     animated: 200,
   });
+
   const popOver = useSelectPopover({
     ...select,
     hideOnClickOutside: true,
     preventBodyScroll: true,
     disabled,
   });
+
   const previousValue = React.useRef(value);
   const contentRef = React.useRef();
   const selectedRef = React.useRef();
@@ -80,6 +82,7 @@ const InputSelect = (props: Props) => {
     select.visible,
     select.unstable_disclosureRef
   );
+
   React.useEffect(() => {
     if (previousValue.current === select.selectedValue) return;
     // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | null' is not assignable to type 'st... Remove this comment to see the full error message
@@ -96,17 +99,18 @@ const InputSelect = (props: Props) => {
   const selectedValueIndex = options.findIndex(
     (option) => option.value === select.selectedValue
   );
+
   // Ensure selected option is visible when opening the input
   React.useEffect(() => {
     if (!select.animating && selectedRef.current) {
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       scrollIntoView(selectedRef.current, {
         scrollMode: "if-needed",
-        behavior: "instant",
+        behavior: "auto",
         block: "start",
       });
     }
   }, [select.animating]);
+
   React.useLayoutEffect(() => {
     if (select.visible) {
       const offset = Math.round(
@@ -118,9 +122,9 @@ const InputSelect = (props: Props) => {
       setOffset(offset);
     }
   }, [select.visible]);
+
   return (
     <>
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       <Wrapper short={short}>
         {label &&
           (labelHidden ? (
@@ -134,15 +138,11 @@ const InputSelect = (props: Props) => {
             <StyledButton
               neutral
               disclosure
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               className={className}
-              nude={nude}
               icon={icon}
               {...props}
             >
-              // @ts-expect-error ts-migrate(2339) FIXME: Property 'label' does
-              not exist on type '{}'.
-              {getOptionFromValue(options, select.selectedValue).label || (
+              {getOptionFromValue(options, select.selectedValue)?.label || (
                 <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
               )}
             </StyledButton>
@@ -214,7 +214,6 @@ const InputSelect = (props: Props) => {
           }}
         </SelectPopover>
       </Wrapper>
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       {note && <HelpText small>{note}</HelpText>}
       {(select.visible || select.animating) && <Backdrop />}
     </>
@@ -224,11 +223,13 @@ const InputSelect = (props: Props) => {
 const Placeholder = styled.span`
   color: ${(props) => props.theme.placeholder};
 `;
+
 const Spacer = styled.div`
   width: 24px;
   height: 24px;
   flex-shrink: 0;
 `;
+
 const StyledButton = styled(Button)`
   font-weight: normal;
   text-transform: none;
@@ -266,11 +267,12 @@ export const StyledSelectOption = styled(SelectOption)`
       pointer-events: none;
     `}
 `;
-const Wrapper = styled.label`
+
+const Wrapper = styled.label<{ short?: boolean }>`
   display: block;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'short' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
+
 const Positioner = styled(Position)`
   &.focus-visible {
     ${StyledSelectOption} {

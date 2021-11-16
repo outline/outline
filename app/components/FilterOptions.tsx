@@ -36,26 +36,24 @@ const FilterOptions = ({
     find(options, {
       key: activeKey,
     }) || options[0];
+
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'label' does not exist on type 'number | ... Remove this comment to see the full error message
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
+
   return (
     <Wrapper>
       <MenuButton {...menu}>
         {(props) => (
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <StyledButton
             {...props}
             className={className}
             neutral
             disclosure
-            small
           >
             {activeKey ? selectedLabel : defaultLabel}
           </StyledButton>
         )}
       </MenuButton>
-      // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | undefined' is
-      not assignable to typ... Remove this comment to see the full error message
       <ContextMenu aria-label={defaultLabel} {...menu}>
         {options.map((option) => (
           <MenuItem

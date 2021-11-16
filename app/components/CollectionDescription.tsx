@@ -25,12 +25,15 @@ function CollectionDescription({ collection }: Props) {
   const [isEditing, setEditing] = React.useState(false);
   const [isDirty, setDirty] = React.useState(false);
   const can = policies.abilities(collection.id);
+
   const handleStartEditing = React.useCallback(() => {
     setEditing(true);
   }, []);
+
   const handleStopEditing = React.useCallback(() => {
     setEditing(false);
   }, []);
+
   const handleClickDisclosure = React.useCallback(
     (event) => {
       event.preventDefault();
@@ -44,6 +47,7 @@ function CollectionDescription({ collection }: Props) {
     },
     [isExpanded]
   );
+
   const handleSave = useDebouncedCallback(async (getValue) => {
     try {
       await collection.save({
@@ -59,6 +63,7 @@ function CollectionDescription({ collection }: Props) {
       throw err;
     }
   }, 1000);
+ 
   const handleChange = React.useCallback(
     (getValue) => {
       setDirty(true);
@@ -66,11 +71,13 @@ function CollectionDescription({ collection }: Props) {
     },
     [handleSave]
   );
+
   React.useEffect(() => {
     setEditing(false);
   }, [collection.id]);
   const placeholder = `${t("Add a description")}…`;
   const key = isEditing || isDirty ? "draft" : collection.updatedAt;
+
   return (
     <MaxHeight data-editing={isEditing} data-expanded={isExpanded}>
       <Input
@@ -86,7 +93,6 @@ function CollectionDescription({ collection }: Props) {
             <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
               <Editor
                 key={key}
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: string; defaultValue: string; onChang... Remove this comment to see the full error message
                 defaultValue={collection.description || ""}
                 onChange={handleChange}
                 placeholder={placeholder}

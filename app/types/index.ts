@@ -57,7 +57,7 @@ export type Action = {
   shortcut?: string[];
   keywords?: string;
   iconInContextMenu?: boolean;
-  icon?: React.ReactElement;
+  icon?: React.ReactElement | React.FC;
   placeholder?: ((arg0: ActionContext) => string) | string;
   selected?: (arg0: ActionContext) => boolean;
   visible?: (arg0: ActionContext) => boolean;

@@ -37,9 +37,8 @@ function SharePopover({
   const { policies, shares, auth } = useStores();
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
-  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'TimeoutID'.
-  const timeout = React.useRef<TimeoutID | null | undefined>();
-  const buttonRef = React.useRef<HTMLButtonElement | null | undefined>();
+  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
+  const buttonRef = React.useRef<HTMLButtonElement>();
   const can = policies.abilities(share ? share.id : "");
   const documentAbilities = policies.abilities(document.id);
   const canPublish =
@@ -49,14 +48,16 @@ function SharePopover({
     documentAbilities.share;
   const isPubliclyShared = (share && share.published) || sharedParent;
   useKeyDown("Escape", onRequestClose);
+
   React.useEffect(() => {
     if (visible) {
       document.share();
       buttonRef.current?.focus();
     }
 
-    return () => clearTimeout(timeout.current);
+    return () => timeout.current ? clearTimeout(timeout.current) : undefined;
   }, [document, visible]);
+
   const handlePublishedChange = React.useCallback(
     async (event) => {
       const share = shares.getByDocumentId(document.id);
@@ -74,6 +75,7 @@ function SharePopover({
     },
     [document.id, shares, showToast]
   );
+
   const handleChildDocumentsChange = React.useCallback(
     async (event) => {
       const share = shares.getByDocumentId(document.id);
@@ -91,6 +93,7 @@ function SharePopover({
     },
     [document.id, shares, showToast]
   );
+
   const handleCopied = React.useCallback(() => {
     setIsCopied(true);
     timeout.current = setTimeout(() => {
@@ -101,6 +104,7 @@ function SharePopover({
       });
     }, 250);
   }, [t, onRequestClose, showToast]);
+
   return (
     <>
       <Heading>
@@ -209,20 +213,22 @@ const Heading = styled.h2`
   margin-top: 12px;
   margin-left: -4px;
 `;
+
 const SwitchWrapper = styled.div`
   margin: 20px 0;
 `;
+
 const InputLink = styled(Input)`
   flex-grow: 1;
   margin-right: 8px;
 `;
-const SwitchLabel = styled(Flex)`
-  flex-align: center;
 
+const SwitchLabel = styled(Flex)`
   svg {
     flex-shrink: 0;
   }
 `;
+
 const SwitchText = styled(HelpText)`
   margin: 0;
   font-size: 15px;

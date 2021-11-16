@@ -63,6 +63,7 @@ export default function ContextMenu({
           const topAnchor = props.style.top === "0";
           // @ts-expect-error ts-migrate(2339) FIXME: Property 'placement' does not exist on type 'Extra... Remove this comment to see the full error message
           const rightAnchor = props.placement === "bottom-end";
+
           return (
             <Position {...props}>
               <Background
