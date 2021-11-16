@@ -48,7 +48,7 @@ function CollectionLink({
     handlePermissionOpen,
     handlePermissionClose,
   ] = useBoolean();
-  const itemRef = React.useRef<{ id: string, collectionId: string }>();
+  const itemRef = React.useRef<{ id: string; collectionId: string }>();
   const handleTitleChange = React.useCallback(
     async (name: string) => {
       await collection.save({
@@ -262,7 +262,7 @@ function CollectionLink({
   );
 }
 
-const Draggable = styled("div") <{ $isDragging: boolean; $isMoving: boolean; }>`
+const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
 `;

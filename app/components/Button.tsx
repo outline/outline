@@ -150,10 +150,7 @@ export type Props = React.HTMLProps<HTMLButtonElement> & {
 };
 
 const Button = React.forwardRef<HTMLButtonElement, Props>(
-  (
-    props: Props,
-    ref: React.Ref<HTMLButtonElement>
-  ) => {
+  (props: Props, ref: React.Ref<HTMLButtonElement>) => {
     const { type, icon, children, value, disclosure, neutral, ...rest } = props;
     const hasText = children !== undefined || value !== undefined;
     const hasIcon = icon !== undefined;

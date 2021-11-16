@@ -1,11 +1,9 @@
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { RouterHistory } from "react-router-dom";
-import "react-router-dom";
+import { History } from "history";
 import env from "env";
 
-export function initSentry(history: RouterHistory) {
+export function initSentry(history: History) {
   Sentry.init({
     dsn: env.SENTRY_DSN,
     environment: env.ENVIRONMENT,

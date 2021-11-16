@@ -12,7 +12,6 @@ type Props = {
 export default class Marvel extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     return (
       <Frame

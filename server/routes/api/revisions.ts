@@ -4,13 +4,15 @@ import auth from "../../middlewares/authentication";
 import { Document, Revision } from "../../models";
 import policy from "../../policies";
 import { presentRevision } from "../../presenters";
+import { assertPresent, assertSort } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("revisions.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const revision = await Revision.findByPk(id);
 
@@ -28,14 +30,14 @@ router.post("revisions.info", auth(), async (ctx) => {
     data: await presentRevision(revision),
   };
 });
+
 router.post("revisions.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { documentId, sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Revision);
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
-  ctx.assertPresent(documentId, "documentId is required");
+  assertSort(sort, Revision);
+  assertPresent(documentId, "documentId is required");
+
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, {
     userId: user.id,

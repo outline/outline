@@ -1,8 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { $Diff } from "utility-types";
-import { Props, Option } from "./InputSelect";
-import InputSelect from "./InputSelect";
+import InputSelect, { Props, Option } from "./InputSelect";
 
 export default function InputSelectPermission(
   props: $Diff<

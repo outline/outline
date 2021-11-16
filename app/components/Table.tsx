@@ -178,13 +178,11 @@ function Table({
         >
           {/* Note: the page > 0 check shouldn't be needed here but is */}
           {canPreviousPage && page > 0 && (
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
             <Button onClick={handlePreviousPage} neutral>
               {t("Previous page")}
             </Button>
           )}
           {canNextPage && (
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; onClick: () => v... Remove this comment to see the full error message
             <Button onClick={handleNextPage} neutral>
               {t("Next page")}
             </Button>

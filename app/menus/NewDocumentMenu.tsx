@@ -48,7 +48,6 @@ function NewDocumentMenu() {
 
   if (items.length === 1) {
     return (
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; as: <S = unknown... Remove this comment to see the full error message
       <Button as={Link} to={items[0].to} icon={<PlusIcon />}>
         {t("New doc")}
       </Button>

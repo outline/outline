@@ -95,7 +95,7 @@ function HoverPreviewInternal({ node, documents, onClose }: Props) {
   }, [node]);
 
   const anchorBounds = node.getBoundingClientRect();
-  const cardBounds = cardRef.current?.getBoundingClientRect()
+  const cardBounds = cardRef.current?.getBoundingClientRect();
   const left = cardBounds
     ? Math.min(anchorBounds.left, window.innerWidth - 16 - 350)
     : anchorBounds.left;

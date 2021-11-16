@@ -14,7 +14,6 @@ export default class Abstract extends React.Component<Props> {
     new RegExp("https?://app.(?:go)?abstract.com/(?:share|embed)/(.*)$"),
   ];
 
-  
   render() {
     const { matches } = this.props.attrs;
     const shareId = matches[1];

@@ -99,7 +99,7 @@ const Content = styled(Flex)<{ $selected: boolean }>`
   color: ${(props) => (props.$selected ? props.theme.white : props.theme.text)};
 `;
 
-const Subtitle = styled.p<{ $small?: boolean, $selected?: boolean }>`
+const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
   margin: 0;
   font-size: ${(props) => (props.$small ? 13 : 14)}px;
   color: ${(props) =>

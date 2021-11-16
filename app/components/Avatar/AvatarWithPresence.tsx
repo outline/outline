@@ -1,7 +1,7 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { TFunction, withTranslation } from "react-i18next";
+import { WithTranslation, withTranslation } from "react-i18next";
 
 import styled from "styled-components";
 import User from "models/User";
@@ -9,13 +9,12 @@ import Avatar from "components/Avatar";
 import Tooltip from "components/Tooltip";
 import UserProfile from "../../scenes/UserProfile";
 
-type Props = {
+type Props = WithTranslation & {
   user: User;
   isPresent: boolean;
   isEditing: boolean;
   isCurrentUser: boolean;
   profileOnClick: boolean;
-  t: TFunction;
 };
 
 @observer
@@ -85,5 +84,4 @@ const AvatarWrapper = styled.div<{ isPresent: boolean }>`
   transition: opacity 250ms ease-in-out;
 `;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'AvatarWithPresence' does not satisfy the con... Remove this comment to see the full error message
-export default withTranslation()<AvatarWithPresence>(AvatarWithPresence);
+export default withTranslation()(AvatarWithPresence);

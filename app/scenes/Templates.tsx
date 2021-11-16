@@ -2,8 +2,7 @@ import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-// @ts-expect-error ts-migrate(2724) FIXME: '"react-router-dom"' has no exported member named ... Remove this comment to see the full error message
-import { Match } from "react-router-dom";
+import { RouteComponentProps } from "react-router-dom";
 import { Action } from "components/Actions";
 import Empty from "components/Empty";
 import Heading from "components/Heading";
@@ -15,17 +14,14 @@ import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import NewTemplateMenu from "menus/NewTemplateMenu";
 
-type Props = {
-  match: Match;
-};
-
-function Templates(props: Props) {
+function Templates(props: RouteComponentProps<{ sort: string }>) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const { sort } = props.match.params;
   const can = policies.abilities(team.id);
+
   return (
     <Scene
       icon={<ShapesIcon color="currentColor" />}

@@ -4,11 +4,13 @@ import { observer, inject } from "mobx-react";
 import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
-import { TFunction, Trans, withTranslation } from "react-i18next";
-
-import { Prompt, Route, withRouter } from "react-router-dom";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { RouterHistory, Match } from "react-router-dom";
+import { WithTranslation, Trans, withTranslation } from "react-i18next";
+import {
+  Prompt,
+  Route,
+  RouteComponentProps,
+  withRouter,
+} from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import getTasks from "shared/utils/getTasks";
@@ -38,8 +40,7 @@ import MarkAsViewed from "./MarkAsViewed";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { LocationWithState, NavigationNode, Theme } from "types";
-import "types";
+import { NavigationNode } from "types";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
@@ -59,26 +60,29 @@ import {
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 
-type Props = {
-  match: Match;
-  history: RouterHistory;
-  location: LocationWithState;
-  sharedTree: NavigationNode | null | undefined;
-  abilities: Record<string, any>;
-  document: Document;
-  revision: Revision;
-  readOnly: boolean;
-  onCreateLink: (title: string) => Promise<string>;
-  onSearchLink: (term: string) => any;
-  theme: Theme;
+type InjectedStores = {
   auth: AuthStore;
   ui: UiStore;
   toasts: ToastsStore;
-  t: TFunction;
 };
 
+type Props = WithTranslation &
+  RouteComponentProps<
+    Record<string, string>,
+    any,
+    { restore?: boolean; revisionId?: string }
+  > & {
+    sharedTree: NavigationNode | null | undefined;
+    abilities: Record<string, any>;
+    document: Document;
+    revision: Revision;
+    readOnly: boolean;
+    onCreateLink: (title: string) => Promise<string>;
+    onSearchLink: (term: string) => any;
+  };
+
 @observer
-class DocumentScene extends React.Component<Props> {
+class DocumentScene extends React.Component<Props & InjectedStores> {
   @observable
   editor = React.createRef();
 
@@ -219,13 +223,6 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.update) {
       this.props.history.push(editDocumentUrl(document));
     }
-  };
-
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-  goBack = (ev) => {
-    if (this.props.readOnly) return;
-    ev.preventDefault();
-    this.props.history.goBack();
   };
 
   // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
@@ -398,7 +395,6 @@ class DocumentScene extends React.Component<Props> {
     this.autosave();
   };
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'goBack'.
   goBack = () => {
     this.props.history.push(this.props.document.url);
   };
@@ -432,6 +428,7 @@ class DocumentScene extends React.Component<Props> {
       !document.isDeleted &&
       !revision &&
       !isShare;
+
     return (
       <ErrorBoundary>
         <RegisterKeyDown trigger="m" handler={this.goToMove} />
@@ -466,7 +463,6 @@ class DocumentScene extends React.Component<Props> {
             component={() => (
               <Modal
                 title={`Move ${document.noun}`}
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '(ev: any) => void' is not assignable to type... Remove this comment to see the full error message
                 onRequestClose={this.goBack}
                 isOpen
               >
@@ -481,8 +477,6 @@ class DocumentScene extends React.Component<Props> {
             title={document.titleWithDefault.replace(document.emoji, "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
           <Container justify="center" column auto>
             {!readOnly && (
@@ -525,7 +519,6 @@ class DocumentScene extends React.Component<Props> {
               headings={headings}
             />
             <MaxWidth
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               archived={document.isArchived}
               showContents={showContents}
               isEditing={!readOnly}
@@ -613,7 +606,6 @@ class DocumentScene extends React.Component<Props> {
                     ui={this.props.ui}
                   >
                     {shareId && (
-                      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                       <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
                         <PublicReferences
                           shareId={shareId}
@@ -656,25 +648,28 @@ const PlaceholderIcon = styled(InputIcon)`
   position: relative;
   top: 6px;
 `;
+
 const Background = styled(Container)`
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
 `;
-const ReferencesWrapper = styled("div")`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'isOnlyTitle' does not exist on type 'The... Remove this comment to see the full error message
+
+const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
   margin-top: ${(props) => (props.isOnlyTitle ? -45 : 16)}px;
 
   @media print {
     display: none;
   }
 `;
-const MaxWidth = styled(Flex)`
+const MaxWidth = styled(Flex)<{
+  isEditing?: boolean;
+  archived?: boolean;
+  showContents?: boolean;
+}>`
   ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'archived' does not exist on type 'Themed... Remove this comment to see the full error message
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
 
   // Adds space to the left gutter to make room for heading annotations on mobile
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'isEditing' does not exist on type 'Theme... Remove this comment to see the full error message
   padding: ${(props) => (props.isEditing ? "0 12px 0 32px" : "0 12px")};
   transition: padding 100ms;
 
@@ -684,8 +679,7 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`
     padding: 0 24px;
     margin: 4px auto 12px;
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
-    max-width: calc(48px + ${(props) =>
+    max-width: calc(48px + ${(props: any) =>
       props.showContents ? "64em" : "46em"});
   `};
 
@@ -695,8 +689,5 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'ComponentType<Omit<unknown, keyo... Remove this comment to see the full error message
-  withTranslation()<DocumentScene>(
-    inject("ui", "auth", "toasts")(DocumentScene)
-  )
+  withTranslation()(inject("ui", "auth", "toasts")(DocumentScene))
 );

@@ -15,7 +15,9 @@ try {
   window.addEventListener("testPassive", null, opts);
   // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   window.removeEventListener("testPassive", null, opts);
-} catch (e) {}
+} catch (e) {
+  // No-op
+}
 
 const getPosition = () => ({
   x: window.pageXOffset,

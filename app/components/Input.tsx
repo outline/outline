@@ -47,7 +47,12 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   `};
 `;
 
-const Wrapper = styled.div<{ flex?: boolean; short?: boolean; minHeight?: number; maxHeight?: number }>`
+const Wrapper = styled.div<{
+  flex?: boolean;
+  short?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
+}>`
   flex: ${(props) => (props.flex ? "1" : "0")};
   width: ${(props) => (props.short ? "49%" : "auto")};
   max-width: ${(props) => (props.short ? "350px" : "100%")};
@@ -62,7 +67,11 @@ const IconWrapper = styled.span`
   height: 24px;
 `;
 
-export const Outline = styled(Flex)<{ margin?: string | number; hasError?: boolean; focused?: boolean  }>`
+export const Outline = styled(Flex)<{
+  margin?: string | number;
+  hasError?: boolean;
+  focused?: boolean;
+}>`
   flex: 1;
   margin: ${(props) =>
     props.margin !== undefined ? props.margin : "0 0 16px"};
@@ -72,8 +81,7 @@ export const Outline = styled(Flex)<{ margin?: string | number; hasError?: boole
   border-color: ${(props) =>
     props.hasError
       ? props.theme.danger
-      :
-      props.focused
+      : props.focused
       ? props.theme.inputBorderFocused
       : props.theme.inputBorder};
   border-radius: 4px;

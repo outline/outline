@@ -215,14 +215,19 @@ const Backdrop = styled.a`
   background: ${(props) => props.theme.backdrop};
 `;
 
-const Container = styled(Flex) <{ $mobileSidebarVisible: boolean }>`
+const Container = styled(Flex)<{ $mobileSidebarVisible: boolean }>`
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${(props) => props.theme.sidebarBackground};
-  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out, ${(props) => props.theme.backgroundTransition} ${(props: any) => props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
-  transform: translateX(${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")});
+  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
+    ${(props) => props.theme.backgroundTransition}
+      ${(props: any) =>
+        props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
+  transform: translateX(
+    ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
+  );
   z-index: ${(props) => props.theme.depths.sidebar};
   max-width: 70%;
   min-width: 280px;

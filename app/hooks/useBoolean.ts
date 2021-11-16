@@ -7,7 +7,9 @@ type InitialState = boolean | (() => boolean);
  *
  * @param initialState the initial boolean state value
  */
-export default function useBoolean(initialState: InitialState = false): [boolean, () => void, () => void] {
+export default function useBoolean(
+  initialState: InitialState = false
+): [boolean, () => void, () => void] {
   const [value, setValue] = React.useState(initialState);
   const setTrue = React.useCallback(() => {
     setValue(true);

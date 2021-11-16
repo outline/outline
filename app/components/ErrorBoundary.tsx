@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { TFunction, withTranslation, Trans } from "react-i18next";
+import { withTranslation, Trans, WithTranslation } from "react-i18next";
 
 import styled from "styled-components";
 import Button from "components/Button";
@@ -12,10 +12,9 @@ import PageTitle from "components/PageTitle";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
 import env from "env";
 
-type Props = {
+type Props = WithTranslation & {
   children: React.ReactNode;
   reloadOnChunkMissing?: boolean;
-  t: TFunction;
 };
 
 @observer
@@ -26,7 +25,7 @@ class ErrorBoundary extends React.Component<Props> {
   @observable
   showDetails = false;
 
-  componentDidCatch(error: Error, info: Record<string, any>) {
+  componentDidCatch(error: Error) {
     this.error = error;
     console.error(error);
 
@@ -108,12 +107,10 @@ class ErrorBoundary extends React.Component<Props> {
           <p>
             <Button onClick={this.handleReload}>{t("Reload")}</Button>{" "}
             {this.showDetails ? (
-              // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
               <Button onClick={this.handleReportBug} neutral>
                 <Trans>Report a Bug</Trans>…
               </Button>
             ) : (
-              // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
               <Button onClick={this.handleShowDetails} neutral>
                 <Trans>Show Detail</Trans>…
               </Button>
@@ -135,5 +132,4 @@ const Pre = styled.pre`
   white-space: pre-wrap;
 `;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'ErrorBoundary' does not satisfy the constrai... Remove this comment to see the full error message
-export default withTranslation()<ErrorBoundary>(ErrorBoundary);
+export default withTranslation()(ErrorBoundary);

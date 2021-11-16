@@ -1,15 +1,10 @@
 import * as React from "react";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"reakit"' has no exported member 'ElementR... Remove this comment to see the full error message
-import { ElementRef } from "reakit";
-import "reakit";
 import useMobile from "hooks/useMobile";
 import useWindowSize from "hooks/useWindowSize";
 
 const useMenuHeight = (
   visible: void | boolean,
-  unstable_disclosureRef: void | {
-    current: null | ElementRef<"button">;
-  }
+  unstable_disclosureRef: React.RefObject<HTMLElement | null>
 ) => {
   const [maxHeight, setMaxHeight] = React.useState(undefined);
   const isMobile = useMobile();

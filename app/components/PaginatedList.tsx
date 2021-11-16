@@ -3,7 +3,7 @@ import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import { withTranslation, TFunction } from "react-i18next";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
@@ -11,20 +11,22 @@ import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
 import { dateToHeading } from "../utils/dates";
 
-type Props = {
+type InjectedStores = {
+  auth: AuthStore;
+};
+
+type Props = WithTranslation & {
   fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
   options?: Record<string, any>;
   heading?: React.ReactNode;
   empty?: React.ReactNode;
   items: any[];
-  auth: AuthStore;
   renderItem: (arg0: any, index: number) => React.ReactNode;
   renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
-  t: TFunction;
 };
 
 @observer
-class PaginatedList extends React.Component<Props> {
+class PaginatedList extends React.Component<Props & InjectedStores> {
   isInitiallyLoaded = false;
 
   @observable
@@ -185,5 +187,4 @@ class PaginatedList extends React.Component<Props> {
 
 export const Component = PaginatedList;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'PaginatedList' does not satisfy the constrai... Remove this comment to see the full error message
-export default withTranslation()<PaginatedList>(inject("auth")(PaginatedList));
+export default withTranslation()(inject("auth")(PaginatedList));

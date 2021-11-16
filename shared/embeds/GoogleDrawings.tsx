@@ -15,7 +15,6 @@ type Props = {
 export default class GoogleDrawings extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     return (
       <Frame

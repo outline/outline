@@ -4,16 +4,18 @@ import { Event } from "../../models";
 import Integration from "../../models/Integration";
 import policy from "../../policies";
 import { presentIntegration } from "../../presenters";
+import { assertSort, assertUuid } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("integrations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Integration);
+  assertSort(sort, Integration);
+
   const user = ctx.state.user;
   const integrations = await Integration.findAll({
     where: {
@@ -28,9 +30,11 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
     data: integrations.map(presentIntegration),
   };
 });
+
 router.post("integrations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const integration = await Integration.findByPk(id);
   authorize(user, "delete", integration);

@@ -6,9 +6,9 @@ import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
+import { NavigationNode } from "../types";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
-import { NavigationNode } from "../types";
 import "types";
 
 type Props = {
@@ -26,12 +26,7 @@ type Props = {
   onSubmit: () => void;
 };
 
-function DocumentReparent({
-  collection,
-  item,
-  onSubmit,
-  onCancel,
-}: Props) {
+function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
   const [isSaving, setIsSaving] = useState();
   const { showToast } = useToasts();
   const { documents, collections } = useStores();

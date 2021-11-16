@@ -15,7 +15,6 @@ type Props = {
 export default class GoogleDataStudio extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     return (
       <Frame

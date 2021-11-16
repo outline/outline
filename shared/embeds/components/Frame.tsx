@@ -35,7 +35,6 @@ class Frame extends React.Component<PropsWithRef> {
   @observable
   isLoaded = false;
 
-  
   componentDidMount() {
     this.mounted = true;
     setImmediate(this.loadIframe);
@@ -107,7 +106,11 @@ class Frame extends React.Component<PropsWithRef> {
   }
 }
 
-const Rounded = styled.div<{ width: string; height: string; $withBar: boolean}>`
+const Rounded = styled.div<{
+  width: string;
+  height: string;
+  $withBar: boolean;
+}>`
   border: 1px solid ${(props) => props.theme.embedBorder};
   border-radius: 6px;
   overflow: hidden;

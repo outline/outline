@@ -4,9 +4,7 @@ import { EditIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { RouterHistory } from "react-router-dom";
-import "react-router-dom";
+import { RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import CollectionFilter from "scenes/Search/components/CollectionFilter";
@@ -20,15 +18,11 @@ import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
 import NewDocumentMenu from "menus/NewDocumentMenu";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { LocationWithState } from "types";
-import "types";
 
-type Props = WithTranslation & {
-  documents: DocumentsStore;
-  history: RouterHistory;
-  location: LocationWithState;
-};
+type Props = WithTranslation &
+  RouteComponentProps & {
+    documents: DocumentsStore;
+  };
 
 @observer
 class Drafts extends React.Component<Props> {
@@ -147,5 +141,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'Drafts' does not satisfy the constraint 'Com... Remove this comment to see the full error message
-export default withTranslation()<Drafts>(inject("documents")(Drafts));
+export default withTranslation()(inject("documents")(Drafts));

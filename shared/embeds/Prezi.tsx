@@ -12,7 +12,6 @@ type Props = {
 export default class Prezi extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     const url = this.props.attrs.href.replace(/\/embed$/, "");
     return (

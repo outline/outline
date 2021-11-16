@@ -3,12 +3,14 @@ import auth from "../../middlewares/authentication";
 import { Team, NotificationSetting } from "../../models";
 import policy from "../../policies";
 import { presentNotificationSetting } from "../../presenters";
+import { assertPresent, assertUuid } from "../../validation";
 
 const { authorize } = policy;
 const router = new Router();
 router.post("notificationSettings.create", auth(), async (ctx) => {
   const { event } = ctx.body;
-  ctx.assertPresent(event, "event is required");
+  assertPresent(event, "event is required");
+
   const user = ctx.state.user;
   authorize(user, "createNotificationSetting", user.team);
   const [setting] = await NotificationSetting.findOrCreate({
@@ -22,6 +24,7 @@ router.post("notificationSettings.create", auth(), async (ctx) => {
     data: presentNotificationSetting(setting),
   };
 });
+
 router.post("notificationSettings.list", auth(), async (ctx) => {
   const user = ctx.state.user;
   const settings = await NotificationSetting.findAll({
@@ -33,9 +36,11 @@ router.post("notificationSettings.list", auth(), async (ctx) => {
     data: settings.map(presentNotificationSetting),
   };
 });
+
 router.post("notificationSettings.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const setting = await NotificationSetting.findByPk(id);
   authorize(user, "delete", setting);
@@ -46,10 +51,9 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
 });
 router.post("notificationSettings.unsubscribe", async (ctx) => {
   const { id, token } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertUuid(id, "id is required");
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
-  ctx.assertPresent(token, "token is required");
+  assertUuid(id, "id is required");
+  assertPresent(token, "token is required");
+
   const setting = await NotificationSetting.findByPk(id, {
     include: [
       {

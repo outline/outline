@@ -14,7 +14,6 @@ type Props = {
 export default class Pitch extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     const shareId = this.props.attrs.matches[1];
     return (

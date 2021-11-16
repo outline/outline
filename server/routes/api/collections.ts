@@ -26,6 +26,13 @@ import {
 import { Op, sequelize } from "../../sequelize";
 import collectionIndexing from "../../utils/collectionIndexing";
 import removeIndexCollision from "../../utils/removeIndexCollision";
+import {
+  assertUuid,
+  assertIn,
+  assertPresent,
+  assertHexColor,
+  assertIndexCharacters,
+} from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -41,10 +48,10 @@ router.post("collections.create", auth(), async (ctx) => {
     sort = Collection.DEFAULT_SORT,
   } = ctx.body;
   let { index } = ctx.body;
-  ctx.assertPresent(name, "name is required");
+  assertPresent(name, "name is required");
 
   if (color) {
-    ctx.assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
+    assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
   }
 
   const user = ctx.state.user;
@@ -64,7 +71,7 @@ router.post("collections.create", auth(), async (ctx) => {
   });
 
   if (index) {
-    ctx.assertIndexCharacters(
+    assertIndexCharacters(
       index,
       "Index characters must be between x20 to x7E ASCII"
     );
@@ -109,7 +116,7 @@ router.post("collections.create", auth(), async (ctx) => {
 });
 router.post("collections.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -122,8 +129,8 @@ router.post("collections.info", auth(), async (ctx) => {
 });
 router.post("collections.import", auth(), async (ctx) => {
   const { type, attachmentId } = ctx.body;
-  ctx.assertIn(type, ["outline"], "type must be one of 'outline'");
-  ctx.assertUuid(attachmentId, "attachmentId is required");
+  assertIn(type, ["outline"], "type must be one of 'outline'");
+  assertUuid(attachmentId, "attachmentId is required");
   const user = ctx.state.user;
   authorize(user, "importCollection", user.team);
   const attachment = await Attachment.findByPk(attachmentId);
@@ -144,8 +151,8 @@ router.post("collections.import", auth(), async (ctx) => {
 });
 router.post("collections.add_group", auth(), async (ctx) => {
   const { id, groupId, permission = "read_write" } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertUuid(groupId, "groupId is required");
+  assertUuid(id, "id is required");
+  assertUuid(groupId, "groupId is required");
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
@@ -192,8 +199,8 @@ router.post("collections.add_group", auth(), async (ctx) => {
 });
 router.post("collections.remove_group", auth(), async (ctx) => {
   const { id, groupId } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertUuid(groupId, "groupId is required");
+  assertUuid(id, "id is required");
+  assertUuid(groupId, "groupId is required");
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
@@ -222,8 +229,7 @@ router.post(
   pagination(),
   async (ctx) => {
     const { id, query, permission } = ctx.body;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(id, "id is required");
+    assertUuid(id, "id is required");
     const user = ctx.state.user;
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -275,8 +281,8 @@ router.post(
 );
 router.post("collections.add_user", auth(), async (ctx) => {
   const { id, userId, permission = "read_write" } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertUuid(userId, "userId is required");
+  assertUuid(id, "id is required");
+  assertUuid(userId, "userId is required");
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
@@ -322,8 +328,8 @@ router.post("collections.add_user", auth(), async (ctx) => {
 });
 router.post("collections.remove_user", auth(), async (ctx) => {
   const { id, userId } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertUuid(userId, "userId is required");
+  assertUuid(id, "id is required");
+  assertUuid(userId, "userId is required");
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
@@ -349,7 +355,7 @@ router.post("collections.remove_user", auth(), async (ctx) => {
 // DEPRECATED: Use collection.memberships which has pagination, filtering and permissions
 router.post("collections.users", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const user = ctx.state.user;
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -362,8 +368,7 @@ router.post("collections.users", auth(), async (ctx) => {
 });
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const user = ctx.state.user;
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -412,14 +417,14 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
 });
 router.post("collections.export", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  ctx.assertPresent(collection, "Collection should be present");
+  assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
   const fileOperation = await collectionExporter({
     collection,
@@ -463,7 +468,7 @@ router.post("collections.update", auth(), async (ctx) => {
   } = ctx.body;
 
   if (color) {
-    ctx.assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
+    assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
   }
 
   const user = ctx.state.user;
@@ -508,7 +513,7 @@ router.post("collections.update", auth(), async (ctx) => {
 
   if (permission !== undefined) {
     // frontend sends empty string
-    ctx.assertIn(
+    assertIn(
       permission,
       ["read_write", "read", "", null],
       "Invalid permission"
@@ -599,7 +604,7 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
 router.post("collections.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   const user = ctx.state.user;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
@@ -625,12 +630,12 @@ router.post("collections.delete", auth(), async (ctx) => {
 router.post("collections.move", auth(), async (ctx) => {
   const id = ctx.body.id;
   let index = ctx.body.index;
-  ctx.assertPresent(index, "index is required");
-  ctx.assertIndexCharacters(
+  assertPresent(index, "index is required");
+  assertIndexCharacters(
     index,
     "Index characters must be between x20 to x7E ASCII"
   );
-  ctx.assertUuid(id, "id must be a uuid");
+  assertUuid(id, "id must be a uuid");
   const user = ctx.state.user;
   const collection = await Collection.findByPk(id);
   authorize(user, "move", collection);

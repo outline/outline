@@ -13,7 +13,6 @@ type Props = {
 export default class GoogleDocs extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     return (
       <Frame

@@ -8,7 +8,7 @@ const { authorize } = policy;
 const router = new Router();
 router.post("views.list", auth(), async (ctx) => {
   const { documentId } = ctx.body;
-  ctx.assertUuid(documentId, "documentId is required");
+  assertUuid(documentId, "documentId is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
@@ -21,7 +21,7 @@ router.post("views.list", auth(), async (ctx) => {
 });
 router.post("views.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
-  ctx.assertUuid(documentId, "documentId is required");
+  assertUuid(documentId, "documentId is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, {
     userId: user.id,

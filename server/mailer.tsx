@@ -99,7 +99,7 @@ export class Mailer {
         };
       }
 
-      // @ts-expect-error
+      // @ts-expect-error config
       this.transporter = nodemailer.createTransport(smtpConfig);
       return;
     }

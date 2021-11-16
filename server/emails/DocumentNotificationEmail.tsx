@@ -31,7 +31,6 @@ export const documentNotificationEmailText = ({
 
 ${actor.name} ${eventName} the document "${document.title}", in the ${collection.name} collection.
 
-// @ts-expect-error ts-migrate(2551) FIXME: Property 'url' does not exist on type 'Document'. ... Remove this comment to see the full error message
 Open Document: ${team.url}${document.url}
 `;
 
@@ -57,15 +56,9 @@ export const DocumentNotificationEmail = ({
         </p>
         <hr />
         <EmptySpace height={10} />
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'getSummary' does
-        not exist on type 'Docu... Remove this comment to see the full error
-        message
         <p>{document.getSummary()}</p>
         <EmptySpace height={10} />
         <p>
-          // @ts-expect-error ts-migrate(2551) FIXME: Property 'url' does not
-          exist on type 'Document'. ... Remove this comment to see the full
-          error message
           <Button href={`${team.url}${document.url}`}>Open Document</Button>
         </p>
       </Body>

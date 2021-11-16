@@ -44,12 +44,7 @@ const FilterOptions = ({
     <Wrapper>
       <MenuButton {...menu}>
         {(props) => (
-          <StyledButton
-            {...props}
-            className={className}
-            neutral
-            disclosure
-          >
+          <StyledButton {...props} className={className} neutral disclosure>
             {activeKey ? selectedLabel : defaultLabel}
           </StyledButton>
         )}

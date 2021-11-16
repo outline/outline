@@ -7,27 +7,29 @@ import { Event, User, Team } from "../../models";
 import policy from "../../policies";
 import { presentUser, presentPolicies } from "../../presenters";
 import { Op } from "../../sequelize";
+import {
+  assertIn,
+  assertSort,
+  assertPresent,
+  assertArray,
+} from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { can, authorize } = policy;
 const router = new Router();
+
 router.post("users.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", query, filter } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, User);
+  assertSort(sort, User);
 
   if (filter) {
-    // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
-    ctx.assertIn(filter, [
-      "invited",
-      "viewers",
-      "admins",
-      "active",
-      "all",
-      "suspended",
-    ]);
+    assertIn(
+      filter,
+      ["invited", "viewers", "admins", "active", "all", "suspended"],
+      "Invalid filter"
+    );
   }
 
   const actor = ctx.state.user;
@@ -160,7 +162,7 @@ router.post("users.promote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
   const actor = ctx.state.user;
-  ctx.assertPresent(userId, "id is required");
+  assertPresent(userId, "id is required");
   const user = await User.findByPk(userId);
   authorize(actor, "promote", user);
   await user.promote();
@@ -187,7 +189,7 @@ router.post("users.demote", auth(), async (ctx) => {
   const teamId = ctx.state.user.teamId;
   let { to } = ctx.body;
   const actor = ctx.state.user;
-  ctx.assertPresent(userId, "id is required");
+  assertPresent(userId, "id is required");
   to = to === "viewer" ? "viewer" : "member";
   const user = await User.findByPk(userId);
   authorize(actor, "demote", user);
@@ -213,7 +215,7 @@ router.post("users.demote", auth(), async (ctx) => {
 router.post("users.suspend", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const actor = ctx.state.user;
-  ctx.assertPresent(userId, "id is required");
+  assertPresent(userId, "id is required");
   const user = await User.findByPk(userId);
   authorize(actor, "suspend", user);
   await userSuspender({
@@ -233,7 +235,7 @@ router.post("users.activate", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
   const actor = ctx.state.user;
-  ctx.assertPresent(userId, "id is required");
+  assertPresent(userId, "id is required");
   const user = await User.findByPk(userId);
   authorize(actor, "activate", user);
   await user.activate();
@@ -257,7 +259,7 @@ router.post("users.activate", auth(), async (ctx) => {
 });
 router.post("users.invite", auth(), async (ctx) => {
   const { invites } = ctx.body;
-  ctx.assertArray(invites, "invites must be an array");
+  assertArray(invites, "invites must be an array");
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "inviteUser", team);
@@ -275,7 +277,7 @@ router.post("users.invite", auth(), async (ctx) => {
 });
 router.post("users.delete", auth(), async (ctx) => {
   const { confirmation, id } = ctx.body;
-  ctx.assertPresent(confirmation, "confirmation is required");
+  assertPresent(confirmation, "confirmation is required");
   const actor = ctx.state.user;
   let user = actor;
 

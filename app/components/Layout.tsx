@@ -3,10 +3,13 @@ import { observer, inject } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import { withTranslation } from "react-i18next";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { RouterHistory } from "react-router-dom";
-import { Switch, Route, withRouter } from "react-router-dom";
+import { withTranslation, WithTranslation } from "react-i18next";
+import {
+  Switch,
+  Route,
+  withRouter,
+  RouteComponentProps,
+} from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
@@ -46,17 +49,17 @@ const CommandBar = React.lazy(
       "components/CommandBar"
     )
 );
-type Props = {
-  documents: DocumentsStore;
-  children?: React.ReactNode | null | undefined;
-  actions?: React.ReactNode | null | undefined;
-  title?: React.ReactNode | null | undefined;
-  auth: AuthStore;
-  ui: UiStore;
-  history: RouterHistory;
-  policies: PoliciesStore;
-  notifications?: React.ReactNode;
-};
+type Props = WithTranslation &
+  RouteComponentProps & {
+    documents: DocumentsStore;
+    children?: React.ReactNode | null | undefined;
+    actions?: React.ReactNode | null | undefined;
+    title?: React.ReactNode | null | undefined;
+    auth: AuthStore;
+    ui: UiStore;
+    policies: PoliciesStore;
+    notifications?: React.ReactNode;
+  };
 
 @observer
 class Layout extends React.Component<Props> {
@@ -85,6 +88,7 @@ class Layout extends React.Component<Props> {
     const showSidebar = auth.authenticated && user && team;
     const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
     if (auth.isSuspended) return <ErrorSuspended />;
+
     return (
       <Container column auto>
         <RegisterKeyDown trigger="n" handler={this.goToNewDocument} />
@@ -111,7 +115,6 @@ class Layout extends React.Component<Props> {
         {this.props.notifications}
 
         <MobileMenuButton
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           onClick={ui.toggleMobileSidebar}
           icon={<MenuIcon />}
           iconColor="currentColor"
@@ -166,6 +169,7 @@ const Container = styled(Flex)`
   width: 100%;
   min-height: 100%;
 `;
+
 const MobileMenuButton = styled(Button)`
   position: fixed;
   top: 12px;
@@ -180,6 +184,7 @@ const MobileMenuButton = styled(Button)`
     display: none;
   }
 `;
+
 const Content = styled(Flex)`
   margin: 0;
   transition: ${(props) =>
@@ -196,14 +201,12 @@ const Content = styled(Flex)`
 
   ${breakpoint("tablet")`
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
-    ${(props) =>
+    ${(props: any) =>
       props.$sidebarCollapsed &&
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
 `;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'Layout' does not satisfy the constraint 'Com... Remove this comment to see the full error message
-export default withTranslation()<Layout>(
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'typeof Layout' is not assignable... Remove this comment to see the full error message
+export default withTranslation()(
   inject("auth", "ui", "documents", "policies")(withRouter(Layout))
 );

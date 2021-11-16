@@ -14,7 +14,6 @@ type Props = {
 export default class Figma extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     return (
       <Frame

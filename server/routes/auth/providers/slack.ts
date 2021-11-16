@@ -15,6 +15,7 @@ import {
 } from "../../../models";
 import { StateStore } from "../../../utils/passport";
 import * as Slack from "../../../utils/slack";
+import { assertPresent, assertUuid } from "../../../validation";
 
 const router = new Router();
 const providerName = "slack";
@@ -88,7 +89,7 @@ if (SLACK_CLIENT_ID) {
     async (ctx) => {
       const { code, state, error } = ctx.request.query;
       const user = ctx.state.user;
-      ctx.assertPresent(code || error, "code is required");
+      assertPresent(code || error, "code is required");
 
       if (error) {
         ctx.redirect(`/settings/integrations/slack?error=${error}`);
@@ -148,9 +149,9 @@ if (SLACK_CLIENT_ID) {
     async (ctx) => {
       const { code, error, state } = ctx.request.query;
       const user = ctx.state.user;
-      ctx.assertPresent(code || error, "code is required");
+      assertPresent(code || error, "code is required");
       const collectionId = state;
-      ctx.assertUuid(collectionId, "collectionId must be an uuid");
+      assertUuid(collectionId, "collectionId must be an uuid");
 
       if (error) {
         ctx.redirect(`/settings/integrations/slack?error=${error}`);

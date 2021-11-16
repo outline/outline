@@ -3,9 +3,7 @@ import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { Location } from "react-router-dom";
-import { Link, Redirect } from "react-router-dom";
+import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
 import ButtonLarge from "components/ButtonLarge";
@@ -24,10 +22,6 @@ import useQuery from "hooks/useQuery";
 import useStores from "hooks/useStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
 import { isCustomDomain } from "utils/domains";
-
-type Props = {
-  location: Location;
-};
 
 // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'config' implicitly has an 'any' t... Remove this comment to see the full error message
 function Header({ config }) {
@@ -54,7 +48,8 @@ function Header({ config }) {
   );
 }
 
-function Login({ location }: Props) {
+function Login() {
+  const location = useLocation();
   const query = useQuery();
   const { t, i18n } = useTranslation();
   const { auth } = useStores();
@@ -70,6 +65,7 @@ function Login({ location }: Props) {
   React.useEffect(() => {
     auth.fetchConfig();
   }, [auth]);
+
   // TODO: Persist detected language to new user
   // Try to detect the user's language and show the login page on its idiom
   // if translation is available
@@ -109,8 +105,6 @@ function Login({ location }: Props) {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Check your email" />
           <CheckEmailIcon size={38} color="currentColor" />
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans
@@ -124,8 +118,6 @@ function Login({ location }: Props) {
             />
           </Note>
           <br />
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           <ButtonLarge onClick={handleReset} fullwidth neutral>
             {t("Back to login")}
           </ButtonLarge>
@@ -141,7 +133,6 @@ function Login({ location }: Props) {
         <PageTitle title="Login" />
         <Logo>
           {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <TeamLogo src={env.TEAM_LOGO} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />
@@ -149,8 +140,6 @@ function Login({ location }: Props) {
         </Logo>
         {isCreate ? (
           <>
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-            call.
             <Heading centered>{t("Create an account")}</Heading>
             <GetStarted>
               {t(
@@ -159,7 +148,6 @@ function Login({ location }: Props) {
             </GetStarted>
           </>
         ) : (
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <Heading centered>
             {t("Login to {{ authProviderName }}", {
               authProviderName: config.name || "Outline",
@@ -186,9 +174,7 @@ function Login({ location }: Props) {
             )}
           </React.Fragment>
         )}
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'provider'
-        implicitly has an 'any' type.
-        {config.providers.map((provider) => {
+        {config.providers.map((provider: any) => {
           if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }
@@ -217,20 +203,24 @@ function Login({ location }: Props) {
 const CheckEmailIcon = styled(EmailIcon)`
   margin-bottom: -1.5em;
 `;
+
 const Background = styled(Fade)`
   width: 100vw;
   height: 100vh;
   background: ${(props) => props.theme.background};
   display: flex;
 `;
+
 const Logo = styled.div`
   margin-bottom: -1.5em;
   height: 38px;
 `;
+
 const GetStarted = styled(HelpText)`
   text-align: center;
   margin-top: -12px;
 `;
+
 const Note = styled(HelpText)`
   text-align: center;
   font-size: 14px;
@@ -240,6 +230,7 @@ const Note = styled(HelpText)`
     font-weight: 500;
   }
 `;
+
 const Back = styled.a`
   display: flex;
   align-items: center;
@@ -258,6 +249,7 @@ const Back = styled.a`
     }
   }
 `;
+
 const Or = styled.hr`
   margin: 1em 0;
   position: relative;
@@ -277,6 +269,7 @@ const Or = styled.hr`
     padding: 0 4px;
   }
 `;
+
 const Centered = styled(Flex)`
   user-select: none;
   width: 90vw;

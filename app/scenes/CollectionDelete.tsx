@@ -55,13 +55,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
             }}
           />
         </HelpText>
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not
-        assignable to type 'boolea... Remove this comment to see the full error
-        message
         <Button type="submit" disabled={isDeleting} autoFocus danger>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>
       </form>

@@ -32,6 +32,13 @@ import {
   presentPolicies,
 } from "../../presenters";
 import { sequelize } from "../../sequelize";
+import {
+  assertUuid,
+  assertSort,
+  assertIn,
+  assertPresent,
+  assertPositiveInteger,
+} from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
@@ -62,8 +69,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // if a specific user is passed then add to filters. If the user doesn't
   // exist in the team then nothing will be returned, so no need to check auth
   if (createdById) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(createdById, "user must be a UUID");
+    assertUuid(createdById, "user must be a UUID");
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ createdById: any; teamId: any; archivedAt:... Remove this comment to see the full error message
     where = { ...where, createdById };
   }
@@ -73,8 +79,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
 
   // if a specific collection is passed then we need to check auth to view it
   if (collectionId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(collectionId, "collection must be a UUID");
+    assertUuid(collectionId, "collection must be a UUID");
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, collectionId };
     const collection = await Collection.scope({
@@ -99,8 +104,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   }
 
   if (parentDocumentId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(parentDocumentId, "parentDocumentId must be a UUID");
+    assertUuid(parentDocumentId, "parentDocumentId must be a UUID");
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ parentDocumentId: any; teamId: any; archiv... Remove this comment to see the full error message
     where = { ...where, parentDocumentId };
   }
@@ -118,8 +122,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   }
 
   if (backlinkDocumentId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(backlinkDocumentId, "backlinkDocumentId must be a UUID");
+    assertUuid(backlinkDocumentId, "backlinkDocumentId must be a UUID");
     const backlinks = await Backlink.findAll({
       attributes: ["reverseDocumentId"],
       where: {
@@ -137,8 +140,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     sort = "updatedAt";
   }
 
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+  assertSort(sort, Document);
   // add the users starred state to the response by default
   const starredScope = {
     method: ["withStarred", user.id],
@@ -185,10 +187,10 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
   const { collectionId, sort = "updatedAt" } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertUuid(collectionId, "collectionId is required");
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+
+  assertUuid(collectionId, "collectionId is required");
+  assertSort(sort, Document);
+
   const user = ctx.state.user;
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -233,8 +235,8 @@ router.post("documents.pinned", auth(), pagination(), async (ctx) => {
 });
 router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const { sort = "updatedAt" } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+
+  assertSort(sort, Document);
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
@@ -274,8 +276,8 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
 });
 router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const { sort = "deletedAt" } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+
+  assertSort(sort, Document);
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
@@ -327,8 +329,8 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
 router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+
+  assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
@@ -387,8 +389,8 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+
+  assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
@@ -439,21 +441,20 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Document);
+
+  assertSort(sort, Document);
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
 
   if (collectionId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(collectionId, "collectionId must be a UUID");
+    assertUuid(collectionId, "collectionId must be a UUID");
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
     authorize(user, "read", collection);
   }
 
-  const collectionIds = !!collectionId
+  const collectionIds = collectionId
     ? [collectionId]
     : await user.collectionIds();
   const whereConditions = {
@@ -466,8 +467,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   };
 
   if (dateFilter) {
-    // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
-    ctx.assertIn(
+    assertIn(
       dateFilter,
       ["day", "week", "month", "year"],
       "dateFilter must be one of day,week,month,year"
@@ -667,7 +667,7 @@ router.post(
   }),
   async (ctx) => {
     const { id, shareId, apiVersion } = ctx.body;
-    ctx.assertPresent(id || shareId, "id or shareId is required");
+    assertPresent(id || shareId, "id or shareId is required");
     const { user } = ctx.state;
     const { document, share, collection } = await loadDocument({
       id,
@@ -703,7 +703,7 @@ router.post(
   }),
   async (ctx) => {
     const { id, shareId } = ctx.body;
-    ctx.assertPresent(id || shareId, "id or shareId is required");
+    assertPresent(id || shareId, "id or shareId is required");
     const user = ctx.state.user;
     const { document } = await loadDocument({
       id,
@@ -718,7 +718,7 @@ router.post(
 );
 router.post("documents.restore", auth(), async (ctx) => {
   const { id, collectionId, revisionId } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -733,7 +733,7 @@ router.post("documents.restore", auth(), async (ctx) => {
   // Passing collectionId allows restoring to a different collection than the
   // document was originally within
   if (collectionId) {
-    ctx.assertUuid(collectionId, "collectionId must be a uuid");
+    assertUuid(collectionId, "collectionId must be a uuid");
     document.collectionId = collectionId;
   }
 
@@ -746,7 +746,7 @@ router.post("documents.restore", auth(), async (ctx) => {
   // that the original collection still exists and advising to pass collectionId
   // if not.
   if (!collectionId) {
-    ctx.assertPresent(collection, "collectionId is required");
+    assertPresent(collection, "collectionId is required");
   }
 
   authorize(user, "update", collection);
@@ -801,7 +801,7 @@ router.post("documents.restore", auth(), async (ctx) => {
       ip: ctx.request.ip,
     });
   } else {
-    ctx.assertPresent(revisionId, "revisionId is required");
+    assertPresent(revisionId, "revisionId is required");
   }
 
   ctx.body = {
@@ -814,8 +814,8 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   const { query } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   const user = ctx.state.user;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
-  ctx.assertPresent(query, "query is required");
+
+  assertPresent(query, "query is required");
   const collectionIds = await user.collectionIds();
   const documents = await Document.scope(
     {
@@ -872,12 +872,11 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   const user = ctx.state.user;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
-  ctx.assertPresent(query, "query is required");
+
+  assertPresent(query, "query is required");
 
   if (collectionId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(collectionId, "collectionId must be a UUID");
+    assertUuid(collectionId, "collectionId must be a UUID");
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
@@ -887,14 +886,12 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   let collaboratorIds = undefined;
 
   if (userId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(userId, "userId must be a UUID");
+    assertUuid(userId, "userId must be a UUID");
     collaboratorIds = [userId];
   }
 
   if (dateFilter) {
-    // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
-    ctx.assertIn(
+    assertIn(
       dateFilter,
       ["day", "week", "month", "year"],
       "dateFilter must be one of day,week,month,year"
@@ -942,7 +939,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
 });
 router.post("documents.pin", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -969,7 +966,7 @@ router.post("documents.pin", auth(), async (ctx) => {
 });
 router.post("documents.unpin", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -996,7 +993,7 @@ router.post("documents.unpin", auth(), async (ctx) => {
 });
 router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -1025,7 +1022,7 @@ router.post("documents.star", auth(), async (ctx) => {
 });
 router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -1054,7 +1051,7 @@ router.post("documents.unstar", auth(), async (ctx) => {
 });
 router.post("documents.templatize", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const original = await Document.findByPk(id, {
     userId: user.id,
@@ -1107,9 +1104,9 @@ router.post("documents.update", auth(), async (ctx) => {
     append,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
-  ctx.assertPresent(id, "id is required");
-  ctx.assertPresent(title || text, "title or text is required");
-  if (append) ctx.assertPresent(text, "Text is required while appending");
+  assertPresent(id, "id is required");
+  assertPresent(title || text, "title or text is required");
+  if (append) assertPresent(text, "Text is required while appending");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -1216,15 +1213,15 @@ router.post("documents.update", auth(), async (ctx) => {
 });
 router.post("documents.move", auth(), async (ctx) => {
   const { id, collectionId, parentDocumentId, index } = ctx.body;
-  ctx.assertUuid(id, "id must be a uuid");
-  ctx.assertUuid(collectionId, "collectionId must be a uuid");
+  assertUuid(id, "id must be a uuid");
+  assertUuid(collectionId, "collectionId must be a uuid");
 
   if (parentDocumentId) {
-    ctx.assertUuid(parentDocumentId, "parentDocumentId must be a uuid");
+    assertUuid(parentDocumentId, "parentDocumentId must be a uuid");
   }
 
   if (index) {
-    ctx.assertPositiveInteger(index, "index must be a positive integer");
+    assertPositiveInteger(index, "index must be a positive integer");
   }
 
   if (parentDocumentId === id) {
@@ -1274,7 +1271,7 @@ router.post("documents.move", auth(), async (ctx) => {
 });
 router.post("documents.archive", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -1300,7 +1297,7 @@ router.post("documents.archive", auth(), async (ctx) => {
 });
 router.post("documents.delete", auth(), async (ctx) => {
   const { id, permanent } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
 
   if (permanent) {
@@ -1357,7 +1354,7 @@ router.post("documents.delete", auth(), async (ctx) => {
 });
 router.post("documents.unpublish", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, "id is required");
+  assertPresent(id, "id is required");
   const user = ctx.state.user;
   const document = await Document.findByPk(id, {
     userId: user.id,
@@ -1391,7 +1388,7 @@ router.post("documents.import", auth(), async (ctx) => {
 
   // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   const file: any = Object.values(ctx.request.files)[0];
-  ctx.assertPresent(file, "file is required");
+  assertPresent(file, "file is required");
 
   // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   if (file.size > env.MAXIMUM_IMPORT_SIZE) {
@@ -1399,13 +1396,13 @@ router.post("documents.import", auth(), async (ctx) => {
     throw new InvalidRequestError("The selected file was too large to import");
   }
 
-  ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  assertUuid(collectionId, "collectionId must be an uuid");
 
   if (parentDocumentId) {
-    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
+    assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
   }
 
-  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+  if (index) assertPositiveInteger(index, "index must be an integer (>=0)");
   const user = ctx.state.user;
   authorize(user, "createDocument", user.team);
   const collection = await Collection.scope({
@@ -1467,13 +1464,13 @@ router.post("documents.create", auth(), async (ctx) => {
     index,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
-  ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  assertUuid(collectionId, "collectionId must be an uuid");
 
   if (parentDocumentId) {
-    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
+    assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
   }
 
-  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+  if (index) assertPositiveInteger(index, "index must be an integer (>=0)");
   const user = ctx.state.user;
   authorize(user, "createDocument", user.team);
   const collection = await Collection.scope({

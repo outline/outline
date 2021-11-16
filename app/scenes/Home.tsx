@@ -13,8 +13,8 @@ import Tab from "components/Tab";
 import Tabs from "components/Tabs";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
 import useStores from "../hooks/useStores";
-import NewDocumentMenu from "menus/NewDocumentMenu";
 import useCurrentUser from "hooks/useCurrentUser";
+import NewDocumentMenu from "menus/NewDocumentMenu";
 
 function Home() {
   const { documents, ui } = useStores();

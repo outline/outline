@@ -13,7 +13,6 @@ type Props = {
 export default class GoogleSlides extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     return (
       <Frame

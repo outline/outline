@@ -127,7 +127,6 @@ function Details() {
               short
             />
             {subdomain && (
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
               <HelpText small>
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
                 <strong>{subdomain}.getoutline.com</strong>
@@ -136,9 +135,6 @@ function Details() {
           </>
         )}
         <Button type="submit" disabled={auth.isSaving || !isValid}>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>

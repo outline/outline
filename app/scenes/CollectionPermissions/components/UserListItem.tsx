@@ -16,10 +16,10 @@ type Props = {
 
 const UserListItem = ({ user, onAdd, canEdit }: Props) => {
   const { t } = useTranslation();
+
   return (
     <ListItem
       title={user.name}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; image: Element; subtitle: E... Remove this comment to see the full error message
       image={<Avatar src={user.avatarUrl} size={32} />}
       subtitle={
         <>
@@ -38,7 +38,6 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
       }
       actions={
         canEdit ? (
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; type: string; on... Remove this comment to see the full error message
           <Button type="button" onClick={onAdd} icon={<PlusIcon />} neutral>
             {t("Add")}
           </Button>

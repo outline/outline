@@ -14,7 +14,9 @@ import "types";
 
 const EMPTY_OBJECT = {};
 
-export default function SharedDocumentScene(props: RouteComponentProps<{ shareId: string; documentSlug: string }>) {
+export default function SharedDocumentScene(
+  props: RouteComponentProps<{ shareId: string; documentSlug: string }>
+) {
   const theme = useTheme();
   const [response, setResponse] = React.useState();
   const [error, setError] = React.useState<Error | null | undefined>();

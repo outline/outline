@@ -5,6 +5,7 @@ import auth from "../../middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "../../models";
 import policy from "../../policies";
 import { presentShare, presentPolicies } from "../../presenters";
+import { assertUuid, assertSort, assertPresent } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
@@ -13,7 +14,8 @@ const router = new Router();
 // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
 router.post("shares.info", auth(), async (ctx) => {
   const { id, documentId, apiVersion } = ctx.body;
-  ctx.assertUuid(id || documentId, "id or documentId is required");
+  assertUuid(id || documentId, "id or documentId is required");
+
   const user = ctx.state.user;
   const shares = [];
   const share = await Share.scope({
@@ -98,8 +100,8 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Share);
+  assertSort(sort, Share);
+
   const user = ctx.state.user;
   const where = {
     teamId: user.teamId,
@@ -157,9 +159,11 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
     policies: presentPolicies(user, shares),
   };
 });
+
 router.post("shares.update", auth(), async (ctx) => {
   const { id, includeChildDocuments, published } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "share", team);
@@ -201,9 +205,11 @@ router.post("shares.update", auth(), async (ctx) => {
     policies: presentPolicies(user, [share]),
   };
 });
+
 router.post("shares.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
-  ctx.assertPresent(documentId, "documentId is required");
+  assertPresent(documentId, "documentId is required");
+
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
@@ -245,9 +251,11 @@ router.post("shares.create", auth(), async (ctx) => {
     policies: presentPolicies(user, [share]),
   };
 });
+
 router.post("shares.revoke", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const share = await Share.findByPk(id);
   authorize(user, "revoke", share);

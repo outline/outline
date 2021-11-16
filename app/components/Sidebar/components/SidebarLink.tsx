@@ -97,7 +97,7 @@ const IconWrapper = styled.span`
   overflow: hidden;
   flex-shrink: 0;
 `;
-const Actions = styled(EventBoundary) <{ showActions?: boolean }>`
+const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
   top: 4px;

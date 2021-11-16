@@ -1,9 +1,8 @@
 import styled from "styled-components";
 
-const Heading = styled.h1`
+const Heading = styled.h1<{ centered?: boolean }>`
   display: flex;
   align-items: center;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'centered' does not exist on type 'Themed... Remove this comment to see the full error message
   ${(props) => (props.centered ? "text-align: center;" : "")}
 
   svg {

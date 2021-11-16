@@ -16,6 +16,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
   const [isLoading, setIsLoading] = React.useState();
   const { t } = useTranslation();
   const { showToast } = useToasts();
+
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -31,6 +32,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
     },
     [collection, onSubmit, showToast, t]
   );
+
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
@@ -45,13 +47,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
             }}
           />
         </HelpText>
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not
-        assignable to type 'boolea... Remove this comment to see the full error
-        message
         <Button type="submit" disabled={isLoading} primary>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {isLoading ? `${t("Exporting")}…` : t("Export Collection")}
         </Button>
       </form>

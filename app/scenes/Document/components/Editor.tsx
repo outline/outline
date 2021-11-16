@@ -1,9 +1,7 @@
 import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { TFunction, withTranslation } from "react-i18next";
-
-import PoliciesStore from "stores/PoliciesStore";
+import { WithTranslation, withTranslation } from "react-i18next";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
@@ -16,25 +14,24 @@ import MultiplayerEditor from "./MultiplayerEditor";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { documentHistoryUrl } from "utils/routeHelpers";
 
-type Props = EditorProps & {
-  onChangeTitle: (text: string) => void;
-  title: string;
-  document: Document;
-  isDraft: boolean;
-  shareId: string | null | undefined;
-  multiplayer?: boolean;
-  onSave: (arg0: {
-    done?: boolean;
-    autosave?: boolean;
-    publish?: boolean;
-  }) => any;
-  innerRef: {
-    current: any;
+type Props = EditorProps &
+  WithTranslation & {
+    onChangeTitle: (text: string) => void;
+    title: string;
+    document: Document;
+    isDraft: boolean;
+    shareId: string | null | undefined;
+    multiplayer?: boolean;
+    onSave: (arg0: {
+      done?: boolean;
+      autosave?: boolean;
+      publish?: boolean;
+    }) => any;
+    innerRef: {
+      current: any;
+    };
+    children: React.ReactNode;
   };
-  children: React.ReactNode;
-  policies: PoliciesStore;
-  t: TFunction;
-};
 
 @observer
 class DocumentEditor extends React.Component<Props> {
@@ -89,7 +86,6 @@ class DocumentEditor extends React.Component<Props> {
       readOnly,
       innerRef,
       children,
-      policies,
       multiplayer,
       t,
       ...rest
@@ -143,7 +139,4 @@ class DocumentEditor extends React.Component<Props> {
   }
 }
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'DocumentEditor' does not satisfy the constra... Remove this comment to see the full error message
-export default withTranslation()<DocumentEditor>(
-  inject("policies")(DocumentEditor)
-);
+export default withTranslation()(DocumentEditor);

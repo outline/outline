@@ -35,6 +35,7 @@ function ImportExport() {
   const [isExporting, setExporting] = React.useState(false);
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
+
   const handleImport = React.useCallback(
     async (ev) => {
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
@@ -65,6 +66,7 @@ function ImportExport() {
     },
     [t, file, collections, showToast]
   );
+
   const handleFilePicked = React.useCallback(async (ev) => {
     ev.preventDefault();
     const files = getDataTransferFiles(ev);
@@ -79,6 +81,7 @@ function ImportExport() {
       setImportDetails([]);
     }
   }, []);
+
   const handlePickFile = React.useCallback(
     (ev) => {
       ev.preventDefault();
@@ -90,6 +93,7 @@ function ImportExport() {
     },
     [fileRef]
   );
+
   const handleExport = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -105,6 +109,7 @@ function ImportExport() {
     },
     [t, collections, showToast]
   );
+
   const handleDelete = React.useCallback(
     async (fileOperation: FileOperation) => {
       try {
@@ -127,6 +132,7 @@ function ImportExport() {
       !!importDetails.filter((detail) => detail.type === "document").length
     : false;
   const isImportable = hasCollections && hasDocuments;
+
   return (
     <Scene
       title={`${t("Import")} / ${t("Export")}`}
@@ -185,8 +191,6 @@ function ImportExport() {
               }}
             />
             <List>
-              // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly
-              'undefined'.
               {importDetails
                 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'detail' implicitly has an 'any' type.
                 .filter((detail) => detail.type === "collection")
@@ -205,14 +209,10 @@ function ImportExport() {
             disabled={isImporting}
             primary
           >
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-            HTMLCollection' is not assignable t... Remove this comment to see
-            the full error message
             {isImporting ? `${t("Uploading")}…` : t("Confirm & Import")}
           </Button>
         </>
       ) : (
-        // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's 'children' prop expects a single ch... Remove this comment to see the full error message
         <Button type="submit" onClick={handlePickFile} primary>
           {t("Choose File")}…
         </Button>
@@ -235,9 +235,6 @@ function ImportExport() {
         disabled={isLoading || isExporting}
         primary
       >
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-        HTMLCollection' is not assignable t... Remove this comment to see the
-        full error message
         {isExporting
           ? t("Export Requested")
           : isLoading
@@ -275,14 +272,17 @@ const List = styled.ul`
   padding: 0;
   margin: 8px 0 0;
 `;
+
 const ImportPreview = styled(Notice)`
   margin-bottom: 16px;
 `;
+
 const ImportPreviewItem = styled.li`
   display: flex;
   align-items: center;
   list-style: none;
 `;
+
 const CollectionName = styled.span`
   font-weight: 500;
   margin-left: 4px;

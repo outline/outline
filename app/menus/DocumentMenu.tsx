@@ -46,7 +46,7 @@ import {
   documentUrl,
   editDocumentUrl,
   newDocumentPath,
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
+  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 } from "utils/routeHelpers";
 
 type Props = {

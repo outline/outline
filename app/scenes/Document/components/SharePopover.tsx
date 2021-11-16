@@ -55,7 +55,7 @@ function SharePopover({
       buttonRef.current?.focus();
     }
 
-    return () => timeout.current ? clearTimeout(timeout.current) : undefined;
+    return () => (timeout.current ? clearTimeout(timeout.current) : undefined);
   }, [document, visible]);
 
   const handlePublishedChange = React.useCallback(

@@ -54,7 +54,6 @@ class Gist extends React.Component<Props> {
     doc.close();
   };
 
-  
   render() {
     const id = this.id;
     return (

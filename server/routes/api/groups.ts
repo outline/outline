@@ -10,6 +10,7 @@ import {
   presentGroupMembership,
 } from "../../presenters";
 import { Op } from "../../sequelize";
+import { assertPresent, assertUuid, assertSort } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -18,8 +19,8 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Group);
+
+  assertSort(sort, Group);
   const user = ctx.state.user;
   let groups = await Group.findAll({
     where: {
@@ -57,9 +58,11 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
     policies: presentPolicies(user, groups),
   };
 });
+
 router.post("groups.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
   authorize(user, "read", group);
@@ -68,9 +71,11 @@ router.post("groups.info", auth(), async (ctx) => {
     policies: presentPolicies(user, [group]),
   };
 });
+
 router.post("groups.create", auth(), async (ctx) => {
   const { name } = ctx.body;
-  ctx.assertPresent(name, "name is required");
+  assertPresent(name, "name is required");
+
   const user = ctx.state.user;
   authorize(user, "createGroup", user.team);
   let group = await Group.create({
@@ -95,10 +100,12 @@ router.post("groups.create", auth(), async (ctx) => {
     policies: presentPolicies(user, [group]),
   };
 });
+
 router.post("groups.update", auth(), async (ctx) => {
   const { id, name } = ctx.body;
-  ctx.assertPresent(name, "name is required");
-  ctx.assertUuid(id, "id is required");
+  assertPresent(name, "name is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
   authorize(user, "update", group);
@@ -123,9 +130,11 @@ router.post("groups.update", auth(), async (ctx) => {
     policies: presentPolicies(user, [group]),
   };
 });
+
 router.post("groups.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const { user } = ctx.state;
   const group = await Group.findByPk(id);
   authorize(user, "delete", group);
@@ -144,10 +153,11 @@ router.post("groups.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("groups.memberships", auth(), pagination(), async (ctx) => {
   const { id, query } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
   authorize(user, "read", group);
@@ -186,10 +196,12 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
     },
   };
 });
+
 router.post("groups.add_user", auth(), async (ctx) => {
   const { id, userId } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertUuid(userId, "userId is required");
+  assertUuid(id, "id is required");
+  assertUuid(userId, "userId is required");
+
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
   let group = await Group.findByPk(id);
@@ -237,10 +249,12 @@ router.post("groups.add_user", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("groups.remove_user", auth(), async (ctx) => {
   const { id, userId } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertUuid(userId, "userId is required");
+  assertUuid(id, "id is required");
+  assertUuid(userId, "userId is required");
+
   let group = await Group.findByPk(id);
   authorize(ctx.state.user, "update", group);
   const user = await User.findByPk(userId);

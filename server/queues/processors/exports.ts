@@ -10,7 +10,7 @@ export default class ExportsProcessor {
   async on(event: TEvent) {
     switch (event.name) {
       case "collections.export":
-      case "collections.export_all":
+      case "collections.export_all": {
         const { actorId, teamId } = event;
         const team = await Team.findByPk(teamId);
         const user = await User.findByPk(actorId);
@@ -85,7 +85,7 @@ export default class ExportsProcessor {
         }
 
         break;
-
+      }
       default:
     }
   }

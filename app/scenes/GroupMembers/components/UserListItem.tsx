@@ -17,7 +17,6 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
   return (
     <ListItem
       title={user.name}
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; image: Element; subtitle: E... Remove this comment to see the full error message
       image={<Avatar src={user.avatarUrl} size={32} />}
       subtitle={
         <>
@@ -29,14 +28,11 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
             "Never signed in"
           )}
           {user.isInvited && <Badge>Invited</Badge>}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
         </>
       }
       actions={
         canEdit ? (
-          // @ts-expect-error ts-migrate(2747) FIXME: 'Button' components don't accept text as child ele... Remove this comment to see the full error message
           <Button type="button" onClick={onAdd} icon={<PlusIcon />} neutral>
             Add
           </Button>

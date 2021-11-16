@@ -2,11 +2,8 @@ import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { TFunction, withTranslation, Trans } from "react-i18next";
-
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { RouterHistory } from "react-router-dom";
-import { withRouter } from "react-router-dom";
+import { withTranslation, Trans, WithTranslation } from "react-i18next";
+import { RouteComponentProps, withRouter } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import ToastsStore from "stores/ToastsStore";
@@ -19,14 +16,13 @@ import Input from "components/Input";
 import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 
-type Props = {
-  history: RouterHistory;
-  auth: AuthStore;
-  toasts: ToastsStore;
-  collections: CollectionsStore;
-  onSubmit: () => void;
-  t: TFunction;
-};
+type Props = WithTranslation &
+  RouteComponentProps & {
+    auth: AuthStore;
+    toasts: ToastsStore;
+    collections: CollectionsStore;
+    onSubmit: () => void;
+  };
 
 @observer
 class CollectionNew extends React.Component<Props> {
@@ -180,9 +176,6 @@ class CollectionNew extends React.Component<Props> {
         )}
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {this.isSaving ? `${t("Creating")}…` : t("Create")}
         </Button>
       </form>
@@ -190,8 +183,6 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'CollectionNew' does not satisfy the constrai... Remove this comment to see the full error message
-export default withTranslation()<CollectionNew>(
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'typeof CollectionNew' is not ass... Remove this comment to see the full error message
+export default withTranslation()(
   inject("collections", "toasts", "auth")(withRouter(CollectionNew))
 );

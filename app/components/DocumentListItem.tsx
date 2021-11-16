@@ -178,7 +178,10 @@ const Actions = styled(EventBoundary)`
   `};
 `;
 
-const DocumentLink = styled(Link)<{ $isStarred?: boolean, $menuOpen?: boolean }>`
+const DocumentLink = styled(Link)<{
+  $isStarred?: boolean;
+  $menuOpen?: boolean;
+}>`
   display: flex;
   align-items: center;
   margin: 10px -8px;

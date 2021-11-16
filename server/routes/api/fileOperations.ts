@@ -6,13 +6,14 @@ import { FileOperation, Team } from "../../models";
 import policy from "../../policies";
 import { presentFileOperation } from "../../presenters";
 import { getSignedUrl } from "../../utils/s3";
+import { assertPresent, assertIn, assertUuid } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
 router.post("fileOperations.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   const fileOperation = await FileOperation.findByPk(id);
@@ -30,14 +31,13 @@ router.post("fileOperations.info", auth(), async (ctx) => {
 router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", type } = ctx.body;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
-  ctx.assertPresent(type, "type is required");
-  // @ts-expect-error ts-migrate(2551) FIXME: Property 'assertIn' does not exist on type 'Parame... Remove this comment to see the full error message
-  ctx.assertIn(
+  assertPresent(type, "type is required");
+  assertIn(
     type,
     ["import", "export"],
     "type must be one of 'import' or 'export'"
   );
+
   if (direction !== "ASC") direction = "DESC";
   const user = ctx.state.user;
   const where = {
@@ -62,9 +62,11 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
     data: exports.map(presentFileOperation),
   };
 });
+
 router.post("fileOperations.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   const fileOp = await FileOperation.unscoped().findByPk(id);
@@ -84,9 +86,11 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   const accessUrl = await getSignedUrl(fileOp.key);
   ctx.redirect(accessUrl);
 });
+
 router.post("fileOperations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
+
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   const fileOp = await FileOperation.findByPk(id);

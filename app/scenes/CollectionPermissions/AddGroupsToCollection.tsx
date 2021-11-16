@@ -2,8 +2,8 @@ import { debounce } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation } from "react-i18next";
-import { TFunction } from "react-i18next";
+import { withTranslation, WithTranslation } from "react-i18next";
+
 import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
 import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
@@ -22,14 +22,13 @@ import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 
-type Props = {
+type Props = WithTranslation & {
   toasts: ToastsStore;
   auth: AuthStore;
   collection: Collection;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   groups: GroupsStore;
   onSubmit: () => void;
-  t: TFunction;
 };
 
 @observer
@@ -152,8 +151,7 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'AddGroupsToCollection' does not satisfy the ... Remove this comment to see the full error message
-export default withTranslation()<AddGroupsToCollection>(
+export default withTranslation()(
   inject(
     "auth",
     "groups",

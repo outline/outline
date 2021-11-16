@@ -31,22 +31,20 @@ export const openDocument = createAction({
   // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'stores' implicitly has an 'any' t... Remove this comment to see the full error message
   children: ({ stores }) => {
     const paths = stores.collections.pathsToDocuments;
-    return (
-      paths
-        .filter((path) => path.type === "document")
-        .map((path) => ({
-          // Note: using url which includes the slug rather than id here to bust
-          // cache if the document is renamed
-          id: path.url,
-          name: path.title,
-          icon: () =>
-            stores.documents.get(path.id)?.isStarred ? (
-              <StarredIcon />
-            ) : undefined,
-          section: DocumentSection,
-          perform: () => history.push(path.url),
-        }))
-    );
+    return paths
+      .filter((path) => path.type === "document")
+      .map((path) => ({
+        // Note: using url which includes the slug rather than id here to bust
+        // cache if the document is renamed
+        id: path.url,
+        name: path.title,
+        icon: () =>
+          stores.documents.get(path.id)?.isStarred ? (
+            <StarredIcon />
+          ) : undefined,
+        section: DocumentSection,
+        perform: () => history.push(path.url),
+      }));
   },
 });
 

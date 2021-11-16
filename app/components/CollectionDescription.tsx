@@ -63,7 +63,7 @@ function CollectionDescription({ collection }: Props) {
       throw err;
     }
   }, 1000);
- 
+
   const handleChange = React.useCallback(
     (getValue) => {
       setDirty(true);

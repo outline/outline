@@ -4,6 +4,7 @@ import auth from "../../middlewares/authentication";
 import { Event, User, Collection } from "../../models";
 import policy from "../../policies";
 import { presentEvent } from "../../presenters";
+import { assertSort, assertUuid } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
@@ -21,30 +22,26 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     auditLog = false,
   } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertSort' does not exist on type 'Para... Remove this comment to see the full error message
-  ctx.assertSort(sort, Event);
+  assertSort(sort, Event);
   let where = {
     name: Event.ACTIVITY_EVENTS,
     teamId: user.teamId,
   };
 
   if (actorId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(actorId, "actorId must be a UUID");
+    assertUuid(actorId, "actorId must be a UUID");
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ actorId: any; name: any; teamId: any; }' i... Remove this comment to see the full error message
     where = { ...where, actorId };
   }
 
   if (documentId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(documentId, "documentId must be a UUID");
+    assertUuid(documentId, "documentId must be a UUID");
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ documentId: any; name: any; teamId: any; }... Remove this comment to see the full error message
     where = { ...where, documentId };
   }
 
   if (collectionId) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertUuid' does not exist on type 'Para... Remove this comment to see the full error message
-    ctx.assertUuid(collectionId, "collection must be a UUID");
+    assertUuid(collectionId, "collection must be a UUID");
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; name: any; teamId: any;... Remove this comment to see the full error message
     where = { ...where, collectionId };
     const collection = await Collection.scope({

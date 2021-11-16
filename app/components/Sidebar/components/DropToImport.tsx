@@ -45,11 +45,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
       noClick
       multiple
     >
-      {({
-        getRootProps,
-        getInputProps,
-        isDragActive,
-      }) => (
+      {({ getRootProps, getInputProps, isDragActive }) => (
         <DropzoneContainer
           {...getRootProps()}
           $isDragActive={isDragActive}

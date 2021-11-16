@@ -33,6 +33,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
   const [isSaving, setIsSaving] = useState();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent<any>) => {
       ev.preventDefault();
@@ -123,9 +124,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           ariaLabel={t("Sort")}
         />
         <Button type="submit" disabled={isSaving || !collection.name}>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>

@@ -3,13 +3,14 @@ import auth from "../../middlewares/authentication";
 import { ApiKey, Event } from "../../models";
 import policy from "../../policies";
 import { presentApiKey } from "../../presenters";
+import { assertUuid, assertPresent } from "../../validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
 router.post("apiKeys.create", auth(), async (ctx) => {
   const { name } = ctx.body;
-  ctx.assertPresent(name, "name is required");
+  assertPresent(name, "name is required");
   const user = ctx.state.user;
   authorize(user, "createApiKey", user.team);
   const key = await ApiKey.create({
@@ -30,6 +31,7 @@ router.post("apiKeys.create", auth(), async (ctx) => {
     data: presentApiKey(key),
   };
 });
+
 router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
   const keys = await ApiKey.findAll({
@@ -45,9 +47,10 @@ router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
     data: keys.map(presentApiKey),
   };
 });
+
 router.post("apiKeys.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const user = ctx.state.user;
   const key = await ApiKey.findByPk(id);
   authorize(user, "delete", key);

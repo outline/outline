@@ -18,7 +18,7 @@ function DropCursor({
 }
 
 // transparent hover zone with a thin visible band vertically centered
-const Cursor = styled.div<{ isOver?: boolean, from: string }>`
+const Cursor = styled.div<{ isOver?: boolean; from: string }>`
   opacity: ${(props) => (props.isOver ? 1 : 0)};
   transition: opacity 150ms;
 

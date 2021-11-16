@@ -69,9 +69,6 @@ function GroupMembers({ group }: Props) {
             />
           </HelpText>
           <span>
-            // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's
-            'children' prop expects a single ch... Remove this comment to see
-            the full error message
             <Button
               type="button"
               onClick={() => handleAddModal(true)}

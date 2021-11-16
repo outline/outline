@@ -6,6 +6,7 @@ import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "../../presenters";
+import { assertUuid, assertPresent } from "../../validation";
 // @ts-expect-error ts-migrate(7034) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
 import allAuthenticationProviders from "../auth/providers";
 
@@ -13,7 +14,7 @@ const router = new Router();
 const { authorize } = policy;
 router.post("authenticationProviders.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  assertUuid(id, "id is required");
   const user = ctx.state.user;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
   authorize(user, "read", authenticationProvider);
@@ -24,8 +25,8 @@ router.post("authenticationProviders.info", auth(), async (ctx) => {
 });
 router.post("authenticationProviders.update", auth(), async (ctx) => {
   const { id, isEnabled } = ctx.body;
-  ctx.assertUuid(id, "id is required");
-  ctx.assertPresent(isEnabled, "isEnabled is required");
+  assertUuid(id, "id is required");
+  assertPresent(isEnabled, "isEnabled is required");
   const user = ctx.state.user;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
   authorize(user, "update", authenticationProvider);

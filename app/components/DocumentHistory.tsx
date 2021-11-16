@@ -27,8 +27,8 @@ function DocumentHistory() {
   const document = documents.getByUrl(match.params.documentSlug);
   const eventsInDocument = document
     ? events.inDocument(document.id)
-    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'EMPTY_ARRAY' implicitly has an 'any[]' t... Remove this comment to see the full error message
-    : EMPTY_ARRAY;
+    : // @ts-expect-error ts-migrate(7005) FIXME: Variable 'EMPTY_ARRAY' implicitly has an 'any[]' t... Remove this comment to see the full error message
+      EMPTY_ARRAY;
 
   const onCloseHistory = () => {
     history.push(documentUrl(document));

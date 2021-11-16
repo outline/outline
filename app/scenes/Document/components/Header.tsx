@@ -19,6 +19,9 @@ import Collaborators from "components/Collaborators";
 import DocumentBreadcrumb from "components/DocumentBreadcrumb";
 import Header from "components/Header";
 import Tooltip from "components/Tooltip";
+import { NavigationNode } from "../../../types";
+import { metaDisplay } from "../../../utils/keyboard";
+import { newDocumentPath, editDocumentUrl } from "../../../utils/routeHelpers";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import useCurrentTeam from "hooks/useCurrentTeam";
@@ -28,9 +31,6 @@ import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "menus/TableOfContentsMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
-import { NavigationNode } from "../../../types";
-import { metaDisplay } from "../../../utils/keyboard";
-import { newDocumentPath, editDocumentUrl } from "../../../utils/routeHelpers";
 
 type Props = {
   document: Document;

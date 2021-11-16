@@ -4,7 +4,6 @@ import Router from "koa-router";
 import { NotFoundError } from "../../errors";
 import errorHandling from "../../middlewares/errorHandling";
 import methodOverride from "../../middlewares/methodOverride";
-import validation from "../../middlewares/validation";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -28,6 +27,7 @@ import views from "./views";
 
 const api = new Koa();
 const router = new Router();
+
 // middlewares
 api.use(errorHandling());
 api.use(
@@ -39,9 +39,9 @@ api.use(
   })
 );
 api.use(methodOverride());
-api.use(validation());
 api.use(apiWrapper());
 api.use(editor());
+
 // routes
 router.use("/", auth.routes());
 router.use("/", authenticationProviders.routes());
@@ -65,6 +65,7 @@ router.post("*", (ctx) => {
   // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
   ctx.throw(new NotFoundError("Endpoint not found"));
 });
+
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());

@@ -18,7 +18,9 @@ import { getVisibilityListener, getPageVisible } from "../utils/pageVisibility";
 
 type SocketWithAuthentication = Socket & { authenticated?: boolean };
 
-export const SocketContext: any = React.createContext<SocketWithAuthentication | null>(null);
+export const SocketContext: any = React.createContext<SocketWithAuthentication | null>(
+  null
+);
 
 type Props = {
   children: React.ReactNode;
@@ -107,9 +109,9 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("reconnect_attempt", () => {
       if (this.socket) {
         this.socket.io.opts.transports =
-        auth.team && auth.team.domain
-          ? ["websocket"]
-          : ["websocket", "polling"];
+          auth.team && auth.team.domain
+            ? ["websocket"]
+            : ["websocket", "polling"];
       }
     });
     this.socket.on("authenticated", () => {

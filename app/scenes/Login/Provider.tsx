@@ -1,6 +1,6 @@
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
-import { TFunction, withTranslation } from "react-i18next";
+import { WithTranslation, withTranslation } from "react-i18next";
 import styled from "styled-components";
 import AuthLogo from "components/AuthLogo";
 import ButtonLarge from "components/ButtonLarge";
@@ -8,14 +8,14 @@ import InputLarge from "components/InputLarge";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
-type Props = {
+type Props = WithTranslation & {
   id: string;
   name: string;
   authUrl: string;
   isCreate: boolean;
   onEmailSuccess: (email: string) => void;
-  t: TFunction;
 };
+
 type State = {
   showEmailSignin: boolean;
   isSubmitting: boolean;
@@ -94,9 +94,6 @@ class Provider extends React.Component<Props, State> {
                   required
                   short
                 />
-                // @ts-expect-error ts-migrate(2746) FIXME: This JSX tag's
-                'children' prop expects a single ch... Remove this comment to
-                see the full error message
                 <ButtonLarge type="submit" disabled={this.state.isSubmitting}>
                   {t("Sign In")} →
                 </ButtonLarge>
@@ -137,5 +134,4 @@ const Form = styled.form`
   justify-content: space-between;
 `;
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'Provider' does not satisfy the constraint 'C... Remove this comment to see the full error message
-export default withTranslation()<Provider>(Provider);
+export default withTranslation()(Provider);

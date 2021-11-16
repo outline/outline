@@ -53,7 +53,7 @@ const Wrapper = styled.label<{ width: number; height: number }>`
   margin-right: 8px;
 `;
 
-const Slider = styled.span<{ width: number; height: number}>`
+const Slider = styled.span<{ width: number; height: number }>`
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -79,7 +79,7 @@ const Slider = styled.span<{ width: number; height: number}>`
   }
 `;
 
-const HiddenInput = styled.input<{ width: number; height: number}>`
+const HiddenInput = styled.input<{ width: number; height: number }>`
   opacity: 0;
   width: 0;
   height: 0;

@@ -185,7 +185,7 @@ Team.prototype.provisionSubdomain = async function (
   let subdomain = requestedSubdomain;
   let append = 0;
 
-  while (true) {
+  for (;;) {
     try {
       await this.update(
         {

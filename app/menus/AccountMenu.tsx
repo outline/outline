@@ -15,7 +15,7 @@ import {
   openBugReportUrl,
   openFeedbackUrl,
   logout,
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/navigation... Remove this comment to see the full error message
+  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/navigation... Remove this comment to see the full error message
 } from "actions/definitions/navigation";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/settings' ... Remove this comment to see the full error message
 import { changeTheme } from "actions/definitions/settings";

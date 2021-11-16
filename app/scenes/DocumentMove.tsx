@@ -9,7 +9,7 @@ import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
 import { DocumentPath } from "stores/CollectionsStore";
 import Document from "models/Document";
-import "stores/CollectionsStore";
+
 import Flex from "components/Flex";
 import { Outline } from "components/Input";
 import Labeled from "components/Labeled";
@@ -55,7 +55,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
       } else {
-        // @ts-expect-error 
+        // @ts-expect-error it's there, but it's not typed
         results = searchIndex._documents;
       }
     }
@@ -154,7 +154,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
           </InputWrapper>
           <Results>
             <AutoSizer>
-              {({ width, height }: { width: number, height: number }) => (
+              {({ width, height }: { width: number; height: number }) => (
                 <Flex role="listbox" column>
                   <List
                     key={data.length}

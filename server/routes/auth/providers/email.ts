@@ -9,11 +9,11 @@ import { AuthorizationError } from "../../../errors";
 import mailer from "../../../mailer";
 import errorHandling from "../../../middlewares/errorHandling";
 import methodOverride from "../../../middlewares/methodOverride";
-import validation from "../../../middlewares/validation";
 import { User, Team } from "../../../models";
 import { signIn } from "../../../utils/authentication";
 import { isCustomDomain } from "../../../utils/domains";
 import { getUserForEmailSigninToken } from "../../../utils/jwt";
+import { assertEmail, assertPresent } from "../../../validation";
 
 const router = new Router();
 
@@ -21,11 +21,11 @@ export const config = {
   name: "Email",
   enabled: true,
 };
+
 router.use(methodOverride());
-router.use(validation());
 router.post("email", errorHandling(), async (ctx) => {
   const { email } = ctx.body;
-  ctx.assertEmail(email, "email is required");
+  assertEmail(email, "email is required");
   const users = await User.scope("withAuthentications").findAll({
     where: {
       email: email.toLowerCase(),
@@ -131,8 +131,7 @@ router.post("email", errorHandling(), async (ctx) => {
 });
 router.get("email.callback", async (ctx) => {
   const { token } = ctx.request.query;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'assertPresent' does not exist on type 'P... Remove this comment to see the full error message
-  ctx.assertPresent(token, "token is required");
+  assertPresent(token, "token is required");
 
   try {
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message

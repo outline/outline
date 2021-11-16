@@ -13,7 +13,6 @@ type Props = {
 export default class YouTube extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
-  
   render() {
     const { matches } = this.props.attrs;
     const videoId = matches[1];

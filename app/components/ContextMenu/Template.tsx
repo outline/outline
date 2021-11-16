@@ -25,12 +25,14 @@ import ContextMenu from ".";
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
 
-type Props = {
-  actions: (Action | MenuSeparator | MenuHeading)[];
-} | {
-  items: TMenuItem[];
-  context?: $Shape<ActionContext>;
-};
+type Props =
+  | {
+      actions: (Action | MenuSeparator | MenuHeading)[];
+    }
+  | {
+      items: TMenuItem[];
+      context?: $Shape<ActionContext>;
+    };
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
@@ -183,7 +185,13 @@ function Template({ items, actions, context, ...menu }: Props) {
   });
 }
 
-function Title({ title, icon }: { title: React.ReactNode; icon?: React.ReactNode }) {
+function Title({
+  title,
+  icon,
+}: {
+  title: React.ReactNode;
+  icon?: React.ReactNode;
+}) {
   return (
     <Flex align="center">
       {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}

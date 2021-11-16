@@ -370,8 +370,6 @@ class Search extends React.Component<Props> {
               </Centered>
             </Fade>
           )}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
