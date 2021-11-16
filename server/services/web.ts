@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-
-import http from "http";
 import Koa from "koa";
 import {
   contentSecurityPolicy,
@@ -36,7 +34,7 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa = new Koa(), server?: http.Server): Koa {
+export default function init(app: Koa = new Koa()): Koa {
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (process.env.FORCE_HTTPS !== "false") {

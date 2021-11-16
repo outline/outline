@@ -23,6 +23,7 @@
     "paths": {
       "env": ["./app/env"],
       "actions": ["./app/actions"],
+      "actions/*": ["./app/actions/*"],
       "components/*": ["./app/components/*"],
       "scenes/*": ["./app/scenes/*"],
       "hooks/*": ["./app/hooks/*"],

@@ -4,7 +4,6 @@ import * as React from "react";
 import stores from "stores";
 import Invite from "scenes/Invite";
 import { createAction } from "actions";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/sections' or its corre... Remove this comment to see the full error message
 import { UserSection } from "actions/sections";
 
 export const inviteUser = createAction({

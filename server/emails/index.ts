@@ -5,6 +5,7 @@ import { Mailer } from "../mailer";
 
 const emailPreviews = new Koa();
 const router = new Router();
+
 router.get("/:type/:format", async (ctx) => {
   let mailerOutput;
   const mailer = new Mailer();

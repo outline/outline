@@ -14,7 +14,6 @@ import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
 import SidebarLink from "./SidebarLink";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/collection... Remove this comment to see the full error message
 import { createCollection } from "actions/definitions/collections";
 import useToasts from "hooks/useToasts";
 

@@ -1,4 +1,3 @@
-import http from "http";
 import { createBullBoard } from "@bull-board/api";
 import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { KoaAdapter } from "@bull-board/koa";
@@ -10,7 +9,7 @@ import {
   websocketsQueue,
 } from "../queues";
 
-export default function init(app: Koa, server?: http.Server) {
+export default function init(app: Koa) {
   const serverAdapter = new KoaAdapter();
   createBullBoard({
     queues: [

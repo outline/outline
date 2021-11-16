@@ -5,7 +5,6 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/debug' or ... Remove this comment to see the full error message
 import { development } from "actions/definitions/debug";
 import {
   navigateToSettings,
@@ -15,9 +14,7 @@ import {
   openBugReportUrl,
   openFeedbackUrl,
   logout,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/navigation... Remove this comment to see the full error message
 } from "actions/definitions/navigation";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/settings' ... Remove this comment to see the full error message
 import { changeTheme } from "actions/definitions/settings";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import usePrevious from "hooks/usePrevious";

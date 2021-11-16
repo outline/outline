@@ -6,7 +6,6 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import CommandBarResults from "components/CommandBarResults";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/root' or its correspon... Remove this comment to see the full error message
 import rootActions from "actions/root";
 import useCommandBarActions from "hooks/useCommandBarActions";
 

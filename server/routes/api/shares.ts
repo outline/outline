@@ -96,6 +96,7 @@ router.post("shares.info", auth(), async (ctx) => {
     policies: presentPolicies(user, shares),
   };
 });
+
 router.post("shares.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;

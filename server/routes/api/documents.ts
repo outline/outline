@@ -277,6 +277,7 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const { sort = "deletedAt" } = ctx.body;
 
@@ -329,6 +330,7 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
@@ -389,6 +391,7 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
@@ -700,6 +703,7 @@ router.post(
     };
   }
 );
+
 router.post(
   "documents.export",
   auth({
@@ -720,6 +724,7 @@ router.post(
     };
   }
 );
+
 router.post("documents.restore", auth(), async (ctx) => {
   const { id, collectionId, revisionId } = ctx.body;
   assertPresent(id, "id is required");
@@ -814,6 +819,7 @@ router.post("documents.restore", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   const { query } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
@@ -865,6 +871,7 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.search", auth(), pagination(), async (ctx) => {
   const {
     query,
@@ -941,6 +948,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     policies,
   };
 });
+
 router.post("documents.pin", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -968,6 +976,7 @@ router.post("documents.pin", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.unpin", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -995,6 +1004,7 @@ router.post("documents.unpin", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -1024,6 +1034,7 @@ router.post("documents.star", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -1053,6 +1064,7 @@ router.post("documents.unstar", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("documents.templatize", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -1095,6 +1107,7 @@ router.post("documents.templatize", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.update", auth(), async (ctx) => {
   const {
     id,
@@ -1215,6 +1228,7 @@ router.post("documents.update", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.move", auth(), async (ctx) => {
   const { id, collectionId, parentDocumentId, index } = ctx.body;
   assertUuid(id, "id must be a uuid");
@@ -1273,6 +1287,7 @@ router.post("documents.move", auth(), async (ctx) => {
     policies: collectionChanged ? presentPolicies(user, documents) : [],
   };
 });
+
 router.post("documents.archive", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -1299,6 +1314,7 @@ router.post("documents.archive", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.delete", auth(), async (ctx) => {
   const { id, permanent } = ctx.body;
   assertPresent(id, "id is required");
@@ -1356,6 +1372,7 @@ router.post("documents.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("documents.unpublish", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -1382,6 +1399,7 @@ router.post("documents.unpublish", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   };
 });
+
 router.post("documents.import", auth(), async (ctx) => {
   const { publish, collectionId, parentDocumentId, index } = ctx.body;
 
@@ -1456,6 +1474,7 @@ router.post("documents.import", auth(), async (ctx) => {
     policies: presentPolicies(user, [document]),
   });
 });
+
 router.post("documents.create", auth(), async (ctx) => {
   const {
     title = "",

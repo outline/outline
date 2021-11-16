@@ -23,6 +23,7 @@ export const config = {
 };
 
 router.use(methodOverride());
+
 router.post("email", errorHandling(), async (ctx) => {
   const { email } = ctx.body;
   assertEmail(email, "email is required");
@@ -129,6 +130,7 @@ router.post("email", errorHandling(), async (ctx) => {
     success: true,
   };
 });
+
 router.get("email.callback", async (ctx) => {
   const { token } = ctx.request.query;
   assertPresent(token, "token is required");

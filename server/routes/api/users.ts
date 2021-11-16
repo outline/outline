@@ -115,6 +115,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     policies: presentPolicies(actor, users),
   };
 });
+
 router.post("users.count", auth(), async (ctx) => {
   const { user } = ctx.state;
   const counts = await User.getCounts(user.teamId);
@@ -124,6 +125,7 @@ router.post("users.count", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("users.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   const actor = ctx.state.user;
@@ -137,6 +139,7 @@ router.post("users.info", auth(), async (ctx) => {
     policies: presentPolicies(actor, [user]),
   };
 });
+
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
   const { name, avatarUrl, language } = ctx.body;
@@ -184,6 +187,7 @@ router.post("users.promote", auth(), async (ctx) => {
     policies: presentPolicies(actor, [user]),
   };
 });
+
 router.post("users.demote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
@@ -212,6 +216,7 @@ router.post("users.demote", auth(), async (ctx) => {
     policies: presentPolicies(actor, [user]),
   };
 });
+
 router.post("users.suspend", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const actor = ctx.state.user;
@@ -231,6 +236,7 @@ router.post("users.suspend", auth(), async (ctx) => {
     policies: presentPolicies(actor, [user]),
   };
 });
+
 router.post("users.activate", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
@@ -257,6 +263,7 @@ router.post("users.activate", auth(), async (ctx) => {
     policies: presentPolicies(actor, [user]),
   };
 });
+
 router.post("users.invite", auth(), async (ctx) => {
   const { invites } = ctx.body;
   assertArray(invites, "invites must be an array");
@@ -275,6 +282,7 @@ router.post("users.invite", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("users.delete", auth(), async (ctx) => {
   const { confirmation, id } = ctx.body;
   assertPresent(confirmation, "confirmation is required");

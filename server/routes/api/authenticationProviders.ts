@@ -12,6 +12,7 @@ import allAuthenticationProviders from "../auth/providers";
 
 const router = new Router();
 const { authorize } = policy;
+
 router.post("authenticationProviders.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
@@ -23,6 +24,7 @@ router.post("authenticationProviders.info", auth(), async (ctx) => {
     policies: presentPolicies(user, [authenticationProvider]),
   };
 });
+
 router.post("authenticationProviders.update", auth(), async (ctx) => {
   const { id, isEnabled } = ctx.body;
   assertUuid(id, "id is required");
@@ -53,6 +55,7 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
     policies: presentPolicies(user, [authenticationProvider]),
   };
 });
+
 router.post("authenticationProviders.list", auth(), async (ctx) => {
   const user = ctx.state.user;
   authorize(user, "read", user.team);

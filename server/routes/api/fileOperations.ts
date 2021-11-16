@@ -11,6 +11,7 @@ import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("fileOperations.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
@@ -28,6 +29,7 @@ router.post("fileOperations.info", auth(), async (ctx) => {
     data: presentFileOperation(fileOperation),
   };
 });
+
 router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", type } = ctx.body;

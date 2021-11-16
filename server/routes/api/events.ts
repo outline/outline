@@ -10,6 +10,7 @@ import pagination from "./middlewares/pagination";
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
+
 router.post("events.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
   let { direction } = ctx.body;

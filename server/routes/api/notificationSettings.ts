@@ -7,6 +7,7 @@ import { assertPresent, assertUuid } from "../../validation";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("notificationSettings.create", auth(), async (ctx) => {
   const { event } = ctx.body;
   assertPresent(event, "event is required");
@@ -49,6 +50,7 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("notificationSettings.unsubscribe", async (ctx) => {
   const { id, token } = ctx.body;
   assertUuid(id, "id is required");

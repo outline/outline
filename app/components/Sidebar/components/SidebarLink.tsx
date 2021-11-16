@@ -11,7 +11,6 @@ type Props = Omit<NavLinkProps, "to"> & {
   innerRef?: (arg0: HTMLElement | null | undefined) => void;
   onClick?: (arg0: React.SyntheticEvent) => unknown;
   onMouseEnter?: (arg0: React.SyntheticEvent) => void;
-  children?: React.ReactNode;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
@@ -29,7 +28,6 @@ const activeDropStyle = {
 function SidebarLink(
   {
     icon,
-    children,
     onClick,
     onMouseEnter,
     to,
@@ -64,6 +62,7 @@ function SidebarLink(
     }),
     [theme, style]
   );
+
   return (
     <>
       <Link

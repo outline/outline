@@ -55,7 +55,7 @@ export type Action = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: (context: ActionContext) => boolean;
-  perform?: (context: ActionContext) => any;
+  perform?: (context: ActionContext) => void;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
@@ -67,7 +67,7 @@ export type CommandBarAction = {
   keywords?: string;
   placeholder?: string;
   icon?: React.ReactElement;
-  perform?: () => any;
+  perform?: () => void;
   children?: string[];
   parent?: string;
 };

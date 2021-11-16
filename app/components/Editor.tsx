@@ -4,13 +4,12 @@ import { useTranslation } from "react-i18next";
 // @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
 import { withRouter, RouterHistory } from "react-router-dom";
 import { Extension } from "rich-markdown-editor";
-import styled, { withTheme } from "styled-components";
+import styled, { DefaultTheme, withTheme } from "styled-components";
 import embeds from "shared/embeds";
 import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
-import { Theme } from "../types";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
@@ -46,7 +45,7 @@ export type Props = {
   placeholder?: string;
   maxLength?: number;
   scrollTo?: string;
-  theme?: Theme;
+  theme?: DefaultTheme;
   className?: string;
   readOnlyWriteCheckboxes?: boolean;
   onBlur?: () => void;
@@ -190,6 +189,7 @@ function Editor(props: PropsWithRef) {
       warningNotice: t("Warning notice"),
     };
   }, [t]);
+
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <StyledEditor

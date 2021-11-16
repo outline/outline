@@ -110,6 +110,7 @@ router.post("auth.config", async (ctx) => {
     },
   };
 });
+
 router.post("auth.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);

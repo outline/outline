@@ -38,7 +38,6 @@ import Tabs from "components/Tabs";
 import Tooltip from "components/Tooltip";
 import Collection from "../models/Collection";
 import { updateCollectionUrl } from "../utils/routeHelpers";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/collection... Remove this comment to see the full error message
 import { editCollection } from "actions/definitions/collections";
 import useBoolean from "hooks/useBoolean";
 import useCommandBarActions from "hooks/useCommandBarActions";
@@ -204,13 +203,7 @@ function CollectionScene() {
         noClick
         multiple
       >
-        {({
-          getRootProps,
-          getInputProps,
-          isDragActive,
-          isDragAccept,
-          isDragReject,
-        }) => (
+        {({ getRootProps, getInputProps, isDragActive }) => (
           <DropzoneContainer
             {...getRootProps()}
             isDragActive={isDragActive}

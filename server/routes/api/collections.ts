@@ -37,6 +37,7 @@ import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("collections.create", auth(), async (ctx) => {
   const {
     name,
@@ -114,6 +115,7 @@ router.post("collections.create", auth(), async (ctx) => {
     policies: presentPolicies(user, [collection]),
   };
 });
+
 router.post("collections.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -127,6 +129,7 @@ router.post("collections.info", auth(), async (ctx) => {
     policies: presentPolicies(user, [collection]),
   };
 });
+
 router.post("collections.import", auth(), async (ctx) => {
   const { type, attachmentId } = ctx.body;
   assertIn(type, ["outline"], "type must be one of 'outline'");
@@ -149,6 +152,7 @@ router.post("collections.import", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("collections.add_group", auth(), async (ctx) => {
   const { id, groupId, permission = "read_write" } = ctx.body;
   assertUuid(id, "id is required");
@@ -197,6 +201,7 @@ router.post("collections.add_group", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("collections.remove_group", auth(), async (ctx) => {
   const { id, groupId } = ctx.body;
   assertUuid(id, "id is required");
@@ -223,6 +228,7 @@ router.post("collections.remove_group", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post(
   "collections.group_memberships",
   auth(),
@@ -279,6 +285,7 @@ router.post(
     };
   }
 );
+
 router.post("collections.add_user", auth(), async (ctx) => {
   const { id, userId, permission = "read_write" } = ctx.body;
   assertUuid(id, "id is required");
@@ -326,6 +333,7 @@ router.post("collections.add_user", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("collections.remove_user", auth(), async (ctx) => {
   const { id, userId } = ctx.body;
   assertUuid(id, "id is required");
@@ -366,6 +374,7 @@ router.post("collections.users", auth(), async (ctx) => {
     data: users.map(presentUser),
   };
 });
+
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
   assertUuid(id, "id is required");
@@ -415,6 +424,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
     },
   };
 });
+
 router.post("collections.export", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
@@ -439,6 +449,7 @@ router.post("collections.export", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("collections.export_all", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
@@ -455,6 +466,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("collections.update", auth(), async (ctx) => {
   const {
     id,
@@ -568,6 +580,7 @@ router.post("collections.update", auth(), async (ctx) => {
     policies: presentPolicies(user, [collection]),
   };
 });
+
 router.post("collections.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
@@ -601,6 +614,7 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     policies: presentPolicies(user, collections),
   };
 });
+
 router.post("collections.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   const user = ctx.state.user;
@@ -627,6 +641,7 @@ router.post("collections.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("collections.move", auth(), async (ctx) => {
   const id = ctx.body.id;
   let index = ctx.body.index;

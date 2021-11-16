@@ -15,6 +15,7 @@ import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("groups.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;

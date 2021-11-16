@@ -130,14 +130,18 @@ router.get("/locales/:lng.json", async (ctx) => {
     path.join(__dirname, "../../shared/i18n/locales", lng, "translation.json")
   );
 });
+
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse();
 });
+
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
   ctx.body = opensearchResponse();
 });
+
 router.get("/share/:shareId", renderShare);
+
 router.get("/share/:shareId/*", renderShare);
 // catch all for application
 router.get("*", renderApp);

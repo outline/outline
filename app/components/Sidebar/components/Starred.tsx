@@ -42,6 +42,7 @@ function Starred() {
       setIsFetching(false);
     }
   }, [fetchStarred, offset, showToast, t]);
+
   useEffect(() => {
     let stateInLocal;
 
@@ -57,6 +58,7 @@ function Starred() {
       setExpanded(stateInLocal === "true");
     }
   }, [expanded]);
+
   useEffect(() => {
     setOffset(starred.length);
 
@@ -68,6 +70,7 @@ function Starred() {
       setShow("Less");
     }
   }, [starred, upperBound]);
+
   useEffect(() => {
     if (offset === 0) {
       fetchResults();

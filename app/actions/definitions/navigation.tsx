@@ -21,7 +21,6 @@ import {
 import stores from "stores";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import { createAction } from "actions";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/sections' or its corre... Remove this comment to see the full error message
 import { NavigationSection } from "actions/sections";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/history' or its correspo... Remove this comment to see the full error message
 import history from "utils/history";

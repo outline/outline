@@ -18,12 +18,14 @@ const { can } = policy;
 
 export default function init(app: Koa, server: http.Server) {
   const path = "/realtime";
+
   // Websockets for events and non-collaborative documents
   const io = IO(server, {
     path,
     serveClient: false,
     cookie: false,
   });
+
   // Remove the upgrade handler that we just added when registering the IO engine
   // And re-add it with a check to only handle the realtime path, this allows
   // collaboration websockets to exist in the same process as engine.io.
@@ -208,6 +210,7 @@ export default function init(app: Koa, server: http.Server) {
           }
         });
       });
+
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       socket.on("presence", async (event) => {
         Metrics.increment("websockets.presence");

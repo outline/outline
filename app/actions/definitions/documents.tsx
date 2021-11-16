@@ -13,7 +13,6 @@ import {
 import * as React from "react";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import { createAction } from "actions";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/sections' or its corre... Remove this comment to see the full error message
 import { DocumentSection } from "actions/sections";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/getDataTransferFiles' or... Remove this comment to see the full error message
 import getDataTransferFiles from "utils/getDataTransferFiles";
@@ -214,6 +213,8 @@ export const createTemplate = createAction({
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
+    if (!activeDocumentId) return;
+
     event?.preventDefault();
     event?.stopPropagation();
 

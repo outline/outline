@@ -574,8 +574,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   import = async (
     file: File,
-    parentDocumentId: string,
-    collectionId: string,
+    parentDocumentId: string | null | undefined,
+    collectionId: string | null | undefined,
     options: ImportOptions
   ) => {
     // file.type can be an empty string sometimes

@@ -17,6 +17,7 @@ import { assertPresent } from "../../validation";
 const { authorize } = policy;
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
+
 router.post("attachments.create", auth(), async (ctx) => {
   const { name, documentId, contentType, size } = ctx.body;
   assertPresent(name, "name is required");
@@ -91,6 +92,7 @@ router.post("attachments.create", auth(), async (ctx) => {
     },
   };
 });
+
 router.post("attachments.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -121,6 +123,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
 router.post("attachments.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");

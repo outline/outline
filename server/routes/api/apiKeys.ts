@@ -8,6 +8,7 @@ import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
+
 router.post("apiKeys.create", auth(), async (ctx) => {
   const { name } = ctx.body;
   assertPresent(name, "name is required");

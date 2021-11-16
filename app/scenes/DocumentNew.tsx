@@ -21,6 +21,7 @@ function DocumentNew() {
   const { showToast } = useToasts();
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type '{}'.
   const id = match.params.id || "";
+
   useEffect(() => {
     async function createDocument() {
       const params = queryString.parse(location.search);

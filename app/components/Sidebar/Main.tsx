@@ -23,7 +23,6 @@ import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'actions/definitions/users' or ... Remove this comment to see the full error message
 import { inviteUser } from "actions/definitions/users";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useCurrentUser from "hooks/useCurrentUser";
