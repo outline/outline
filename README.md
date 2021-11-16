@@ -101,6 +101,13 @@ For contributing features and fixes you can quickly get an environment running u
    1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
+### Testing
+
+The `Makefile` has other useful scripts, including some test automation.
+
+1. To run the entire test suite, run `make test`
+1. During development, it's often useful, to re-run some tests every time a file is changed. Use `make watch` to start the test daemon and follow the instructions in the console
+
 # Contributing
 
 Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!

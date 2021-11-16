@@ -203,7 +203,7 @@ describe("#groups.info", () => {
     expect(body.data.id).toEqual(group.id);
   });
 
-  it("should not return group if non-member, non-admin", async () => {
+  it("should still return group if non-member, non-admin", async () => {
     const user = await buildUser();
     const group = await buildGroup({ teamId: user.teamId });
 
@@ -211,7 +211,10 @@ describe("#groups.info", () => {
       body: { token: user.getJwtToken(), id: group.id },
     });
 
-    expect(res.status).toEqual(403);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
   });
 
   it("should require authentication", async () => {

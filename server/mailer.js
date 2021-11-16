@@ -204,12 +204,18 @@ export class Mailer {
   };
 
   signin = async (opts: { to: string, token: string, teamUrl: string }) => {
+    const signInLink = signinEmailText(opts);
+
+    if (process.env.NODE_ENV === "development") {
+      Logger.debug("email", `Sign-In link: ${signInLink}`);
+    }
+
     this.sendMail({
       to: opts.to,
       title: "Magic signin link",
       previewText: "Here’s your link to signin to Outline.",
       html: <SigninEmail {...opts} />,
-      text: signinEmailText(opts),
+      text: signInLink,
     });
   };
 
