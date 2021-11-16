@@ -259,9 +259,11 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
 const Icon = styled.svg`
   transition: fill 150ms ease-in-out;
 `;
+
 const Label = styled.label`
   display: block;
 `;
+
 const Icons = styled.div`
   padding: 16px 8px 0 16px;
 
@@ -269,20 +271,24 @@ const Icons = styled.div`
     width: 276px;
   `};
 `;
+
 const Button = styled(NudeButton)`
   border: 1px solid ${(props) => props.theme.inputBorder};
   width: 32px;
   height: 32px;
 `;
+
 const IconButton = styled(NudeButton)`
   border-radius: 4px;
   margin: 0px 6px 6px 0px;
   width: 30px;
   height: 30px;
 `;
+
 const Loading = styled(HelpText)`
   padding: 16px;
 `;
+
 const ColorPicker = styled(TwitterPicker)`
   box-shadow: none !important;
   background: transparent !important;
@@ -292,6 +298,7 @@ const ColorPicker = styled(TwitterPicker)`
     width: 276px;
   `};
 `;
+
 const Wrapper = styled("div")`
   display: inline-block;
   position: relative;

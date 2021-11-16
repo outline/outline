@@ -14,6 +14,7 @@ function ArchiveLink({ documents }) {
   const { policies } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
+
   const [{ isDocumentDropping }, dropToArchiveDocument] = useDrop({
     accept: "document",
     drop: async (item, monitor) => {

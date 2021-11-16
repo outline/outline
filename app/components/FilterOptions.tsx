@@ -83,6 +83,7 @@ const Note = styled(HelpText)`
   font-weight: 400;
   color: ${(props) => props.theme.textTertiary};
 `;
+
 const LabelWithNote = styled.div`
   font-weight: 500;
   text-align: left;
@@ -91,6 +92,7 @@ const LabelWithNote = styled.div`
     color: ${(props) => props.theme.white50};
   }
 `;
+
 const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
@@ -104,6 +106,7 @@ const StyledButton = styled(Button)`
     line-height: 28px;
   }
 `;
+
 const Wrapper = styled.div`
   margin-right: 8px;
 `;

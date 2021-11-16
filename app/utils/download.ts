@@ -42,12 +42,10 @@ export default function download(
     x = x[1];
   }
 
-  //go ahead and download dataURLs right away
+  // go ahead and download dataURLs right away
   if (String(x).match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
-    return navigator.msSaveBlob // IE10 can't do a[download], only Blobs:
-      ? navigator.msSaveBlob(d2b(x), fn)
-      : // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        saver(x); // everyone else can save dataURLs un-processed
+    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
+    return saver(x); // everyone else can save dataURLs un-processed
   }
 
   //end if dataURL passed?
@@ -129,12 +127,6 @@ export default function download(
     setTimeout(function () {
       D.body && D.body.removeChild(f);
     }, 333);
-  }
-
-  if (navigator.msSaveBlob) {
-    // IE10+ : (has Blob, but not a[download] or URL)
-
-    return navigator.msSaveBlob(blob, fn);
   }
 
   if (self.URL) {

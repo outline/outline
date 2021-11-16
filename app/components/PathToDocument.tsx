@@ -65,14 +65,17 @@ class PathToDocument extends React.Component<Props> {
 }
 
 const DocumentTitle = styled(Flex)``;
+
 const Title = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
+
 const StyledGoToIcon = styled(GoToIcon)`
   fill: ${(props) => props.theme.divider};
 `;
+
 const ResultWrapper = styled.div`
   display: flex;
   margin-bottom: 10px;
@@ -85,6 +88,7 @@ const ResultWrapper = styled.div`
     flex-shrink: 0;
   }
 `;
+
 const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
   padding: 8px 4px;
 

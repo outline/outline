@@ -36,6 +36,7 @@ export default function useWindowScrollPosition(options: {
 } {
   const opts = Object.assign({}, defaultOptions, options);
   const [position, setPosition] = useState(getPosition());
+
   useEffect(() => {
     const handleScroll = throttle(() => {
       setPosition(getPosition());
@@ -54,5 +55,6 @@ export default function useWindowScrollPosition(options: {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [opts.throttle]);
+
   return position;
 }

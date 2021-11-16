@@ -89,6 +89,7 @@ const Position = styled(Flex)`
   bottom: 0;
   width: ${(props) => props.theme.sidebarWidth}px;
 `;
+
 const Sidebar = styled(Flex)`
   display: none;
   position: relative;
@@ -102,6 +103,7 @@ const Sidebar = styled(Flex)`
     display: flex;
   `};
 `;
+
 const Title = styled(Flex)`
   font-size: 16px;
   font-weight: 600;
@@ -114,6 +116,7 @@ const Title = styled(Flex)`
   width: 0;
   flex-grow: 1;
 `;
+
 const Header = styled(Flex)`
   align-items: center;
   position: relative;

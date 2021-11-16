@@ -58,6 +58,7 @@ const Shortcut = styled.kbd`
   background-color: ${(props) => props.theme.tooltipText};
   border-radius: 3px;
 `;
+
 const StyledTippy = styled(Tippy)`
   font-size: 13px;
   background-color: ${(props) => props.theme.tooltipBackground};

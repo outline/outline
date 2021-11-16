@@ -106,6 +106,7 @@ const StarButton = styled(Star)`
   top: 4px;
   left: 4px;
 `;
+
 const Title = styled(ContentEditable)`
   line-height: 1.25;
   margin-top: 1em;

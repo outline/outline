@@ -178,6 +178,7 @@ const AvatarContainer = styled(Flex)`
     color: ${(props) => props.theme.white};
   }
 `;
+
 const Avatar = styled.img`
   ${avatarStyles};
 `;

@@ -50,6 +50,7 @@ const Button = styled(NudeButton)`
     display: none;
   }
 `;
+
 const Centered = styled.div`
   text-align: center;
 `;

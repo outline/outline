@@ -97,6 +97,7 @@ const Image = styled(Flex)`
   background: ${(props) => props.theme.secondaryBackground};
   border-radius: 32px;
 `;
+
 const Title = styled.span`
   &:hover {
     text-decoration: underline;

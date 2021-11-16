@@ -125,6 +125,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
 const Relative = styled.div`
   position: relative;
 `;
+
 const ObserveredStarredLink = observer(StarredLink);
 
 export default ObserveredStarredLink;

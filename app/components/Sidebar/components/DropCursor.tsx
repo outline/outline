@@ -1,24 +1,20 @@
 import * as React from "react";
-import styled, { withTheme } from "styled-components";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { Theme } from "types";
+import styled from "styled-components";
 
 function DropCursor({
   isActiveDrop,
   innerRef,
-  theme,
   from,
 }: {
   isActiveDrop: boolean;
-  innerRef: React.Ref<any>;
-  theme: Theme;
-  from: string;
+  innerRef: React.Ref<HTMLDivElement>;
+  from?: string;
 }) {
   return <Cursor isOver={isActiveDrop} ref={innerRef} from={from} />;
 }
 
 // transparent hover zone with a thin visible band vertically centered
-const Cursor = styled.div<{ isOver?: boolean; from: string }>`
+const Cursor = styled.div<{ isOver?: boolean; from?: string }>`
   opacity: ${(props) => (props.isOver ? 1 : 0)};
   transition: opacity 150ms;
 
@@ -41,4 +37,4 @@ const Cursor = styled.div<{ isOver?: boolean; from: string }>`
   }
 `;
 
-export default withTheme(DropCursor);
+export default DropCursor;

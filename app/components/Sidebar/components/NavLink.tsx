@@ -29,7 +29,7 @@ const joinClassnames = (...classnames) => {
 
 export type Props = {
   activeClassName?: string;
-  activeStyle?: Record<string, any>;
+  activeStyle?: React.CSSProperties;
   className?: string;
   scrollIntoViewIfNeeded?: boolean;
   exact?: boolean;

@@ -61,6 +61,7 @@ const Breadcrumbs = styled("div")`
   display: flex;
 `};
 `;
+
 const Actions = styled(Flex)`
   flex-grow: 1;
   flex-basis: 0;
@@ -71,6 +72,7 @@ const Actions = styled(Flex)`
     position: unset;
   `};
 `;
+
 const Wrapper = styled(Flex)`
   position: sticky;
   top: 0;
@@ -92,6 +94,7 @@ const Wrapper = styled(Flex)`
     justify-content: "center";
   `};
 `;
+
 const Title = styled("div")`
   display: none;
   font-size: 16px;

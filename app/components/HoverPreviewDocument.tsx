@@ -41,6 +41,7 @@ function HoverPreviewDocument({ url, children }: Props) {
 const Content = styled(Link)`
   cursor: pointer;
 `;
+
 const Heading = styled.h2`
   margin: 0 0 0.75em;
   color: ${(props) => props.theme.text};

@@ -117,6 +117,7 @@ const Rounded = styled.div<{
   width: ${(props) => props.width};
   height: ${(props) => (props.$withBar ? props.height + 28 : props.height)};
 `;
+
 const Open = styled.a`
   color: ${(props) => props.theme.textSecondary} !important;
   font-size: 13px;
@@ -127,11 +128,13 @@ const Open = styled.a`
   right: 0;
   padding: 0 8px;
 `;
+
 const Title = styled.span`
   font-size: 13px;
   font-weight: 500;
   padding-left: 4px;
 `;
+
 const Bar = styled.div`
   display: flex;
   align-items: center;

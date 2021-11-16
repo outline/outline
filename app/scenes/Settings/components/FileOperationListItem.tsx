@@ -28,7 +28,6 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
           ? fileOperation.collection.name
           : t("All collections")
       }
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ title: string; subtitle: Element; actions:... Remove this comment to see the full error message
       subtitle={
         <>
           {fileOperation.state !== "complete" && (

@@ -71,6 +71,7 @@ const CollectionGroupMemberListItem = ({
 const Spacer = styled.div`
   width: 8px;
 `;
+
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;

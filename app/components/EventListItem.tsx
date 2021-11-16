@@ -123,6 +123,7 @@ const Subtitle = styled.span`
     margin-right: 2px;
   }
 `;
+
 const ListItem = styled(Item)`
   border: 0;
   position: relative;

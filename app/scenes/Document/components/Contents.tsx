@@ -89,6 +89,7 @@ const Wrapper = styled("div")`
     display: block;
   `};
 `;
+
 const Heading = styled("h3")`
   font-size: 11px;
   font-weight: 600;
@@ -96,6 +97,7 @@ const Heading = styled("h3")`
   color: ${(props) => props.theme.sidebarText};
   letter-spacing: 0.04em;
 `;
+
 const Empty = styled(HelpText)`
   margin: 1em 0 4em;
   padding-right: 2em;
@@ -103,6 +105,7 @@ const Empty = styled(HelpText)`
   width: 16em;
   font-size: 14px;
 `;
+
 const ListItem = styled("li")`
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'level' does not exist on type 'ThemedSty... Remove this comment to see the full error message
   margin-left: ${(props) => (props.level - 1) * 10}px;
@@ -119,6 +122,7 @@ const ListItem = styled("li")`
       props.active ? props.theme.primary : props.theme.text};
   }
 `;
+
 const Link = styled("a")`
   color: ${(props) => props.theme.text};
   font-size: 14px;
@@ -127,6 +131,7 @@ const Link = styled("a")`
     color: ${(props) => props.theme.primary};
   }
 `;
+
 const List = styled("ol")`
   min-width: 14em;
   width: 14em;

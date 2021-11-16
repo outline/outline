@@ -22,6 +22,7 @@ export const Separator = styled.div`
   height: 28px;
   background: ${(props) => props.theme.divider};
 `;
+
 const Actions = styled(Flex)`
   position: fixed;
   top: 0;

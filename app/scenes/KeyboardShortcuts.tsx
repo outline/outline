@@ -412,6 +412,7 @@ const Header = styled.h2`
   font-weight: 500;
   margin-top: 2em;
 `;
+
 const List = styled.dl`
   font-size: 14px;
   width: 100%;
@@ -419,6 +420,7 @@ const List = styled.dl`
   padding: 0;
   margin: 0;
 `;
+
 const Keys = styled.dt`
   float: right;
   width: 45%;
@@ -431,6 +433,7 @@ const Keys = styled.dt`
   align-items: center;
   justify-content: flex-end;
 `;
+
 const Label = styled.dd`
   float: left;
   width: 55%;

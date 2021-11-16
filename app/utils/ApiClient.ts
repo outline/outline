@@ -158,7 +158,7 @@ class ApiClient {
 
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'error' does not exist on type '{}'.
     if (response.status === 400 && error.error === "editor_update_required") {
-      window.location.reload(true);
+      window.location.reload();
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       throw new UpdateRequiredError(error.message);
     }

@@ -1,10 +1,7 @@
 import { Location } from "history";
 import { TFunction } from "react-i18next";
-import theme from "shared/theme";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
-
-export type Theme = typeof theme;
 
 export type MenuItemClickable = {
   title: React.ReactNode;
@@ -19,7 +16,7 @@ export type MenuItemWithChildren = {
   title: React.ReactNode;
   visible?: boolean;
   disabled?: boolean;
-  style?: Record<string, any>;
+  style?: React.CSSProperties;
   hover?: boolean;
   items: MenuItem[];
   icon?: React.ReactNode;
@@ -49,17 +46,17 @@ export type ActionContext = {
 
 export type Action = {
   id: string;
-  name: ((arg0: ActionContext) => string) | string;
-  section: ((arg0: ActionContext) => string) | string;
+  name: ((context: ActionContext) => string) | string;
+  section: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
   iconInContextMenu?: boolean;
   icon?: React.ReactElement | React.FC;
-  placeholder?: ((arg0: ActionContext) => string) | string;
-  selected?: (arg0: ActionContext) => boolean;
-  visible?: (arg0: ActionContext) => boolean;
-  perform?: (arg0: ActionContext) => any;
-  children?: ((arg0: ActionContext) => Action[]) | Action[];
+  placeholder?: ((context: ActionContext) => string) | string;
+  selected?: (context: ActionContext) => boolean;
+  visible?: (context: ActionContext) => boolean;
+  perform?: (context: ActionContext) => any;
+  children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
 export type CommandBarAction = {

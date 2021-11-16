@@ -59,6 +59,7 @@ const Action = styled.span`
     background: ${(props) => darken(0.1, props.theme.toastBackground)};
   }
 `;
+
 const ListItem = styled.li<{ $pulse?: boolean }>`
   ${(props) =>
     props.$pulse &&
@@ -66,6 +67,7 @@ const ListItem = styled.li<{ $pulse?: boolean }>`
       animation: ${pulse} 250ms;
     `}
 `;
+
 const Container = styled.div`
   display: inline-flex;
   align-items: center;

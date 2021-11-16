@@ -20,9 +20,11 @@ type Props = {
 function References({ document }: Props) {
   const { collections, documents } = useStores();
   const location = useLocation();
+
   React.useEffect(() => {
     documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
+
   const backlinks = documents.getBacklinedDocuments(document.id);
   const collection = collections.get(document.collectionId);
   const children = collection
@@ -31,6 +33,7 @@ function References({ document }: Props) {
   const showBacklinks = !!backlinks.length;
   const showNestedDocuments = !!children.length;
   const isBacklinksTab = location.hash === "#backlinks" || !showNestedDocuments;
+
   return (
     (showBacklinks || showNestedDocuments) && (
       <Fade>

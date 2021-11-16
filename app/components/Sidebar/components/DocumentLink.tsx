@@ -7,6 +7,7 @@ import { MAX_TITLE_LENGTH } from "shared/constants";
 import Collection from "models/Collection";
 import Document from "models/Document";
 import Fade from "components/Fade";
+import { NavigationNode } from "../../../types";
 import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -15,9 +16,6 @@ import SidebarLink from "./SidebarLink";
 import useBoolean from "hooks/useBoolean";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
-import "types";
 
 type Props = {
   node: NavigationNode;
@@ -50,17 +48,20 @@ function DocumentLink(
   const hasChildDocuments = !!node.children.length;
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
+
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
       fetchChildDocuments(node.id);
     }
   }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
+
   const pathToNode = React.useMemo(
     () =>
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       collection && collection.pathToDocument(node.id).map((entry) => entry.id),
     [collection, node]
   );
+
   const showChildren = React.useMemo(() => {
     return !!(
       hasChildDocuments &&
@@ -116,6 +117,7 @@ function DocumentLink(
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
+
   // Draggable
   const [{ isDragging }, drag] = useDrag({
     type: "document",
@@ -141,7 +143,6 @@ function DocumentLink(
   // to trigger expansion of children. Clear this timeout when they stop hovering.
   const resetHoverExpanding = React.useCallback(() => {
     if (hoverExpanding.current) {
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       clearTimeout(hoverExpanding.current);
       hoverExpanding.current = null;
     }
@@ -192,6 +193,7 @@ function DocumentLink(
       canDropToReparent: monitor.canDrop(),
     }),
   });
+
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
@@ -213,20 +215,19 @@ function DocumentLink(
       isOverReorder: !!monitor.isOver(),
     }),
   });
+
   return (
     <>
       <Relative onDragLeave={resetHoverExpanding}>
         <Draggable
           key={node.id}
           ref={drag}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           $isDragging={isDragging}
           $isMoving={isMoving}
         >
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
-                // @ts-expect-error ts-migrate(2322) FIXME: Type '{ onMouseEnter: (ev: SyntheticEvent<Element,... Remove this comment to see the full error message
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
@@ -265,9 +266,7 @@ function DocumentLink(
                     <Fade>
                       <DocumentMenu
                         document={document}
-                        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                         onOpen={handleMenuOpen}
-                        // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | (() => void)' is not assignable to... Remove this comment to see the full error message
                         onClose={handleMenuClose}
                       />
                     </Fade>
@@ -278,15 +277,11 @@ function DocumentLink(
           </div>
         </Draggable>
         {manualSort && (
-          // @ts-expect-error ts-migrate(2741) FIXME: Property 'from' is missing in type '{ isActiveDrop... Remove this comment to see the full error message
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
       {expanded && !isDragging && (
         <>
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childNode'
-          implicitly has an 'any' type... Remove this comment to see the full
-          error message
           {node.children.map((childNode, index) => (
             <ObservedDocumentLink
               key={childNode.id}
@@ -309,12 +304,12 @@ function DocumentLink(
 const Relative = styled.div`
   position: relative;
 `;
-const Draggable = styled.div`
-  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isDragging' does not exist on type 'The... Remove this comment to see the full error message
+
+const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
-  // @ts-expect-error ts-migrate(2339) FIXME: Property '$isMoving' does not exist on type 'Theme... Remove this comment to see the full error message
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
+
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
 
 export default ObservedDocumentLink;

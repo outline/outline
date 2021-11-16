@@ -1,3 +1,4 @@
+import { Location } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -6,17 +7,17 @@ import ErrorOffline from "scenes/ErrorOffline";
 import useStores from "../../hooks/useStores";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { LocationWithState } from "types";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/errors' or its correspon... Remove this comment to see the full error message
 import { OfflineError } from "utils/errors";
 import "types";
 
 const EMPTY_OBJECT = {};
 
-export default function SharedDocumentScene(
-  props: RouteComponentProps<{ shareId: string; documentSlug: string }>
-) {
+type Props = RouteComponentProps<{ shareId: string; documentSlug: string }> & {
+  location: Location;
+};
+
+export default function SharedDocumentScene(props: Props) {
   const theme = useTheme();
   const [response, setResponse] = React.useState();
   const [error, setError] = React.useState<Error | null | undefined>();
@@ -53,7 +54,6 @@ export default function SharedDocumentScene(
 
   return (
     <Document
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ abilities: {}; document: any; sharedTree: ... Remove this comment to see the full error message
       abilities={EMPTY_OBJECT}
       // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       document={response.document}

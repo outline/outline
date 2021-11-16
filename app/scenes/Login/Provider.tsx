@@ -128,6 +128,7 @@ const Wrapper = styled.div`
   margin-bottom: 1em;
   width: 100%;
 `;
+
 const Form = styled.form`
   width: 100%;
   display: flex;

@@ -159,6 +159,7 @@ const BackIcon = styled(ExpandedIcon)`
   transform: rotate(90deg);
   margin-left: -8px;
 `;
+
 const ReturnToApp = styled(Flex)`
   height: 16px;
 `;

@@ -57,6 +57,7 @@ function KBarPortal({ children }: { children: React.ReactNode }) {
 const Positioner = styled(KBarPositioner)`
   z-index: ${(props) => props.theme.depths.commandBar};
 `;
+
 const SearchInput = styled(KBarSearch)`
   padding: 16px 20px;
   width: 100%;
@@ -70,6 +71,7 @@ const SearchInput = styled(KBarSearch)`
     color: ${(props) => props.theme.placeholder};
   }
 `;
+
 const Animator = styled(KBarAnimator)`
   max-width: 600px;
   max-height: 75vh;

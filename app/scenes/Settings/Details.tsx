@@ -145,11 +145,13 @@ function Details() {
 const ProfilePicture = styled(Flex)`
   margin-bottom: 24px;
 `;
+
 const avatarStyles = `
   width: 80px;
   height: 80px;
   border-radius: 8px;
 `;
+
 const AvatarContainer = styled(Flex)`
   ${avatarStyles};
   position: relative;
@@ -174,6 +176,7 @@ const AvatarContainer = styled(Flex)`
     color: ${(props) => props.theme.white};
   }
 `;
+
 const Avatar = styled.img`
   ${avatarStyles};
 `;

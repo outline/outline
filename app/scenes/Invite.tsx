@@ -256,6 +256,7 @@ const CopyBlock = styled("div")`
   margin: 2em 0;
   font-size: 14px;
 `;
+
 const Remove = styled("div")`
   margin-top: 6px;
   position: absolute;

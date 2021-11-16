@@ -1,3 +1,4 @@
+import { Location } from "history";
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer, inject } from "mobx-react";
@@ -77,6 +78,7 @@ type Props = WithTranslation &
     document: Document;
     revision: Revision;
     readOnly: boolean;
+    location: Location;
     onCreateLink: (title: string) => Promise<string>;
     onSearchLink: (term: string) => any;
   };

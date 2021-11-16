@@ -15,12 +15,6 @@ declare module "emoji-regex" {
   export = RegExpFactory;
 }
 
-declare module "fetch-with-proxy" {
-  export = fetch;
-}
-
-declare module "koa-onerror";
-
 declare module "*.png" {
   const value: any;
   export = value;

@@ -97,6 +97,7 @@ const IconWrapper = styled.span`
   overflow: hidden;
   flex-shrink: 0;
 `;
+
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: ${(props) => (props.showActions ? "inline-flex" : "none")};
   position: absolute;
@@ -119,6 +120,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
     }
   }
 `;
+
 const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
   display: flex;
   position: relative;
@@ -166,6 +168,7 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
     }
   }
 `;
+
 const Label = styled.div`
   position: relative;
   width: 100%;

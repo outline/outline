@@ -10,9 +10,10 @@ import useToasts from "hooks/useToasts";
 
 type Props = {
   children: JSX.Element;
-  collectionId: string;
+  collectionId?: string;
   documentId?: string;
   disabled?: boolean;
+  activeClassName?: string;
 };
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {

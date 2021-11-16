@@ -51,11 +51,13 @@ const Icon = styled.div`
   height: 22px;
   color: ${(props) => props.theme.textSecondary};
 `;
+
 const Text = styled(Flex)`
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 1;
 `;
+
 const Item = styled.div`
   font-size: 15px;
   padding: 12px 16px;
@@ -72,6 +74,7 @@ const Item = styled.div`
   overflow: hidden;
   min-width: 0;
 `;
+
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);
 `;
