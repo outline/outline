@@ -18,6 +18,8 @@ import env from "env";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
+type FetchParams = PaginationParams & { collectionId: string };
+
 type ImportOptions = {
   publish?: boolean;
 };
@@ -390,9 +392,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchPinned = (
-    options: PaginationParams | null | undefined
-  ): Promise<any> => {
+  fetchPinned = (options: FetchParams | null | undefined): Promise<any> => {
     return this.fetchNamedPage("pinned", options);
   };
 
@@ -527,8 +527,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   move = async (
     documentId: string,
     collectionId: string,
-    parentDocumentId: string | null | undefined,
-    index: number | null | undefined
+    parentDocumentId?: string | null,
+    index?: number | null
   ) => {
     this.movingDocumentId = documentId;
 

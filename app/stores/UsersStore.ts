@@ -213,7 +213,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  inCollection = (collectionId: string, query: string) => {
+  inCollection = (collectionId: string, query?: string) => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId

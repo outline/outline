@@ -10,8 +10,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "models/Document";
-import Breadcrumb from "components/Breadcrumb";
+import Breadcrumb, { Crumb } from "components/Breadcrumb";
 import CollectionIcon from "components/CollectionIcon";
+import { NavigationNode } from "../types";
 import useStores from "hooks/useStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { collectionUrl } from "utils/routeHelpers";
@@ -22,8 +23,7 @@ type Props = {
   onlyText?: boolean;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
-function useCategory(document) {
+function useCategory(document: Document) {
   const { t } = useTranslation();
 
   if (document.isDeleted) {
@@ -65,48 +65,46 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
-  let collection = collections.get(document.collectionId);
+  const collection = collections.get(document.collectionId);
 
-  if (!collection) {
-    collection = {
-      id: document.collectionId,
-      name: t("Deleted Collection"),
-      color: "currentColor",
-      url: "deleted-collection",
+  let collectionNode: Crumb;
+
+  if (collection) {
+    collectionNode = {
+      title: collection.name,
+      icon: <CollectionIcon collection={collection} expanded />,
+      to: collectionUrl(collection.url),
+    };
+  } else {
+    collectionNode = {
+      title: t("Deleted Collection"),
+      icon: undefined,
+      to: collectionUrl("deleted-collection"),
     };
   }
 
   const path = React.useMemo(
-    () =>
-      collection && collection.pathToDocument
-        ? collection.pathToDocument(document.id).slice(0, -1)
-        : [],
+    () => collection?.pathToDocument?.(document.id).slice(0, -1) || [],
     [collection, document.id]
   );
+
   const items = React.useMemo(() => {
-    const output = [];
+    const output: Crumb[] = [];
 
     if (category) {
       output.push(category);
     }
 
-    if (collection) {
-      output.push({
-        icon: <CollectionIcon collection={collection} expanded />,
-        title: collection.name,
-        to: collectionUrl(collection.url),
-      });
-    }
+    output.push(collectionNode);
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
-    path.forEach((p) => {
+    path.forEach((p: NavigationNode) => {
       output.push({
         title: p.title,
         to: p.url,
       });
     });
     return output;
-  }, [path, category, collection]);
+  }, [path, category, collectionNode]);
 
   if (!collections.isLoaded) {
     return null;
@@ -115,7 +113,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   if (onlyText === true) {
     return (
       <>
-        {collection.name}
+        {collection?.name}
         {path.map((n: any) => (
           <React.Fragment key={n.id}>
             <SmallSlash />

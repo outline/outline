@@ -1,8 +1,8 @@
 import styled from "styled-components";
 
 const Button = styled.button<{
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   size?: number;
 }>`
   width: ${(props) => props.width || props.size || 24}px;

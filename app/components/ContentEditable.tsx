@@ -6,9 +6,9 @@ type Props = {
   disabled?: boolean;
   readOnly?: boolean;
   onChange?: (text: string) => void;
-  onBlur?: React.FocusEventHandler<HTMLSpanElement>;
-  onInput?: React.FormEventHandler<HTMLSpanElement>;
-  onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement>;
+  onBlur?: React.FocusEventHandler<HTMLSpanElement> | undefined;
+  onInput?: React.FormEventHandler<HTMLSpanElement> | undefined;
+  onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement> | undefined;
   placeholder?: string;
   maxLength?: number;
   autoFocus?: boolean;
@@ -36,20 +36,22 @@ function ContentEditable({
   readOnly,
   ...rest
 }: Props) {
-  const ref = React.useRef<HTMLSpanElement>();
+  const ref = React.useRef<HTMLSpanElement>(null);
   const [innerHTML, setInnerHTML] = React.useState<string>(value);
   const lastValue = React.useRef("");
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'callback' implicitly has an 'any' type.
-  const wrappedEvent = (callback) => (
-    event: React.SyntheticEvent<HTMLInputElement>
-  ) => {
+  const wrappedEvent = (
+    callback:
+      | React.FocusEventHandler<HTMLSpanElement>
+      | React.FormEventHandler<HTMLSpanElement>
+      | React.KeyboardEventHandler<HTMLSpanElement>
+      | undefined
+  ) => (event: any) => {
     const text = ref.current?.innerText || "";
 
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'SyntheticEvent<HTMLInputElement,... Remove this comment to see the full error message
     if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
-      event.preventDefault();
-      return false;
+      event?.preventDefault();
+      return;
     }
 
     if (text !== lastValue.current) {
@@ -57,7 +59,7 @@ function ContentEditable({
       onChange && onChange(text);
     }
 
-    callback && callback(event);
+    callback?.(event);
   };
 
   React.useLayoutEffect(() => {
@@ -75,11 +77,11 @@ function ContentEditable({
   return (
     <div className={className}>
       <Content
+        ref={ref}
         contentEditable={!disabled && !readOnly}
         onInput={wrappedEvent(onInput)}
         onBlur={wrappedEvent(onBlur)}
         onKeyDown={wrappedEvent(onKeyDown)}
-        ref={ref}
         data-placeholder={placeholder}
         role="textbox"
         dangerouslySetInnerHTML={{

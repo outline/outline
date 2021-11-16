@@ -5,14 +5,14 @@ import styled from "styled-components";
 import Flex from "components/Flex";
 import BreadcrumbMenu from "menus/BreadcrumbMenu";
 
-type MenuItem = {
+export type Crumb = {
   icon?: React.ReactNode;
   title: React.ReactNode;
   to?: string;
 };
 
 type Props = {
-  items: MenuItem[];
+  items: Crumb[];
   max?: number;
   children?: React.ReactNode;
   highlightFirstItem?: boolean;
@@ -20,7 +20,7 @@ type Props = {
 
 function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
   const totalItems = items.length;
-  const topLevelItems: MenuItem[] = [...items];
+  const topLevelItems: Crumb[] = [...items];
   let overflowItems;
 
   // chop middle breadcrumbs and present a "..." menu instead

@@ -25,18 +25,16 @@ function Collaborators(props: Props) {
   const [requestedUserIds, setRequestedUserIds] = React.useState<string[]>([]);
   const { users, presence } = useStores();
   const { document } = props;
-  let documentPresence = presence.get(document.id);
-
-  documentPresence = documentPresence
+  const documentPresence = presence.get(document.id);
+  const documentPresenceArray = documentPresence
     ? Array.from(documentPresence.values())
     : [];
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
-  const presentIds = documentPresence.map((p) => p.userId);
-  const editingIds = documentPresence
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
+
+  const presentIds = documentPresenceArray.map((p) => p.userId);
+  const editingIds = documentPresenceArray
     .filter((p) => p.isEditing)
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     .map((p) => p.userId);
+
   // ensure currently present via websocket are always ordered first
   const collaborators = React.useMemo(
     () =>
@@ -51,6 +49,7 @@ function Collaborators(props: Props) {
       ),
     [document.collaboratorIds, users.orderedData, presentIds]
   );
+
   // load any users we don't yet have in memory
   React.useEffect(() => {
     const userIdsToFetch = uniq([
@@ -66,6 +65,7 @@ function Collaborators(props: Props) {
       .filter((userId) => requestedUserIds.includes(userId))
       .forEach((userId) => users.fetch(userId));
   }, [document, users, presentIds, document.collaboratorIds, requestedUserIds]);
+
   const popover = usePopoverState({
     gutter: 0,
     placement: "bottom-end",
@@ -75,7 +75,6 @@ function Collaborators(props: Props) {
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <NudeButton width={collaborators.length * 32} height={32} {...props}>
             <FacepileHiddenOnMobile
               users={collaborators}

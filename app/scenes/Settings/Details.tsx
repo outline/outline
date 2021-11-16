@@ -21,10 +21,11 @@ function Details() {
   const { showToast } = useToasts();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const form = useRef<HTMLFormElement | null | undefined>();
+  const form = useRef<HTMLFormElement>();
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
   const [avatarUrl, setAvatarUrl] = useState();
+
   const handleSubmit = React.useCallback(
     async (event: React.SyntheticEvent | null | undefined) => {
       if (event) {
@@ -48,6 +49,7 @@ function Details() {
     },
     [auth, showToast, name, avatarUrl, subdomain, t]
   );
+
   const handleNameChange = React.useCallback(
     (ev: React.SyntheticEvent<any>) => {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
@@ -55,6 +57,7 @@ function Details() {
     },
     []
   );
+
   const handleSubdomainChange = React.useCallback(
     (ev: React.SyntheticEvent<any>) => {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
@@ -62,6 +65,7 @@ function Details() {
     },
     []
   );
+
   const handleAvatarUpload = React.useCallback(
     (avatarUrl: string) => {
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
@@ -71,12 +75,14 @@ function Details() {
     },
     [handleSubmit]
   );
+
   const handleAvatarError = React.useCallback(
     (error: string | null | undefined) => {
       showToast(error || t("Unable to upload new logo"));
     },
     [showToast, t]
   );
+
   const isValid = form.current && form.current.checkValidity();
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>

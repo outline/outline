@@ -15,7 +15,7 @@ type Props = {
 
 function Facepile({
   users,
-  overflow,
+  overflow = 0,
   size = 32,
   renderAvatar = DefaultAvatar,
   ...rest

@@ -49,6 +49,7 @@ function CollectionLink({
     handlePermissionClose,
   ] = useBoolean();
   const itemRef = React.useRef<{ id: string; collectionId: string }>();
+
   const handleTitleChange = React.useCallback(
     async (name: string) => {
       await collection.save({
@@ -221,11 +222,9 @@ function CollectionLink({
           </DropToImport>
         </Draggable>
         {expanded && manualSort && (
-          // @ts-expect-error ts-migrate(2741) FIXME: Property 'from' is missing in type '{ isActiveDrop... Remove this comment to see the full error message
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
         {isDraggingAnyCollection && (
-          // @ts-expect-error ts-migrate(2741) FIXME: Property 'from' is missing in type '{ isActiveDrop... Remove this comment to see the full error message
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}

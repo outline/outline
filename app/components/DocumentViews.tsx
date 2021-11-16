@@ -17,17 +17,15 @@ type Props = {
 function DocumentViews({ document, isOpen }: Props) {
   const { t } = useTranslation();
   const { views, presence } = useStores();
-  let documentPresence = presence.get(document.id);
-  documentPresence = documentPresence
+  const documentPresence = presence.get(document.id);
+  const documentPresenceArray = documentPresence
     ? Array.from(documentPresence.values())
     : [];
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
-  const presentIds = documentPresence.map((p) => p.userId);
-  const editingIds = documentPresence
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
+  const presentIds = documentPresenceArray.map((p) => p.userId);
+  const editingIds = documentPresenceArray
     .filter((p) => p.isEditing)
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'p' implicitly has an 'any' type.
     .map((p) => p.userId);
+
   // ensure currently present via websocket are always ordered first
   const documentViews = views.inDocument(document.id);
   const sortedViews = sortBy(
@@ -44,7 +42,6 @@ function DocumentViews({ document, isOpen }: Props) {
         <PaginatedList
           items={users}
           renderItem={(item) => {
-            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'v' implicitly has an 'any' type.
             const view = documentViews.find((v) => v.user.id === item.id);
             const isPresent = presentIds.includes(item.id);
             const isEditing = editingIds.includes(item.id);

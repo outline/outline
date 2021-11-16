@@ -15,6 +15,7 @@ import IconPicker, { icons } from "components/IconPicker";
 import Input from "components/Input";
 import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
+import withStores from "components/withStores";
 
 type StoreProps = {
   auth: AuthStore;
@@ -28,8 +29,6 @@ interface Props extends StoreProps, WithTranslation, RouteComponentProps {
 
 @observer
 class CollectionNew extends React.Component<Props> {
-  static defaultProps = {} as StoreProps;
-
   @observable
   name = "";
 
@@ -187,6 +186,4 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
-export default withTranslation()(
-  inject("collections", "toasts", "auth")(withRouter(CollectionNew))
-);
+export default withStores(withTranslation()(withRouter(CollectionNew)));

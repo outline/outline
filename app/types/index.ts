@@ -62,7 +62,7 @@ export type Action = {
 export type CommandBarAction = {
   id: string;
   name: string;
-  section: string;
+  section?: string;
   shortcut?: string[];
   keywords?: string;
   placeholder?: string;

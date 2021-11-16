@@ -9,6 +9,8 @@ import RootStore from "./RootStore";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
 import { client } from "utils/ApiClient";
 
+type FetchPageParams = PaginationParams & { query?: string };
+
 export default class GroupsStore extends BaseStore<Group> {
   constructor(rootStore: RootStore) {
     super(rootStore, Group);
@@ -21,7 +23,7 @@ export default class GroupsStore extends BaseStore<Group> {
 
   @action
   fetchPage = async (
-    params: PaginationParams | null | undefined
+    params: FetchPageParams | null | undefined
   ): Promise<any> => {
     this.isFetching = true;
 

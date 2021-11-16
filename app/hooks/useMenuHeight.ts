@@ -4,7 +4,7 @@ import useWindowSize from "hooks/useWindowSize";
 
 const useMenuHeight = (
   visible: void | boolean,
-  unstable_disclosureRef: React.RefObject<HTMLElement | null>
+  unstable_disclosureRef?: React.RefObject<HTMLElement | null>
 ) => {
   const [maxHeight, setMaxHeight] = React.useState(undefined);
   const isMobile = useMobile();

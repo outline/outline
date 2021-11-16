@@ -10,6 +10,8 @@ import { client } from "utils/ApiClient";
 
 type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
+type FetchPageParams = PaginationParams & { query?: string };
+
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.
 function modelNameFromClassName(string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
@@ -180,7 +182,7 @@ export default class BaseStore<T extends BaseModel> {
 
   @action
   fetchPage = async (
-    params: PaginationParams | null | undefined
+    params: FetchPageParams | null | undefined
   ): Promise<any> => {
     if (!this.actions.includes("list")) {
       throw new Error(`Cannot list ${this.modelName}`);
