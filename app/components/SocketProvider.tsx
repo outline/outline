@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { find } from "lodash";
 import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import io, { Socket } from "socket.io-client";
 import AuthStore from "stores/AuthStore";
@@ -14,6 +14,7 @@ import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import ToastsStore from "stores/ToastsStore";
 import ViewsStore from "stores/ViewsStore";
+import withStores from "components/withStores";
 import { getVisibilityListener, getPageVisible } from "../utils/pageVisibility";
 
 type SocketWithAuthentication = Socket & { authenticated?: boolean };
@@ -22,8 +23,7 @@ export const SocketContext: any = React.createContext<SocketWithAuthentication |
   null
 );
 
-type Props = {
-  children: React.ReactNode;
+type StoreProps = {
   documents: DocumentsStore;
   collections: CollectionsStore;
   groups: GroupsStore;
@@ -36,8 +36,12 @@ type Props = {
   fileOperations: FileOperationsStore;
 };
 
+type Props = {
+  children: React.ReactNode;
+};
+
 @observer
-class SocketProvider extends React.Component<Props> {
+class SocketProvider extends React.Component<StoreProps & Props> {
   @observable
   socket: SocketWithAuthentication | null;
 
@@ -364,15 +368,4 @@ class SocketProvider extends React.Component<Props> {
   }
 }
 
-export default inject(
-  "auth",
-  "toasts",
-  "documents",
-  "collections",
-  "groups",
-  "memberships",
-  "presence",
-  "policies",
-  "views",
-  "fileOperations"
-)(SocketProvider);
+export default withStores<Props>(SocketProvider);

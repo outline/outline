@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 
@@ -18,6 +18,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
+import withStores from "components/withStores";
 import MemberListItem from "./components/MemberListItem";
 
 type Props = WithTranslation & {
@@ -85,6 +86,7 @@ class AddPeopleToCollection extends React.Component<Props> {
     const { users, collection, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
+
     return (
       <Flex column>
         <HelpText>
@@ -138,6 +140,4 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default withTranslation()(
-  inject("auth", "users", "memberships", "toasts")(AddPeopleToCollection)
-);
+export default withTranslation()(withStores<Props>(AddPeopleToCollection));

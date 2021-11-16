@@ -1,13 +1,11 @@
-import { inject } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
-import { fadeAndSlideDown } from "styles/animations";
+import { fadeAndSlideDown } from "../styles/animations";
+import useStores from "hooks/useStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl } from "utils/urls";
 
@@ -17,16 +15,16 @@ const DELAY_CLOSE = 300;
 type Props = {
   node: HTMLAnchorElement;
   event: MouseEvent;
-  documents: DocumentsStore;
   onClose: () => void;
 };
 
-function HoverPreviewInternal({ node, documents, onClose }: Props) {
+function HoverPreviewInternal({ node, onClose }: Props) {
+  const { documents } = useStores();
   const slug = parseDocumentSlug(node.href);
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef();
   const timerOpen = React.useRef();
-  const cardRef = React.useRef<HTMLDivElement>();
+  const cardRef = React.useRef<HTMLDivElement>(null);
 
   const startCloseTimer = () => {
     stopOpenTimer();
@@ -56,10 +54,7 @@ function HoverPreviewInternal({ node, documents, onClose }: Props) {
 
   React.useEffect(() => {
     if (slug) {
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 2.
-      documents.prefetchDocument(slug, {
-        prefetch: true,
-      });
+      documents.prefetchDocument(slug);
     }
 
     startOpenTimer();
@@ -92,7 +87,7 @@ function HoverPreviewInternal({ node, documents, onClose }: Props) {
         clearTimeout(timerClose.current);
       }
     };
-  }, [node]);
+  }, [node, slug]);
 
   const anchorBounds = node.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
@@ -240,4 +235,4 @@ const Pointer = styled.div<{ offset: number }>`
   }
 `;
 
-export default inject("documents")(HoverPreview);
+export default HoverPreview;

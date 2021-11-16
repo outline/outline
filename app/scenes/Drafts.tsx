@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
@@ -17,15 +17,17 @@ import InputSearchPage from "components/InputSearchPage";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Scene from "components/Scene";
 import Subheading from "components/Subheading";
+import withStores from "components/withStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
-type Props = WithTranslation &
-  RouteComponentProps & {
-    documents: DocumentsStore;
-  };
+type StoreProps = {
+  documents: DocumentsStore;
+};
+
+type Props = WithTranslation & RouteComponentProps;
 
 @observer
-class Drafts extends React.Component<Props> {
+class Drafts extends React.Component<Props & StoreProps> {
   @observable
   params: URLSearchParams = new URLSearchParams(this.props.location.search);
 
@@ -66,12 +68,12 @@ class Drafts extends React.Component<Props> {
 
   render() {
     const { t } = this.props;
-    const { drafts, fetchDrafts } = this.props.documents;
     const isFiltered = this.collectionId || this.dateFilter;
     const options = {
       dateFilter: this.dateFilter,
       collectionId: this.collectionId,
     };
+
     return (
       <Scene
         icon={<EditIcon color="currentColor" />}
@@ -118,8 +120,8 @@ class Drafts extends React.Component<Props> {
                 : t("You’ve not got any drafts at the moment.")}
             </Empty>
           }
-          fetch={fetchDrafts}
-          documents={drafts(options)}
+          fetch={this.props.documents.fetchDrafts}
+          documents={this.props.documents.drafts(options)}
           options={options}
           showCollection
         />
@@ -141,4 +143,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()(inject("documents")(Drafts));
+export default withTranslation()(withStores<Props>(Drafts));

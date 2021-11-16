@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
@@ -25,6 +25,7 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
+import withStores from "components/withStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
 import {
@@ -50,7 +51,7 @@ const CommandBar = React.lazy(
     )
 );
 
-type InjectedStors = {
+type StoreProps = {
   auth: AuthStore;
   ui: UiStore;
   policies: PoliciesStore;
@@ -66,7 +67,7 @@ type Props = WithTranslation &
   };
 
 @observer
-class Layout extends React.Component<Props & InjectedStors> {
+class Layout extends React.Component<Props & StoreProps> {
   scrollable: HTMLDivElement | null | undefined;
 
   @observable
@@ -211,6 +212,4 @@ const Content = styled(Flex)<{
   `};
 `;
 
-export default withTranslation()(
-  inject("auth", "ui", "documents", "policies")(withRouter(Layout))
-);
+export default withTranslation()(withRouter(withStores<Props>(Layout)));

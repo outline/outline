@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -12,10 +12,14 @@ import Facepile from "components/Facepile";
 import Flex from "components/Flex";
 import ListItem from "components/List/Item";
 import Modal from "components/Modal";
+import withStores from "components/withStores";
+
+type StoreProps = {
+  groupMemberships: GroupMembershipsStore;
+};
 
 type Props = {
   group: Group;
-  groupMemberships: GroupMembershipsStore;
   membership?: CollectionGroupMembership;
   showFacepile?: boolean;
   showAvatar?: boolean;
@@ -23,7 +27,7 @@ type Props = {
 };
 
 @observer
-class GroupListItem extends React.Component<Props> {
+class GroupListItem extends React.Component<StoreProps & Props> {
   @observable
   membersModalOpen = false;
 
@@ -52,7 +56,6 @@ class GroupListItem extends React.Component<Props> {
               <GroupIcon size={24} />
             </Image>
           }
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'Element' is not assignable to type 'string'.
           title={
             <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
           }
@@ -105,4 +108,4 @@ const Title = styled.span`
   }
 `;
 
-export default inject("groupMemberships")(GroupListItem);
+export default withStores<Props>(GroupListItem);

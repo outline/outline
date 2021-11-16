@@ -1,21 +1,15 @@
 import "../stores";
 import { shallow } from "enzyme";
 import * as React from "react";
-import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
-import RootStore from "stores/RootStore";
 import { runAllPromises } from "../test/support";
 import { Component as PaginatedList } from "./PaginatedList";
 
 describe("PaginatedList", () => {
   const render = () => null;
 
-  const rootStore = new RootStore();
-  const props = {
-    auth: new AuthStore(rootStore),
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.
-    t: (string) => "test",
-  };
+  const props = {};
+
   it("with no items renders nothing", () => {
     const list = shallow(
       <PaginatedList items={[]} renderItem={render} {...props} />

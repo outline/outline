@@ -1,7 +1,7 @@
 import { Location } from "history";
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
@@ -32,6 +32,7 @@ import PageTitle from "components/PageTitle";
 import PlaceholderDocument from "components/PlaceholderDocument";
 import RegisterKeyDown from "components/RegisterKeyDown";
 import Time from "components/Time";
+import withStores from "components/withStores";
 import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
@@ -61,7 +62,7 @@ import {
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 
-type InjectedStores = {
+type StoreProps = {
   auth: AuthStore;
   ui: UiStore;
   toasts: ToastsStore;
@@ -84,7 +85,7 @@ type Props = WithTranslation &
   };
 
 @observer
-class DocumentScene extends React.Component<Props & InjectedStores> {
+class DocumentScene extends React.Component<Props & StoreProps> {
   @observable
   editor = React.createRef();
 
@@ -688,6 +689,4 @@ const MaxWidth = styled(Flex)<{
   `};
 `;
 
-export default withRouter(
-  withTranslation()(inject("ui", "auth", "toasts")(DocumentScene))
-);
+export default withRouter(withTranslation()(withStores<Props>(DocumentScene)));

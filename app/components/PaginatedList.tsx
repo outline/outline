@@ -1,7 +1,7 @@
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
@@ -9,9 +9,10 @@ import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
+import withStores from "components/withStores";
 import { dateToHeading } from "../utils/dates";
 
-type InjectedStores = {
+type StoreProps = {
   auth: AuthStore;
 };
 
@@ -26,8 +27,8 @@ type Props = WithTranslation & {
 };
 
 @observer
-class PaginatedList extends React.Component<Props & InjectedStores> {
-  isInitiallyLoaded = false;
+class PaginatedList extends React.Component<Props & StoreProps> {
+  isInitiallyLoaded = this.props.items.length > 0;
 
   @observable
   isLoaded = false;
@@ -46,11 +47,6 @@ class PaginatedList extends React.Component<Props & InjectedStores> {
 
   @observable
   allowLoadMore = true;
-
-  constructor(props: Props) {
-    super(props);
-    this.isInitiallyLoaded = this.props.items.length > 0;
-  }
 
   componentDidMount() {
     this.fetchResults();
@@ -187,4 +183,4 @@ class PaginatedList extends React.Component<Props & InjectedStores> {
 
 export const Component = PaginatedList;
 
-export default withTranslation()(inject("auth")(PaginatedList));
+export default withTranslation()(withStores<Props>(PaginatedList));

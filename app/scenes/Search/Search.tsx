@@ -1,7 +1,7 @@
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
@@ -25,6 +25,7 @@ import HelpText from "components/HelpText";
 import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
 import RegisterKeyDown from "components/RegisterKeyDown";
+import withStores from "components/withStores";
 import { newDocumentPath, searchUrl } from "../../utils/routeHelpers";
 import { decodeURIComponentSafe } from "../../utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -34,21 +35,24 @@ import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
+type StoreProps = {
+  documents: DocumentsStore;
+  auth: AuthStore;
+  users: UsersStore;
+  policies: PoliciesStore;
+};
+
 type Props = RouteComponentProps<
   { term: string },
   any,
   { search: string; fromMenu?: boolean }
 > &
   WithTranslation & {
-    documents: DocumentsStore;
-    auth: AuthStore;
-    users: UsersStore;
-    policies: PoliciesStore;
     notFound?: boolean;
   };
 
 @observer
-class Search extends React.Component<Props> {
+class Search extends React.Component<Props & StoreProps> {
   firstDocument: React.Component<any> | null | undefined;
 
   lastQuery = "";
@@ -461,6 +465,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()(
-  withRouter(inject("documents", "auth", "policies")(Search))
-);
+export default withTranslation()(withRouter(withStores<Props>(Search)));

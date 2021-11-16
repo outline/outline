@@ -2,7 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
 import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
@@ -16,6 +16,7 @@ import Document from "models/Document";
 import Revision from "models/Revision";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
+import withStores from "components/withStores";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
@@ -27,28 +28,28 @@ import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl } from "utils/urls";
 
-type Props = RouteComponentProps<{
-  documentSlug: string;
-  revisionId?: string;
-  shareId?: string;
-}> & {
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'auth'.
+type StoreProps = {
   auth: AuthStore;
   location: LocationWithState;
   shares: SharesStore;
   documents: DocumentsStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'auth'.
-  auth: AuthStore;
   ui: UiStore;
+};
+
+type Props = RouteComponentProps<{
+  documentSlug: string;
+  revisionId?: string;
+  shareId?: string;
+}> & {
   children: (arg0: any) => React.ReactNode;
 };
 
 const sharedTreeCache = {};
 
 @observer
-class DataLoader extends React.Component<Props> {
+class DataLoader extends React.Component<Props & StoreProps> {
   sharedTree: NavigationNode | null | undefined;
 
   @observable
@@ -303,13 +304,4 @@ class DataLoader extends React.Component<Props> {
   }
 }
 
-export default withRouter(
-  inject(
-    "ui",
-    "auth",
-    "documents",
-    "revisions",
-    "policies",
-    "shares"
-  )(DataLoader)
-);
+export default withRouter(withStores<Props>(DataLoader));

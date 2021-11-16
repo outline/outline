@@ -1,19 +1,26 @@
 import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
+import UiStore from "stores/UiStore";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
 import Modal from "components/Modal";
+import withStores from "components/withStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/compressImage' or its co... Remove this comment to see the full error message
 import { compressImage } from "utils/compressImage";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 const EMPTY_OBJECT = {};
+
+type StoreProps = {
+  ui: UiStore;
+};
+
 type Props = {
   children?: React.ReactNode;
   onSuccess: (arg0: string) => void | Promise<void>;
@@ -23,7 +30,7 @@ type Props = {
 };
 
 @observer
-class ImageUpload extends React.Component<Props> {
+class ImageUpload extends React.Component<Props & StoreProps> {
   @observable
   isUploading = false;
 
@@ -95,8 +102,6 @@ class ImageUpload extends React.Component<Props> {
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="">
         <Flex auto column align="center" justify="center">
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this
-          call.
           {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
@@ -188,4 +193,4 @@ const CropButton = styled(Button)`
   width: 300px;
 `;
 
-export default inject("ui")(ImageUpload);
+export default withStores<Props>(ImageUpload);

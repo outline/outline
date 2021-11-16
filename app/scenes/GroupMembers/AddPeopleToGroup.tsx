@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { observable } from "mobx";
-import { inject, observer } from "mobx-react";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 
@@ -18,9 +18,10 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
+import withStores from "components/withStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
-type InjectedStores = {
+type StoreProps = {
   toasts: ToastsStore;
   auth: AuthStore;
   users: UsersStore;
@@ -33,7 +34,7 @@ type Props = WithTranslation & {
 };
 
 @observer
-class AddPeopleToGroup extends React.Component<Props & InjectedStores> {
+class AddPeopleToGroup extends React.Component<Props & StoreProps> {
   @observable
   inviteModalOpen = false;
 
@@ -141,6 +142,4 @@ class AddPeopleToGroup extends React.Component<Props & InjectedStores> {
   }
 }
 
-export default withTranslation()(
-  inject("auth", "users", "groupMemberships", "toasts")(AddPeopleToGroup)
-);
+export default withTranslation()(withStores<Props>(AddPeopleToGroup));
