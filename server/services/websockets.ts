@@ -94,7 +94,7 @@ export default function init(app: Koa, server: http.Server) {
       }
     },
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
-    postAuthenticate: async (socket, data) => {
+    postAuthenticate: async (socket) => {
       const { user } = socket.client;
       // the rooms associated with the current team
       // and user so we can send authenticated events

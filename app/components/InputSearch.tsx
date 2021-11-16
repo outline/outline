@@ -18,10 +18,13 @@ export default function InputSearch(props: Props) {
   const handleFocus = React.useCallback(() => {
     setIsFocused(true);
   }, []);
+
   const handleBlur = React.useCallback(() => {
     setIsFocused(false);
   }, []);
+
   const { placeholder = `${t("Search")}…`, onKeyDown, ...rest } = props;
+
   return (
     <Input
       type="search"

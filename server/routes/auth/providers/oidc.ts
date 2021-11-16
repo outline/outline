@@ -125,7 +125,9 @@ if (OIDC_CLIENT_ID) {
       }
     )
   );
+
   router.get(providerName, passport.authenticate(providerName));
+
   router.get(`${providerName}.callback`, passportMiddleware(providerName));
 }
 

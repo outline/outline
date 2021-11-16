@@ -49,7 +49,10 @@ export const assertEmail = (value = "", message) => {
 };
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'message' implicitly has an 'any' type.
-export const assertUuid = (value = "", message) => {
+export const assertUuid = (value, message) => {
+  if (typeof value !== "string") {
+    throw ValidationError(message);
+  }
   if (!validator.isUUID(value)) {
     throw ValidationError(message);
   }

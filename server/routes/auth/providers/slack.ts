@@ -79,8 +79,11 @@ if (SLACK_CLIENT_ID) {
   // why but we need everything lowercase so we just monkey-patch it here.
   strategy.name = providerName;
   passport.use(strategy);
+
   router.get("slack", passport.authenticate(providerName));
+
   router.get("slack.callback", passportMiddleware(providerName));
+
   router.get(
     "slack.commands",
     auth({
@@ -141,6 +144,7 @@ if (SLACK_CLIENT_ID) {
       ctx.redirect("/settings/integrations/slack");
     }
   );
+
   router.get(
     "slack.post",
     auth({

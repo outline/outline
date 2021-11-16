@@ -27,7 +27,6 @@ export function serialize(
   target: Attachment | Team | Collection | Document | Group
 ): Policy {
   const output = {};
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ability' implicitly has an 'any' type.
   abilities.forEach((ability) => {
     if (model instanceof ability.model && target instanceof ability.target) {
       let response = true;

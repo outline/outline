@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans } from "react-i18next";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import Editor from "components/Editor";
 import HelpText from "components/HelpText";
 import { LabelText, Outline } from "components/Input";
@@ -68,4 +68,4 @@ const StyledOutline = styled(Outline)<{
   }
 `;
 
-export default observer(withTheme(InputRich));
+export default observer(InputRich);

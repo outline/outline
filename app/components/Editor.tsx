@@ -38,7 +38,7 @@ export type Props = {
   disableEmbeds?: boolean;
   ui?: UiStore;
   style?: React.CSSProperties;
-  extensions: Extension[];
+  extensions?: Extension[];
   shareId?: string | null | undefined;
   autoFocus?: boolean;
   template?: boolean;

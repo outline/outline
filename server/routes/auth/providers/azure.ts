@@ -119,7 +119,9 @@ if (AZURE_CLIENT_ID) {
     }
   );
   passport.use(strategy);
+
   router.get("azure", passport.authenticate(providerName));
+
   router.get("azure.callback", passportMiddleware(providerName));
 }
 

@@ -87,6 +87,7 @@ if (GOOGLE_CLIENT_ID) {
       }
     )
   );
+
   router.get(
     "google",
     passport.authenticate(providerName, {
@@ -94,6 +95,7 @@ if (GOOGLE_CLIENT_ID) {
       prompt: "select_account consent",
     })
   );
+
   router.get("google.callback", passportMiddleware(providerName));
 }
 
