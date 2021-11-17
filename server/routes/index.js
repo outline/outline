@@ -93,16 +93,23 @@ koa.use(
   })
 );
 
-if (process.env.NODE_ENV === "production") {
+if (true || process.env.NODE_ENV === "production") {
   router.get("/static/*", async (ctx) => {
-    await send(ctx, ctx.path.substring(8), {
-      root: path.join(__dirname, "../../app/"),
-      setHeaders: (res, path, stat) => {
-        res.setHeader("Service-Worker-Allowed", "/");
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Cache-Control", `max-age=${356 * 24 * 60 * 60}`);
-      },
-    });
+    try {
+      await send(ctx, ctx.path.substring(8), {
+        root: path.join(__dirname, "../../app/"),
+        setHeaders: (res, path, stat) => {
+          res.setHeader("Service-Worker-Allowed", "/");
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.setHeader("Cache-Control", `max-age=${365 * 24 * 60 * 60}`);
+        },
+      });
+    } catch {
+      // Serve a bad request instead of not found if the file doesn't exist
+      // This prevents CDN's from caching the response, allowing them to continue
+      // serving old file versions
+      ctx.status = 400;
+    }
   });
 }
 
@@ -114,13 +121,14 @@ router.get("/locales/:lng.json", async (ctx) => {
     return;
   }
 
-  if (process.env.NODE_ENV === "production") {
-    ctx.set({
-      "Cache-Control": `max-age=${7 * 24 * 60 * 60}`,
-    });
-  }
-
   await send(ctx, path.join(lng, "translation.json"), {
+    setHeaders: (res, path, stat) => {
+      if (process.env.NODE_ENV === "production") {
+        res.setHeader({
+          "Cache-Control": `max-age=${7 * 24 * 60 * 60}`,
+        });
+      }
+    },
     root: path.join(__dirname, "../../shared/i18n/locales"),
   });
 });
