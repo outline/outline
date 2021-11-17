@@ -20,7 +20,7 @@ import useToasts from "hooks/useToasts";
 
 type Props = {
   document: Document;
-  share?: Share;
+  share: Share | null | undefined;
   sharedParent: Share | null | undefined;
   onRequestClose: () => void;
   visible: boolean;
