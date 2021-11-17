@@ -93,7 +93,7 @@ koa.use(
   })
 );
 
-if (true || process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production") {
   router.get("/static/*", async (ctx) => {
     try {
       await send(ctx, ctx.path.substring(8), {
