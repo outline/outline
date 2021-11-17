@@ -22,6 +22,7 @@ export default function present(
     ? context.replace(/<\/?b>/g, "*").replace(/\n/g, "")
     : // @ts-expect-error ts-migrate(2339) FIXME: Property 'getSummary' does not exist on type 'Docu... Remove this comment to see the full error message
       document.getSummary();
+
   return {
     color: collection.color,
     title: document.title,

@@ -21,6 +21,7 @@ function Notifications() {
   const { showToast } = useToasts();
   const user = useCurrentUser();
   const { t } = useTranslation();
+
   const options = [
     {
       event: "documents.publish",
@@ -61,13 +62,15 @@ function Notifications() {
   ];
 
   React.useEffect(() => {
-    notificationSettings.fetchPage();
+    notificationSettings.fetchPage({});
   }, [notificationSettings]);
+
   const showSuccessMessage = debounce(() => {
     showToast(t("Notifications saved"), {
       type: "success",
     });
   }, 500);
+
   const handleChange = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'name' does not exist on type 'EventTarge... Remove this comment to see the full error message
@@ -88,6 +91,7 @@ function Notifications() {
     [notificationSettings, showSuccessMessage]
   );
   const showSuccessNotice = window.location.search === "?success";
+
   return (
     <Scene title={t("Notifications")} icon={<EmailIcon color="currentColor" />}>
       <Heading>{t("Notifications")}</Heading>
@@ -119,13 +123,13 @@ function Notifications() {
           <Subheading>{t("Notifications")}</Subheading>
 
           {options.map((option, index) => {
-            if (option.separator) {
+            if (option.separator || !option.event) {
               return <Separator key={`separator-${index}`} />;
             }
 
             const setting = notificationSettings.getByEvent(option.event);
+
             return (
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ event: string; title: string; description:... Remove this comment to see the full error message
               <NotificationListItem
                 key={option.event}
                 onChange={handleChange}

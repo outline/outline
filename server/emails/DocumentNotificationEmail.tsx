@@ -13,7 +13,7 @@ export type Props = {
   actor: User;
   // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team;
-  document: Document;
+  document: any;
   // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
   collection: Collection;
   eventName: string;

@@ -20,6 +20,7 @@ function Features() {
   const [data, setData] = useState({
     collaborativeEditing: team.collaborativeEditing,
   });
+
   const showSuccessMessage = React.useCallback(
     debounce(() => {
       showToast(t("Settings saved"), {
@@ -28,6 +29,7 @@ function Features() {
     }, 250),
     [t, showToast]
   );
+
   const handleChange = React.useCallback(
     async (ev: React.SyntheticEvent<any>) => {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'name' does not exist on type 'EventTarge... Remove this comment to see the full error message

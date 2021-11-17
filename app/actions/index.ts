@@ -49,6 +49,7 @@ export function actionToMenuItem(
 
   if (resolvedChildren) {
     return {
+      type: "parent",
       title,
       icon,
       items: resolvedChildren
@@ -59,6 +60,7 @@ export function actionToMenuItem(
   }
 
   return {
+    type: "button",
     title,
     icon,
     visible,
@@ -93,6 +95,7 @@ export function actionToKBar(
         (a) => !!a
       )
     : [];
+
   return [
     {
       id: action.id,
@@ -103,7 +106,7 @@ export function actionToKBar(
         .filter((c) => !!c.keywords)
         .map((c) => c.keywords)
         .join(" ")}`,
-      shortcut: action.shortcut,
+      shortcut: action.shortcut || [],
       icon: resolvedIcon
         ? React.cloneElement(resolvedIcon, {
             color: "currentColor",

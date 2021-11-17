@@ -13,6 +13,7 @@ type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 type FetchPageParams = PaginationParams & {
   documentId?: string;
   query?: string;
+  filter?: string;
 };
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.

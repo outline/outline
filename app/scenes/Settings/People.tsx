@@ -44,7 +44,9 @@ function People(props) {
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
   const sort = params.get("sort") || "name";
-  const direction = (params.get("direction") || "asc").toUpperCase();
+  const direction =
+    params.get("direction")?.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
   // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | 0' is not assignable to... Remove this comment to see the full error message
   const page = parseInt(params.get("page") || 0, 10);
   const limit = 25;

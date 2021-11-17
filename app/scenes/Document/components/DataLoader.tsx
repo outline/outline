@@ -30,7 +30,6 @@ import { isInternalUrl } from "utils/urls";
 
 type StoreProps = {
   auth: AuthStore;
-  location: LocationWithState;
   shares: SharesStore;
   documents: DocumentsStore;
   policies: PoliciesStore;
@@ -39,6 +38,7 @@ type StoreProps = {
 };
 
 type Props = RouteComponentProps<{
+  location: LocationWithState;
   documentSlug: string;
   revisionId?: string;
   shareId?: string;
@@ -116,7 +116,6 @@ class DataLoader extends React.Component<Props & StoreProps> {
       const slug = parseDocumentSlug(term);
 
       try {
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ document: Document | null | undefined; sha... Remove this comment to see the full error message
         const {
           document,
         }: {
@@ -198,7 +197,6 @@ class DataLoader extends React.Component<Props & StoreProps> {
       });
       this.sharedTree = response.sharedTree;
       this.document = response.document;
-      // @ts-expect-error ts-migrate(2533) FIXME: Object is possibly 'null' or 'undefined'.
       sharedTreeCache[this.document.id] = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
@@ -284,6 +282,7 @@ class DataLoader extends React.Component<Props & StoreProps> {
       : this.isEditing
       ? "editing"
       : "read-only";
+
     return (
       <React.Fragment key={key}>
         {this.isEditing && !team.collaborativeEditing && (

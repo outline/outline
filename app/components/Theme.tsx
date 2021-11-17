@@ -6,7 +6,6 @@ import GlobalStyles from "../styles/globals";
 import useMediaQuery from "hooks/useMediaQuery";
 import useStores from "hooks/useStores";
 
-const empty = {};
 type Props = {
   children: React.ReactNode;
 };
@@ -18,13 +17,13 @@ function Theme({ children }: Props) {
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.tablet}px)`);
 
   return (
-    <ThemeProvider theme={theme}>
-      <ThemeProvider theme={isMobile ? mobileTheme : empty}>
-        <>
-          <GlobalStyles />
-          {children}
-        </>
-      </ThemeProvider>
+    <ThemeProvider
+      theme={isMobile ? (theme) => ({ ...theme, ...mobileTheme }) : theme}
+    >
+      <>
+        <GlobalStyles />
+        {children}
+      </>
     </ThemeProvider>
   );
 }

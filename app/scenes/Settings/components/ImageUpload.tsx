@@ -25,8 +25,8 @@ type Props = {
   children?: React.ReactNode;
   onSuccess: (arg0: string) => void | Promise<void>;
   onError: (arg0: string) => void;
-  submitText: string;
-  borderRadius: number;
+  submitText?: string;
+  borderRadius?: number;
 };
 
 @observer

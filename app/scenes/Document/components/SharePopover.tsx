@@ -47,6 +47,7 @@ function SharePopover({
     auth.team?.sharing &&
     documentAbilities.share;
   const isPubliclyShared = (share && share.published) || sharedParent;
+
   useKeyDown("Escape", onRequestClose);
 
   React.useEffect(() => {

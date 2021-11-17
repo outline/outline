@@ -87,9 +87,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
   return (
     <ListItem
       small
-      exact
       to={to}
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       title={
         <Time
           dateTime={event.createdAt}

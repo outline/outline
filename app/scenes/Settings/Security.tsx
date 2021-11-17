@@ -29,6 +29,7 @@ function Security() {
     member: t("New user accounts will be given member permissions by default"),
     viewer: t("New user accounts will be given viewer permissions by default"),
   };
+
   const showSuccessMessage = React.useMemo(
     () =>
       debounce(() => {
@@ -38,6 +39,7 @@ function Security() {
       }, 250),
     [showToast, t]
   );
+
   const handleChange = React.useCallback(
     async (ev: React.SyntheticEvent<any>) => {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'name' does not exist on type 'EventTarge... Remove this comment to see the full error message

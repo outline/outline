@@ -21,6 +21,7 @@ function ShareButton({ document }: Props) {
   const sharedParent = shares.getByDocumentParents(document.id);
   const isPubliclyShared =
     (share && share.published) || (sharedParent && sharedParent.published);
+
   const popover = usePopoverState({
     gutter: 0,
     placement: "bottom-end",
@@ -54,15 +55,17 @@ function ShareButton({ document }: Props) {
           </Tooltip>
         )}
       </PopoverDisclosure>
-      <Popover {...popover} aria-label={t("Share")}>
-        <SharePopover
-          document={document}
-          share={share}
-          sharedParent={sharedParent}
-          onRequestClose={popover.hide}
-          visible={popover.visible}
-        />
-      </Popover>
+      {share && (
+        <Popover {...popover} aria-label={t("Share")}>
+          <SharePopover
+            document={document}
+            share={share}
+            sharedParent={sharedParent}
+            onRequestClose={popover.hide}
+            visible={popover.visible}
+          />
+        </Popover>
+      )}
     </>
   );
 }

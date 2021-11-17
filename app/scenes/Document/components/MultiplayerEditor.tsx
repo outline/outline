@@ -20,7 +20,7 @@ import { homePath } from "utils/routeHelpers";
 
 type Props = EditorProps & {
   id: string;
-  onSynced?: () => void;
+  onSynced?: () => Promise<void>;
 };
 
 function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {

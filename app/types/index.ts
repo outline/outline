@@ -94,8 +94,8 @@ export type CommandBarAction = {
   id: string;
   name: string;
   section?: string;
-  shortcut?: string[];
-  keywords?: string;
+  shortcut: string[];
+  keywords: string;
   placeholder?: string;
   icon?: React.ReactElement;
   perform?: () => void;

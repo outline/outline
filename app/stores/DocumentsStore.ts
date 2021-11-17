@@ -490,7 +490,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     id: string,
     options: FetchOptions = {}
   ): Promise<{
-    document: Document | null | undefined;
+    document: Document;
     sharedTree?: NavigationNode;
   }> => {
     if (!options.prefetch) this.isFetching = true;
@@ -514,8 +514,12 @@ export default class DocumentsStore extends BaseStore<Document> {
       invariant(res && res.data, "Document not available");
       this.addPolicies(res.policies);
       this.add(res.data.document);
+
+      const document = this.data.get(res.data.document.id);
+      invariant(document, "Document not available");
+
       return {
-        document: this.data.get(res.data.document.id),
+        document,
         sharedTree: res.data.sharedTree,
       };
     } finally {

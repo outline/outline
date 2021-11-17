@@ -63,7 +63,12 @@ class Drafts extends React.Component<Props & StoreProps> {
 
   get dateFilter() {
     const id = this.params.get("dateFilter");
-    return id ? id : undefined;
+    return (id ? id : undefined) as
+      | "day"
+      | "week"
+      | "month"
+      | "year"
+      | undefined;
   }
 
   render() {

@@ -27,6 +27,7 @@ function GroupNew({ onSubmit }: Props) {
     ev.preventDefault();
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
     setIsSaving(true);
+
     const group = new Group(
       {
         name: name,
@@ -78,9 +79,6 @@ function GroupNew({ onSubmit }: Props) {
         </HelpText>
 
         <Button type="submit" disabled={isSaving || !name}>
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string |
-          HTMLCollection' is not assignable t... Remove this comment to see the
-          full error message
           {isSaving ? `${t("Creating")}…` : t("Continue")}
         </Button>
       </form>
@@ -89,7 +87,7 @@ function GroupNew({ onSubmit }: Props) {
         onRequestClose={onSubmit}
         isOpen={!!group}
       >
-        <GroupMembers group={group} />
+        {group && <GroupMembers group={group} />}
       </Modal>
     </>
   );

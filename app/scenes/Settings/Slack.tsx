@@ -34,9 +34,11 @@ function Slack() {
       limit: 100,
     });
   }, [collections, integrations]);
-  const commandIntegration = find(integrations.slackIntegrations, {
-    type: "command",
-  });
+
+  const commandIntegration = find(
+    integrations.slackIntegrations,
+    (i) => i.type === "command"
+  );
 
   return (
     <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
@@ -73,7 +75,7 @@ function Slack() {
         <>
           <p>
             {commandIntegration ? (
-              <Button onClick={commandIntegration.delete}>
+              <Button onClick={() => commandIntegration.delete()}>
                 {t("Disconnect")}
               </Button>
             ) : (

@@ -2,14 +2,15 @@ import { Location } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useTheme } from "styled-components";
+import DocumentModel from "models/Document";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import useStores from "../../hooks/useStores";
+import { NavigationNode } from "../../types";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/errors' or its correspon... Remove this comment to see the full error message
 import { OfflineError } from "utils/errors";
-import "types";
 
 const EMPTY_OBJECT = {};
 
@@ -19,7 +20,10 @@ type Props = RouteComponentProps<{ shareId: string; documentSlug: string }> & {
 
 export default function SharedDocumentScene(props: Props) {
   const theme = useTheme();
-  const [response, setResponse] = React.useState();
+  const [response, setResponse] = React.useState<{
+    document: DocumentModel;
+    sharedTree?: NavigationNode | undefined;
+  }>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
@@ -55,9 +59,7 @@ export default function SharedDocumentScene(props: Props) {
   return (
     <Document
       abilities={EMPTY_OBJECT}
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       document={response.document}
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       sharedTree={response.sharedTree}
       location={props.location}
       shareId={shareId}

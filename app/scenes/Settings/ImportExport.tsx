@@ -123,6 +123,7 @@ function ImportExport() {
     },
     [fileOperations, showToast, t]
   );
+
   const hasCollections = importDetails
     ? // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       !!importDetails.filter((detail) => detail.type === "collection").length

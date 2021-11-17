@@ -49,6 +49,7 @@ const models = {
   View,
   FileOperation,
 };
+
 // based on https://github.com/sequelize/express-example/blob/master/models/index.js
 Object.keys(models).forEach((modelName) => {
   if ("associate" in models[modelName]) {

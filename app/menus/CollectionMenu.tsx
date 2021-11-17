@@ -123,17 +123,20 @@ function CollectionMenu({
     },
     [history, showToast, collection.id, documents]
   );
+
   const can = policies.abilities(collection.id);
   const canUserInTeam = policies.abilities(team.id);
   const items = React.useMemo(
     () => [
       {
+        type: "button",
         title: t("New document"),
         visible: can.update,
         onClick: handleNewDocument,
         icon: <NewDocumentIcon />,
       },
       {
+        type: "button",
         title: t("Import document"),
         visible: can.update,
         onClick: handleImportDocument,
@@ -143,18 +146,21 @@ function CollectionMenu({
         type: "separator",
       },
       {
+        type: "button",
         title: `${t("Edit")}…`,
         visible: can.update,
         onClick: () => setShowCollectionEdit(true),
         icon: <EditIcon />,
       },
       {
+        type: "button",
         title: `${t("Permissions")}…`,
         visible: can.update,
         onClick: () => setShowCollectionPermissions(true),
         icon: <PadlockIcon />,
       },
       {
+        type: "button",
         title: `${t("Export")}…`,
         visible: !!(collection && canUserInTeam.export),
         onClick: () => setShowCollectionExport(true),
@@ -164,6 +170,7 @@ function CollectionMenu({
         type: "separator",
       },
       {
+        type: "button",
         title: `${t("Delete")}…`,
         visible: !!(collection && can.delete),
         onClick: () => setShowCollectionDelete(true),

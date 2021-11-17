@@ -13,6 +13,8 @@ type Events = "documents.create" | "collections.create";
 class Integration extends BaseModel {
   id: string;
 
+  type: string;
+
   service: string;
 
   collectionId: string;
