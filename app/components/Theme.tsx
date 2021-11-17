@@ -17,9 +17,7 @@ function Theme({ children }: Props) {
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.tablet}px)`);
 
   return (
-    <ThemeProvider
-      theme={isMobile ? (theme) => ({ ...theme, ...mobileTheme }) : theme}
-    >
+    <ThemeProvider theme={isMobile ? mobileTheme : theme}>
       <>
         <GlobalStyles />
         {children}

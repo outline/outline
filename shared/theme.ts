@@ -1,4 +1,5 @@
 import { darken, lighten } from "polished";
+import { theme } from "rich-markdown-editor";
 import { DefaultTheme } from "styled-components";
 
 const colors = {
@@ -225,12 +226,11 @@ export const dark: DefaultTheme = {
   scrollbarThumb: colors.lightBlack,
 };
 
-export const lightMobile = {
-  background: colors.white,
-};
+export const lightMobile = light;
 
-export const darkMobile = {
+export const darkMobile = (theme: DefaultTheme): DefaultTheme => ({
+  ...theme,
   background: colors.black,
-};
+});
 
 export default light;
