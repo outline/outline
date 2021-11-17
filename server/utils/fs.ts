@@ -15,13 +15,13 @@ export function requireDirectory<T>(dirName: string): [T, string][] {
     .filter(
       (file) =>
         file.indexOf(".") !== 0 &&
-        file.endsWith(".js") &&
+        file.match(/\.[jt]s$/) &&
         file !== path.basename(__filename) &&
         !file.includes(".test")
     )
     .map((fileName) => {
       const filePath = path.join(dirName, fileName);
-      const name = path.basename(filePath.replace(/\.js$/, ""));
+      const name = path.basename(filePath.replace(/\.[jt]s$/, ""));
       return [require(filePath), name];
     });
 }

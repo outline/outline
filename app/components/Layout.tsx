@@ -13,7 +13,6 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
-import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
@@ -55,15 +54,11 @@ type StoreProps = {
   auth: AuthStore;
   ui: UiStore;
   policies: PoliciesStore;
-  documents: DocumentsStore;
 };
 
 type Props = WithTranslation &
   RouteComponentProps & {
-    children?: React.ReactNode | null | undefined;
-    actions?: React.ReactNode | null | undefined;
-    title?: React.ReactNode | null | undefined;
-    notifications?: React.ReactNode;
+    children?: React.ReactNode;
   };
 
 @observer
@@ -117,7 +112,6 @@ class Layout extends React.Component<Props & StoreProps> {
         <SkipNavLink />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
-        {this.props.notifications}
 
         <MobileMenuButton
           onClick={ui.toggleMobileSidebar}

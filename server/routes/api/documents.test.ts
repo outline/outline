@@ -2411,9 +2411,9 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'document' because it is a consta... Remove this comment to see the full error message
-    document = await Document.unscoped().findByPk(document.id);
-    expect(document.userId).toEqual(user.id);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded.userId).toEqual(user.id);
   });
 
   it("should unpublish another users document", async () => {

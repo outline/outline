@@ -15,6 +15,7 @@ import Collection from "./Collection";
 import Document from "./Document";
 
 const readFile = util.promisify(fs.readFile);
+
 const Team = sequelize.define(
   "team",
   {
@@ -90,10 +91,7 @@ const Team = sequelize.define(
       defaultValue: "member",
       allowNull: false,
       validate: {
-        isIn: {
-          args: [["viewer", "member"]],
-          msg: "Must be 'viewer' or 'member'",
-        },
+        isIn: [["viewer", "member"]],
       },
     },
   },
