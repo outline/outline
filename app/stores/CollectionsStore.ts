@@ -174,9 +174,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   delete = async (collection: Collection) => {
     await super.delete(collection);
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
     this.rootStore.documents.fetchRecentlyUpdated();
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
     this.rootStore.documents.fetchRecentlyViewed();
   };
 

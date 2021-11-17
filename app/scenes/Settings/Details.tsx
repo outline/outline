@@ -21,7 +21,7 @@ function Details() {
   const { showToast } = useToasts();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const form = useRef<HTMLFormElement>();
+  const form = useRef<HTMLFormElement>(null);
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
   const [avatarUrl, setAvatarUrl] = useState();

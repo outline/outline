@@ -118,11 +118,13 @@ class SocketProvider extends React.Component<StoreProps & Props> {
             : ["websocket", "polling"];
       }
     });
+
     this.socket.on("authenticated", () => {
       if (this.socket) {
         this.socket.authenticated = true;
       }
     });
+
     this.socket.on("unauthorized", (err: Error) => {
       if (this.socket) {
         this.socket.authenticated = false;
@@ -132,6 +134,7 @@ class SocketProvider extends React.Component<StoreProps & Props> {
       });
       throw err;
     });
+
     this.socket.on("entities", async (event) => {
       if (event.documentIds) {
         for (const documentDescriptor of event.documentIds) {
@@ -163,7 +166,6 @@ class SocketProvider extends React.Component<StoreProps & Props> {
             const response = await documents.fetch(documentId, {
               force: true,
             });
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'Document | null | undefined' is not assignab... Remove this comment to see the full error message
             document = response.document;
           } catch (err) {
             if (err.statusCode === 404 || err.statusCode === 403) {
@@ -272,12 +274,15 @@ class SocketProvider extends React.Component<StoreProps & Props> {
         await auth.fetch();
       }
     });
+
     this.socket.on("documents.star", (event) => {
       documents.starredIds.set(event.documentId, true);
     });
+
     this.socket.on("documents.unstar", (event) => {
       documents.starredIds.set(event.documentId, false);
     });
+
     this.socket.on("documents.permanent_delete", (event) => {
       documents.remove(event.documentId);
     });
@@ -307,6 +312,7 @@ class SocketProvider extends React.Component<StoreProps & Props> {
         memberships.remove(`${event.userId}-${event.collectionId}`);
       }
     });
+
     this.socket.on("collections.update_index", (event) => {
       const collection = collections.get(event.collectionId);
 
@@ -314,6 +320,7 @@ class SocketProvider extends React.Component<StoreProps & Props> {
         collection.updateIndex(event.index);
       }
     });
+
     this.socket.on("fileOperations.update", async (event) => {
       const user = auth.user;
       let collection = null;

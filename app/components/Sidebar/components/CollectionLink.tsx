@@ -10,6 +10,7 @@ import Document from "models/Document";
 import DocumentReparent from "scenes/DocumentReparent";
 import CollectionIcon from "components/CollectionIcon";
 import Modal from "components/Modal";
+import { NavigationNode } from "../../../types";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -48,7 +49,9 @@ function CollectionLink({
     handlePermissionOpen,
     handlePermissionClose,
   ] = useBoolean();
-  const itemRef = React.useRef<{ id: string; collectionId: string }>();
+  const itemRef = React.useRef<
+    NavigationNode & { depth: number; active: boolean; collectionId: string }
+  >();
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -59,6 +62,7 @@ function CollectionLink({
     },
     [collection, history]
   );
+
   const { ui, documents, policies, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
@@ -250,12 +254,14 @@ function CollectionLink({
         onRequestClose={handlePermissionClose}
         isOpen={permissionOpen}
       >
-        <DocumentReparent
-          item={itemRef.current}
-          collection={collection}
-          onSubmit={handlePermissionClose}
-          onCancel={handlePermissionClose}
-        />
+        {itemRef.current && (
+          <DocumentReparent
+            item={itemRef.current}
+            collection={collection}
+            onSubmit={handlePermissionClose}
+            onCancel={handlePermissionClose}
+          />
+        )}
       </Modal>
     </>
   );

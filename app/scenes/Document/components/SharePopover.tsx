@@ -38,7 +38,7 @@ function SharePopover({
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
-  const buttonRef = React.useRef<HTMLButtonElement>();
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = policies.abilities(share ? share.id : "");
   const documentAbilities = policies.abilities(document.id);
   const canPublish =
@@ -196,7 +196,6 @@ function SharePopover({
           <Button
             type="submit"
             disabled={isCopied || !share}
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLButtonElement | null | ... Remove this comment to see the full error message
             ref={buttonRef}
             primary
           >

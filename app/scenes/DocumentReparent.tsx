@@ -12,15 +12,20 @@ import useToasts from "hooks/useToasts";
 import "types";
 
 type Props = {
-  item: {
-    active: boolean | null | undefined;
-    children: Array<NavigationNode>;
-    collectionId: string;
-    depth: number;
-    id: string;
-    title: string;
-    url: string;
-  };
+  item:
+    | {
+        active: boolean | null | undefined;
+        children: Array<NavigationNode>;
+        collectionId: string;
+        depth: number;
+        id: string;
+        title: string;
+        url: string;
+      }
+    | {
+        id: string;
+        collectionId: string;
+      };
   collection: Collection;
   onCancel: () => void;
   onSubmit: () => void;

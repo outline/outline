@@ -36,36 +36,33 @@ function ImportExport() {
   const [file, setFile] = React.useState();
   const [importDetails, setImportDetails] = React.useState();
 
-  const handleImport = React.useCallback(
-    async (ev) => {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
-      setImported(undefined);
-      setImporting(true);
+  const handleImport = React.useCallback(async () => {
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
+    setImported(undefined);
+    setImporting(true);
 
-      try {
-        invariant(file, "File must exist to upload");
-        const attachment = await uploadFile(file, {
-          // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-          name: file.name,
-        });
-        await collections.import(attachment.id);
-        showToast(t("Import started"));
-        setImported(true);
-      } catch (err) {
-        showToast(err.message);
-      } finally {
-        if (fileRef.current) {
-          // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-          fileRef.current.value = "";
-        }
-
-        setImporting(false);
-        setFile(undefined);
-        setImportDetails(undefined);
+    try {
+      invariant(file, "File must exist to upload");
+      const attachment = await uploadFile(file, {
+        // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+        name: file.name,
+      });
+      await collections.import(attachment.id);
+      showToast(t("Import started"));
+      setImported(true);
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      if (fileRef.current) {
+        // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+        fileRef.current.value = "";
       }
-    },
-    [t, file, collections, showToast]
-  );
+
+      setImporting(false);
+      setFile(undefined);
+      setImportDetails(undefined);
+    }
+  }, [t, file, collections, showToast]);
 
   const handleFilePicked = React.useCallback(async (ev) => {
     ev.preventDefault();

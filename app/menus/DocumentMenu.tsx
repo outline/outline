@@ -94,7 +94,7 @@ function DocumentMenu({
   ] = React.useState(false);
   const [showMoveModal, setShowMoveModal] = React.useState(false);
   const [showTemplateModal, setShowTemplateModal] = React.useState(false);
-  const file = React.useRef<HTMLInputElement>();
+  const file = React.useRef<HTMLInputElement>(null);
 
   const handleOpen = React.useCallback(() => {
     setRenderModals(true);
@@ -104,27 +104,21 @@ function DocumentMenu({
     }
   }, [onOpen]);
 
-  const handleDuplicate = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      const duped = await document.duplicate();
-      // when duplicating, go straight to the duplicated document content
-      history.push(duped.url);
-      showToast(t("Document duplicated"), {
-        type: "success",
-      });
-    },
-    [t, history, showToast, document]
-  );
+  const handleDuplicate = React.useCallback(async () => {
+    const duped = await document.duplicate();
+    // when duplicating, go straight to the duplicated document content
+    history.push(duped.url);
+    showToast(t("Document duplicated"), {
+      type: "success",
+    });
+  }, [t, history, showToast, document]);
 
-  const handleArchive = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      await document.archive();
-      showToast(t("Document archived"), {
-        type: "success",
-      });
-    },
-    [showToast, t, document]
-  );
+  const handleArchive = React.useCallback(async () => {
+    await document.archive();
+    showToast(t("Document archived"), {
+      type: "success",
+    });
+  }, [showToast, t, document]);
 
   const handleRestore = React.useCallback(
     async (
@@ -142,23 +136,17 @@ function DocumentMenu({
     [showToast, t, document]
   );
 
-  const handleUnpublish = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      await document.unpublish();
-      showToast(t("Document unpublished"), {
-        type: "success",
-      });
-    },
-    [showToast, t, document]
-  );
+  const handleUnpublish = React.useCallback(async () => {
+    await document.unpublish();
+    showToast(t("Document unpublished"), {
+      type: "success",
+    });
+  }, [showToast, t, document]);
 
-  const handlePrint = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      menu.hide();
-      window.print();
-    },
-    [menu]
-  );
+  const handlePrint = React.useCallback(() => {
+    menu.hide();
+    window.print();
+  }, [menu]);
 
   const handleStar = React.useCallback(
     (ev: React.SyntheticEvent) => {
@@ -177,6 +165,7 @@ function DocumentMenu({
     },
     [document]
   );
+
   const collection = collections.get(document.collectionId);
   const can = policies.abilities(document.id);
   const canViewHistory = can.read && !can.restore;
@@ -209,6 +198,7 @@ function DocumentMenu({
   const stopPropagation = React.useCallback((ev: React.SyntheticEvent) => {
     ev.stopPropagation();
   }, []);
+
   const handleImportDocument = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -221,6 +211,7 @@ function DocumentMenu({
     },
     [file]
   );
+
   const handleFilePicked = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       const files = getDataTransferFiles(ev);
@@ -261,7 +252,6 @@ function DocumentMenu({
       <VisuallyHidden>
         <input
           type="file"
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLInputElement | null | u... Remove this comment to see the full error message
           ref={file}
           onChange={handleFilePicked}
           onClick={stopPropagation}

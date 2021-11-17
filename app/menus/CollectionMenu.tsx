@@ -56,7 +56,7 @@ function CollectionMenu({
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
-  const file = React.useRef<HTMLInputElement>();
+  const file = React.useRef<HTMLInputElement>(null);
   const [
     showCollectionPermissions,
     setShowCollectionPermissions,
@@ -197,7 +197,6 @@ function CollectionMenu({
       <VisuallyHidden>
         <input
           type="file"
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<HTMLInputElement | null | u... Remove this comment to see the full error message
           ref={file}
           onChange={handleFilePicked}
           onClick={stopPropagation}
