@@ -55,17 +55,16 @@ function ShareButton({ document }: Props) {
           </Tooltip>
         )}
       </PopoverDisclosure>
-      {share && (
-        <Popover {...popover} aria-label={t("Share")}>
-          <SharePopover
-            document={document}
-            share={share}
-            sharedParent={sharedParent}
-            onRequestClose={popover.hide}
-            visible={popover.visible}
-          />
-        </Popover>
-      )}
+
+      <Popover {...popover} aria-label={t("Share")}>
+        <SharePopover
+          document={document}
+          share={share}
+          sharedParent={sharedParent}
+          onRequestClose={popover.hide}
+          visible={popover.visible}
+        />
+      </Popover>
     </>
   );
 }

@@ -26,6 +26,7 @@ function Starred() {
   const { documents } = useStores();
   const { t } = useTranslation();
   const { fetchStarred, starred } = documents;
+
   const fetchResults = React.useCallback(async () => {
     try {
       setIsFetching(true);
@@ -152,7 +153,7 @@ function Starred() {
                 depth={2}
               />
             )}
-            {(isFetching || fetchError) && (
+            {(isFetching || fetchError) && !starred.length && (
               <Flex column>
                 <PlaceholderCollections />
               </Flex>

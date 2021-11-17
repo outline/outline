@@ -23,4 +23,6 @@ function NavLinkWithChildrenFunc(
   );
 }
 
-export default React.forwardRef(NavLinkWithChildrenFunc);
+export default React.forwardRef<HTMLAnchorElement, Props>(
+  NavLinkWithChildrenFunc
+);

@@ -20,7 +20,7 @@ import useToasts from "hooks/useToasts";
 
 type Props = {
   document: Document;
-  share: Share;
+  share?: Share;
   sharedParent: Share | null | undefined;
   onRequestClose: () => void;
   visible: boolean;
@@ -142,15 +142,15 @@ function SharePopover({
           />
           <SwitchLabel>
             <SwitchText>
-              {share.published
+              {share?.published
                 ? t("Anyone with the link can view this document")
                 : t("Only team members with permission can view")}
-              {share.lastAccessedAt && (
+              {share?.lastAccessedAt && (
                 <>
                   .{" "}
                   {t("The shared link was last accessed {{ timeAgo }}.", {
                     timeAgo: formatDistanceToNow(
-                      Date.parse(share.lastAccessedAt),
+                      Date.parse(share?.lastAccessedAt),
                       {
                         addSuffix: true,
                       }
