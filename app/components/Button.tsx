@@ -131,7 +131,7 @@ export const Inner = styled.span<{
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
-export type Props = React.HTMLProps<HTMLButtonElement> & {
+export type Props<T> = {
   icon?: React.ReactNode;
   iconColor?: string;
   children?: React.ReactNode;
@@ -140,7 +140,7 @@ export type Props = React.HTMLProps<HTMLButtonElement> & {
   danger?: boolean;
   primary?: boolean;
   fullwidth?: boolean;
-  as?: React.ComponentType<any> | string;
+  as?: T;
   to?: string;
   borderOnHover?: boolean;
   href?: string;
@@ -149,22 +149,23 @@ export type Props = React.HTMLProps<HTMLButtonElement> & {
   "data-event-action"?: string;
 };
 
-const Button = React.forwardRef<HTMLButtonElement, Props>(
-  (props: Props, ref: React.Ref<HTMLButtonElement>) => {
-    const { type, icon, children, value, disclosure, neutral, ...rest } = props;
-    const hasText = children !== undefined || value !== undefined;
-    const hasIcon = icon !== undefined;
+const Button = <T extends React.ElementType = "button">(
+  props: Props<T> & React.ComponentPropsWithoutRef<T>,
+  ref: React.Ref<HTMLButtonElement>
+) => {
+  const { type, icon, children, value, disclosure, neutral, ...rest } = props;
+  const hasText = children !== undefined || value !== undefined;
+  const hasIcon = icon !== undefined;
 
-    return (
-      <RealButton type={type || "button"} ref={ref} neutral={neutral} {...rest}>
-        <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
-          {hasIcon && icon}
-          {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
-          {disclosure && <ExpandedIcon />}
-        </Inner>
-      </RealButton>
-    );
-  }
-);
+  return (
+    <RealButton type={type || "button"} ref={ref} neutral={neutral} {...rest}>
+      <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
+        {hasIcon && icon}
+        {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
+        {disclosure && <ExpandedIcon />}
+      </Inner>
+    </RealButton>
+  );
+};
 
-export default Button;
+export default React.forwardRef(Button);

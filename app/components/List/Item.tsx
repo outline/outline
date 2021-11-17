@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Route } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Flex from "components/Flex";
 import NavLink from "components/NavLink";
@@ -15,8 +16,7 @@ type Props = {
 
 const ListItem = (
   { image, title, subtitle, actions, small, border, to, ...rest }: Props,
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-  ref
+  ref: React.Ref<any>
 ) => {
   const theme = useTheme();
   const compact = !subtitle;
@@ -44,19 +44,26 @@ const ListItem = (
     </>
   );
 
+  if (to) {
+    return (
+      <Wrapper
+        ref={ref}
+        $border={border}
+        activeStyle={{
+          background: theme.primary,
+        }}
+        {...rest}
+        as={NavLink}
+        to={to}
+      >
+        {content}
+      </Wrapper>
+    );
+  }
+
   return (
-    <Wrapper
-      ref={ref}
-      $border={border}
-      activeStyle={{
-        background: theme.primary,
-      }}
-      {...rest}
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-      as={to ? NavLink : undefined}
-      to={to}
-    >
-      {to ? content : content(false)}
+    <Wrapper ref={ref} $border={border} {...rest}>
+      {content(false)}
     </Wrapper>
   );
 };
@@ -114,4 +121,4 @@ export const Actions = styled(Flex)<{ $selected?: boolean }>`
     props.$selected ? props.theme.white : props.theme.textSecondary};
 `;
 
-export default React.forwardRef<HTMLDivElement, Props>(ListItem);
+export default React.forwardRef(ListItem);

@@ -125,7 +125,6 @@ function DocumentHeader({
         placement="bottom"
       >
         <Button
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: HTMLCollection; as: <S = unknown... Remove this comment to see the full error message
           as={Link}
           icon={<EditIcon />}
           to={editDocumentUrl(document)}

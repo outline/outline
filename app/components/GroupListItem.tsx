@@ -85,7 +85,7 @@ class GroupListItem extends React.Component<StoreProps & Props> {
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.membersModalOpen}
         >
-          <GroupMembers group={group} onSubmit={this.handleMembersModalClose} />
+          <GroupMembers group={group} />
         </Modal>
       </>
     );

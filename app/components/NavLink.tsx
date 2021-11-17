@@ -7,14 +7,12 @@ type Props = {
   to: string;
 };
 
-export default function NavLinkWithChildrenFunc({
-  to,
-  exact = false,
-  children,
-  ...rest
-}: Props) {
+function NavLinkWithChildrenFunc(
+  { to, exact = false, children, ...rest }: Props,
+  ref: React.LegacyRef<Route>
+) {
   return (
-    <Route path={to} exact={exact}>
+    <Route path={to} exact={exact} ref={ref}>
       {({ match }) => (
         <NavLink {...rest} to={to} exact={exact}>
           {children ? children(match) : null}
@@ -23,3 +21,5 @@ export default function NavLinkWithChildrenFunc({
     </Route>
   );
 }
+
+export default React.forwardRef(NavLinkWithChildrenFunc);
