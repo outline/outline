@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Route } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Flex from "components/Flex";
 import NavLink from "components/NavLink";
@@ -16,7 +15,7 @@ type Props = {
 
 const ListItem = (
   { image, title, subtitle, actions, small, border, to, ...rest }: Props,
-  ref: React.Ref<any>
+  ref?: React.Ref<HTMLAnchorElement>
 ) => {
   const theme = useTheme();
   const compact = !subtitle;
@@ -62,7 +61,7 @@ const ListItem = (
   }
 
   return (
-    <Wrapper ref={ref} $border={border} {...rest}>
+    <Wrapper $border={border} {...rest}>
       {content(false)}
     </Wrapper>
   );

@@ -25,6 +25,7 @@ type Props = {
     | {
         id: string;
         collectionId: string;
+        title: string;
       };
   collection: Collection;
   onCancel: () => void;
@@ -32,7 +33,7 @@ type Props = {
 };
 
 function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
-  const [isSaving, setIsSaving] = useState();
+  const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToasts();
   const { documents, collections } = useStores();
   const { t } = useTranslation();
@@ -46,7 +47,6 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
@@ -60,7 +60,6 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
           type: "error",
         });
       } finally {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },

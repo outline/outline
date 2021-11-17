@@ -1,4 +1,3 @@
-import { Location } from "history";
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
@@ -74,14 +73,14 @@ type Props = WithTranslation &
     any,
     { restore?: boolean; revisionId?: string }
   > & {
-    sharedTree: NavigationNode | null | undefined;
+    sharedTree?: NavigationNode;
     abilities: Record<string, any>;
     document: Document;
-    revision: Revision;
+    revision?: Revision;
     readOnly: boolean;
-    location: Location;
-    onCreateLink: (title: string) => Promise<string>;
-    onSearchLink: (term: string) => any;
+    shareId?: string;
+    onCreateLink?: (title: string) => Promise<string>;
+    onSearchLink?: (term: string) => any;
   };
 
 @observer
@@ -410,11 +409,10 @@ class DocumentScene extends React.Component<Props & StoreProps> {
       abilities,
       auth,
       ui,
-      match,
+      shareId,
       t,
     } = this.props;
     const team = auth.team;
-    const { shareId } = match.params;
     const isShare = !!shareId;
     const value = revision ? revision.text : document.text;
     const disableEmbeds =

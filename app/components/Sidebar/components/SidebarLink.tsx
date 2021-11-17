@@ -70,6 +70,7 @@ function SidebarLink(
         style={active ? activeStyle : style}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
+        // @ts-expect-error exact does not exist on div
         exact={exact !== false}
         to={to}
         as={to ? undefined : href ? "a" : "div"}

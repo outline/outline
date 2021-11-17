@@ -61,7 +61,6 @@ export default function SharedDocumentScene(props: Props) {
       abilities={EMPTY_OBJECT}
       document={response.document}
       sharedTree={response.sharedTree}
-      location={props.location}
       shareId={shareId}
       readOnly
     />

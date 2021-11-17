@@ -35,7 +35,7 @@ export type Props = {
   location?: Location;
   strict?: boolean;
   style?: React.CSSProperties;
-  to: string;
+  to: string | Record<string, any>;
 };
 
 /**
