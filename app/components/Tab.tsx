@@ -49,7 +49,6 @@ export default function Tab({ children, ...rest }: Props) {
   };
 
   return (
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <TabLink {...rest} activeStyle={activeStyle}>
       {(match) => (
         <>

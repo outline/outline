@@ -5,6 +5,7 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import ContextMenu from "components/ContextMenu";
 import Template from "components/ContextMenu/Template";
+import { createAction } from "actions";
 import { development } from "actions/definitions/debug";
 import {
   navigateToSettings,
@@ -51,6 +52,7 @@ function AccountMenu(props: Props) {
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'session' implicitly has an 'any' type.
       (session) => session.teamId !== team.id && session.url !== team.url
     );
+
     return [
       navigateToSettings,
       openKeyboardShortcuts,
@@ -64,15 +66,16 @@ function AccountMenu(props: Props) {
       separator(),
       ...(otherSessions.length
         ? [
-            {
+            createAction({
               name: t("Switch team"),
+              section: "account",
               // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'session' implicitly has an 'any' type.
               children: otherSessions.map((session) => ({
                 name: session.name,
                 icon: <Logo alt={session.name} src={session.logoUrl} />,
                 perform: () => (window.location.href = session.url),
               })),
-            },
+            }),
           ]
         : []),
       logout,
@@ -83,7 +86,7 @@ function AccountMenu(props: Props) {
     <>
       <MenuButton {...menu}>{props.children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <Template {...menu} actions={actions} />
+        <Template {...menu} items={undefined} actions={actions} />
       </ContextMenu>
     </>
   );

@@ -285,7 +285,7 @@ function DocumentMenu({
               icon: <RestoreIcon />,
             },
             {
-              type: "parent",
+              type: "submenu",
               title: t("Restore"),
               visible:
                 !collection && !!can.restore && restoreItems.length !== 0,

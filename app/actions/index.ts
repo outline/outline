@@ -49,7 +49,7 @@ export function actionToMenuItem(
 
   if (resolvedChildren) {
     return {
-      type: "parent",
+      type: "submenu",
       title,
       icon,
       items: resolvedChildren

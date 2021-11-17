@@ -164,7 +164,9 @@ class Input extends React.Component<Props> {
       onBlur,
       ...rest
     } = this.props;
-    const InputComponent = type === "textarea" ? RealTextarea : RealInput;
+
+    const InputComponent: React.ComponentType =
+      type === "textarea" ? RealTextarea : RealInput;
     const wrappedLabel = <LabelText>{label}</LabelText>;
 
     return (
@@ -179,11 +181,12 @@ class Input extends React.Component<Props> {
           <Outline focused={this.focused} margin={margin}>
             {icon && <IconWrapper>{icon}</IconWrapper>}
             <InputComponent
+              // @ts-expect-error no idea why this is not working
               ref={this.input}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
-              type={type === "textarea" ? undefined : type}
               hasIcon={!!icon}
+              type={type === "textarea" ? undefined : type}
               {...rest}
             />
           </Outline>

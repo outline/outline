@@ -14,7 +14,7 @@ export interface MenuItemButton {
 }
 
 export interface MenuItemWithChildren {
-  type: "parent";
+  type: "submenu";
   title: React.ReactNode;
   visible?: boolean;
   disabled?: boolean;
@@ -77,6 +77,7 @@ export type ActionContext = {
 };
 
 export type Action = {
+  type?: undefined;
   id: string;
   name: ((context: ActionContext) => string) | string;
   section: ((context: ActionContext) => string) | string;

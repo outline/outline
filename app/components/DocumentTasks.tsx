@@ -5,8 +5,7 @@ import styled, { useTheme } from "styled-components";
 import CircularProgressBar from "components/CircularProgressBar";
 import usePrevious from "../hooks/usePrevious";
 import Document from "../models/Document";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
-import { bounceIn } from "styles/animations";
+import { bounceIn } from "../styles/animations";
 
 type Props = {
   document: Document;

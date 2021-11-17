@@ -12,6 +12,7 @@ type TFilterOption = {
   label: string;
   note?: string;
 };
+
 type Props = {
   options: TFilterOption[];
   activeKey: string | null | undefined;
@@ -24,7 +25,7 @@ type Props = {
 const FilterOptions = ({
   options,
   activeKey = "",
-  defaultLabel,
+  defaultLabel = "Filter options",
   selectedPrefix = "",
   className,
   onSelect,

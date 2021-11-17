@@ -9,10 +9,9 @@ import breakpoint from "styled-components-breakpoint";
 import Flex from "components/Flex";
 import NudeButton from "components/NudeButton";
 import Scrollable from "components/Scrollable";
+import { fadeAndScaleIn } from "../styles/animations";
 import usePrevious from "hooks/usePrevious";
 import useUnmount from "hooks/useUnmount";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
-import { fadeAndScaleIn } from "styles/animations";
 
 let openModals = 0;
 type Props = {

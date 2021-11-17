@@ -28,7 +28,6 @@ import useStores from "hooks/useStores";
 type Props = {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: $Shape<ActionContext>;
-
   items?: TMenuItem[];
 };
 
@@ -106,15 +105,15 @@ function Template({ items, actions, context, ...menu }: Props) {
     ...context,
   };
 
-  const filteredTemplates = filterTemplateItems(
-    actions
-      ? actions.map((item) =>
-          item.type === "separator" || item.type === "heading"
-            ? item
-            : actionToMenuItem(item, ctx)
-        )
-      : items
-  );
+  const templateItems = actions
+    ? actions.map((item) =>
+        item.type === "separator" || item.type === "heading"
+          ? item
+          : actionToMenuItem(item, ctx)
+      )
+    : items || [];
+
+  const filteredTemplates = filterTemplateItems(templateItems);
 
   const iconIsPresentInAnyMenuItem = filteredTemplates.find(
     (item) =>
@@ -181,7 +180,7 @@ function Template({ items, actions, context, ...menu }: Props) {
           );
         }
 
-        if (item.type === "parent") {
+        if (item.type === "submenu") {
           return (
             <BaseMenuItem
               key={index}

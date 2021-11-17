@@ -80,12 +80,7 @@ function CollectionDescription({ collection }: Props) {
 
   return (
     <MaxHeight data-editing={isEditing} data-expanded={isExpanded}>
-      <Input
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-        $isEditable={can.update}
-        data-editing={isEditing}
-        data-expanded={isExpanded}
-      >
+      <Input data-editing={isEditing} data-expanded={isExpanded}>
         <span onClick={can.update ? handleStartEditing : undefined}>
           {collections.isSaving && <LoadingIndicator />}
           {collection.hasDescription || isEditing || isDirty ? (

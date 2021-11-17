@@ -21,6 +21,7 @@ import ContextMenu, { Placement } from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
 import Modal from "components/Modal";
+import { MenuItem } from "../types";
 import useCurrentTeam from "hooks/useCurrentTeam";
 import useStores from "hooks/useStores";
 import useToasts from "hooks/useToasts";
@@ -126,7 +127,7 @@ function CollectionMenu({
 
   const can = policies.abilities(collection.id);
   const canUserInTeam = policies.abilities(team.id);
-  const items = React.useMemo(
+  const items: MenuItem[] = React.useMemo(
     () => [
       {
         type: "button",

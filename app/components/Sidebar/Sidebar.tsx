@@ -7,12 +7,11 @@ import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import { fadeIn } from "../../styles/animations";
 import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 import usePrevious from "hooks/usePrevious";
 import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'styles/animations' or its corr... Remove this comment to see the full error message
-import { fadeIn } from "styles/animations";
 
 const ANIMATION_MS = 250;
 let isFirstRender = true;
