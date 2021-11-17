@@ -4,14 +4,10 @@ import { useMenuState } from "reakit/Menu";
 import ContextMenu from "components/ContextMenu";
 import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
 import Template from "components/ContextMenu/Template";
+import { MenuInternalLink } from "../types";
 
-type MenuItem = {
-  icon?: React.ReactNode;
-  title: React.ReactNode;
-  to?: string;
-};
 type Props = {
-  items: MenuItem[];
+  items: MenuInternalLink[];
 };
 
 export default function BreadcrumbMenu({ items }: Props) {

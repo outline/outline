@@ -68,10 +68,12 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
     // trim separators from start / end
     if (item.type === "separator" && index === 0) return acc;
     if (item.type === "separator" && index === filtered.length - 1) return acc;
+
     // trim double separators looking ahead / behind
     const prev = filtered[index - 1];
     if (prev && prev.type === "separator" && item.type === "separator")
       return acc;
+
     // otherwise, continue
     return [...acc, item];
   }, []);

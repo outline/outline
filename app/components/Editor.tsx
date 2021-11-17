@@ -1,8 +1,7 @@
 import { lighten } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router-dom"' has no exported member... Remove this comment to see the full error message
-import { withRouter, RouterHistory } from "react-router-dom";
+import { withRouter, RouteComponentProps } from "react-router-dom";
 import { Extension } from "rich-markdown-editor";
 import styled, { DefaultTheme, withTheme } from "styled-components";
 import embeds from "shared/embeds";
@@ -26,6 +25,7 @@ const RichMarkdownEditor = React.lazy(
       "rich-markdown-editor"
     )
 );
+
 // @ts-expect-error ts-migrate(7034) FIXME: Variable 'EMPTY_ARRAY' implicitly has type 'any[]'... Remove this comment to see the full error message
 const EMPTY_ARRAY = [];
 
@@ -56,6 +56,7 @@ export type Props = {
     autosave?: boolean;
     publish?: boolean;
   }) => any;
+  onSynced?: () => Promise<void>;
   onCancel?: () => any;
   onDoubleClick?: () => any;
   onChange?: (getValue: () => string) => any;
@@ -65,16 +66,18 @@ export type Props = {
   onImageUploadStart?: () => any;
   onImageUploadStop?: () => any;
 };
-type PropsWithRef = Props & {
-  forwardedRef: React.Ref<any>;
-  history: RouterHistory;
-};
+
+type PropsWithRef = Props &
+  RouteComponentProps & {
+    forwardedRef: React.Ref<any>;
+  };
 
 function Editor(props: PropsWithRef) {
   const { id, shareId, history } = props;
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const isPrinting = useMediaQuery("print");
+
   const onUploadImage = React.useCallback(
     async (file: File) => {
       const result = await uploadFile(file, {
@@ -84,6 +87,7 @@ function Editor(props: PropsWithRef) {
     },
     [id]
   );
+
   const onClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
       // on page hash
@@ -117,12 +121,14 @@ function Editor(props: PropsWithRef) {
     },
     [history, shareId]
   );
+
   const onShowToast = React.useCallback(
     (message: string) => {
       showToast(message);
     },
     [showToast]
   );
+
   const dictionary = React.useMemo(() => {
     return {
       addColumnAfter: t("Insert column after"),
@@ -329,10 +335,9 @@ const EditorTooltip = ({ children, ...props }) => (
 const Span = styled.span`
   outline: none;
 `;
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'ForwardRefExoticComponent<WithOp... Remove this comment to see the full error message
+
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 
 export default React.forwardRef<typeof Editor, Props>((props, ref) => (
-  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ forwardedRef: ForwardedRef<Props>; childre... Remove this comment to see the full error message
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));

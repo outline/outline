@@ -40,7 +40,6 @@ function SidebarLink(
     href,
     depth,
     className,
-    scrollIntoViewIfNeeded,
     ...rest
   }: Props,
   // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
@@ -67,7 +66,6 @@ function SidebarLink(
     <>
       <Link
         $isActiveDrop={isActiveDrop}
-        scrollIntoViewIfNeeded={scrollIntoViewIfNeeded}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}

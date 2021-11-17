@@ -56,7 +56,7 @@ const NavLink = ({
   to,
   ...rest
 }: Props) => {
-  const linkRef = React.useRef();
+  const linkRef = React.useRef(null);
   const context = React.useContext(RouterContext);
   const currentLocation = locationProp || context.location;
   const toLocation = normalizeToLocation(
@@ -64,6 +64,7 @@ const NavLink = ({
     currentLocation
   );
   const { pathname: path } = toLocation;
+
   // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
   const escapedPath = path && path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
   const match = escapedPath
@@ -97,7 +98,7 @@ const NavLink = ({
     to: toLocation,
     ...rest,
   };
-  // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<undefined>' is not assignab... Remove this comment to see the full error message
+
   return <Link ref={linkRef} {...props} />;
 };
 

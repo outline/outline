@@ -32,7 +32,7 @@ function InputSearchPage({
   collectionId,
   source,
 }: Props) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = React.useRef<Input>(null);
   const theme = useTheme();
   const history = useHistory();
   const { t } = useTranslation();

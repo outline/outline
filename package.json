@@ -147,7 +147,7 @@
     "react-window": "^1.8.6",
     "reakit": "^1.3.10",
     "regenerator-runtime": "^0.13.7",
-    "rich-markdown-editor": "^11.19.3",
+    "rich-markdown-editor": "^11.19.4",
     "semver": "^7.3.2",
     "sequelize": "^6.9.0",
     "sequelize-cli": "^6.3.0",

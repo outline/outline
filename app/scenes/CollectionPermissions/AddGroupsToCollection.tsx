@@ -25,12 +25,12 @@ import withStores from "components/withStores";
 type StoreProps = {
   toasts: ToastsStore;
   auth: AuthStore;
-  collection: Collection;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
   groups: GroupsStore;
 };
 
 type Props = WithTranslation & {
+  collection: Collection;
   onSubmit: () => void;
 };
 

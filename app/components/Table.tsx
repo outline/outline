@@ -131,13 +131,16 @@ function Table({
                 <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
                   <SortWrapper align="center" gap={4}>
                     {column.render("Header")}
-                    {column.isSorted &&
-                      // @ts-expect-error ts-migrate(2339) FIXME: Property 'isSortedDesc' does not exist on type 'He... Remove this comment to see the full error message
-                      (column.isSortedDesc ? (
-                        <DescSortIcon />
-                      ) : (
-                        <AscSortIcon />
-                      ))}
+                    {
+                      // @ts-expect-error known issue: https://github.com/tannerlinsley/react-table/issues/2970
+                      column.isSorted &&
+                        // @ts-expect-error ts-migrate(2339) FIXME: Property 'isSortedDesc' does not exist on type 'He... Remove this comment to see the full error message
+                        (column.isSortedDesc ? (
+                          <DescSortIcon />
+                        ) : (
+                          <AscSortIcon />
+                        ))
+                    }
                   </SortWrapper>
                 </Head>
               ))}

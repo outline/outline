@@ -3,16 +3,11 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "components/Flex";
+import { MenuInternalLink } from "../types";
 import BreadcrumbMenu from "menus/BreadcrumbMenu";
 
-export type Crumb = {
-  icon?: React.ReactNode;
-  title: React.ReactNode;
-  to?: string;
-};
-
 type Props = {
-  items: Crumb[];
+  items: MenuInternalLink[];
   max?: number;
   children?: React.ReactNode;
   highlightFirstItem?: boolean;
@@ -20,13 +15,15 @@ type Props = {
 
 function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
   const totalItems = items.length;
-  const topLevelItems: Crumb[] = [...items];
+  const topLevelItems: MenuInternalLink[] = [...items];
   let overflowItems;
 
   // chop middle breadcrumbs and present a "..." menu instead
   if (totalItems > max) {
     const halfMax = Math.floor(max / 2);
     overflowItems = topLevelItems.splice(halfMax, totalItems - max);
+
+    // @ts-expect-error come back to this
     topLevelItems.splice(halfMax, 0, {
       title: <BreadcrumbMenu items={overflowItems} />,
     });

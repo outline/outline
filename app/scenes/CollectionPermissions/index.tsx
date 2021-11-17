@@ -37,16 +37,19 @@ function CollectionPermissions({ collection }: Props) {
     auth,
   } = useStores();
   const { showToast } = useToasts();
+
   const [
     addGroupModalOpen,
     handleAddGroupModalOpen,
     handleAddGroupModalClose,
   ] = useBoolean();
+
   const [
     addMemberModalOpen,
     handleAddMemberModalOpen,
     handleAddMemberModalClose,
   ] = useBoolean();
+
   const handleRemoveUser = React.useCallback(
     async (user) => {
       try {
@@ -70,6 +73,7 @@ function CollectionPermissions({ collection }: Props) {
     },
     [memberships, showToast, collection, t]
   );
+
   const handleUpdateUser = React.useCallback(
     async (user, permission) => {
       try {
@@ -94,6 +98,7 @@ function CollectionPermissions({ collection }: Props) {
     },
     [memberships, showToast, collection, t]
   );
+
   const handleRemoveGroup = React.useCallback(
     async (group) => {
       try {
@@ -117,6 +122,7 @@ function CollectionPermissions({ collection }: Props) {
     },
     [collectionGroupMemberships, showToast, collection, t]
   );
+
   const handleUpdateGroup = React.useCallback(
     async (group, permission) => {
       try {
@@ -141,6 +147,7 @@ function CollectionPermissions({ collection }: Props) {
     },
     [collectionGroupMemberships, showToast, collection, t]
   );
+
   const handleChangePermission = React.useCallback(
     async (permission: string) => {
       try {
@@ -158,12 +165,14 @@ function CollectionPermissions({ collection }: Props) {
     },
     [collection, showToast, t]
   );
+
   const fetchOptions = React.useMemo(
     () => ({
       id: collection.id,
     }),
     [collection.id]
   );
+
   const handleSharingChange = React.useCallback(
     async (ev: React.SyntheticEvent<any>) => {
       try {
@@ -182,6 +191,7 @@ function CollectionPermissions({ collection }: Props) {
     },
     [collection, showToast, t]
   );
+
   const collectionName = collection.name;
   const collectionGroups = groups.inCollection(collection.id);
   const collectionUsers = users.inCollection(collection.id);

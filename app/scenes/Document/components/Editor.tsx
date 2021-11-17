@@ -91,6 +91,7 @@ class DocumentEditor extends React.Component<Props> {
       ...rest
     } = this.props;
     const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
+
     return (
       <Flex auto column>
         <EditableTitle
