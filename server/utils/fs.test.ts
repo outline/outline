@@ -7,6 +7,7 @@ describe("serializeFilename", () => {
       "this %2F and %2F this"
     );
   });
+
   it("should serialize back slashes", () => {
     expect(serializeFilename(`\\`)).toBe("%5C");
     expect(serializeFilename(`this \\ and \\ this`)).toBe(
@@ -21,6 +22,7 @@ describe("deserializeFilename", () => {
       `this / and / this`
     );
   });
+
   it("should deserialize back slashes", () => {
     expect(deserializeFilename("%5C")).toBe(`\\`);
     expect(deserializeFilename("this %5C and %5C this")).toBe(

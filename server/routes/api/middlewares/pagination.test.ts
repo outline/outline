@@ -19,6 +19,7 @@ describe("#pagination", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should not allow negative limit", async () => {
     const { user } = await seed();
     const res = await server.post("/api/users.list", {
@@ -29,6 +30,7 @@ describe("#pagination", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not allow non-integer limit", async () => {
     const { user } = await seed();
     const res = await server.post("/api/users.list", {
@@ -39,6 +41,7 @@ describe("#pagination", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not allow negative offset", async () => {
     const { user } = await seed();
     const res = await server.post("/api/users.list", {
@@ -49,6 +52,7 @@ describe("#pagination", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not allow non-integer offset", async () => {
     const { user } = await seed();
     const res = await server.post("/api/users.list", {

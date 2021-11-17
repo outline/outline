@@ -94,6 +94,7 @@ describe("Authentication middleware", () => {
       }
     });
   });
+
   it("should return error message if no auth token is available", async () => {
     const state = {};
     const authMiddleware = auth();
@@ -117,6 +118,7 @@ describe("Authentication middleware", () => {
       );
     }
   });
+
   it("should allow passing auth token as a GET param", async () => {
     const state = {};
     const user = await buildUser();
@@ -140,6 +142,7 @@ describe("Authentication middleware", () => {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type '{}'.
     expect(state.user.id).toEqual(user.id);
   });
+
   it("should allow passing auth token in body params", async () => {
     const state = {};
     const user = await buildUser();
@@ -162,6 +165,7 @@ describe("Authentication middleware", () => {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type '{}'.
     expect(state.user.id).toEqual(user.id);
   });
+
   it("should return an error for suspended users", async () => {
     const state = {};
     const admin = await buildUser();
@@ -194,6 +198,7 @@ describe("Authentication middleware", () => {
     );
     expect(error.errorData.adminEmail).toEqual(admin.email);
   });
+
   it("should return an error for deleted team", async () => {
     const state = {};
     const team = await buildTeam();

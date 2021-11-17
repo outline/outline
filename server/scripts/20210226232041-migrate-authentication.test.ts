@@ -34,6 +34,7 @@ describe("#work", () => {
     expect(authProvider.name).toEqual("slack");
     expect(auth.userId).toEqual(user.id);
   });
+
   it("should create authentication record for deleted users", async () => {
     const team = await Team.create({
       name: `Test`,
@@ -61,6 +62,7 @@ describe("#work", () => {
     expect(authProvider.name).toEqual("google");
     expect(auth.userId).toEqual(user.id);
   });
+
   it("should create authentication record for suspended users", async () => {
     const team = await Team.create({
       name: `Test`,
@@ -88,6 +90,7 @@ describe("#work", () => {
     expect(authProvider.name).toEqual("google");
     expect(auth.userId).toEqual(user.id);
   });
+
   it("should create correct authentication record when team has both slackId and googleId", async () => {
     const team = await Team.create({
       name: `Test`,
@@ -115,6 +118,7 @@ describe("#work", () => {
     expect(authProvider.name).toEqual("slack");
     expect(auth.userId).toEqual(user.id);
   });
+
   it("should skip invited users", async () => {
     const team = await Team.create({
       name: `Test`,

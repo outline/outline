@@ -48,6 +48,7 @@ describe("#fileOperations.info", () => {
     expect(body.data.id).toBe(exportData.id);
     expect(body.data.state).toBe(exportData.state);
   });
+
   it("should require user to be an admin", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({
@@ -96,6 +97,7 @@ describe("#fileOperations.list", () => {
     expect(data.key).toBe(undefined);
     expect(data.state).toBe(exportData.state);
   });
+
   it("should return exports with collection data", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({
@@ -126,6 +128,7 @@ describe("#fileOperations.list", () => {
     expect(data.state).toBe(exportData.state);
     expect(data.collection.id).toBe(collection.id);
   });
+
   it("should return exports with collection data even if collection is deleted", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({
@@ -159,6 +162,7 @@ describe("#fileOperations.list", () => {
     expect(data.state).toBe(exportData.state);
     expect(data.collection.id).toBe(collection.id);
   });
+
   it("should return exports with user data even if user is deleted", async () => {
     const team = await buildTeam();
     const admin2 = await buildAdmin({
@@ -195,6 +199,7 @@ describe("#fileOperations.list", () => {
     expect(data.state).toBe(exportData.state);
     expect(data.user.id).toBe(admin.id);
   });
+
   it("should require authorization", async () => {
     const user = await buildUser();
     const res = await server.post("/api/fileOperations.list", {
@@ -250,6 +255,7 @@ describe("#fileOperations.info", () => {
     expect(body.data.id).toBe(exportData.id);
     expect(body.data.user.id).toBe(admin.id);
   });
+
   it("should require authorization", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({

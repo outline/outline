@@ -5,6 +5,7 @@ import userCreator from "./userCreator";
 beforeEach(() => flushdb());
 describe("userCreator", () => {
   const ip = "127.0.0.1";
+
   it("should update exising user and authentication", async () => {
     const existing = await buildUser();
     const authentications = await existing.getAuthentications();
@@ -33,6 +34,7 @@ describe("userCreator", () => {
     expect(user.username).toEqual(newUsername);
     expect(isNewUser).toEqual(false);
   });
+
   it("should create user with deleted user matching providerId", async () => {
     const existing = await buildUser();
     const authentications = await existing.getAuthentications();
@@ -58,6 +60,7 @@ describe("userCreator", () => {
     expect(user.email).toEqual(newEmail);
     expect(isNewUser).toEqual(true);
   });
+
   it("should handle duplicate providerId for different iDP", async () => {
     const existing = await buildUser();
     const authentications = await existing.getAuthentications();
@@ -83,6 +86,7 @@ describe("userCreator", () => {
 
     expect(error && error.toString()).toContain("already exists for");
   });
+
   it("should create a new user", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();
@@ -110,6 +114,7 @@ describe("userCreator", () => {
     expect(user.isViewer).toEqual(false);
     expect(isNewUser).toEqual(true);
   });
+
   it("should prefer isAdmin argument over defaultUserRole", async () => {
     const team = await buildTeam({
       defaultUserRole: "viewer",
@@ -133,6 +138,7 @@ describe("userCreator", () => {
     const { user } = result;
     expect(user.isAdmin).toEqual(true);
   });
+
   it("should prefer defaultUserRole when isAdmin is undefined or false", async () => {
     const team = await buildTeam({
       defaultUserRole: "viewer",
@@ -175,6 +181,7 @@ describe("userCreator", () => {
     expect(tname2.isAdmin).toEqual(false);
     expect(tname2.isViewer).toEqual(true);
   });
+
   it("should create a user from an invited user", async () => {
     const team = await buildTeam();
     const invite = await buildInvite({

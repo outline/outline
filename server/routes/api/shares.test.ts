@@ -33,6 +33,7 @@ describe("#shares.list", () => {
     expect(body.data[0].id).toEqual(share.id);
     expect(body.data[0].documentTitle).toBe(document.title);
   });
+
   it("should not return revoked shares", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -50,6 +51,7 @@ describe("#shares.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return unpublished shares", async () => {
     const { user, document } = await seed();
     await buildShare({
@@ -67,6 +69,7 @@ describe("#shares.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return shares to deleted documents", async () => {
     const { user, document } = await seed();
     await buildShare({
@@ -84,6 +87,7 @@ describe("#shares.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("admins should return shares created by all users", async () => {
     const { user, admin, document } = await seed();
     const share = await buildShare({
@@ -102,6 +106,7 @@ describe("#shares.list", () => {
     expect(body.data[0].id).toEqual(share.id);
     expect(body.data[0].documentTitle).toBe(document.title);
   });
+
   it("admins should not return shares in collection not a member of", async () => {
     const { admin, document, collection } = await seed();
     await buildShare({
@@ -120,6 +125,7 @@ describe("#shares.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/shares.list");
     const body = await res.json();
@@ -141,6 +147,7 @@ describe("#shares.create", () => {
     expect(body.data.published).toBe(false);
     expect(body.data.documentTitle).toBe(document.title);
   });
+
   it("should allow creating a share record with read-only permissions but no publishing", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
@@ -168,6 +175,7 @@ describe("#shares.create", () => {
     });
     expect(response.status).toEqual(403);
   });
+
   it("should allow creating a share record if link previously revoked", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -187,6 +195,7 @@ describe("#shares.create", () => {
     expect(body.data.id).not.toEqual(share.id);
     expect(body.data.documentTitle).toBe(document.title);
   });
+
   it("should return existing share link for document and user", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -204,6 +213,7 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBe(share.id);
   });
+
   it("should allow creating a share record if team sharing disabled but not publishing", async () => {
     const { user, document, team } = await seed();
     await team.update({
@@ -226,6 +236,7 @@ describe("#shares.create", () => {
     });
     expect(response.status).toEqual(403);
   });
+
   it("should allow creating a share record if collection sharing disabled but not publishing", async () => {
     const { user, collection, document } = await seed();
     await collection.update({
@@ -248,6 +259,7 @@ describe("#shares.create", () => {
     });
     expect(response.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/shares.create", {
@@ -259,6 +271,7 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -290,6 +303,7 @@ describe("#shares.info", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.createdBy.id).toBe(user.id);
   });
+
   it("should allow reading share created by deleted user", async () => {
     const { user, document } = await seed();
     const author = await buildUser({
@@ -312,6 +326,7 @@ describe("#shares.info", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.createdBy.id).toBe(author.id);
   });
+
   it("should allow reading share by documentId", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -330,6 +345,7 @@ describe("#shares.info", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.published).toBe(true);
   });
+
   it("should find share created by another user", async () => {
     const { admin, document } = await seed();
     const user = await buildUser({
@@ -351,6 +367,7 @@ describe("#shares.info", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.published).toBe(true);
   });
+
   it("should not find revoked share", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -367,6 +384,7 @@ describe("#shares.info", () => {
     });
     expect(res.status).toEqual(204);
   });
+
   it("should not find share for deleted document", async () => {
     const { user, document } = await seed();
     await buildShare({
@@ -498,6 +516,7 @@ describe("#shares.info", () => {
       expect(body.data.shares[1].includeChildDocuments).toBe(true);
     });
   });
+
   it("should require authentication", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -514,6 +533,7 @@ describe("#shares.info", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { admin, document } = await seed();
     const user = await buildUser();
@@ -550,6 +570,7 @@ describe("#shares.update", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.published).toBe(true);
   });
+
   it("should allow author to update a share", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -569,6 +590,7 @@ describe("#shares.update", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.published).toBe(true);
   });
+
   it("should allow admin to update a share", async () => {
     const { user, admin, document } = await seed();
     const share = await buildShare({
@@ -588,6 +610,7 @@ describe("#shares.update", () => {
     expect(body.data.id).toBe(share.id);
     expect(body.data.published).toBe(true);
   });
+
   it("should require authentication", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -605,6 +628,7 @@ describe("#shares.update", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { admin, document } = await seed();
     const user = await buildUser();
@@ -639,6 +663,7 @@ describe("#shares.revoke", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should 404 if shares document is deleted", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -655,6 +680,7 @@ describe("#shares.revoke", () => {
     });
     expect(res.status).toEqual(404);
   });
+
   it("should allow admin to revoke a share", async () => {
     const { user, admin, document } = await seed();
     const share = await buildShare({
@@ -670,6 +696,7 @@ describe("#shares.revoke", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should require authentication", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -686,6 +713,7 @@ describe("#shares.revoke", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { admin, document } = await seed();
     const user = await buildUser();

@@ -16,6 +16,7 @@ describe("#work", () => {
     expect(event.teamId).toEqual(document.teamId);
     expect(event.createdAt).toEqual(revision.createdAt);
   });
+
   it("should create events for revisions of deleted documents", async () => {
     const document = await buildDocument();
     const revision = await Revision.createFromDocument(document);
@@ -28,6 +29,7 @@ describe("#work", () => {
     expect(event.teamId).toEqual(document.teamId);
     expect(event.createdAt).toEqual(revision.createdAt);
   });
+
   it("should be idempotent", async () => {
     const document = await buildDocument();
     await Revision.createFromDocument(document);

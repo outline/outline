@@ -6,6 +6,7 @@ import userSuspender from "./userSuspender";
 beforeEach(() => flushdb());
 describe("userSuspender", () => {
   const ip = "127.0.0.1";
+
   it("should not suspend self", async () => {
     const user = await buildUser();
     let error;
@@ -22,6 +23,7 @@ describe("userSuspender", () => {
 
     expect(error.message).toEqual("Unable to suspend the current user");
   });
+
   it("should suspend the user", async () => {
     const admin = await buildAdmin();
     const user = await buildUser({
@@ -35,6 +37,7 @@ describe("userSuspender", () => {
     expect(user.suspendedAt).toBeTruthy();
     expect(user.suspendedById).toEqual(admin.id);
   });
+
   it("should remove group memberships", async () => {
     const admin = await buildAdmin();
     const user = await buildUser({

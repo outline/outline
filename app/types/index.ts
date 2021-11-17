@@ -20,6 +20,7 @@ export interface MenuItemWithChildren {
   disabled?: boolean;
   style?: React.CSSProperties;
   hover?: boolean;
+
   items: MenuItem[];
   icon?: React.ReactNode;
 }

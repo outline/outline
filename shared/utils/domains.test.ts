@@ -19,6 +19,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should remove sub-domains", () => {
     expect(parseDomain("www.example.com")).toMatchObject({
       subdomain: "www",
@@ -26,6 +27,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should remove the path", () => {
     expect(parseDomain("example.com/some/path?and&query")).toMatchObject({
       subdomain: "",
@@ -38,6 +40,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should remove the query string", () => {
     expect(parseDomain("example.com?and&query")).toMatchObject({
       subdomain: "",
@@ -45,6 +48,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should remove special characters", () => {
     expect(parseDomain("http://m.example.com\r")).toMatchObject({
       subdomain: "m",
@@ -52,6 +56,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should remove the port", () => {
     expect(parseDomain("example.com:8080")).toMatchObject({
       subdomain: "",
@@ -59,6 +64,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should allow @ characters in the path", () => {
     expect(parseDomain("https://medium.com/@username/")).toMatchObject({
       subdomain: "",
@@ -66,6 +72,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should also work with three-level domains like .co.uk", () => {
     expect(parseDomain("www.example.co.uk")).toMatchObject({
       subdomain: "www",
@@ -73,6 +80,7 @@ describe("#parseDomain", () => {
       tld: "co.uk",
     });
   });
+
   it("should not include private domains like blogspot.com by default", () => {
     expect(parseDomain("foo.blogspot.com")).toMatchObject({
       subdomain: "foo",
@@ -80,6 +88,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should also work with the minimum", () => {
     expect(parseDomain("example.com")).toMatchObject({
       subdomain: "",
@@ -87,6 +96,7 @@ describe("#parseDomain", () => {
       tld: "com",
     });
   });
+
   it("should return null if the given value is not a string", () => {
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
     expect(parseDomain(undefined)).toBe(null);
@@ -94,6 +104,7 @@ describe("#parseDomain", () => {
     expect(parseDomain({})).toBe(null);
     expect(parseDomain("")).toBe(null);
   });
+
   it("should work with custom top-level domains (eg .local)", () => {
     expect(parseDomain("mymachine.local")).toMatchObject({
       subdomain: "",

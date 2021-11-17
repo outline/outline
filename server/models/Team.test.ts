@@ -27,6 +27,7 @@ describe("provisionSubdomain", () => {
     expect(subdomain).toEqual("testy");
     expect(team.subdomain).toEqual("testy");
   });
+
   it("should set subdomain append if unavailable", async () => {
     await buildTeam({
       subdomain: "myteam",
@@ -36,6 +37,7 @@ describe("provisionSubdomain", () => {
     expect(subdomain).toEqual("myteam1");
     expect(team.subdomain).toEqual("myteam1");
   });
+
   it("should increment subdomain append if unavailable", async () => {
     await buildTeam({
       subdomain: "myteam",
@@ -48,6 +50,7 @@ describe("provisionSubdomain", () => {
     expect(subdomain).toEqual("myteam2");
     expect(team.subdomain).toEqual("myteam2");
   });
+
   it("should do nothing if subdomain already set", async () => {
     const team = await buildTeam({
       subdomain: "example",

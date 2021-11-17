@@ -60,6 +60,7 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(200);
     expect(body.attachments).toEqual(undefined);
   });
+
   it("should return search results with summary if query is in title", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
@@ -81,6 +82,7 @@ describe("#hooks.slack", () => {
     expect(body.attachments[0].title).toEqual(document.title);
     expect(body.attachments[0].text).toEqual(document.getSummary());
   });
+
   it("should return search results if query is regex-like", async () => {
     const { user, team } = await seed();
     await buildDocument({
@@ -100,6 +102,7 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(200);
     expect(body.attachments.length).toEqual(1);
   });
+
   it("should return search results with snippet if query is in text", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
@@ -148,6 +151,7 @@ describe("#hooks.slack", () => {
       done();
     }, 100);
   });
+
   it("should respond with help content for help keyword", async () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
@@ -162,6 +166,7 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(200);
     expect(body.text.includes("How to use")).toEqual(true);
   });
+
   it("should respond with help content for no keyword", async () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
@@ -176,6 +181,7 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(200);
     expect(body.text.includes("How to use")).toEqual(true);
   });
+
   it("should return search results with snippet for unknown user", async () => {
     const { user, team } = await seed();
     // unpublished document will not be returned
@@ -207,6 +213,7 @@ describe("#hooks.slack", () => {
       "This title *contains* a search term"
     );
   });
+
   it("should return search results with snippet for user through integration mapping", async () => {
     const { user } = await seed();
     const serviceTeamId = "slack_team_id";
@@ -238,6 +245,7 @@ describe("#hooks.slack", () => {
       "This title *contains* a search term"
     );
   });
+
   it("should error if incorrect verification token", async () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
@@ -280,6 +288,7 @@ describe("#hooks.interactive", () => {
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
   });
+
   it("should respond with replacement message if unknown user", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
@@ -308,6 +317,7 @@ describe("#hooks.interactive", () => {
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
   });
+
   it("should error if incorrect verification token", async () => {
     const { user } = await seed();
     const payload = JSON.stringify({

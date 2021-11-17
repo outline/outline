@@ -37,6 +37,7 @@ describe("#groups.update", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const group = await buildGroup();
     const user = await buildUser();
@@ -49,6 +50,7 @@ describe("#groups.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authorization", async () => {
     const group = await buildGroup();
     const user = await buildAdmin();
@@ -132,6 +134,7 @@ describe("#groups.list", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should return groups with memberships preloaded", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -157,6 +160,7 @@ describe("#groups.list", () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
   it("should return groups when membership user is deleted", async () => {
     const me = await buildUser();
     const user = await buildUser({
@@ -208,6 +212,7 @@ describe("#groups.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(group.id);
   });
+
   it("should return group if member", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -228,6 +233,7 @@ describe("#groups.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(group.id);
   });
+
   it("should not return group if non-member, non-admin", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -241,12 +247,14 @@ describe("#groups.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.info");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const user = await buildUser();
     const group = await buildGroup();
@@ -271,6 +279,7 @@ describe("#groups.delete", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const group = await buildGroup();
     const user = await buildUser();
@@ -282,6 +291,7 @@ describe("#groups.delete", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authorization", async () => {
     const group = await buildGroup();
     const user = await buildAdmin();
@@ -293,6 +303,7 @@ describe("#groups.delete", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("allows admin to delete a group", async () => {
     const user = await buildAdmin();
     const group = await buildGroup({
@@ -333,6 +344,7 @@ describe("#groups.memberships", () => {
     expect(body.data.groupMemberships.length).toEqual(1);
     expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
   });
+
   it("should allow filtering members in group by name", async () => {
     const user = await buildUser();
     const user2 = await buildUser({
@@ -373,12 +385,14 @@ describe("#groups.memberships", () => {
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.memberships");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const user = await buildUser();
     const group = await buildGroup();
@@ -408,10 +422,12 @@ describe("#groups.add_user", () => {
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.add_user");
     expect(res.status).toEqual(401);
   });
+
   it("should require user in team", async () => {
     const user = await buildAdmin();
     const group = await buildGroup({
@@ -429,6 +445,7 @@ describe("#groups.add_user", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -475,10 +492,12 @@ describe("#groups.remove_user", () => {
     expect(res.status).toEqual(200);
     expect(users1.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.remove_user");
     expect(res.status).toEqual(401);
   });
+
   it("should require user in team", async () => {
     const user = await buildAdmin();
     const group = await buildGroup({
@@ -496,6 +515,7 @@ describe("#groups.remove_user", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const group = await buildGroup({

@@ -5,6 +5,7 @@ import userDestroyer from "./userDestroyer";
 beforeEach(() => flushdb());
 describe("userDestroyer", () => {
   const ip = "127.0.0.1";
+
   it("should prevent last user from deleting account", async () => {
     const user = await buildUser();
     let error;
@@ -21,6 +22,7 @@ describe("userDestroyer", () => {
 
     expect(error && error.message).toContain("Cannot delete last user");
   });
+
   it("should prevent last admin from deleting account", async () => {
     const user = await buildAdmin();
     await buildUser({
@@ -40,6 +42,7 @@ describe("userDestroyer", () => {
 
     expect(error && error.message).toContain("Cannot delete account");
   });
+
   it("should not prevent multiple admin from deleting account", async () => {
     const actor = await buildAdmin();
     const user = await buildAdmin({
@@ -60,6 +63,7 @@ describe("userDestroyer", () => {
     expect(error).toBeFalsy();
     expect(user.deletedAt).toBeTruthy();
   });
+
   it("should not prevent last non-admin from deleting account", async () => {
     const user = await buildUser();
     await buildUser({

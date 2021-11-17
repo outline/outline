@@ -12,6 +12,7 @@ import documentMover from "./documentMover";
 beforeEach(() => flushdb());
 describe("documentMover", () => {
   const ip = "127.0.0.1";
+
   it("should move within a collection", async () => {
     const { document, user, collection } = await seed();
     const response = await documentMover({
@@ -23,6 +24,7 @@ describe("documentMover", () => {
     expect(response.collections.length).toEqual(1);
     expect(response.documents.length).toEqual(1);
   });
+
   it("should not error when not in source collection documentStructure", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -41,6 +43,7 @@ describe("documentMover", () => {
     expect(response.collections.length).toEqual(1);
     expect(response.documents.length).toEqual(1);
   });
+
   it("should move with children", async () => {
     const { document, user, collection } = await seed();
     const newDocument = await buildDocument({
@@ -69,6 +72,7 @@ describe("documentMover", () => {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'neve... Remove this comment to see the full error message
     expect(response.documents[0].collection.id).toEqual(collection.id);
   });
+
   it("should move with children to another collection", async () => {
     const { document, user, collection } = await seed();
     const newCollection = await buildCollection({
@@ -112,6 +116,7 @@ describe("documentMover", () => {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'neve... Remove this comment to see the full error message
     expect(response.documents[1].collection.id).toEqual(newCollection.id);
   });
+
   it("should move attachments in children to another collection", async () => {
     const { document, user, collection } = await seed();
     const newCollection = await buildCollection({

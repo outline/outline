@@ -36,6 +36,7 @@ describe("#events.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
   });
+
   it("should return audit events", async () => {
     const { user, admin, document, collection } = await seed();
     // audit event
@@ -65,6 +66,7 @@ describe("#events.list", () => {
     expect(body.data[0].id).toEqual(event.id);
     expect(body.data[1].id).toEqual(auditEvent.id);
   });
+
   it("should allow filtering by actorId", async () => {
     const { user, admin, document, collection } = await seed();
     // audit event
@@ -94,6 +96,7 @@ describe("#events.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(auditEvent.id);
   });
+
   it("should allow filtering by documentId", async () => {
     const { user, admin, document, collection } = await seed();
     const event = await buildEvent({
@@ -114,6 +117,7 @@ describe("#events.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
   });
+
   it("should not return events for documentId without authorization", async () => {
     const { user, document, collection } = await seed();
     const actor = await buildUser();
@@ -134,6 +138,7 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should allow filtering by event name", async () => {
     const { user, admin, document, collection } = await seed();
     // audit event
@@ -162,6 +167,7 @@ describe("#events.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
   });
+
   it("should return events with deleted actors", async () => {
     const { user, admin, document, collection } = await seed();
     // event viewable in activity stream
@@ -183,6 +189,7 @@ describe("#events.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
   });
+
   it("should require authorization for audit events", async () => {
     const { user } = await seed();
     const res = await server.post("/api/events.list", {
@@ -193,6 +200,7 @@ describe("#events.list", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/events.list");
     const body = await res.json();

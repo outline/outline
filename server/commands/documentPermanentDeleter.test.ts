@@ -29,6 +29,7 @@ describe("documentPermanentDeleter", () => {
       })
     ).toEqual(0);
   });
+
   it("should error when trying to destroy undeleted documents", async () => {
     const document = await buildDocument({
       publishedAt: new Date(),
@@ -45,6 +46,7 @@ describe("documentPermanentDeleter", () => {
       `Cannot permanently delete ${document.id} document. Please delete it and try again.`
     );
   });
+
   it("should destroy attachments no longer referenced", async () => {
     const document = await buildDocument({
       publishedAt: subDays(new Date(), 90),
@@ -65,6 +67,7 @@ describe("documentPermanentDeleter", () => {
       })
     ).toEqual(0);
   });
+
   it("should handle unknown attachment ids", async () => {
     const document = await buildDocument({
       publishedAt: subDays(new Date(), 90),
@@ -91,6 +94,7 @@ describe("documentPermanentDeleter", () => {
       })
     ).toEqual(0);
   });
+
   it("should not destroy attachments referenced in other documents", async () => {
     const document1 = await buildDocument();
     const document = await buildDocument({

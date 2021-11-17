@@ -24,6 +24,7 @@ describe("#auth.info", () => {
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
   });
+
   it("should require the team to not be deleted", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -37,6 +38,7 @@ describe("#auth.info", () => {
     });
     expect(res.status).toEqual(401);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/auth.info");
     expect(res.status).toEqual(401);
@@ -51,6 +53,7 @@ describe("#auth.config", () => {
     expect(body.data.providers[0].name).toBe("Slack");
     expect(body.data.providers[1].name).toBe("Google");
   });
+
   it("should return available providers for team subdomain", async () => {
     process.env.URL = "http://localoutline.com";
     await buildTeam({
@@ -73,6 +76,7 @@ describe("#auth.config", () => {
     expect(body.data.providers.length).toBe(1);
     expect(body.data.providers[0].name).toBe("Slack");
   });
+
   it("should return available providers for team custom domain", async () => {
     await buildTeam({
       guestSignin: false,
@@ -94,6 +98,7 @@ describe("#auth.config", () => {
     expect(body.data.providers.length).toBe(1);
     expect(body.data.providers[0].name).toBe("Slack");
   });
+
   it("should return email provider for team when guest signin enabled", async () => {
     process.env.URL = "http://localoutline.com";
     await buildTeam({
@@ -117,6 +122,7 @@ describe("#auth.config", () => {
     expect(body.data.providers[0].name).toBe("Slack");
     expect(body.data.providers[1].name).toBe("Email");
   });
+
   it("should not return provider when disabled", async () => {
     process.env.URL = "http://localoutline.com";
     await buildTeam({

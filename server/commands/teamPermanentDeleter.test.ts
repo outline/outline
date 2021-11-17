@@ -46,6 +46,7 @@ describe("teamPermanentDeleter", () => {
       })
     ).toEqual(0);
   });
+
   it("should not destroy unrelated data", async () => {
     const team = await buildTeam({
       deletedAt: subDays(new Date(), 90),
@@ -68,6 +69,7 @@ describe("teamPermanentDeleter", () => {
       })
     ).toEqual(1);
   });
+
   it("should destroy attachments", async () => {
     const team = await buildTeam({
       deletedAt: subDays(new Date(), 90),
@@ -98,6 +100,7 @@ describe("teamPermanentDeleter", () => {
       })
     ).toEqual(0);
   });
+
   it("should error when trying to destroy undeleted team", async () => {
     const team = await buildTeam();
     let error;

@@ -6,8 +6,14 @@ import Flex from "components/Flex";
 import { MenuInternalLink } from "../types";
 import BreadcrumbMenu from "menus/BreadcrumbMenu";
 
+export type Crumb = {
+  title: React.ReactNode;
+  icon?: React.ReactNode;
+  to?: string;
+};
+
 type Props = {
-  items: MenuInternalLink[];
+  items: Crumb[];
   max?: number;
   children?: React.ReactNode;
   highlightFirstItem?: boolean;
@@ -15,7 +21,7 @@ type Props = {
 
 function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
   const totalItems = items.length;
-  const topLevelItems: MenuInternalLink[] = [...items];
+  const topLevelItems: Crumb[] = [...items];
   let overflowItems;
 
   // chop middle breadcrumbs and present a "..." menu instead
@@ -23,9 +29,8 @@ function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
     const halfMax = Math.floor(max / 2);
     overflowItems = topLevelItems.splice(halfMax, totalItems - max);
 
-    // @ts-expect-error come back to this
     topLevelItems.splice(halfMax, 0, {
-      title: <BreadcrumbMenu items={overflowItems} />,
+      title: <BreadcrumbMenu items={overflowItems as MenuInternalLink[]} />,
     });
   }
 

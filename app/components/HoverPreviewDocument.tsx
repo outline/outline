@@ -15,11 +15,14 @@ type Props = {
 function HoverPreviewDocument({ url, children }: Props) {
   const { documents } = useStores();
   const slug = parseDocumentSlug(url);
-  documents.prefetchDocument(slug, {
-    prefetch: true,
-  });
+
+  if (slug) {
+    documents.prefetchDocument(slug);
+  }
+
   const document = slug ? documents.getByUrl(slug) : undefined;
   if (!document) return null;
+
   return children(
     <Content to={document.url}>
       <Heading>{document.titleWithDefault}</Heading>
@@ -28,7 +31,6 @@ function HoverPreviewDocument({ url, children }: Props) {
       <React.Suspense fallback={<div />}>
         <Editor
           key={document.id}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; defaultValue: any; disableEmbeds... Remove this comment to see the full error message
           defaultValue={document.getSummary()}
           disableEmbeds
           readOnly

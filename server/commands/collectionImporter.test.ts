@@ -10,6 +10,7 @@ jest.mock("../utils/s3");
 beforeEach(() => flushdb());
 describe("collectionImporter", () => {
   const ip = "127.0.0.1";
+
   it("should import documents in outline format", async () => {
     const user = await buildUser();
     const name = "outline.zip";
@@ -31,6 +32,7 @@ describe("collectionImporter", () => {
     expect(await Document.count()).toEqual(8);
     expect(await Attachment.count()).toEqual(6);
   });
+
   it("should throw an error with corrupt zip", async () => {
     const user = await buildUser();
     const name = "corrupt.zip";
@@ -54,6 +56,7 @@ describe("collectionImporter", () => {
 
     expect(error && error.message).toBeTruthy();
   });
+
   it("should throw an error with empty zip", async () => {
     const user = await buildUser();
     const name = "empty.zip";

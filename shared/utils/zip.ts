@@ -9,6 +9,7 @@ export type Item = {
   depth: number;
   metadata: Record<string, any>;
   type: "collection" | "document" | "attachment";
+
   item: ZipObject;
 };
 

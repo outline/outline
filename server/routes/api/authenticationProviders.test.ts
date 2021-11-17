@@ -30,6 +30,7 @@ describe("#authenticationProviders.info", () => {
     expect(body.policies[0].abilities.read).toBe(true);
     expect(body.policies[0].abilities.update).toBe(false);
   });
+
   it("should require authorization", async () => {
     const team = await buildTeam();
     const user = await buildUser();
@@ -42,6 +43,7 @@ describe("#authenticationProviders.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();
@@ -69,6 +71,7 @@ describe("#authenticationProviders.update", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should allow admins to disable", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
@@ -92,6 +95,7 @@ describe("#authenticationProviders.update", () => {
     expect(body.data.isEnabled).toBe(false);
     expect(body.data.isConnected).toBe(true);
   });
+
   it("should require authorization", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -107,6 +111,7 @@ describe("#authenticationProviders.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();
@@ -140,6 +145,7 @@ describe("#authenticationProviders.list", () => {
     expect(body.data.authenticationProviders[1].isEnabled).toBe(false);
     expect(body.data.authenticationProviders[1].isConnected).toBe(false);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/authenticationProviders.list");
     expect(res.status).toEqual(401);

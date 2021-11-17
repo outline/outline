@@ -20,6 +20,7 @@ describe("auth/redirect", () => {
     expect(res.status).toEqual(302);
     expect(res.headers.get("location").endsWith("/home")).toBeTruthy();
   });
+
   it("should redirect to first collection", async () => {
     const collection = await buildCollection();
     const user = await buildUser({

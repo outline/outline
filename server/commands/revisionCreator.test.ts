@@ -6,6 +6,7 @@ import revisionCreator from "./revisionCreator";
 beforeEach(() => flushdb());
 describe("revisionCreator", () => {
   const ip = "127.0.0.1";
+
   it("should create revision model from document", async () => {
     const user = await buildUser();
     const document = await buildDocument({

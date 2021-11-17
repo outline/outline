@@ -12,11 +12,11 @@ import { $Shape } from "utility-types";
 import Flex from "components/Flex";
 import MenuIconWrapper from "components/MenuIconWrapper";
 import {
-  MenuItem as TMenuItem,
   Action,
   ActionContext,
   MenuSeparator,
   MenuHeading,
+  MenuItem as TMenuItem,
 } from "../../types";
 import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
@@ -28,6 +28,7 @@ import useStores from "hooks/useStores";
 type Props = {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: $Shape<ActionContext>;
+
   items?: TMenuItem[];
 };
 
@@ -37,28 +38,36 @@ const Disclosure = styled(ExpandedIcon)`
   right: 8px;
 `;
 
-// @ts-expect-error ts-migrate(2339) FIXME: Property 'templateItems' does not exist on type '{... Remove this comment to see the full error message
-const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
-  const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-  });
+const Submenu = React.forwardRef(
+  (
+    {
+      templateItems,
+      title,
+      ...rest
+    }: { templateItems: TMenuItem[]; title: React.ReactNode },
+    ref: React.LegacyRef<HTMLButtonElement>
+  ) => {
+    const { t } = useTranslation();
+    const menu = useMenuState({
+      modal: true,
+    });
 
-  return (
-    <>
-      <MenuButton ref={ref} {...menu} {...rest}>
-        {(props) => (
-          <MenuAnchor {...props}>
-            {title} <Disclosure color="currentColor" />
-          </MenuAnchor>
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Submenu")}>
-        <Template {...menu} items={templateItems} />
-      </ContextMenu>
-    </>
-  );
-});
+    return (
+      <>
+        <MenuButton ref={ref} {...menu} {...rest}>
+          {(props) => (
+            <MenuAnchor {...props}>
+              {title} <Disclosure color="currentColor" />
+            </MenuAnchor>
+          )}
+        </MenuButton>
+        <ContextMenu {...menu} aria-label={t("Submenu")}>
+          <Template {...menu} items={templateItems} />
+        </ContextMenu>
+      </>
+    );
+  }
+);
 
 export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   let filtered = items.filter((item) => item.visible !== false);
@@ -112,88 +121,91 @@ function Template({ items, actions, context, ...menu }: Props) {
       item.type !== "separator" && item.type !== "heading" && !!item.icon
   );
 
-  return filteredTemplates.map((item, index) => {
-    if (
-      iconIsPresentInAnyMenuItem &&
-      item.type !== "separator" &&
-      item.type !== "heading"
-    ) {
-      item.icon = item.icon || <MenuIconWrapper />;
-    }
+  return (
+    <>
+      {filteredTemplates.map((item, index) => {
+        if (
+          iconIsPresentInAnyMenuItem &&
+          item.type !== "separator" &&
+          item.type !== "heading"
+        ) {
+          item.icon = item.icon || <MenuIconWrapper />;
+        }
 
-    if (item.type === "route") {
-      return (
-        <MenuItem
-          as={Link}
-          to={item.to}
-          key={index}
-          disabled={item.disabled}
-          selected={item.selected}
-          icon={item.icon}
-          {...menu}
-        >
-          {item.title}
-        </MenuItem>
-      );
-    }
+        if (item.type === "route") {
+          return (
+            <MenuItem
+              as={Link}
+              to={item.to}
+              key={index}
+              disabled={item.disabled}
+              selected={item.selected}
+              icon={item.icon}
+              {...menu}
+            >
+              {item.title}
+            </MenuItem>
+          );
+        }
 
-    if (item.type === "link") {
-      return (
-        <MenuItem
-          href={item.href}
-          key={index}
-          disabled={item.disabled}
-          selected={item.selected}
-          level={item.level}
-          target={item.href.startsWith("#") ? undefined : "_blank"}
-          icon={item.icon}
-          {...menu}
-        >
-          {item.title}
-        </MenuItem>
-      );
-    }
+        if (item.type === "link") {
+          return (
+            <MenuItem
+              href={item.href}
+              key={index}
+              disabled={item.disabled}
+              selected={item.selected}
+              level={item.level}
+              target={item.href.startsWith("#") ? undefined : "_blank"}
+              icon={item.icon}
+              {...menu}
+            >
+              {item.title}
+            </MenuItem>
+          );
+        }
 
-    if (item.type === "button") {
-      return (
-        <MenuItem
-          as="button"
-          onClick={item.onClick}
-          disabled={item.disabled}
-          selected={item.selected}
-          key={index}
-          icon={item.icon}
-          {...menu}
-        >
-          {item.title}
-        </MenuItem>
-      );
-    }
+        if (item.type === "button") {
+          return (
+            <MenuItem
+              as="button"
+              onClick={item.onClick}
+              disabled={item.disabled}
+              selected={item.selected}
+              key={index}
+              icon={item.icon}
+              {...menu}
+            >
+              {item.title}
+            </MenuItem>
+          );
+        }
 
-    if (item.type === "parent") {
-      return (
-        <BaseMenuItem
-          key={index}
-          as={Submenu}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-          templateItems={item.items}
-          title={<Title title={item.title} icon={item.icon} />}
-          {...menu}
-        />
-      );
-    }
+        if (item.type === "parent") {
+          return (
+            <BaseMenuItem
+              key={index}
+              as={Submenu}
+              templateItems={item.items}
+              title={<Title title={item.title} icon={item.icon} />}
+              {...menu}
+            />
+          );
+        }
 
-    if (item.type === "separator") {
-      return <Separator key={index} />;
-    }
+        if (item.type === "separator") {
+          return <Separator key={index} />;
+        }
 
-    if (item.type === "heading") {
-      return <Header>{item.title}</Header>;
-    }
+        if (item.type === "heading") {
+          return <Header>{item.title}</Header>;
+        }
 
-    const _exhaustiveCheck: never = item;
-    return _exhaustiveCheck;
-  });
+        const _exhaustiveCheck: never = item;
+        return _exhaustiveCheck;
+      })}
+    </>
+  );
 }
 
 function Title({
@@ -211,5 +223,4 @@ function Title({
   );
 }
 
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ items, actions, context, ...m... Remove this comment to see the full error message
 export default React.memo<Props>(Template);

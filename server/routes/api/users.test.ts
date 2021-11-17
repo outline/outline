@@ -30,6 +30,7 @@ describe("#users.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(user.id);
   });
+
   it("should allow filtering to suspended users", async () => {
     const user = await buildUser({
       name: "Tester",
@@ -50,6 +51,7 @@ describe("#users.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should allow filtering to invited", async () => {
     const user = await buildUser({
       name: "Tester",
@@ -70,6 +72,7 @@ describe("#users.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should return teams paginated user list", async () => {
     const { admin, user } = await seed();
     const res = await server.post("/api/users.list", {
@@ -83,6 +86,7 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
     expect(body.data[1].id).toEqual(admin.id);
   });
+
   it("should require admin for detailed info", async () => {
     const { user, admin } = await seed();
     const res = await server.post("/api/users.list", {
@@ -113,6 +117,7 @@ describe("#users.info", () => {
     expect(body.data.name).toEqual(user.name);
     expect(body.data.email).toEqual(user.email);
   });
+
   it("should return user with permission", async () => {
     const user = await buildUser();
     const another = await buildUser({
@@ -131,6 +136,7 @@ describe("#users.info", () => {
     // no emails of other users
     expect(body.data.email).toEqual(undefined);
   });
+
   it("should now return user without permission", async () => {
     const user = await buildUser();
     const another = await buildUser();
@@ -142,6 +148,7 @@ describe("#users.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.info");
     expect(res.status).toEqual(401);
@@ -166,6 +173,7 @@ describe("#users.invite", () => {
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
   });
+
   it("should require invites to be an array", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.invite", {
@@ -180,6 +188,7 @@ describe("#users.invite", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should require admin", async () => {
     const admin = await buildUser();
     const res = await server.post("/api/users.invite", {
@@ -196,6 +205,7 @@ describe("#users.invite", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should invite user as an admin", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.invite", {
@@ -216,6 +226,7 @@ describe("#users.invite", () => {
     expect(body.data.users[0].isAdmin).toBeTruthy();
     expect(body.data.users[0].isViewer).toBeFalsy();
   });
+
   it("should invite user as a viewer", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.invite", {
@@ -236,6 +247,7 @@ describe("#users.invite", () => {
     expect(body.data.users[0].isViewer).toBeTruthy();
     expect(body.data.users[0].isAdmin).toBeFalsy();
   });
+
   it("should invite user as a member if role is any arbitary value", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.invite", {
@@ -256,6 +268,7 @@ describe("#users.invite", () => {
     expect(body.data.users[0].isViewer).toBeFalsy();
     expect(body.data.users[0].isAdmin).toBeFalsy();
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.invite");
     expect(res.status).toEqual(401);
@@ -271,6 +284,7 @@ describe("#users.delete", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not allow deleting last admin if many users", async () => {
     const user = await buildAdmin();
     await buildUser({
@@ -285,6 +299,7 @@ describe("#users.delete", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should allow deleting user account with confirmation", async () => {
     const user = await buildUser();
     await buildUser({
@@ -298,6 +313,7 @@ describe("#users.delete", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should allow deleting pending user account with admin", async () => {
     const user = await buildAdmin();
     const pending = await buildUser({
@@ -313,6 +329,7 @@ describe("#users.delete", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should not allow deleting another user account", async () => {
     const user = await buildAdmin();
     const user2 = await buildUser({
@@ -327,6 +344,7 @@ describe("#users.delete", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.delete");
     const body = await res.json();
@@ -347,6 +365,7 @@ describe("#users.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("New name");
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.update");
     const body = await res.json();
@@ -367,6 +386,7 @@ describe("#users.promote", () => {
     expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.promote", {
@@ -397,6 +417,7 @@ describe("#users.demote", () => {
     expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
+
   it("should demote an admin to viewer", async () => {
     const { admin, user } = await seed();
     await user.update({
@@ -414,6 +435,7 @@ describe("#users.demote", () => {
     expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
+
   it("should demote an admin to member", async () => {
     const { admin, user } = await seed();
     await user.update({
@@ -431,6 +453,7 @@ describe("#users.demote", () => {
     expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
+
   it("should not demote admins if only one available", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.demote", {
@@ -443,6 +466,7 @@ describe("#users.demote", () => {
     expect(res.status).toEqual(400);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.promote", {
@@ -469,6 +493,7 @@ describe("#users.suspend", () => {
     expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
+
   it("should not allow suspending the user themselves", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.suspend", {
@@ -481,6 +506,7 @@ describe("#users.suspend", () => {
     expect(res.status).toEqual(400);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.suspend", {
@@ -512,6 +538,7 @@ describe("#users.activate", () => {
     expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
+
   it("should require admin", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.activate", {
@@ -544,6 +571,7 @@ describe("#users.count", () => {
     expect(body.data.counts.suspended).toEqual(0);
     expect(body.data.counts.active).toEqual(1);
   });
+
   it("should count admin users", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -563,6 +591,7 @@ describe("#users.count", () => {
     expect(body.data.counts.suspended).toEqual(0);
     expect(body.data.counts.active).toEqual(1);
   });
+
   it("should count suspended users", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -585,6 +614,7 @@ describe("#users.count", () => {
     expect(body.data.counts.suspended).toEqual(1);
     expect(body.data.counts.active).toEqual(1);
   });
+
   it("should count invited users", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -604,6 +634,7 @@ describe("#users.count", () => {
     expect(body.data.counts.suspended).toEqual(0);
     expect(body.data.counts.active).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.count");
     expect(res.status).toEqual(401);

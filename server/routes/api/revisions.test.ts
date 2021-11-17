@@ -24,6 +24,7 @@ describe("#revisions.info", () => {
     expect(body.data.id).not.toEqual(document.id);
     expect(body.data.title).toEqual(document.title);
   });
+
   it("should require authorization", async () => {
     const document = await buildDocument();
     const revision = await Revision.createFromDocument(document);
@@ -53,6 +54,7 @@ describe("#revisions.list", () => {
     expect(body.data[0].id).not.toEqual(document.id);
     expect(body.data[0].title).toEqual(document.title);
   });
+
   it("should not return revisions for document in collection not a member of", async () => {
     const { user, document, collection } = await seed();
     await Revision.createFromDocument(document);
@@ -66,6 +68,7 @@ describe("#revisions.list", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authorization", async () => {
     const document = await buildDocument();
     const user = await buildUser();

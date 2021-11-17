@@ -31,6 +31,7 @@ describe("teamCreator", () => {
     expect(team.subdomain).toEqual("example");
     expect(isNewTeam).toEqual(true);
   });
+
   it("should not allow creating multiple teams in installation", async () => {
     delete process.env.DEPLOYMENT;
     await buildTeam();
@@ -52,6 +53,7 @@ describe("teamCreator", () => {
 
     expect(error).toBeTruthy();
   });
+
   it("should return existing team when within allowed domains", async () => {
     delete process.env.DEPLOYMENT;
     const existing = await buildTeam();
@@ -73,6 +75,7 @@ describe("teamCreator", () => {
     const providers = await team.getAuthenticationProviders();
     expect(providers.length).toEqual(2);
   });
+
   it("should return exising team", async () => {
     delete process.env.DEPLOYMENT;
     const authenticationProvider = {

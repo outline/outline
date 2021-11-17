@@ -22,6 +22,7 @@ beforeEach(() => {
 });
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
+
   it("should create a new user and team", async () => {
     const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
       ip,
@@ -60,6 +61,7 @@ describe("accountProvisioner", () => {
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(1);
   });
+
   it("should update exising user and authentication", async () => {
     const existingTeam = await buildTeam();
     const providers = await existingTeam.getAuthenticationProviders();
@@ -106,6 +108,7 @@ describe("accountProvisioner", () => {
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(0);
   });
+
   it("should throw an error when authentication provider is disabled", async () => {
     const existingTeam = await buildTeam();
     const providers = await existingTeam.getAuthenticationProviders();
@@ -149,6 +152,7 @@ describe("accountProvisioner", () => {
 
     expect(error).toBeTruthy();
   });
+
   it("should create a new user in an existing team", async () => {
     const team = await buildTeam();
     const authenticationProviders = await team.getAuthenticationProviders();

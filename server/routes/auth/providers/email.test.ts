@@ -24,6 +24,7 @@ describe("email", () => {
     expect(body.error).toEqual("validation_error");
     expect(body.ok).toEqual(false);
   });
+
   it("should respond with redirect location when user is SSO enabled", async () => {
     const user = await buildUser();
     const res = await server.post("/auth/email", {
@@ -36,6 +37,7 @@ describe("email", () => {
     expect(body.redirect).toMatch("slack");
     expect(mailer.sendTemplate).not.toHaveBeenCalled();
   });
+
   it("should respond with redirect location when user is SSO enabled on another subdomain", async () => {
     process.env.URL = "http://localoutline.com";
     process.env.SUBDOMAINS_ENABLED = "true";
@@ -56,6 +58,7 @@ describe("email", () => {
     expect(body.redirect).toMatch("slack");
     expect(mailer.sendTemplate).not.toHaveBeenCalled();
   });
+
   it("should respond with success when user is not SSO enabled", async () => {
     const user = await buildGuestUser();
     const res = await server.post("/auth/email", {
@@ -68,6 +71,7 @@ describe("email", () => {
     expect(body.success).toEqual(true);
     expect(mailer.sendTemplate).toHaveBeenCalled();
   });
+
   it("should respond with success regardless of whether successful to prevent crawling email logins", async () => {
     const res = await server.post("/auth/email", {
       body: {

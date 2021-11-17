@@ -27,6 +27,7 @@ describe("#views.list", () => {
     expect(body.data[0].count).toBe(1);
     expect(body.data[0].user.name).toBe(user.name);
   });
+
   it("should return views for a document in read-only collection", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
@@ -52,6 +53,7 @@ describe("#views.list", () => {
     expect(body.data[0].count).toBe(1);
     expect(body.data[0].user.name).toBe(user.name);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/views.list", {
@@ -63,6 +65,7 @@ describe("#views.list", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -88,6 +91,7 @@ describe("#views.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.count).toBe(1);
   });
+
   it("should allow creating a view record for document in read-only collection", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
@@ -108,6 +112,7 @@ describe("#views.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.count).toBe(1);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/views.create", {
@@ -119,6 +124,7 @@ describe("#views.create", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();

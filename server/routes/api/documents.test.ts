@@ -36,6 +36,7 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
   });
+
   it("should return archived document", async () => {
     const { user, document } = await seed();
     await document.archive(user.id);
@@ -49,6 +50,7 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
   });
+
   it("should not return published document in collection not a member of", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -66,6 +68,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should return drafts", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -80,6 +83,7 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
   });
+
   it("should return document from shareId without token", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -100,6 +104,7 @@ describe("#documents.info", () => {
     await share.reload();
     expect(share.lastAccessedAt).toBeTruthy();
   });
+
   it("should not return document of a deleted collection, when the user was absent in the collection", async () => {
     const user = await buildUser();
     const user2 = await buildUser({
@@ -129,6 +134,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should return document of a deleted collection, when the user was present in the collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -296,6 +302,7 @@ describe("#documents.info", () => {
       expect(res.status).toEqual(200);
     });
   });
+
   it("should not return document from shareId if sharing is disabled for collection", async () => {
     const { document, collection, user } = await seed();
     const share = await buildShare({
@@ -312,6 +319,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should not return document from revoked shareId", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -327,6 +335,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not return document from archived shareId", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -342,6 +351,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should return document from shareId with token", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -362,6 +372,7 @@ describe("#documents.info", () => {
     expect(body.data.updatedBy.id).toEqual(user.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
+
   it("should return draft document from shareId with token", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -383,6 +394,7 @@ describe("#documents.info", () => {
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
+
   it("should return document from shareId in collection not a member of", async () => {
     const { user, document, collection } = await seed();
     const share = await buildShare({
@@ -402,6 +414,7 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
   });
+
   it("should not error if document doesn't exist", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.info", {
@@ -412,6 +425,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(404);
   });
+
   it("should require authorization without token", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.info", {
@@ -421,6 +435,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authorization with incorrect token", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -432,6 +447,7 @@ describe("#documents.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require a valid shareId", async () => {
     const res = await server.post("/api/documents.info", {
       body: {
@@ -454,6 +470,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should return archived document", async () => {
     const { user, document } = await seed();
     await document.archive(user.id);
@@ -467,6 +484,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should not return published document in collection not a member of", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -484,6 +502,7 @@ describe("#documents.export", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should return drafts", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -498,6 +517,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should return document from shareId without token", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -514,6 +534,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should not return document from revoked shareId", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -529,6 +550,7 @@ describe("#documents.export", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not return document from archived shareId", async () => {
     const { document, user } = await seed();
     const share = await buildShare({
@@ -544,6 +566,7 @@ describe("#documents.export", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should return document from shareId with token", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -561,6 +584,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should return draft document from shareId with token", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -580,6 +604,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should return document from shareId in collection not a member of", async () => {
     const { user, document, collection } = await seed();
     const share = await buildShare({
@@ -599,6 +624,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(document.toMarkdown());
   });
+
   it("should require authorization without token", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.export", {
@@ -608,6 +634,7 @@ describe("#documents.export", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authorization with incorrect token", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -619,6 +646,7 @@ describe("#documents.export", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require a valid shareId", async () => {
     const res = await server.post("/api/documents.export", {
       body: {
@@ -641,6 +669,7 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
+
   it("should allow filtering documents with no parent", async () => {
     const { user, document } = await seed();
     await buildDocument({
@@ -661,6 +690,7 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
+
   it("should not return draft documents", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -674,6 +704,7 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return archived documents", async () => {
     const { user, document } = await seed();
     document.archivedAt = new Date();
@@ -687,6 +718,7 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -700,6 +732,7 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should allow changing sort direction", async () => {
     const { user, document } = await seed();
     const anotherDoc = await buildDocument({
@@ -719,6 +752,7 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(document.id);
     expect(body.data[1].id).toEqual(anotherDoc.id);
   });
+
   it("should allow sorting by collection index", async () => {
     const { user, document, collection } = await seed();
     const anotherDoc = await buildDocument({
@@ -742,6 +776,7 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(anotherDoc.id);
     expect(body.data[1].id).toEqual(document.id);
   });
+
   it("should allow filtering by collection", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.list", {
@@ -754,6 +789,7 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should allow filtering to private collection", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -774,6 +810,7 @@ describe("#documents.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should return backlinks", async () => {
     const { user, document } = await seed();
     const anotherDoc = await buildDocument({
@@ -798,6 +835,7 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(anotherDoc.id);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.list");
     const body = await res.json();
@@ -821,6 +859,7 @@ describe("#documents.pinned", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
+
   it("should return pinned documents in private collections member of", async () => {
     const { user, collection, document } = await seed();
     collection.permission = null;
@@ -844,6 +883,7 @@ describe("#documents.pinned", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
+
   it("should not return pinned documents in private collections not a member of", async () => {
     const collection = await buildCollection({
       permission: null,
@@ -859,6 +899,7 @@ describe("#documents.pinned", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.pinned");
     expect(res.status).toEqual(401);
@@ -878,6 +919,7 @@ describe("#documents.drafts", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user, document, collection } = await seed();
     document.publishedAt = null;
@@ -913,6 +955,7 @@ describe("#documents.search_titles", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
+
   it("should not include archived or deleted documents", async () => {
     const user = await buildUser();
     await buildDocument({
@@ -937,6 +980,7 @@ describe("#documents.search_titles", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.search_titles");
     expect(res.status).toEqual(401);
@@ -956,6 +1000,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.text).toEqual("# Much test support");
   });
+
   it("should return results in ranked order", async () => {
     const { user } = await seed();
     const firstResult = await buildDocument({
@@ -991,6 +1036,7 @@ describe("#documents.search", () => {
     expect(body.data[1].document.id).toEqual(secondResult.id);
     expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
+
   it("should return partial results in ranked order", async () => {
     const { user } = await seed();
     const firstResult = await buildDocument({
@@ -1026,6 +1072,7 @@ describe("#documents.search", () => {
     expect(body.data[1].document.id).toEqual(secondResult.id);
     expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
+
   it("should strip junk from search term", async () => {
     const { user } = await seed();
     const firstResult = await buildDocument({
@@ -1045,6 +1092,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(firstResult.id);
   });
+
   it("should not return draft documents", async () => {
     const { user } = await seed();
     await buildDocument({
@@ -1064,6 +1112,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not error when search term is very long", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.search", {
@@ -1077,6 +1126,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should return draft documents created by user if chosen", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1098,6 +1148,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(document.id);
   });
+
   it("should not return draft documents created by other users", async () => {
     const { user } = await seed();
     await buildDocument({
@@ -1117,6 +1168,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return archived documents", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1135,6 +1187,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should return archived documents if chosen", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1155,6 +1208,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(document.id);
   });
+
   it("should return documents for a specific user", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1181,6 +1235,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(document.id);
   });
+
   it("should return documents for a specific private collection", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -1209,6 +1264,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(document.id);
   });
+
   it("should return documents for a specific collection", async () => {
     const { user } = await seed();
     const collection = await buildCollection();
@@ -1236,6 +1292,7 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(document.id);
   });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user } = await seed();
     const collection = await buildCollection({
@@ -1258,6 +1315,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not allow unknown dateFilter values", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.search", {
@@ -1269,6 +1327,7 @@ describe("#documents.search", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.search");
     const body = await res.json();
@@ -1316,6 +1375,7 @@ describe("#documents.archived", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should not return deleted documents", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1332,6 +1392,7 @@ describe("#documents.archived", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user } = await seed();
     const collection = await buildCollection({
@@ -1351,6 +1412,7 @@ describe("#documents.archived", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.archived");
     expect(res.status).toEqual(401);
@@ -1368,6 +1430,7 @@ describe("#documents.viewed", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should return recently viewed documents", async () => {
     const { user, document } = await seed();
     await View.increment({
@@ -1385,6 +1448,7 @@ describe("#documents.viewed", () => {
     expect(body.data[0].id).toEqual(document.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
+
   it("should not return recently viewed but deleted documents", async () => {
     const { user, document } = await seed();
     await View.increment({
@@ -1401,6 +1465,7 @@ describe("#documents.viewed", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should not return recently viewed documents in collection not a member of", async () => {
     const { user, document, collection } = await seed();
     await View.increment({
@@ -1418,6 +1483,7 @@ describe("#documents.viewed", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.viewed");
     const body = await res.json();
@@ -1437,6 +1503,7 @@ describe("#documents.starred", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
   it("should return starred documents", async () => {
     const { user, document } = await seed();
     await Star.create({
@@ -1454,6 +1521,7 @@ describe("#documents.starred", () => {
     expect(body.data[0].id).toEqual(document.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.starred");
     const body = await res.json();
@@ -1474,12 +1542,14 @@ describe("#documents.pin", () => {
     expect(res.status).toEqual(200);
     expect(body.data.pinned).toEqual(true);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.pin");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -1510,6 +1580,7 @@ describe("#documents.move", () => {
     expect(body.data.documents[0].collectionId).toEqual(collection.id);
     expect(body.policies[0].abilities.move).toEqual(true);
   });
+
   it("should not allow moving the document to a collection the user cannot access", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection();
@@ -1522,10 +1593,12 @@ describe("#documents.move", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.move");
     expect(res.status).toEqual(401);
   });
+
   it("should require authorization", async () => {
     const { document, collection } = await seed();
     const user = await buildUser();
@@ -1553,6 +1626,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.deletedAt).toEqual(null);
   });
+
   it("should allow restore of trashed documents with collectionId", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection({
@@ -1572,6 +1646,7 @@ describe("#documents.restore", () => {
     expect(body.data.deletedAt).toEqual(null);
     expect(body.data.collectionId).toEqual(collection.id);
   });
+
   it("should not allow restore of documents in deleted collection", async () => {
     const { user, document, collection } = await seed();
     await document.destroy(user.id);
@@ -1584,6 +1659,7 @@ describe("#documents.restore", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should not allow restore of trashed documents to collection user cannot access", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection();
@@ -1597,6 +1673,7 @@ describe("#documents.restore", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should allow restore of archived documents", async () => {
     const { user, document } = await seed();
     await document.archive(user.id);
@@ -1610,6 +1687,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toEqual(null);
   });
+
   it("should not add restored templates to collection structure", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1633,6 +1711,7 @@ describe("#documents.restore", () => {
     await collection.reload();
     expect(collection.documentStructure).toEqual(null);
   });
+
   it("should restore archived when previous parent is archived", async () => {
     const { user, document } = await seed();
     const childDocument = await buildDocument({
@@ -1654,6 +1733,7 @@ describe("#documents.restore", () => {
     expect(body.data.parentDocumentId).toEqual(null);
     expect(body.data.archivedAt).toEqual(null);
   });
+
   it("should restore the document to a previous version", async () => {
     const { user, document } = await seed();
     const revision = await Revision.createFromDocument(document);
@@ -1673,6 +1753,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.text).toEqual(previousText);
   });
+
   it("should not allow restoring a revision in another document", async () => {
     const { user, document } = await seed();
     const anotherDoc = await buildDocument();
@@ -1687,6 +1768,7 @@ describe("#documents.restore", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should not error if document doesn't exist", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.restore", {
@@ -1697,12 +1779,14 @@ describe("#documents.restore", () => {
     });
     expect(res.status).toEqual(404);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.restore");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const revision = await Revision.createFromDocument(document);
@@ -1733,12 +1817,14 @@ describe("#documents.unpin", () => {
     expect(res.status).toEqual(200);
     expect(body.data.pinned).toEqual(false);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.unpin");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -1765,12 +1851,14 @@ describe("#documents.star", () => {
     expect(stars.length).toEqual(1);
     expect(stars[0].documentId).toEqual(document.id);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.star");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -1800,12 +1888,14 @@ describe("#documents.unstar", () => {
     expect(res.status).toEqual(200);
     expect(stars.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.star");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -1828,6 +1918,7 @@ describe("#documents.import", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.import", {
@@ -1857,6 +1948,7 @@ describe("#documents.create", () => {
     expect(newDocument.collectionId).toBe(collection.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
+
   it("should not allow very long titles", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -1870,6 +1962,7 @@ describe("#documents.create", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should create as a child and add to collection if published", async () => {
     const { user, document, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -1887,6 +1980,7 @@ describe("#documents.create", () => {
     expect(body.data.title).toBe("new document");
     expect(body.policies[0].abilities.update).toEqual(true);
   });
+
   it("should error with invalid parentDocument", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -1902,6 +1996,7 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should create as a child and not add to collection", async () => {
     const { user, document, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -1938,6 +2033,7 @@ describe("#documents.update", () => {
     const events = await Event.findAll();
     expect(events.length).toEqual(1);
   });
+
   it("should not add template to collection structure when publishing", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1967,6 +2063,7 @@ describe("#documents.update", () => {
     await collection.reload();
     expect(collection.documentStructure).toBe(null);
   });
+
   it("should allow publishing document in private collection", async () => {
     const { user, collection, document } = await seed();
     document.publishedAt = null;
@@ -1996,6 +2093,7 @@ describe("#documents.update", () => {
     const events = await Event.findAll();
     expect(events.length).toEqual(1);
   });
+
   it("should not edit archived document", async () => {
     const { user, document } = await seed();
     await document.archive();
@@ -2010,6 +2108,7 @@ describe("#documents.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should fail if document lastRevision does not match", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.update", {
@@ -2024,6 +2123,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(400);
     expect(body).toMatchSnapshot();
   });
+
   it("should update document details for children", async () => {
     const { user, document, collection } = await seed();
     collection.documentStructure = [
@@ -2054,6 +2154,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("Updated title");
   });
+
   it("allows editing by read-write collection user", async () => {
     const { admin, document, collection } = await seed();
     collection.permission = null;
@@ -2077,6 +2178,7 @@ describe("#documents.update", () => {
     expect(body.data.text).toBe("Changed text");
     expect(body.data.updatedBy.id).toBe(admin.id);
   });
+
   it("does not allow editing by read-only collection user", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
@@ -2097,6 +2199,7 @@ describe("#documents.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("does not allow editing in read-only collection", async () => {
     const { user, document, collection } = await seed();
     collection.permission = "read";
@@ -2111,6 +2214,7 @@ describe("#documents.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should append document with text", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.update", {
@@ -2127,6 +2231,7 @@ describe("#documents.update", () => {
     expect(body.data.text).toBe(document.text + "Additional text");
     expect(body.data.updatedBy.id).toBe(user.id);
   });
+
   it("should require text while appending", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.update", {
@@ -2142,6 +2247,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(400);
     expect(body).toMatchSnapshot();
   });
+
   it("should allow setting empty text", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.update", {
@@ -2157,6 +2263,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.text).toBe("");
   });
+
   it("should not produce event if nothing changes", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.update", {
@@ -2172,6 +2279,7 @@ describe("#documents.update", () => {
     const events = await Event.findAll();
     expect(events.length).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.update", {
@@ -2184,6 +2292,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { document } = await seed();
     const user = await buildUser();
@@ -2211,6 +2320,7 @@ describe("#documents.archive", () => {
     expect(body.data.updatedBy.id).toEqual(user.id);
     expect(body.data.archivedAt).toBeTruthy();
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.archive", {
@@ -2234,6 +2344,7 @@ describe("#documents.delete", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
   });
+
   it("should allow permanently deleting a document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -2257,6 +2368,7 @@ describe("#documents.delete", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
   });
+
   it("should allow deleting document without collection", async () => {
     const { user, document, collection } = await seed();
     // delete collection without hooks to trigger document deletion
@@ -2273,6 +2385,7 @@ describe("#documents.delete", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.delete", {
@@ -2302,6 +2415,7 @@ describe("#documents.unpublish", () => {
     document = await Document.unscoped().findByPk(document.id);
     expect(document.userId).toEqual(user.id);
   });
+
   it("should unpublish another users document", async () => {
     const { user, collection } = await seed();
     let document = await buildDocument({
@@ -2321,6 +2435,7 @@ describe("#documents.unpublish", () => {
     document = await Document.unscoped().findByPk(document.id);
     expect(document.userId).toEqual(user.id);
   });
+
   it("should fail to unpublish a draft document", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -2333,6 +2448,7 @@ describe("#documents.unpublish", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should fail to unpublish a deleted document", async () => {
     const { user, document } = await seed();
     await document.delete();
@@ -2344,6 +2460,7 @@ describe("#documents.unpublish", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should fail to unpublish an archived document", async () => {
     const { user, document } = await seed();
     await document.archive();
@@ -2355,6 +2472,7 @@ describe("#documents.unpublish", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should require authentication", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.unpublish", {

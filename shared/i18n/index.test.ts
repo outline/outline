@@ -12,12 +12,15 @@ describe("i18n process.env is unset", () => {
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
   });
+
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
+
   it("translation if changed to de-DE", () => {
     i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
+
   it("translation if changed to pt-PT", () => {
     i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
@@ -31,12 +34,15 @@ describe("i18n process.env is en-US", () => {
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
   });
+
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
+
   it("translation if changed to de-DE", () => {
     i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
+
   it("translation if changed to pt-PT", () => {
     i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
@@ -50,12 +56,15 @@ describe("i18n process.env is de-DE", () => {
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
   });
+
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Speichert"));
+
   it("translation if changed to en-US", () => {
     i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
+
   it("translation if changed to pt-PT", () => {
     i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
@@ -69,12 +78,15 @@ describe("i18n process.env is pt-PT", () => {
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
   });
+
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("A guardar"));
+
   it("translation if changed to en-US", () => {
     i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
+
   it("translation if changed to de-DE", () => {
     i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");

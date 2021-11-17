@@ -25,6 +25,7 @@ describe("#naturalSort", () => {
       },
     ]);
   });
+
   it("should accept a function as the object key", () => {
     const items = [
       {
@@ -50,6 +51,7 @@ describe("#naturalSort", () => {
       },
     ]);
   });
+
   it("should accept natural-sort options", () => {
     const items = [
       {
@@ -85,6 +87,7 @@ describe("#naturalSort", () => {
       },
     ]);
   });
+
   it("should ignore non basic latin letters", () => {
     const items = [
       {
@@ -109,6 +112,7 @@ describe("#naturalSort", () => {
       },
     ]);
   });
+
   it("should ignore emojis", () => {
     const items = [
       {

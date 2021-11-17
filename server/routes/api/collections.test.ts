@@ -22,6 +22,7 @@ describe("#collections.list", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should return collections", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.list", {
@@ -36,6 +37,7 @@ describe("#collections.list", () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
   it("should not return private collections actor is not a member of", async () => {
     const { user, collection } = await seed();
     await buildCollection({
@@ -52,6 +54,7 @@ describe("#collections.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(collection.id);
   });
+
   it("should return private collections actor is a member of", async () => {
     const user = await buildUser();
     await buildCollection({
@@ -75,6 +78,7 @@ describe("#collections.list", () => {
     expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
   it("should return private collections actor is a group-member of", async () => {
     const user = await buildUser();
     await buildCollection({
@@ -122,6 +126,7 @@ describe("#collections.import", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.import");
     const body = await res.json();
@@ -136,6 +141,7 @@ describe("#collections.move", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const user = await buildUser();
     const { collection } = await seed();
@@ -148,6 +154,7 @@ describe("#collections.move", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should return success", async () => {
     const { admin, collection } = await seed();
     const res = await server.post("/api/collections.move", {
@@ -161,6 +168,7 @@ describe("#collections.move", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
   });
+
   it("should return error when index is not valid", async () => {
     const { admin, collection } = await seed();
     const res = await server.post("/api/collections.move", {
@@ -172,6 +180,7 @@ describe("#collections.move", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("if index collision occurs, should updated index of other collection", async () => {
     const { user, admin, collection } = await seed();
     const createdCollectionResponse = await server.post(
@@ -199,6 +208,7 @@ describe("#collections.move", () => {
     expect(movedCollection.data.index).toEqual("h");
     expect(movedCollection.data.index > "Q").toBeTruthy();
   });
+
   it("if index collision with an extra collection, should updated index of other collection", async () => {
     const { user, admin } = await seed();
     const createdCollectionAResponse = await server.post(
@@ -270,6 +280,7 @@ describe("#collections.export", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should allow export of private collection when the actor is a member", async () => {
     const { admin, collection } = await seed();
     collection.permission = null;
@@ -288,6 +299,7 @@ describe("#collections.export", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should allow export of private collection when the actor is a group member", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
@@ -316,12 +328,14 @@ describe("#collections.export", () => {
     });
     expect(res.status).toEqual(200);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.export");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should return unauthorized if user is not admin", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.export", {
@@ -332,6 +346,7 @@ describe("#collections.export", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should return file operation associated with export", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
@@ -356,6 +371,7 @@ describe("#collections.export_all", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.export_all", {
@@ -365,6 +381,7 @@ describe("#collections.export_all", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should return success", async () => {
     const { admin } = await seed();
     const res = await server.post("/api/collections.export_all", {
@@ -397,6 +414,7 @@ describe("#collections.add_user", () => {
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(2);
   });
+
   it("should require user in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -415,10 +433,12 @@ describe("#collections.add_user", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.add_user");
     expect(res.status).toEqual(401);
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -457,6 +477,7 @@ describe("#collections.add_group", () => {
     expect(groups.length).toEqual(1);
     expect(res.status).toEqual(200);
   });
+
   it("should require group in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -476,10 +497,12 @@ describe("#collections.add_group", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.add_group");
     expect(res.status).toEqual(401);
   });
+
   it("should require authorization", async () => {
     const collection = await buildCollection();
     const user = await buildUser();
@@ -527,6 +550,7 @@ describe("#collections.remove_group", () => {
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(0);
   });
+
   it("should require group in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -545,10 +569,12 @@ describe("#collections.remove_group", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.remove_group");
     expect(res.status).toEqual(401);
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -594,6 +620,7 @@ describe("#collections.remove_user", () => {
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
   });
+
   it("should require user in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -612,10 +639,12 @@ describe("#collections.remove_user", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.remove_user");
     expect(res.status).toEqual(401);
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -653,12 +682,14 @@ describe("#collections.users", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.users");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -708,6 +739,7 @@ describe("#collections.group_memberships", () => {
       "read_write"
     );
   });
+
   it("should allow filtering groups in collection by name", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -752,6 +784,7 @@ describe("#collections.group_memberships", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
+
   it("should allow filtering groups in collection by permission", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -794,12 +827,14 @@ describe("#collections.group_memberships", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group2.id);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.group_memberships");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -839,6 +874,7 @@ describe("#collections.memberships", () => {
     expect(body.data.memberships.length).toEqual(1);
     expect(body.data.memberships[0].permission).toEqual("read_write");
   });
+
   it("should allow filtering members in collection by name", async () => {
     const { collection, user } = await seed();
     const user2 = await buildUser({
@@ -868,6 +904,7 @@ describe("#collections.memberships", () => {
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
   });
+
   it("should allow filtering members in collection by permission", async () => {
     const { collection, user } = await seed();
     const user2 = await buildUser();
@@ -895,12 +932,14 @@ describe("#collections.memberships", () => {
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user2.id);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.memberships");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -926,6 +965,7 @@ describe("#collections.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(collection.id);
   });
+
   it("should require user member of collection", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -938,6 +978,7 @@ describe("#collections.info", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should allow user member of collection", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -958,12 +999,14 @@ describe("#collections.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(collection.id);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.info");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -983,6 +1026,7 @@ describe("#collections.create", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should create collection", async () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", {
@@ -1000,6 +1044,7 @@ describe("#collections.create", () => {
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
+
   it("should error when index is invalid", async () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", {
@@ -1011,6 +1056,7 @@ describe("#collections.create", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should allow setting sharing to false", async () => {
     const { user } = await seed();
     const res = await server.post("/api/collections.create", {
@@ -1025,6 +1071,7 @@ describe("#collections.create", () => {
     expect(body.data.id).toBeTruthy();
     expect(body.data.sharing).toBe(false);
   });
+
   it("should return correct policies with private collection", async () => {
     const { user } = await seed();
     const res = await server.post("/api/collections.create", {
@@ -1040,6 +1087,7 @@ describe("#collections.create", () => {
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
+
   it("if index collision, should updated index of other collection", async () => {
     const { user } = await seed();
     const createdCollectionAResponse = await server.post(
@@ -1070,6 +1118,7 @@ describe("#collections.create", () => {
     expect(createdCollection.data.index).toEqual("p");
     expect(createdCollection.data.index > "a").toBeTruthy();
   });
+
   it("if index collision with an extra collection, should updated index of other collection", async () => {
     const { user } = await seed();
     const createdCollectionAResponse = await server.post(
@@ -1127,6 +1176,7 @@ describe("#collections.update", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -1139,6 +1189,7 @@ describe("#collections.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("allows editing non-private collection", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.update", {
@@ -1153,6 +1204,7 @@ describe("#collections.update", () => {
     expect(body.data.name).toBe("Test");
     expect(body.policies.length).toBe(1);
   });
+
   it("allows editing sort", async () => {
     const { user, collection } = await seed();
     const sort = {
@@ -1171,6 +1223,7 @@ describe("#collections.update", () => {
     expect(body.data.sort.field).toBe("index");
     expect(body.data.sort.direction).toBe("desc");
   });
+
   it("allows editing individual fields", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.update", {
@@ -1185,6 +1238,7 @@ describe("#collections.update", () => {
     expect(body.data.permission).toBe(null);
     expect(body.data.name).toBe(collection.name);
   });
+
   it("allows editing from non-private to private collection", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.update", {
@@ -1203,6 +1257,7 @@ describe("#collections.update", () => {
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.update).toBe(true);
   });
+
   it("allows editing from private to non-private collection", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -1229,6 +1284,7 @@ describe("#collections.update", () => {
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.update).toBe(true);
   });
+
   it("allows editing by read-write collection user", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -1251,6 +1307,7 @@ describe("#collections.update", () => {
     expect(body.data.name).toBe("Test");
     expect(body.policies.length).toBe(1);
   });
+
   it("allows editing by read-write collection group user", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1283,6 +1340,7 @@ describe("#collections.update", () => {
     expect(body.data.name).toBe("Test");
     expect(body.policies.length).toBe(1);
   });
+
   it("does not allow editing by read-only collection user", async () => {
     const { user, collection } = await seed();
     collection.permission = null;
@@ -1302,6 +1360,7 @@ describe("#collections.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("does not allow setting unknown sort fields", async () => {
     const { user, collection } = await seed();
     const sort = {
@@ -1317,6 +1376,7 @@ describe("#collections.update", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("does not allow setting unknown sort directions", async () => {
     const { user, collection } = await seed();
     const sort = {
@@ -1340,6 +1400,7 @@ describe("#collections.delete", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should require authorization", async () => {
     const { collection } = await seed();
     const user = await buildUser();
@@ -1351,6 +1412,7 @@ describe("#collections.delete", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   it("should not allow deleting last collection", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.delete", {
@@ -1361,6 +1423,7 @@ describe("#collections.delete", () => {
     });
     expect(res.status).toEqual(400);
   });
+
   it("should delete collection", async () => {
     const { user, collection } = await seed();
     // to ensure it isn't the last collection
@@ -1378,6 +1441,7 @@ describe("#collections.delete", () => {
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
   });
+
   it("should delete published documents", async () => {
     const { user, collection } = await seed();
     // to ensure it isn't the last collection
@@ -1407,6 +1471,7 @@ describe("#collections.delete", () => {
       })
     ).toEqual(1);
   });
+
   it("allows deleting by read-write collection group user", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

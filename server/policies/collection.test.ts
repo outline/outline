@@ -19,6 +19,7 @@ describe("read_write permission", () => {
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
+
   it("should override read membership permission", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -59,6 +60,7 @@ describe("read permission", () => {
     expect(abilities.update).toEqual(false);
     expect(abilities.share).toEqual(false);
   });
+
   it("should allow override with read_write membership permission", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -99,6 +101,7 @@ describe("no permission", () => {
     expect(abilities.update).toEqual(false);
     expect(abilities.share).toEqual(false);
   });
+
   it("should allow override with team member membership permission", async () => {
     const team = await buildTeam();
     const user = await buildUser({

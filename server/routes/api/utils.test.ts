@@ -38,6 +38,7 @@ describe("#utils.gc", () => {
       })
     ).toEqual(1);
   });
+
   it("should not destroy documents deleted less than 30 days ago", async () => {
     await buildDocument({
       publishedAt: new Date(),
@@ -55,6 +56,7 @@ describe("#utils.gc", () => {
       })
     ).toEqual(1);
   });
+
   it("should destroy documents deleted more than 30 days ago", async () => {
     await buildDocument({
       publishedAt: new Date(),
@@ -72,6 +74,7 @@ describe("#utils.gc", () => {
       })
     ).toEqual(0);
   });
+
   it("should destroy draft documents deleted more than 30 days ago", async () => {
     await buildDocument({
       publishedAt: undefined,
@@ -89,6 +92,7 @@ describe("#utils.gc", () => {
       })
     ).toEqual(0);
   });
+
   it("should expire exports older than 30 days ago", async () => {
     await buildFileOperation({
       type: "export",
@@ -115,6 +119,7 @@ describe("#utils.gc", () => {
     expect(res.status).toEqual(200);
     expect(data).toEqual(1);
   });
+
   it("should not expire exports made less than 30 days ago", async () => {
     await buildFileOperation({
       type: "export",
@@ -141,6 +146,7 @@ describe("#utils.gc", () => {
     expect(res.status).toEqual(200);
     expect(data).toEqual(0);
   });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/utils.gc");
     expect(res.status).toEqual(401);
