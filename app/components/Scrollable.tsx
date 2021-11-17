@@ -43,6 +43,7 @@ function Scrollable(
     topShadowVisible,
     bottomShadowVisible,
   ]);
+
   React.useEffect(() => {
     updateShadows();
   }, [height, updateShadows]);

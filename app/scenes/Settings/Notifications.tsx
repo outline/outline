@@ -59,6 +59,7 @@ function Notifications() {
       description: t("Receive an email when new features of note are added"),
     },
   ];
+
   React.useEffect(() => {
     notificationSettings.fetchPage();
   }, [notificationSettings]);

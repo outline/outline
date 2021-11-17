@@ -38,9 +38,11 @@ function SettingsSidebar() {
   const team = useCurrentTeam();
   const { policies } = useStores();
   const can = policies.abilities(team.id);
+
   const returnToDashboard = React.useCallback(() => {
     history.push("/home");
   }, [history]);
+
   return (
     <Sidebar>
       <TeamButton

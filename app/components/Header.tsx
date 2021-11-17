@@ -19,6 +19,7 @@ function Header({ breadcrumb, title, actions }: Props) {
     throttle(() => setScrolled(window.scrollY > 75), 50),
     []
   );
+
   React.useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);

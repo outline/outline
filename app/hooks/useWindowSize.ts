@@ -8,6 +8,7 @@ export default function useWindowSize() {
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
     height: parseInt(window.innerHeight),
   });
+
   React.useEffect(() => {
     // Handler to call on window resize
     const handleResize = debounce(() => {

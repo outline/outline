@@ -14,6 +14,7 @@ export default function DocumentScene(
   const { ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
+
   React.useEffect(() => {
     return () => ui.clearActiveDocument();
   }, [ui]);

@@ -24,7 +24,7 @@ type Props = {
   collection: Collection;
   canUpdate: boolean;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (id: string) => Promise<void>;
+  prefetchDocument: (id: string) => Promise<any>;
   belowCollection: Collection | void;
   isDraggingAnyCollection: boolean;
   onChangeDragging: (dragging: boolean) => void;

@@ -9,6 +9,7 @@ type Props = {
   style?: React.CSSProperties;
   onClick?: () => any;
 };
+
 const Toggle = React.forwardRef<HTMLButtonElement, Props>(
   ({ direction = "left", onClick, style }: Props, ref) => {
     const { t } = useTranslation();

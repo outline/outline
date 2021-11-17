@@ -13,6 +13,7 @@ function UserFilter(props: Props) {
   const { onSelect, userId } = props;
   const { t } = useTranslation();
   const { users } = useStores();
+
   React.useEffect(() => {
     users.fetchPage({
       limit: 100,

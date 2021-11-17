@@ -39,6 +39,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
   const isMounted = useIsMounted();
+
   // Provider initialization must be within useLayoutEffect rather than useState
   // or useMemo as both of these are ran twice in React StrictMode resulting in
   // an orphaned websocket connection.
@@ -131,7 +132,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     token,
     ydoc,
     currentUser.id,
+    isMounted,
   ]);
+
   const user = React.useMemo(() => {
     return {
       id: currentUser.id,
@@ -139,6 +142,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       color: currentUser.color,
     };
   }, [currentUser.id, currentUser.color, currentUser.name]);
+
   const extensions = React.useMemo(() => {
     if (!remoteProvider) {
       return [];
@@ -152,11 +156,13 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       }),
     ];
   }, [remoteProvider, user, ydoc]);
+
   React.useEffect(() => {
     if (isLocalSynced && isRemoteSynced) {
       onSynced?.();
     }
   }, [onSynced, isLocalSynced, isRemoteSynced]);
+
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
   React.useEffect(() => {
@@ -194,7 +200,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   return (
     <>
       {showCache && (
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ defaultValue: string | undefined; readOnly... Remove this comment to see the full error message
         <Editor defaultValue={props.defaultValue} readOnly ref={ref} />
       )}
       <Editor

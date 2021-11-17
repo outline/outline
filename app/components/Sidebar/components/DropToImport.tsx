@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
 import Dropzone from "react-dropzone";
@@ -24,7 +25,10 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     collectionId,
     documentId
   );
-  const can = policies.abilities(collectionId);
+  const targetId = collectionId || documentId;
+  invariant(targetId, "Must provide either collectionId or documentId");
+
+  const can = policies.abilities(targetId);
   const handleRejection = React.useCallback(() => {
     showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),

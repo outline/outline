@@ -21,17 +21,20 @@ import PaginatedList from "components/PaginatedList";
 import withStores from "components/withStores";
 import MemberListItem from "./components/MemberListItem";
 
-type Props = WithTranslation & {
+type StoreProps = {
+  memberships: MembershipsStore;
   toasts: ToastsStore;
   auth: AuthStore;
-  collection: Collection;
-  memberships: MembershipsStore;
   users: UsersStore;
+};
+
+type Props = WithTranslation & {
+  collection: Collection;
   onSubmit: () => void;
 };
 
 @observer
-class AddPeopleToCollection extends React.Component<Props> {
+class AddPeopleToCollection extends React.Component<Props & StoreProps> {
   @observable
   inviteModalOpen = false;
 

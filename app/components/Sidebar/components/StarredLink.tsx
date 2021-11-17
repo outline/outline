@@ -107,7 +107,6 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
         />
       </Relative>
       {expanded &&
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childDocument' implicitly has an 'any' ... Remove this comment to see the full error message
         childDocuments.map((childDocument) => (
           <ObserveredStarredLink
             key={childDocument.id}

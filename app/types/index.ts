@@ -3,16 +3,18 @@ import { TFunction } from "react-i18next";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
 
-export type MenuItemClickable = {
+export interface MenuItemButton {
+  type: "button";
   title: React.ReactNode;
   onClick: (event: React.SyntheticEvent) => void | Promise<void>;
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
-};
+}
 
-export type MenuItemWithChildren = {
+export interface MenuItemWithChildren {
+  type: "parent";
   title: React.ReactNode;
   visible?: boolean;
   disabled?: boolean;
@@ -20,18 +22,47 @@ export type MenuItemWithChildren = {
   hover?: boolean;
   items: MenuItem[];
   icon?: React.ReactNode;
-};
+}
 
-export type MenuSeparator = {
+export interface MenuSeparator {
   type: "separator";
   visible?: boolean;
-};
+}
 
-export type MenuHeading = {
+export interface MenuHeading {
   type: "heading";
   visible?: boolean;
   title: React.ReactNode;
-};
+}
+
+export interface MenuInternalLink {
+  type: "route";
+  title: React.ReactNode;
+  to: string;
+  visible?: boolean;
+  selected?: boolean;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+}
+
+export interface MenuExternalLink {
+  type: "link";
+  title: React.ReactNode;
+  href: string;
+  visible?: boolean;
+  selected?: boolean;
+  disabled?: boolean;
+  level?: number;
+  icon?: React.ReactNode;
+}
+
+export type MenuItem =
+  | MenuInternalLink
+  | MenuItemButton
+  | MenuExternalLink
+  | MenuItemWithChildren
+  | MenuSeparator
+  | MenuHeading;
 
 export type ActionContext = {
   isContextMenu: boolean;
@@ -123,29 +154,6 @@ export type SearchResult = {
   context: string;
   document: Document;
 };
-
-export type MenuItem =
-  | {
-      title: React.ReactNode;
-      to: string;
-      visible?: boolean;
-      selected?: boolean;
-      disabled?: boolean;
-      icon?: React.ReactNode;
-    }
-  | MenuItemClickable
-  | {
-      title: React.ReactNode;
-      href: string;
-      visible?: boolean;
-      selected?: boolean;
-      disabled?: boolean;
-      level?: number;
-      icon?: React.ReactNode;
-    }
-  | MenuItemWithChildren
-  | MenuSeparator
-  | MenuHeading;
 
 export type ToastOptions = {
   type: "warning" | "error" | "info" | "success";

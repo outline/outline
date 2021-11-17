@@ -35,6 +35,7 @@ const Modal = ({
   const [depth, setDepth] = React.useState(0);
   const wasOpen = usePrevious(isOpen);
   const { t } = useTranslation();
+
   React.useEffect(() => {
     if (!wasOpen && isOpen) {
       setDepth(openModals++);

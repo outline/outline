@@ -7,7 +7,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react",
-    "lib": ["dom", "es2017", "dom.iterable", "esnext.asynciterable"],
+    "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -19,7 +19,7 @@
     "strictNullChecks": true,
     "noEmit": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2017",
+    "target": "es2020",
     "paths": {
       "env": ["./app/env"],
       "actions": ["./app/actions"],

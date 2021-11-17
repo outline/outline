@@ -12,7 +12,6 @@ export type Props = {
   disabled?: boolean;
   onChange: (event: React.SyntheticEvent<HTMLInputElement>) => unknown;
   note?: React.ReactNode;
-  short?: boolean;
   small?: boolean;
 };
 const LabelText = styled.span<{ small?: boolean }>`
@@ -39,14 +38,13 @@ export default function Checkbox({
   note,
   className,
   small,
-  short,
   ...rest
 }: Props) {
   const wrappedLabel = <LabelText small={small}>{label}</LabelText>;
 
   return (
     <>
-      <Wrapper small={small}>
+      <Wrapper small={small} className={className}>
         <Label>
           <input type="checkbox" {...rest} />
           {label &&

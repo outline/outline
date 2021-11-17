@@ -21,7 +21,7 @@ type Props = {
 };
 
 function GroupMembers({ group }: Props) {
-  const [addModalOpen, setAddModalOpen] = React.useState();
+  const [addModalOpen, setAddModalOpen] = React.useState(false);
   const { users, groupMemberships, policies } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -117,7 +117,6 @@ function GroupMembers({ group }: Props) {
             groupName: group.name,
           })}
           onRequestClose={() => handleAddModal(false)}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'undefined' is not assignable to type 'boolea... Remove this comment to see the full error message
           isOpen={addModalOpen}
         >
           <AddPeopleToGroup

@@ -52,11 +52,13 @@ function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
           {...menu}
           items={[
             {
+              type: "button",
               title: t("Alphabetical sort"),
               onClick: () => handleChangeSort("title"),
               selected: alphabeticalSort,
             },
             {
+              type: "button",
               title: t("Manual sort"),
               onClick: () => handleChangeSort("index"),
               selected: !alphabeticalSort,

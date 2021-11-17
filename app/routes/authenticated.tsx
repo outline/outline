@@ -46,7 +46,6 @@ const RedirectDocument = ({
 
 export default function AuthenticatedRoutes() {
   return (
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     <SocketProvider>
       <Layout>
         <React.Suspense

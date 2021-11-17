@@ -6,7 +6,7 @@ import {
   Action,
   ActionContext,
   CommandBarAction,
-  MenuItemClickable,
+  MenuItemButton,
   MenuItemWithChildren,
 } from "../types";
 
@@ -27,7 +27,7 @@ export function createAction(
 export function actionToMenuItem(
   action: Action,
   context: ActionContext
-): MenuItemClickable | MenuItemWithChildren {
+): MenuItemButton | MenuItemWithChildren {
   function resolve<T>(value: any): T {
     if (typeof value === "function") {
       return value(context);

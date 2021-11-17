@@ -22,7 +22,7 @@ type Props = {
   canUpdate: boolean;
   collection?: Collection;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (documentId: string) => Promise<void>;
+  prefetchDocument: (documentId: string) => Promise<any>;
   depth: number;
   index: number;
   parentId?: string;
@@ -76,6 +76,7 @@ function DocumentLink(
     );
   }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
   const [expanded, setExpanded] = React.useState(showChildren);
+
   React.useEffect(() => {
     if (showChildren) {
       setExpanded(showChildren);

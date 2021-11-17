@@ -31,6 +31,7 @@ function NewDocumentMenu() {
 
         if (can.update) {
           filtered.push({
+            type: "route",
             to: newDocumentPath(collection.id),
             title: <CollectionName>{collection.name}</CollectionName>,
             icon: <CollectionIcon collection={collection} />,
@@ -48,7 +49,11 @@ function NewDocumentMenu() {
 
   if (items.length === 1) {
     return (
-      <Button as={Link} to={items[0].to} icon={<PlusIcon />}>
+      <Button
+        as={Link}
+        to={items[0].type === "route" ? items[0].to : undefined}
+        icon={<PlusIcon />}
+      >
         {t("New doc")}
       </Button>
     );

@@ -9,9 +9,8 @@ import useToasts from "hooks/useToasts";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { archivePath } from "utils/routeHelpers";
 
-// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'documents' implicitly has an 'any... Remove this comment to see the full error message
-function ArchiveLink({ documents }) {
-  const { policies } = useStores();
+function ArchiveLink() {
+  const { policies, documents } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
@@ -20,7 +19,7 @@ function ArchiveLink({ documents }) {
     drop: async (item, monitor) => {
       // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       const document = documents.get(item.id);
-      await document.archive();
+      await document?.archive();
       showToast(t("Document archived"), {
         type: "success",
       });

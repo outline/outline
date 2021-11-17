@@ -24,6 +24,7 @@ function CollectionGroupMemberMenu({ onMembers, onRemove }: Props) {
           {...menu}
           items={[
             {
+              type: "button",
               title: t("Members"),
               onClick: onMembers,
             },
@@ -31,6 +32,7 @@ function CollectionGroupMemberMenu({ onMembers, onRemove }: Props) {
               type: "separator",
             },
             {
+              type: "button",
               title: t("Remove"),
               onClick: onRemove,
             },

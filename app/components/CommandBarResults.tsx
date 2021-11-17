@@ -2,6 +2,7 @@ import { useMatches, KBarResults } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
 import CommandBarItem from "components/CommandBarItem";
+import { CommandBarAction } from "../types";
 
 export default function CommandBarResults() {
   const matches = useMatches();
@@ -28,7 +29,7 @@ export default function CommandBarResults() {
         typeof item === "string" ? (
           <Header>{item}</Header>
         ) : (
-          <CommandBarItem action={item} active={active} />
+          <CommandBarItem action={item as CommandBarAction} active={active} />
         )
       }
     />

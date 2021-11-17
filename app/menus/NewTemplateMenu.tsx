@@ -31,6 +31,7 @@ function NewTemplateMenu() {
 
         if (can.update) {
           filtered.push({
+            type: "route",
             to: newDocumentPath(collection.id, {
               template: true,
             }),

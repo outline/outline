@@ -7,6 +7,7 @@ import * as React from "react";
 
 export default function usePageVisibility(): boolean {
   const [visible, setVisible] = React.useState(true);
+
   React.useEffect(() => {
     const handleVisibilityChange = () => setVisible(!document.hidden);
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import Modal from "components/Modal";
 import SidebarLink from "./SidebarLink";
@@ -11,11 +12,10 @@ import useStores from "hooks/useStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
 import { trashPath } from "utils/routeHelpers";
 
-// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'documents' implicitly has an 'any... Remove this comment to see the full error message
-function TrashLink({ documents }) {
-  const { policies } = useStores();
+function TrashLink() {
+  const { policies, documents } = useStores();
   const { t } = useTranslation();
-  const [document, setDocument] = useState();
+  const [document, setDocument] = useState<Document>();
 
   const [{ isDocumentDropping }, dropToTrashDocument] = useDrop({
     accept: "document",
@@ -24,7 +24,7 @@ function TrashLink({ documents }) {
       const doc = documents.get(item.id);
       // without setTimeout it was not working in firefox v89.0.2-ubuntu
       // on dropping mouseup is considered as clicking outside the modal, and it immediately closes
-      setTimeout(() => setDocument(doc), 1);
+      setTimeout(() => doc && setDocument(doc), 1);
     },
     // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
     canDrop: (item, monitor) => policies.abilities(item.id).delete,
@@ -48,7 +48,6 @@ function TrashLink({ documents }) {
       {document && (
         <Modal
           title={t("Delete {{ documentName }}", {
-            // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
             documentName: document.noun,
           })}
           onRequestClose={() => setDocument(undefined)}

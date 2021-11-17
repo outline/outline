@@ -31,6 +31,7 @@ function NewChildDocumentMenu({ document, label }: Props) {
           {...menu}
           items={[
             {
+              type: "route",
               title: (
                 <span>
                   <Trans
@@ -47,6 +48,7 @@ function NewChildDocumentMenu({ document, label }: Props) {
               to: newDocumentPath(document.collectionId),
             },
             {
+              type: "route",
               title: t("New nested document"),
               to: newDocumentPath(document.collectionId, {
                 parentDocumentId: document.id,

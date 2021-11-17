@@ -121,7 +121,6 @@ class AddGroupsToCollection extends React.Component<Props & StoreProps> {
           items={groups.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : groups.fetchPage}
           renderItem={(item) => (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             <GroupListItem
               key={item.id}
               group={item}

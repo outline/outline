@@ -2558,11 +2558,6 @@
   dependencies:
     "@types/ioredis" "*"
 
-"@types/cancan@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@types/cancan/-/cancan-3.1.1.tgz#1b347b6aa56e685108530ff1d86edb9fa18a8f6f"
-  integrity sha512-Y19PADGiMGZviRGxrgF0/wxSDq65RFkJxeyyXuKHMV9SXLqkAxnaKXZSan7zJU8O+PRQW6oz4kcgVFY3XKSdJQ==
-
 "@types/cheerio@*":
   version "0.22.30"
   resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.30.tgz#6c1ded70d20d890337f0f5144be2c5e9ce0936e6"
@@ -2930,6 +2925,11 @@
   version "13.13.41"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.41.tgz#045a4981318d31a581650ce70f340a32c3461198"
   integrity sha512-qLT9IvHiXJfdrje9VmsLzun7cQ65obsBTmtU3EOnCSLFOoSHx1hpiRHoBnpdbyFqnzqdUUIv81JcEJQCB8un9g==
+
+"@types/node@^15.12.0":
+  version "15.14.9"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.14.9.tgz#bc43c990c3c9be7281868bbc7b8fdd6e2b57adfa"
+  integrity sha512-qjd88DrCxupx/kJD5yQgZdcYKZKSIGBVDIBE1/LTGcNm3d2Np/jxojkdePDdfnBHJc5W7vSMpbJ1aB7p/Py69A==
 
 "@types/nodemailer@^6.4.4":
   version "6.4.4"

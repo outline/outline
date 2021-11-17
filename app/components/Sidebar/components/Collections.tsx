@@ -20,7 +20,7 @@ import useToasts from "hooks/useToasts";
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const { ui, policies, documents, collections } = useStores();
+  const { policies, documents, collections } = useStores();
   const { showToast } = useToasts();
   const [expanded, setExpanded] = React.useState(true);
   const isPreloaded = !!collections.orderedData.length;
@@ -87,8 +87,6 @@ function Collections() {
           activeDocument={documents.active}
           prefetchDocument={documents.prefetchDocument}
           canUpdate={policies.abilities(collection.id).update}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ key: any; collection: any; activeDocument:... Remove this comment to see the full error message
-          ui={ui}
           isDraggingAnyCollection={isDraggingAnyCollection}
           onChangeDragging={setIsDraggingAnyCollection}
           belowCollection={orderedCollections[index + 1]}

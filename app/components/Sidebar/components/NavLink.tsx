@@ -2,10 +2,8 @@
 // This file is pulled almost 100% from react-router with the addition of one
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
-import { createLocation } from "history";
+import { Location, createLocation } from "history";
 import * as React from "react";
-// @ts-expect-error ts-migrate(2305) FIXME: Module '"react-router"' has no exported member 'Lo... Remove this comment to see the full error message
-import { Location } from "react-router";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";

@@ -48,6 +48,7 @@ function GroupMenu({ group, onMembers }: Props) {
           {...menu}
           items={[
             {
+              type: "button",
               title: `${t("Members")}…`,
               onClick: onMembers,
               visible: !!(group && can.read),
@@ -56,11 +57,13 @@ function GroupMenu({ group, onMembers }: Props) {
               type: "separator",
             },
             {
+              type: "button",
               title: `${t("Edit")}…`,
               onClick: () => setEditModalOpen(true),
               visible: !!(group && can.update),
             },
             {
+              type: "button",
               title: `${t("Delete")}…`,
               onClick: () => setDeleteModalOpen(true),
               visible: !!(group && can.delete),

@@ -24,6 +24,7 @@ function FileOperationMenu({ id, onDelete }: Props) {
           {...menu}
           items={[
             {
+              type: "link",
               title: t("Download"),
               href: "/api/fileOperations.redirect?id=" + id,
             },
@@ -31,6 +32,7 @@ function FileOperationMenu({ id, onDelete }: Props) {
               type: "separator",
             },
             {
+              type: "button",
               title: t("Delete"),
               onClick: onDelete,
             },

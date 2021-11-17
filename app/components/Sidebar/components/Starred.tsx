@@ -76,6 +76,7 @@ function Starred() {
       fetchResults();
     }
   }, [fetchResults, offset]);
+
   const handleShowMore = React.useCallback(
     async (ev) => {
       setUpperBound(
@@ -85,10 +86,12 @@ function Starred() {
     },
     [fetchResults]
   );
+
   const handleShowLess = React.useCallback((ev) => {
     setUpperBound(STARRED_PAGINATION_LIMIT);
     setShow("More");
   }, []);
+
   const handleExpandClick = React.useCallback(
     (ev) => {
       ev.preventDefault();
@@ -104,7 +107,7 @@ function Starred() {
     },
     [expanded]
   );
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
+
   const content = starred.slice(0, upperBound).map((document, index) => {
     return (
       <StarredLink

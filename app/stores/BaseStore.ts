@@ -10,7 +10,10 @@ import { client } from "utils/ApiClient";
 
 type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
-type FetchPageParams = PaginationParams & { query?: string };
+type FetchPageParams = PaginationParams & {
+  documentId?: string;
+  query?: string;
+};
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.
 function modelNameFromClassName(string) {

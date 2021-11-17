@@ -46,6 +46,7 @@ function LocaleTime({
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
 
   const callback = React.useRef();
+
   React.useEffect(() => {
     // @ts-expect-error ts-migrate(2322) FIXME: Type '() => void' is not assignable to type 'undef... Remove this comment to see the full error message
     callback.current = eachMinute(() => {

@@ -61,7 +61,6 @@ function Groups() {
         empty={<Empty>{t("No groups have been created yet")}</Empty>}
         fetch={groups.fetchPage}
         renderItem={(item) => (
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           <GroupListItem
             key={item.id}
             group={item}

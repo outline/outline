@@ -459,7 +459,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
-  prefetchDocument = (id: string) => {
+  prefetchDocument = async (id: string) => {
     if (!this.data.get(id) && !this.getByUrl(id)) {
       return this.fetch(id, {
         prefetch: true,

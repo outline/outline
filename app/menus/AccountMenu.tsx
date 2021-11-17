@@ -38,11 +38,13 @@ function AccountMenu(props: Props) {
   const team = useCurrentTeam();
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
+
   React.useEffect(() => {
     if (theme !== previousTheme) {
       menu.hide();
     }
   }, [menu, theme, previousTheme]);
+
   const actions = React.useMemo(() => {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'filter' does not exist on type 'Session[... Remove this comment to see the full error message
     const otherSessions = sessions.filter(
@@ -76,6 +78,7 @@ function AccountMenu(props: Props) {
       logout,
     ];
   }, [team.id, team.url, sessions, t]);
+
   return (
     <>
       <MenuButton {...menu}>{props.children}</MenuButton>

@@ -48,6 +48,7 @@ function People(props) {
   // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | 0' is not assignable to... Remove this comment to see the full error message
   const page = parseInt(params.get("page") || 0, 10);
   const limit = 25;
+
   React.useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -71,6 +72,7 @@ function People(props) {
 
     fetchData();
   }, [query, sort, filter, page, direction, users]);
+
   React.useEffect(() => {
     let filtered = users.orderedData;
 

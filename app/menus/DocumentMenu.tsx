@@ -187,6 +187,7 @@ function DocumentMenu({
 
         if (can.update) {
           filtered.push({
+            type: "button",
             onClick: (ev) =>
               handleRestore(ev, {
                 collectionId: collection.id,
@@ -287,12 +288,14 @@ function DocumentMenu({
           {...menu}
           items={[
             {
+              type: "button",
               title: t("Restore"),
               visible: (!!collection && can.restore) || can.unarchive,
               onClick: handleRestore,
               icon: <RestoreIcon />,
             },
             {
+              type: "parent",
               title: t("Restore"),
               visible:
                 !collection && !!can.restore && restoreItems.length !== 0,
@@ -312,24 +315,28 @@ function DocumentMenu({
               ],
             },
             {
+              type: "button",
               title: t("Unpin"),
               onClick: document.unpin,
               visible: !!(showPin && document.pinned && can.unpin),
               icon: <PinIcon />,
             },
             {
+              type: "button",
               title: t("Pin to collection"),
               onClick: document.pin,
               visible: !!(showPin && !document.pinned && can.pin),
               icon: <PinIcon />,
             },
             {
+              type: "button",
               title: t("Unstar"),
               onClick: handleUnstar,
               visible: document.isStarred && !!can.unstar,
               icon: <UnstarredIcon />,
             },
             {
+              type: "button",
               title: t("Star"),
               onClick: handleStar,
               visible: !document.isStarred && !!can.star,
@@ -339,12 +346,14 @@ function DocumentMenu({
               type: "separator",
             },
             {
+              type: "route",
               title: t("Edit"),
               to: editDocumentUrl(document),
               visible: !!can.update && !team.collaborativeEditing,
               icon: <EditIcon />,
             },
             {
+              type: "route",
               title: t("New nested document"),
               to: newDocumentPath(document.collectionId, {
                 parentDocumentId: document.id,
@@ -353,54 +362,63 @@ function DocumentMenu({
               icon: <NewDocumentIcon />,
             },
             {
+              type: "button",
               title: t("Import document"),
               visible: can.createChildDocument,
               onClick: handleImportDocument,
               icon: <ImportIcon />,
             },
             {
+              type: "button",
               title: `${t("Create template")}…`,
               onClick: () => setShowTemplateModal(true),
               visible: !!can.update && !document.isTemplate,
               icon: <ShapesIcon />,
             },
             {
+              type: "button",
               title: t("Duplicate"),
               onClick: handleDuplicate,
               visible: !!can.update,
               icon: <DuplicateIcon />,
             },
             {
+              type: "button",
               title: t("Unpublish"),
               onClick: handleUnpublish,
               visible: !!can.unpublish,
               icon: <UnpublishIcon />,
             },
             {
+              type: "button",
               title: t("Archive"),
               onClick: handleArchive,
               visible: !!can.archive,
               icon: <ArchiveIcon />,
             },
             {
+              type: "button",
               title: `${t("Delete")}…`,
               onClick: () => setShowDeleteModal(true),
               visible: !!can.delete,
               icon: <TrashIcon />,
             },
             {
+              type: "button",
               title: `${t("Permanently delete")}…`,
               onClick: () => setShowPermanentDeleteModal(true),
               visible: can.permanentDelete,
               icon: <CrossIcon />,
             },
             {
+              type: "button",
               title: `${t("Move")}…`,
               onClick: () => setShowMoveModal(true),
               visible: !!can.move,
               icon: <MoveIcon />,
             },
             {
+              type: "button",
               title: t("Enable embeds"),
               onClick: document.enableEmbeds,
               visible:
@@ -410,6 +428,7 @@ function DocumentMenu({
               icon: <BuildingBlocksIcon />,
             },
             {
+              type: "button",
               title: t("Disable embeds"),
               onClick: document.disableEmbeds,
               visible:
@@ -422,6 +441,7 @@ function DocumentMenu({
               type: "separator",
             },
             {
+              type: "route",
               title: t("History"),
               to: isRevision
                 ? documentUrl(document)
@@ -430,12 +450,14 @@ function DocumentMenu({
               icon: <HistoryIcon />,
             },
             {
+              type: "button",
               title: t("Download"),
               onClick: document.download,
               visible: !!can.download,
               icon: <DownloadIcon />,
             },
             {
+              type: "button",
               title: t("Print"),
               onClick: handlePrint,
               visible: !!showPrint,

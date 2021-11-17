@@ -25,14 +25,11 @@ import ContextMenu from ".";
 import { actionToMenuItem } from "actions";
 import useStores from "hooks/useStores";
 
-type Props =
-  | {
-      actions: (Action | MenuSeparator | MenuHeading)[];
-    }
-  | {
-      items: TMenuItem[];
-      context?: $Shape<ActionContext>;
-    };
+type Props = {
+  actions?: (Action | MenuSeparator | MenuHeading)[];
+  context?: $Shape<ActionContext>;
+  items?: TMenuItem[];
+};
 
 const Disclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
@@ -46,6 +43,7 @@ const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
   const menu = useMenuState({
     modal: true,
   });
+
   return (
     <>
       <MenuButton ref={ref} {...menu} {...rest}>
@@ -64,6 +62,7 @@ const Submenu = React.forwardRef(({ templateItems, title, ...rest }, ref) => {
 
 export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   let filtered = items.filter((item) => item.visible !== false);
+
   // this block literally just trims unnecessary separators
   filtered = filtered.reduce((acc, item, index) => {
     // trim separators from start / end
@@ -76,6 +75,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
     // otherwise, continue
     return [...acc, item];
   }, []);
+
   return filtered;
 }
 
@@ -94,23 +94,32 @@ function Template({ items, actions, context, ...menu }: Props) {
     stores,
     ...context,
   };
+
   const filteredTemplates = filterTemplateItems(
     actions
-      ? actions.map((action) =>
-          action.type ? action : actionToMenuItem(action, ctx)
+      ? actions.map((item) =>
+          item.type === "separator" || item.type === "heading"
+            ? item
+            : actionToMenuItem(item, ctx)
         )
       : items
   );
+
   const iconIsPresentInAnyMenuItem = filteredTemplates.find(
-    (item) => !item.type && !!item.icon
+    (item) =>
+      item.type !== "separator" && item.type !== "heading" && !!item.icon
   );
 
   return filteredTemplates.map((item, index) => {
-    if (iconIsPresentInAnyMenuItem && !item.type) {
+    if (
+      iconIsPresentInAnyMenuItem &&
+      item.type !== "separator" &&
+      item.type !== "heading"
+    ) {
       item.icon = item.icon || <MenuIconWrapper />;
     }
 
-    if (item.to) {
+    if (item.type === "route") {
       return (
         <MenuItem
           as={Link}
@@ -126,7 +135,7 @@ function Template({ items, actions, context, ...menu }: Props) {
       );
     }
 
-    if (item.href) {
+    if (item.type === "link") {
       return (
         <MenuItem
           href={item.href}
@@ -143,7 +152,7 @@ function Template({ items, actions, context, ...menu }: Props) {
       );
     }
 
-    if (item.onClick) {
+    if (item.type === "button") {
       return (
         <MenuItem
           as="button"
@@ -159,7 +168,7 @@ function Template({ items, actions, context, ...menu }: Props) {
       );
     }
 
-    if (item.items) {
+    if (item.type === "parent") {
       return (
         <BaseMenuItem
           key={index}
@@ -180,8 +189,8 @@ function Template({ items, actions, context, ...menu }: Props) {
       return <Header>{item.title}</Header>;
     }
 
-    console.warn("Unrecognized menu item", item);
-    return <></>;
+    const _exhaustiveCheck: never = item;
+    return _exhaustiveCheck;
   });
 }
 

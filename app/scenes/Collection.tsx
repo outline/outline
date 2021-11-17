@@ -71,6 +71,7 @@ function CollectionScene() {
   const can = policies.abilities(collection?.id || "");
   const canUser = policies.abilities(team.id);
   const { handleFiles, isImporting } = useImportDocument(collection?.id || "");
+
   React.useEffect(() => {
     if (collection) {
       const canonicalUrl = updateCollectionUrl(match.url, collection);
@@ -80,11 +81,13 @@ function CollectionScene() {
       }
     }
   }, [collection, history, id, match.url]);
+
   React.useEffect(() => {
     if (collection) {
       ui.setActiveCollection(collection);
     }
   }, [ui, collection]);
+
   React.useEffect(() => {
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
     setError(null);
@@ -95,6 +98,7 @@ function CollectionScene() {
       });
     }
   }, [documents, collection]);
+
   React.useEffect(() => {
     async function load() {
       if ((!can || !collection) && !error && !isFetching) {

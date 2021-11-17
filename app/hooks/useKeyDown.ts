@@ -30,6 +30,7 @@ export default function useKeyDown(
   fn: (event: KeyboardEvent) => void
 ): void {
   const predicate = createKeyPredicate(key);
+
   React.useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (predicate(event)) {

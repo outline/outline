@@ -132,8 +132,8 @@ function MainSidebar() {
                         : undefined
                     }
                   />
-                  <ArchiveLink documents={documents} />
-                  <TrashLink documents={documents} />
+                  <ArchiveLink />
+                  <TrashLink />
                 </>
               )}
               <SidebarLink

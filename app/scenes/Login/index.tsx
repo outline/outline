@@ -62,6 +62,7 @@ function Login() {
   const handleEmailSuccess = React.useCallback((email) => {
     setEmailLinkSentTo(email);
   }, []);
+
   React.useEffect(() => {
     auth.fetchConfig();
   }, [auth]);
@@ -72,6 +73,7 @@ function Login() {
   React.useEffect(() => {
     changeLanguage(detectLanguage(), i18n);
   }, [i18n]);
+
   React.useEffect(() => {
     const entries = Object.fromEntries(query.entries());
 

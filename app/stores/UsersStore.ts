@@ -240,7 +240,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  inGroup = (groupId: string, query: string) => {
+  inGroup = (groupId: string, query?: string) => {
     const groupMemberships = filter(
       this.rootStore.groupMemberships.orderedData,
       (member) => member.groupId === groupId

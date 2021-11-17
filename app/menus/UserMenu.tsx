@@ -128,6 +128,7 @@ function UserMenu({ user }: Props) {
           {...menu}
           items={[
             {
+              type: "button",
               title: t("Make {{ userName }} a member", {
                 userName: user.name,
               }),
@@ -135,6 +136,7 @@ function UserMenu({ user }: Props) {
               visible: can.demote && user.role !== "member",
             },
             {
+              type: "button",
               title: t("Make {{ userName }} a viewer", {
                 userName: user.name,
               }),
@@ -142,6 +144,7 @@ function UserMenu({ user }: Props) {
               visible: can.demote && user.role !== "viewer",
             },
             {
+              type: "button",
               title: t("Make {{ userName }} an admin…", {
                 userName: user.name,
               }),
@@ -152,16 +155,19 @@ function UserMenu({ user }: Props) {
               type: "separator",
             },
             {
+              type: "button",
               title: `${t("Revoke invite")}…`,
               onClick: handleRevoke,
               visible: user.isInvited,
             },
             {
+              type: "button",
               title: t("Activate account"),
               onClick: handleActivate,
               visible: !user.isInvited && user.isSuspended,
             },
             {
+              type: "button",
               title: `${t("Suspend account")}…`,
               onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,

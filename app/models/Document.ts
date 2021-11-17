@@ -358,7 +358,6 @@ export default class Document extends BaseModel {
     collectionId: string,
     parentDocumentId: string | null | undefined
   ) => {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 4 arguments, but got 3.
     return this.store.move(this.id, collectionId, parentDocumentId);
   };
 

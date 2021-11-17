@@ -94,6 +94,7 @@ function Table({
     usePagination
   );
   const prevSortBy = React.useRef(sortBy);
+
   React.useEffect(() => {
     if (!isEqual(sortBy, prevSortBy.current)) {
       prevSortBy.current = sortBy;

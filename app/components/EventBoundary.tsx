@@ -10,6 +10,7 @@ export default function EventBoundary({ children, className }: Props) {
     event.preventDefault();
     event.stopPropagation();
   }, []);
+
   return (
     <span onClick={handleClick} className={className}>
       {children}
