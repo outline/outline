@@ -4,7 +4,7 @@ import path from "path";
 import util from "util";
 import Koa from "koa";
 import Router from "koa-router";
-import sendfile from "koa-sendfile";
+import send from "koa-send";
 import serve from "koa-static";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "../../shared/i18n";
@@ -95,16 +95,14 @@ koa.use(
 
 if (process.env.NODE_ENV === "production") {
   router.get("/static/*", async (ctx) => {
-    ctx.set({
-      "Service-Worker-Allowed": "/",
-      "Access-Control-Allow-Origin": "*",
-      "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
+    await send(ctx, ctx.path.substring(8), {
+      root: path.join(__dirname, "../../app/"),
+      setHeaders: (res, path, stat) => {
+        res.setHeader("Service-Worker-Allowed", "/");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Cache-Control", `max-age=${356 * 24 * 60 * 60}`);
+      },
     });
-
-    await sendfile(
-      ctx,
-      path.join(__dirname, "../../app/", ctx.path.substring(8))
-    );
   });
 }
 
@@ -122,10 +120,9 @@ router.get("/locales/:lng.json", async (ctx) => {
     });
   }
 
-  await sendfile(
-    ctx,
-    path.join(__dirname, "../../shared/i18n/locales", lng, "translation.json")
-  );
+  await send(ctx, path.join(lng, "translation.json"), {
+    root: path.join(__dirname, "../../shared/i18n/locales"),
+  });
 });
 
 router.get("/robots.txt", (ctx) => {
