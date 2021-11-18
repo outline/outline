@@ -129,9 +129,7 @@ router.get("/locales/:lng.json", async (ctx) => {
   await send(ctx, path.join(lng, "translation.json"), {
     setHeaders: (res, path, stat) => {
       if (process.env.NODE_ENV === "production") {
-        res.setHeader({
-          "Cache-Control": `max-age=${7 * 24 * 60 * 60}`,
-        });
+        res.setHeader("Cache-Control", `max-age=${7 * 24 * 60 * 60}`);
       }
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
