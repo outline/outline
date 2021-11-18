@@ -104,11 +104,16 @@ if (process.env.NODE_ENV === "production") {
           res.setHeader("Cache-Control", `max-age=${365 * 24 * 60 * 60}`);
         },
       });
-    } catch {
-      // Serve a bad request instead of not found if the file doesn't exist
-      // This prevents CDN's from caching the response, allowing them to continue
-      // serving old file versions
-      ctx.status = 400;
+    } catch (err) {
+      if (err.status === 404) {
+        // Serve a bad request instead of not found if the file doesn't exist
+        // This prevents CDN's from caching the response, allowing them to continue
+        // serving old file versions
+        ctx.status = 400;
+        return;
+      }
+
+      throw err;
     }
   });
 }
