@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
+import env from "~/env";
 import OutlineLogo from "./OutlineLogo";
-import env from "env";
 
 type Props = {
   href?: string;

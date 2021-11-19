@@ -11,18 +11,11 @@ import {
   EmailIcon,
 } from "outline-icons";
 import * as React from "react";
-import {
-  developersUrl,
-  changelogUrl,
-  mailToUrl,
-  githubIssuesUrl,
-} from "shared/utils/routeHelpers";
-import stores from "stores";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import { createAction } from "actions";
-import { NavigationSection } from "actions/sections";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/history' or its correspo... Remove this comment to see the full error message
-import history from "utils/history";
+import stores from "~/stores";
+import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import { createAction } from "~/actions";
+import { NavigationSection } from "~/actions/sections";
+import history from "~/utils/history";
 import {
   settingsPath,
   homePath,
@@ -31,8 +24,13 @@ import {
   templatesPath,
   archivePath,
   trashPath,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-} from "utils/routeHelpers";
+} from "~/utils/routeHelpers";
+import {
+  developersUrl,
+  changelogUrl,
+  mailToUrl,
+  githubIssuesUrl,
+} from "shared/utils/routeHelpers";
 
 export const navigateToHome = createAction({
   name: ({ t }) => t("Home"),

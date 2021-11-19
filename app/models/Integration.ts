@@ -1,7 +1,6 @@
 import { extendObservable, action } from "mobx";
-import BaseModel from "models/BaseModel";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import BaseModel from "~/models/BaseModel";
+import { client } from "~/utils/ApiClient";
 
 type Settings = {
   url: string;

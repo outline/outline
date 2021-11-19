@@ -16,19 +16,19 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import Scrollable from "components/Scrollable";
-import SlackIcon from "components/SlackIcon";
-import ZapierIcon from "components/ZapierIcon";
+import Flex from "~/components/Flex";
+import Scrollable from "~/components/Scrollable";
+import SlackIcon from "~/components/SlackIcon";
+import ZapierIcon from "~/components/ZapierIcon";
+import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
 import TeamButton from "./components/TeamButton";
 import Version from "./components/Version";
-import env from "env";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
 
 const isHosted = env.DEPLOYMENT === "hosted";
 

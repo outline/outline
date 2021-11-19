@@ -2,9 +2,9 @@ import { useRegisterActions } from "kbar";
 import { flattenDeep } from "lodash";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import { Action } from "../types";
-import { actionToKBar } from "actions";
-import useStores from "hooks/useStores";
+import { actionToKBar } from "~/actions";
+import useStores from "~/hooks/useStores";
+import { Action } from "~/types";
 
 export default function useCommandBarActions(actions: Action[]) {
   const stores = useStores();

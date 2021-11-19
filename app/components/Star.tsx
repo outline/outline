@@ -2,7 +2,7 @@ import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Document from "models/Document";
+import Document from "~/models/Document";
 import NudeButton from "./NudeButton";
 
 type Props = {

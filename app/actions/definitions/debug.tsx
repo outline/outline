@@ -1,11 +1,10 @@
 import { ToolsIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
-import stores from "stores";
-import { createAction } from "actions";
-import { DebugSection } from "actions/sections";
-import env from "env";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/developer' or its corres... Remove this comment to see the full error message
-import { deleteAllDatabases } from "utils/developer";
+import stores from "~/stores";
+import { createAction } from "~/actions";
+import { DebugSection } from "~/actions/sections";
+import env from "~/env";
+import { deleteAllDatabases } from "~/utils/developer";
 
 export const clearIndexedDB = createAction({
   name: ({ t }) => t("Delete IndexedDB cache"),

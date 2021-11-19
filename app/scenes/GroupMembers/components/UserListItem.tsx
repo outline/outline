@@ -1,11 +1,11 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import User from "models/User";
-import Avatar from "components/Avatar";
-import Badge from "components/Badge";
-import Button from "components/Button";
-import ListItem from "components/List/Item";
-import Time from "components/Time";
+import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import Badge from "~/components/Badge";
+import Button from "~/components/Button";
+import ListItem from "~/components/List/Item";
+import Time from "~/components/Time";
 
 type Props = {
   user: User;

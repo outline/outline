@@ -13,41 +13,43 @@ import {
   useRouteMatch,
 } from "react-router-dom";
 import styled, { css } from "styled-components";
-import CollectionPermissions from "scenes/CollectionPermissions";
-import Search from "scenes/Search";
-import { Action, Separator } from "components/Actions";
-import Badge from "components/Badge";
-import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
-import CollectionDescription from "components/CollectionDescription";
-import CollectionIcon from "components/CollectionIcon";
-import DocumentList from "components/DocumentList";
-import Flex from "components/Flex";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import InputSearchPage from "components/InputSearchPage";
-import PlaceholderList from "components/List/Placeholder";
-import LoadingIndicator from "components/LoadingIndicator";
-import Modal from "components/Modal";
-import PaginatedDocumentList from "components/PaginatedDocumentList";
-import PlaceholderText from "components/PlaceholderText";
-import Scene from "components/Scene";
-import Subheading from "components/Subheading";
-import Tab from "components/Tab";
-import Tabs from "components/Tabs";
-import Tooltip from "components/Tooltip";
+import CollectionPermissions from "~/scenes/CollectionPermissions";
+import Search from "~/scenes/Search";
+import { Action, Separator } from "~/components/Actions";
+import Badge from "~/components/Badge";
+import Button from "~/components/Button";
+import CenteredContent from "~/components/CenteredContent";
+import CollectionDescription from "~/components/CollectionDescription";
+import CollectionIcon from "~/components/CollectionIcon";
+import DocumentList from "~/components/DocumentList";
+import Flex from "~/components/Flex";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import InputSearchPage from "~/components/InputSearchPage";
+import PlaceholderList from "~/components/List/Placeholder";
+import LoadingIndicator from "~/components/LoadingIndicator";
+import Modal from "~/components/Modal";
+import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import PlaceholderText from "~/components/PlaceholderText";
+import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
+import Tab from "~/components/Tab";
+import Tabs from "~/components/Tabs";
+import Tooltip from "~/components/Tooltip";
+import { editCollection } from "~/actions/definitions/collections";
+import useBoolean from "~/hooks/useBoolean";
+import useCommandBarActions from "~/hooks/useCommandBarActions";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useImportDocument from "~/hooks/useImportDocument";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
+import CollectionMenu from "~/menus/CollectionMenu";
+import {
+  newDocumentPath,
+  collectionUrl,
+  updateCollectionUrl,
+} from "~/utils/routeHelpers";
 import Collection from "../models/Collection";
-import { updateCollectionUrl } from "../utils/routeHelpers";
-import { editCollection } from "actions/definitions/collections";
-import useBoolean from "hooks/useBoolean";
-import useCommandBarActions from "hooks/useCommandBarActions";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useImportDocument from "hooks/useImportDocument";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-import CollectionMenu from "menus/CollectionMenu";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { newDocumentPath, collectionUrl } from "utils/routeHelpers";
 
 function CollectionScene() {
   const params = useParams();

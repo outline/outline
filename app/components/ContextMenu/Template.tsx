@@ -9,8 +9,10 @@ import {
 } from "reakit/Menu";
 import styled from "styled-components";
 import { $Shape } from "utility-types";
-import Flex from "components/Flex";
-import MenuIconWrapper from "components/MenuIconWrapper";
+import Flex from "~/components/Flex";
+import MenuIconWrapper from "~/components/MenuIconWrapper";
+import { actionToMenuItem } from "~/actions";
+import useStores from "~/hooks/useStores";
 import {
   Action,
   ActionContext,
@@ -22,8 +24,6 @@ import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";
 import ContextMenu from ".";
-import { actionToMenuItem } from "actions";
-import useStores from "hooks/useStores";
 
 type Props = {
   actions?: (Action | MenuSeparator | MenuHeading)[];

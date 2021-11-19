@@ -2,10 +2,10 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
+import Editor from "~/components/Editor";
+import useStores from "~/hooks/useStores";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import DocumentMetaWithViews from "components/DocumentMetaWithViews";
-import Editor from "components/Editor";
-import useStores from "hooks/useStores";
 
 type Props = {
   url: string;

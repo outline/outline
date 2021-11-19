@@ -1,6 +1,5 @@
 import * as React from "react";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/isTextInput' or its corr... Remove this comment to see the full error message
-import isTextInput from "utils/isTextInput";
+import isTextInput from "~/utils/isTextInput";
 
 export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
 // Registered keyboard event callbacks
@@ -57,7 +56,11 @@ window.addEventListener("keydown", (event) => {
       break;
     }
 
-    if (!isTextInput(event.target) || event.ctrlKey || event.metaKey) {
+    if (
+      !isTextInput(event.target as HTMLElement) ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
       callback(event);
     }
   }

@@ -1,7 +1,7 @@
 import * as React from "react";
-import ApiKey from "models/ApiKey";
-import Button from "components/Button";
-import ListItem from "components/List/Item";
+import ApiKey from "~/models/ApiKey";
+import Button from "~/components/Button";
+import ListItem from "~/components/List/Item";
 
 type Props = {
   token: ApiKey;

@@ -1,21 +1,20 @@
 import { Search } from "js-search";
 import { last } from "lodash";
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useMemo, useState } from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
-import { DocumentPath } from "stores/CollectionsStore";
-import Document from "models/Document";
-
-import Flex from "components/Flex";
-import { Outline } from "components/Input";
-import Labeled from "components/Labeled";
-import PathToDocument from "components/PathToDocument";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import { DocumentPath } from "~/stores/CollectionsStore";
+import Document from "~/models/Document";
+import Flex from "~/components/Flex";
+import { Outline } from "~/components/Input";
+import Labeled from "~/components/Labeled";
+import PathToDocument from "~/components/PathToDocument";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   document: Document;

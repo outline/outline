@@ -10,12 +10,12 @@ import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
-import Button, { Inner } from "components/Button";
-import HelpText from "components/HelpText";
+import Button, { Inner } from "~/components/Button";
+import HelpText from "~/components/HelpText";
+import useMenuHeight from "~/hooks/useMenuHeight";
 import { Position, Background, Backdrop } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
-import useMenuHeight from "hooks/useMenuHeight";
 
 export type Option = {
   label: string;

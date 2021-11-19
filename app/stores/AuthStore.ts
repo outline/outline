@@ -2,15 +2,13 @@ import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
-import RootStore from "stores/RootStore";
-import Policy from "models/Policy";
-import Team from "models/Team";
-import User from "models/User";
-import env from "env";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
-import { getCookieDomain } from "utils/domains";
+import RootStore from "~/stores/RootStore";
+import env from "~/env";
+import { client } from "~/utils/ApiClient";
+import { getCookieDomain } from "~/utils/domains";
+import Policy from "../models/Policy";
+import Team from "../models/Team";
+import User from "../models/User";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];

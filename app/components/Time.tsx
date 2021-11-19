@@ -5,7 +5,7 @@ const LocaleTime = React.lazy(
   () =>
     import(
       /* webpackChunkName: "locale-time" */
-      "components/LocaleTime"
+      "~/components/LocaleTime"
     )
 );
 type Props = {

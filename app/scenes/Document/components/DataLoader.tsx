@@ -5,32 +5,34 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
-import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import RootStore from "stores/RootStore";
-import Document from "models/Document";
-import Revision from "models/Revision";
-import Error404 from "scenes/Error404";
-import ErrorOffline from "scenes/ErrorOffline";
-import withStores from "components/withStores";
+import RootStore from "~/stores/RootStore";
+import Document from "~/models/Document";
+import Revision from "~/models/Revision";
+import Error404 from "~/scenes/Error404";
+import ErrorOffline from "~/scenes/ErrorOffline";
+import withStores from "~/components/withStores";
+import { NavigationNode } from "~/types";
+import { NotFoundError, OfflineError } from "~/utils/errors";
+import { matchDocumentEdit, updateDocumentUrl } from "~/utils/routeHelpers";
+import { isInternalUrl } from "~/utils/urls";
 import history from "../../../utils/history";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { LocationWithState, NavigationNode } from "types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/errors' or its correspon... Remove this comment to see the full error message
-import { NotFoundError, OfflineError } from "utils/errors";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
-import { isInternalUrl } from "utils/urls";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 
 type Props = RootStore &
-  RouteComponentProps<{
-    location: LocationWithState;
-    documentSlug: string;
-    revisionId?: string;
-    shareId?: string;
-  }> & {
+  RouteComponentProps<
+    {
+      documentSlug: string;
+      revisionId?: string;
+      shareId?: string;
+      title?: string;
+    },
+    any,
+    {
+      title?: string;
+    }
+  > & {
     children: (arg0: any) => React.ReactNode;
   };
 

@@ -5,16 +5,15 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import Button from "components/Button";
-import CollectionIcon from "components/CollectionIcon";
-import ContextMenu from "components/ContextMenu";
-import Header from "components/ContextMenu/Header";
-import Template from "components/ContextMenu/Template";
-import { MenuItem } from "../types";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { newDocumentPath } from "utils/routeHelpers";
+import Button from "~/components/Button";
+import CollectionIcon from "~/components/CollectionIcon";
+import ContextMenu from "~/components/ContextMenu";
+import Header from "~/components/ContextMenu/Header";
+import Template from "~/components/ContextMenu/Template";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
+import { MenuItem } from "~/types";
+import { newDocumentPath } from "~/utils/routeHelpers";
 
 function NewDocumentMenu() {
   const menu = useMenuState({

@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import Modal from "components/Modal";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import Modal from "~/components/Modal";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   onRequestClose: () => void;

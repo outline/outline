@@ -1,9 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import DelayedMount from "components/DelayedMount";
-import Fade from "components/Fade";
-import Flex from "components/Flex";
-import PlaceholderText from "components/PlaceholderText";
+import DelayedMount from "~/components/DelayedMount";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
+import PlaceholderText from "~/components/PlaceholderText";
 
 export default function PlaceholderDocument({
   includeTitle,

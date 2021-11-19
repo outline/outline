@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import Flex from "components/Flex";
-import NavLink from "components/NavLink";
+import Flex from "~/components/Flex";
+import NavLink from "~/components/NavLink";
 
 type Props = {
   image?: React.ReactNode;

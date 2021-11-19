@@ -1,8 +1,8 @@
 import { useMatches, KBarResults } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
-import CommandBarItem from "components/CommandBarItem";
-import { CommandBarAction } from "../types";
+import CommandBarItem from "~/components/CommandBarItem";
+import { CommandBarAction } from "~/types";
 
 export default function CommandBarResults() {
   const matches = useMatches();

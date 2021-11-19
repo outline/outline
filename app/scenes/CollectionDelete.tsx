@@ -2,13 +2,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import Collection from "models/Collection";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { homePath } from "utils/routeHelpers";
+import Collection from "~/models/Collection";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import useToasts from "~/hooks/useToasts";
+import { homePath } from "~/utils/routeHelpers";
 
 type Props = {
   collection: Collection;

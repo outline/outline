@@ -1,5 +1,5 @@
 import * as React from "react";
-import UiStore from "stores/UiStore";
+import UiStore from "~/stores/UiStore";
 
 type Props = {
   ui: UiStore;

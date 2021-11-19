@@ -1,12 +1,11 @@
 import invariant from "invariant";
 import { filter, orderBy } from "lodash";
 import { observable, computed, action, runInAction } from "mobx";
-import { Role } from "shared/types";
-import User from "models/User";
+import { client } from "~/utils/ApiClient";
+import User from "../models/User";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import { Role } from "shared/types";
 
 export default class UsersStore extends BaseStore<User> {
   @observable

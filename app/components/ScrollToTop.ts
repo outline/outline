@@ -1,7 +1,7 @@
 // based on: https://reacttraining.com/react-router/web/guides/scroll-restoration
 import * as React from "react";
 import { useLocation } from "react-router-dom";
-import usePrevious from "hooks/usePrevious";
+import usePrevious from "~/hooks/usePrevious";
 
 type Props = {
   children: JSX.Element;

@@ -5,14 +5,14 @@ import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Document from "models/Document";
-import { AvatarWithPresence } from "components/Avatar";
-import DocumentViews from "components/DocumentViews";
-import Facepile from "components/Facepile";
-import NudeButton from "components/NudeButton";
-import Popover from "components/Popover";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
+import Document from "~/models/Document";
+import { AvatarWithPresence } from "~/components/Avatar";
+import DocumentViews from "~/components/DocumentViews";
+import Facepile from "~/components/Facepile";
+import NudeButton from "~/components/NudeButton";
+import Popover from "~/components/Popover";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;

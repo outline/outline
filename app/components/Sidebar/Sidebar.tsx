@@ -5,13 +5,13 @@ import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Fade from "components/Fade";
-import Flex from "components/Flex";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
+import usePrevious from "~/hooks/usePrevious";
+import useStores from "~/hooks/useStores";
 import { fadeIn } from "../../styles/animations";
 import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
-import usePrevious from "hooks/usePrevious";
-import useStores from "hooks/useStores";
 
 const ANIMATION_MS = 250;
 let isFirstRender = true;

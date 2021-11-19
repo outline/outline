@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import FilterOptions from "components/FilterOptions";
-import useStores from "hooks/useStores";
+import FilterOptions from "~/components/FilterOptions";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   collectionId: string | null | undefined;

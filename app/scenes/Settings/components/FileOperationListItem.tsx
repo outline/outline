@@ -1,11 +1,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import FileOperation from "models/FileOperation";
-import { Action } from "components/Actions";
-import ListItem from "components/List/Item";
-import Time from "components/Time";
-import useCurrentUser from "hooks/useCurrentUser";
-import FileOperationMenu from "menus/FileOperationMenu";
+import FileOperation from "~/models/FileOperation";
+import { Action } from "~/components/Actions";
+import ListItem from "~/components/List/Item";
+import Time from "~/components/Time";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import FileOperationMenu from "~/menus/FileOperationMenu";
 
 type Props = {
   fileOperation: FileOperation;

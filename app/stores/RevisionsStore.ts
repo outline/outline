@@ -1,12 +1,11 @@
 import invariant from "invariant";
 import { filter } from "lodash";
 import { action, runInAction } from "mobx";
-import BaseStore from "stores/BaseStore";
-import RootStore from "stores/RootStore";
-import Revision from "models/Revision";
-import { FetchOptions, PaginationParams } from "../types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import BaseStore from "~/stores/BaseStore";
+import RootStore from "~/stores/RootStore";
+import { FetchOptions, PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
+import Revision from "../models/Revision";
 
 export default class RevisionsStore extends BaseStore<Revision> {
   // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'RevisionsStore' is not... Remove this comment to see the full error message

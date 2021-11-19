@@ -1,13 +1,12 @@
 import { CollectionIcon, EditIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
-import stores from "stores";
-import CollectionEdit from "scenes/CollectionEdit";
-import CollectionNew from "scenes/CollectionNew";
-import DynamicCollectionIcon from "components/CollectionIcon";
-import { createAction } from "actions";
-import { CollectionSection } from "actions/sections";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/history' or its correspo... Remove this comment to see the full error message
-import history from "utils/history";
+import stores from "~/stores";
+import CollectionEdit from "~/scenes/CollectionEdit";
+import CollectionNew from "~/scenes/CollectionNew";
+import DynamicCollectionIcon from "~/components/CollectionIcon";
+import { createAction } from "~/actions";
+import { CollectionSection } from "~/actions/sections";
+import history from "~/utils/history";
 
 export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),

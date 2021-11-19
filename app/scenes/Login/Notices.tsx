@@ -1,6 +1,6 @@
 import * as React from "react";
-import NoticeAlert from "components/NoticeAlert";
-import useQuery from "hooks/useQuery";
+import NoticeAlert from "~/components/NoticeAlert";
+import useQuery from "~/hooks/useQuery";
 
 export default function Notices() {
   const query = useQuery();

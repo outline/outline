@@ -2,9 +2,9 @@ import { GoToIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import { MenuInternalLink } from "../types";
-import BreadcrumbMenu from "menus/BreadcrumbMenu";
+import Flex from "~/components/Flex";
+import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
+import { MenuInternalLink } from "~/types";
 
 export type Crumb = {
   title: React.ReactNode;

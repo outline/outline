@@ -1,4 +1,4 @@
-import Policy from "models/Policy";
+import Policy from "../models/Policy";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 

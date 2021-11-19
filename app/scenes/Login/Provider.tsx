@@ -2,11 +2,10 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import styled from "styled-components";
-import AuthLogo from "components/AuthLogo";
-import ButtonLarge from "components/ButtonLarge";
-import InputLarge from "components/InputLarge";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import AuthLogo from "~/components/AuthLogo";
+import ButtonLarge from "~/components/ButtonLarge";
+import InputLarge from "~/components/InputLarge";
+import { client } from "~/utils/ApiClient";
 
 type Props = WithTranslation & {
   id: string;

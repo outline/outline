@@ -2,12 +2,12 @@ import { addDays, differenceInDays } from "date-fns";
 import invariant from "invariant";
 import { floor } from "lodash";
 import { action, computed, observable, set } from "mobx";
+import DocumentsStore from "~/stores/DocumentsStore";
+import BaseModel from "~/models/BaseModel";
+import User from "~/models/User";
+import View from "./View";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
-import DocumentsStore from "stores/DocumentsStore";
-import BaseModel from "models/BaseModel";
-import User from "models/User";
-import View from "./View";
 
 type SaveOptions = {
   publish?: boolean;

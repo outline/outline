@@ -1,6 +1,6 @@
 import queryString from "query-string";
-import Collection from "models/Collection";
-import Document from "models/Document";
+import Collection from "~/models/Collection";
+import Document from "~/models/Document";
 
 export function homePath(): string {
   return "/home";
@@ -30,10 +30,7 @@ export function groupSettingsPath(): string {
   return "/settings/groups";
 }
 
-export function collectionUrl(
-  url: string,
-  section: string | null | undefined
-): string {
+export function collectionUrl(url: string, section?: string): string {
   if (section) return `${url}/${section}`;
   return url;
 }

@@ -5,19 +5,18 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
-import User from "models/User";
-import Avatar from "components/Avatar";
-import Badge from "components/Badge";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import Modal from "components/Modal";
-import PaginatedDocumentList from "components/PaginatedDocumentList";
-import Subheading from "components/Subheading";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { settingsPath } from "utils/routeHelpers";
+import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import Badge from "~/components/Badge";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import Modal from "~/components/Modal";
+import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import Subheading from "~/components/Subheading";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   user: User;

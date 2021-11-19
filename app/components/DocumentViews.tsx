@@ -3,11 +3,11 @@ import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Document from "models/Document";
-import Avatar from "components/Avatar";
-import ListItem from "components/List/Item";
-import PaginatedList from "components/PaginatedList";
-import useStores from "hooks/useStores";
+import Document from "~/models/Document";
+import Avatar from "~/components/Avatar";
+import ListItem from "~/components/List/Item";
+import PaginatedList from "~/components/PaginatedList";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;

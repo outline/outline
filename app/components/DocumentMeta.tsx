@@ -3,13 +3,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import Document from "models/Document";
-import DocumentBreadcrumb from "components/DocumentBreadcrumb";
-import DocumentTasks from "components/DocumentTasks";
-import Flex from "components/Flex";
-import Time from "components/Time";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
+import Document from "~/models/Document";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import DocumentTasks from "~/components/DocumentTasks";
+import Flex from "~/components/Flex";
+import Time from "~/components/Time";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 
 const Container = styled(Flex)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};

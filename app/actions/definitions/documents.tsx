@@ -11,15 +11,12 @@ import {
   ImportIcon,
 } from "outline-icons";
 import * as React from "react";
-import DocumentTemplatize from "scenes/DocumentTemplatize";
-import { createAction } from "actions";
-import { DocumentSection } from "actions/sections";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/getDataTransferFiles' or... Remove this comment to see the full error message
-import getDataTransferFiles from "utils/getDataTransferFiles";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/history' or its correspo... Remove this comment to see the full error message
-import history from "utils/history";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { newDocumentPath } from "utils/routeHelpers";
+import DocumentTemplatize from "~/scenes/DocumentTemplatize";
+import { createAction } from "~/actions";
+import { DocumentSection } from "~/actions/sections";
+import getDataTransferFiles from "~/utils/getDataTransferFiles";
+import history from "~/utils/history";
+import { newDocumentPath } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),

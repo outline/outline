@@ -1,8 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
-import CenteredContent from "components/CenteredContent";
-import Header from "components/Header";
-import PageTitle from "components/PageTitle";
+import CenteredContent from "~/components/CenteredContent";
+import Header from "~/components/Header";
+import PageTitle from "~/components/PageTitle";
 
 type Props = {
   icon?: React.ReactNode;

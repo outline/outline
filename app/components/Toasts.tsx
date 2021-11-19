@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import Toast from "components/Toast";
-import { Toast as TToast } from "../types";
-import useStores from "hooks/useStores";
+import Toast from "~/components/Toast";
+import useStores from "~/hooks/useStores";
+import { Toast as TToast } from "~/types";
 
 function Toasts() {
   const { toasts } = useStores();

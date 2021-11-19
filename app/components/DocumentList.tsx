@@ -1,7 +1,7 @@
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import * as React from "react";
-import Document from "models/Document";
-import DocumentListItem from "components/DocumentListItem";
+import Document from "~/models/Document";
+import DocumentListItem from "~/components/DocumentListItem";
 
 type Props = {
   documents: Document[];

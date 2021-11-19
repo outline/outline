@@ -13,23 +13,33 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import getTasks from "shared/utils/getTasks";
-import RootStore from "stores/RootStore";
-import Document from "models/Document";
-import Revision from "models/Revision";
-import DocumentMove from "scenes/DocumentMove";
-import Branding from "components/Branding";
-import ConnectionStatus from "components/ConnectionStatus";
-import ErrorBoundary from "components/ErrorBoundary";
-import Flex from "components/Flex";
-import LoadingIndicator from "components/LoadingIndicator";
-import Modal from "components/Modal";
-import Notice from "components/Notice";
-import PageTitle from "components/PageTitle";
-import PlaceholderDocument from "components/PlaceholderDocument";
-import RegisterKeyDown from "components/RegisterKeyDown";
-import Time from "components/Time";
-import withStores from "components/withStores";
+import RootStore from "~/stores/RootStore";
+import Document from "~/models/Document";
+import Revision from "~/models/Revision";
+import DocumentMove from "~/scenes/DocumentMove";
+import Branding from "~/components/Branding";
+import ConnectionStatus from "~/components/ConnectionStatus";
+import ErrorBoundary from "~/components/ErrorBoundary";
+import Flex from "~/components/Flex";
+import LoadingIndicator from "~/components/LoadingIndicator";
+import Modal from "~/components/Modal";
+import Notice from "~/components/Notice";
+import PageTitle from "~/components/PageTitle";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
+import RegisterKeyDown from "~/components/RegisterKeyDown";
+import Time from "~/components/Time";
+import withStores from "~/components/withStores";
+import { NavigationNode } from "~/types";
+import { client } from "~/utils/ApiClient";
+import { isCustomDomain } from "~/utils/domains";
+import { emojiToUrl } from "~/utils/emoji";
+import { isModKey } from "~/utils/keyboard";
+import {
+  documentMoveUrl,
+  documentHistoryUrl,
+  editDocumentUrl,
+  documentUrl,
+} from "~/utils/routeHelpers";
 import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
@@ -38,23 +48,7 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
-import { isCustomDomain } from "utils/domains";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/emoji' or its correspond... Remove this comment to see the full error message
-import { emojiToUrl } from "utils/emoji";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
-import { isModKey } from "utils/keyboard";
-import {
-  documentMoveUrl,
-  documentHistoryUrl,
-  editDocumentUrl,
-  documentUrl,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-} from "utils/routeHelpers";
+import getTasks from "shared/utils/getTasks";
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;

@@ -2,10 +2,10 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import styled from "styled-components";
-import Editor from "components/Editor";
-import HelpText from "components/HelpText";
-import { LabelText, Outline } from "components/Input";
-import useStores from "hooks/useStores";
+import Editor from "~/components/Editor";
+import HelpText from "~/components/HelpText";
+import { LabelText, Outline } from "~/components/Input";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   label: string;

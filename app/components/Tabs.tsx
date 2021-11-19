@@ -2,7 +2,7 @@ import { AnimateSharedLayout } from "framer-motion";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import useWindowSize from "hooks/useWindowSize";
+import useWindowSize from "~/hooks/useWindowSize";
 
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
   border-bottom: 1px solid ${(props) => props.theme.divider};

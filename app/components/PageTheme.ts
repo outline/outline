@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTheme } from "styled-components";
-import useStores from "hooks/useStores";
+import useStores from "~/hooks/useStores";
 
 export default function PageTheme() {
   const { ui } = useStores();

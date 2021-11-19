@@ -1,13 +1,12 @@
 import invariant from "invariant";
 import { filter } from "lodash";
 import { action, runInAction, computed } from "mobx";
-import naturalSort from "shared/utils/naturalSort";
-import Group from "models/Group";
-import { PaginationParams } from "../types";
+import { PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
+import Group from "../models/Group";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import naturalSort from "shared/utils/naturalSort";
 
 type FetchPageParams = PaginationParams & { query?: string };
 

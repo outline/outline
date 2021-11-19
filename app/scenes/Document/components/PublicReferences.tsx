@@ -1,14 +1,14 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Subheading from "components/Subheading";
+import Subheading from "~/components/Subheading";
 import { NavigationNode } from "../../../types";
 import ReferenceListItem from "./ReferenceListItem";
 
 type Props = {
   shareId: string;
   documentId: string;
-  sharedTree: NavigationNode;
+  sharedTree?: NavigationNode;
 };
 
 function PublicReferences(props: Props) {
@@ -21,7 +21,7 @@ function PublicReferences(props: Props) {
   const children = React.useMemo(() => {
     let result: NavigationNode[];
 
-    function findChildren(node: NavigationNode) {
+    function findChildren(node?: NavigationNode) {
       if (!node) return;
 
       if (node.id === documentId) {

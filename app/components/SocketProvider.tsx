@@ -4,8 +4,8 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import io, { Socket } from "socket.io-client";
-import RootStore from "stores/RootStore";
-import withStores from "components/withStores";
+import RootStore from "~/stores/RootStore";
+import withStores from "~/components/withStores";
 import { getVisibilityListener, getPageVisible } from "../utils/pageVisibility";
 
 type SocketWithAuthentication = Socket & { authenticated?: boolean };

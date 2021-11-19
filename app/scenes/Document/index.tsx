@@ -1,12 +1,11 @@
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
-
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import SocketPresence from "./components/SocketPresence";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
 
 export default function DocumentScene(
   props: RouteComponentProps<{ documentSlug: string; revisionId: string }>

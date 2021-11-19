@@ -25,30 +25,28 @@ import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
-import Document from "models/Document";
-import DocumentDelete from "scenes/DocumentDelete";
-import DocumentMove from "scenes/DocumentMove";
-import DocumentPermanentDelete from "scenes/DocumentPermanentDelete";
-import DocumentTemplatize from "scenes/DocumentTemplatize";
-import CollectionIcon from "components/CollectionIcon";
-import ContextMenu from "components/ContextMenu";
-import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import Template from "components/ContextMenu/Template";
-import Flex from "components/Flex";
-import Modal from "components/Modal";
-import { MenuItem } from "../types";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/getDataTransferFiles' or... Remove this comment to see the full error message
-import getDataTransferFiles from "utils/getDataTransferFiles";
+import Document from "~/models/Document";
+import DocumentDelete from "~/scenes/DocumentDelete";
+import DocumentMove from "~/scenes/DocumentMove";
+import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
+import DocumentTemplatize from "~/scenes/DocumentTemplatize";
+import CollectionIcon from "~/components/CollectionIcon";
+import ContextMenu from "~/components/ContextMenu";
+import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import Template from "~/components/ContextMenu/Template";
+import Flex from "~/components/Flex";
+import Modal from "~/components/Modal";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
+import { MenuItem } from "~/types";
+import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import {
   documentHistoryUrl,
   documentUrl,
   editDocumentUrl,
   newDocumentPath,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-} from "utils/routeHelpers";
+} from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;

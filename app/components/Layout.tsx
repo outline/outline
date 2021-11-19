@@ -7,40 +7,38 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import RootStore from "stores/RootStore";
-import ErrorSuspended from "scenes/ErrorSuspended";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import { LoadingIndicatorBar } from "components/LoadingIndicator";
-import RegisterKeyDown from "components/RegisterKeyDown";
-import Sidebar from "components/Sidebar";
-import SettingsSidebar from "components/Sidebar/Settings";
-import SkipNavContent from "components/SkipNavContent";
-import SkipNavLink from "components/SkipNavLink";
-import history from "../utils/history";
-import withStores from "./withStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
-import { isModKey } from "utils/keyboard";
+import RootStore from "~/stores/RootStore";
+import ErrorSuspended from "~/scenes/ErrorSuspended";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
+import RegisterKeyDown from "~/components/RegisterKeyDown";
+import Sidebar from "~/components/Sidebar";
+import SettingsSidebar from "~/components/Sidebar/Settings";
+import SkipNavContent from "~/components/SkipNavContent";
+import SkipNavLink from "~/components/SkipNavLink";
+import { isModKey } from "~/utils/keyboard";
 import {
   searchUrl,
   matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-} from "utils/routeHelpers";
+} from "~/utils/routeHelpers";
+import history from "../utils/history";
+import withStores from "./withStores";
 
 const DocumentHistory = React.lazy(
   () =>
     import(
       /* webpackChunkName: "document-history" */
-      "components/DocumentHistory"
+      "~/components/DocumentHistory"
     )
 );
 const CommandBar = React.lazy(
   () =>
     import(
       /* webpackChunkName: "command-bar" */
-      "components/CommandBar"
+      "~/components/CommandBar"
     )
 );
 

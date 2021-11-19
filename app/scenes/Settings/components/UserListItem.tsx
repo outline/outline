@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import User from "models/User";
-import Avatar from "components/Avatar";
-import Badge from "components/Badge";
-import ListItem from "components/List/Item";
-import Time from "components/Time";
-import UserMenu from "menus/UserMenu";
+import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import Badge from "~/components/Badge";
+import ListItem from "~/components/List/Item";
+import Time from "~/components/Time";
+import UserMenu from "~/menus/UserMenu";
 
 type Props = {
   user: User;

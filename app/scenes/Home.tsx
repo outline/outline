@@ -3,18 +3,18 @@ import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
-import { Action } from "components/Actions";
-import Empty from "components/Empty";
-import Heading from "components/Heading";
-import InputSearchPage from "components/InputSearchPage";
-import LanguagePrompt from "components/LanguagePrompt";
-import Scene from "components/Scene";
-import Tab from "components/Tab";
-import Tabs from "components/Tabs";
+import { Action } from "~/components/Actions";
+import Empty from "~/components/Empty";
+import Heading from "~/components/Heading";
+import InputSearchPage from "~/components/InputSearchPage";
+import LanguagePrompt from "~/components/LanguagePrompt";
+import Scene from "~/components/Scene";
+import Tab from "~/components/Tab";
+import Tabs from "~/components/Tabs";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import PaginatedDocumentList from "../components/PaginatedDocumentList";
 import useStores from "../hooks/useStores";
-import useCurrentUser from "hooks/useCurrentUser";
-import NewDocumentMenu from "menus/NewDocumentMenu";
 
 function Home() {
   const { documents, ui } = useStores();

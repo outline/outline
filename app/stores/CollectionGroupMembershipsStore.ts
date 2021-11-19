@@ -1,11 +1,10 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
-import CollectionGroupMembership from "models/CollectionGroupMembership";
-import { PaginationParams } from "../types";
+import { PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
+import CollectionGroupMembership from "../models/CollectionGroupMembership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
 
 export default class CollectionGroupMembershipsStore extends BaseStore<
   CollectionGroupMembership

@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import User from "models/User";
-import Avatar from "components/Avatar";
-import Flex from "components/Flex";
+import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import Flex from "~/components/Flex";
 
 type Props = {
   users: User[];

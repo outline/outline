@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import Badge from "components/Badge";
+import Badge from "~/components/Badge";
 import { version } from "../../../../package.json";
 import SidebarLink from "./SidebarLink";
 

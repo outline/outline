@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import useStores from "hooks/useStores";
+import CenteredContent from "~/components/CenteredContent";
+import PageTitle from "~/components/PageTitle";
+import useStores from "~/hooks/useStores";
 
 const ErrorSuspended = () => {
   const { t } = useTranslation();

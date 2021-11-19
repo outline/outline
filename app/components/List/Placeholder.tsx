@@ -1,9 +1,9 @@
 import { times } from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import Fade from "components/Fade";
-import Flex from "components/Flex";
-import PlaceholderText from "components/PlaceholderText";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
+import PlaceholderText from "~/components/PlaceholderText";
 
 type Props = {
   count?: number;

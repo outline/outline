@@ -3,10 +3,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
-import Document from "models/Document";
-import DocumentMeta from "components/DocumentMeta";
-import DocumentViews from "components/DocumentViews";
-import Popover from "components/Popover";
+import Document from "~/models/Document";
+import DocumentMeta from "~/components/DocumentMeta";
+import DocumentViews from "~/components/DocumentViews";
+import Popover from "~/components/Popover";
 import useStores from "../hooks/useStores";
 
 type Props = {

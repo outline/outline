@@ -1,6 +1,6 @@
 import * as React from "react";
-import useMobile from "hooks/useMobile";
-import useWindowSize from "hooks/useWindowSize";
+import useMobile from "~/hooks/useMobile";
+import useWindowSize from "~/hooks/useWindowSize";
 
 const useMenuHeight = (
   visible: void | boolean,

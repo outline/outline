@@ -2,13 +2,13 @@ import { find } from "lodash";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { languages, languageOptions } from "shared/i18n";
-import ButtonLink from "components/ButtonLink";
-import Flex from "components/Flex";
-import NoticeTip from "components/NoticeTip";
+import ButtonLink from "~/components/ButtonLink";
+import Flex from "~/components/Flex";
+import NoticeTip from "~/components/NoticeTip";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import { detectLanguage } from "../utils/language";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
+import { languages, languageOptions } from "shared/i18n";
 
 function Icon(props: any) {
   return (

@@ -1,11 +1,10 @@
 import invariant from "invariant";
 import { sortBy, filter, find, isUndefined } from "lodash";
 import { action, computed } from "mobx";
-import Share from "models/Share";
+import { client } from "~/utils/ApiClient";
+import Share from "../models/Share";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
 
 export default class SharesStore extends BaseStore<Share> {
   // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'SharesStore' is not as... Remove this comment to see the full error message

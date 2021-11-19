@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { LabelText } from "components/Input";
+import { LabelText } from "~/components/Input";
 
 type Props = {
   width?: number;

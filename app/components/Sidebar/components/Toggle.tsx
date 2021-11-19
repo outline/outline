@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Arrow from "components/Arrow";
+import Arrow from "~/components/Arrow";
 
 type Props = {
   direction: "left" | "right";

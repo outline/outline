@@ -1,9 +1,9 @@
 import { Location } from "history";
 import { TFunction } from "react-i18next";
-import RootStore from "stores/RootStore";
-import Document from "models/Document";
+import RootStore from "~/stores/RootStore";
+import Document from "~/models/Document";
 
-export interface MenuItemButton {
+export type MenuItemButton = {
   type: "button";
   title: React.ReactNode;
   onClick: (event: React.SyntheticEvent) => void | Promise<void>;
@@ -11,9 +11,9 @@ export interface MenuItemButton {
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
-}
+};
 
-export interface MenuItemWithChildren {
+export type MenuItemWithChildren = {
   type: "submenu";
   title: React.ReactNode;
   visible?: boolean;
@@ -23,20 +23,20 @@ export interface MenuItemWithChildren {
 
   items: MenuItem[];
   icon?: React.ReactNode;
-}
+};
 
-export interface MenuSeparator {
+export type MenuSeparator = {
   type: "separator";
   visible?: boolean;
-}
+};
 
-export interface MenuHeading {
+export type MenuHeading = {
   type: "heading";
   visible?: boolean;
   title: React.ReactNode;
-}
+};
 
-export interface MenuInternalLink {
+export type MenuInternalLink = {
   type: "route";
   title: React.ReactNode;
   to: string;
@@ -44,9 +44,9 @@ export interface MenuInternalLink {
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
-}
+};
 
-export interface MenuExternalLink {
+export type MenuExternalLink = {
   type: "link";
   title: React.ReactNode;
   href: string;
@@ -55,7 +55,7 @@ export interface MenuExternalLink {
   disabled?: boolean;
   level?: number;
   icon?: React.ReactNode;
-}
+};
 
 export type MenuItem =
   | MenuInternalLink

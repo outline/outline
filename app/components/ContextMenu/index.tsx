@@ -3,14 +3,14 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import useMenuHeight from "~/hooks/useMenuHeight";
+import usePrevious from "~/hooks/usePrevious";
 import {
   fadeIn,
   fadeAndSlideUp,
   fadeAndSlideDown,
   mobileContextMenu,
 } from "../../styles/animations";
-import useMenuHeight from "hooks/useMenuHeight";
-import usePrevious from "hooks/usePrevious";
 
 export type Placement =
   | "auto-start"

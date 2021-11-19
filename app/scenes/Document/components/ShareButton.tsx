@@ -3,12 +3,12 @@ import { GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import Document from "models/Document";
-import Button from "components/Button";
-import Popover from "components/Popover";
-import Tooltip from "components/Tooltip";
+import Document from "~/models/Document";
+import Button from "~/components/Button";
+import Popover from "~/components/Popover";
+import Tooltip from "~/components/Tooltip";
+import useStores from "~/hooks/useStores";
 import SharePopover from "./SharePopover";
-import useStores from "hooks/useStores";
 
 type Props = {
   document: Document;

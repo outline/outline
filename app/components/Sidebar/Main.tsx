@@ -11,9 +11,21 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Bubble from "components/Bubble";
-import Flex from "components/Flex";
-import Scrollable from "components/Scrollable";
+import Bubble from "~/components/Bubble";
+import Flex from "~/components/Flex";
+import Scrollable from "~/components/Scrollable";
+import { inviteUser } from "~/actions/definitions/users";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
+import AccountMenu from "~/menus/AccountMenu";
+import {
+  homePath,
+  searchUrl,
+  draftsPath,
+  templatesPath,
+  settingsPath,
+} from "~/utils/routeHelpers";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
@@ -23,19 +35,6 @@ import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
-import { inviteUser } from "actions/definitions/users";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
-import AccountMenu from "menus/AccountMenu";
-import {
-  homePath,
-  searchUrl,
-  draftsPath,
-  templatesPath,
-  settingsPath,
-  // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-} from "utils/routeHelpers";
 
 function MainSidebar() {
   const { t } = useTranslation();

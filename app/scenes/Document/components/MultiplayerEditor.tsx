@@ -4,19 +4,17 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
-import Editor, { Props as EditorProps } from "components/Editor";
-import env from "env";
-import useCurrentToken from "hooks/useCurrentToken";
-import useCurrentUser from "hooks/useCurrentUser";
-import useIdle from "hooks/useIdle";
-import useIsMounted from "hooks/useIsMounted";
-import usePageVisibility from "hooks/usePageVisibility";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'multiplayer/MultiplayerExtensi... Remove this comment to see the full error message
-import MultiplayerExtension from "multiplayer/MultiplayerExtension";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { homePath } from "utils/routeHelpers";
+import Editor, { Props as EditorProps } from "~/components/Editor";
+import env from "~/env";
+import useCurrentToken from "~/hooks/useCurrentToken";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useIdle from "~/hooks/useIdle";
+import useIsMounted from "~/hooks/useIsMounted";
+import usePageVisibility from "~/hooks/usePageVisibility";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
+import MultiplayerExtension from "~/multiplayer/MultiplayerExtension";
+import { homePath } from "~/utils/routeHelpers";
 
 type Props = EditorProps & {
   id: string;

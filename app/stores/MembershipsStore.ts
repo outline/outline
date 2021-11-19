@@ -1,12 +1,10 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
-import Membership from "models/Membership";
+import { PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
+import Membership from "../models/Membership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { PaginationParams } from "types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
 
 export default class MembershipsStore extends BaseStore<Membership> {
   // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'MembershipsStore' is n... Remove this comment to see the full error message

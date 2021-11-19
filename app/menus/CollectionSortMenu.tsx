@@ -3,10 +3,10 @@ import { AlphabeticalSortIcon, ManualSortIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
-import Collection from "models/Collection";
-import ContextMenu from "components/ContextMenu";
-import Template from "components/ContextMenu/Template";
-import NudeButton from "components/NudeButton";
+import Collection from "~/models/Collection";
+import ContextMenu from "~/components/ContextMenu";
+import Template from "~/components/ContextMenu/Template";
+import NudeButton from "~/components/NudeButton";
 
 type Props = {
   collection: Collection;

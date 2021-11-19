@@ -2,14 +2,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import CollectionsStore from "stores/CollectionsStore";
-import DocumentsStore from "stores/DocumentsStore";
-import Document from "models/Document";
-import Fade from "components/Fade";
-import Tab from "components/Tab";
-import Tabs from "components/Tabs";
+import CollectionsStore from "~/stores/CollectionsStore";
+import DocumentsStore from "~/stores/DocumentsStore";
+import Document from "~/models/Document";
+import Fade from "~/components/Fade";
+import Tab from "~/components/Tab";
+import Tabs from "~/components/Tabs";
+import useStores from "~/hooks/useStores";
 import ReferenceListItem from "./ReferenceListItem";
-import useStores from "hooks/useStores";
 
 type Props = {
   document: Document;

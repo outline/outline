@@ -2,8 +2,8 @@ import { observer } from "mobx-react";
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import TeamLogo from "components/TeamLogo";
+import Flex from "~/components/Flex";
+import TeamLogo from "~/components/TeamLogo";
 
 type Props = {
   teamName: string;

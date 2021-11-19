@@ -1,6 +1,6 @@
 import * as React from "react";
+import { SocketContext } from "~/components/SocketProvider";
 import { USER_PRESENCE_INTERVAL } from "shared/constants";
-import { SocketContext } from "components/SocketProvider";
 
 type Props = {
   children?: React.ReactNode;

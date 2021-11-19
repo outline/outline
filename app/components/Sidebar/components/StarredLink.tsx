@@ -3,14 +3,14 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { MAX_TITLE_LENGTH } from "shared/constants";
-import Fade from "components/Fade";
+import Fade from "~/components/Fade";
+import useBoolean from "~/hooks/useBoolean";
+import DocumentMenu from "~/menus/DocumentMenu";
 import useStores from "../../../hooks/useStores";
 import Disclosure from "./Disclosure";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
-import useBoolean from "hooks/useBoolean";
-import DocumentMenu from "menus/DocumentMenu";
+import { MAX_TITLE_LENGTH } from "shared/constants";
 
 type Props = {
   depth: number;

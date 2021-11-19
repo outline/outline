@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Button from "components/Button";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import Scene from "components/Scene";
-import ZapierIcon from "components/ZapierIcon";
+import Button from "~/components/Button";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import Scene from "~/components/Scene";
+import ZapierIcon from "~/components/ZapierIcon";
 
 function Zapier() {
   const { t } = useTranslation();

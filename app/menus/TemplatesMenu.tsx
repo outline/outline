@@ -4,12 +4,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import Document from "models/Document";
-import Button from "components/Button";
-import ContextMenu from "components/ContextMenu";
-import MenuItem from "components/ContextMenu/MenuItem";
-import Separator from "components/ContextMenu/Separator";
-import useStores from "hooks/useStores";
+import Document from "~/models/Document";
+import Button from "~/components/Button";
+import ContextMenu from "~/components/ContextMenu";
+import MenuItem from "~/components/ContextMenu/MenuItem";
+import Separator from "~/components/ContextMenu/Separator";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;

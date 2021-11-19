@@ -4,13 +4,12 @@ import * as React from "react";
 import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { documentUrl } from "utils/routeHelpers";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
+import { documentUrl } from "~/utils/routeHelpers";
 
 type Props = {
   documentId: string;
@@ -18,7 +17,7 @@ type Props = {
 };
 
 function DocumentTemplatize({ documentId, onSubmit }: Props) {
-  const [isSaving, setIsSaving] = useState();
+  const [isSaving, setIsSaving] = useState<boolean>();
   const history = useHistory();
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -29,22 +28,25 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
         const template = await document.templatize();
-        history.push(documentUrl(template));
-        showToast(t("Template created, go ahead and customize it"), {
-          type: "info",
-        });
+
+        if (template) {
+          history.push(documentUrl(template));
+
+          showToast(t("Template created, go ahead and customize it"), {
+            type: "info",
+          });
+        }
+
         onSubmit();
       } catch (err) {
         showToast(err.message, {
           type: "error",
         });
       } finally {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },

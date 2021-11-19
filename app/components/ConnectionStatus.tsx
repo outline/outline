@@ -4,10 +4,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Fade from "components/Fade";
-import NudeButton from "components/NudeButton";
-import Tooltip from "components/Tooltip";
-import useStores from "hooks/useStores";
+import Fade from "~/components/Fade";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
+import useStores from "~/hooks/useStores";
 
 function ConnectionStatus() {
   const { ui } = useStores();

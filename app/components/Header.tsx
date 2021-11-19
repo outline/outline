@@ -4,8 +4,8 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Fade from "components/Fade";
-import Flex from "components/Flex";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
 
 type Props = {
   breadcrumb?: React.ReactNode;

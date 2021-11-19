@@ -3,11 +3,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import Guide from "components/Guide";
-import NudeButton from "components/NudeButton";
-import Tooltip from "components/Tooltip";
-import useBoolean from "hooks/useBoolean";
+import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import Guide from "~/components/Guide";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
+import useBoolean from "~/hooks/useBoolean";
 
 function KeyboardShortcutsButton() {
   const { t } = useTranslation();

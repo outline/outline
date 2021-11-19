@@ -2,17 +2,15 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
-import Document from "models/Document";
-import ClickablePadding from "components/ClickablePadding";
-import DocumentMetaWithViews from "components/DocumentMetaWithViews";
-import Editor, { Props as EditorProps } from "components/Editor";
-
-import Flex from "components/Flex";
-import HoverPreview from "components/HoverPreview";
+import Document from "~/models/Document";
+import ClickablePadding from "~/components/ClickablePadding";
+import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
+import Editor, { Props as EditorProps } from "~/components/Editor";
+import Flex from "~/components/Flex";
+import HoverPreview from "~/components/HoverPreview";
+import { documentHistoryUrl } from "~/utils/routeHelpers";
 import EditableTitle from "./EditableTitle";
 import MultiplayerEditor from "./MultiplayerEditor";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = EditorProps &
   WithTranslation & {

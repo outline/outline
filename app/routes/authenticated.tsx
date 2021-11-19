@@ -1,21 +1,20 @@
 import * as React from "react";
 import { Switch, Redirect, RouteComponentProps } from "react-router-dom";
-import Archive from "scenes/Archive";
-import Collection from "scenes/Collection";
-import DocumentNew from "scenes/DocumentNew";
-import Drafts from "scenes/Drafts";
-import Error404 from "scenes/Error404";
-import Home from "scenes/Home";
-import Search from "scenes/Search";
-import Templates from "scenes/Templates";
-import Trash from "scenes/Trash";
-import CenteredContent from "components/CenteredContent";
-import Layout from "components/Layout";
-import PlaceholderDocument from "components/PlaceholderDocument";
-import Route from "components/ProfiledRoute";
-import SocketProvider from "components/SocketProvider";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { matchDocumentSlug as slug } from "utils/routeHelpers";
+import Archive from "~/scenes/Archive";
+import Collection from "~/scenes/Collection";
+import DocumentNew from "~/scenes/DocumentNew";
+import Drafts from "~/scenes/Drafts";
+import Error404 from "~/scenes/Error404";
+import Home from "~/scenes/Home";
+import Search from "~/scenes/Search";
+import Templates from "~/scenes/Templates";
+import Trash from "~/scenes/Trash";
+import CenteredContent from "~/components/CenteredContent";
+import Layout from "~/components/Layout";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
+import Route from "~/components/ProfiledRoute";
+import SocketProvider from "~/components/SocketProvider";
+import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
 const SettingsRoutes = React.lazy(
   () =>
@@ -28,7 +27,7 @@ const Document = React.lazy(
   () =>
     import(
       /* webpackChunkName: "document" */
-      "scenes/Document"
+      "~/scenes/Document"
     )
 );
 

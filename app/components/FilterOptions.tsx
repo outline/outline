@@ -2,10 +2,10 @@ import { find } from "lodash";
 import * as React from "react";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
-import Button, { Inner } from "components/Button";
-import ContextMenu from "components/ContextMenu";
-import MenuItem from "components/ContextMenu/MenuItem";
-import HelpText from "components/HelpText";
+import Button, { Inner } from "~/components/Button";
+import ContextMenu from "~/components/ContextMenu";
+import MenuItem from "~/components/ContextMenu/MenuItem";
+import HelpText from "~/components/HelpText";
 
 type TFilterOption = {
   key: string;

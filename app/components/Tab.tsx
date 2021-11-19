@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import NavLinkWithChildrenFunc from "components/NavLink";
+import NavLinkWithChildrenFunc from "~/components/NavLink";
 
 type Props = {
   to: string;

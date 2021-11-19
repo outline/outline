@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { id } from "components/SkipNavContent";
+import { id } from "~/components/SkipNavContent";
 
 export default function SkipNavLink() {
   return <Anchor href={`#${id}`}>Skip navigation</Anchor>;

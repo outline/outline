@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import CenteredContent from "components/CenteredContent";
-import Empty from "components/Empty";
-import PageTitle from "components/PageTitle";
+import CenteredContent from "~/components/CenteredContent";
+import Empty from "~/components/Empty";
+import PageTitle from "~/components/PageTitle";
 
 const ErrorOffline = () => {
   const { t } = useTranslation();

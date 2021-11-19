@@ -1,11 +1,9 @@
 import { pick, trim } from "lodash";
 import { action, computed, observable } from "mobx";
-import BaseModel from "models/BaseModel";
-import Document from "models/Document";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import BaseModel from "~/models/BaseModel";
+import Document from "~/models/Document";
+import { NavigationNode } from "~/types";
+import { client } from "~/utils/ApiClient";
 
 export default class Collection extends BaseModel {
   @observable

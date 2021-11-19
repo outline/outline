@@ -3,16 +3,16 @@ import { ShapesIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { RouteComponentProps } from "react-router-dom";
-import { Action } from "components/Actions";
-import Empty from "components/Empty";
-import Heading from "components/Heading";
-import PaginatedDocumentList from "components/PaginatedDocumentList";
-import Scene from "components/Scene";
-import Tab from "components/Tab";
-import Tabs from "components/Tabs";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
-import NewTemplateMenu from "menus/NewTemplateMenu";
+import { Action } from "~/components/Actions";
+import Empty from "~/components/Empty";
+import Heading from "~/components/Heading";
+import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import Scene from "~/components/Scene";
+import Tab from "~/components/Tab";
+import Tabs from "~/components/Tabs";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
+import NewTemplateMenu from "~/menus/NewTemplateMenu";
 
 function Templates(props: RouteComponentProps<{ sort: string }>) {
   const { documents, policies } = useStores();

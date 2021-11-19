@@ -4,13 +4,13 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Flex from "components/Flex";
+import Flex from "~/components/Flex";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Section from "./Section";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
 
 const STARRED_PAGINATION_LIMIT = 10;
 const STARRED = "STARRED";

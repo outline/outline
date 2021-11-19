@@ -2,12 +2,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
-import Document from "models/Document";
-import ContextMenu from "components/ContextMenu";
-import Template from "components/ContextMenu/Template";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { newDocumentPath } from "utils/routeHelpers";
+import Document from "~/models/Document";
+import ContextMenu from "~/components/ContextMenu";
+import Template from "~/components/ContextMenu/Template";
+import useStores from "~/hooks/useStores";
+import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   label?: (arg0: any) => React.ReactNode;

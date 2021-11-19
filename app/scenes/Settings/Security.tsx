@@ -4,15 +4,15 @@ import { PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Checkbox from "components/Checkbox";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import InputSelect from "components/InputSelect";
-import Scene from "components/Scene";
-import env from "env";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import Checkbox from "~/components/Checkbox";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import InputSelect from "~/components/InputSelect";
+import Scene from "~/components/Scene";
+import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 function Security() {
   const { auth } = useStores();

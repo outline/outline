@@ -4,14 +4,14 @@ import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import IconPicker from "components/IconPicker";
-import Input from "components/Input";
-import InputSelect from "components/InputSelect";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import IconPicker from "~/components/IconPicker";
+import Input from "~/components/Input";
+import InputSelect from "~/components/InputSelect";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   collectionId: string;

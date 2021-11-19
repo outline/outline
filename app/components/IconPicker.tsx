@@ -35,11 +35,11 @@ import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import ContextMenu from "components/ContextMenu";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import { LabelText } from "components/Input";
-import NudeButton from "components/NudeButton";
+import ContextMenu from "~/components/ContextMenu";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import { LabelText } from "~/components/Input";
+import NudeButton from "~/components/NudeButton";
 
 const style = {
   width: 30,

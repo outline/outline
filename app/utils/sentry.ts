@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
 import { History } from "history";
-import env from "env";
+import env from "~/env";
 
 export function initSentry(history: History) {
   Sentry.init({

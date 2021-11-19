@@ -4,13 +4,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import useBoolean from "~/hooks/useBoolean";
+import useKeyDown from "~/hooks/useKeyDown";
+import { isModKey } from "~/utils/keyboard";
+import { searchUrl } from "~/utils/routeHelpers";
 import Input from "./Input";
-import useBoolean from "hooks/useBoolean";
-import useKeyDown from "hooks/useKeyDown";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
-import { isModKey } from "utils/keyboard";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
   source: string;

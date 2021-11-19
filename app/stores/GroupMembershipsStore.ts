@@ -1,13 +1,11 @@
 import invariant from "invariant";
 import { filter } from "lodash";
 import { action, runInAction } from "mobx";
-import GroupMembership from "models/GroupMembership";
+import { PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
+import GroupMembership from "../models/GroupMembership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { PaginationParams } from "types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
 
 export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'GroupMembershipsStore'... Remove this comment to see the full error message

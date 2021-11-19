@@ -5,10 +5,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
-import Button from "components/Button";
-import Empty from "components/Empty";
-import Flex from "components/Flex";
-import PlaceholderText from "components/PlaceholderText";
+import Button from "~/components/Button";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import PlaceholderText from "~/components/PlaceholderText";
 
 export type Props = {
   data: any[];

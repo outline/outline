@@ -2,7 +2,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import EventBoundary from "components/EventBoundary";
+import EventBoundary from "~/components/EventBoundary";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
 
 type Props = Omit<NavLinkProps, "to"> & {

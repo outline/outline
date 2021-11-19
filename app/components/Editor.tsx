@@ -3,20 +3,17 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Extension } from "rich-markdown-editor";
 import styled, { DefaultTheme, withTheme } from "styled-components";
+import UiStore from "~/stores/UiStore";
+import ErrorBoundary from "~/components/ErrorBoundary";
+import Tooltip from "~/components/Tooltip";
+import useMediaQuery from "~/hooks/useMediaQuery";
+import useToasts from "~/hooks/useToasts";
+import { isModKey } from "~/utils/keyboard";
+import { uploadFile } from "~/utils/uploadFile";
+import { isInternalUrl, isHash } from "~/utils/urls";
+import history from "../utils/history";
 import embeds from "shared/embeds";
 import { light } from "shared/theme";
-import UiStore from "stores/UiStore";
-import ErrorBoundary from "components/ErrorBoundary";
-import Tooltip from "components/Tooltip";
-import history from "../utils/history";
-import useMediaQuery from "hooks/useMediaQuery";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
-import { isModKey } from "utils/keyboard";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
-import { uploadFile } from "utils/uploadFile";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
-import { isInternalUrl, isHash } from "utils/urls";
 
 const RichMarkdownEditor = React.lazy(
   () =>

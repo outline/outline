@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import { GoToIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { DocumentPath } from "stores/CollectionsStore";
-import Collection from "models/Collection";
-import Document from "models/Document";
-import CollectionIcon from "components/CollectionIcon";
-import Flex from "components/Flex";
+import { DocumentPath } from "~/stores/CollectionsStore";
+import Collection from "~/models/Collection";
+import Document from "~/models/Document";
+import CollectionIcon from "~/components/CollectionIcon";
+import Flex from "~/components/Flex";
 
 type Props = {
   result: DocumentPath;

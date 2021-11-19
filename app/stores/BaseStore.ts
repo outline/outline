@@ -2,11 +2,10 @@ import invariant from "invariant";
 import { orderBy } from "lodash";
 import { observable, set, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
-import RootStore from "stores/RootStore";
-import BaseModel from "../models/BaseModel";
-import { PaginationParams } from "../types";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+import RootStore from "~/stores/RootStore";
+import BaseModel from "~/models/BaseModel";
+import { PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
 
 type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
@@ -16,8 +15,7 @@ type FetchPageParams = PaginationParams & {
   filter?: string;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'string' implicitly has an 'any' type.
-function modelNameFromClassName(string) {
+function modelNameFromClassName(string: string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
 }
 

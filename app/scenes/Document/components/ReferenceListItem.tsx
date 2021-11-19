@@ -3,10 +3,9 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import Document from "models/Document";
-import DocumentMeta from "components/DocumentMeta";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
+import Document from "~/models/Document";
+import DocumentMeta from "~/components/DocumentMeta";
+import { NavigationNode } from "~/types";
 
 type Props = {
   shareId?: string;
@@ -80,16 +79,16 @@ function ReferenceListItem({
       {...rest}
     >
       <Title dir="auto">
-        {document.emoji ? (
+        {document instanceof Document && document.emoji ? (
           <Emoji>{document.emoji}</Emoji>
         ) : (
           <StyledDocumentIcon color="currentColor" />
         )}{" "}
-        {document.emoji
+        {document instanceof Document && document.emoji
           ? document.title.replace(new RegExp(`^${document.emoji}`), "")
           : document.title}
       </Title>
-      {document.updatedBy && (
+      {document instanceof Document && document.updatedBy && (
         <DocumentMeta document={document} showCollection={showCollection} />
       )}
     </DocumentLink>

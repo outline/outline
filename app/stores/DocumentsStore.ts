@@ -2,21 +2,20 @@ import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
-import { MAX_TITLE_LENGTH } from "shared/constants";
-import { subtractDate } from "shared/utils/date";
-import naturalSort from "shared/utils/naturalSort";
-import BaseStore from "stores/BaseStore";
-import RootStore from "stores/RootStore";
-import Document from "models/Document";
+import BaseStore from "~/stores/BaseStore";
+import RootStore from "~/stores/RootStore";
+import env from "~/env";
 import {
   NavigationNode,
   FetchOptions,
   PaginationParams,
   SearchResult,
-} from "../types";
-import env from "env";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/ApiClient' or its corres... Remove this comment to see the full error message
-import { client } from "utils/ApiClient";
+} from "~/types";
+import { client } from "~/utils/ApiClient";
+import Document from "../models/Document";
+import { MAX_TITLE_LENGTH } from "shared/constants";
+import { subtractDate } from "shared/utils/date";
+import naturalSort from "shared/utils/naturalSort";
 
 type FetchParams = PaginationParams & { collectionId: string };
 
@@ -749,7 +748,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     }
   };
 
-  unstar = (document: Document) => {
+  unstar = async (document: Document) => {
     this.starredIds.set(document.id, false);
 
     try {

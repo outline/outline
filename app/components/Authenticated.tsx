@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
-import { isCustomSubdomain } from "shared/utils/domains";
-import LoadingIndicator from "components/LoadingIndicator";
+import LoadingIndicator from "~/components/LoadingIndicator";
+import env from "~/env";
 import useStores from "../hooks/useStores";
 import { changeLanguage } from "../utils/language";
-import env from "env";
+import { isCustomSubdomain } from "shared/utils/domains";
 
 type Props = {
   children: JSX.Element;

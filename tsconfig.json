@@ -6,6 +6,7 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "baseUrl": ".",
     "jsx": "react",
     "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
@@ -21,17 +22,8 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2020",
     "paths": {
-      "env": ["./app/env"],
-      "actions": ["./app/actions"],
-      "actions/*": ["./app/actions/*"],
-      "components/*": ["./app/components/*"],
-      "scenes/*": ["./app/scenes/*"],
-      "hooks/*": ["./app/hooks/*"],
-      "menus/*": ["./app/menus/*"],
-      "models/*": ["./app/models/*"],
-      "stores": ["./app/stores"],
-      "stores/*": ["./app/stores/*"],
       "shared/*": ["./shared/*"],
+      "~/*": ["./app/*"],
     }
   },
   "exclude": [

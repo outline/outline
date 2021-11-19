@@ -2,7 +2,7 @@ import retry from "fetch-retry";
 import invariant from "invariant";
 import { map, trim } from "lodash";
 import { getCookie } from "tiny-cookie";
-import stores from "stores";
+import stores from "~/stores";
 import download from "./download";
 import {
   AuthorizationError,
@@ -203,7 +203,7 @@ class ApiClient {
 
   post = (
     path: string,
-    data: Record<string, any> | null | undefined,
+    data?: Record<string, any> | null,
     options?: Record<string, any>
   ) => {
     return this.fetch(path, "POST", data, options);

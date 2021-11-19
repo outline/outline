@@ -37,32 +37,37 @@
         },
         "pathGroups": [
           {
-            "pattern": "shared/**",
+            "pattern": "~/shared/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "stores",
+            "pattern": "~/stores",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "stores/**",
+            "pattern": "~/stores/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "models/**",
+            "pattern": "~/models/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "scenes/**",
+            "pattern": "~/scenes/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "components/**",
+            "pattern": "~/components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "~/**",
             "group": "external",
             "position": "after"
           }
@@ -83,18 +88,12 @@
       "pragma": "React",
       "version": "detect"
     },
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
     "import/resolver": {
-      "node": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"],
-        "paths": [
-          "app",
-          "."
-        ]
-      }
+      "typescript": {}
     }
-  },
-  "env": {
-    "jest": true
   },
   "globals": {
     "EDITOR_VERSION": true

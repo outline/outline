@@ -4,17 +4,17 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import Input from "components/Input";
-import Notice from "components/Notice";
-import Scene from "components/Scene";
-import Subheading from "components/Subheading";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import Input from "~/components/Input";
+import Notice from "~/components/Notice";
+import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
+import env from "~/env";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import NotificationListItem from "./components/NotificationListItem";
-import env from "env";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
 
 function Notifications() {
   const { notificationSettings } = useStores();

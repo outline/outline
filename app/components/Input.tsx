@@ -4,7 +4,7 @@ import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Flex from "components/Flex";
+import Flex from "~/components/Flex";
 
 const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   border: 0;

@@ -5,17 +5,17 @@ import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Collection from "models/Collection";
-import Fade from "components/Fade";
-import Flex from "components/Flex";
+import Collection from "~/models/Collection";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
+import { createCollection } from "~/actions/definitions/collections";
+import useToasts from "~/hooks/useToasts";
 import useStores from "../../../hooks/useStores";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
 import SidebarLink from "./SidebarLink";
-import { createCollection } from "actions/definitions/collections";
-import useToasts from "hooks/useToasts";
 
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);

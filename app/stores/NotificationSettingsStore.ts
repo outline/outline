@@ -1,5 +1,5 @@
 import { find } from "lodash";
-import NotificationSetting from "models/NotificationSetting";
+import NotificationSetting from "../models/NotificationSetting";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 

@@ -1,7 +1,7 @@
 import * as React from "react";
-import Document from "models/Document";
-import DocumentListItem from "components/DocumentListItem";
-import PaginatedList from "components/PaginatedList";
+import Document from "~/models/Document";
+import DocumentListItem from "~/components/DocumentListItem";
+import PaginatedList from "~/components/PaginatedList";
 
 type Props = {
   documents: Document[];

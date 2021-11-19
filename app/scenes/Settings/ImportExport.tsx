@@ -5,23 +5,21 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
-import { parseOutlineExport } from "shared/utils/zip";
-import FileOperation from "models/FileOperation";
-import Button from "components/Button";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import Notice from "components/Notice";
-import PaginatedList from "components/PaginatedList";
-import Scene from "components/Scene";
-import Subheading from "components/Subheading";
+import FileOperation from "~/models/FileOperation";
+import Button from "~/components/Button";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import Notice from "~/components/Notice";
+import PaginatedList from "~/components/PaginatedList";
+import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
+import getDataTransferFiles from "~/utils/getDataTransferFiles";
+import { uploadFile } from "~/utils/uploadFile";
 import FileOperationListItem from "./components/FileOperationListItem";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/getDataTransferFiles' or... Remove this comment to see the full error message
-import getDataTransferFiles from "utils/getDataTransferFiles";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
-import { uploadFile } from "utils/uploadFile";
+import { parseOutlineExport } from "shared/utils/zip";
 
 function ImportExport() {
   const { t } = useTranslation();
@@ -33,7 +31,7 @@ function ImportExport() {
   const [isImporting, setImporting] = React.useState(false);
   const [isImported, setImported] = React.useState(false);
   const [isExporting, setExporting] = React.useState(false);
-  const [file, setFile] = React.useState();
+  const [file, setFile] = React.useState<File>();
   const [importDetails, setImportDetails] = React.useState();
 
   const handleImport = React.useCallback(async () => {
@@ -44,7 +42,6 @@ function ImportExport() {
     try {
       invariant(file, "File must exist to upload");
       const attachment = await uploadFile(file, {
-        // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
         name: file.name,
       });
       await collections.import(attachment.id);
@@ -166,7 +163,6 @@ function ImportExport() {
           <Trans
             defaults="Sorry, the file <em>{{ fileName }}</em> is missing valid collections or documents."
             values={{
-              // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
               fileName: file.name,
             }}
             components={{
@@ -181,7 +177,6 @@ function ImportExport() {
             <Trans
               defaults="<em>{{ fileName }}</em> looks good, the following collections and their documents will be imported:"
               values={{
-                // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
                 fileName: file.name,
               }}
               components={{

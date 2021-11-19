@@ -1,8 +1,7 @@
 import { orderBy } from "lodash";
 import { observable, action, computed } from "mobx";
 import { v4 as uuidv4 } from "uuid";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { Toast, ToastOptions } from "types";
+import { Toast, ToastOptions } from "~/types";
 
 export default class ToastsStore {
   @observable

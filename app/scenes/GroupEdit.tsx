@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Group from "models/Group";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import Input from "components/Input";
-import useToasts from "hooks/useToasts";
+import Group from "~/models/Group";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import Input from "~/components/Input";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   group: Group;

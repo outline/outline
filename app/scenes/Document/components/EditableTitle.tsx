@@ -3,15 +3,14 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import Document from "~/models/Document";
+import ContentEditable from "~/components/ContentEditable";
+import Star, { AnimatedStar } from "~/components/Star";
+import useStores from "~/hooks/useStores";
+import { isModKey } from "~/utils/keyboard";
 import { MAX_TITLE_LENGTH } from "shared/constants";
 import { light } from "shared/theme";
 import parseTitle from "shared/utils/parseTitle";
-import Document from "models/Document";
-import ContentEditable from "components/ContentEditable";
-import Star, { AnimatedStar } from "components/Star";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
-import { isModKey } from "utils/keyboard";
 
 type Props = {
   value: string;

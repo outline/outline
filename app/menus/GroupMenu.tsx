@@ -2,14 +2,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
-import Group from "models/Group";
-import GroupDelete from "scenes/GroupDelete";
-import GroupEdit from "scenes/GroupEdit";
-import ContextMenu from "components/ContextMenu";
-import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import Template from "components/ContextMenu/Template";
-import Modal from "components/Modal";
-import useStores from "hooks/useStores";
+import Group from "~/models/Group";
+import GroupDelete from "~/scenes/GroupDelete";
+import GroupEdit from "~/scenes/GroupEdit";
+import ContextMenu from "~/components/ContextMenu";
+import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import Template from "~/components/ContextMenu/Template";
+import Modal from "~/components/Modal";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   group: Group;

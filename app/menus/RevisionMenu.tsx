@@ -4,17 +4,16 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState } from "reakit/Menu";
-import Document from "models/Document";
-import ContextMenu from "components/ContextMenu";
-import MenuItem from "components/ContextMenu/MenuItem";
-import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import Separator from "components/ContextMenu/Separator";
-import CopyToClipboard from "components/CopyToClipboard";
-import MenuIconWrapper from "components/MenuIconWrapper";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { documentHistoryUrl } from "utils/routeHelpers";
+import Document from "~/models/Document";
+import ContextMenu from "~/components/ContextMenu";
+import MenuItem from "~/components/ContextMenu/MenuItem";
+import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import Separator from "~/components/ContextMenu/Separator";
+import CopyToClipboard from "~/components/CopyToClipboard";
+import MenuIconWrapper from "~/components/MenuIconWrapper";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useToasts from "~/hooks/useToasts";
+import { documentHistoryUrl } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;

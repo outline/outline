@@ -8,7 +8,7 @@ import {
   CommandBarAction,
   MenuItemButton,
   MenuItemWithChildren,
-} from "../types";
+} from "~/types";
 
 export function createAction(
   definition: $Diff<

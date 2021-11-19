@@ -4,10 +4,10 @@ import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
-import LoadingIndicator from "components/LoadingIndicator";
-import useImportDocument from "hooks/useImportDocument";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import LoadingIndicator from "~/components/LoadingIndicator";
+import useImportDocument from "~/hooks/useImportDocument";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   children: JSX.Element;

@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Share from "models/Share";
-import ListItem from "components/List/Item";
-import Time from "components/Time";
-import ShareMenu from "menus/ShareMenu";
+import Share from "~/models/Share";
+import ListItem from "~/components/List/Item";
+import Time from "~/components/Time";
+import ShareMenu from "~/menus/ShareMenu";
 
 type Props = {
   share: Share;

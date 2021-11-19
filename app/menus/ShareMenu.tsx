@@ -3,13 +3,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState } from "reakit/Menu";
-import Share from "models/Share";
-import ContextMenu from "components/ContextMenu";
-import MenuItem from "components/ContextMenu/MenuItem";
-import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import CopyToClipboard from "components/CopyToClipboard";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import Share from "~/models/Share";
+import ContextMenu from "~/components/ContextMenu";
+import MenuItem from "~/components/ContextMenu/MenuItem";
+import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import CopyToClipboard from "~/components/CopyToClipboard";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   share: Share;

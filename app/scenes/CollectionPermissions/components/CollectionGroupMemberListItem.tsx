@@ -1,12 +1,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import CollectionGroupMembership from "models/CollectionGroupMembership";
-import Group from "models/Group";
-import GroupListItem from "components/GroupListItem";
-import InputSelect, { Props as SelectProps } from "components/InputSelect";
-
-import CollectionGroupMemberMenu from "menus/CollectionGroupMemberMenu";
+import CollectionGroupMembership from "~/models/CollectionGroupMembership";
+import Group from "~/models/Group";
+import GroupListItem from "~/components/GroupListItem";
+import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
+import CollectionGroupMemberMenu from "~/menus/CollectionGroupMemberMenu";
 
 type Props = {
   group: Group;

@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Collection from "models/Collection";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import useToasts from "hooks/useToasts";
+import Collection from "~/models/Collection";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   collection: Collection;

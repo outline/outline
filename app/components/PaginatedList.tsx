@@ -5,11 +5,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
-import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
-import RootStore from "stores/RootStore";
-import DelayedMount from "components/DelayedMount";
-import PlaceholderList from "components/List/Placeholder";
-import withStores from "components/withStores";
+import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
+import RootStore from "~/stores/RootStore";
+import DelayedMount from "~/components/DelayedMount";
+import PlaceholderList from "~/components/List/Placeholder";
+import withStores from "~/components/withStores";
 import { dateToHeading } from "../utils/dates";
 
 type Props = WithTranslation &

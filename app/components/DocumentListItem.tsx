@@ -5,22 +5,21 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Document from "models/Document";
-import Badge from "components/Badge";
-import Button from "components/Button";
-import DocumentMeta from "components/DocumentMeta";
-import EventBoundary from "components/EventBoundary";
-import Flex from "components/Flex";
-import Highlight from "components/Highlight";
-import StarButton, { AnimatedStar } from "components/Star";
-import Tooltip from "components/Tooltip";
-import useBoolean from "hooks/useBoolean";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useCurrentUser from "hooks/useCurrentUser";
-import useStores from "hooks/useStores";
-import DocumentMenu from "menus/DocumentMenu";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { newDocumentPath } from "utils/routeHelpers";
+import Document from "~/models/Document";
+import Badge from "~/components/Badge";
+import Button from "~/components/Button";
+import DocumentMeta from "~/components/DocumentMeta";
+import EventBoundary from "~/components/EventBoundary";
+import Flex from "~/components/Flex";
+import Highlight from "~/components/Highlight";
+import StarButton, { AnimatedStar } from "~/components/Star";
+import Tooltip from "~/components/Tooltip";
+import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
+import DocumentMenu from "~/menus/DocumentMenu";
+import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;

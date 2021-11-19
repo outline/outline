@@ -1,16 +1,15 @@
 import * as React from "react";
 import { Switch } from "react-router-dom";
-import DelayedMount from "components/DelayedMount";
-import FullscreenLoading from "components/FullscreenLoading";
-import Route from "components/ProfiledRoute";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { matchDocumentSlug as slug } from "utils/routeHelpers";
+import DelayedMount from "~/components/DelayedMount";
+import FullscreenLoading from "~/components/FullscreenLoading";
+import Route from "~/components/ProfiledRoute";
+import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
 const Authenticated = React.lazy(
   () =>
     import(
       /* webpackChunkName: "authenticated" */
-      "components/Authenticated"
+      "~/components/Authenticated"
     )
 );
 const AuthenticatedRoutes = React.lazy(
@@ -24,21 +23,21 @@ const SharedDocument = React.lazy(
   () =>
     import(
       /* webpackChunkName: "shared-document" */
-      "scenes/Document/Shared"
+      "~/scenes/Document/Shared"
     )
 );
 const Login = React.lazy(
   () =>
     import(
       /* webpackChunkName: "login" */
-      "scenes/Login"
+      "~/scenes/Login"
     )
 );
 const Logout = React.lazy(
   () =>
     import(
       /* webpackChunkName: "logout" */
-      "scenes/Logout"
+      "~/scenes/Logout"
     )
 );
 

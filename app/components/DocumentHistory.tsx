@@ -5,15 +5,14 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Event from "models/Event";
-import Button from "components/Button";
-import Empty from "components/Empty";
-import Flex from "components/Flex";
-import PaginatedEventList from "components/PaginatedEventList";
-import Scrollable from "components/Scrollable";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { documentUrl } from "utils/routeHelpers";
+import Event from "~/models/Event";
+import Button from "~/components/Button";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import PaginatedEventList from "~/components/PaginatedEventList";
+import Scrollable from "~/components/Scrollable";
+import useStores from "~/hooks/useStores";
+import { documentUrl } from "~/utils/routeHelpers";
 
 // @ts-expect-error ts-migrate(7034) FIXME: Variable 'EMPTY_ARRAY' implicitly has type 'any[]'... Remove this comment to see the full error message
 const EMPTY_ARRAY = [];
@@ -31,7 +30,11 @@ function DocumentHistory() {
       EMPTY_ARRAY;
 
   const onCloseHistory = () => {
-    history.push(documentUrl(document));
+    if (document) {
+      history.push(documentUrl(document));
+    } else {
+      history.goBack();
+    }
   };
 
   const items = React.useMemo(() => {

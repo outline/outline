@@ -6,12 +6,12 @@ import { useTranslation } from "react-i18next";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Flex from "components/Flex";
-import NudeButton from "components/NudeButton";
-import Scrollable from "components/Scrollable";
+import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
+import Scrollable from "~/components/Scrollable";
+import usePrevious from "~/hooks/usePrevious";
+import useUnmount from "~/hooks/useUnmount";
 import { fadeAndScaleIn } from "../styles/animations";
-import usePrevious from "hooks/usePrevious";
-import useUnmount from "hooks/useUnmount";
 
 let openModals = 0;
 type Props = {

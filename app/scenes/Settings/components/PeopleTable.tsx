@@ -3,22 +3,21 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { $Diff } from "utility-types";
-import User from "models/User";
-import Avatar from "components/Avatar";
-import Badge from "components/Badge";
-import Flex from "components/Flex";
-import { Props as TableProps } from "components/Table";
-
-import Time from "components/Time";
-import useCurrentUser from "hooks/useCurrentUser";
-import UserMenu from "menus/UserMenu";
+import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import Badge from "~/components/Badge";
+import Flex from "~/components/Flex";
+import { Props as TableProps } from "~/components/Table";
+import Time from "~/components/Time";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import UserMenu from "~/menus/UserMenu";
 
 // @ts-expect-error ts-migrate(2344) FIXME: Type 'Props' does not satisfy the constraint 'Comp... Remove this comment to see the full error message
 const Table = React.lazy<TableProps>(
   () =>
     import(
       /* webpackChunkName: "table" */
-      "components/Table"
+      "~/components/Table"
     )
 );
 type Props = $Diff<

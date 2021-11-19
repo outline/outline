@@ -1,4 +1,4 @@
-import RootStore from "stores/RootStore";
+import RootStore from "~/stores/RootStore";
 
 const stores = new RootStore();
 

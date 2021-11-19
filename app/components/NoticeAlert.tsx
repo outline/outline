@@ -1,5 +1,5 @@
 import * as React from "react";
-import Notice from "components/Notice";
+import Notice from "~/components/Notice";
 
 export default function AlertNotice({
   children,

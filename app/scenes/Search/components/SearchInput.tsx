@@ -1,7 +1,7 @@
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import Flex from "components/Flex";
+import Flex from "~/components/Flex";
 
 type Props = {
   defaultValue?: string;

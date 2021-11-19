@@ -7,9 +7,7 @@ import {
   format as formatDate,
 } from "date-fns";
 import { TFunction } from "react-i18next";
-
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/i18n' or its correspondi... Remove this comment to see the full error message
-import { dateLocale } from "utils/i18n";
+import { dateLocale } from "~/utils/i18n";
 
 export function dateToHeading(
   dateTime: string,

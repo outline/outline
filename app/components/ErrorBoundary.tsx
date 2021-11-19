@@ -3,14 +3,13 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
-
 import styled from "styled-components";
-import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
-import HelpText from "components/HelpText";
-import PageTitle from "components/PageTitle";
+import Button from "~/components/Button";
+import CenteredContent from "~/components/CenteredContent";
+import HelpText from "~/components/HelpText";
+import PageTitle from "~/components/PageTitle";
+import env from "~/env";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
-import env from "env";
 
 type Props = WithTranslation & {
   children: React.ReactNode;

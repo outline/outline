@@ -1,19 +1,19 @@
 import * as React from "react";
 import { Switch, Redirect } from "react-router-dom";
-import Details from "scenes/Settings/Details";
-import Features from "scenes/Settings/Features";
-import Groups from "scenes/Settings/Groups";
-import ImportExport from "scenes/Settings/ImportExport";
-import Notifications from "scenes/Settings/Notifications";
-import People from "scenes/Settings/People";
-import Profile from "scenes/Settings/Profile";
-import Security from "scenes/Settings/Security";
-import Shares from "scenes/Settings/Shares";
-import Slack from "scenes/Settings/Slack";
-import Tokens from "scenes/Settings/Tokens";
-import Zapier from "scenes/Settings/Zapier";
-import Route from "components/ProfiledRoute";
-import env from "env";
+import Details from "~/scenes/Settings/Details";
+import Features from "~/scenes/Settings/Features";
+import Groups from "~/scenes/Settings/Groups";
+import ImportExport from "~/scenes/Settings/ImportExport";
+import Notifications from "~/scenes/Settings/Notifications";
+import People from "~/scenes/Settings/People";
+import Profile from "~/scenes/Settings/Profile";
+import Security from "~/scenes/Settings/Security";
+import Shares from "~/scenes/Settings/Shares";
+import Slack from "~/scenes/Settings/Slack";
+import Tokens from "~/scenes/Settings/Tokens";
+import Zapier from "~/scenes/Settings/Zapier";
+import Route from "~/components/ProfiledRoute";
+import env from "~/env";
 
 const isHosted = env.DEPLOYMENT === "hosted";
 

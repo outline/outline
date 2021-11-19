@@ -1,4 +1,4 @@
-import ApiKey from "models/ApiKey";
+import ApiKey from "../models/ApiKey";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 

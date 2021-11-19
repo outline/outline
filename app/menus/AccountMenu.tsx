@@ -3,10 +3,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import ContextMenu from "components/ContextMenu";
-import Template from "components/ContextMenu/Template";
-import { createAction } from "actions";
-import { development } from "actions/definitions/debug";
+import ContextMenu from "~/components/ContextMenu";
+import Template from "~/components/ContextMenu/Template";
+import { createAction } from "~/actions";
+import { development } from "~/actions/definitions/debug";
 import {
   navigateToSettings,
   openKeyboardShortcuts,
@@ -15,13 +15,13 @@ import {
   openBugReportUrl,
   openFeedbackUrl,
   logout,
-} from "actions/definitions/navigation";
-import { changeTheme } from "actions/definitions/settings";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import usePrevious from "hooks/usePrevious";
-import useSessions from "hooks/useSessions";
-import useStores from "hooks/useStores";
-import separator from "menus/separator";
+} from "~/actions/definitions/navigation";
+import { changeTheme } from "~/actions/definitions/settings";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePrevious from "~/hooks/usePrevious";
+import useSessions from "~/hooks/useSessions";
+import useStores from "~/hooks/useStores";
+import separator from "~/menus/separator";
 
 type Props = {
   children: (props: any) => React.ReactNode;

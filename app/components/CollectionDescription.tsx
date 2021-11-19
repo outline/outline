@@ -3,15 +3,15 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Collection from "models/Collection";
-import Arrow from "components/Arrow";
-import ButtonLink from "components/ButtonLink";
-import Editor from "components/Editor";
-import LoadingIndicator from "components/LoadingIndicator";
-import NudeButton from "components/NudeButton";
-import useDebouncedCallback from "hooks/useDebouncedCallback";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
+import Collection from "~/models/Collection";
+import Arrow from "~/components/Arrow";
+import ButtonLink from "~/components/ButtonLink";
+import Editor from "~/components/Editor";
+import LoadingIndicator from "~/components/LoadingIndicator";
+import NudeButton from "~/components/NudeButton";
+import useDebouncedCallback from "~/hooks/useDebouncedCallback";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   collection: Collection;

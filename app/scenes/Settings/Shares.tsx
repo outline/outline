@@ -3,15 +3,15 @@ import { LinkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
-import Empty from "components/Empty";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import PaginatedList from "components/PaginatedList";
-import Scene from "components/Scene";
-import Subheading from "components/Subheading";
+import Empty from "~/components/Empty";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import PaginatedList from "~/components/PaginatedList";
+import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
 import ShareListItem from "./components/ShareListItem";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
 
 function Shares() {
   const team = useCurrentTeam();

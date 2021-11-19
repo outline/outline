@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import PlaceholderText from "components/PlaceholderText";
+import PlaceholderText from "~/components/PlaceholderText";
 
 function PlaceholderCollections() {
   return (

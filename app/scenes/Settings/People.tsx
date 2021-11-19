@@ -5,22 +5,22 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import { PAGINATION_SYMBOL } from "stores/BaseStore";
-import Invite from "scenes/Invite";
-import { Action } from "components/Actions";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import InputSearch from "components/InputSearch";
-import Modal from "components/Modal";
-import Scene from "components/Scene";
+import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
+import Invite from "~/scenes/Invite";
+import { Action } from "~/components/Actions";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import InputSearch from "~/components/InputSearch";
+import Modal from "~/components/Modal";
+import Scene from "~/components/Scene";
+import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useQuery from "~/hooks/useQuery";
+import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
 import UserStatusFilter from "./components/UserStatusFilter";
-import useBoolean from "hooks/useBoolean";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useQuery from "hooks/useQuery";
-import useStores from "hooks/useStores";
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
 function People(props) {

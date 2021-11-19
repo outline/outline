@@ -1,9 +1,9 @@
 import { BackIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import Key from "components/Key";
-import { CommandBarAction } from "../types";
+import Flex from "~/components/Flex";
+import Key from "~/components/Key";
+import { CommandBarAction } from "~/types";
 
 type Props = {
   action: CommandBarAction;

@@ -4,13 +4,12 @@ import * as React from "react";
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import Document from "models/Document";
-import DocumentDelete from "scenes/DocumentDelete";
-import Modal from "components/Modal";
+import Document from "~/models/Document";
+import DocumentDelete from "~/scenes/DocumentDelete";
+import Modal from "~/components/Modal";
+import useStores from "~/hooks/useStores";
+import { trashPath } from "~/utils/routeHelpers";
 import SidebarLink from "./SidebarLink";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { trashPath } from "utils/routeHelpers";
 
 function TrashLink() {
   const { policies, documents } = useStores();

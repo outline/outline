@@ -9,14 +9,13 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Document from "models/Document";
-import Event from "models/Event";
-import Avatar from "components/Avatar";
-import Item, { Actions } from "components/List/Item";
-import Time from "components/Time";
-import RevisionMenu from "menus/RevisionMenu";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { documentHistoryUrl } from "utils/routeHelpers";
+import Document from "~/models/Document";
+import Event from "~/models/Event";
+import Avatar from "~/components/Avatar";
+import Item, { Actions } from "~/components/List/Item";
+import Time from "~/components/Time";
+import RevisionMenu from "~/menus/RevisionMenu";
+import { documentHistoryUrl } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;

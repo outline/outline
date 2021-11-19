@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import CommandBarResults from "components/CommandBarResults";
-import rootActions from "actions/root";
-import useCommandBarActions from "hooks/useCommandBarActions";
+import CommandBarResults from "~/components/CommandBarResults";
+import rootActions from "~/actions/root";
+import useCommandBarActions from "~/hooks/useCommandBarActions";
 
 export const CommandBarOptions = {
   animations: {

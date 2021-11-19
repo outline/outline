@@ -1,9 +1,9 @@
 import { filter } from "lodash";
 import { computed } from "mobx";
+import BaseStore from "~/stores/BaseStore";
+import RootStore from "~/stores/RootStore";
+import Integration from "../models/Integration";
 import naturalSort from "shared/utils/naturalSort";
-import BaseStore from "stores/BaseStore";
-import RootStore from "stores/RootStore";
-import Integration from "models/Integration";
 
 class IntegrationsStore extends BaseStore<Integration> {
   constructor(rootStore: RootStore) {

@@ -4,16 +4,14 @@ import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
-import RootStore from "stores/RootStore";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import LoadingIndicator from "components/LoadingIndicator";
-import Modal from "components/Modal";
-import withStores from "components/withStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/compressImage' or its co... Remove this comment to see the full error message
-import { compressImage } from "utils/compressImage";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/uploadFile' or its corre... Remove this comment to see the full error message
-import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
+import RootStore from "~/stores/RootStore";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import LoadingIndicator from "~/components/LoadingIndicator";
+import Modal from "~/components/Modal";
+import withStores from "~/components/withStores";
+import { compressImage } from "~/utils/compressImage";
+import { uploadFile, dataUrlToBlob } from "~/utils/uploadFile";
 
 const EMPTY_OBJECT = {};
 

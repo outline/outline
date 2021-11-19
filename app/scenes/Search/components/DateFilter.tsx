@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import FilterOptions from "components/FilterOptions";
+import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
   dateFilter: string | null | undefined;

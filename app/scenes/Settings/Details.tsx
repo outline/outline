@@ -4,17 +4,17 @@ import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import Input, { LabelText } from "components/Input";
-import Scene from "components/Scene";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import Input, { LabelText } from "~/components/Input";
+import Scene from "~/components/Scene";
+import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import ImageUpload from "./components/ImageUpload";
-import env from "env";
-import useCurrentTeam from "hooks/useCurrentTeam";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
 
 function Details() {
   const { auth } = useStores();

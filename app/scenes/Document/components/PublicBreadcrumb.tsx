@@ -1,7 +1,6 @@
 import * as React from "react";
-import Breadcrumb from "components/Breadcrumb";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
-import { NavigationNode } from "types";
+import Breadcrumb from "~/components/Breadcrumb";
+import { NavigationNode } from "~/types";
 
 type Props = {
   documentId: string;

@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
-import ContextMenu from "components/ContextMenu";
-import OverflowMenuButton from "components/ContextMenu/OverflowMenuButton";
-import Template from "components/ContextMenu/Template";
+import ContextMenu from "~/components/ContextMenu";
+import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import Template from "~/components/ContextMenu/Template";
 
 type Props = {
   onRemove: () => void;

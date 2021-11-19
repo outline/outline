@@ -4,13 +4,12 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
-import CenteredContent from "components/CenteredContent";
-import Flex from "components/Flex";
-import PlaceholderDocument from "components/PlaceholderDocument";
-import useStores from "hooks/useStores";
-import useToasts from "hooks/useToasts";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/routeHelpers' or its cor... Remove this comment to see the full error message
-import { editDocumentUrl } from "utils/routeHelpers";
+import CenteredContent from "~/components/CenteredContent";
+import Flex from "~/components/Flex";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
+import { editDocumentUrl } from "~/utils/routeHelpers";
 
 function DocumentNew() {
   const history = useHistory();

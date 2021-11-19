@@ -6,22 +6,21 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
-import ButtonLarge from "components/ButtonLarge";
-import Fade from "components/Fade";
-import Flex from "components/Flex";
-import Heading from "components/Heading";
-import HelpText from "components/HelpText";
-import OutlineLogo from "components/OutlineLogo";
-import PageTitle from "components/PageTitle";
-import TeamLogo from "components/TeamLogo";
+import ButtonLarge from "~/components/ButtonLarge";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
+import Heading from "~/components/Heading";
+import HelpText from "~/components/HelpText";
+import OutlineLogo from "~/components/OutlineLogo";
+import PageTitle from "~/components/PageTitle";
+import TeamLogo from "~/components/TeamLogo";
+import env from "~/env";
+import useQuery from "~/hooks/useQuery";
+import useStores from "~/hooks/useStores";
+import { isCustomDomain } from "~/utils/domains";
 import { changeLanguage, detectLanguage } from "../../utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
-import env from "env";
-import useQuery from "hooks/useQuery";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/domains' or its correspo... Remove this comment to see the full error message
-import { isCustomDomain } from "utils/domains";
 
 // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'config' implicitly has an 'any' t... Remove this comment to see the full error message
 function Header({ config }) {

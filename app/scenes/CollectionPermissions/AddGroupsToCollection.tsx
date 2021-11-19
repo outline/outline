@@ -4,20 +4,20 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import styled from "styled-components";
-import RootStore from "stores/RootStore";
-import Collection from "models/Collection";
-import Group from "models/Group";
-import GroupNew from "scenes/GroupNew";
-import Button from "components/Button";
-import ButtonLink from "components/ButtonLink";
-import Empty from "components/Empty";
-import Flex from "components/Flex";
-import GroupListItem from "components/GroupListItem";
-import HelpText from "components/HelpText";
-import Input from "components/Input";
-import Modal from "components/Modal";
-import PaginatedList from "components/PaginatedList";
-import withStores from "components/withStores";
+import RootStore from "~/stores/RootStore";
+import Collection from "~/models/Collection";
+import Group from "~/models/Group";
+import GroupNew from "~/scenes/GroupNew";
+import Button from "~/components/Button";
+import ButtonLink from "~/components/ButtonLink";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import GroupListItem from "~/components/GroupListItem";
+import HelpText from "~/components/HelpText";
+import Input from "~/components/Input";
+import Modal from "~/components/Modal";
+import PaginatedList from "~/components/PaginatedList";
+import withStores from "~/components/withStores";
 
 type Props = WithTranslation &
   RootStore & {

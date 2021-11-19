@@ -2,8 +2,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
-import Scrollable from "components/Scrollable";
-import usePrevious from "hooks/usePrevious";
+import Scrollable from "~/components/Scrollable";
+import usePrevious from "~/hooks/usePrevious";
 
 type Props = {
   children?: React.ReactNode;

@@ -2,12 +2,11 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import HoverPreviewDocument from "components/HoverPreviewDocument";
+import HoverPreviewDocument from "~/components/HoverPreviewDocument";
+import useStores from "~/hooks/useStores";
+import { isInternalUrl } from "~/utils/urls";
 import { fadeAndSlideDown } from "../styles/animations";
-import useStores from "hooks/useStores";
-// @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
-import { isInternalUrl } from "utils/urls";
+import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
