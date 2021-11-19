@@ -1,6 +1,8 @@
+import { PublicEnv } from "../../shared/types";
+
 // Note: This entire object is stringified in the HTML exposed to the client
 // do not add anything here that should be a secret or password
-export default function present(env: Record<string, any>): Record<string, any> {
+export default function present(env: Record<string, any>): PublicEnv {
   return {
     URL: env.URL.replace(/\/$/, ""),
     CDN_URL: (env.CDN_URL || "").replace(/\/$/, ""),

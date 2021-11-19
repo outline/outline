@@ -1,4 +1,11 @@
-// @ts-expect-error ts-migrate(2339) FIXME: Property 'env' does not exist on type 'Window & ty... Remove this comment to see the full error message
+import { PublicEnv } from "../shared/types";
+
+declare global {
+  interface Window {
+    env: PublicEnv;
+  }
+}
+
 const env = window.env;
 
 export default env;

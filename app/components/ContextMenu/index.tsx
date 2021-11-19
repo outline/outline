@@ -65,6 +65,11 @@ export default function ContextMenu({
     }
   }, [onOpen, onClose, previousVisible, rest.visible]);
 
+  // Perf win – don't render anything until the menu has been opened
+  if (!rest.visible && !previousVisible) {
+    return null;
+  }
+
   // sets the menu height based on the available space between the disclosure/
   // trigger and the bottom of the window
   return (
