@@ -1,4 +1,3 @@
-
 const tableName = "revisions";
 // because of this issue in Sequelize the foreign key constraint may be named differently depending
 // on when the previous migrations were ran https://github.com/sequelize/sequelize/pull/9890
