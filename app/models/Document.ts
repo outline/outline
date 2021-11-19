@@ -24,7 +24,7 @@ export default class Document extends BaseModel {
   embedsDisabled = false;
 
   @observable
-  lastViewedAt: string | null | undefined;
+  lastViewedAt: string | undefined;
 
   store: DocumentsStore;
 
@@ -50,20 +50,17 @@ export default class Document extends BaseModel {
 
   title: string;
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'emoji'.
-  emoji: string;
-
   template: boolean;
 
-  templateId: string | null | undefined;
+  templateId: string | undefined;
 
-  parentDocumentId: string | null | undefined;
+  parentDocumentId: string | undefined;
 
-  publishedAt: string | null | undefined;
+  publishedAt: string | undefined;
 
   archivedAt: string;
 
-  deletedAt: string | null | undefined;
+  deletedAt: string | undefined;
 
   url: string;
 
@@ -84,7 +81,6 @@ export default class Document extends BaseModel {
     }
   }
 
-  // @ts-expect-error ts-migrate(2300) FIXME: Duplicate identifier 'emoji'.
   get emoji() {
     const { emoji } = parseTitle(this.title);
     return emoji;
@@ -101,12 +97,13 @@ export default class Document extends BaseModel {
     element.innerHTML = this.title;
     element.style.visibility = "hidden";
     element.dir = "auto";
+
     // element must appear in body for direction to be computed
     document.body?.appendChild(element);
     const direction = window.getComputedStyle(element).direction;
     document.body?.removeChild(element);
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type '"rtl" | "... Remove this comment to see the full error message
-    return direction;
+
+    return direction === "rtl" ? "rtl" : "ltr";
   }
 
   @computed
@@ -163,7 +160,7 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get permanentlyDeletedAt(): string | null | undefined {
+  get permanentlyDeletedAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
     }
@@ -292,7 +289,8 @@ export default class Document extends BaseModel {
   @action
   update = async (
     options: SaveOptions & {
-      title: string;
+      title?: string;
+      lastRevision?: number;
     }
   ) => {
     if (this.isSaving) return this;
@@ -302,7 +300,6 @@ export default class Document extends BaseModel {
       if (options.lastRevision) {
         return await this.store.update({
           id: this.id,
-          // @ts-expect-error ts-migrate(2783) FIXME: 'title' is specified more than once, so this usage... Remove this comment to see the full error message
           title: this.title,
           lastRevision: options.lastRevision,
           ...options,
@@ -316,7 +313,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: SaveOptions | null | undefined) => {
+  save = async (options: SaveOptions | undefined) => {
     if (this.isSaving) return this;
     const isCreating = !this.id;
     this.isSaving = true;
@@ -339,7 +336,6 @@ export default class Document extends BaseModel {
           id: this.id,
           title: this.title,
           text: this.text,
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ id: string; title: string; tex... Remove this comment to see the full error message
           templateId: this.templateId,
           lastRevision: options?.lastRevision,
           publish: options?.publish,
@@ -354,10 +350,7 @@ export default class Document extends BaseModel {
     }
   };
 
-  move = (
-    collectionId: string,
-    parentDocumentId: string | null | undefined
-  ) => {
+  move = (collectionId: string, parentDocumentId?: string | undefined) => {
     return this.store.move(this.id, collectionId, parentDocumentId);
   };
 

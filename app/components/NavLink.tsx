@@ -1,7 +1,7 @@
 import * as React from "react";
 import { NavLink, Route } from "react-router-dom";
 
-type Props = {
+type Props = React.ComponentProps<typeof NavLink> & {
   children?: (match: any) => React.ReactNode;
   exact?: boolean;
   activeStyle?: React.CSSProperties;

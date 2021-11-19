@@ -24,12 +24,14 @@ function Header({ breadcrumb, title, actions }: Props) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
+
   const handleClickTitle = React.useCallback(() => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   }, []);
+
   return (
     <Wrapper align="center" shrink={false}>
       {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}

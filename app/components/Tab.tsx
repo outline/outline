@@ -3,7 +3,10 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import NavLinkWithChildrenFunc from "~/components/NavLink";
 
-type Props = {
+type Props = Omit<
+  React.ComponentProps<typeof NavLinkWithChildrenFunc>,
+  "children"
+> & {
   to: string;
   exact?: boolean;
   children: React.ReactNode;

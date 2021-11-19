@@ -20,13 +20,13 @@ const activityEvents = [
  */
 export default function useIdle(timeToIdle: number = 3 * 60 * 1000) {
   const [isIdle, setIsIdle] = React.useState(false);
-  const timeout = React.useRef();
+  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
+
   const onActivity = React.useCallback(() => {
     if (timeout.current) {
       clearTimeout(timeout.current);
     }
 
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timeout.current = setTimeout(() => {
       setIsIdle(true);
     }, timeToIdle);

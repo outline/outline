@@ -1,6 +1,6 @@
 # Architecture
 
-Outline is composed of a backend and frontend codebase in this monorepo. As both are written in Javascript, they share some code where possible. We utilize the latest ES6 language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier formatting and ESLint are enforced by CI.
+Outline is composed of a backend and frontend codebase in this monorepo. As both are written in TypeScript, they share some code where possible. We utilize the latest ES6 language features, including `async`/`await`, and types. Prettier formatting and ESLint are enforced by CI.
 
 ## Frontend
 
@@ -19,7 +19,7 @@ app
 ├── routes      - Route definitions, note that chunks are async loaded with suspense
 ├── scenes      - A scene represents a full-page view that contains several components
 ├── stores      - Collections of models and associated fetch logic
-├── types       - Flow types
+├── types       - TypeScript types
 └── utils       - Utility methods specific to the frontend
 ```
 

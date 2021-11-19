@@ -27,7 +27,7 @@ class PathToDocument extends React.Component<Props> {
     if (result.type === "document") {
       await document.move(result.collectionId, result.id);
     } else {
-      await document.move(result.collectionId, null);
+      await document.move(result.collectionId);
     }
 
     if (onSuccess) onSuccess();
@@ -37,6 +37,7 @@ class PathToDocument extends React.Component<Props> {
     const { result, collection, document, ref, style } = this.props;
     const Component = document ? ResultWrapperLink : ResultWrapper;
     if (!result) return <div />;
+
     return (
       // @ts-expect-error ts-migrate(2604) FIXME: JSX element type 'Component' does not have any con... Remove this comment to see the full error message
       <Component

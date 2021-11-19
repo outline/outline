@@ -15,10 +15,10 @@ import parseTitle from "shared/utils/parseTitle";
 type Props = {
   value: string;
   document: Document;
-  readOnly: boolean;
+  readOnly?: boolean;
   onChange: (text: string) => void;
   onGoToNextInput: (insertParagraph?: boolean) => void;
-  onSave: (options: { publish?: boolean; done?: boolean }) => void;
+  onSave?: (options: { publish?: boolean; done?: boolean }) => void;
 };
 
 function EditableTitle({
@@ -29,7 +29,6 @@ function EditableTitle({
   onSave,
   onGoToNextInput,
 }: Props) {
-  const ref = React.useRef();
   const { policies } = useStores();
   const { t } = useTranslation();
   const can = policies.abilities(document.id);
@@ -44,7 +43,7 @@ function EditableTitle({
         event.preventDefault();
 
         if (isModKey(event)) {
-          onSave({
+          onSave?.({
             done: true,
           });
           return;
@@ -62,7 +61,7 @@ function EditableTitle({
 
       if (event.key === "p" && isModKey(event) && event.shiftKey) {
         event.preventDefault();
-        onSave({
+        onSave?.({
           publish: true,
           done: true,
         });
@@ -71,7 +70,7 @@ function EditableTitle({
 
       if (event.key === "s" && isModKey(event)) {
         event.preventDefault();
-        onSave({});
+        onSave?.({});
         return;
       }
     },
@@ -80,8 +79,6 @@ function EditableTitle({
 
   return (
     <Title
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-      ref={ref}
       onChange={onChange}
       onKeyDown={handleKeyDown}
       placeholder={

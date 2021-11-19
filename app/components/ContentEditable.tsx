@@ -2,7 +2,7 @@ import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
 import styled from "styled-components";
 
-type Props = {
+type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   disabled?: boolean;
   readOnly?: boolean;
   onChange?: (text: string) => void;
@@ -12,7 +12,6 @@ type Props = {
   placeholder?: string;
   maxLength?: number;
   autoFocus?: boolean;
-  className?: string;
   children?: React.ReactNode;
   value: string;
 };

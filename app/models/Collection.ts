@@ -52,21 +52,15 @@ export default class Collection extends BaseModel {
 
   @computed
   get documentIds(): string[] {
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'results' implicitly has type 'any[]' in ... Remove this comment to see the full error message
-    const results = [];
+    const results: string[] = [];
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentList' implicitly has an 'any' t... Remove this comment to see the full error message
-    const travelDocuments = (documentList, path) =>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
-      documentList.forEach((document) => {
-        results.push(document.id);
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        travelDocuments(document.children);
+    const travelNodes = (nodes: NavigationNode[]) =>
+      nodes.forEach((node) => {
+        results.push(node.id);
+        travelNodes(node.children);
       });
 
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    travelDocuments(this.documents);
-    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'results' implicitly has an 'any[]' type.
+    travelNodes(this.documents);
     return results;
   }
 
@@ -77,21 +71,17 @@ export default class Collection extends BaseModel {
 
   @action
   updateDocument(document: Document) {
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentList' implicitly has an 'any' t... Remove this comment to see the full error message
-    const travelDocuments = (documentList, path) =>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'd' implicitly has an 'any' type.
-      documentList.forEach((d) => {
-        if (d.id === document.id) {
-          d.title = document.title;
-          d.url = document.url;
+    const travelNodes = (nodes: NavigationNode[]) =>
+      nodes.forEach((node) => {
+        if (node.id === document.id) {
+          node.title = document.title;
+          node.url = document.url;
         } else {
-          // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-          travelDocuments(d.children);
+          travelNodes(node.children);
         }
       });
 
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    travelDocuments(this.documents);
+    travelNodes(this.documents);
   }
 
   @action
@@ -99,55 +89,51 @@ export default class Collection extends BaseModel {
     this.index = index;
   }
 
-  getDocumentChildren(documentId: string): NavigationNode[] {
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'result' implicitly has type 'any[]' in s... Remove this comment to see the full error message
-    let result = [];
+  getDocumentChildren(documentId: string) {
+    let result: NavigationNode[] = [];
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'nodes' implicitly has an 'any' type.
-    const traveler = (nodes) => {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childNode' implicitly has an 'any' type... Remove this comment to see the full error message
-      nodes.forEach((childNode) => {
-        if (childNode.id === documentId) {
-          result = childNode.children;
+    const travelNodes = (nodes: NavigationNode[]) => {
+      nodes.forEach((node) => {
+        if (node.id === documentId) {
+          result = node.children;
           return;
         }
 
-        return traveler(childNode.children);
+        return travelNodes(node.children);
       });
     };
 
     if (this.documents) {
-      traveler(this.documents);
+      travelNodes(this.documents);
     }
 
-    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'result' implicitly has an 'any[]' type.
     return result;
   }
 
   pathToDocument(documentId: string) {
-    let path;
+    let path: NavigationNode[] | undefined;
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'nodes' implicitly has an 'any' type.
-    const traveler = (nodes, previousPath) => {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childNode' implicitly has an 'any' type... Remove this comment to see the full error message
-      nodes.forEach((childNode) => {
-        const newPath = [...previousPath, childNode];
+    const travelNodes = (
+      nodes: NavigationNode[],
+      previousPath: NavigationNode[]
+    ) => {
+      nodes.forEach((node) => {
+        const newPath = [...previousPath, node];
 
-        if (childNode.id === documentId) {
+        if (node.id === documentId) {
           path = newPath;
           return;
         }
 
-        return traveler(childNode.children, newPath);
+        return travelNodes(node.children, newPath);
       });
     };
 
     if (this.documents) {
-      traveler(this.documents, []);
-      if (path) return path;
+      travelNodes(this.documents, []);
     }
 
-    return [];
+    return path || [];
   }
 
   toJS = () => {

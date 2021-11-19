@@ -6,7 +6,7 @@ export default function useDebouncedCallback(
 ) {
   // track args & timeout handle between calls
   const argsRef = React.useRef();
-  const timeout = React.useRef();
+  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
   function cleanup() {
     if (timeout.current) {
@@ -19,7 +19,6 @@ export default function useDebouncedCallback(
   return function (...args: any) {
     argsRef.current = args;
     cleanup();
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timeout.current = setTimeout(() => {
       if (argsRef.current) {
         // @ts-expect-error ts-migrate(2556) FIXME: Expected 1 arguments, but got 0 or more.

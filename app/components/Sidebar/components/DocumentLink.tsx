@@ -39,8 +39,7 @@ function DocumentLink(
     index,
     parentId,
   }: Props,
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-  ref
+  ref: React.RefObject<HTMLAnchorElement>
 ) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
@@ -57,7 +56,6 @@ function DocumentLink(
 
   const pathToNode = React.useMemo(
     () =>
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       collection && collection.pathToDocument(node.id).map((entry) => entry.id),
     [collection, node]
   );
@@ -69,7 +67,6 @@ function DocumentLink(
       collection &&
       (collection
         .pathToDocument(activeDocument.id)
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
         .map((entry) => entry.id)
         .includes(node.id) ||
         isActiveDocument)
@@ -82,6 +79,7 @@ function DocumentLink(
       setExpanded(showChildren);
     }
   }, [showChildren]);
+
   // when the last child document is removed,
   // also close the local folder state to closed
   React.useEffect(() => {
@@ -89,6 +87,7 @@ function DocumentLink(
       setExpanded(false);
     }
   }, [expanded, hasChildDocuments]);
+
   const handleDisclosureClick = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -97,12 +96,11 @@ function DocumentLink(
     },
     [expanded]
   );
-  const handleMouseEnter = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      prefetchDocument(node.id);
-    },
-    [prefetchDocument, node]
-  );
+
+  const handleMouseEnter = React.useCallback(() => {
+    prefetchDocument(node.id);
+  }, [prefetchDocument, node]);
+
   const handleTitleChange = React.useCallback(
     async (title: string) => {
       if (!document) return;
@@ -139,7 +137,9 @@ function DocumentLink(
       );
     },
   });
+
   const hoverExpanding = React.useRef(null);
+
   // We set a timeout when the user first starts hovering over the document link,
   // to trigger expansion of children. Clear this timeout when they stop hovering.
   const resetHoverExpanding = React.useCallback(() => {
@@ -148,6 +148,7 @@ function DocumentLink(
       hoverExpanding.current = null;
     }
   }, []);
+
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
@@ -198,7 +199,7 @@ function DocumentLink(
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: (item, monitor) => {
+    drop: (item) => {
       if (!collection) return;
       // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       if (item.id === node.id) return;

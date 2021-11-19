@@ -34,7 +34,7 @@ import ShareButton from "./ShareButton";
 
 type Props = {
   document: Document;
-  sharedTree: NavigationNode | null | undefined;
+  sharedTree: NavigationNode | undefined;
   shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;

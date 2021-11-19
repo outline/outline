@@ -8,20 +8,21 @@ import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'to' implicitly has an 'any' type.
-const resolveToLocation = (to, currentLocation) =>
-  typeof to === "function" ? to(currentLocation) : to;
+const resolveToLocation = (
+  to: string | Record<string, any>,
+  currentLocation: Location
+) => (typeof to === "function" ? to(currentLocation) : to);
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'to' implicitly has an 'any' type.
-const normalizeToLocation = (to, currentLocation) => {
+const normalizeToLocation = (
+  to: string | Record<string, any>,
+  currentLocation: Location
+) => {
   return typeof to === "string"
-    ? // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
-      createLocation(to, null, null, currentLocation)
+    ? createLocation(to, null, undefined, currentLocation)
     : to;
 };
 
-// @ts-expect-error ts-migrate(7019) FIXME: Rest parameter 'classnames' implicitly has an 'any... Remove this comment to see the full error message
-const joinClassnames = (...classnames) => {
+const joinClassnames = (...classnames: (string | undefined)[]) => {
   return classnames.filter((i) => i).join(" ");
 };
 

@@ -5,18 +5,20 @@ import { NavigationNode } from "~/types";
 type Props = {
   documentId: string;
   shareId: string;
-  sharedTree: NavigationNode | null | undefined;
+  sharedTree: NavigationNode | undefined;
   children?: React.ReactNode;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'sharedTree' implicitly has an 'any' typ... Remove this comment to see the full error message
-function pathToDocument(sharedTree, documentId) {
-  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'path' implicitly has type 'any[]' in som... Remove this comment to see the full error message
-  let path = [];
+function pathToDocument(
+  sharedTree: NavigationNode | undefined,
+  documentId: string
+) {
+  let path: NavigationNode[] = [];
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'nodes' implicitly has an 'any' type.
-  const traveler = (nodes, previousPath) => {
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'childNode' implicitly has an 'any' type... Remove this comment to see the full error message
+  const traveler = (
+    nodes: NavigationNode[],
+    previousPath: NavigationNode[]
+  ) => {
     nodes.forEach((childNode) => {
       const newPath = [...previousPath, childNode];
 
@@ -33,7 +35,6 @@ function pathToDocument(sharedTree, documentId) {
     traveler([sharedTree], []);
   }
 
-  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'path' implicitly has an 'any[]' type.
   return path;
 }
 

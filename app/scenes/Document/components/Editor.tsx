@@ -94,7 +94,6 @@ class DocumentEditor extends React.Component<Props> {
       <Flex auto column>
         <EditableTitle
           value={title}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean | undefined' is not assignable to ty... Remove this comment to see the full error message
           readOnly={readOnly}
           document={document}
           onGoToNextInput={this.handleGoToNextInput}
@@ -126,8 +125,7 @@ class DocumentEditor extends React.Component<Props> {
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
         {this.activeLinkEvent && !shareId && readOnly && (
           <HoverPreview
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'EventTarget | null' is not assignable to typ... Remove this comment to see the full error message
-            node={this.activeLinkEvent.target}
+            node={this.activeLinkEvent.target as HTMLAnchorElement}
             event={this.activeLinkEvent}
             onClose={this.handleLinkInactive}
           />

@@ -18,7 +18,7 @@ function TrashLink() {
 
   const [{ isDocumentDropping }, dropToTrashDocument] = useDrop({
     accept: "document",
-    drop: (item, monitor) => {
+    drop: (item) => {
       // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       const doc = documents.get(item.id);
       // without setTimeout it was not working in firefox v89.0.2-ubuntu
@@ -26,7 +26,7 @@ function TrashLink() {
       setTimeout(() => doc && setDocument(doc), 1);
     },
     // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-    canDrop: (item, monitor) => policies.abilities(item.id).delete,
+    canDrop: (item) => policies.abilities(item.id).delete,
     collect: (monitor) => ({
       isDocumentDropping: monitor.isOver(),
     }),

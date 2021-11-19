@@ -42,8 +42,7 @@ function SidebarLink(
     className,
     ...rest
   }: Props,
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-  ref
+  ref: React.RefObject<HTMLAnchorElement>
 ) {
   const theme = useTheme();
   const style = React.useMemo(
@@ -52,6 +51,7 @@ function SidebarLink(
     }),
     [depth]
   );
+
   const activeStyle = React.useMemo(
     () => ({
       fontWeight: 600,

@@ -109,7 +109,7 @@ function Starred() {
     [expanded]
   );
 
-  const content = starred.slice(0, upperBound).map((document, index) => {
+  const content = starred.slice(0, upperBound).map((document) => {
     return (
       <StarredLink
         key={document.id}

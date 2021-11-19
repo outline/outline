@@ -35,8 +35,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     (t) => t.collectionId !== document.collectionId
   );
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'template' implicitly has an 'any' type.
-  const renderTemplate = (template) => (
+  const renderTemplate = (template: Document) => (
     <MenuItem
       key={template.id}
       onClick={() => onSelectTemplate(template)}

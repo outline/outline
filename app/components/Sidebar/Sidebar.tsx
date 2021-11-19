@@ -20,8 +20,8 @@ type Props = {
   children: React.ReactNode;
 };
 
-const Sidebar = React.forwardRef<HTMLButtonElement, Props>(
-  ({ children }: Props, ref) => {
+const Sidebar = React.forwardRef<HTMLDivElement, Props>(
+  ({ children }: Props, ref: React.RefObject<HTMLDivElement>) => {
     const [isCollapsing, setCollapsing] = React.useState(false);
     const theme = useTheme();
     const { t } = useTranslation();
@@ -56,35 +56,32 @@ const Sidebar = React.forwardRef<HTMLButtonElement, Props>(
       [theme, offset, minWidth, maxWidth, setWidth]
     );
 
-    const handleStopDrag = React.useCallback(
-      (event: MouseEvent) => {
-        setResizing(false);
+    const handleStopDrag = React.useCallback(() => {
+      setResizing(false);
 
-        if (document.activeElement) {
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
-          document.activeElement.blur();
-        }
+      if (document.activeElement) {
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
+        document.activeElement.blur();
+      }
 
-        if (isSmallerThanMinimum) {
-          const isSmallerThanCollapsePoint = width < minWidth / 2;
+      if (isSmallerThanMinimum) {
+        const isSmallerThanCollapsePoint = width < minWidth / 2;
 
-          if (isSmallerThanCollapsePoint) {
-            setAnimating(false);
-            setCollapsing(true);
-            ui.collapseSidebar();
-          } else {
-            setWidth(minWidth);
-            setAnimating(true);
-          }
+        if (isSmallerThanCollapsePoint) {
+          setAnimating(false);
+          setCollapsing(true);
+          ui.collapseSidebar();
         } else {
-          setWidth(width);
+          setWidth(minWidth);
+          setAnimating(true);
         }
-      },
-      [ui, isSmallerThanMinimum, minWidth, width, setWidth]
-    );
+      } else {
+        setWidth(width);
+      }
+    }, [ui, isSmallerThanMinimum, minWidth, width, setWidth]);
 
     const handleMouseDown = React.useCallback(
-      (event: MouseEvent) => {
+      (event) => {
         setOffset(event.pageX - width);
         setResizing(true);
         setAnimating(false);
@@ -158,10 +155,8 @@ const Sidebar = React.forwardRef<HTMLButtonElement, Props>(
         )}
         {children}
         <ResizeBorder
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           onMouseDown={handleMouseDown}
           onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
-          $isResizing={isResizing}
         />
         {ui.sidebarCollapsed && !ui.isEditing && (
           <Toggle
@@ -176,11 +171,8 @@ const Sidebar = React.forwardRef<HTMLButtonElement, Props>(
     return (
       <>
         <Container
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           ref={ref}
           style={style}
-          $sidebarWidth={ui.sidebarWidth}
-          $isCollapsing={isCollapsing}
           $isAnimating={isAnimating}
           $isSmallerThanMinimum={isSmallerThanMinimum}
           $mobileSidebarVisible={ui.mobileSidebarVisible}
@@ -214,7 +206,12 @@ const Backdrop = styled.a`
   background: ${(props) => props.theme.backdrop};
 `;
 
-const Container = styled(Flex)<{ $mobileSidebarVisible: boolean }>`
+const Container = styled(Flex)<{
+  $mobileSidebarVisible: boolean;
+  $isAnimating: boolean;
+  $isSmallerThanMinimum: boolean;
+  $collapsed: boolean;
+}>`
   position: fixed;
   top: 0;
   bottom: 0;

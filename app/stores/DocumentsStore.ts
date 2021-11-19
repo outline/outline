@@ -644,6 +644,10 @@ export default class DocumentsStore extends BaseStore<Document> {
     id: string;
     title: string;
     text?: string;
+    publish?: boolean;
+    done?: boolean;
+    autosave?: boolean;
+    templateId?: string;
     lastRevision: number;
   }) {
     const document = await super.update(params);

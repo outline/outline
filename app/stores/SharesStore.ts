@@ -63,7 +63,6 @@ export default class SharesStore extends BaseStore<Share> {
     }
   }
 
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   getByDocumentParents = (documentId: string): Share | null | undefined => {
     const document = this.rootStore.documents.get(documentId);
     if (!document) return;
@@ -72,7 +71,6 @@ export default class SharesStore extends BaseStore<Share> {
     const parentIds = collection
       .pathToDocument(documentId)
       .slice(0, -1)
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       .map((p) => p.id);
 
     for (const parentId of parentIds) {
@@ -82,6 +80,8 @@ export default class SharesStore extends BaseStore<Share> {
         return share;
       }
     }
+
+    return undefined;
   };
 
   getByDocumentId = (documentId: string): Share | null | undefined => {

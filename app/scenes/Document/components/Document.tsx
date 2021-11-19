@@ -289,7 +289,6 @@ class DocumentScene extends React.Component<Props> {
         // update does not send "text" field to the API, this is a workaround
         // while the multiplayer editor is toggleable. Once it's finalized
         // this can be cleaned up to single code path
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ lastRevision: number; done?: b... Remove this comment to see the full error message
         savedDocument = await document.update({
           ...options,
           lastRevision: this.lastRevision,
@@ -377,8 +376,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-  onChangeTitle = (value) => {
+  onChangeTitle = (value: string) => {
     this.title = value;
     this.updateIsDirtyDebounced();
     this.autosave();
@@ -462,7 +460,7 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.titleWithDefault.replace(document.emoji, "")}
+            title={document.titleWithDefault.replace(document.emoji || "", "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
@@ -514,8 +512,7 @@ class DocumentScene extends React.Component<Props> {
               auto
             >
               {document.isTemplate && !readOnly && (
-                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-                <Notice muted>
+                <Notice>
                   <Trans>
                     You’re editing a template. Highlight some text and use the{" "}
                     <PlaceholderIcon color="currentColor" /> control to add
@@ -525,8 +522,7 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               {document.archivedAt && !document.deletedAt && (
-                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-                <Notice muted>
+                <Notice>
                   {t("Archived by {{userName}}", {
                     userName: document.updatedBy.name,
                   })}{" "}
@@ -534,8 +530,7 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               {document.deletedAt && (
-                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-                <Notice muted>
+                <Notice>
                   <strong>
                     {t("Deleted by {{userName}}", {
                       userName: document.updatedBy.name,
