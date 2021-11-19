@@ -4,19 +4,15 @@ import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { RouteComponentProps, withRouter } from "react-router-dom";
+import { RouteComponentProps } from "react-router-dom";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
-import AuthStore from "stores/AuthStore";
-import DocumentsStore from "stores/DocumentsStore";
-import PoliciesStore from "stores/PoliciesStore";
-import RevisionsStore from "stores/RevisionsStore";
-import SharesStore from "stores/SharesStore";
-import UiStore from "stores/UiStore";
+import RootStore from "stores/RootStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import withStores from "components/withStores";
+import history from "../../../utils/history";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'types' or its corresponding ty... Remove this comment to see the full error message
@@ -28,28 +24,20 @@ import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/urls' or its correspondi... Remove this comment to see the full error message
 import { isInternalUrl } from "utils/urls";
 
-type StoreProps = {
-  auth: AuthStore;
-  shares: SharesStore;
-  documents: DocumentsStore;
-  policies: PoliciesStore;
-  revisions: RevisionsStore;
-  ui: UiStore;
-};
-
-type Props = RouteComponentProps<{
-  location: LocationWithState;
-  documentSlug: string;
-  revisionId?: string;
-  shareId?: string;
-}> & {
-  children: (arg0: any) => React.ReactNode;
-};
+type Props = RootStore &
+  RouteComponentProps<{
+    location: LocationWithState;
+    documentSlug: string;
+    revisionId?: string;
+    shareId?: string;
+  }> & {
+    children: (arg0: any) => React.ReactNode;
+  };
 
 const sharedTreeCache = {};
 
 @observer
-class DataLoader extends React.Component<Props & StoreProps> {
+class DataLoader extends React.Component<Props> {
   sharedTree: NavigationNode | null | undefined;
 
   @observable
@@ -220,7 +208,7 @@ class DataLoader extends React.Component<Props & StoreProps> {
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
       if (!can.update && this.isEditing) {
-        this.props.history.push(document.url);
+        history.push(document.url);
         return;
       }
 
@@ -241,7 +229,7 @@ class DataLoader extends React.Component<Props & StoreProps> {
         const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
 
         if (this.props.location.pathname !== canonicalUrl) {
-          this.props.history.replace(canonicalUrl);
+          history.replace(canonicalUrl);
         }
       }
     }
@@ -303,4 +291,4 @@ class DataLoader extends React.Component<Props & StoreProps> {
   }
 }
 
-export default withRouter(withStores<Props>(DataLoader));
+export default withStores(DataLoader);

@@ -4,10 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import styled from "styled-components";
-import AuthStore from "stores/AuthStore";
-import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
-import GroupsStore from "stores/GroupsStore";
-import ToastsStore from "stores/ToastsStore";
+import RootStore from "stores/RootStore";
 import Collection from "models/Collection";
 import Group from "models/Group";
 import GroupNew from "scenes/GroupNew";
@@ -22,20 +19,14 @@ import Modal from "components/Modal";
 import PaginatedList from "components/PaginatedList";
 import withStores from "components/withStores";
 
-type StoreProps = {
-  toasts: ToastsStore;
-  auth: AuthStore;
-  collectionGroupMemberships: CollectionGroupMembershipsStore;
-  groups: GroupsStore;
-};
-
-type Props = WithTranslation & {
-  collection: Collection;
-  onSubmit: () => void;
-};
+type Props = WithTranslation &
+  RootStore & {
+    collection: Collection;
+    onSubmit: () => void;
+  };
 
 @observer
-class AddGroupsToCollection extends React.Component<Props & StoreProps> {
+class AddGroupsToCollection extends React.Component<Props> {
   @observable
   newGroupModalOpen = false;
 
@@ -151,4 +142,4 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default withTranslation()(withStores<Props>(AddGroupsToCollection));
+export default withTranslation()(withStores(AddGroupsToCollection));

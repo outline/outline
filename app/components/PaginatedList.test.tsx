@@ -2,7 +2,6 @@ import "../stores";
 import { shallow } from "enzyme";
 import * as React from "react";
 import { getI18n } from "react-i18next";
-import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import { runAllPromises } from "../test/support";
@@ -11,14 +10,17 @@ import { Component as PaginatedList } from "./PaginatedList";
 describe("PaginatedList", () => {
   const render = () => null;
 
-  const rootStore = new RootStore();
   const i18n = getI18n();
+  const { logout, ...store } = new RootStore();
 
   const props = {
     i18n,
     tReady: true,
     t: (key: string) => key,
-    auth: new AuthStore(rootStore),
+    logout: () => {
+      //
+    },
+    ...store,
   };
 
   it("with no items renders nothing", () => {

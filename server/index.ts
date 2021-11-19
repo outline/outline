@@ -18,9 +18,11 @@ import services from "./services";
 import { getArg } from "./utils/args";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
+
 // If a services flag is passed it takes priority over the enviroment variable
 // for example: --services=web,worker
 const normalizedServiceFlag = getArg("services");
+
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
@@ -32,6 +34,7 @@ const serviceNames = uniq(
     .split(",")
     .map((service) => service.trim())
 );
+
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
 // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
@@ -75,9 +78,11 @@ async function start(id: number, disconnect: () => void) {
 
   app.use(compress());
   app.use(helmet());
+
   // catch errors in one place, automatically set status and response headers
   onerror(app);
   app.on("error", requestErrorHandler);
+
   // install health check endpoint for all services
   router.get("/_health", (ctx) => (ctx.body = "OK"));
   app.use(router.routes());
@@ -98,6 +103,7 @@ async function start(id: number, disconnect: () => void) {
   });
   server.on("listening", () => {
     const address = server.address();
+
     // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
     Logger.info("lifecycle", `Listening on http://localhost:${address.port}`);
   });

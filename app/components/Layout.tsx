@@ -4,17 +4,10 @@ import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { withTranslation, WithTranslation } from "react-i18next";
-import {
-  Switch,
-  Route,
-  withRouter,
-  RouteComponentProps,
-} from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import AuthStore from "stores/AuthStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UiStore from "stores/UiStore";
+import RootStore from "stores/RootStore";
 import ErrorSuspended from "scenes/ErrorSuspended";
 import Button from "components/Button";
 import Flex from "components/Flex";
@@ -24,7 +17,8 @@ import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import SkipNavContent from "components/SkipNavContent";
 import SkipNavLink from "components/SkipNavLink";
-import withStores from "components/withStores";
+import history from "../utils/history";
+import withStores from "./withStores";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
 import { isModKey } from "utils/keyboard";
 import {
@@ -50,19 +44,13 @@ const CommandBar = React.lazy(
     )
 );
 
-type StoreProps = {
-  auth: AuthStore;
-  ui: UiStore;
-  policies: PoliciesStore;
-};
-
 type Props = WithTranslation &
-  RouteComponentProps & {
+  RootStore & {
     children?: React.ReactNode;
   };
 
 @observer
-class Layout extends React.Component<Props & StoreProps> {
+class Layout extends React.Component<Props> {
   scrollable: HTMLDivElement | null | undefined;
 
   @observable
@@ -71,7 +59,7 @@ class Layout extends React.Component<Props & StoreProps> {
   goToSearch = (ev: KeyboardEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
-    this.props.history.push(searchUrl());
+    history.push(searchUrl());
   };
 
   goToNewDocument = () => {
@@ -79,7 +67,7 @@ class Layout extends React.Component<Props & StoreProps> {
     if (!activeCollectionId) return;
     const can = this.props.policies.abilities(activeCollectionId);
     if (!can.update) return;
-    this.props.history.push(newDocumentPath(activeCollectionId));
+    history.push(newDocumentPath(activeCollectionId));
   };
 
   render() {
@@ -206,4 +194,4 @@ const Content = styled(Flex)<{
   `};
 `;
 
-export default withTranslation()(withRouter(withStores<Props>(Layout)));
+export default withTranslation()(withStores(Layout));

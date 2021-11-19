@@ -14,9 +14,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import getTasks from "shared/utils/getTasks";
-import AuthStore from "stores/AuthStore";
-import ToastsStore from "stores/ToastsStore";
-import UiStore from "stores/UiStore";
+import RootStore from "stores/RootStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
 import DocumentMove from "scenes/DocumentMove";
@@ -61,13 +59,8 @@ import {
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 
-type StoreProps = {
-  auth: AuthStore;
-  ui: UiStore;
-  toasts: ToastsStore;
-};
-
 type Props = WithTranslation &
+  RootStore &
   RouteComponentProps<
     Record<string, string>,
     any,
@@ -84,7 +77,7 @@ type Props = WithTranslation &
   };
 
 @observer
-class DocumentScene extends React.Component<Props & StoreProps> {
+class DocumentScene extends React.Component<Props> {
   @observable
   editor = React.createRef();
 
@@ -687,4 +680,4 @@ const MaxWidth = styled(Flex)<{
   `};
 `;
 
-export default withRouter(withTranslation()(withStores<Props>(DocumentScene)));
+export default withTranslation()(withStores(withRouter(DocumentScene)));

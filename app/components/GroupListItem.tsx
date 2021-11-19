@@ -4,7 +4,7 @@ import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "shared/constants";
-import GroupMembershipsStore from "stores/GroupMembershipsStore";
+import RootStore from "stores/RootStore";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import Group from "models/Group";
 import GroupMembers from "scenes/GroupMembers";
@@ -14,11 +14,7 @@ import ListItem from "components/List/Item";
 import Modal from "components/Modal";
 import withStores from "components/withStores";
 
-type StoreProps = {
-  groupMemberships: GroupMembershipsStore;
-};
-
-type Props = {
+type Props = RootStore & {
   group: Group;
   membership?: CollectionGroupMembership;
   showFacepile?: boolean;
@@ -27,7 +23,7 @@ type Props = {
 };
 
 @observer
-class GroupListItem extends React.Component<StoreProps & Props> {
+class GroupListItem extends React.Component<Props> {
   @observable
   membersModalOpen = false;
 
@@ -108,4 +104,4 @@ const Title = styled.span`
   }
 `;
 
-export default withStores<Props>(GroupListItem);
+export default withStores(GroupListItem);

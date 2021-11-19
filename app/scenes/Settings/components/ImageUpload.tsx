@@ -4,7 +4,7 @@ import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
-import UiStore from "stores/UiStore";
+import RootStore from "stores/RootStore";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import LoadingIndicator from "components/LoadingIndicator";
@@ -17,11 +17,7 @@ import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 const EMPTY_OBJECT = {};
 
-type StoreProps = {
-  ui: UiStore;
-};
-
-type Props = {
+type Props = RootStore & {
   children?: React.ReactNode;
   onSuccess: (arg0: string) => void | Promise<void>;
   onError: (arg0: string) => void;
@@ -30,7 +26,7 @@ type Props = {
 };
 
 @observer
-class ImageUpload extends React.Component<Props & StoreProps> {
+class ImageUpload extends React.Component<Props> {
   @observable
   isUploading = false;
 
@@ -193,4 +189,4 @@ const CropButton = styled(Button)`
   width: 300px;
 `;
 
-export default withStores<Props>(ImageUpload);
+export default withStores(ImageUpload);

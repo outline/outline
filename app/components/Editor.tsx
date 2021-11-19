@@ -1,7 +1,6 @@
 import { lighten } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { withRouter, RouteComponentProps } from "react-router-dom";
 import { Extension } from "rich-markdown-editor";
 import styled, { DefaultTheme, withTheme } from "styled-components";
 import embeds from "shared/embeds";
@@ -9,6 +8,7 @@ import { light } from "shared/theme";
 import UiStore from "stores/UiStore";
 import ErrorBoundary from "components/ErrorBoundary";
 import Tooltip from "components/Tooltip";
+import history from "../utils/history";
 import useMediaQuery from "hooks/useMediaQuery";
 import useToasts from "hooks/useToasts";
 // @ts-expect-error ts-migrate(2307) FIXME: Cannot find module 'utils/keyboard' or its corresp... Remove this comment to see the full error message
@@ -67,13 +67,12 @@ export type Props = {
   onImageUploadStop?: () => any;
 };
 
-type PropsWithRef = Props &
-  RouteComponentProps & {
-    forwardedRef: React.Ref<any>;
-  };
+type PropsWithRef = Props & {
+  forwardedRef: React.Ref<any>;
+};
 
 function Editor(props: PropsWithRef) {
-  const { id, shareId, history } = props;
+  const { id, shareId } = props;
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const isPrinting = useMediaQuery("print");
@@ -336,8 +335,8 @@ const Span = styled.span`
   outline: none;
 `;
 
-const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
+const EditorWithTheme = withTheme(Editor);
 
 export default React.forwardRef<typeof Editor, Props>((props, ref) => (
-  <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
+  <EditorWithTheme {...props} forwardedRef={ref} />
 ));

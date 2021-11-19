@@ -120,6 +120,7 @@ function CollectionScene() {
     load();
   }, [collections, isFetching, collection, error, id, can]);
   useCommandBarActions([editCollection]);
+
   const handleRejection = React.useCallback(() => {
     showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),

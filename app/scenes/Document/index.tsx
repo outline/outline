@@ -30,7 +30,7 @@ export default function DocumentScene(
 
   return (
     // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: ({ document, isEditing, ...rest ... Remove this comment to see the full error message
-    <DataLoader key={key} match={props.match}>
+    <DataLoader key={key} match={props.match} location={props.location}>
       {({ document, isEditing, ...rest }) => {
         const isActive =
           !document.isArchived && !document.isDeleted && !revisionId;

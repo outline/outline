@@ -3,11 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
-
-import AuthStore from "stores/AuthStore";
-import MembershipsStore from "stores/MembershipsStore";
-import ToastsStore from "stores/ToastsStore";
-import UsersStore from "stores/UsersStore";
+import RootStore from "stores/RootStore";
 import Collection from "models/Collection";
 import User from "models/User";
 import Invite from "scenes/Invite";
@@ -21,20 +17,14 @@ import PaginatedList from "components/PaginatedList";
 import withStores from "components/withStores";
 import MemberListItem from "./components/MemberListItem";
 
-type StoreProps = {
-  memberships: MembershipsStore;
-  toasts: ToastsStore;
-  auth: AuthStore;
-  users: UsersStore;
-};
-
-type Props = WithTranslation & {
-  collection: Collection;
-  onSubmit: () => void;
-};
+type Props = WithTranslation &
+  RootStore & {
+    collection: Collection;
+    onSubmit: () => void;
+  };
 
 @observer
-class AddPeopleToCollection extends React.Component<Props & StoreProps> {
+class AddPeopleToCollection extends React.Component<Props> {
   @observable
   inviteModalOpen = false;
 
@@ -143,4 +133,4 @@ class AddPeopleToCollection extends React.Component<Props & StoreProps> {
   }
 }
 
-export default withTranslation()(withStores<Props>(AddPeopleToCollection));
+export default withTranslation()(withStores(AddPeopleToCollection));

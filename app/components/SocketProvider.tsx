@@ -4,16 +4,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import io, { Socket } from "socket.io-client";
-import AuthStore from "stores/AuthStore";
-import CollectionsStore from "stores/CollectionsStore";
-import DocumentPresenceStore from "stores/DocumentPresenceStore";
-import DocumentsStore from "stores/DocumentsStore";
-import FileOperationsStore from "stores/FileOperationsStore";
-import GroupsStore from "stores/GroupsStore";
-import MembershipsStore from "stores/MembershipsStore";
-import PoliciesStore from "stores/PoliciesStore";
-import ToastsStore from "stores/ToastsStore";
-import ViewsStore from "stores/ViewsStore";
+import RootStore from "stores/RootStore";
 import withStores from "components/withStores";
 import { getVisibilityListener, getPageVisible } from "../utils/pageVisibility";
 
@@ -23,25 +14,12 @@ export const SocketContext: any = React.createContext<SocketWithAuthentication |
   null
 );
 
-type StoreProps = {
-  documents: DocumentsStore;
-  collections: CollectionsStore;
-  groups: GroupsStore;
-  memberships: MembershipsStore;
-  presence: DocumentPresenceStore;
-  policies: PoliciesStore;
-  views: ViewsStore;
-  auth: AuthStore;
-  toasts: ToastsStore;
-  fileOperations: FileOperationsStore;
-};
-
-type Props = {
+type Props = RootStore & {
   children: React.ReactNode;
 };
 
 @observer
-class SocketProvider extends React.Component<StoreProps & Props> {
+class SocketProvider extends React.Component<Props> {
   @observable
   socket: SocketWithAuthentication | null;
 
@@ -375,4 +353,4 @@ class SocketProvider extends React.Component<StoreProps & Props> {
   }
 }
 
-export default withStores<Props>(SocketProvider);
+export default withStores(SocketProvider);

@@ -1,18 +1,24 @@
 import hoistNonReactStatics from "hoist-non-react-statics";
 import * as React from "react";
+import RootStore from "stores/RootStore";
 import useStores from "../hooks/useStores";
 
-export type WithStores = <P>(
-  Component: React.ComponentType<P>
-) => (props: P) => JSX.Element;
+type StoreProps = keyof RootStore;
 
-const withStores: WithStores = (WrappedComponent) => (props) => {
-  const ComponentWithStore = () => {
+function withStores<
+  P extends React.ComponentType<React.ComponentProps<P> & RootStore>,
+  ResolvedProps = JSX.LibraryManagedAttributes<
+    P,
+    Omit<React.ComponentProps<P>, StoreProps>
+  >
+>(WrappedComponent: P): React.FC<Omit<ResolvedProps, StoreProps>> {
+  const ComponentWithStore = (
+    props: Omit<React.ComponentProps<P>, StoreProps>
+  ) => {
     const stores = useStores();
-    return <WrappedComponent {...props} {...stores} />;
+    return <WrappedComponent {...(props as any)} {...stores} />;
   };
 
-  ComponentWithStore.defaultProps = { ...WrappedComponent.defaultProps };
   ComponentWithStore.displayName = `WithStores(${
     WrappedComponent.name || WrappedComponent.displayName
   })`;
@@ -22,7 +28,7 @@ const withStores: WithStores = (WrappedComponent) => (props) => {
    */
   hoistNonReactStatics(ComponentWithStore, WrappedComponent);
 
-  return <ComponentWithStore />;
-};
+  return ComponentWithStore;
+}
 
 export default withStores;

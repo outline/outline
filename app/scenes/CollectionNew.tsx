@@ -3,10 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
-import { RouteComponentProps, withRouter } from "react-router-dom";
-import AuthStore from "stores/AuthStore";
-import CollectionsStore from "stores/CollectionsStore";
-import ToastsStore from "stores/ToastsStore";
+import RootStore from "stores/RootStore";
 import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
@@ -16,19 +13,15 @@ import Input from "components/Input";
 import InputSelectPermission from "components/InputSelectPermission";
 import Switch from "components/Switch";
 import withStores from "components/withStores";
+import history from "../utils/history";
 
-type StoreProps = {
-  auth: AuthStore;
-  toasts: ToastsStore;
-  collections: CollectionsStore;
-};
-
-interface Props extends WithTranslation, RouteComponentProps {
-  onSubmit: () => void;
-}
+type Props = RootStore &
+  WithTranslation & {
+    onSubmit: () => void;
+  };
 
 @observer
-class CollectionNew extends React.Component<StoreProps & Props> {
+class CollectionNew extends React.Component<Props> {
   @observable
   name = "";
 
@@ -67,7 +60,7 @@ class CollectionNew extends React.Component<StoreProps & Props> {
       // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       await collection.save();
       this.props.onSubmit();
-      this.props.history.push(collection.url);
+      history.push(collection.url);
     } catch (err) {
       this.props.toasts.showToast(err.message, {
         type: "error",
@@ -186,4 +179,4 @@ class CollectionNew extends React.Component<StoreProps & Props> {
   }
 }
 
-export default withTranslation()(withRouter(withStores<Props>(CollectionNew)));
+export default withTranslation()(withStores(CollectionNew));

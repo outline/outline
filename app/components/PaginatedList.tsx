@@ -5,30 +5,27 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
-import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
+import RootStore from "stores/RootStore";
 import DelayedMount from "components/DelayedMount";
 import PlaceholderList from "components/List/Placeholder";
 import withStores from "components/withStores";
 import { dateToHeading } from "../utils/dates";
 
-type StoreProps = {
-  auth: AuthStore;
-};
+type Props = WithTranslation &
+  RootStore & {
+    fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
+    options?: Record<string, any>;
+    heading?: React.ReactNode;
+    empty?: React.ReactNode;
 
-type Props = WithTranslation & {
-  fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
-  options?: Record<string, any>;
-  heading?: React.ReactNode;
-  empty?: React.ReactNode;
-
-  items: any[];
-  renderItem: (arg0: any, index: number) => React.ReactNode;
-  renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
-};
+    items: any[];
+    renderItem: (arg0: any, index: number) => React.ReactNode;
+    renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
+  };
 
 @observer
-class PaginatedList extends React.Component<Props & StoreProps> {
+class PaginatedList extends React.Component<Props> {
   isInitiallyLoaded = this.props.items.length > 0;
 
   @observable
@@ -184,4 +181,4 @@ class PaginatedList extends React.Component<Props & StoreProps> {
 
 export const Component = PaginatedList;
 
-export default withTranslation()(withStores<Props>(PaginatedList));
+export default withTranslation()(withStores(PaginatedList));

@@ -6,7 +6,7 @@ import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import { RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
-import DocumentsStore from "stores/DocumentsStore";
+import RootStore from "stores/RootStore";
 import CollectionFilter from "scenes/Search/components/CollectionFilter";
 import DateFilter from "scenes/Search/components/DateFilter";
 import { Action } from "components/Actions";
@@ -20,14 +20,10 @@ import Subheading from "components/Subheading";
 import withStores from "components/withStores";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
-type StoreProps = {
-  documents: DocumentsStore;
-};
-
-type Props = WithTranslation & RouteComponentProps;
+type Props = WithTranslation & RouteComponentProps & RootStore;
 
 @observer
-class Drafts extends React.Component<Props & StoreProps> {
+class Drafts extends React.Component<Props> {
   @observable
   params: URLSearchParams = new URLSearchParams(this.props.location.search);
 
@@ -148,4 +144,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()(withStores<Props>(Drafts));
+export default withTranslation()(withStores(Drafts));

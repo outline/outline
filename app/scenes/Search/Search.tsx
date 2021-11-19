@@ -6,15 +6,12 @@ import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
-import { withRouter, Link, RouteComponentProps } from "react-router-dom";
+import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import AuthStore from "stores/AuthStore";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
-import DocumentsStore from "stores/DocumentsStore";
-import PoliciesStore from "stores/PoliciesStore";
-import UsersStore from "stores/UsersStore";
+import RootStore from "stores/RootStore";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import DocumentListItem from "components/DocumentListItem";
@@ -35,24 +32,18 @@ import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 
-type StoreProps = {
-  documents: DocumentsStore;
-  auth: AuthStore;
-  users: UsersStore;
-  policies: PoliciesStore;
-};
-
 type Props = RouteComponentProps<
   { term: string },
   any,
   { search: string; fromMenu?: boolean }
 > &
-  WithTranslation & {
+  WithTranslation &
+  RootStore & {
     notFound?: boolean;
   };
 
 @observer
-class Search extends React.Component<Props & StoreProps> {
+class Search extends React.Component<Props> {
   firstDocument: React.Component<any> | null | undefined;
 
   lastQuery = "";
@@ -465,4 +456,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()(withRouter(withStores<Props>(Search)));
+export default withTranslation()(withStores(withRouter(Search)));
