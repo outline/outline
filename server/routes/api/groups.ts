@@ -23,7 +23,7 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
 
   assertSort(sort, Group);
   const user = ctx.state.user;
-  let groups = await Group.findAll({
+  const groups = await Group.findAll({
     where: {
       teamId: user.teamId,
     },
@@ -31,15 +31,6 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
-
-  if (!user.isAdmin) {
-    groups = groups.filter(
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
-      (group) =>
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'gm' implicitly has an 'any' type.
-        group.groupMemberships.filter((gm) => gm.userId === user.id).length
-    );
-  }
 
   ctx.body = {
     pagination: ctx.state.pagination,

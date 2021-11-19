@@ -1074,7 +1074,7 @@ describe("#documents.search", () => {
   });
 
   it("should strip junk from search term", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const firstResult = await buildDocument({
       title: "search term",
       text: "this is some random text of the document body",
@@ -1150,7 +1150,7 @@ describe("#documents.search", () => {
   });
 
   it("should not return draft documents created by other users", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     await buildDocument({
       title: "search term",
       text: "search term",
@@ -1189,7 +1189,7 @@ describe("#documents.search", () => {
   });
 
   it("should return archived documents if chosen", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const document = await buildDocument({
       title: "search term",
       text: "search term",
@@ -1237,7 +1237,11 @@ describe("#documents.search", () => {
   });
 
   it("should return documents for a specific private collection", async () => {
-    const { user, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+
     collection.permission = null;
     await collection.save();
     await CollectionUser.create({
