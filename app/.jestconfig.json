@@ -8,7 +8,7 @@
   ],
   "moduleNameMapper": {
     "^~/(.*)$": "<rootDir>/app/$1",
-    "^shared/(.*)$": "<rootDir>/shared/$1",
+    "^@shared/(.*)$": "<rootDir>/shared/$1",
     "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
   },
   "moduleDirectories": [
