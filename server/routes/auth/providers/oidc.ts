@@ -1,8 +1,7 @@
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
-import get from "lodash/get";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
+import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
 import accountProvisioner from "../../../commands/accountProvisioner";
 import env from "../../../env";
@@ -17,11 +16,11 @@ import { StateStore, request } from "../../../utils/passport";
 const router = new Router();
 const providerName = "oidc";
 const OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME || "OpenID Connect";
-const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID;
-const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
-const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
-const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
-const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
+const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID || "";
+const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET || "";
+const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI || "";
+const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI || "";
+const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI || "";
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const OIDC_USERNAME_CLAIM =
   process.env.OIDC_USERNAME_CLAIM || "preferred_username";
@@ -33,10 +32,8 @@ export const config = {
 };
 const scopes = OIDC_SCOPES.split(" ");
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'accessToken' implicitly has an 'any' ty... Remove this comment to see the full error message
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
     const response = await request(OIDC_USERINFO_URI, accessToken);
     return done(null, response);
   } catch (err) {
@@ -56,21 +53,27 @@ if (OIDC_CLIENT_ID) {
         callbackURL: `${env.URL}/auth/${providerName}.callback`,
         passReqToCallback: true,
         scope: OIDC_SCOPES,
+        // @ts-expect-error custom state store
         store: new StateStore(),
         state: true,
         pkce: false,
-      }, // OpenID Connect standard profile claims can be found in the official
+      },
+      // OpenID Connect standard profile claims can be found in the official
       // specification.
       // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
       // Non-standard claims may be configured by individual identity providers.
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
-      async function (req, accessToken, refreshToken, profile, done) {
+      async function (
+        req: any,
+        accessToken: string,
+        refreshToken: string,
+        profile: Record<string, string>,
+        done: any
+      ) {
         try {
           if (!profile.email) {
-            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-            throw new AuthenticationError(
+            throw AuthenticationError(
               `An email field was not returned in the profile parameter, but is required.`
             );
           }
@@ -79,13 +82,11 @@ if (OIDC_CLIENT_ID) {
           const domain = parts.length && parts[1];
 
           if (!domain) {
-            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-            throw new OIDCMalformedUserInfoError();
+            throw OIDCMalformedUserInfoError();
           }
 
           if (allowedDomains.length && !allowedDomains.includes(domain)) {
-            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-            throw new AuthenticationError(
+            throw AuthenticationError(
               `Domain ${domain} is not on the whitelist`
             );
           }

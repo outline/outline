@@ -5,11 +5,8 @@ import File from "formidable/lib/file";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'jopl... Remove this comment to see the full error message
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import mammoth from "mammoth";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'quot... Remove this comment to see the full error message
 import quotedPrintable from "quoted-printable";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'turn... Remove this comment to see the full error message
 import TurndownService from "turndown";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'utf8... Remove this comment to see the full error message
 import utf8 from "utf8";
 import parseTitle from "../../shared/utils/parseTitle";
 import { FileImportError, InvalidRequestError } from "../errors";
@@ -32,7 +29,6 @@ turndownService
   .use(tables)
   .addRule("breaks", {
     filter: ["br"],
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'content' implicitly has an 'any' type.
     replacement: function (content) {
       return "\n";
     },
@@ -137,9 +133,11 @@ async function confluenceToMarkdown(file): Promise<string> {
   // Mime attachment is "quoted printable" encoded, must be decoded first
   // https://en.wikipedia.org/wiki/Quoted-printable
   value = utf8.decode(quotedPrintable.decode(lines.join("\n")));
+
   // If we don't remove the title here it becomes printed in the document
   // body by turndown
-  turndownService.remove(["style", "xml", "title"]);
+  turndownService.remove(["style", "title"]);
+
   // Now we should have something that looks like HTML
   const html = turndownService.turndown(value);
   return html.replace(/<br>/g, " \\n ");
