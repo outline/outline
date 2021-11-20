@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Subheading from "~/components/Subheading";
-import { NavigationNode } from "../../../types";
+import { NavigationNode } from "~/types";
 import ReferenceListItem from "./ReferenceListItem";
 
 type Props = {

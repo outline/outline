@@ -1,8 +1,8 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
+import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import CollectionGroupMembership from "../models/CollectionGroupMembership";
 import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 

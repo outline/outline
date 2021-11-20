@@ -1,6 +1,6 @@
 import fetch from "fetch-with-proxy";
-import { Document, Integration, Collection, Team } from "../../models";
-import { presentSlackAttachment } from "../../presenters";
+import { Document, Integration, Collection, Team } from "@server/models";
+import { presentSlackAttachment } from "@server/presenters";
 import {
   DocumentEvent,
   IntegrationEvent,

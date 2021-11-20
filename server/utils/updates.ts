@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import fetch from "fetch-with-proxy";
 import invariant from "invariant";
+import { User, Team, Collection, Document } from "@server/models";
 import packageInfo from "../../package.json";
-import { User, Team, Collection, Document } from "../models";
 import { client } from "../redis";
 
 const UPDATES_URL = "https://updates.getoutline.com";

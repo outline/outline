@@ -1,8 +1,8 @@
 import invariant from "invariant";
 import { sortBy, filter, find, isUndefined } from "lodash";
 import { action, computed } from "mobx";
+import Share from "~/models/Share";
 import { client } from "~/utils/ApiClient";
-import Share from "../models/Share";
 import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 

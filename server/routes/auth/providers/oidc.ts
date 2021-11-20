@@ -3,15 +3,15 @@ import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
-import accountProvisioner from "../../../commands/accountProvisioner";
-import env from "../../../env";
+import accountProvisioner from "@server/commands/accountProvisioner";
+import env from "@server/env";
 import {
   OIDCMalformedUserInfoError,
   AuthenticationError,
-} from "../../../errors";
-import passportMiddleware from "../../../middlewares/passport";
-import { getAllowedDomains } from "../../../utils/authentication";
-import { StateStore, request } from "../../../utils/passport";
+} from "@server/errors";
+import passportMiddleware from "@server/middlewares/passport";
+import { getAllowedDomains } from "@server/utils/authentication";
+import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "oidc";

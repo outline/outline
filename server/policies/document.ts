@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { Document, Revision, User, Team } from "../models";
+import { Document, Revision, User, Team } from "@server/models";
 import policy from "./policy";
 
 const { allow, cannot } = policy;

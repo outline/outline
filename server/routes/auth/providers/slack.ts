@@ -3,19 +3,19 @@ import passport from "@outlinewiki/koa-passport";
 import Router from "koa-router";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
-import accountProvisioner from "../../../commands/accountProvisioner";
-import env from "../../../env";
-import auth from "../../../middlewares/authentication";
-import passportMiddleware from "../../../middlewares/passport";
+import accountProvisioner from "@server/commands/accountProvisioner";
+import env from "@server/env";
+import auth from "@server/middlewares/authentication";
+import passportMiddleware from "@server/middlewares/passport";
 import {
   IntegrationAuthentication,
   Collection,
   Integration,
   Team,
-} from "../../../models";
-import { StateStore } from "../../../utils/passport";
-import * as Slack from "../../../utils/slack";
-import { assertPresent, assertUuid } from "../../../validation";
+} from "@server/models";
+import { StateStore } from "@server/utils/passport";
+import * as Slack from "@server/utils/slack";
+import { assertPresent, assertUuid } from "@server/validation";
 
 const router = new Router();
 const providerName = "slack";

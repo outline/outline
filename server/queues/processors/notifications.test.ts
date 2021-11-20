@@ -1,11 +1,11 @@
-import mailer from "../../mailer";
-import { View, NotificationSetting } from "../../models";
+import { View, NotificationSetting } from "@server/models";
 import {
   buildDocument,
   buildCollection,
   buildUser,
-} from "../../test/factories";
-import { flushdb } from "../../test/support";
+} from "@server/test/factories";
+import { flushdb } from "@server/test/support";
+import mailer from "../../mailer";
 import NotificationsService from "./notifications";
 
 jest.mock("../../mailer");

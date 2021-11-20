@@ -1,4 +1,4 @@
-import { CollectionUser } from "../models";
+import { CollectionUser } from "@server/models";
 
 type Membership = {
   id: string;

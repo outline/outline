@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
-import naturalSort from "../../shared/utils/naturalSort";
-import { Collection } from "../models";
+import naturalSort from "@shared/utils/naturalSort";
+import { Collection } from "@server/models";
 
 export default async function collectionIndexing(teamId: string) {
   const collections = await Collection.findAll({

@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
+import { cdnPath } from "@shared/utils/urls";
 import useStores from "~/hooks/useStores";
-import { cdnPath } from "../../shared/utils/urls";
 
 type Props = {
   title: React.ReactNode;

@@ -3,19 +3,19 @@ import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { MAX_TITLE_LENGTH } from "@shared/constants";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { NavigationNode } from "../../../types";
+import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink, { DragObject } from "./SidebarLink";
-import { MAX_TITLE_LENGTH } from "shared/constants";
 
 type Props = {
   node: NavigationNode;

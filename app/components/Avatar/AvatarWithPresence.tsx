@@ -4,9 +4,9 @@ import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import styled from "styled-components";
 import User from "~/models/User";
+import UserProfile from "~/scenes/UserProfile";
 import Avatar from "~/components/Avatar";
 import Tooltip from "~/components/Tooltip";
-import UserProfile from "../../scenes/UserProfile";
 
 type Props = WithTranslation & {
   user: User;

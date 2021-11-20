@@ -1,4 +1,4 @@
-import { CollectionGroup } from "../models";
+import { CollectionGroup } from "@server/models";
 
 type Membership = {
   id: string;

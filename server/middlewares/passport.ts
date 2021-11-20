@@ -1,10 +1,9 @@
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
-
+import Logger from "@server/logging/logger";
+import { signIn } from "@server/utils/authentication";
 import { AccountProvisionerResult } from "../commands/accountProvisioner";
-import Logger from "../logging/logger";
-import { signIn } from "../utils/authentication";
 
 export default function createMiddleware(providerName: string) {
   return function passportMiddleware(ctx: Context) {

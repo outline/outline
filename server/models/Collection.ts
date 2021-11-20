@@ -1,9 +1,9 @@
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import isUUID from "validator/lib/isUUID";
-import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
+import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
+import slugify from "@server/utils/slugify";
 import { Op, DataTypes, sequelize } from "../sequelize";
-import slugify from "../utils/slugify";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import User from "./User";

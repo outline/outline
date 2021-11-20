@@ -1,10 +1,10 @@
 import fs from "fs";
+import { FileOperation, Collection, Event, Team, User } from "@server/models";
+import { uploadToS3FromBuffer } from "@server/utils/s3";
+import { archiveCollections } from "@server/utils/zip";
 import Logger from "../../logging/logger";
 import mailer from "../../mailer";
-import { FileOperation, Collection, Event, Team, User } from "../../models";
 import { Event as TEvent } from "../../types";
-import { uploadToS3FromBuffer } from "../../utils/s3";
-import { archiveCollections } from "../../utils/zip";
 
 export default class ExportsProcessor {
   async on(event: TEvent) {

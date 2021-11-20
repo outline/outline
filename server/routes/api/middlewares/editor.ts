@@ -1,9 +1,8 @@
 import { Context } from "koa";
-
 import pkg from "rich-markdown-editor/package.json";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'semv... Remove this comment to see the full error message
 import semver from "semver";
-import { EditorUpdateError } from "../../../errors";
+import { EditorUpdateError } from "@server/errors";
 
 export default function editor() {
   return async function editorMiddleware(

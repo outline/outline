@@ -1,6 +1,6 @@
 import invariant from "invariant";
-import revisionCreator from "../../commands/revisionCreator";
-import { Revision, Document, User } from "../../models";
+import revisionCreator from "@server/commands/revisionCreator";
+import { Revision, Document, User } from "@server/models";
 import { DocumentEvent, RevisionEvent } from "../../types";
 
 export default class RevisionsProcessor {

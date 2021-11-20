@@ -1,5 +1,5 @@
+import { parseDomain, stripSubdomain } from "@shared/utils/domains";
 import env from "~/env";
-import { parseDomain, stripSubdomain } from "shared/utils/domains";
 
 export function getCookieDomain(domain: string) {
   return env.SUBDOMAINS_ENABLED ? stripSubdomain(domain) : domain;

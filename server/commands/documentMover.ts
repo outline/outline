@@ -1,6 +1,6 @@
-import { Document, Attachment, Collection, User, Event } from "../models";
+import { Document, Attachment, Collection, User, Event } from "@server/models";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { sequelize } from "../sequelize";
-import parseAttachmentIds from "../utils/parseAttachmentIds";
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'options' implicitly has an 'any' type.
 async function copyAttachments(document: Document, options) {

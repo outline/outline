@@ -3,9 +3,9 @@ import { filter } from "lodash";
 import { action, runInAction } from "mobx";
 import BaseStore, { RPCAction } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import Revision from "~/models/Revision";
 import { FetchOptions, PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import Revision from "../models/Revision";
 
 export default class RevisionsStore extends BaseStore<Revision> {
   actions = [RPCAction.List];

@@ -3,8 +3,8 @@ import {
   buildTeam,
   buildDocument,
   buildCollection,
-} from "../test/factories";
-import { flushdb } from "../test/support";
+} from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());

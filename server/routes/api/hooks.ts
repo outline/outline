@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
-import { AuthenticationError, InvalidRequestError } from "../../errors";
+import { AuthenticationError, InvalidRequestError } from "@server/errors";
 import {
   UserAuthentication,
   AuthenticationProvider,
@@ -10,10 +10,10 @@ import {
   SearchQuery,
   Integration,
   IntegrationAuthentication,
-} from "../../models";
-import { presentSlackAttachment } from "../../presenters";
-import * as Slack from "../../utils/slack";
-import { assertPresent } from "../../validation";
+} from "@server/models";
+import { presentSlackAttachment } from "@server/presenters";
+import * as Slack from "@server/utils/slack";
+import { assertPresent } from "@server/validation";
 
 const router = new Router();
 

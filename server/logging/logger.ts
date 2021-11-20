@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import winston from "winston";
-import env from "../env";
-import Metrics from "../logging/metrics";
-import Sentry from "../logging/sentry";
+import env from "@server/env";
+import Metrics from "@server/logging/metrics";
+import Sentry from "@server/logging/sentry";
 
 const isProduction = env.NODE_ENV === "production";
 type LogCategory =

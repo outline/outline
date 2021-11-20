@@ -4,9 +4,9 @@ import { addMonths } from "date-fns";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import { AuthenticationError } from "../../errors";
-import auth from "../../middlewares/authentication";
-import { Collection, Team, View } from "../../models";
+import { AuthenticationError } from "@server/errors";
+import auth from "@server/middlewares/authentication";
+import { Collection, Team, View } from "@server/models";
 // @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
 import providers from "./providers";
 

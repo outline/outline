@@ -22,13 +22,14 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2020",
     "paths": {
-      "shared/*": ["./shared/*"],
+      "@server/*": ["./server/*"],
+      "@shared/*": ["./shared/*"],
       "~/*": ["./app/*"],
-    }
+    },
   },
   "exclude": [
     "node_modules",
     "build",
     "server/migrations"
-  ]
+  ],
 }

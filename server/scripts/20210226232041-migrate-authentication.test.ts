@@ -3,8 +3,8 @@ import {
   Team,
   UserAuthentication,
   AuthenticationProvider,
-} from "../models";
-import { flushdb } from "../test/support";
+} from "@server/models";
+import { flushdb } from "@server/test/support";
 import script from "./20210226232041-migrate-authentication";
 
 beforeEach(() => flushdb());

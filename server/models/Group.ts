@@ -1,4 +1,4 @@
-import { CollectionGroup, GroupUser } from "../models";
+import { CollectionGroup, GroupUser } from "@server/models";
 import { Op, DataTypes, sequelize } from "../sequelize";
 
 const Group = sequelize.define(

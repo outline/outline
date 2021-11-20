@@ -1,7 +1,7 @@
 import { subDays } from "date-fns";
-import { Attachment, Document } from "../models";
-import { buildAttachment, buildDocument } from "../test/factories";
-import { flushdb } from "../test/support";
+import { Attachment, Document } from "@server/models";
+import { buildAttachment, buildDocument } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
 jest.mock("aws-sdk", () => {

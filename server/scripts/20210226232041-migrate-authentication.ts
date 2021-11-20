@@ -1,11 +1,11 @@
 import "./bootstrap";
-import Logger from "../logging/logger";
+import Logger from "@server/logging/logger";
 import {
   Team,
   User,
   AuthenticationProvider,
   UserAuthentication,
-} from "../models";
+} from "@server/models";
 import { Op } from "../sequelize";
 
 const cache = {};

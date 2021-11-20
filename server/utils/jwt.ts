@@ -1,7 +1,7 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
+import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
-import { Team, User } from "../models";
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'token' implicitly has an 'any' type.
 function getJWTPayload(token) {

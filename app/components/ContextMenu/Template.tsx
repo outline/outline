@@ -19,7 +19,7 @@ import {
   MenuSeparator,
   MenuHeading,
   MenuItem as TMenuItem,
-} from "../../types";
+} from "~/types";
 import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import Separator from "./Separator";

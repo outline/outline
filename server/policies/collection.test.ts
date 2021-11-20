@@ -1,6 +1,6 @@
-import { CollectionUser, Collection } from "../models";
-import { buildUser, buildTeam, buildCollection } from "../test/factories";
-import { flushdb } from "../test/support";
+import { CollectionUser, Collection } from "@server/models";
+import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());

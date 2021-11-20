@@ -1,7 +1,7 @@
-import Logger from "../logging/logger";
-import { Document, Attachment } from "../models";
+import Logger from "@server/logging/logger";
+import { Document, Attachment } from "@server/models";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { sequelize } from "../sequelize";
-import parseAttachmentIds from "../utils/parseAttachmentIds";
 
 export default async function documentPermanentDeleter(documents: Document[]) {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'deletedAt' does not exist on type 'Docum... Remove this comment to see the full error message

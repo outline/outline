@@ -1,18 +1,18 @@
 import Router from "koa-router";
-import userDestroyer from "../../commands/userDestroyer";
-import userInviter from "../../commands/userInviter";
-import userSuspender from "../../commands/userSuspender";
-import auth from "../../middlewares/authentication";
-import { Event, User, Team } from "../../models";
-import policy from "../../policies";
-import { presentUser, presentPolicies } from "../../presenters";
-import { Op } from "../../sequelize";
+import userDestroyer from "@server/commands/userDestroyer";
+import userInviter from "@server/commands/userInviter";
+import userSuspender from "@server/commands/userSuspender";
+import auth from "@server/middlewares/authentication";
+import { Event, User, Team } from "@server/models";
+import policy from "@server/policies";
+import { presentUser, presentPolicies } from "@server/presenters";
+import { Op } from "@server/sequelize";
 import {
   assertIn,
   assertSort,
   assertPresent,
   assertArray,
-} from "../../validation";
+} from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { can, authorize } = policy;

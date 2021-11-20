@@ -1,5 +1,5 @@
-import { buildUser, buildTeam, buildInvite } from "../test/factories";
-import { flushdb } from "../test/support";
+import { buildUser, buildTeam, buildInvite } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import userCreator from "./userCreator";
 
 beforeEach(() => flushdb());

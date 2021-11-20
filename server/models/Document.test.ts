@@ -1,12 +1,12 @@
-import { Document } from "../models";
+import { Document } from "@server/models";
 import {
   buildDocument,
   buildCollection,
   buildTeam,
   buildUser,
-} from "../test/factories";
-import { flushdb, seed } from "../test/support";
-import slugify from "../utils/slugify";
+} from "@server/test/factories";
+import { flushdb, seed } from "@server/test/support";
+import slugify from "@server/utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

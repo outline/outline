@@ -3,6 +3,7 @@ import { ProfileIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { languageOptions } from "@shared/i18n";
 import UserDelete from "~/scenes/UserDelete";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -14,7 +15,6 @@ import Scene from "~/components/Scene";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import ImageUpload from "./components/ImageUpload";
-import { languageOptions } from "shared/i18n";
 
 const Profile = () => {
   const { auth } = useStores();

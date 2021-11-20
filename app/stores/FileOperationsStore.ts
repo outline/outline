@@ -1,6 +1,6 @@
 import { orderBy } from "lodash";
 import { computed } from "mobx";
-import FileOperation from "../models/FileOperation";
+import FileOperation from "~/models/FileOperation";
 import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 

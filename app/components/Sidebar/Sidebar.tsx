@@ -9,7 +9,7 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
-import { fadeIn } from "../../styles/animations";
+import { fadeIn } from "~/styles/animations";
 import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 

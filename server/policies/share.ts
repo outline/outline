@@ -1,5 +1,5 @@
+import { Share, User } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import { Share, User } from "../models";
 import policy from "./policy";
 
 const { allow, cannot } = policy;

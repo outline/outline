@@ -1,6 +1,6 @@
-import { Attachment, Document } from "../models";
-import parseAttachmentIds from "../utils/parseAttachmentIds";
-import { getSignedUrl } from "../utils/s3";
+import { Attachment, Document } from "@server/models";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { getSignedUrl } from "@server/utils/s3";
 import presentUser from "./user";
 
 type Options = {

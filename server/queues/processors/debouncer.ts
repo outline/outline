@@ -1,4 +1,4 @@
-import { Document } from "../../models";
+import { Document } from "@server/models";
 import { globalEventQueue } from "../../queues";
 import { Event } from "../../types";
 

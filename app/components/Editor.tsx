@@ -3,17 +3,17 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Extension } from "rich-markdown-editor";
 import styled, { DefaultTheme, withTheme } from "styled-components";
+import embeds from "@shared/embeds";
+import { light } from "@shared/theme";
 import UiStore from "~/stores/UiStore";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Tooltip from "~/components/Tooltip";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useToasts from "~/hooks/useToasts";
+import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import { uploadFile } from "~/utils/uploadFile";
 import { isInternalUrl, isHash } from "~/utils/urls";
-import history from "../utils/history";
-import embeds from "shared/embeds";
-import { light } from "shared/theme";
 
 const RichMarkdownEditor = React.lazy(
   () =>

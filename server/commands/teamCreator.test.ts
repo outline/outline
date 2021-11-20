@@ -1,5 +1,5 @@
-import { buildTeam } from "../test/factories";
-import { flushdb } from "../test/support";
+import { buildTeam } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import teamCreator from "./teamCreator";
 
 jest.mock("aws-sdk", () => {

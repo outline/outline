@@ -1,4 +1,4 @@
-import { Document, Collection, Team } from "../models";
+import { Document, Collection, Team } from "@server/models";
 
 type Action = {
   type: string;

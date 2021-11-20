@@ -1,4 +1,4 @@
-import { ApiKey, User, Team } from "../models";
+import { ApiKey, User, Team } from "@server/models";
 import policy from "./policy";
 
 const { allow } = policy;

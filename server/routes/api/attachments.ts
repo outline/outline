@@ -1,18 +1,18 @@
 import { format } from "date-fns";
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
-import { NotFoundError } from "../../errors";
-import auth from "../../middlewares/authentication";
-import { Attachment, Document, Event } from "../../models";
-import policy from "../../policies";
+import { NotFoundError } from "@server/errors";
+import auth from "@server/middlewares/authentication";
+import { Attachment, Document, Event } from "@server/models";
+import policy from "@server/policies";
 import {
   makePolicy,
   getSignature,
   publicS3Endpoint,
   makeCredential,
   getSignedUrl,
-} from "../../utils/s3";
-import { assertPresent } from "../../validation";
+} from "@server/utils/s3";
+import { assertPresent } from "@server/validation";
 
 const { authorize } = policy;
 const router = new Router();

@@ -11,6 +11,12 @@ import {
   EmailIcon,
 } from "outline-icons";
 import * as React from "react";
+import {
+  developersUrl,
+  changelogUrl,
+  mailToUrl,
+  githubIssuesUrl,
+} from "@shared/utils/routeHelpers";
 import stores from "~/stores";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
@@ -25,12 +31,6 @@ import {
   archivePath,
   trashPath,
 } from "~/utils/routeHelpers";
-import {
-  developersUrl,
-  changelogUrl,
-  mailToUrl,
-  githubIssuesUrl,
-} from "shared/utils/routeHelpers";
 
 export const navigateToHome = createAction({
   name: ({ t }) => t("Home"),

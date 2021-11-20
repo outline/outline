@@ -5,14 +5,14 @@ import IO from "socket.io";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'sock... Remove this comment to see the full error message
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
-import Logger from "../logging/logger";
-import Metrics from "../logging/metrics";
-import { Document, Collection, View } from "../models";
+import Logger from "@server/logging/logger";
+import Metrics from "@server/logging/metrics";
+import { Document, Collection, View } from "@server/models";
+import { getUserForJWT } from "@server/utils/jwt";
 import policy from "../policies";
 import { websocketsQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/websockets";
 import { client, subscriber } from "../redis";
-import { getUserForJWT } from "../utils/jwt";
 
 const { can } = policy;
 

@@ -1,19 +1,16 @@
 import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
-import {
-  parseDomain,
-  isCustomSubdomain,
-} from "../../../../shared/utils/domains";
-import { AuthorizationError } from "../../../errors";
-import mailer from "../../../mailer";
-import errorHandling from "../../../middlewares/errorHandling";
-import methodOverride from "../../../middlewares/methodOverride";
-import { User, Team } from "../../../models";
-import { signIn } from "../../../utils/authentication";
-import { isCustomDomain } from "../../../utils/domains";
-import { getUserForEmailSigninToken } from "../../../utils/jwt";
-import { assertEmail, assertPresent } from "../../../validation";
+import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import { AuthorizationError } from "@server/errors";
+import mailer from "@server/mailer";
+import errorHandling from "@server/middlewares/errorHandling";
+import methodOverride from "@server/middlewares/methodOverride";
+import { User, Team } from "@server/models";
+import { signIn } from "@server/utils/authentication";
+import { isCustomDomain } from "@server/utils/domains";
+import { getUserForEmailSigninToken } from "@server/utils/jwt";
+import { assertEmail, assertPresent } from "@server/validation";
 
 const router = new Router();
 

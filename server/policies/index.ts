@@ -1,4 +1,11 @@
-import { Attachment, Team, User, Collection, Document, Group } from "../models";
+import {
+  Attachment,
+  Team,
+  User,
+  Collection,
+  Document,
+  Group,
+} from "@server/models";
 import policy from "./policy";
 import "./apiKey";
 import "./attachment";

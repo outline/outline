@@ -1,5 +1,5 @@
-import { buildTeam, buildCollection } from "../test/factories";
-import { flushdb } from "../test/support";
+import { buildTeam, buildCollection } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 
 beforeEach(() => flushdb());
 describe("collectionIds", () => {

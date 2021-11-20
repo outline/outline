@@ -1,17 +1,16 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
-import { subtractDate } from "../../../shared/utils/date";
-import documentCreator from "../../commands/documentCreator";
-import documentImporter from "../../commands/documentImporter";
-import documentMover from "../../commands/documentMover";
-import documentPermanentDeleter from "../../commands/documentPermanentDeleter";
-import env from "../../env";
+import { subtractDate } from "@shared/utils/date";
+import documentCreator from "@server/commands/documentCreator";
+import documentImporter from "@server/commands/documentImporter";
+import documentMover from "@server/commands/documentMover";
+import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import {
   NotFoundError,
   InvalidRequestError,
   AuthorizationError,
-} from "../../errors";
-import auth from "../../middlewares/authentication";
+} from "@server/errors";
+import auth from "@server/middlewares/authentication";
 import {
   Backlink,
   Collection,
@@ -24,21 +23,22 @@ import {
   User,
   View,
   Team,
-} from "../../models";
-import policy from "../../policies";
+} from "@server/models";
+import policy from "@server/policies";
 import {
   presentCollection,
   presentDocument,
   presentPolicies,
-} from "../../presenters";
-import { sequelize } from "../../sequelize";
+} from "@server/presenters";
+import { sequelize } from "@server/sequelize";
 import {
   assertUuid,
   assertSort,
   assertIn,
   assertPresent,
   assertPositiveInteger,
-} from "../../validation";
+} from "@server/validation";
+import env from "../../env";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;

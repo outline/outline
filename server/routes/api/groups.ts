@@ -1,16 +1,16 @@
 import Router from "koa-router";
-import { MAX_AVATAR_DISPLAY } from "../../../shared/constants";
-import auth from "../../middlewares/authentication";
-import { User, Event, Group, GroupUser } from "../../models";
-import policy from "../../policies";
+import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import auth from "@server/middlewares/authentication";
+import { User, Event, Group, GroupUser } from "@server/models";
+import policy from "@server/policies";
 import {
   presentGroup,
   presentPolicies,
   presentUser,
   presentGroupMembership,
-} from "../../presenters";
-import { Op } from "../../sequelize";
-import { assertPresent, assertUuid, assertSort } from "../../validation";
+} from "@server/presenters";
+import { Op } from "@server/sequelize";
+import { assertPresent, assertUuid, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

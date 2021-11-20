@@ -14,6 +14,7 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -49,7 +50,6 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
-import getTasks from "shared/utils/getTasks";
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;

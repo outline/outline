@@ -2,8 +2,12 @@ import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
+import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { subtractDate } from "@shared/utils/date";
+import naturalSort from "@shared/utils/naturalSort";
 import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import Document from "~/models/Document";
 import env from "~/env";
 import {
   NavigationNode,
@@ -12,10 +16,6 @@ import {
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
-import Document from "../models/Document";
-import { MAX_TITLE_LENGTH } from "shared/constants";
-import { subtractDate } from "shared/utils/date";
-import naturalSort from "shared/utils/naturalSort";
 
 type FetchParams = PaginationParams & { collectionId: string };
 

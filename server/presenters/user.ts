@@ -1,4 +1,4 @@
-import { User } from "../models";
+import { User } from "@server/models";
 
 type Options = {
   includeDetails?: boolean;

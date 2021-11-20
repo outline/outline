@@ -7,7 +7,7 @@ import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
 import DocumentViews from "~/components/DocumentViews";
 import Popover from "~/components/Popover";
-import useStores from "../hooks/useStores";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;

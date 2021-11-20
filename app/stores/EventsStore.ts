@@ -1,6 +1,6 @@
 import { sortBy, filter } from "lodash";
 import { computed } from "mobx";
-import Event from "../models/Event";
+import Event from "~/models/Event";
 import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 

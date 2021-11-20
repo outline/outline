@@ -1,4 +1,4 @@
-import { createQueue } from "../utils/queue";
+import { createQueue } from "@server/utils/queue";
 
 export const globalEventQueue = createQueue("globalEvents");
 

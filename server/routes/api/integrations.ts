@@ -1,10 +1,10 @@
 import Router from "koa-router";
-import auth from "../../middlewares/authentication";
-import { Event } from "../../models";
-import Integration from "../../models/Integration";
-import policy from "../../policies";
-import { presentIntegration } from "../../presenters";
-import { assertSort, assertUuid } from "../../validation";
+import auth from "@server/middlewares/authentication";
+import { Event } from "@server/models";
+import Integration from "@server/models/Integration";
+import policy from "@server/policies";
+import { presentIntegration } from "@server/presenters";
+import { assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

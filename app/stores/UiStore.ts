@@ -1,7 +1,7 @@
 import { action, autorun, computed, observable } from "mobx";
-import Collection from "../models/Collection";
-import Document from "../models/Document";
-import { light as defaultTheme } from "shared/theme";
+import { light as defaultTheme } from "@shared/theme";
+import Collection from "~/models/Collection";
+import Document from "~/models/Document";
 
 const UI_STORE = "UI_STORE";
 

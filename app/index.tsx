@@ -5,6 +5,7 @@ import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
 import { Router } from "react-router-dom";
+import { initI18n } from "@shared/i18n";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import { CommandBarOptions } from "~/components/CommandBar";
@@ -18,7 +19,6 @@ import env from "~/env";
 import Routes from "./routes";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
-import { initI18n } from "shared/i18n";
 
 initI18n();
 const element = window.document.getElementById("root");

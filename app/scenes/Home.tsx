@@ -8,13 +8,13 @@ import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
+import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
-import PaginatedDocumentList from "../components/PaginatedDocumentList";
-import useStores from "../hooks/useStores";
 
 function Home() {
   const { documents, ui } = useStores();

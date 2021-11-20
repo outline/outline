@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { User, Document, Collection, Team } from "../models";
+import { User, Document, Collection, Team } from "@server/models";
 import { sequelize } from "../sequelize";
 
 const sql = sequelize.getQueryInterface();

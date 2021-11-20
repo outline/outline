@@ -1,9 +1,9 @@
 import Router from "koa-router";
-import auth from "../../middlewares/authentication";
-import { Team, NotificationSetting } from "../../models";
-import policy from "../../policies";
-import { presentNotificationSetting } from "../../presenters";
-import { assertPresent, assertUuid } from "../../validation";
+import auth from "@server/middlewares/authentication";
+import { Team, NotificationSetting } from "@server/models";
+import policy from "@server/policies";
+import { presentNotificationSetting } from "@server/presenters";
+import { assertPresent, assertUuid } from "@server/validation";
 
 const { authorize } = policy;
 const router = new Router();

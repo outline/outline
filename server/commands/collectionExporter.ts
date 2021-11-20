@@ -1,5 +1,5 @@
-import { Collection, Event, Team, User, FileOperation } from "../models";
-import { getAWSKeyForFileOp } from "../utils/s3";
+import { Collection, Event, Team, User, FileOperation } from "@server/models";
+import { getAWSKeyForFileOp } from "@server/utils/s3";
 
 export default async function collectionExporter({
   collection,

@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
+import { parseOutlineExport, Item } from "@shared/utils/zip";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -19,7 +20,6 @@ import useToasts from "~/hooks/useToasts";
 import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import { uploadFile } from "~/utils/uploadFile";
 import FileOperationListItem from "./components/FileOperationListItem";
-import { parseOutlineExport, Item } from "shared/utils/zip";
 
 function ImportExport() {
   const { t } = useTranslation();

@@ -1,5 +1,5 @@
 import { observable, action } from "mobx";
-import { USER_PRESENCE_INTERVAL } from "shared/constants";
+import { USER_PRESENCE_INTERVAL } from "@shared/constants";
 
 type DocumentPresence = Map<
   string,

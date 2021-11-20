@@ -1,4 +1,4 @@
-import { PublicEnv } from "../../shared/types";
+import { PublicEnv } from "@shared/types";
 
 // Note: This entire object is stringified in the HTML exposed to the client
 // do not add anything here that should be a secret or password

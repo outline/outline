@@ -1,6 +1,6 @@
 import path from "path";
+import { deleteFromS3, getFileByKey } from "@server/utils/s3";
 import { DataTypes, sequelize } from "../sequelize";
-import { deleteFromS3, getFileByKey } from "../utils/s3";
 
 const Attachment = sequelize.define(
   "attachment",

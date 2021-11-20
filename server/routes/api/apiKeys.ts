@@ -1,9 +1,9 @@
 import Router from "koa-router";
-import auth from "../../middlewares/authentication";
-import { ApiKey, Event } from "../../models";
-import policy from "../../policies";
-import { presentApiKey } from "../../presenters";
-import { assertUuid, assertPresent } from "../../validation";
+import auth from "@server/middlewares/authentication";
+import { ApiKey, Event } from "@server/models";
+import policy from "@server/policies";
+import { presentApiKey } from "@server/presenters";
+import { assertUuid, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

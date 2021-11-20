@@ -1,4 +1,4 @@
-import Logger from "../logging/logger";
+import Logger from "@server/logging/logger";
 import {
   ApiKey,
   Attachment,
@@ -16,7 +16,7 @@ import {
   IntegrationAuthentication,
   SearchQuery,
   Share,
-} from "../models";
+} from "@server/models";
 import { sequelize } from "../sequelize";
 
 // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message

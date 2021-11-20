@@ -1,5 +1,5 @@
-import Logger from "../logging/logger";
-import { User } from "../models";
+import Logger from "@server/logging/logger";
+import { User } from "@server/models";
 
 export default class CollaborationLogger {
   async onLoadDocument(data: {

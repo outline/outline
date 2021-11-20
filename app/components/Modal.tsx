@@ -11,7 +11,7 @@ import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
 import usePrevious from "~/hooks/usePrevious";
 import useUnmount from "~/hooks/useUnmount";
-import { fadeAndScaleIn } from "../styles/animations";
+import { fadeAndScaleIn } from "~/styles/animations";
 
 let openModals = 0;
 type Props = {

@@ -13,7 +13,7 @@ import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Switch from "~/components/Switch";
 import withStores from "~/components/withStores";
-import history from "../utils/history";
+import history from "~/utils/history";
 
 type Props = RootStore &
   WithTranslation & {

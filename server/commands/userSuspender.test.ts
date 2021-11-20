@@ -1,6 +1,6 @@
-import { GroupUser } from "../models";
-import { buildGroup, buildAdmin, buildUser } from "../test/factories";
-import { flushdb } from "../test/support";
+import { GroupUser } from "@server/models";
+import { buildGroup, buildAdmin, buildUser } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import userSuspender from "./userSuspender";
 
 beforeEach(() => flushdb());

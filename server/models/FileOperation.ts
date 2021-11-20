@@ -1,5 +1,5 @@
+import { deleteFromS3 } from "@server/utils/s3";
 import { DataTypes, sequelize } from "../sequelize";
-import { deleteFromS3 } from "../utils/s3";
 
 const FileOperation = sequelize.define("file_operations", {
   id: {

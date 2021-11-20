@@ -6,14 +6,14 @@ import Router from "koa-router";
 import send from "koa-send";
 import serve from "koa-static";
 import isUUID from "validator/lib/isUUID";
-import { languages } from "../../shared/i18n";
-import env from "../env";
+import { languages } from "@shared/i18n";
+import env from "@server/env";
+import Share from "@server/models/Share";
+import { opensearchResponse } from "@server/utils/opensearch";
+import prefetchTags from "@server/utils/prefetchTags";
+import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
-import Share from "../models/Share";
 import presentEnv from "../presenters/env";
-import { opensearchResponse } from "../utils/opensearch";
-import prefetchTags from "../utils/prefetchTags";
-import { robotsResponse } from "../utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
@@ -151,8 +151,10 @@ router.get("/opensearch.xml", (ctx) => {
 router.get("/share/:shareId", renderShare);
 
 router.get("/share/:shareId/*", renderShare);
+
 // catch all for application
 router.get("*", renderApp);
+
 // In order to report all possible performance metrics to Sentry this header
 // must be provided when serving the application, see:
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin

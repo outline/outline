@@ -1,7 +1,7 @@
 import hoistNonReactStatics from "hoist-non-react-statics";
 import * as React from "react";
 import RootStore from "~/stores/RootStore";
-import useStores from "../hooks/useStores";
+import useStores from "~/hooks/useStores";
 
 type StoreProps = keyof RootStore;
 

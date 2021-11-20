@@ -1,4 +1,4 @@
-import { GroupUser } from "../models";
+import { GroupUser } from "@server/models";
 import { presentUser } from ".";
 
 type GroupMembership = {

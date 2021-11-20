@@ -1,5 +1,5 @@
 import { darken } from "polished";
-import theme from "../../shared/theme";
+import theme from "@shared/theme";
 
 export const palette = [
   theme.brand.red,

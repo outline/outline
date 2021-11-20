@@ -1,5 +1,4 @@
 import { Context } from "koa";
-
 import queryString from "query-string";
 
 export default function methodOverride() {

@@ -1,6 +1,6 @@
-import { Backlink } from "../../models";
-import { buildDocument } from "../../test/factories";
-import { flushdb } from "../../test/support";
+import { Backlink } from "@server/models";
+import { buildDocument } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import BacklinksService from "./backlinks";
 
 const Backlinks = new BacklinksService();

@@ -1,9 +1,9 @@
 import Router from "koa-router";
-import auth from "../../middlewares/authentication";
-import { View, Document, Event } from "../../models";
-import policy from "../../policies";
-import { presentView } from "../../presenters";
-import { assertUuid } from "../../validation";
+import auth from "@server/middlewares/authentication";
+import { View, Document, Event } from "@server/models";
+import policy from "@server/policies";
+import { presentView } from "@server/presenters";
+import { assertUuid } from "@server/validation";
 
 const { authorize } = policy;
 const router = new Router();

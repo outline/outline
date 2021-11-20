@@ -9,15 +9,15 @@ import {
   CollectionUser,
   SearchQuery,
   Event,
-} from "../../models";
-import webService from "../../services/web";
+} from "@server/models";
+import webService from "@server/services/web";
 import {
   buildShare,
   buildCollection,
   buildUser,
   buildDocument,
-} from "../../test/factories";
-import { flushdb, seed } from "../../test/support";
+} from "@server/test/factories";
+import { flushdb, seed } from "@server/test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());

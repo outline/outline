@@ -1,5 +1,3 @@
-import Logger from "../../logging/logger";
-import mailer from "../../mailer";
 import {
   View,
   Document,
@@ -7,8 +5,10 @@ import {
   Collection,
   User,
   NotificationSetting,
-} from "../../models";
-import { Op } from "../../sequelize";
+} from "@server/models";
+import { Op } from "@server/sequelize";
+import Logger from "../../logging/logger";
+import mailer from "../../mailer";
 import {
   DocumentEvent,
   CollectionEvent,

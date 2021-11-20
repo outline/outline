@@ -1,4 +1,4 @@
-import { Share } from "../models";
+import { Share } from "@server/models";
 import { presentUser } from ".";
 
 // @ts-expect-error ts-migrate(2749) FIXME: 'Share' refers to a value, but is being used as a ... Remove this comment to see the full error message

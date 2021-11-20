@@ -37,7 +37,12 @@
         },
         "pathGroups": [
           {
-            "pattern": "~/shared/**",
+            "pattern": "@shared/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@server/**",
             "group": "external",
             "position": "after"
           },

@@ -1,8 +1,8 @@
 import fractionalIndex from "fractional-index";
 import Router from "koa-router";
-import collectionExporter from "../../commands/collectionExporter";
-import { ValidationError } from "../../errors";
-import auth from "../../middlewares/authentication";
+import collectionExporter from "@server/commands/collectionExporter";
+import { ValidationError } from "@server/errors";
+import auth from "@server/middlewares/authentication";
 import {
   Collection,
   CollectionUser,
@@ -12,8 +12,8 @@ import {
   User,
   Group,
   Attachment,
-} from "../../models";
-import policy from "../../policies";
+} from "@server/models";
+import policy from "@server/policies";
 import {
   presentCollection,
   presentUser,
@@ -22,17 +22,17 @@ import {
   presentGroup,
   presentCollectionGroupMembership,
   presentFileOperation,
-} from "../../presenters";
-import { Op, sequelize } from "../../sequelize";
-import collectionIndexing from "../../utils/collectionIndexing";
-import removeIndexCollision from "../../utils/removeIndexCollision";
+} from "@server/presenters";
+import { Op, sequelize } from "@server/sequelize";
+import collectionIndexing from "@server/utils/collectionIndexing";
+import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
   assertUuid,
   assertIn,
   assertPresent,
   assertHexColor,
   assertIndexCharacters,
-} from "../../validation";
+} from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

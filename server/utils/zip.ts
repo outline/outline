@@ -1,8 +1,8 @@
 import fs from "fs";
 import JSZip from "jszip";
 import tmp from "tmp";
-import Logger from "../logging/logger";
-import { Attachment, Collection, Document } from "../models";
+import Logger from "@server/logging/logger";
+import { Attachment, Collection, Document } from "@server/models";
 import { serializeFilename } from "./fs";
 import { getFileByKey } from "./s3";
 

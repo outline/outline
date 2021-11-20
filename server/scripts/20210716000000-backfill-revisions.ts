@@ -1,5 +1,5 @@
 import "./bootstrap";
-import { Revision, Document, Event } from "../models";
+import { Revision, Document, Event } from "@server/models";
 
 const limit = 100;
 let page = parseInt(process.argv[2], 10);

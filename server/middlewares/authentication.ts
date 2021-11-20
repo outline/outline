@@ -1,7 +1,7 @@
+import { User, Team, ApiKey } from "@server/models";
+import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import { User, Team, ApiKey } from "../models";
 import { ContextWithState } from "../types";
-import { getUserForJWT } from "../utils/jwt";
 
 export default function auth(
   options: {

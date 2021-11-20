@@ -5,9 +5,9 @@ import { useTheme } from "styled-components";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import useStores from "~/hooks/useStores";
+import { NavigationNode } from "~/types";
 import { OfflineError } from "~/utils/errors";
-import useStores from "../../hooks/useStores";
-import { NavigationNode } from "../../types";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
 

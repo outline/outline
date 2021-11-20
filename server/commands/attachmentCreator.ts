@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { Attachment, Event, User } from "../models";
-import { uploadToS3FromBuffer } from "../utils/s3";
+import { Attachment, Event, User } from "@server/models";
+import { uploadToS3FromBuffer } from "@server/utils/s3";
 
 export default async function attachmentCreator({
   name,

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import stores from "../stores";
+import stores from "~/stores";
 describe('Collection model', () => {
   test('should initialize with data', () => {
     const collection = stores.collections.add({

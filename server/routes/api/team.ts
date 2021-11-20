@@ -1,8 +1,8 @@
 import Router from "koa-router";
-import auth from "../../middlewares/authentication";
-import { Event, Team } from "../../models";
-import policy from "../../policies";
-import { presentTeam, presentPolicies } from "../../presenters";
+import auth from "@server/middlewares/authentication";
+import { Event, Team } from "@server/models";
+import policy from "@server/policies";
+import { presentTeam, presentPolicies } from "@server/presenters";
 
 const { authorize } = policy;
 const router = new Router();

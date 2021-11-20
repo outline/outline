@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import * as React from "react";
 import ReactDOMServer from "react-dom/server";
-import env from "../env";
+import env from "@server/env";
 
 const prefetchTags = [];
 

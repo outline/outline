@@ -1,12 +1,12 @@
-import { Attachment } from "../models";
+import { Attachment } from "@server/models";
 import {
   buildDocument,
   buildAttachment,
   buildCollection,
   buildUser,
-} from "../test/factories";
-import { flushdb, seed } from "../test/support";
-import parseAttachmentIds from "../utils/parseAttachmentIds";
+} from "@server/test/factories";
+import { flushdb, seed } from "@server/test/support";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import documentMover from "./documentMover";
 
 beforeEach(() => flushdb());

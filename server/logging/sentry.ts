@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/node";
-import env from "../env";
+import env from "@server/env";
 import { ContextWithState } from "../types";
 
 if (env.SENTRY_DSN) {

@@ -7,9 +7,9 @@ import {
 } from "koa-helmet";
 import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
+import env from "@server/env";
+import Logger from "@server/logging/logger";
 import emails from "../emails";
-import env from "../env";
-import Logger from "../logging/logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";

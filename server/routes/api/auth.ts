@@ -1,10 +1,10 @@
 import Router from "koa-router";
 import { find } from "lodash";
-import { parseDomain, isCustomSubdomain } from "../../../shared/utils/domains";
-import auth from "../../middlewares/authentication";
-import { Team } from "../../models";
-import { presentUser, presentTeam, presentPolicies } from "../../presenters";
-import { isCustomDomain } from "../../utils/domains";
+import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import auth from "@server/middlewares/authentication";
+import { Team } from "@server/models";
+import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
+import { isCustomDomain } from "@server/utils/domains";
 // @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
 import providers from "../auth/providers";
 

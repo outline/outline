@@ -1,5 +1,5 @@
-import { buildUser, buildTeam } from "../test/factories";
-import { flushdb } from "../test/support";
+import { buildUser, buildTeam } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());

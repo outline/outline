@@ -1,4 +1,4 @@
-import Metrics from "../logging/metrics";
+import Metrics from "@server/logging/metrics";
 
 export default class Tracing {
   onLoadDocument({

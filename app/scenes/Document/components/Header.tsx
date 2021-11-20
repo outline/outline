@@ -27,9 +27,9 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
-import { NavigationNode } from "../../../types";
-import { metaDisplay } from "../../../utils/keyboard";
-import { newDocumentPath, editDocumentUrl } from "../../../utils/routeHelpers";
+import { NavigationNode } from "~/types";
+import { metaDisplay } from "~/utils/keyboard";
+import { newDocumentPath, editDocumentUrl } from "~/utils/routeHelpers";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 

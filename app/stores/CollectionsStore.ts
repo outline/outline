@@ -1,9 +1,9 @@
 import invariant from "invariant";
 import { concat, find, last } from "lodash";
 import { computed, action } from "mobx";
+import Collection from "~/models/Collection";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
-import Collection from "../models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 

@@ -1,10 +1,10 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
-import auth from "../../middlewares/authentication";
-import { Event, User, Collection } from "../../models";
-import policy from "../../policies";
-import { presentEvent } from "../../presenters";
-import { assertSort, assertUuid } from "../../validation";
+import auth from "@server/middlewares/authentication";
+import { Event, User, Collection } from "@server/models";
+import policy from "@server/policies";
+import { presentEvent } from "@server/presenters";
+import { assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;

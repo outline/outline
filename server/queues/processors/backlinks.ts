@@ -1,8 +1,8 @@
-import { Document, Backlink, Team } from "../../models";
-import { Op } from "../../sequelize";
+import { Document, Backlink, Team } from "@server/models";
+import { Op } from "@server/sequelize";
+import parseDocumentIds from "@server/utils/parseDocumentIds";
+import slugify from "@server/utils/slugify";
 import { DocumentEvent, RevisionEvent } from "../../types";
-import parseDocumentIds from "../../utils/parseDocumentIds";
-import slugify from "../../utils/slugify";
 
 export default class BacklinksProcessor {
   async on(event: DocumentEvent | RevisionEvent) {

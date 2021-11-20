@@ -8,12 +8,12 @@ import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import TurndownService from "turndown";
 import utf8 from "utf8";
-import parseTitle from "../../shared/utils/parseTitle";
+import parseTitle from "@shared/utils/parseTitle";
+import { User } from "@server/models";
+import dataURItoBuffer from "@server/utils/dataURItoBuffer";
+import { deserializeFilename } from "@server/utils/fs";
+import parseImages from "@server/utils/parseImages";
 import { FileImportError, InvalidRequestError } from "../errors";
-import { User } from "../models";
-import dataURItoBuffer from "../utils/dataURItoBuffer";
-import { deserializeFilename } from "../utils/fs";
-import parseImages from "../utils/parseImages";
 import attachmentCreator from "./attachmentCreator";
 
 // https://github.com/domchristie/turndown#options

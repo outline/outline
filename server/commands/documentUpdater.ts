@@ -3,7 +3,7 @@ import { Node } from "prosemirror-model";
 import { schema, serializer } from "rich-markdown-editor";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
-import { Document, Event } from "../models";
+import { Document, Event } from "@server/models";
 
 export default async function documentUpdater({
   documentId,

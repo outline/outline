@@ -1,5 +1,4 @@
 import { Context } from "koa";
-
 import { User } from "./models";
 
 export type ContextWithState = Context & {

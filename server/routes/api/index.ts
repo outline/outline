@@ -1,9 +1,9 @@
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import { NotFoundError } from "../../errors";
-import errorHandling from "../../middlewares/errorHandling";
-import methodOverride from "../../middlewares/methodOverride";
+import { NotFoundError } from "@server/errors";
+import errorHandling from "@server/middlewares/errorHandling";
+import methodOverride from "@server/middlewares/methodOverride";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";

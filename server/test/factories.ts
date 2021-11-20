@@ -13,7 +13,7 @@ import {
   Integration,
   AuthenticationProvider,
   FileOperation,
-} from "../models";
+} from "@server/models";
 
 let count = 1;
 

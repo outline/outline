@@ -18,7 +18,7 @@ import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { isCustomDomain } from "~/utils/domains";
-import { changeLanguage, detectLanguage } from "../../utils/language";
+import { changeLanguage, detectLanguage } from "~/utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
 

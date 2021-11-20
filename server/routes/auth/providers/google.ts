@@ -4,15 +4,15 @@ import Router from "koa-router";
 import { capitalize } from "lodash";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
-import accountProvisioner from "../../../commands/accountProvisioner";
-import env from "../../../env";
+import accountProvisioner from "@server/commands/accountProvisioner";
+import env from "@server/env";
 import {
   GoogleWorkspaceRequiredError,
   GoogleWorkspaceInvalidError,
-} from "../../../errors";
-import passportMiddleware from "../../../middlewares/passport";
-import { getAllowedDomains } from "../../../utils/authentication";
-import { StateStore } from "../../../utils/passport";
+} from "@server/errors";
+import passportMiddleware from "@server/middlewares/passport";
+import { getAllowedDomains } from "@server/utils/authentication";
+import { StateStore } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";

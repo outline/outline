@@ -1,7 +1,7 @@
+import { Collection, UserAuthentication } from "@server/models";
+import { buildUser, buildTeam } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import mailer from "../mailer";
-import { Collection, UserAuthentication } from "../models";
-import { buildUser, buildTeam } from "../test/factories";
-import { flushdb } from "../test/support";
 import accountProvisioner from "./accountProvisioner";
 
 jest.mock("../mailer");

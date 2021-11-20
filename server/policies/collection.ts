@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { concat, some } from "lodash";
+import { Collection, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import { Collection, User, Team } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;

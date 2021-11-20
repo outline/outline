@@ -17,6 +17,7 @@ import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
+import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import {
   searchUrl,
@@ -24,7 +25,6 @@ import {
   newDocumentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
-import history from "../utils/history";
 import withStores from "./withStores";
 
 const DocumentHistory = React.lazy(

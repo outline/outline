@@ -14,7 +14,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
-import { NavigationNode } from "../../../types";
+import { NavigationNode } from "~/types";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";

@@ -1,7 +1,7 @@
+import { Document } from "@server/models";
+import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
-import { Document } from "../models";
 import policy from "../policies";
-import { getUserForJWT } from "../utils/jwt";
 
 const { can } = policy;
 

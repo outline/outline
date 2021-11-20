@@ -1,9 +1,9 @@
+import Logger from "@server/logging/logger";
+import { Team, AuthenticationProvider } from "@server/models";
+import { getAllowedDomains } from "@server/utils/authentication";
+import { generateAvatarUrl } from "@server/utils/avatars";
 import { MaximumTeamsError } from "../errors";
-import Logger from "../logging/logger";
-import { Team, AuthenticationProvider } from "../models";
 import { sequelize } from "../sequelize";
-import { getAllowedDomains } from "../utils/authentication";
-import { generateAvatarUrl } from "../utils/avatars";
 
 type TeamCreatorResult = {
   // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message

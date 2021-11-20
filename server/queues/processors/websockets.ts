@@ -5,8 +5,8 @@ import {
   Group,
   CollectionGroup,
   GroupUser,
-} from "../../models";
-import { Op } from "../../sequelize";
+} from "@server/models";
+import { Op } from "@server/sequelize";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {

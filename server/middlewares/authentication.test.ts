@@ -1,10 +1,11 @@
 import randomstring from "randomstring";
-import { ApiKey } from "../models";
-import { buildUser, buildTeam } from "../test/factories";
-import { flushdb } from "../test/support";
+import { ApiKey } from "@server/models";
+import { buildUser, buildTeam } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import auth from "./authentication";
 
 beforeEach(() => flushdb());
+
 describe("Authentication middleware", () => {
   describe("with JWT", () => {
     it("should authenticate with correct token", async () => {

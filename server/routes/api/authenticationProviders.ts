@@ -1,12 +1,12 @@
 import Router from "koa-router";
-import auth from "../../middlewares/authentication";
-import { AuthenticationProvider, Event } from "../../models";
-import policy from "../../policies";
+import auth from "@server/middlewares/authentication";
+import { AuthenticationProvider, Event } from "@server/models";
+import policy from "@server/policies";
 import {
   presentAuthenticationProvider,
   presentPolicies,
-} from "../../presenters";
-import { assertUuid, assertPresent } from "../../validation";
+} from "@server/presenters";
+import { assertUuid, assertPresent } from "@server/validation";
 // @ts-expect-error ts-migrate(7034) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
 import allAuthenticationProviders from "../auth/providers";
 

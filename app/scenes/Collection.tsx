@@ -13,6 +13,7 @@ import {
   useRouteMatch,
 } from "react-router-dom";
 import styled, { css } from "styled-components";
+import Collection from "~/models/Collection";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
 import Search from "~/scenes/Search";
 import { Action, Separator } from "~/components/Actions";
@@ -49,7 +50,6 @@ import {
   collectionUrl,
   updateCollectionUrl,
 } from "~/utils/routeHelpers";
-import Collection from "../models/Collection";
 
 function CollectionScene() {
   const params = useParams<{ id?: string }>();

@@ -1,11 +1,11 @@
 import { subDays } from "date-fns";
 import Router from "koa-router";
-import documentPermanentDeleter from "../../commands/documentPermanentDeleter";
-import teamPermanentDeleter from "../../commands/teamPermanentDeleter";
-import { AuthenticationError } from "../../errors";
+import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
+import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
+import { AuthenticationError } from "@server/errors";
+import { Document, Team, FileOperation } from "@server/models";
+import { Op } from "@server/sequelize";
 import Logger from "../../logging/logger";
-import { Document, Team, FileOperation } from "../../models";
-import { Op } from "../../sequelize";
 
 const router = new Router();
 

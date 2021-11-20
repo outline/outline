@@ -6,14 +6,14 @@ import Sequelize, { Transaction } from "sequelize";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'slat... Remove this comment to see the full error message
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
-import { MAX_TITLE_LENGTH } from "../../shared/constants";
-import getTasks from "../../shared/utils/getTasks";
-import parseTitle from "../../shared/utils/parseTitle";
-import { SLUG_URL_REGEX } from "../../shared/utils/routeHelpers";
-import unescape from "../../shared/utils/unescape";
-import { Collection, User } from "../models";
+import { MAX_TITLE_LENGTH } from "@shared/constants";
+import getTasks from "@shared/utils/getTasks";
+import parseTitle from "@shared/utils/parseTitle";
+import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
+import unescape from "@shared/utils/unescape";
+import { Collection, User } from "@server/models";
+import slugify from "@server/utils/slugify";
 import { DataTypes, sequelize } from "../sequelize";
-import slugify from "../utils/slugify";
 import Revision from "./Revision";
 
 const Op = Sequelize.Op;

@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import RootStore from "~/stores/RootStore";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import Group from "~/models/Group";
@@ -12,7 +13,6 @@ import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Modal from "~/components/Modal";
 import withStores from "~/components/withStores";
-import { MAX_AVATAR_DISPLAY } from "shared/constants";
 
 type Props = RootStore & {
   group: Group;

@@ -1,15 +1,15 @@
 import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
-import { Collection, Document } from "../models";
+import { Collection, Document } from "@server/models";
 import {
   buildUser,
   buildGroup,
   buildCollection,
   buildTeam,
   buildDocument,
-} from "../test/factories";
-import { flushdb, seed } from "../test/support";
-import slugify from "../utils/slugify";
+} from "@server/test/factories";
+import { flushdb, seed } from "@server/test/support";
+import slugify from "@server/utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

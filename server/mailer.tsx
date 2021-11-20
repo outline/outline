@@ -7,13 +7,11 @@ import {
   CollectionNotificationEmail,
   collectionNotificationEmailText,
 } from "./emails/CollectionNotificationEmail";
-
 import {
   Props as DocumentNotificationEmailT,
   DocumentNotificationEmail,
   documentNotificationEmailText,
 } from "./emails/DocumentNotificationEmail";
-
 import {
   ExportFailureEmail,
   exportEmailFailureText,
@@ -27,7 +25,6 @@ import {
   InviteEmail,
   inviteEmailText,
 } from "./emails/InviteEmail";
-
 import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";

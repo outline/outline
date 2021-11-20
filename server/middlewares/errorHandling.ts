@@ -1,5 +1,4 @@
 import { Context } from "koa";
-
 import { snakeCase } from "lodash";
 import Sequelize from "sequelize";
 

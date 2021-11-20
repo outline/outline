@@ -1,5 +1,5 @@
 import * as React from "react";
-import { User, Document, Team, Collection } from "../models";
+import { User, Document, Team, Collection } from "@server/models";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";

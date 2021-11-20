@@ -1,4 +1,4 @@
-import { Group } from "../models";
+import { Group } from "@server/models";
 
 // @ts-expect-error ts-migrate(2749) FIXME: 'Group' refers to a value, but is being used as a ... Remove this comment to see the full error message
 export default function present(group: Group) {

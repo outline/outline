@@ -1,11 +1,11 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
-import { NotFoundError } from "../../errors";
-import auth from "../../middlewares/authentication";
-import { Document, User, Event, Share, Team, Collection } from "../../models";
-import policy from "../../policies";
-import { presentShare, presentPolicies } from "../../presenters";
-import { assertUuid, assertSort, assertPresent } from "../../validation";
+import { NotFoundError } from "@server/errors";
+import auth from "@server/middlewares/authentication";
+import { Document, User, Event, Share, Team, Collection } from "@server/models";
+import policy from "@server/policies";
+import { presentShare, presentPolicies } from "@server/presenters";
+import { assertUuid, assertSort, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;

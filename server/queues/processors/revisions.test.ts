@@ -1,6 +1,6 @@
-import { Revision } from "../../models";
-import { buildDocument } from "../../test/factories";
-import { flushdb } from "../../test/support";
+import { Revision } from "@server/models";
+import { buildDocument } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import RevisionsService from "./revisions";
 
 const Revisions = new RevisionsService();

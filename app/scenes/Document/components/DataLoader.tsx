@@ -5,6 +5,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps, StaticContext } from "react-router";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -18,7 +19,6 @@ import { matchDocumentEdit, updateDocumentUrl } from "~/utils/routeHelpers";
 import { isInternalUrl } from "~/utils/urls";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
-import parseDocumentSlug from "shared/utils/parseDocumentSlug";
 
 type Props = RootStore &
   RouteComponentProps<

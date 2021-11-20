@@ -1,4 +1,4 @@
-import { NotificationSetting, Team, User } from "../models";
+import { NotificationSetting, Team, User } from "@server/models";
 import policy from "./policy";
 
 const { allow } = policy;

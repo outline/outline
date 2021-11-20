@@ -1,6 +1,6 @@
-import { FileOperation } from "../models";
-import { buildAdmin, buildFileOperation } from "../test/factories";
-import { flushdb } from "../test/support";
+import { FileOperation } from "@server/models";
+import { buildAdmin, buildFileOperation } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import fileOperationDeleter from "./fileOperationDeleter";
 
 jest.mock("aws-sdk", () => {

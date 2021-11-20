@@ -1,6 +1,6 @@
-import { Event } from "../models";
-import { buildDocument, buildUser } from "../test/factories";
-import { flushdb } from "../test/support";
+import { Event } from "@server/models";
+import { buildDocument, buildUser } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
 
 beforeEach(() => flushdb());

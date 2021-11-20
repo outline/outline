@@ -2,8 +2,8 @@ import { CheckboxIcon, InfoIcon, WarningIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
+import { fadeAndScaleIn, pulse } from "~/styles/animations";
 import { Toast as TToast } from "~/types";
-import { fadeAndScaleIn, pulse } from "../styles/animations";
 
 type Props = {
   onRequestClose: () => void;

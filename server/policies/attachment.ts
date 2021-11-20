@@ -1,4 +1,4 @@
-import { Attachment, User, Team } from "../models";
+import { Attachment, User, Team } from "@server/models";
 import policy from "./policy";
 
 const { allow } = policy;

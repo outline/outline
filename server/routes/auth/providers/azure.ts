@@ -4,11 +4,11 @@ import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
 import jwt from "jsonwebtoken";
 import Router from "koa-router";
-import accountProvisioner from "../../../commands/accountProvisioner";
-import env from "../../../env";
-import { MicrosoftGraphError } from "../../../errors";
-import passportMiddleware from "../../../middlewares/passport";
-import { StateStore, request } from "../../../utils/passport";
+import accountProvisioner from "@server/commands/accountProvisioner";
+import env from "@server/env";
+import { MicrosoftGraphError } from "@server/errors";
+import passportMiddleware from "@server/middlewares/passport";
+import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "azure";

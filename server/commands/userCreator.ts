@@ -1,5 +1,5 @@
 import Sequelize from "sequelize";
-import { Event, Team, User, UserAuthentication } from "../models";
+import { Event, Team, User, UserAuthentication } from "@server/models";
 import { sequelize } from "../sequelize";
 
 const Op = Sequelize.Op;

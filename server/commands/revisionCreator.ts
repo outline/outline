@@ -1,4 +1,4 @@
-import { Document, User, Event, Revision } from "../models";
+import { Document, User, Event, Revision } from "@server/models";
 import { sequelize } from "../sequelize";
 
 export default async function revisionCreator({

@@ -1,4 +1,4 @@
-import Logger from "../logging/logger";
+import Logger from "@server/logging/logger";
 import {
   globalEventQueue,
   processorEventQueue,

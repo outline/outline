@@ -1,4 +1,4 @@
-import { Document, Event, User } from "../models";
+import { Document, Event, User } from "@server/models";
 
 export default async function documentCreator({
   title = "",

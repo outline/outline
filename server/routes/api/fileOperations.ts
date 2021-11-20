@@ -1,12 +1,12 @@
 import Router from "koa-router";
-import fileOperationDeleter from "../../commands/fileOperationDeleter";
-import { NotFoundError, ValidationError } from "../../errors";
-import auth from "../../middlewares/authentication";
-import { FileOperation, Team } from "../../models";
-import policy from "../../policies";
-import { presentFileOperation } from "../../presenters";
-import { getSignedUrl } from "../../utils/s3";
-import { assertPresent, assertIn, assertUuid } from "../../validation";
+import fileOperationDeleter from "@server/commands/fileOperationDeleter";
+import { NotFoundError, ValidationError } from "@server/errors";
+import auth from "@server/middlewares/authentication";
+import { FileOperation, Team } from "@server/models";
+import policy from "@server/policies";
+import { presentFileOperation } from "@server/presenters";
+import { getSignedUrl } from "@server/utils/s3";
+import { assertPresent, assertIn, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

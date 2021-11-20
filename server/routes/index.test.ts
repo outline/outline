@@ -1,8 +1,8 @@
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
+import { buildShare, buildDocument } from "@server/test/factories";
+import { flushdb } from "@server/test/support";
 import webService from "../services/web";
-import { buildShare, buildDocument } from "../test/factories";
-import { flushdb } from "../test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());

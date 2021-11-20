@@ -10,7 +10,7 @@ import {
   fadeAndSlideUp,
   fadeAndSlideDown,
   mobileContextMenu,
-} from "../../styles/animations";
+} from "~/styles/animations";
 
 export type Placement =
   | "auto-start"
