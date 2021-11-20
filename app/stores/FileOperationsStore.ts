@@ -1,12 +1,11 @@
 import { orderBy } from "lodash";
 import { computed } from "mobx";
 import FileOperation from "../models/FileOperation";
-import BaseStore from "./BaseStore";
+import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class FileOperationsStore extends BaseStore<FileOperation> {
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'FileOperationsStore' i... Remove this comment to see the full error message
-  actions = ["list", "info", "delete"];
+  actions = [RPCAction.List, RPCAction.Info, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
     super(rootStore, FileOperation);

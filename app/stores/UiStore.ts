@@ -4,7 +4,23 @@ import Document from "../models/Document";
 import { light as defaultTheme } from "shared/theme";
 
 const UI_STORE = "UI_STORE";
-type Status = "connecting" | "connected" | "disconnected" | void;
+
+export type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | void;
+
+export enum Theme {
+  Light = "light",
+  Dark = "dark",
+  System = "system",
+}
+
+export enum SystemTheme {
+  Light = "light",
+  Dark = "dark",
+}
 
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
@@ -13,11 +29,11 @@ class UiStore {
 
   // theme represents the users UI preference (defaults to system)
   @observable
-  theme: "light" | "dark" | "system";
+  theme: Theme;
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
-  systemTheme: "light" | "dark";
+  systemTheme: SystemTheme;
 
   @observable
   activeDocumentId: string | null | undefined;
@@ -47,7 +63,7 @@ class UiStore {
   sidebarIsResizing = false;
 
   @observable
-  multiplayerStatus: Status;
+  multiplayerStatus: ConnectionStatus;
 
   constructor() {
     // Rehydrate
@@ -67,7 +83,7 @@ class UiStore {
 
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       const setSystemTheme = (event) => {
-        this.systemTheme = event.matches ? "dark" : "light";
+        this.systemTheme = event.matches ? SystemTheme.Dark : SystemTheme.Light;
       };
 
       setSystemTheme(colorSchemeQueryList);
@@ -98,7 +114,7 @@ class UiStore {
   }
 
   @action
-  setTheme = (theme: "light" | "dark" | "system") => {
+  setTheme = (theme: Theme) => {
     this.theme = theme;
 
     if (window.localStorage) {
@@ -126,7 +142,7 @@ class UiStore {
   };
 
   @action
-  setMultiplayerStatus = (status: Status): void => {
+  setMultiplayerStatus = (status: ConnectionStatus): void => {
     this.multiplayerStatus = status;
   };
 
@@ -206,7 +222,7 @@ class UiStore {
   };
 
   @computed
-  get resolvedTheme(): "dark" | "light" {
+  get resolvedTheme(): Theme | SystemTheme {
     if (this.theme === "system") {
       return this.systemTheme;
     }

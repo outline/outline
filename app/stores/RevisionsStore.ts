@@ -1,15 +1,14 @@
 import invariant from "invariant";
 import { filter } from "lodash";
 import { action, runInAction } from "mobx";
-import BaseStore from "~/stores/BaseStore";
+import BaseStore, { RPCAction } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import { FetchOptions, PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Revision from "../models/Revision";
 
 export default class RevisionsStore extends BaseStore<Revision> {
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'RevisionsStore' is not... Remove this comment to see the full error message
-  actions = ["list"];
+  actions = [RPCAction.List];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Revision);

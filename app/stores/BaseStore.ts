@@ -7,7 +7,14 @@ import BaseModel from "~/models/BaseModel";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 
-export type Action = "list" | "info" | "create" | "update" | "delete" | "count";
+export enum RPCAction {
+  Info = "info",
+  List = "list",
+  Create = "create",
+  Update = "update",
+  Delete = "delete",
+  Count = "count",
+}
 
 type FetchPageParams = PaginationParams & {
   documentId?: string;
@@ -42,7 +49,14 @@ export default class BaseStore<T extends BaseModel> {
 
   rootStore: RootStore;
 
-  actions: Action[] = ["list", "info", "create", "update", "delete", "count"];
+  actions = [
+    RPCAction.Info,
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Update,
+    RPCAction.Delete,
+    RPCAction.Count,
+  ];
 
   constructor(rootStore: RootStore, model: Class<T>) {
     this.rootStore = rootStore;
@@ -100,7 +114,7 @@ export default class BaseStore<T extends BaseModel> {
 
   @action
   async create(params: Record<string, any>) {
-    if (!this.actions.includes("create")) {
+    if (!this.actions.includes(RPCAction.Create)) {
       throw new Error(`Cannot create ${this.modelName}`);
     }
 
@@ -117,9 +131,8 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   @action
-  // @ts-expect-error ts-migrate(1064) FIXME: The return type of an async function or method mus... Remove this comment to see the full error message
-  async update(params: Record<string, any>): any {
-    if (!this.actions.includes("update")) {
+  async update(params: Record<string, any>): Promise<T> {
+    if (!this.actions.includes(RPCAction.Update)) {
       throw new Error(`Cannot update ${this.modelName}`);
     }
 
@@ -137,7 +150,7 @@ export default class BaseStore<T extends BaseModel> {
 
   @action
   async delete(item: T, options: Record<string, any> = {}) {
-    if (!this.actions.includes("delete")) {
+    if (!this.actions.includes(RPCAction.Delete)) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
 
@@ -156,7 +169,7 @@ export default class BaseStore<T extends BaseModel> {
 
   @action
   async fetch(id: string, options: Record<string, any> = {}): Promise<any> {
-    if (!this.actions.includes("info")) {
+    if (!this.actions.includes(RPCAction.Info)) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
 
@@ -186,7 +199,7 @@ export default class BaseStore<T extends BaseModel> {
   fetchPage = async (
     params: FetchPageParams | null | undefined
   ): Promise<any> => {
-    if (!this.actions.includes("list")) {
+    if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
 

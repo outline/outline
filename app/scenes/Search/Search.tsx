@@ -280,7 +280,6 @@ class Search extends React.Component<Props> {
         <ResultsWrapper pinToTop={this.pinToTop} column auto>
           <SearchInput
             placeholder={`${t("Search")}…`}
-            // @ts-expect-error ts-migrate(2322) FIXME: Type '{ placeholder: string; onKeyDown: (ev: Keybo... Remove this comment to see the full error message
             onKeyDown={this.handleKeyDown}
             defaultValue={this.query}
           />

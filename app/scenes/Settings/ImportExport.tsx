@@ -19,12 +19,12 @@ import useToasts from "~/hooks/useToasts";
 import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import { uploadFile } from "~/utils/uploadFile";
 import FileOperationListItem from "./components/FileOperationListItem";
-import { parseOutlineExport } from "shared/utils/zip";
+import { parseOutlineExport, Item } from "shared/utils/zip";
 
 function ImportExport() {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const fileRef = React.useRef();
+  const fileRef = React.useRef<HTMLInputElement>(null);
   const { fileOperations, collections } = useStores();
   const { showToast } = useToasts();
   const [isLoading, setLoading] = React.useState(false);
@@ -32,11 +32,12 @@ function ImportExport() {
   const [isImported, setImported] = React.useState(false);
   const [isExporting, setExporting] = React.useState(false);
   const [file, setFile] = React.useState<File>();
-  const [importDetails, setImportDetails] = React.useState();
+  const [importDetails, setImportDetails] = React.useState<
+    Item[] | undefined
+  >();
 
   const handleImport = React.useCallback(async () => {
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'undefined' is not assignable to ... Remove this comment to see the full error message
-    setImported(undefined);
+    setImported(false);
     setImporting(true);
 
     try {
@@ -51,7 +52,6 @@ function ImportExport() {
       showToast(err.message);
     } finally {
       if (fileRef.current) {
-        // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
         fileRef.current.value = "";
       }
 
@@ -68,10 +68,8 @@ function ImportExport() {
     setFile(file);
 
     try {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Item[]' is not assignable to par... Remove this comment to see the full error message
       setImportDetails(await parseOutlineExport(file));
     } catch (err) {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'never[]' is not assignable to pa... Remove this comment to see the full error message
       setImportDetails([]);
     }
   }, []);
@@ -81,7 +79,6 @@ function ImportExport() {
       ev.preventDefault();
 
       if (fileRef.current) {
-        // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
         fileRef.current.click();
       }
     },
@@ -119,12 +116,10 @@ function ImportExport() {
   );
 
   const hasCollections = importDetails
-    ? // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-      !!importDetails.filter((detail) => detail.type === "collection").length
+    ? !!importDetails.filter((detail) => detail.type === "collection").length
     : false;
   const hasDocuments = importDetails
-    ? // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-      !!importDetails.filter((detail) => detail.type === "document").length
+    ? !!importDetails.filter((detail) => detail.type === "document").length
     : false;
   const isImportable = hasCollections && hasDocuments;
 
@@ -144,7 +139,6 @@ function ImportExport() {
       <VisuallyHidden>
         <input
           type="file"
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'MutableRefObject<undefined>' is not assignab... Remove this comment to see the full error message
           ref={fileRef}
           onChange={handleFilePicked}
           accept="application/zip"
@@ -185,9 +179,7 @@ function ImportExport() {
             />
             <List>
               {importDetails
-                // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'detail' implicitly has an 'any' type.
                 .filter((detail) => detail.type === "collection")
-                // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'detail' implicitly has an 'any' type.
                 .map((detail) => (
                   <ImportPreviewItem key={detail.path}>
                     <CollectionIcon />

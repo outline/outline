@@ -1,11 +1,10 @@
 import { reduce, filter, find, orderBy } from "lodash";
 import View from "../models/View";
-import BaseStore from "./BaseStore";
+import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class ViewsStore extends BaseStore<View> {
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'ViewsStore' is not ass... Remove this comment to see the full error message
-  actions = ["list", "create"];
+  actions = [RPCAction.List, RPCAction.Create];
 
   constructor(rootStore: RootStore) {
     super(rootStore, View);

@@ -1,6 +1,7 @@
 import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
 import * as React from "react";
 import stores from "~/stores";
+import { Theme } from "~/stores/UiStore";
 import { createAction } from "~/actions";
 import { SettingsSection } from "~/actions/sections";
 
@@ -11,7 +12,7 @@ export const changeToDarkTheme = createAction({
   keywords: "theme dark night",
   section: SettingsSection,
   selected: () => stores.ui.theme === "dark",
-  perform: () => stores.ui.setTheme("dark"),
+  perform: () => stores.ui.setTheme(Theme.Dark),
 });
 
 export const changeToLightTheme = createAction({
@@ -21,7 +22,7 @@ export const changeToLightTheme = createAction({
   keywords: "theme light day",
   section: SettingsSection,
   selected: () => stores.ui.theme === "light",
-  perform: () => stores.ui.setTheme("light"),
+  perform: () => stores.ui.setTheme(Theme.Light),
 });
 
 export const changeToSystemTheme = createAction({
@@ -31,7 +32,7 @@ export const changeToSystemTheme = createAction({
   keywords: "theme system default",
   section: SettingsSection,
   selected: () => stores.ui.theme === "system",
-  perform: () => stores.ui.setTheme("system"),
+  perform: () => stores.ui.setTheme(Theme.System),
 });
 
 export const changeTheme = createAction({

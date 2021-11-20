@@ -3,12 +3,11 @@ import { action, runInAction } from "mobx";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Membership from "../models/Membership";
-import BaseStore from "./BaseStore";
+import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class MembershipsStore extends BaseStore<Membership> {
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'MembershipsStore' is n... Remove this comment to see the full error message
-  actions = ["create", "delete"];
+  actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Membership);

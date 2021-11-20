@@ -11,6 +11,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { Theme } from "~/stores/UiStore";
 import Document from "~/models/Document";
 import { Action, Separator } from "~/components/Actions";
 import Badge from "~/components/Badge";
@@ -147,7 +148,7 @@ function DocumentHeader({
         <Button
           icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
           onClick={() =>
-            ui.setTheme(resolvedTheme === "light" ? "dark" : "light")
+            ui.setTheme(resolvedTheme === "light" ? Theme.Dark : Theme.Light)
           }
           neutral
           borderOnHover

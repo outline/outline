@@ -3,12 +3,16 @@ import { sortBy, filter, find, isUndefined } from "lodash";
 import { action, computed } from "mobx";
 import { client } from "~/utils/ApiClient";
 import Share from "../models/Share";
-import BaseStore from "./BaseStore";
+import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class SharesStore extends BaseStore<Share> {
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'SharesStore' is not as... Remove this comment to see the full error message
-  actions = ["info", "list", "create", "update"];
+  actions = [
+    RPCAction.Info,
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Update,
+  ];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Share);

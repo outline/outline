@@ -12,16 +12,19 @@ import User from "../models/User";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
+
 type PersistedData = {
   user?: User;
   team?: Team;
   policies?: Policy[];
 };
+
 type Provider = {
   id: string;
   name: string;
   authUrl: string;
 };
+
 type Config = {
   name?: string;
   hostname?: string;
@@ -81,9 +84,8 @@ export default class AuthStore {
     // listen to the localstorage value changing in other tabs to react to
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
-      if (event.key === AUTH_STORE) {
+      if (event.key === AUTH_STORE && event.newValue) {
         const data: PersistedData | null | undefined = JSON.parse(
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | null' is not assignable... Remove this comment to see the full error message
           event.newValue
         );
         // data may be null if key is deleted in localStorage
@@ -104,10 +106,8 @@ export default class AuthStore {
 
   @action
   rehydrate(data: PersistedData) {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    this.user = new User(data.user);
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    this.team = new Team(data.team);
+    this.user = data.user ? new User(data.user, this) : undefined;
+    this.team = data.team ? new Team(data.team, this) : undefined;
     this.token = getCookie("accessToken");
     this.lastSignedIn = getCookie("lastSignedIn");
     this.addPolicies(data.policies);
@@ -154,10 +154,8 @@ export default class AuthStore {
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        this.user = new User(user);
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        this.team = new Team(team);
+        this.user = new User(user, this);
+        this.team = new Team(team, this);
 
         if (env.SENTRY_DSN) {
           Sentry.configureScope(function (scope) {
@@ -213,8 +211,7 @@ export default class AuthStore {
       invariant(res && res.data, "User response not available");
       runInAction("AuthStore#updateUser", () => {
         this.addPolicies(res.policies);
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        this.user = new User(res.data);
+        this.user = new User(res.data, this);
       });
     } finally {
       this.isSaving = false;
@@ -236,8 +233,7 @@ export default class AuthStore {
       invariant(res && res.data, "Team response not available");
       runInAction("AuthStore#updateTeam", () => {
         this.addPolicies(res.policies);
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        this.team = new Team(res.data);
+        this.team = new Team(res.data, this);
       });
     } finally {
       this.isSaving = false;

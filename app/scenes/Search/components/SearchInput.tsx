@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 
-type Props = {
+type Props = React.HTMLAttributes<HTMLInputElement> & {
   defaultValue?: string;
   placeholder?: string;
 };

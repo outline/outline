@@ -4,12 +4,11 @@ import { action, runInAction } from "mobx";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import GroupMembership from "../models/GroupMembership";
-import BaseStore from "./BaseStore";
+import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'actions' in type 'GroupMembershipsStore'... Remove this comment to see the full error message
-  actions = ["create", "delete"];
+  actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
     super(rootStore, GroupMembership);
