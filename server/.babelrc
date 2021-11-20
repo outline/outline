@@ -18,6 +18,7 @@
   ],
   "plugins": [
     "transform-class-properties",
+    "tsconfig-paths-module-resolver",
     [
       "transform-inline-environment-variables",
       {

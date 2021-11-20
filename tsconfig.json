@@ -24,12 +24,12 @@
     "paths": {
       "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"],
-      "~/*": ["./app/*"],
-    },
+      "~/*": ["./app/*"]
+    }
   },
   "exclude": [
     "node_modules",
     "build",
     "server/migrations"
-  ],
+  ]
 }
