@@ -2,9 +2,12 @@ import * as React from "react";
 import isTextInput from "~/utils/isTextInput";
 
 export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
+
+type Callback = (event: KeyboardEvent) => void;
+
 // Registered keyboard event callbacks
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'callbacks' implicitly has type 'any[]' i... Remove this comment to see the full error message
-let callbacks = [];
+let callbacks: Callback[] = [];
+
 // Track if IME input suggestions are open so we can ignore keydown shortcuts
 // in this case, they should never be triggered from mobile keyboards.
 let imeOpen = false;
@@ -19,15 +22,10 @@ const createKeyPredicate = (keyFilter: KeyFilter) =>
         event.key === keyFilter ||
         event.code === `Key${keyFilter.toUpperCase()}`
     : keyFilter
-    ? // @ts-expect-error ts-migrate(7006) FIXME: Parameter '_event' implicitly has an 'any' type.
-      (_event) => true
-    : // @ts-expect-error ts-migrate(7006) FIXME: Parameter '_event' implicitly has an 'any' type.
-      (_event) => false;
+    ? (_event: KeyboardEvent) => true
+    : (_event: KeyboardEvent) => false;
 
-export default function useKeyDown(
-  key: KeyFilter,
-  fn: (event: KeyboardEvent) => void
-): void {
+export default function useKeyDown(key: KeyFilter, fn: Callback): void {
   const predicate = createKeyPredicate(key);
 
   React.useEffect(() => {
@@ -39,18 +37,17 @@ export default function useKeyDown(
 
     callbacks.push(handler);
     return () => {
-      // @ts-expect-error ts-migrate(7005) FIXME: Variable 'callbacks' implicitly has an 'any[]' typ... Remove this comment to see the full error message
       callbacks = callbacks.filter((cb) => cb !== handler);
     };
   }, []);
 }
+
 window.addEventListener("keydown", (event) => {
   if (imeOpen) {
     return;
   }
 
   // reverse so that the last registered callbacks get executed first
-  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'callbacks' implicitly has an 'any[]' typ... Remove this comment to see the full error message
   for (const callback of callbacks.reverse()) {
     if (event.defaultPrevented === true) {
       break;
@@ -65,9 +62,11 @@ window.addEventListener("keydown", (event) => {
     }
   }
 });
+
 window.addEventListener("compositionstart", () => {
   imeOpen = true;
 });
+
 window.addEventListener("compositionend", () => {
   imeOpen = false;
 });

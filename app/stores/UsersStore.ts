@@ -9,7 +9,6 @@ import { Role } from "shared/types";
 
 export default class UsersStore extends BaseStore<User> {
   @observable
-  // @ts-expect-error ts-migrate(2740) FIXME: Type '{}' is missing the following properties from... Remove this comment to see the full error message
   counts: {
     active: number;
     admins: number;
@@ -17,7 +16,14 @@ export default class UsersStore extends BaseStore<User> {
     invited: number;
     suspended: number;
     viewers: number;
-  } = {};
+  } = {
+    active: 0,
+    admins: 0,
+    all: 0,
+    invited: 0,
+    suspended: 0,
+    viewers: 0,
+  };
 
   constructor(rootStore: RootStore) {
     super(rootStore, User);
@@ -25,42 +31,39 @@ export default class UsersStore extends BaseStore<User> {
 
   @computed
   get active(): User[] {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | User | (() => string) | (() => str... Remove this comment to see the full error message
-    return filter(
-      this.orderedData,
+    return this.orderedData.filter(
       (user) => !user.isSuspended && user.lastActiveAt
     );
   }
 
   @computed
   get suspended(): User[] {
-    return filter(this.orderedData, (user) => user.isSuspended);
+    return this.orderedData.filter((user) => user.isSuspended);
   }
 
   @computed
   get activeOrInvited(): User[] {
-    return filter(this.orderedData, (user) => !user.isSuspended);
+    return this.orderedData.filter((user) => !user.isSuspended);
   }
 
   @computed
   get invited(): User[] {
-    return filter(this.orderedData, (user) => user.isInvited);
+    return this.orderedData.filter((user) => user.isInvited);
   }
 
   @computed
   get admins(): User[] {
-    return filter(this.orderedData, (user) => user.isAdmin);
+    return this.orderedData.filter((user) => user.isAdmin);
   }
 
   @computed
   get viewers(): User[] {
-    return filter(this.orderedData, (user) => user.isViewer);
+    return this.orderedData.filter((user) => user.isViewer);
   }
 
   @computed
   get all(): User[] {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | User | (() => string) | (() => str... Remove this comment to see the full error message
-    return filter(this.orderedData, (user) => user.lastActiveAt);
+    return this.orderedData.filter((user) => user.lastActiveAt);
   }
 
   @computed
@@ -265,8 +268,7 @@ export default class UsersStore extends BaseStore<User> {
   };
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'users' implicitly has an 'any' type.
-function queriedUsers(users, query) {
+function queriedUsers(users: User[], query: string) {
   return filter(users, (user) =>
     user.name.toLowerCase().includes(query.toLowerCase())
   );

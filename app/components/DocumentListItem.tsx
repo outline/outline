@@ -23,8 +23,8 @@ import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
-  highlight?: string | null | undefined;
-  context?: string | null | undefined;
+  highlight?: string | undefined;
+  context?: string | undefined;
   showNestedDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
@@ -40,8 +40,10 @@ function replaceResultMarks(tag: string) {
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-function DocumentListItem(props: Props, ref) {
+function DocumentListItem(
+  props: Props,
+  ref: React.RefObject<HTMLAnchorElement>
+) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const currentUser = useCurrentUser();
@@ -85,7 +87,6 @@ function DocumentListItem(props: Props, ref) {
           <Title
             text={document.titleWithDefault}
             highlight={highlight}
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             dir={document.dir}
           />
           {document.isNew && document.createdBy.id !== currentUser.id && (
@@ -112,7 +113,6 @@ function DocumentListItem(props: Props, ref) {
 
         {!queryIsInTitle && (
           <ResultContext
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             text={context}
             highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
             processResult={replaceResultMarks}

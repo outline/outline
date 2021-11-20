@@ -29,7 +29,7 @@ type InviteRequest = {
 };
 
 function Invite({ onSubmit }: Props) {
-  const [isSaving, setIsSaving] = React.useState();
+  const [isSaving, setIsSaving] = React.useState(false);
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
   const [invites, setInvites] = React.useState<InviteRequest[]>([
     {
@@ -58,7 +58,6 @@ function Invite({ onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
@@ -72,7 +71,6 @@ function Invite({ onSubmit }: Props) {
           type: "error",
         });
       } finally {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },

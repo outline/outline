@@ -18,11 +18,10 @@ function GroupDelete({ group, onSubmit }: Props) {
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const history = useHistory();
-  const [isDeleting, setIsDeleting] = React.useState();
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
     setIsDeleting(true);
 
     try {
@@ -34,7 +33,6 @@ function GroupDelete({ group, onSubmit }: Props) {
         type: "error",
       });
     } finally {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
       setIsDeleting(false);
     }
   };

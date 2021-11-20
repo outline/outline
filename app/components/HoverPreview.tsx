@@ -21,13 +21,12 @@ function HoverPreviewInternal({ node, onClose }: Props) {
   const { documents } = useStores();
   const slug = parseDocumentSlug(node.href);
   const [isVisible, setVisible] = React.useState(false);
-  const timerClose = React.useRef();
-  const timerOpen = React.useRef();
+  const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
+  const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
 
   const startCloseTimer = () => {
     stopOpenTimer();
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timerClose.current = setTimeout(() => {
       if (isVisible) setVisible(false);
       onClose();
@@ -41,7 +40,6 @@ function HoverPreviewInternal({ node, onClose }: Props) {
   };
 
   const startOpenTimer = () => {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
   };
 

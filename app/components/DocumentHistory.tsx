@@ -56,6 +56,7 @@ function DocumentHistory() {
 
     return eventsInDocument;
   }, [eventsInDocument, document]);
+
   return (
     <Sidebar>
       {document ? (

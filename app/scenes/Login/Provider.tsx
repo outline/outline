@@ -28,9 +28,8 @@ class Provider extends React.Component<Props, State> {
     email: "",
   };
 
-  handleChangeEmail = (event: React.SyntheticEvent<HTMLInputElement>) => {
+  handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
       email: event.target.value,
     });
   };

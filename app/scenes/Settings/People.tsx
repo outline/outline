@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
+import User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -22,8 +23,7 @@ import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
 import UserStatusFilter from "./components/UserStatusFilter";
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
-function People(props) {
+function People() {
   const topRef = React.useRef();
   const location = useLocation();
   const history = useHistory();
@@ -37,9 +37,9 @@ function People(props) {
   const { t } = useTranslation();
   const params = useQuery();
   const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState([]);
+  const [data, setData] = React.useState<User[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
-  const [userIds, setUserIds] = React.useState([]);
+  const [userIds, setUserIds] = React.useState<string[]>([]);
   const can = policies.abilities(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
@@ -47,8 +47,7 @@ function People(props) {
   const direction =
     params.get("direction")?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | 0' is not assignable to... Remove this comment to see the full error message
-  const page = parseInt(params.get("page") || 0, 10);
+  const page = parseInt(params.get("page") || "0", 10);
   const limit = 25;
 
   React.useEffect(() => {
@@ -65,8 +64,7 @@ function People(props) {
           filter,
         });
         setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
-        setUserIds(response.map((u) => u.id));
+        setUserIds(response.map((u: User) => u.id));
       } finally {
         setIsLoading(false);
       }
@@ -79,27 +77,20 @@ function People(props) {
     let filtered = users.orderedData;
 
     if (!filter) {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.active.filter((u) => userIds.includes(u.id));
     } else if (filter === "all") {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.orderedData.filter((u) => userIds.includes(u.id));
     } else if (filter === "admins") {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.admins.filter((u) => userIds.includes(u.id));
     } else if (filter === "suspended") {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.suspended.filter((u) => userIds.includes(u.id));
     } else if (filter === "invited") {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.invited.filter((u) => userIds.includes(u.id));
     } else if (filter === "viewers") {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
       filtered = users.viewers.filter((u) => userIds.includes(u.id));
     }
 
     // sort the resulting data by the original order from the server
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any[]' is not assignable to para... Remove this comment to see the full error message
     setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
   }, [
     filter,

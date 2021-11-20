@@ -168,8 +168,7 @@ export const importDocument = createAction({
     input.type = "file";
     input.accept = documents.importFileTypes.join(", ");
 
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(ev: React.SyntheticEvent) => Promise<void>'... Remove this comment to see the full error message
-    input.onchange = async (ev: React.SyntheticEvent) => {
+    input.onchange = async (ev: Event) => {
       const files = getDataTransferFiles(ev);
 
       try {

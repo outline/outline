@@ -72,14 +72,11 @@ function Notifications() {
   }, 500);
 
   const handleChange = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'name' does not exist on type 'EventTarge... Remove this comment to see the full error message
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
       const setting = notificationSettings.getByEvent(ev.target.name);
 
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'checked' does not exist on type 'EventTa... Remove this comment to see the full error message
       if (ev.target.checked) {
         await notificationSettings.save({
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'name' does not exist on type 'EventTarge... Remove this comment to see the full error message
           event: ev.target.name,
         });
       } else if (setting) {

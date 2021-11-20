@@ -18,8 +18,7 @@ export default class MultiplayerExtension extends Extension {
     const { user, provider, document: doc } = this.options;
     const type = doc.get("default", Y.XmlFragment);
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'tr' implicitly has an 'any' type.
-    const assignUser = (tr) => {
+    const assignUser = (tr: Y.Transaction) => {
       const clientIds = Array.from(doc.store.clients.keys());
 
       if (
@@ -38,9 +37,11 @@ export default class MultiplayerExtension extends Extension {
     provider.on("authenticated", () => {
       provider.setAwarenessField("user", user);
     });
+
     // only once an actual change has been made do we add the userId <> clientId
     // mapping, this avoids stored mappings for clients that never made a change
     doc.on("afterTransaction", assignUser);
+
     return [
       ySyncPlugin(type),
       yCursorPlugin(provider.awareness),

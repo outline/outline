@@ -17,7 +17,7 @@ let openModals = 0;
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;
-  title?: string;
+  title?: React.ReactNode;
   onRequestClose: () => void;
 };
 
@@ -26,7 +26,6 @@ const Modal = ({
   isOpen,
   title = "Untitled",
   onRequestClose,
-  ...rest
 }: Props) => {
   const dialog = useDialogState({
     animated: 250,
@@ -46,6 +45,7 @@ const Modal = ({
       dialog.hide();
     }
   }, [dialog, wasOpen, isOpen]);
+
   useUnmount(() => {
     if (isOpen) {
       openModals--;
@@ -60,13 +60,7 @@ const Modal = ({
     <DialogBackdrop {...dialog}>
       {(props) => (
         <Backdrop {...props}>
-          <Dialog
-            {...dialog}
-            aria-label={title}
-            preventBodyScroll
-            hideOnEsc
-            hide={onRequestClose}
-          >
+          <Dialog {...dialog} preventBodyScroll hideOnEsc hide={onRequestClose}>
             {(props) => (
               <Scene
                 $nested={!!depth}

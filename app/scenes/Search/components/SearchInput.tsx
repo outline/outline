@@ -10,17 +10,15 @@ type Props = {
 
 function SearchInput({ defaultValue, ...rest }: Props) {
   const theme = useTheme();
-  const inputRef = React.useRef();
+  const inputRef = React.useRef<HTMLInputElement>();
 
   React.useEffect(() => {
     // ensure that focus is placed at end of input
     const len = (defaultValue || "").length;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'setSelectionRange' does not exist on typ... Remove this comment to see the full error message
     inputRef.current?.setSelectionRange(len, len);
   }, [defaultValue]);
 
-  const focusInput = React.useCallback((ev: React.SyntheticEvent) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'focus' does not exist on type 'never'.
+  const focusInput = React.useCallback(() => {
     inputRef.current?.focus();
   }, []);
 

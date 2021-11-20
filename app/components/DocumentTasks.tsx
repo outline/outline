@@ -1,6 +1,6 @@
 import { DoneIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, TFunction } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import CircularProgressBar from "~/components/CircularProgressBar";
 import usePrevious from "../hooks/usePrevious";
@@ -11,8 +11,7 @@ type Props = {
   document: Document;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
-function getMessage(t, total, completed) {
+function getMessage(t: TFunction, total: number, completed: number): string {
   if (completed === 0) {
     return t(`{{ total }} task`, {
       total,

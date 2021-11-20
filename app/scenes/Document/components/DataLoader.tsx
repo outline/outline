@@ -104,17 +104,21 @@ class DataLoader extends React.Component<Props> {
     if (isInternalUrl(term)) {
       // search for exact internal document
       const slug = parseDocumentSlug(term);
+      if (!slug) {
+        return;
+      }
 
       try {
         const {
           document,
         }: {
           document: Document;
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
         } = await this.props.documents.fetch(slug);
+
         const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
         });
+
         return [
           {
             title: document.title,
@@ -132,12 +136,13 @@ class DataLoader extends React.Component<Props> {
 
     // default search for anything that doesn't look like a URL
     const results = await this.props.documents.searchTitles(term);
+
     return sortBy(
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
-      results.map((document) => {
+      results.map((document: Document) => {
         const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
         });
+
         return {
           title: document.title,
           subtitle: `Updated ${time}`,
@@ -156,12 +161,14 @@ class DataLoader extends React.Component<Props> {
   onCreateLink = async (title: string) => {
     const document = this.document;
     invariant(document, "document must be loaded to create link");
+
     const newDocument = await this.props.documents.create({
       collectionId: document.collectionId,
       parentDocumentId: document.parentDocumentId,
       title,
       text: "",
     });
+
     return newDocument.url;
   };
 

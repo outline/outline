@@ -2,10 +2,11 @@
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '../.... Remove this comment to see the full error message
 import localStorage from "../../__mocks__/localStorage";
 import Enzyme from "enzyme";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'enzy... Remove this comment to see the full error message
 import Adapter from "enzyme-adapter-react-16";
 import { initI18n } from "shared/i18n";
+
 initI18n();
+
 Enzyme.configure({
   adapter: new Adapter()
 });

@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -37,7 +38,7 @@ class ImageUpload extends React.Component<Props> {
   @observable
   file: File;
 
-  avatarEditorRef: AvatarEditor;
+  avatarEditorRef = React.createRef<AvatarEditor>();
 
   static defaultProps = {
     submitText: "Crop Picture",
@@ -57,7 +58,8 @@ class ImageUpload extends React.Component<Props> {
   };
 
   uploadImage = async () => {
-    const canvas = this.avatarEditorRef.getImage();
+    const canvas = this.avatarEditorRef.current?.getImage();
+    invariant(canvas, "canvas is not defined");
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
 
     try {
@@ -99,8 +101,7 @@ class ImageUpload extends React.Component<Props> {
           {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
-              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ref' implicitly has an 'any' type.
-              ref={(ref) => (this.avatarEditorRef = ref)}
+              ref={this.avatarEditorRef}
               image={this.file}
               width={250}
               height={250}

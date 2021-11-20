@@ -17,11 +17,10 @@ function GroupEdit({ group, onSubmit }: Props) {
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
-  const [isSaving, setIsSaving] = React.useState();
+  const [isSaving, setIsSaving] = React.useState(false);
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
@@ -34,15 +33,14 @@ function GroupEdit({ group, onSubmit }: Props) {
           type: "error",
         });
       } finally {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },
     [group, onSubmit, showToast, name]
   );
+
   const handleNameChange = React.useCallback(
-    (ev: React.SyntheticEvent<any>) => {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
       setName(ev.target.value);
     },
     []

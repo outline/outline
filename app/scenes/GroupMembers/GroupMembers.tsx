@@ -27,8 +27,7 @@ function GroupMembers({ group }: Props) {
   const { t } = useTranslation();
   const can = policies.abilities(group.id);
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'state' implicitly has an 'any' type.
-  const handleAddModal = (state) => {
+  const handleAddModal = (state: boolean) => {
     setAddModalOpen(state);
   };
 

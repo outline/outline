@@ -7,7 +7,7 @@ import Input, { Props as InputProps } from "./Input";
 type Props = InputProps & {
   placeholder?: string;
   value?: string;
-  onChange: (event: React.SyntheticEvent) => unknown;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
 

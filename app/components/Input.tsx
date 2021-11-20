@@ -116,7 +116,7 @@ export type Props = {
   disabled?: boolean;
   placeholder?: string;
   onChange?: (
-    ev: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>
+    ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => unknown;
   onKeyDown?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;

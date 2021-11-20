@@ -10,10 +10,11 @@ export type Props = {
   className?: string;
   name?: string;
   disabled?: boolean;
-  onChange: (event: React.SyntheticEvent<HTMLInputElement>) => unknown;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   note?: React.ReactNode;
   small?: boolean;
 };
+
 const LabelText = styled.span<{ small?: boolean }>`
   font-weight: 500;
   margin-left: ${(props) => (props.small ? "6px" : "10px")};

@@ -36,8 +36,7 @@ function Header({ breadcrumb, title, actions }: Props) {
     <Wrapper align="center" shrink={false}>
       {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}
       {isScrolled ? (
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-        <Title align="center" justify="flex-start" onClick={handleClickTitle}>
+        <Title onClick={handleClickTitle}>
           <Fade>{title}</Fade>
         </Title>
       ) : (

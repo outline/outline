@@ -41,8 +41,7 @@ function Security() {
   );
 
   const handleChange = React.useCallback(
-    async (ev: React.SyntheticEvent<any>) => {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'name' does not exist on type 'EventTarge... Remove this comment to see the full error message
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
       const newData = { ...data, [ev.target.name]: ev.target.checked };
       setData(newData);
       await auth.updateTeam(newData);

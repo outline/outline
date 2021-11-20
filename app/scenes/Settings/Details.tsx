@@ -24,10 +24,10 @@ function Details() {
   const form = useRef<HTMLFormElement>(null);
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
-  const [avatarUrl, setAvatarUrl] = useState();
+  const [avatarUrl, setAvatarUrl] = useState<string>();
 
   const handleSubmit = React.useCallback(
-    async (event: React.SyntheticEvent | null | undefined) => {
+    async (event?: React.SyntheticEvent) => {
       if (event) {
         event.preventDefault();
       }
@@ -51,16 +51,14 @@ function Details() {
   );
 
   const handleNameChange = React.useCallback(
-    (ev: React.SyntheticEvent<any>) => {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
       setName(ev.target.value);
     },
     []
   );
 
   const handleSubdomainChange = React.useCallback(
-    (ev: React.SyntheticEvent<any>) => {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
       setSubdomain(ev.target.value.toLowerCase());
     },
     []
@@ -68,9 +66,7 @@ function Details() {
 
   const handleAvatarUpload = React.useCallback(
     (avatarUrl: string) => {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
       setAvatarUrl(avatarUrl);
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       handleSubmit();
     },
     [handleSubmit]

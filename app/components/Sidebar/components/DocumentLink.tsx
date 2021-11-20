@@ -129,7 +129,7 @@ function DocumentLink(
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    canDrag: (monitor) => {
+    canDrag: () => {
       return (
         policies.abilities(node.id).move ||
         policies.abilities(node.id).archive ||

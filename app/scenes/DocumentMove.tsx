@@ -22,7 +22,7 @@ type Props = {
 };
 
 function DocumentMove({ document, onRequestClose }: Props) {
-  const [searchTerm, setSearchTerm] = useState();
+  const [searchTerm, setSearchTerm] = useState<string>();
   const { collections, documents } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -31,9 +31,10 @@ function DocumentMove({ document, onRequestClose }: Props) {
     const paths = collections.pathsToDocuments;
     const index = new Search("id");
     index.addIndex("title");
+
     // Build index
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'indexeableDocuments' implicitly has type... Remove this comment to see the full error message
-    const indexeableDocuments = [];
+    const indexeableDocuments: DocumentPath[] = [];
+
     paths.forEach((path) => {
       const doc = documents.get(path.id);
 
@@ -41,43 +42,38 @@ function DocumentMove({ document, onRequestClose }: Props) {
         indexeableDocuments.push(path);
       }
     });
-    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'indexeableDocuments' implicitly has an '... Remove this comment to see the full error message
+
     index.addDocuments(indexeableDocuments);
     return index;
   }, [documents, collections.pathsToDocuments]);
 
-  const results: DocumentPath[] = useMemo(() => {
+  const results = useMemo(() => {
     const onlyShowCollections = document.isTemplate;
-    let results = [];
+    let results: DocumentPath[] = [];
 
     if (collections.isLoaded) {
       if (searchTerm) {
-        results = searchIndex.search(searchTerm);
+        results = searchIndex.search(searchTerm) as DocumentPath[];
       } else {
-        // @ts-expect-error it's there, but it's not typed
+        // @ts-expect-error it's there, but it's not in typings
         results = searchIndex._documents;
       }
     }
 
     if (onlyShowCollections) {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
       results = results.filter((result) => result.type === "collection");
     } else {
       // Exclude root from search results if document is already at the root
       if (!document.parentDocumentId) {
         results = results.filter(
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
           (result) => result.id !== document.collectionId
         );
       }
 
       // Exclude document if on the path to result, or the same result
       results = results.filter(
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
         (result) =>
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
           !result.path.map((doc) => doc.id).includes(document.id) &&
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
           last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
       );
     }
@@ -92,8 +88,7 @@ function DocumentMove({ document, onRequestClose }: Props) {
     onRequestClose();
   };
 
-  const handleFilter = (ev: React.SyntheticEvent<any>) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
   };
 

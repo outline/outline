@@ -17,7 +17,7 @@ type Props = {
   labelHidden?: boolean;
   collectionId?: string;
   value?: string;
-  onChange?: (event: React.SyntheticEvent) => unknown;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
 

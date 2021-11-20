@@ -57,14 +57,14 @@ function Collections() {
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
-    drop: async (item, monitor) => {
+    drop: async (item) => {
       collections.move(
         // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         item.id,
         fractionalIndex(null, orderedCollections[0].index)
       );
     },
-    canDrop: (item, monitor) => {
+    canDrop: (item) => {
       // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       return item.id !== orderedCollections[0].id;
     },

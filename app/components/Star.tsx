@@ -12,8 +12,9 @@ type Props = {
 
 function Star({ size, document, ...rest }: Props) {
   const { t } = useTranslation();
+
   const handleClick = React.useCallback(
-    (ev: React.SyntheticEvent) => {
+    (ev: React.MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault();
       ev.stopPropagation();
 

@@ -78,17 +78,14 @@ function Starred() {
     }
   }, [fetchResults, offset]);
 
-  const handleShowMore = React.useCallback(
-    async (ev) => {
-      setUpperBound(
-        (previousUpperBound) => previousUpperBound + STARRED_PAGINATION_LIMIT
-      );
-      await fetchResults();
-    },
-    [fetchResults]
-  );
+  const handleShowMore = React.useCallback(async () => {
+    setUpperBound(
+      (previousUpperBound) => previousUpperBound + STARRED_PAGINATION_LIMIT
+    );
+    await fetchResults();
+  }, [fetchResults]);
 
-  const handleShowLess = React.useCallback((ev) => {
+  const handleShowLess = React.useCallback(() => {
     setUpperBound(STARRED_PAGINATION_LIMIT);
     setShow("More");
   }, []);

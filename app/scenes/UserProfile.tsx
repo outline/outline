@@ -21,6 +21,7 @@ import { settingsPath } from "~/utils/routeHelpers";
 type Props = {
   user: User;
   onRequestClose: () => void;
+  isOpen: boolean;
 };
 
 function UserProfile(props: Props) {
@@ -31,9 +32,9 @@ function UserProfile(props: Props) {
   const { user, ...rest } = props;
   if (!user) return null;
   const isCurrentUser = currentUser.id === user.id;
+
   return (
     <Modal
-      // @ts-expect-error ts-migrate(2322) FIXME: Type 'Element' is not assignable to type 'string'.
       title={
         <Flex align="center">
           <Avatar src={user.avatarUrl} size={38} alt={t("Profile picture")} />

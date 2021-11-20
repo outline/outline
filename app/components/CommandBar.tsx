@@ -8,6 +8,7 @@ import breakpoint from "styled-components-breakpoint";
 import CommandBarResults from "~/components/CommandBarResults";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
+import { CommandBarAction } from "~/types";
 
 export const CommandBarOptions = {
   animations: {
@@ -19,10 +20,13 @@ export const CommandBarOptions = {
 function CommandBar() {
   const { t } = useTranslation();
   useCommandBarActions(rootActions);
+
   const { rootAction } = useKBar((state) => ({
-    // @ts-expect-error ts-migrate(2538) FIXME: Type 'null' cannot be used as an index type.
-    rootAction: state.actions[state.currentRootActionId],
+    rootAction: state.currentRootActionId
+      ? (state.actions[state.currentRootActionId] as CommandBarAction)
+      : undefined,
   }));
+
   return (
     <KBarPortal>
       <Positioner>

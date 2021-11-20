@@ -2,10 +2,10 @@ import * as React from "react";
 import replace from "string-replace-to-array";
 import styled from "styled-components";
 
-type Props = {
+type Props = React.HTMLAttributes<HTMLSpanElement> & {
   highlight: (string | null | undefined) | RegExp;
   processResult?: (tag: string) => string;
-  text: string;
+  text: string | undefined;
   caseSensitive?: boolean;
 };
 
@@ -13,7 +13,7 @@ function Highlight({
   highlight,
   processResult,
   caseSensitive,
-  text,
+  text = "",
   ...rest
 }: Props) {
   let regex;
@@ -31,8 +31,7 @@ function Highlight({
   return (
     <span {...rest}>
       {highlight
-        ? // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'tag' implicitly has an 'any' type.
-          replace(text, regex, (tag) => (
+        ? replace(text, regex, (tag: string) => (
             <Mark key={index++}>
               {processResult ? processResult(tag) : tag}
             </Mark>

@@ -11,10 +11,9 @@ type Props = {
 export default class SocketPresence extends React.Component<Props> {
   static contextType = SocketContext;
 
-  previousContext: any;
+  previousContext: typeof SocketContext;
 
-  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'IntervalID'.
-  editingInterval: IntervalID;
+  editingInterval: ReturnType<typeof setInterval>;
 
   componentDidMount() {
     this.editingInterval = setInterval(() => {

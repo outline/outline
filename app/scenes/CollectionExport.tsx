@@ -13,17 +13,16 @@ type Props = {
 };
 
 function CollectionExport({ collection, onSubmit }: Props) {
-  const [isLoading, setIsLoading] = React.useState();
+  const [isLoading, setIsLoading] = React.useState(false);
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsLoading(true);
       await collection.export();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
+
       setIsLoading(false);
       showToast(
         t("Export started, you will receive an email when it’s complete.")

@@ -211,7 +211,7 @@ function DocumentMenu({
   );
 
   const handleFilePicked = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
+    async (ev: React.FormEvent<HTMLInputElement>) => {
       const files = getDataTransferFiles(ev);
 
       // Because this is the onChange handler it's possible for the change to be

@@ -57,7 +57,6 @@ class CollectionNew extends React.Component<Props> {
     );
 
     try {
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       await collection.save();
       this.props.onSubmit();
       history.push(collection.url);
@@ -70,8 +69,7 @@ class CollectionNew extends React.Component<Props> {
     }
   };
 
-  handleNameChange = (ev: React.SyntheticEvent) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+  handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     this.name = ev.target.value;
 
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -103,8 +101,7 @@ class CollectionNew extends React.Component<Props> {
     this.permission = newPermission;
   };
 
-  handleSharingChange = (ev: React.SyntheticEvent<HTMLInputElement>) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'checked' does not exist on type 'EventTa... Remove this comment to see the full error message
+  handleSharingChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     this.sharing = ev.target.checked;
   };
 

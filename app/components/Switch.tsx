@@ -8,7 +8,7 @@ type Props = {
   label?: string;
   checked?: boolean;
   disabled?: boolean;
-  onChange: (event: React.SyntheticEvent<HTMLInputElement>) => unknown;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   id?: string;
 };
 

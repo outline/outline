@@ -66,7 +66,6 @@ class AvatarWithPresence extends React.Component<Props> {
         </Tooltip>
         <UserProfile
           user={user}
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ user: User; isOpen: boolean; onRequestClos... Remove this comment to see the full error message
           isOpen={this.isOpen}
           onRequestClose={this.handleCloseProfile}
         />

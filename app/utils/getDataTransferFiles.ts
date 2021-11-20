@@ -1,5 +1,5 @@
 export default function getDataTransferFiles(
-  event: React.SyntheticEvent
+  event: Event | React.FormEvent<HTMLInputElement>
 ): File[] {
   let dataTransferItemsList = [];
 

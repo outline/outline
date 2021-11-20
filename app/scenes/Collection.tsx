@@ -52,21 +52,21 @@ import {
 import Collection from "../models/Collection";
 
 function CollectionScene() {
-  const params = useParams();
+  const params = useParams<{ id?: string }>();
   const history = useHistory();
   const match = useRouteMatch();
   const { t } = useTranslation();
   const { documents, policies, collections, ui } = useStores();
   const { showToast } = useToasts();
   const team = useCurrentTeam();
-  const [isFetching, setFetching] = React.useState();
-  const [error, setError] = React.useState();
+  const [isFetching, setFetching] = React.useState(false);
+  const [error, setError] = React.useState<Error | undefined>();
   const [
     permissionsModalOpen,
     handlePermissionsModalOpen,
     handlePermissionsModalClose,
   ] = useBoolean();
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type '{}'.
+
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
@@ -91,8 +91,7 @@ function CollectionScene() {
   }, [ui, collection]);
 
   React.useEffect(() => {
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
-    setError(null);
+    setError(undefined);
 
     if (collection) {
       documents.fetchPinned({
@@ -105,15 +104,12 @@ function CollectionScene() {
     async function load() {
       if ((!can || !collection) && !error && !isFetching) {
         try {
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
-          setError(null);
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
+          setError(undefined);
           setFetching(true);
           await collections.fetch(id);
         } catch (err) {
           setError(err);
         } finally {
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
           setFetching(false);
         }
       }
@@ -141,6 +137,7 @@ function CollectionScene() {
     : [];
   const collectionName = collection ? collection.name : "";
   const hasPinnedDocuments = !!pinnedDocuments.length;
+
   return collection ? (
     <Scene
       centered={false}

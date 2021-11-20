@@ -1,17 +1,23 @@
 import invariant from "invariant";
 import { concat, find, last } from "lodash";
 import { computed, action } from "mobx";
+import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Collection from "../models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 
+enum DocumentPathItemType {
+  Collection = "collection",
+  Document = "document",
+}
+
 export type DocumentPathItem = {
+  type: DocumentPathItemType;
   id: string;
   collectionId: string;
   title: string;
   url: string;
-  type: "collection" | "document";
 };
 
 export type DocumentPath = DocumentPathItem & {
@@ -50,20 +56,21 @@ export default class CollectionsStore extends BaseStore<Collection> {
    */
   @computed
   get pathsToDocuments(): DocumentPath[] {
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'results' implicitly has type 'any[]' in ... Remove this comment to see the full error message
-    const results = [];
+    const results: DocumentPathItem[][] = [];
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentList' implicitly has an 'any' t... Remove this comment to see the full error message
-    const travelDocuments = (documentList, collectionId, path) =>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
-      documentList.forEach((document) => {
+    const travelDocuments = (
+      documentList: NavigationNode[],
+      collectionId: string,
+      path: DocumentPathItem[]
+    ) =>
+      documentList.forEach((document: NavigationNode) => {
         const { id, title, url } = document;
         const node = {
+          type: DocumentPathItemType.Document,
           id,
           collectionId,
           title,
           url,
-          type: "document",
         };
         results.push(concat(path, node));
         travelDocuments(document.children, collectionId, concat(path, [node]));
@@ -73,21 +80,19 @@ export default class CollectionsStore extends BaseStore<Collection> {
       this.data.forEach((collection) => {
         const { id, name, url } = collection;
         const node = {
+          type: DocumentPathItemType.Collection,
           id,
           collectionId: id,
           title: name,
           url,
-          type: "collection",
         };
         results.push([node]);
         travelDocuments(collection.documents, id, [node]);
       });
     }
 
-    // @ts-expect-error ts-migrate(7005) FIXME: Variable 'results' implicitly has an 'any[]' type.
     return results.map((result) => {
-      const tail = last(result);
-      // @ts-expect-error ts-migrate(2698) FIXME: Spread types may only be created from object types... Remove this comment to see the full error message
+      const tail = last(result) as DocumentPathItem;
       return { ...tail, path: result };
     });
   }

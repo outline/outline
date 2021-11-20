@@ -1,5 +1,4 @@
 import { darken, lighten } from "polished";
-import { theme } from "rich-markdown-editor";
 import { DefaultTheme } from "styled-components";
 
 const colors = {

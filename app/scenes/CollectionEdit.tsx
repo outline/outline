@@ -30,14 +30,13 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
     direction: "asc" | "desc";
   }>(collection.sort);
   const history = useHistory();
-  const [isSaving, setIsSaving] = useState();
+  const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(
-    async (ev: React.SyntheticEvent<any>) => {
+    async (ev: React.SyntheticEvent<HTMLFormElement>) => {
       ev.preventDefault();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'true' is not assignable to param... Remove this comment to see the full error message
       setIsSaving(true);
 
       try {
@@ -57,7 +56,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           type: "error",
         });
       } finally {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'false' is not assignable to para... Remove this comment to see the full error message
         setIsSaving(false);
       }
     },
@@ -75,8 +73,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
     }
   };
 
-  const handleNameChange = (ev: React.SyntheticEvent<any>) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+  const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setName(ev.target.value.trim());
   };
 
