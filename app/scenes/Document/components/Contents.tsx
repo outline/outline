@@ -15,7 +15,7 @@ type Props = {
 };
 
 export default function Contents({ headings }: Props) {
-  const [activeSlug, setActiveSlug] = React.useState();
+  const [activeSlug, setActiveSlug] = React.useState<string>();
   const position = useWindowScrollPosition({
     throttle: 100,
   });
@@ -32,7 +32,6 @@ export default function Contents({ headings }: Props) {
 
         if (bounding.top > HEADING_OFFSET) {
           const last = headings[Math.max(0, key - 1)];
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
           setActiveSlug(last.id);
           return;
         }

@@ -38,8 +38,7 @@ const Profile = () => {
     });
   };
 
-  const handleNameChange = (ev: React.SyntheticEvent<any>) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+  const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setName(ev.target.value);
   };
 

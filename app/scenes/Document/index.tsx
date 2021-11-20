@@ -1,23 +1,27 @@
 import * as React from "react";
+import { StaticContext } from "react-router";
 import { RouteComponentProps } from "react-router-dom";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import SocketPresence from "./components/SocketPresence";
 
 export default function DocumentScene(
-  props: RouteComponentProps<{ documentSlug: string; revisionId: string }>
+  props: RouteComponentProps<
+    { documentSlug: string; revisionId: string },
+    StaticContext,
+    { title?: string }
+  >
 ) {
   const { ui } = useStores();
   const team = useCurrentTeam();
-  const user = useCurrentUser();
 
   React.useEffect(() => {
     return () => ui.clearActiveDocument();
   }, [ui]);
   const { documentSlug, revisionId } = props.match.params;
+
   // the urlId portion of the url does not include the slugified title
   // we only want to force a re-mount of the document component when the
   // document changes, not when the title does so only this portion is used
@@ -28,8 +32,12 @@ export default function DocumentScene(
   const isMultiplayer = team.collaborativeEditing;
 
   return (
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: ({ document, isEditing, ...rest ... Remove this comment to see the full error message
-    <DataLoader key={key} match={props.match} location={props.location}>
+    <DataLoader
+      key={key}
+      match={props.match}
+      history={props.history}
+      location={props.location}
+    >
       {({ document, isEditing, ...rest }) => {
         const isActive =
           !document.isArchived && !document.isDeleted && !revisionId;
@@ -38,12 +46,7 @@ export default function DocumentScene(
         // no longer be required
         if (isActive && !isMultiplayer) {
           return (
-            <SocketPresence
-              documentId={document.id}
-              // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-              userId={user.id}
-              isEditing={isEditing}
-            >
+            <SocketPresence documentId={document.id} isEditing={isEditing}>
               <Document document={document} match={props.match} {...rest} />
             </SocketPresence>
           );

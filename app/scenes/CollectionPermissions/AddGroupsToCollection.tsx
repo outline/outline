@@ -41,8 +41,7 @@ class AddGroupsToCollection extends React.Component<Props> {
     this.newGroupModalOpen = false;
   };
 
-  handleFilter = (ev: React.SyntheticEvent) => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'value' does not exist on type 'EventTarg... Remove this comment to see the full error message
+  handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
     this.query = ev.target.value;
     this.debouncedFetch();
   };

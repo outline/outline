@@ -26,7 +26,7 @@ const joinClassnames = (...classnames: (string | undefined)[]) => {
   return classnames.filter((i) => i).join(" ");
 };
 
-export type Props = {
+export type Props = React.HTMLAttributes<HTMLAnchorElement> & {
   activeClassName?: string;
   activeStyle?: React.CSSProperties;
   className?: string;
@@ -43,7 +43,6 @@ export type Props = {
  * A <Link> wrapper that knows if it's "active" or not.
  */
 const NavLink = ({
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'aria-current' does not exist on type 'Pr... Remove this comment to see the full error message
   "aria-current": ariaCurrent = "page",
   activeClassName = "active",
   activeStyle,
@@ -93,7 +92,7 @@ const NavLink = ({
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
   const props = {
-    "aria-current": (isActive && ariaCurrent) || null,
+    "aria-current": (isActive && ariaCurrent) || undefined,
     className,
     style,
     to: toLocation,

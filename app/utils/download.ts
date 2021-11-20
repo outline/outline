@@ -90,8 +90,7 @@ export default function download(
     });
   }
 
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
-  function saver(url, winMode) {
+  function saver(url: string, winMode: boolean) {
     if (typeof url !== "string") {
       throw Error("Attempted to pass non-string url to saver");
     }
@@ -127,6 +126,8 @@ export default function download(
     setTimeout(function () {
       D.body && D.body.removeChild(f);
     }, 333);
+
+    return true;
   }
 
   if (self.URL) {

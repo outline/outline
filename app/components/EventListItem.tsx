@@ -92,7 +92,6 @@ const EventListItem = ({ event, latest, document }: Props) => {
           dateTime={event.createdAt}
           tooltipDelay={250}
           format="MMMM do, h:mm a"
-          // @ts-expect-error ts-migrate(2322) FIXME: Type '{ dateTime: string; tooltipDelay: number; fo... Remove this comment to see the full error message
           relative={false}
           addSuffix
         />
@@ -105,8 +104,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
         </Subtitle>
       }
       actions={
-        isRevision ? (
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | null | undefined' is not assignable... Remove this comment to see the full error message
+        isRevision && event.modelId ? (
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }

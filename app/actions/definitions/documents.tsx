@@ -24,9 +24,9 @@ export const openDocument = createAction({
   shortcut: ["o", "d"],
   keywords: "go to",
   icon: <DocumentIcon />,
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'stores' implicitly has an 'any' t... Remove this comment to see the full error message
   children: ({ stores }) => {
     const paths = stores.collections.pathsToDocuments;
+
     return paths
       .filter((path) => path.type === "document")
       .map((path) => ({
@@ -35,9 +35,7 @@ export const openDocument = createAction({
         id: path.url,
         name: path.title,
         icon: () =>
-          stores.documents.get(path.id)?.isStarred ? (
-            <StarredIcon />
-          ) : undefined,
+          stores.documents.get(path.id)?.isStarred ? <StarredIcon /> : null,
         section: DocumentSection,
         perform: () => history.push(path.url),
       }));
@@ -68,9 +66,9 @@ export const starDocument = createAction({
       !document?.isStarred && stores.policies.abilities(activeDocumentId).star
     );
   },
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) return;
+
     const document = stores.documents.get(activeDocumentId);
     document?.star();
   },
@@ -89,9 +87,9 @@ export const unstarDocument = createAction({
       stores.policies.abilities(activeDocumentId).unstar
     );
   },
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) return;
+
     const document = stores.documents.get(activeDocumentId);
     document?.unstar();
   },
@@ -105,9 +103,9 @@ export const downloadDocument = createAction({
   keywords: "export",
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) return;
+
     const document = stores.documents.get(activeDocumentId);
     document?.download();
   },
@@ -121,9 +119,9 @@ export const duplicateDocument = createAction({
   keywords: "copy",
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   perform: async ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) return;
+
     const document = stores.documents.get(activeDocumentId);
     invariant(document, "Document must exist");
     const duped = await document.duplicate();

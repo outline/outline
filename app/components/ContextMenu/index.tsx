@@ -144,7 +144,10 @@ export const Position = styled.div`
   `};
 `;
 
-export const Background = styled.div<{ rightAnchor?: boolean }>`
+export const Background = styled.div<{
+  topAnchor?: boolean;
+  rightAnchor?: boolean;
+}>`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;

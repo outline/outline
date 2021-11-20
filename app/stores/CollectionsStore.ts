@@ -162,14 +162,17 @@ export default class CollectionsStore extends BaseStore<Collection> {
     }
   }
 
-  getPathForDocument(documentId: string): DocumentPath | null | undefined {
+  getPathForDocument(documentId: string): DocumentPath | undefined {
     return this.pathsToDocuments.find((path) => path.id === documentId);
   }
 
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
-  titleForDocument(documentUrl: string): string | null | undefined {
+  titleForDocument(documentUrl: string): string | undefined {
     const path = this.pathsToDocuments.find((path) => path.url === documentUrl);
-    if (path) return path.title;
+    if (path) {
+      return path.title;
+    }
+
+    return;
   }
 
   getByUrl(url: string): Collection | null | undefined {

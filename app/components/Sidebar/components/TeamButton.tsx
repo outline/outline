@@ -9,7 +9,7 @@ type Props = {
   teamName: string;
   subheading: React.ReactNode;
   showDisclosure?: boolean;
-  onClick: (event: React.SyntheticEvent) => void;
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
   logoUrl: string;
 };
 

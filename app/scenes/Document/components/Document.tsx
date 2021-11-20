@@ -9,8 +9,9 @@ import {
   Prompt,
   Route,
   RouteComponentProps,
+  StaticContext,
   withRouter,
-} from "react-router-dom";
+} from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import RootStore from "~/stores/RootStore";
@@ -57,7 +58,7 @@ type Props = WithTranslation &
   RootStore &
   RouteComponentProps<
     Record<string, string>,
-    any,
+    StaticContext,
     { restore?: boolean; revisionId?: string }
   > & {
     sharedTree?: NavigationNode;

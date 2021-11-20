@@ -4,7 +4,7 @@ import * as React from "react";
 type Props = {
   text: string;
   children?: React.ReactNode;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   onCopy: () => void;
 };
 

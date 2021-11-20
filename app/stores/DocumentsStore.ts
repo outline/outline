@@ -61,9 +61,8 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get recentlyViewed(): Document[] {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | Document | (() => string) | (() =>... Remove this comment to see the full error message
     return orderBy(
-      filter(this.all, (d) => d.lastViewedAt),
+      this.all.filter((d) => d.lastViewedAt),
       "lastViewedAt",
       "desc"
     );
@@ -166,7 +165,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   get starred(): Document[] {
     return orderBy(
-      filter(this.all, (d) => d.isStarred),
+      this.all.filter((d) => d.isStarred),
       "updatedAt",
       "desc"
     );
@@ -174,18 +173,14 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get archived(): Document[] {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | Document | (() => string) | (() =>... Remove this comment to see the full error message
-    return filter(
-      orderBy(this.orderedData, "archivedAt", "desc"),
+    return orderBy(this.orderedData, "archivedAt", "desc").filter(
       (d) => d.archivedAt && !d.deletedAt
     );
   }
 
   @computed
   get deleted(): Document[] {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(number | Document | (() => string) | (() =>... Remove this comment to see the full error message
-    return filter(
-      orderBy(this.orderedData, "deletedAt", "desc"),
+    return orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
   }
@@ -242,15 +237,13 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  fetchBacklinks = async (
-    documentId: string
-    // @ts-expect-error ts-migrate(2355) FIXME: A function whose declared type is neither 'void' n... Remove this comment to see the full error message
-  ): Promise<Document[] | null | undefined> => {
+  fetchBacklinks = async (documentId: string): Promise<void> => {
     const res = await client.post(`/documents.list`, {
       backlinkDocumentId: documentId,
     });
     invariant(res && res.data, "Document list not available");
     const { data } = res;
+
     runInAction("DocumentsStore#fetchBacklinks", () => {
       data.forEach(this.add);
       this.addPolicies(res.policies);
@@ -272,15 +265,13 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  fetchChildDocuments = async (
-    documentId: string
-    // @ts-expect-error ts-migrate(2355) FIXME: A function whose declared type is neither 'void' n... Remove this comment to see the full error message
-  ): Promise<Document[] | null | undefined> => {
+  fetchChildDocuments = async (documentId: string): Promise<void> => {
     const res = await client.post(`/documents.list`, {
       parentDocumentId: documentId,
     });
     invariant(res && res.data, "Document list not available");
     const { data } = res;
+
     runInAction("DocumentsStore#fetchChildDocuments", () => {
       data.forEach(this.add);
       this.addPolicies(res.policies);
@@ -413,10 +404,12 @@ export default class DocumentsStore extends BaseStore<Document> {
       query,
     });
     invariant(res && res.data, "Search response should be available");
+
     // add the documents and associated policies to the store
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
     res.data.forEach((result) => this.add(result.document));
     this.addPolicies(res.policies);
+
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
     const results: SearchResult[] = compact(
@@ -439,13 +432,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   prefetchDocument = async (id: string) => {
     if (!this.data.get(id) && !this.getByUrl(id)) {
       return this.fetch(id, {
         prefetch: true,
       });
     }
+
+    return;
   };
 
   @action
@@ -534,8 +528,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  // @ts-expect-error ts-migrate(1064) FIXME: The return type of an async function or method mus... Remove this comment to see the full error message
-  duplicate = async (document: Document): any => {
+  duplicate = async (document: Document): Promise<Document> => {
     const append = " (duplicate)";
     const res = await client.post("/documents.create", {
       publish: !!document.publishedAt,
@@ -620,9 +613,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   _add = this.add;
 
   @action
-  // @ts-expect-error ts-migrate(7024) FIXME: Function implicitly has return type 'any' because ... Remove this comment to see the full error message
-  add = (item: Record<string, any>) => {
-    // @ts-expect-error ts-migrate(7022) FIXME: 'document' implicitly has type 'any' because it do... Remove this comment to see the full error message
+  add = (item: Record<string, any>): Document => {
     const document = this._add(item);
 
     if (item.starred !== undefined) {

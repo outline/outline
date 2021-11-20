@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { archivePath } from "~/utils/routeHelpers";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 
 function ArchiveLink() {
   const { policies, documents } = useStores();
@@ -15,16 +15,14 @@ function ArchiveLink() {
 
   const [{ isDocumentDropping }, dropToArchiveDocument] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+    drop: async (item: DragObject) => {
       const document = documents.get(item.id);
       await document?.archive();
       showToast(t("Document archived"), {
         type: "success",
       });
     },
-    // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-    canDrop: (item, monitor) => policies.abilities(item.id).archive,
+    canDrop: (item) => policies.abilities(item.id).archive,
     collect: (monitor) => ({
       isDocumentDropping: monitor.isOver(),
     }),

@@ -9,7 +9,7 @@ type Props = {
   users: User[];
   size?: number;
   overflow?: number;
-  onClick?: (event: React.SyntheticEvent) => unknown;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   renderAvatar?: (user: User) => React.ReactNode;
 };
 

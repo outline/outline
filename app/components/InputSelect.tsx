@@ -1,3 +1,4 @@
+import { VoidTypeAnnotation } from "@babel/types";
 import {
   Select,
   SelectOption,
@@ -13,7 +14,7 @@ import styled, { css } from "styled-components";
 import Button, { Inner } from "~/components/Button";
 import HelpText from "~/components/HelpText";
 import useMenuHeight from "~/hooks/useMenuHeight";
-import { Position, Background, Backdrop } from "./ContextMenu";
+import { Position, Background, Backdrop, Placement } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
 
@@ -34,11 +35,13 @@ export type Props = {
   icon?: React.ReactNode;
   options: Option[];
   note?: React.ReactNode;
-  onChange: (arg0: string) => Promise<void> | void;
+  onChange: (value: string | null) => void;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-const getOptionFromValue = (options: Option[], value) => {
+const getOptionFromValue = (
+  options: Option[],
+  value: string | undefined | null
+) => {
   return options.find((option) => option.value === value);
 };
 
@@ -71,12 +74,11 @@ const InputSelect = (props: Props) => {
     disabled,
   });
 
-  const previousValue = React.useRef(value);
-  const contentRef = React.useRef();
-  const selectedRef = React.useRef();
-  const buttonRef = React.useRef();
+  const previousValue = React.useRef<string | undefined | null>(value);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const selectedRef = React.useRef<HTMLDivElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [offset, setOffset] = React.useState(0);
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'offsetWidth' does not exist on type 'nev... Remove this comment to see the full error message
   const minWidth = buttonRef.current?.offsetWidth || 0;
   const maxHeight = useMenuHeight(
     select.visible,
@@ -85,11 +87,9 @@ const InputSelect = (props: Props) => {
 
   React.useEffect(() => {
     if (previousValue.current === select.selectedValue) return;
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | null' is not assignable to type 'st... Remove this comment to see the full error message
     previousValue.current = select.selectedValue;
 
     async function load() {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | null' is not assignable... Remove this comment to see the full error message
       await onChange(select.selectedValue);
     }
 
@@ -114,9 +114,7 @@ const InputSelect = (props: Props) => {
   React.useLayoutEffect(() => {
     if (select.visible) {
       const offset = Math.round(
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'getBoundingClientRect' does not exist on... Remove this comment to see the full error message
         (selectedRef.current?.getBoundingClientRect().top || 0) -
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'getBoundingClientRect' does not exist on... Remove this comment to see the full error message
           (contentRef.current?.getBoundingClientRect().top || 0)
       );
       setOffset(offset);
@@ -149,15 +147,19 @@ const InputSelect = (props: Props) => {
           )}
         </Select>
         <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
-          {(props) => {
-            // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+          {(
+            props: React.HTMLAttributes<HTMLDivElement> & {
+              placement: Placement;
+            }
+          ) => {
+            if (!props.style) {
+              props.style = {};
+            }
             const topAnchor = props.style.top === "0";
-            // @ts-expect-error ts-migrate(2339) FIXME: Property 'placement' does not exist on type 'Extra... Remove this comment to see the full error message
             const rightAnchor = props.placement === "bottom-end";
 
             // offset top of select to place selected item under the cursor
             if (selectedValueIndex !== -1) {
-              // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
               props.style.top = `-${offset + 32}px`;
             }
 
@@ -165,7 +167,6 @@ const InputSelect = (props: Props) => {
               <Positioner {...props}>
                 <Background
                   dir="auto"
-                  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                   ref={contentRef}
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
@@ -186,8 +187,7 @@ const InputSelect = (props: Props) => {
                           {...select}
                           value={option.value}
                           key={option.value}
-                          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-                          animating={select.animating}
+                          $animating={select.animating}
                           ref={
                             select.selectedValue === option.value
                               ? selectedRef
@@ -256,12 +256,11 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   }
 `;
 
-export const StyledSelectOption = styled(SelectOption)`
+export const StyledSelectOption = styled(SelectOption)<{ $animating: boolean }>`
   ${MenuAnchorCSS}
 
   ${(props) =>
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'animating' does not exist on type 'Theme... Remove this comment to see the full error message
-    props.animating &&
+    props.$animating &&
     css`
       pointer-events: none;
     `}

@@ -7,7 +7,7 @@ import BaseModel from "~/models/BaseModel";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 
-type Action = "list" | "info" | "create" | "update" | "delete" | "count";
+export type Action = "list" | "info" | "create" | "update" | "delete" | "count";
 
 type FetchPageParams = PaginationParams & {
   documentId?: string;

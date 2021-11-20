@@ -19,7 +19,7 @@ import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 
 type Props = {
   collection: Collection;
@@ -88,8 +88,7 @@ function CollectionLink({
   // Drop to re-parent
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: (item, monitor) => {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'unknown'.
+    drop: (item: DragObject, monitor) => {
       const { id, collectionId } = item;
       if (monitor.didDrop()) return;
       if (!collection) return;
@@ -101,14 +100,13 @@ function CollectionLink({
         prevCollection.permission === null &&
         prevCollection.permission !== collection.permission
       ) {
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'unknown' is not assignable to type 'undefine... Remove this comment to see the full error message
         itemRef.current = item;
         handlePermissionOpen();
       } else {
         documents.move(id, collection.id);
       }
     },
-    canDrop: (item, monitor) => {
+    canDrop: () => {
       return policies.abilities(collection.id).update;
     },
     collect: (monitor) => ({
@@ -122,9 +120,8 @@ function CollectionLink({
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: async (item, monitor) => {
+    drop: async (item: DragObject) => {
       if (!collection) return;
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       documents.move(item.id, collection.id, undefined, 0);
     },
     collect: (monitor) => ({
@@ -135,18 +132,15 @@ function CollectionLink({
   // Drop to reorder Collection
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
-    drop: async (item, monitor) => {
+    drop: async (item: DragObject) => {
       collections.move(
-        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
       );
     },
-    canDrop: (item, monitor) => {
+    canDrop: (item) => {
       return (
-        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         collection.id !== item.id &&
-        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         (!belowCollection || item.id !== belowCollection.id)
       );
     },
@@ -167,10 +161,10 @@ function CollectionLink({
     collect: (monitor) => ({
       isCollectionDragging: monitor.isDragging(),
     }),
-    canDrag: (monitor) => {
+    canDrag: () => {
       return can.move;
     },
-    end: (monitor) => {
+    end: () => {
       onChangeDragging(false);
     },
   });

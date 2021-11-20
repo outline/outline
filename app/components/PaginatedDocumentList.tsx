@@ -5,7 +5,7 @@ import PaginatedList from "~/components/PaginatedList";
 
 type Props = {
   documents: Document[];
-  fetch: (options: Record<string, any> | null | undefined) => Promise<void>;
+  fetch: (options: any) => Promise<void>;
   options?: Record<string, any>;
   heading?: React.ReactNode;
   empty?: React.ReactNode;
@@ -16,6 +16,7 @@ type Props = {
   showDraft?: boolean;
   showTemplate?: boolean;
 };
+
 const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   empty,
   heading,

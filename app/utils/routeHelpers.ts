@@ -75,24 +75,22 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
 
 export function newDocumentPath(
   collectionId: string,
-  params?: {
+  params: {
     parentDocumentId?: string;
     templateId?: string;
     template?: boolean;
-  }
+  } = {}
 ): string {
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ parentDocumentId?: string | un... Remove this comment to see the full error message
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
 export function searchUrl(
   query?: string,
-  params?: {
+  params: {
     collectionId?: string;
     ref?: string;
-  }
+  } = {}
 ): string {
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ collectionId?: string | undefi... Remove this comment to see the full error message
   let search = queryString.stringify(params);
   let route = "/search";
 

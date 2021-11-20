@@ -6,7 +6,7 @@ import Document from "~/models/Document";
 export type MenuItemButton = {
   type: "button";
   title: React.ReactNode;
-  onClick: (event: React.SyntheticEvent) => void | Promise<void>;
+  onClick: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -118,7 +118,7 @@ export type Toast = {
   reoccurring?: number;
   action?: {
     text: string;
-    onClick: () => void;
+    onClick: React.MouseEventHandler<HTMLSpanElement>;
   };
 };
 
@@ -162,6 +162,6 @@ export type ToastOptions = {
   timeout?: number;
   action?: {
     text: string;
-    onClick: () => void;
+    onClick: React.MouseEventHandler<HTMLSpanElement>;
   };
 };

@@ -14,7 +14,7 @@ import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 import { MAX_TITLE_LENGTH } from "shared/constants";
 
 type Props = {
@@ -138,30 +138,27 @@ function DocumentLink(
     },
   });
 
-  const hoverExpanding = React.useRef(null);
+  const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
 
   // We set a timeout when the user first starts hovering over the document link,
   // to trigger expansion of children. Clear this timeout when they stop hovering.
   const resetHoverExpanding = React.useCallback(() => {
     if (hoverExpanding.current) {
       clearTimeout(hoverExpanding.current);
-      hoverExpanding.current = null;
+      hoverExpanding.current = undefined;
     }
   }, []);
 
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
-    drop: (item, monitor) => {
+    drop: (item: DragObject, monitor) => {
       if (monitor.didDrop()) return;
       if (!collection) return;
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       documents.move(item.id, collection.id, node.id);
     },
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '(item: unknown, monitor: DropTargetMonitor<u... Remove this comment to see the full error message
-    canDrop: (item, monitor) =>
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-      pathToNode && !pathToNode.includes(monitor.getItem().id),
+    canDrop: (_item, monitor) =>
+      !!pathToNode && !pathToNode.includes(monitor.getItem<DragObject>().id),
     hover: (item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
@@ -173,9 +170,8 @@ function DocumentLink(
         })
       ) {
         if (!hoverExpanding.current) {
-          // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'null'.
           hoverExpanding.current = setTimeout(() => {
-            hoverExpanding.current = null;
+            hoverExpanding.current = undefined;
 
             if (
               monitor.isOver({
@@ -199,18 +195,15 @@ function DocumentLink(
   // Drop to reorder
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: (item) => {
+    drop: (item: DragObject) => {
       if (!collection) return;
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       if (item.id === node.id) return;
 
       if (expanded) {
-        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         documents.move(item.id, collection.id, node.id, 0);
         return;
       }
 
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       documents.move(item.id, collection.id, parentId, index + 1);
     },
     collect: (monitor) => ({

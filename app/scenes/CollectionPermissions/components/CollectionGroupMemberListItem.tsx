@@ -10,8 +10,8 @@ import CollectionGroupMemberMenu from "~/menus/CollectionGroupMemberMenu";
 type Props = {
   group: Group;
   collectionGroupMembership: CollectionGroupMembership | null | undefined;
-  onUpdate: (permission: string) => any;
-  onRemove: () => any;
+  onUpdate: (permission: string) => void;
+  onRemove: () => void;
 };
 
 const CollectionGroupMemberListItem = ({
@@ -38,9 +38,6 @@ const CollectionGroupMemberListItem = ({
   return (
     <GroupListItem
       group={group}
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-      onRemove={onRemove}
-      onUpdate={onUpdate}
       showAvatar
       renderActions={({ openMembersModal }) => (
         <>

@@ -92,7 +92,6 @@ function DocumentMove({ document, onRequestClose }: Props) {
     setSearchTerm(ev.target.value);
   };
 
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
   const renderPathToCurrentDocument = () => {
     const result = collections.getPathForDocument(document.id);
 
@@ -104,6 +103,8 @@ function DocumentMove({ document, onRequestClose }: Props) {
         />
       );
     }
+
+    return null;
   };
 
   // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'index' implicitly has an 'any' ty... Remove this comment to see the full error message

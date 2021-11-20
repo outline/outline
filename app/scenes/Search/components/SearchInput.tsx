@@ -10,7 +10,7 @@ type Props = {
 
 function SearchInput({ defaultValue, ...rest }: Props) {
   const theme = useTheme();
-  const inputRef = React.useRef<HTMLInputElement>();
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     // ensure that focus is placed at end of input
@@ -33,7 +33,6 @@ function SearchInput({ defaultValue, ...rest }: Props) {
       <StyledInput
         {...rest}
         defaultValue={defaultValue}
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
         ref={inputRef}
         spellCheck="false"
         type="search"

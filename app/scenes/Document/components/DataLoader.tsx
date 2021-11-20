@@ -4,7 +4,7 @@ import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { RouteComponentProps } from "react-router-dom";
+import { RouteComponentProps, StaticContext } from "react-router";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -13,9 +13,9 @@ import ErrorOffline from "~/scenes/ErrorOffline";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
+import history from "~/utils/history";
 import { matchDocumentEdit, updateDocumentUrl } from "~/utils/routeHelpers";
 import { isInternalUrl } from "~/utils/urls";
-import history from "../../../utils/history";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 import parseDocumentSlug from "shared/utils/parseDocumentSlug";
@@ -28,7 +28,7 @@ type Props = RootStore &
       shareId?: string;
       title?: string;
     },
-    any,
+    StaticContext,
     {
       title?: string;
     }

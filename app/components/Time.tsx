@@ -8,14 +8,8 @@ const LocaleTime = React.lazy(
       "~/components/LocaleTime"
     )
 );
-type Props = {
-  dateTime: string;
-  children?: React.ReactNode;
-  tooltipDelay?: number;
-  addSuffix?: boolean;
-  format?: string;
-  shorten?: boolean;
-};
+
+type Props = React.ComponentProps<typeof LocaleTime>;
 
 function Time(props: Props) {
   let content = formatDistanceToNow(Date.parse(props.dateTime), {

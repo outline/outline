@@ -6,7 +6,8 @@ import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
-import { Link, RouteComponentProps, withRouter } from "react-router-dom";
+import { RouteComponentProps, StaticContext, withRouter } from "react-router";
+import { Link } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -34,7 +35,7 @@ import UserFilter from "./components/UserFilter";
 
 type Props = RouteComponentProps<
   { term: string },
-  any,
+  StaticContext,
   { search: string; fromMenu?: boolean }
 > &
   WithTranslation &
@@ -422,7 +423,6 @@ const ResultsWrapper = styled(Flex)<{ pinToTop: boolean }>`
   width: 100%;
 
   ${breakpoint("tablet")`	
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
     margin-top: ${(props: any) => (props.pinToTop ? "40px" : "-75px")};
   `};
 `;

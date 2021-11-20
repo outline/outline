@@ -3,14 +3,21 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
+import { NavigationNode } from "~/types";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
+
+export type DragObject = NavigationNode & {
+  depth: number;
+  active: boolean;
+  collectionId: string;
+};
 
 type Props = Omit<NavLinkProps, "to"> & {
   to?: string | Record<string, any>;
   href?: string | Record<string, any>;
   innerRef?: (arg0: HTMLElement | null | undefined) => void;
-  onClick?: (arg0: React.SyntheticEvent) => unknown;
-  onMouseEnter?: (arg0: React.SyntheticEvent) => void;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
