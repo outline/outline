@@ -55,12 +55,16 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
   const handleTitleChange = React.useCallback(
     async (title: string) => {
       if (!document) return;
-      await documents.update({
-        id: document.id,
-        lastRevision: document.revision,
-        text: document.text,
-        title,
-      });
+      await documents.update(
+        {
+          id: document.id,
+          text: document.text,
+          title,
+        },
+        {
+          lastRevision: document.revision,
+        }
+      );
     },
     [documents, document]
   );

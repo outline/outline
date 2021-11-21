@@ -174,10 +174,9 @@ function CollectionPermissions({ collection }: Props) {
   );
 
   const handleSharingChange = React.useCallback(
-    async (ev: React.SyntheticEvent<any>) => {
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
       try {
         await collection.save({
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'checked' does not exist on type 'EventTa... Remove this comment to see the full error message
           sharing: ev.target.checked,
         });
         showToast(t("Public document sharing permissions were updated"), {

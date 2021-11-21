@@ -141,10 +141,9 @@ class SocketProvider extends React.Component<Props> {
 
           // otherwise, grab the latest version of the document
           try {
-            const response = await documents.fetch(documentId, {
+            document = await documents.fetch(documentId, {
               force: true,
             });
-            document = response.document;
           } catch (err) {
             if (err.statusCode === 404 || err.statusCode === 403) {
               documents.remove(documentId);

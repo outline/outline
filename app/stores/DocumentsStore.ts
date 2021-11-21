@@ -461,7 +461,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetch = async (
+  fetchWithSharedTree = async (
     id: string,
     options: FetchOptions = {}
   ): Promise<{
@@ -486,6 +486,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         shareId: options.shareId,
         apiVersion: 2,
       });
+
       invariant(res && res.data, "Document not available");
       this.addPolicies(res.policies);
       this.add(res.data.document);
@@ -631,17 +632,22 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  async update(params: {
-    id: string;
-    title: string;
-    text?: string;
-    publish?: boolean;
-    done?: boolean;
-    autosave?: boolean;
-    templateId?: string;
-    lastRevision: number;
-  }) {
-    const document = await super.update(params);
+  async update(
+    params: {
+      id: string;
+      title: string;
+      text?: string;
+      templateId?: string;
+    },
+    options?: {
+      publish?: boolean;
+      done?: boolean;
+      autosave?: boolean;
+      lastRevision: number;
+    }
+  ) {
+    const document = await super.update(params, options);
+
     // Because the collection object contains the url and title
     // we need to ensure they are updated there as well.
     const collection = this.getCollectionForDocument(document);

@@ -12,14 +12,13 @@ type Props = {
 };
 
 function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
-  const timeout = React.useRef();
+  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const [pulse, setPulse] = React.useState(false);
   const { action, type = "info", reoccurring } = toast;
 
   React.useEffect(() => {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Timeout' is not assignable to type 'undefine... Remove this comment to see the full error message
     timeout.current = setTimeout(onRequestClose, toast.timeout || closeAfterMs);
-    return () => clearTimeout(timeout.current);
+    return () => timeout.current && clearTimeout(timeout.current);
   }, [onRequestClose, toast, closeAfterMs]);
 
   React.useEffect(() => {

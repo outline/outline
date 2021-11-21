@@ -4,8 +4,11 @@ import { observable, set, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "~/stores/RootStore";
 import BaseModel from "~/models/BaseModel";
+import Policy from "~/models/Policy";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
+
+type PartialWithId<T> = Partial<T> & { id: string };
 
 export enum RPCAction {
   Info = "info",
@@ -69,32 +72,30 @@ export default class BaseStore<T extends BaseModel> {
     this.data.clear();
   }
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'policies' implicitly has an 'any' type.
-  addPolicies = (policies) => {
+  addPolicies = (policies: Policy[]) => {
     if (policies) {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'policy' implicitly has an 'any' type.
       policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
 
   @action
-  add = (item: Record<string, any>): T => {
-    const Model = this.model;
+  add = (item: PartialWithId<T> | T): T => {
+    const ModelClass = this.model;
 
-    if (!(item instanceof Model)) {
-      const existing: T | null | undefined = this.data.get(item.id);
+    if (!(item instanceof ModelClass)) {
+      const existingModel = this.data.get(item.id);
 
-      if (existing) {
-        set(existing, item);
-        return existing;
-      } else {
-        item = new Model(item, this);
+      if (existingModel) {
+        set(existingModel, item);
+        return existingModel;
       }
+
+      const newModel = new ModelClass(item, this);
+      this.data.set(newModel.id, newModel);
+      return newModel;
     }
 
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Record<string, any>' is not assi... Remove this comment to see the full error message
     this.data.set(item.id, item);
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'Record<string, any>' is not assignable to ty... Remove this comment to see the full error message
     return item;
   };
 
@@ -103,17 +104,20 @@ export default class BaseStore<T extends BaseModel> {
     this.data.delete(id);
   }
 
-  save(params: Record<string, any>) {
+  save(params: Partial<T>): Promise<T> {
     if (params.id) return this.update(params);
     return this.create(params);
   }
 
-  get(id: string): T | null | undefined {
+  get(id: string): T | undefined {
     return this.data.get(id);
   }
 
   @action
-  async create(params: Record<string, any>) {
+  async create(
+    params: Partial<T>,
+    options?: Record<string, string | boolean | number | undefined>
+  ): Promise<T> {
     if (!this.actions.includes(RPCAction.Create)) {
       throw new Error(`Cannot create ${this.modelName}`);
     }
@@ -121,7 +125,11 @@ export default class BaseStore<T extends BaseModel> {
     this.isSaving = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.create`, params);
+      const res = await client.post(`/${this.modelName}s.create`, {
+        ...params,
+        ...options,
+      });
+
       invariant(res && res.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
@@ -131,7 +139,10 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   @action
-  async update(params: Record<string, any>): Promise<T> {
+  async update(
+    params: Partial<T>,
+    options?: Record<string, string | boolean | number | undefined>
+  ): Promise<T> {
     if (!this.actions.includes(RPCAction.Update)) {
       throw new Error(`Cannot update ${this.modelName}`);
     }
@@ -139,7 +150,11 @@ export default class BaseStore<T extends BaseModel> {
     this.isSaving = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.update`, params);
+      const res = await client.post(`/${this.modelName}s.update`, {
+        ...params,
+        ...options,
+      });
+
       invariant(res && res.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
@@ -168,7 +183,7 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   @action
-  async fetch(id: string, options: Record<string, any> = {}): Promise<any> {
+  async fetch(id: string, options: Record<string, any> = {}): Promise<T> {
     if (!this.actions.includes(RPCAction.Info)) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
@@ -208,11 +223,13 @@ export default class BaseStore<T extends BaseModel> {
     try {
       const res = await client.post(`/${this.modelName}s.list`, params);
       invariant(res && res.data, "Data not available");
+
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);
         res.data.forEach(this.add);
         this.isLoaded = true;
       });
+
       const response = res.data;
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;

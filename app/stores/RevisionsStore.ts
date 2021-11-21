@@ -46,31 +46,6 @@ export default class RevisionsStore extends BaseStore<Revision> {
   }
 
   @action
-  fetch = async (
-    id: string,
-    options?: FetchOptions
-  ): Promise<Revision | null | undefined> => {
-    this.isFetching = true;
-    invariant(id, "Id is required");
-
-    try {
-      const rev = this.data.get(id);
-      if (rev) return rev;
-      const res = await client.post("/revisions.info", {
-        id,
-      });
-      invariant(res && res.data, "Revision not available");
-      this.add(res.data);
-      runInAction("RevisionsStore#fetch", () => {
-        this.isLoaded = true;
-      });
-      return this.data.get(res.data.id);
-    } finally {
-      this.isFetching = false;
-    }
-  };
-
-  @action
   fetchPage = async (
     options: PaginationParams | null | undefined
   ): Promise<any> => {

@@ -14,11 +14,10 @@ import { editDocumentUrl } from "~/utils/routeHelpers";
 function DocumentNew() {
   const history = useHistory();
   const location = useLocation();
-  const match = useRouteMatch();
+  const match = useRouteMatch<{ id?: string }>();
   const { t } = useTranslation();
   const { documents, collections } = useStores();
   const { showToast } = useToasts();
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type '{}'.
   const id = match.params.id || "";
 
   useEffect(() => {
@@ -29,9 +28,9 @@ function DocumentNew() {
         const collection = await collections.fetch(id);
         const document = await documents.create({
           collectionId: collection.id,
-          parentDocumentId: params.parentDocumentId,
-          templateId: params.templateId,
-          template: params.template,
+          parentDocumentId: params.parentDocumentId?.toString(),
+          templateId: params.templateId?.toString(),
+          template: params.template === "true" ? true : false,
           title: "",
           text: "",
         });
@@ -46,6 +45,7 @@ function DocumentNew() {
 
     createDocument();
   });
+
   return (
     <Flex column auto>
       <CenteredContent>

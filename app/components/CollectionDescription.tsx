@@ -101,8 +101,15 @@ function CollectionDescription({ collection }: Props) {
               />
             </React.Suspense>
           ) : (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-            can.update && <Placeholder>{placeholder}</Placeholder>
+            can.update && (
+              <Placeholder
+                onClick={() => {
+                  //
+                }}
+              >
+                {placeholder}
+              </Placeholder>
+            )
           )}
         </span>
       </Input>

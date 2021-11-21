@@ -39,7 +39,7 @@ export default function useImportDocument(
         const redirect = files.length === 1;
 
         if (documentId && !collectionId) {
-          const { document } = await documents.fetch(documentId);
+          const document = await documents.fetch(documentId);
           invariant(document, "Document not available");
           cId = document.collectionId;
         }

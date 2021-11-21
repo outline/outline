@@ -15,7 +15,7 @@ import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
@@ -57,15 +57,13 @@ function Collections() {
 
   const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
     accept: "collection",
-    drop: async (item) => {
+    drop: async (item: DragObject) => {
       collections.move(
-        // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         item.id,
         fractionalIndex(null, orderedCollections[0].index)
       );
     },
     canDrop: (item) => {
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       return item.id !== orderedCollections[0].id;
     },
     collect: (monitor) => ({

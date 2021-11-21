@@ -109,12 +109,7 @@ class DataLoader extends React.Component<Props> {
       }
 
       try {
-        const {
-          document,
-        }: {
-          document: Document;
-        } = await this.props.documents.fetch(slug);
-
+        const document = await this.props.documents.fetch(slug);
         const time = formatDistanceToNow(Date.parse(document.updatedAt), {
           addSuffix: true,
         });
@@ -189,9 +184,12 @@ class DataLoader extends React.Component<Props> {
     }
 
     try {
-      const response = await this.props.documents.fetch(documentSlug, {
-        shareId,
-      });
+      const response = await this.props.documents.fetchWithSharedTree(
+        documentSlug,
+        {
+          shareId,
+        }
+      );
       this.sharedTree = response.sharedTree;
       this.document = response.document;
       sharedTreeCache[this.document.id] = response.sharedTree;

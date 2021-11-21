@@ -38,7 +38,7 @@ export default function SharedDocumentScene(props: Props) {
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const response = await documents.fetch(documentSlug, {
+        const response = await documents.fetchWithSharedTree(documentSlug, {
           shareId,
         });
         setResponse(response);

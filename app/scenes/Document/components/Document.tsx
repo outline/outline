@@ -103,8 +103,7 @@ class DocumentScene extends React.Component<Props> {
     this.updateIsDirty();
   }
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'prevProps' implicitly has an 'any' type... Remove this comment to see the full error message
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     const { auth, document, t } = this.props;
 
     if (prevProps.readOnly && !this.props.readOnly) {
@@ -263,19 +262,24 @@ class DocumentScene extends React.Component<Props> {
     const { document, auth } = this.props;
     // prevent saves when we are already saving
     if (document.isSaving) return;
+
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
     const title = this.title;
+
     // prevent save before anything has been written (single hash is empty doc)
     // @ts-expect-error ts-migrate(2367) FIXME: This condition will always return 'false' since th... Remove this comment to see the full error message
     if (text.trim() === "" && title.trim === "") return;
+
     // prevent autosave if nothing has changed
     if (
       options.autosave &&
       document.text.trim() === text.trim() &&
       document.title.trim() === title.trim()
-    )
+    ) {
       return;
+    }
+
     document.title = title;
     document.text = text;
     document.tasks = getTasks(document.text);
@@ -333,6 +337,7 @@ class DocumentScene extends React.Component<Props> {
     const editorText = this.getEditorText().trim();
     const titleChanged = this.title !== document.title;
     const bodyChanged = editorText !== document.text.trim();
+
     // a single hash is a doc with just an empty title
     this.isEmpty = (!editorText || editorText === "#") && !this.title;
     this.isDirty = bodyChanged || titleChanged;
@@ -348,8 +353,7 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'getEditorText' implicitly has an 'any' ... Remove this comment to see the full error message
-  onChange = (getEditorText) => {
+  onChange = (getEditorText: () => string) => {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
 
@@ -438,13 +442,7 @@ class DocumentScene extends React.Component<Props> {
             }
           }}
         />
-        <Background
-          key={revision ? revision.id : document.id}
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-          isShare={isShare}
-          column
-          auto
-        >
+        <Background key={revision ? revision.id : document.id} column auto>
           <Route
             path={`${document.url}/move`}
             component={() => (

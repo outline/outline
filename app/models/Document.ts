@@ -298,12 +298,15 @@ export default class Document extends BaseModel {
 
     try {
       if (options.lastRevision) {
-        return await this.store.update({
-          id: this.id,
-          title: this.title,
-          lastRevision: options.lastRevision,
-          ...options,
-        });
+        return await this.store.update(
+          {
+            id: this.id,
+            title: options.title || this.title,
+          },
+          {
+            lastRevision: options.lastRevision,
+          }
+        );
       }
 
       throw new Error("Attempting to update without a lastRevision");
@@ -320,28 +323,36 @@ export default class Document extends BaseModel {
 
     try {
       if (isCreating) {
-        return await this.store.create({
-          parentDocumentId: this.parentDocumentId,
-          collectionId: this.collectionId,
-          title: this.title,
-          text: this.text,
-          publish: options?.publish,
-          done: options?.done,
-          autosave: options?.autosave,
-        });
+        return await this.store.create(
+          {
+            parentDocumentId: this.parentDocumentId,
+            collectionId: this.collectionId,
+            title: this.title,
+            text: this.text,
+          },
+          {
+            publish: options?.publish,
+            done: options?.done,
+            autosave: options?.autosave,
+          }
+        );
       }
 
       if (options?.lastRevision) {
-        return await this.store.update({
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          templateId: this.templateId,
-          lastRevision: options?.lastRevision,
-          publish: options?.publish,
-          done: options?.done,
-          autosave: options?.autosave,
-        });
+        return await this.store.update(
+          {
+            id: this.id,
+            title: this.title,
+            text: this.text,
+            templateId: this.templateId,
+          },
+          {
+            lastRevision: options?.lastRevision,
+            publish: options?.publish,
+            done: options?.done,
+            autosave: options?.autosave,
+          }
+        );
       }
 
       throw new Error("Attempting to update without a lastRevision");

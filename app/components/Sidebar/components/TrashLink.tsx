@@ -9,7 +9,7 @@ import DocumentDelete from "~/scenes/DocumentDelete";
 import Modal from "~/components/Modal";
 import useStores from "~/hooks/useStores";
 import { trashPath } from "~/utils/routeHelpers";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 
 function TrashLink() {
   const { policies, documents } = useStores();
@@ -18,14 +18,13 @@ function TrashLink() {
 
   const [{ isDocumentDropping }, dropToTrashDocument] = useDrop({
     accept: "document",
-    drop: (item) => {
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+    drop: (item: DragObject) => {
       const doc = documents.get(item.id);
+
       // without setTimeout it was not working in firefox v89.0.2-ubuntu
       // on dropping mouseup is considered as clicking outside the modal, and it immediately closes
       setTimeout(() => doc && setDocument(doc), 1);
     },
-    // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
     canDrop: (item) => policies.abilities(item.id).delete,
     collect: (monitor) => ({
       isDocumentDropping: monitor.isOver(),

@@ -55,6 +55,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       token,
       maxReconnectTimeout: 10000,
     });
+
     provider.on("authenticationFailed", () => {
       showToast(
         t(
@@ -63,6 +64,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       );
       history.replace(homePath());
     });
+
     // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'states' implicitly has an 'any' t... Remove this comment to see the full error message
     provider.on("awarenessChange", ({ states }) => {
       // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'user' implicitly has an 'any' typ... Remove this comment to see the full error message
