@@ -2,14 +2,9 @@ import { action, autorun, computed, observable } from "mobx";
 import { light as defaultTheme } from "@shared/theme";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 
 const UI_STORE = "UI_STORE";
-
-export type ConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | void;
 
 export enum Theme {
   Light = "light",
@@ -25,7 +20,7 @@ export enum SystemTheme {
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
   @observable
-  languagePromptDismissed: boolean;
+  languagePromptDismissed: boolean | undefined;
 
   // theme represents the users UI preference (defaults to system)
   @observable
@@ -36,10 +31,10 @@ class UiStore {
   systemTheme: SystemTheme;
 
   @observable
-  activeDocumentId: string | null | undefined;
+  activeDocumentId: string | undefined;
 
   @observable
-  activeCollectionId: string | null | undefined;
+  activeCollectionId: string | undefined;
 
   @observable
   progressBarVisible = false;
@@ -67,7 +62,7 @@ class UiStore {
 
   constructor() {
     // Rehydrate
-    let data = {};
+    let data: Partial<UiStore> = {};
 
     try {
       data = JSON.parse(localStorage.getItem(UI_STORE) || "{}");
@@ -94,16 +89,12 @@ class UiStore {
     }
 
     // persisted keys
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'languagePromptDismissed' does not exist ... Remove this comment to see the full error message
     this.languagePromptDismissed = data.languagePromptDismissed;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'sidebarCollapsed' does not exist on type... Remove this comment to see the full error message
-    this.sidebarCollapsed = data.sidebarCollapsed;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'sidebarWidth' does not exist on type '{}... Remove this comment to see the full error message
+    this.sidebarCollapsed = !!data.sidebarCollapsed;
     this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'tocVisible' does not exist on type '{}'.
-    this.tocVisible = data.tocVisible;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'theme' does not exist on type '{}'.
-    this.theme = data.theme || "system";
+    this.tocVisible = !!data.tocVisible;
+    this.theme = data.theme || Theme.System;
+
     autorun(() => {
       try {
         localStorage.setItem(UI_STORE, this.asJson);

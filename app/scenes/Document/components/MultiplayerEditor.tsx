@@ -21,6 +21,18 @@ type Props = EditorProps & {
   onSynced?: () => Promise<void>;
 };
 
+export type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | void;
+
+type AwarenessChangeEvent = { states: { user: { id: string }; cursor: any }[] };
+
+type ConnectionStatusEvent = { status: ConnectionStatus };
+
+type MessageEvent = { message: string };
+
 function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const documentId = props.id;
   const history = useHistory();
@@ -29,7 +41,10 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { presence, ui } = useStores();
   const token = useCurrentToken();
   const [showCursorNames, setShowCursorNames] = React.useState(false);
-  const [remoteProvider, setRemoteProvider] = React.useState();
+  const [
+    remoteProvider,
+    setRemoteProvider,
+  ] = React.useState<HocuspocusProvider | null>(null);
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
@@ -48,12 +63,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     const localProvider = new IndexeddbPersistence(name, ydoc);
     const provider = new HocuspocusProvider({
       url: `${env.COLLABORATION_URL}/collaboration`,
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ url: string; debug: boolean; n... Remove this comment to see the full error message
-      debug,
       name,
       document: ydoc,
       token,
-      maxReconnectTimeout: 10000,
     });
 
     provider.on("authenticationFailed", () => {
@@ -65,9 +77,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       history.replace(homePath());
     });
 
-    // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'states' implicitly has an 'any' t... Remove this comment to see the full error message
-    provider.on("awarenessChange", ({ states }) => {
-      // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'user' implicitly has an 'any' typ... Remove this comment to see the full error message
+    provider.on("awarenessChange", ({ states }: AwarenessChangeEvent) => {
       states.forEach(({ user, cursor }) => {
         if (user) {
           // could know if the user is editing here using `state.cursor` but it
@@ -99,26 +109,27 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     if (debug) {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-      provider.on("status", (ev) => console.log("status", ev.status));
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-      provider.on("message", (ev) => console.log("incoming", ev.message));
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-      provider.on("outgoingMessage", (ev) =>
+      provider.on("status", (ev: ConnectionStatusEvent) =>
+        console.log("status", ev.status)
+      );
+      provider.on("message", (ev: MessageEvent) =>
+        console.log("incoming", ev.message)
+      );
+      provider.on("outgoingMessage", (ev: MessageEvent) =>
         console.log("outgoing", ev.message)
       );
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-      localProvider.on("synced", (ev) => console.log("local synced"));
+      localProvider.on("synced", () => console.log("local synced"));
     }
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-    provider.on("status", (ev) => ui.setMultiplayerStatus(ev.status));
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'HocuspocusProvider' is not assig... Remove this comment to see the full error message
+    provider.on("status", (ev: ConnectionStatusEvent) =>
+      ui.setMultiplayerStatus(ev.status)
+    );
+
     setRemoteProvider(provider);
+
     return () => {
       provider?.destroy();
       localProvider?.destroy();
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'null' is not assignable to param... Remove this comment to see the full error message
       setRemoteProvider(null);
       ui.setMultiplayerStatus(undefined);
     };
@@ -173,19 +184,15 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     if (
       isIdle &&
       !isVisible &&
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.status === WebSocketStatus.Connected
     ) {
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.disconnect();
     }
 
     if (
       (!isIdle || isVisible) &&
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.status === WebSocketStatus.Disconnected
     ) {
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
       remoteProvider.connect();
     }
   }, [remoteProvider, isIdle, isVisible]);

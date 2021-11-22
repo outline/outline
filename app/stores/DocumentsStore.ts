@@ -247,6 +247,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     runInAction("DocumentsStore#fetchBacklinks", () => {
       data.forEach(this.add);
       this.addPolicies(res.policies);
+
       this.backlinks.set(
         documentId,
         // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.

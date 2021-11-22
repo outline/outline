@@ -44,6 +44,7 @@ class GroupListItem extends React.Component<Props> {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'user' does not exist on type 'GroupMembe... Remove this comment to see the full error message
       .map((gm) => gm.user);
     const overflow = memberCount - users.length;
+
     return (
       <>
         <ListItem

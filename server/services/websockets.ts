@@ -1,4 +1,5 @@
 import http from "http";
+import invariant from "invariant";
 import Koa from "koa";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'sock... Remove this comment to see the full error message
 import IO from "socket.io";
@@ -31,30 +32,35 @@ export default function init(app: Koa, server: http.Server) {
   // collaboration websockets to exist in the same process as engine.io.
   const listeners = server.listeners("upgrade");
   const ioHandleUpgrade = listeners.pop();
+
   // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Function | undefined' is not ass... Remove this comment to see the full error message
   server.removeListener("upgrade", ioHandleUpgrade);
+
   server.on("upgrade", function (req, socket, head) {
-    // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-    if (req.url.indexOf(path) > -1) {
-      // @ts-expect-error ts-migrate(2722) FIXME: Cannot invoke an object which is possibly 'undefin... Remove this comment to see the full error message
+    if (req.url && req.url.indexOf(path) > -1) {
+      invariant(ioHandleUpgrade, "Existing upgrade handler must exist");
       ioHandleUpgrade(req, socket, head);
     }
   });
+
   server.on("shutdown", () => {
     Metrics.gaugePerInstance("websockets.count", 0);
   });
+
   io.adapter(
     socketRedisAdapter({
       pubClient: client,
       subClient: subscriber,
     })
   );
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter '_' implicitly has an 'any' type.
-  io.origins((_, callback) => {
-    callback(null, true);
-  });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
-  io.of("/").adapter.on("error", (err) => {
+
+  io.origins(
+    (_req: any, callback: (err: Error | null, allow: boolean) => void) => {
+      callback(null, true);
+    }
+  );
+
+  io.of("/").adapter.on("error", (err: Error) => {
     if (err.name === "MaxRetriesPerRequestError") {
       Logger.error("Redis maximum retries exceeded in socketio adapter", err);
       throw err;
@@ -62,6 +68,7 @@ export default function init(app: Koa, server: http.Server) {
       Logger.error("Redis error in socketio adapter", err);
     }
   });
+
   // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
   io.on("connection", (socket) => {
     Metrics.increment("websockets.connected");
@@ -77,6 +84,7 @@ export default function init(app: Koa, server: http.Server) {
       );
     });
   });
+
   SocketAuth(io, {
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
     authenticate: async (socket, data, callback) => {
@@ -85,6 +93,7 @@ export default function init(app: Koa, server: http.Server) {
       try {
         const user = await getUserForJWT(token);
         socket.client.user = user;
+
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
         await client.hset(socket.id, "userId", user.id);
@@ -93,22 +102,27 @@ export default function init(app: Koa, server: http.Server) {
         return callback(err);
       }
     },
+
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
     postAuthenticate: async (socket) => {
       const { user } = socket.client;
       // the rooms associated with the current team
       // and user so we can send authenticated events
       const rooms = [`team-${user.teamId}`, `user-${user.id}`];
+
       // the rooms associated with collections this user
       // has access to on connection. New collection subscriptions
       // are managed from the client as needed through the 'join' event
       const collectionIds = await user.collectionIds();
+
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collectionId' implicitly has an 'any' t... Remove this comment to see the full error message
       collectionIds.forEach((collectionId) =>
         rooms.push(`collection-${collectionId}`)
       );
+
       // join all of the rooms at once
       socket.join(rooms);
+
       // allow the client to request to join rooms
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       socket.on("join", async (event) => {
@@ -139,17 +153,20 @@ export default function init(app: Koa, server: http.Server) {
             const editing = await View.findRecentlyEditingByDocument(
               event.documentId
             );
+
             socket.join(room, () => {
               Metrics.increment("websockets.documents.join");
+
               // let everyone else in the room know that a new user joined
               io.to(room).emit("user.join", {
                 userId: user.id,
                 documentId: event.documentId,
                 isEditing: event.isEditing,
               });
+
               // let this user know who else is already present in the room
               // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
-              io.in(room).clients(async (err, sockets) => {
+              io.in(room).clients(async (err: Error, sockets) => {
                 if (err) {
                   Logger.error("Error getting clients for room", err, {
                     sockets,
@@ -178,6 +195,7 @@ export default function init(app: Koa, server: http.Server) {
           }
         }
       });
+
       // allow the client to request to leave rooms
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       socket.on("leave", (event) => {
@@ -198,6 +216,7 @@ export default function init(app: Koa, server: http.Server) {
           });
         }
       });
+
       socket.on("disconnecting", () => {
         const rooms = Object.keys(socket.rooms);
         rooms.forEach((room) => {

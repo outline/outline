@@ -18,7 +18,6 @@ export default function init(app: Koa, server: http.Server) {
       new AuthenticationExtension(),
       // @ts-expect-error ts-migrate(2322) FIXME: Type 'Persistence' is not assignable to type 'Exte... Remove this comment to see the full error message
       new PersistenceExtension(),
-      // @ts-expect-error ts-migrate(2322) FIXME: Type 'CollaborationLogger' is not assignable to ty... Remove this comment to see the full error message
       new LoggerExtension(),
       // @ts-expect-error ts-migrate(2322) FIXME: Type 'Tracing' is not assignable to type 'Extensio... Remove this comment to see the full error message
       new TracingExtension(),

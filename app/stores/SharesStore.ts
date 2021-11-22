@@ -46,8 +46,7 @@ export default class SharesStore extends BaseStore<Share> {
   @action
   async fetch(
     documentId: string,
-    // @ts-expect-error ts-migrate(1015) FIXME: Parameter cannot have question mark and initialize... Remove this comment to see the full error message
-    options?: Record<string, any> = {}
+    options: Record<string, any> = {}
   ): Promise<any> {
     const item = this.getByDocumentId(documentId);
     if (item && !options.force) return item;
@@ -58,6 +57,7 @@ export default class SharesStore extends BaseStore<Share> {
         documentId,
         apiVersion: 2,
       });
+
       if (isUndefined(res)) return;
       invariant(res && res.data, "Data should be available");
       this.addPolicies(res.policies);
@@ -70,8 +70,10 @@ export default class SharesStore extends BaseStore<Share> {
   getByDocumentParents = (documentId: string): Share | null | undefined => {
     const document = this.rootStore.documents.get(documentId);
     if (!document) return;
+
     const collection = this.rootStore.collections.get(document.collectionId);
     if (!collection) return;
+
     const parentIds = collection
       .pathToDocument(documentId)
       .slice(0, -1)

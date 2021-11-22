@@ -16,11 +16,11 @@ export default function DocumentScene(
 ) {
   const { ui } = useStores();
   const team = useCurrentTeam();
+  const { documentSlug, revisionId } = props.match.params;
 
   React.useEffect(() => {
     return () => ui.clearActiveDocument();
   }, [ui]);
-  const { documentSlug, revisionId } = props.match.params;
 
   // the urlId portion of the url does not include the slugified title
   // we only want to force a re-mount of the document component when the

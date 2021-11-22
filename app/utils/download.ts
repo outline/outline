@@ -17,7 +17,7 @@ export default function download(
     D = document,
     a = D.createElement("a"),
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'a' implicitly has an 'any' type.
-    z = function (a, o) {
+    z = function (a) {
       return String(a);
     },
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'MozBlob' does not exist on type 'Window ... Remove this comment to see the full error message

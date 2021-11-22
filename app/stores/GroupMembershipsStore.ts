@@ -35,7 +35,6 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   };
 
   @action
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'create' in type 'GroupMembershipsStore' ... Remove this comment to see the full error message
   async create({ groupId, userId }: { groupId: string; userId: string }) {
     const res = await client.post("/groups.add_user", {
       id: groupId,
@@ -44,7 +43,9 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
     invariant(res && res.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
     res.data.groups.forEach(this.rootStore.groups.add);
-    res.data.groupMemberships.forEach(this.add);
+
+    const groupMemberships = res.data.groupMemberships.map(this.add);
+    return groupMemberships[0];
   }
 
   @action

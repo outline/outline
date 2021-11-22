@@ -7,8 +7,10 @@ import { flushdb } from "@server/test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
+
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {
     const team = await buildTeam();

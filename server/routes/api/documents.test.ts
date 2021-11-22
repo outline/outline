@@ -1338,6 +1338,7 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(done: DoneCallback) => Promise<... Remove this comment to see the full error message
   it("should save search term, hits and source", async (done) => {
     const { user } = await seed();

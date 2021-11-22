@@ -34,7 +34,6 @@ export default class MembershipsStore extends BaseStore<Membership> {
   };
 
   @action
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'create' in type 'MembershipsStore' is no... Remove this comment to see the full error message
   async create({
     collectionId,
     userId,
@@ -51,7 +50,9 @@ export default class MembershipsStore extends BaseStore<Membership> {
     });
     invariant(res && res.data, "Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
-    res.data.memberships.forEach(this.add);
+
+    const memberships = res.data.memberships.map(this.add);
+    return memberships[0];
   }
 
   @action

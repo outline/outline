@@ -1,47 +1,44 @@
 import Tippy from "@tippy.js/react";
+import { TFunctionResult } from "i18next";
 import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
-  tooltip: React.ReactNode;
+  tooltip: React.ReactChild | React.ReactChild[] | TFunctionResult;
   shortcut?: React.ReactNode;
   placement?: "top" | "bottom" | "left" | "right";
-  children: React.ReactNode;
+  children: React.ReactElement<any>;
   delay?: number;
   className?: string;
 };
 
-class Tooltip extends React.Component<Props> {
-  render() {
-    const { shortcut, tooltip, delay = 50, ...rest } = this.props;
-    let content = tooltip;
+function Tooltip({ shortcut, tooltip, delay = 50, ...rest }: Props) {
+  let content = <>{tooltip}</>;
 
-    if (!tooltip) {
-      return this.props.children;
-    }
+  if (!tooltip) {
+    return rest.children;
+  }
 
-    if (shortcut) {
-      content = (
-        <>
-          {tooltip} &middot; <Shortcut>{shortcut}</Shortcut>
-        </>
-      );
-    }
-
-    return (
-      <StyledTippy
-        arrow
-        arrowType="round"
-        animation="shift-away"
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-        content={content}
-        delay={delay}
-        duration={[200, 150]}
-        inertia
-        {...rest}
-      />
+  if (shortcut) {
+    content = (
+      <>
+        {tooltip} &middot; <Shortcut>{shortcut}</Shortcut>
+      </>
     );
   }
+
+  return (
+    <StyledTippy
+      arrow
+      arrowType="round"
+      animation="shift-away"
+      content={content}
+      delay={delay}
+      duration={[200, 150]}
+      inertia
+      {...rest}
+    />
+  );
 }
 
 const Shortcut = styled.kbd`

@@ -69,8 +69,7 @@ export default class GroupsStore extends BaseStore<Group> {
   };
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'groups' implicitly has an 'any' type.
-function queriedGroups(groups, query) {
+function queriedGroups(groups: Group[], query: string) {
   return filter(groups, (group) =>
     group.name.toLowerCase().match(query.toLowerCase())
   );

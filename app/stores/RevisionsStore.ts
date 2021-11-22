@@ -30,15 +30,17 @@ export default class RevisionsStore extends BaseStore<Revision> {
       latestRevision.createdAt !== document.updatedAt
     ) {
       revisions.unshift(
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        new Revision({
-          id: "latest",
-          documentId: document.id,
-          title: document.title,
-          text: document.text,
-          createdAt: document.updatedAt,
-          createdBy: document.createdBy,
-        })
+        new Revision(
+          {
+            id: "latest",
+            documentId: document.id,
+            title: document.title,
+            text: document.text,
+            createdAt: document.updatedAt,
+            createdBy: document.createdBy,
+          },
+          this
+        )
       );
     }
 
@@ -55,8 +57,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       const res = await client.post("/revisions.list", options);
       invariant(res && res.data, "Document revisions not available");
       runInAction("RevisionsStore#fetchPage", () => {
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'revision' implicitly has an 'any' type.
-        res.data.forEach((revision) => this.add(revision));
+        res.data.forEach(this.add);
         this.isLoaded = true;
       });
       return res.data;

@@ -10,6 +10,8 @@ declare module "styled-components-breakpoint";
 
 declare module "socketio-auth";
 
+declare module "oy-vey";
+
 declare module "emoji-regex" {
   const RegExpFactory: () => RegExp;
   export = RegExpFactory;

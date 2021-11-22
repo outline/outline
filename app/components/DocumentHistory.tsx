@@ -14,20 +14,18 @@ import Scrollable from "~/components/Scrollable";
 import useStores from "~/hooks/useStores";
 import { documentUrl } from "~/utils/routeHelpers";
 
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'EMPTY_ARRAY' implicitly has type 'any[]'... Remove this comment to see the full error message
-const EMPTY_ARRAY = [];
+const EMPTY_ARRAY: Event[] = [];
 
 function DocumentHistory() {
   const { events, documents } = useStores();
   const { t } = useTranslation();
-  const match = useRouteMatch();
+  const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'documentSlug' does not exist on type '{}... Remove this comment to see the full error message
   const document = documents.getByUrl(match.params.documentSlug);
+
   const eventsInDocument = document
     ? events.inDocument(document.id)
-    : // @ts-expect-error ts-migrate(7005) FIXME: Variable 'EMPTY_ARRAY' implicitly has an 'any[]' t... Remove this comment to see the full error message
-      EMPTY_ARRAY;
+    : EMPTY_ARRAY;
 
   const onCloseHistory = () => {
     if (document) {
@@ -44,18 +42,20 @@ function DocumentHistory() {
       eventsInDocument[0].createdAt !== document.updatedAt
     ) {
       eventsInDocument.unshift(
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-        new Event({
-          name: "documents.latest_version",
-          documentId: document.id,
-          createdAt: document.updatedAt,
-          actor: document.updatedBy,
-        })
+        new Event(
+          {
+            name: "documents.latest_version",
+            documentId: document.id,
+            createdAt: document.updatedAt,
+            actor: document.updatedBy,
+          },
+          events
+        )
       );
     }
 
     return eventsInDocument;
-  }, [eventsInDocument, document]);
+  }, [eventsInDocument, events, document]);
 
   return (
     <Sidebar>

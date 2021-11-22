@@ -64,8 +64,7 @@ if (AZURE_CLIENT_ID) {
         );
 
         if (!organizationResponse) {
-          // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-          throw new MicrosoftGraphError(
+          throw MicrosoftGraphError(
             "Unable to load organization info from Microsoft Graph API"
           );
         }
@@ -75,8 +74,7 @@ if (AZURE_CLIENT_ID) {
         const email = profile.email || profileResponse.mail;
 
         if (!email) {
-          // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-          throw new MicrosoftGraphError(
+          throw MicrosoftGraphError(
             "'email' property is required but could not be found in user profile."
           );
         }

@@ -36,7 +36,6 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
   };
 
   @action
-  // @ts-expect-error ts-migrate(2416) FIXME: Property 'create' in type 'CollectionGroupMembersh... Remove this comment to see the full error message
   async create({
     collectionId,
     groupId,
@@ -52,7 +51,9 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
       permission,
     });
     invariant(res && res.data, "Membership data should be available");
-    res.data.collectionGroupMemberships.forEach(this.add);
+
+    const cgm = res.data.collectionGroupMemberships.map(this.add);
+    return cgm[0];
   }
 
   @action
