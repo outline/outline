@@ -1,13 +1,13 @@
+import {
+  onChangePayload,
+  onConnectPayload,
+  onDisconnectPayload,
+  onLoadDocumentPayload,
+} from "@hocuspocus/server";
 import Metrics from "@server/logging/metrics";
 
 export default class Tracing {
-  onLoadDocument({
-    documentName,
-    instance,
-  }: {
-    documentName: string;
-    instance: any;
-  }) {
+  onLoadDocument({ documentName, instance }: onLoadDocumentPayload) {
     Metrics.increment("collaboration.load_document", {
       documentName,
     });
@@ -23,13 +23,7 @@ export default class Tracing {
     });
   }
 
-  onConnect({
-    documentName,
-    instance,
-  }: {
-    documentName: string;
-    instance: any;
-  }) {
+  onConnect({ documentName, instance }: onConnectPayload) {
     Metrics.increment("collaboration.connect", {
       documentName,
     });
@@ -39,13 +33,7 @@ export default class Tracing {
     );
   }
 
-  onDisconnect({
-    documentName,
-    instance,
-  }: {
-    documentName: string;
-    instance: any;
-  }) {
+  onDisconnect({ documentName, instance }: onDisconnectPayload) {
     Metrics.increment("collaboration.disconnect", {
       documentName,
     });
@@ -59,7 +47,7 @@ export default class Tracing {
     );
   }
 
-  onChange({ documentName }: { documentName: string }) {
+  onChange({ documentName }: onChangePayload) {
     Metrics.increment("collaboration.change", {
       documentName,
     });

@@ -1,3 +1,4 @@
+import { onChangePayload, onLoadDocumentPayload } from "@hocuspocus/server";
 import { debounce } from "lodash";
 import * as Y from "yjs";
 import Logger from "@server/logging/logger";
@@ -8,19 +9,12 @@ import markdownToYDoc from "./utils/markdownToYDoc";
 const DELAY = 3000;
 
 export default class Persistence {
-  async onLoadDocument({
-    documentName,
-    ...data
-  }: {
-    documentName: string;
-    document: Y.Doc;
-  }) {
+  async onLoadDocument({ documentName, ...data }: onLoadDocumentPayload) {
     const [, documentId] = documentName.split(".");
     const fieldName = "default";
 
     // Check if the given field already exists in the given y-doc. This is import
     // so we don't import a document fresh if it exists already.
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'isEmpty' does not exist on type 'Doc'.
     if (!data.document.isEmpty(fieldName)) {
       return;
     }
@@ -52,18 +46,7 @@ export default class Persistence {
   }
 
   onChange = debounce(
-    async ({
-      document,
-      context,
-      documentName,
-    }: {
-      document: Y.Doc;
-      context: {
-        // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
-        user: User | null | undefined;
-      };
-      documentName: string;
-    }) => {
+    async ({ document, context, documentName }: onChangePayload) => {
       const [, documentId] = documentName.split(".");
       Logger.info("database", `Persisting ${documentId}`);
 

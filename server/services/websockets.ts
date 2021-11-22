@@ -1,9 +1,7 @@
 import http from "http";
 import invariant from "invariant";
 import Koa from "koa";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'sock... Remove this comment to see the full error message
 import IO from "socket.io";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'sock... Remove this comment to see the full error message
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
 import Logger from "@server/logging/logger";
@@ -54,11 +52,9 @@ export default function init(app: Koa, server: http.Server) {
     })
   );
 
-  io.origins(
-    (_req: any, callback: (err: Error | null, allow: boolean) => void) => {
-      callback(null, true);
-    }
-  );
+  io.origins((_req, callback) => {
+    callback(null, true);
+  });
 
   io.of("/").adapter.on("error", (err: Error) => {
     if (err.name === "MaxRetriesPerRequestError") {
@@ -69,7 +65,6 @@ export default function init(app: Koa, server: http.Server) {
     }
   });
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
   io.on("connection", (socket) => {
     Metrics.increment("websockets.connected");
     Metrics.gaugePerInstance(
@@ -86,7 +81,6 @@ export default function init(app: Koa, server: http.Server) {
   });
 
   SocketAuth(io, {
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
     authenticate: async (socket, data, callback) => {
       const { token } = data;
 
@@ -99,13 +93,13 @@ export default function init(app: Koa, server: http.Server) {
         await client.hset(socket.id, "userId", user.id);
         return callback(null, true);
       } catch (err) {
-        return callback(err);
+        return callback(err, false);
       }
     },
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'socket' implicitly has an 'any' type.
     postAuthenticate: async (socket) => {
       const { user } = socket.client;
+
       // the rooms associated with the current team
       // and user so we can send authenticated events
       const rooms = [`team-${user.teamId}`, `user-${user.id}`];
@@ -113,9 +107,8 @@ export default function init(app: Koa, server: http.Server) {
       // the rooms associated with collections this user
       // has access to on connection. New collection subscriptions
       // are managed from the client as needed through the 'join' event
-      const collectionIds = await user.collectionIds();
+      const collectionIds: string[] = await user.collectionIds();
 
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collectionId' implicitly has an 'any' t... Remove this comment to see the full error message
       collectionIds.forEach((collectionId) =>
         rooms.push(`collection-${collectionId}`)
       );
@@ -124,7 +117,6 @@ export default function init(app: Koa, server: http.Server) {
       socket.join(rooms);
 
       // allow the client to request to join rooms
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       socket.on("join", async (event) => {
         // user is joining a collection channel, because their permissions have
         // changed, granting them access.
@@ -165,8 +157,7 @@ export default function init(app: Koa, server: http.Server) {
               });
 
               // let this user know who else is already present in the room
-              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
-              io.in(room).clients(async (err: Error, sockets) => {
+              io.in(room).clients(async (err: Error, sockets: string[]) => {
                 if (err) {
                   Logger.error("Error getting clients for room", err, {
                     sockets,
@@ -197,7 +188,6 @@ export default function init(app: Koa, server: http.Server) {
       });
 
       // allow the client to request to leave rooms
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       socket.on("leave", (event) => {
         if (event.collectionId) {
           socket.leave(`collection-${event.collectionId}`, () => {
@@ -207,6 +197,7 @@ export default function init(app: Koa, server: http.Server) {
 
         if (event.documentId) {
           const room = `document-${event.documentId}`;
+
           socket.leave(room, () => {
             Metrics.increment("websockets.documents.leave");
             io.to(room).emit("user.leave", {
@@ -219,6 +210,7 @@ export default function init(app: Koa, server: http.Server) {
 
       socket.on("disconnecting", () => {
         const rooms = Object.keys(socket.rooms);
+
         rooms.forEach((room) => {
           if (room.startsWith("document-")) {
             const documentId = room.replace("document-", "");
@@ -230,7 +222,6 @@ export default function init(app: Koa, server: http.Server) {
         });
       });
 
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
       socket.on("presence", async (event) => {
         Metrics.increment("websockets.presence");
         const room = `document-${event.documentId}`;
@@ -241,6 +232,7 @@ export default function init(app: Koa, server: http.Server) {
             user.id,
             event.isEditing
           );
+
           view.user = user;
           io.to(room).emit("user.presence", {
             userId: user.id,

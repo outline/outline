@@ -230,6 +230,7 @@
     "@types/react-window": "^1.8.5",
     "@types/sequelize": "^4.28.10",
     "@types/slug": "^5.0.2",
+    "@types/socket.io": "2.1.13",
     "@types/socket.io-client": "^3.0.0",
     "@types/stoppable": "^1.1.1",
     "@types/styled-components": "^5.1.15",

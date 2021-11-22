@@ -1,3 +1,4 @@
+import { onAuthenticatePayload } from "@hocuspocus/server";
 import { Document } from "@server/models";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
@@ -10,13 +11,7 @@ export default class Authentication {
     connection,
     token,
     documentName,
-  }: {
-    connection: {
-      readOnly: boolean;
-    };
-    token: string;
-    documentName: string;
-  }) {
+  }: onAuthenticatePayload) {
     // allows for different entity types to use this multiplayer provider later
     const [, documentId] = documentName.split(".");
 

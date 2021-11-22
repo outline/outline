@@ -36,11 +36,13 @@ export default class BacklinksProcessor {
       case "documents.update": {
         const document = await Document.findByPk(event.documentId);
         if (!document) return;
+
         // backlinks are only created for published documents
         if (!document.publishedAt) return;
+
         const linkIds = parseDocumentIds(document.text);
-        // @ts-expect-error ts-migrate(7034) FIXME: Variable 'linkedDocumentIds' implicitly has type '... Remove this comment to see the full error message
-        const linkedDocumentIds = [];
+        const linkedDocumentIds: string[] = [];
+
         // create or find existing backlink records for referenced docs
         await Promise.all(
           linkIds.map(async (linkId) => {
@@ -62,11 +64,11 @@ export default class BacklinksProcessor {
             linkedDocumentIds.push(linkedDocument.id);
           })
         );
+
         // delete any backlinks that no longer exist
         await Backlink.destroy({
           where: {
             documentId: {
-              // @ts-expect-error ts-migrate(7005) FIXME: Variable 'linkedDocumentIds' implicitly has an 'an... Remove this comment to see the full error message
               [Op.notIn]: linkedDocumentIds,
             },
             reverseDocumentId: event.documentId,
@@ -79,8 +81,10 @@ export default class BacklinksProcessor {
         // might as well check
         const { title, previousTitle } = event.data;
         if (!previousTitle || title === previousTitle) break;
+
         const document = await Document.findByPk(event.documentId);
         if (!document) return;
+
         // TODO: Handle re-writing of titles into CRDT
         const team = await Team.findByPk(document.teamId);
 
@@ -106,6 +110,7 @@ export default class BacklinksProcessor {
             const previousUrl = `/doc/${slugify(previousTitle)}-${
               document.urlId
             }`;
+
             // find links in the other document that lead to this one and have
             // the old title as anchor text. Go ahead and update those to the
             // new title automatically
