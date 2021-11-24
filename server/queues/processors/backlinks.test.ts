@@ -6,6 +6,7 @@ import BacklinksService from "./backlinks";
 const Backlinks = new BacklinksService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("documents.publish", () => {
   test("should create new backlink records", async () => {
     const otherDocument = await buildDocument();
@@ -27,6 +28,7 @@ describe("documents.publish", () => {
     });
     expect(backlinks.length).toBe(1);
   });
+
   test("should not fail when linked document is destroyed", async () => {
     const otherDocument = await buildDocument();
     await otherDocument.destroy();
@@ -73,6 +75,7 @@ describe("documents.update", () => {
     });
     expect(backlinks.length).toBe(1);
   });
+
   test("should not fail when previous revision is different document version", async () => {
     const otherDocument = await buildDocument();
     const document = await buildDocument({
@@ -96,6 +99,7 @@ describe("documents.update", () => {
     });
     expect(backlinks.length).toBe(1);
   });
+
   test("should create new backlink records", async () => {
     const otherDocument = await buildDocument();
     const document = await buildDocument();
@@ -116,6 +120,7 @@ describe("documents.update", () => {
     });
     expect(backlinks.length).toBe(1);
   });
+
   test("should destroy removed backlink records", async () => {
     const otherDocument = await buildDocument();
     const yetAnotherDocument = await buildDocument();

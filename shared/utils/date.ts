@@ -1,9 +1,7 @@
 import { subDays, subMonths, subWeeks, subYears } from "date-fns";
+import { DateFilter } from "@shared/types";
 
-export function subtractDate(
-  date: Date,
-  period: "day" | "week" | "month" | "year"
-) {
+export function subtractDate(date: Date, period: DateFilter) {
   switch (period) {
     case "day":
       return subDays(date, 1);

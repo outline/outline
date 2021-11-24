@@ -43,6 +43,7 @@ describe("documents.update.debounced", () => {
     });
     expect(amount).toBe(1);
   });
+
   test("should not create a revision if identical to previous", async () => {
     const document = await buildDocument();
     await Revision.createFromDocument(document);

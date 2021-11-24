@@ -208,7 +208,7 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (options: { revisionId?: string; collectionId?: string }) => {
+  restore = (options?: { revisionId?: string; collectionId?: string }) => {
     return this.store.restore(this, options);
   };
 

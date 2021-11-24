@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { DateFilter } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
   dateFilter: string | null | undefined;
-  onSelect: (key: string | null | undefined) => void;
+  onSelect: (key: DateFilter) => void;
 };
 
 const DateFilter = ({ dateFilter, onSelect }: Props) => {

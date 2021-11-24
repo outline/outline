@@ -5,8 +5,8 @@ import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  collectionId: string | null | undefined;
-  onSelect: (key: string | null | undefined) => void;
+  collectionId: string | undefined;
+  onSelect: (key: string | undefined) => void;
 };
 
 function CollectionFilter(props: Props) {

@@ -125,7 +125,6 @@ function DocumentMenu({
         collectionId: string;
       }
     ) => {
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ collectionId: string; } | unde... Remove this comment to see the full error message
       await document.restore(options);
       showToast(t("Document restored"), {
         type: "success",
@@ -279,7 +278,7 @@ function DocumentMenu({
               type: "button",
               title: t("Restore"),
               visible: (!!collection && can.restore) || can.unarchive,
-              onClick: handleRestore,
+              onClick: (ev) => handleRestore(ev),
               icon: <RestoreIcon />,
             },
             {

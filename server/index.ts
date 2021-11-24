@@ -37,12 +37,12 @@ const serviceNames = uniq(
 
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
-let processCount = parseInt(env.WEB_CONCURRENCY, 10) || undefined;
+let processCount = env.WEB_CONCURRENCY
+  ? parseInt(env.WEB_CONCURRENCY, 10)
+  : undefined;
 
 if (serviceNames.includes("collaboration")) {
-  // @ts-expect-error ts-migrate(2367) FIXME: This condition will always return 'true' since the... Remove this comment to see the full error message
-  if (env.WEB_CONCURRENCY !== 1) {
+  if (processCount !== 1) {
     Logger.info(
       "lifecycle",
       "Note: Restricting process count to 1 due to use of collaborative service"

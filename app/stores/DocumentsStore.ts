@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { DateFilter } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import naturalSort from "@shared/utils/naturalSort";
 import BaseStore from "~/stores/BaseStore";
@@ -202,7 +203,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   drafts = (
     options: PaginationParams & {
-      dateFilter?: "day" | "week" | "month" | "year";
+      dateFilter?: DateFilter;
       collectionId?: string;
     } = {}
   ): Document[] => {
@@ -392,7 +393,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: {
       offset?: number;
       limit?: number;
-      dateFilter?: "day" | "week" | "month" | "year";
+      dateFilter?: DateFilter;
       includeArchived?: boolean;
       includeDrafts?: boolean;
       collectionId?: string;

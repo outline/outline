@@ -38,7 +38,7 @@ class ApiClient {
   fetch = async (
     path: string,
     method: string,
-    data: (Record<string, any> | null | undefined) | FormData | void,
+    data: (Record<string, any> | undefined) | FormData,
     options: Record<string, any> = {}
   ) => {
     let body;
@@ -48,7 +48,6 @@ class ApiClient {
 
     if (method === "GET") {
       if (data) {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Record<string, any> | FormData' ... Remove this comment to see the full error message
         modifiedPath = `${path}?${data && this.constructQueryString(data)}`;
       } else {
         modifiedPath = path;
@@ -195,7 +194,7 @@ class ApiClient {
 
   get = (
     path: string,
-    data: Record<string, any> | null | undefined,
+    data: Record<string, any> | undefined,
     options?: Record<string, any>
   ) => {
     return this.fetch(path, "GET", data, options);
@@ -203,14 +202,14 @@ class ApiClient {
 
   post = (
     path: string,
-    data?: Record<string, any> | null,
+    data?: Record<string, any> | undefined,
     options?: Record<string, any>
   ) => {
     return this.fetch(path, "POST", data, options);
   };
 
   // Helpers
-  constructQueryString = (data: Record<string, string>) => {
+  constructQueryString = (data: Record<string, any>) => {
     return map(
       data,
       (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`

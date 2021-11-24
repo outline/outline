@@ -5,8 +5,8 @@ import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  userId: string | null | undefined;
-  onSelect: (key: string | null | undefined) => void;
+  userId: string | undefined;
+  onSelect: (key: string | undefined) => void;
 };
 
 function UserFilter(props: Props) {
@@ -19,6 +19,7 @@ function UserFilter(props: Props) {
       limit: 100,
     });
   }, [users]);
+
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user) => ({
       key: user.id,
@@ -32,6 +33,7 @@ function UserFilter(props: Props) {
       ...userOptions,
     ];
   }, [users.all, t]);
+
   return (
     <FilterOptions
       options={options}

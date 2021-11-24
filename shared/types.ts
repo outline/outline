@@ -1,5 +1,7 @@
 export type Role = "admin" | "viewer" | "member";
 
+export type DateFilter = "day" | "week" | "month" | "year";
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

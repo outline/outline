@@ -13,6 +13,7 @@ describe("Mailer", () => {
       sendMail: (output) => (sendMailOutput = output),
     };
   });
+
   test("#welcome", () => {
     fakeMailer.welcome({
       to: "user@example.com",

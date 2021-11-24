@@ -34,6 +34,7 @@ describe("documents.publish", () => {
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
+
   test("should send a notification to other users in team", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -54,6 +55,7 @@ describe("documents.publish", () => {
     });
     expect(mailer.documentNotification).toHaveBeenCalled();
   });
+
   test("should not send a notification to users without collection access", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -103,6 +105,7 @@ describe("revisions.create", () => {
     });
     expect(mailer.documentNotification).toHaveBeenCalled();
   });
+
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
     const collaborator = await buildUser({
@@ -126,6 +129,7 @@ describe("revisions.create", () => {
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
+
   test("should not send a notification to last editor", async () => {
     const user = await buildUser();
     const document = await buildDocument({

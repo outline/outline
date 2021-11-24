@@ -1,4 +1,4 @@
-import { useMatches, KBarResults } from "kbar";
+import { useMatches, KBarResults, Action } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
 import CommandBarItem from "~/components/CommandBarItem";
@@ -11,12 +11,10 @@ export default function CommandBarResults() {
       matches
         .reduce((acc, curr) => {
           const { actions, name } = curr;
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string' is not assignable to par... Remove this comment to see the full error message
           acc.push(name);
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Action' is not assignable to par... Remove this comment to see the full error message
           acc.push(...actions);
           return acc;
-        }, [])
+        }, [] as (Action | string)[])
         .filter((i) => i !== "none"),
     [matches]
   );

@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import Button from "~/components/Button";
@@ -134,10 +135,10 @@ class Search extends React.Component<Props> {
   };
 
   handleFilterChange = (search: {
-    collectionId?: string | null | undefined;
-    userId?: string | null | undefined;
-    dateFilter?: string | null | undefined;
-    includeArchived?: string | null | undefined;
+    collectionId?: string | undefined;
+    userId?: string | undefined;
+    dateFilter?: TDateFilter;
+    includeArchived?: boolean | undefined;
   }) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
@@ -172,7 +173,7 @@ class Search extends React.Component<Props> {
 
   get dateFilter() {
     const id = this.params.get("dateFilter");
-    return id ? id : undefined;
+    return id ? (id as TDateFilter) : undefined;
   }
 
   get isFiltered() {
@@ -223,7 +224,6 @@ class Search extends React.Component<Props> {
       this.lastParams = params;
 
       try {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ offset: number; limit: number;... Remove this comment to see the full error message
         const results = await this.props.documents.search(this.query, params);
         this.pinToTop = true;
 

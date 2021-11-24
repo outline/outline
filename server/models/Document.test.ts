@@ -20,6 +20,7 @@ paragraph 2`,
     });
     expect(document.getSummary()).toBe("paragraph");
   });
+
   test("should strip title when no version", async () => {
     const document = await buildDocument({
       version: null,
@@ -43,6 +44,7 @@ paragraph`,
 
 paragraph`);
   });
+
   test("should add breaks under headings with extra paragraphs", async () => {
     const document = await buildDocument({
       version: 1,
@@ -58,6 +60,7 @@ paragraph`,
 \\
 paragraph`);
   });
+
   test("should add breaks between paragraphs", async () => {
     const document = await buildDocument({
       version: 1,
@@ -71,6 +74,7 @@ paragraph`,
 \\
 paragraph`);
   });
+
   test("should add breaks for multiple empty paragraphs", async () => {
     const document = await buildDocument({
       version: 1,
@@ -86,6 +90,7 @@ paragraph`,
 \\
 paragraph`);
   });
+
   test("should add breaks with non-latin characters", async () => {
     const document = await buildDocument({
       version: 1,
@@ -99,6 +104,7 @@ paragraph`);
 \\
 通`);
   });
+
   test("should update task list formatting", async () => {
     const document = await buildDocument({
       version: 1,
@@ -109,6 +115,7 @@ paragraph`);
     expect(document.text).toBe(`- [ ] list item
 `);
   });
+
   test("should update task list with multiple items", async () => {
     const document = await buildDocument({
       version: 1,
@@ -121,6 +128,7 @@ paragraph`);
 - [ ] list item 2
 `);
   });
+
   test("should update checked task list formatting", async () => {
     const document = await buildDocument({
       version: 1,
@@ -131,6 +139,7 @@ paragraph`);
     expect(document.text).toBe(`- [x] list item
 `);
   });
+
   test("should update nested task list formatting", async () => {
     const document = await buildDocument({
       version: 1,
@@ -161,6 +170,7 @@ describe("#searchForTeam", () => {
     expect(results.length).toBe(1);
     expect(results[0].document.id).toBe(document.id);
   });
+
   test("should not return search results from private collections", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
@@ -175,16 +185,19 @@ describe("#searchForTeam", () => {
     const { results } = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(0);
   });
+
   test("should handle no collections", async () => {
     const team = await buildTeam();
     const { results } = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(0);
   });
+
   test("should handle backslashes in search term", async () => {
     const team = await buildTeam();
     const { results } = await Document.searchForTeam(team, "\\\\");
     expect(results.length).toBe(0);
   });
+
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
@@ -203,6 +216,7 @@ describe("#searchForTeam", () => {
     const { totalCount } = await Document.searchForTeam(team, "test");
     expect(totalCount).toBe("2");
   });
+
   test("should return the document when searched with their previous titles", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
@@ -218,6 +232,7 @@ describe("#searchForTeam", () => {
     const { totalCount } = await Document.searchForTeam(team, "test number");
     expect(totalCount).toBe("1");
   });
+
   test("should not return the document when searched with neither the titles nor the previous titles", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
@@ -257,6 +272,7 @@ describe("#searchForUser", () => {
     expect(results.length).toBe(1);
     expect(results[0].document.id).toBe(document.id);
   });
+
   test("should handle no collections", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -265,6 +281,7 @@ describe("#searchForUser", () => {
     const { results } = await Document.searchForUser(user, "test");
     expect(results.length).toBe(0);
   });
+
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -289,6 +306,7 @@ describe("#searchForUser", () => {
     const { totalCount } = await Document.searchForUser(user, "test");
     expect(totalCount).toBe("2");
   });
+
   test("should return the document when searched with their previous titles", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -309,6 +327,7 @@ describe("#searchForUser", () => {
     const { totalCount } = await Document.searchForUser(user, "test number");
     expect(totalCount).toBe("1");
   });
+
   test("should not return the document when searched with neither the titles nor the previous titles", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -344,6 +363,7 @@ describe("#delete", () => {
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
   });
+
   test("should soft delete templates", async () => {
     let document = await buildDocument({
       template: true,
@@ -356,6 +376,7 @@ describe("#delete", () => {
     expect(document.lastModifiedById).toBe(user.id);
     expect(document.deletedAt).toBeTruthy();
   });
+
   test("should soft delete archived", async () => {
     let document = await buildDocument({
       archivedAt: new Date(),
@@ -374,12 +395,14 @@ describe("#save", () => {
     const document = await buildDocument();
     expect(document.previousTitles).toBe(null);
   });
+
   test("should include previousTitles on save", async () => {
     const document = await buildDocument();
     document.title = "test";
     await document.save();
     expect(document.previousTitles.length).toBe(1);
   });
+
   test("should not duplicate previousTitles", async () => {
     const document = await buildDocument();
     document.title = "test";
@@ -412,6 +435,7 @@ describe("tasks", () => {
     expect(tasks.completed).toBe(4);
     expect(tasks.total).toBe(5);
   });
+
   test("should return tasks keys set to 0 if checkItems isn't present", async () => {
     const document = await buildDocument({
       text: `text`,
@@ -420,6 +444,7 @@ describe("tasks", () => {
     expect(tasks.completed).toBe(0);
     expect(tasks.total).toBe(0);
   });
+
   test("should return tasks keys set to 0 if the text contains broken checkItems", async () => {
     const document = await buildDocument({
       text: `- [x ] test
@@ -430,6 +455,7 @@ describe("tasks", () => {
     expect(tasks.completed).toBe(0);
     expect(tasks.total).toBe(0);
   });
+
   test("should return tasks", async () => {
     const document = await buildDocument({
       text: `- [x] list item
@@ -439,6 +465,7 @@ describe("tasks", () => {
     expect(tasks.completed).toBe(1);
     expect(tasks.total).toBe(2);
   });
+
   test("should update tasks on save", async () => {
     const document = await buildDocument({
       text: `- [x] list item

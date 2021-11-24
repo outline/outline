@@ -7,6 +7,7 @@ import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
@@ -295,7 +296,7 @@ type SearchOptions = {
   limit?: number;
   offset?: number;
   collectionId?: string;
-  dateFilter?: "day" | "week" | "month" | "year";
+  dateFilter?: DateFilter;
   collaboratorIds?: string[];
   includeArchived?: boolean;
   includeDrafts?: boolean;

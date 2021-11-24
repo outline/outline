@@ -4,7 +4,7 @@ import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
   includeArchived?: boolean;
-  onSelect: (key: string | null | undefined) => void;
+  onSelect: (key: boolean) => void;
 };
 
 const StatusFilter = ({ includeArchived, onSelect }: Props) => {
@@ -29,7 +29,7 @@ const StatusFilter = ({ includeArchived, onSelect }: Props) => {
     <FilterOptions
       options={options}
       activeKey={includeArchived ? "true" : undefined}
-      onSelect={onSelect}
+      onSelect={(key) => onSelect(key === "true")}
       defaultLabel={t("Active documents")}
     />
   );
