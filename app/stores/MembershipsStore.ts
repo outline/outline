@@ -14,9 +14,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
   }
 
   @action
-  fetchPage = async (
-    params: PaginationParams | null | undefined
-  ): Promise<any> => {
+  fetchPage = async (params: PaginationParams | undefined): Promise<any> => {
     this.isFetching = true;
 
     try {

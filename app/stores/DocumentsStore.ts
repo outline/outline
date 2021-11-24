@@ -20,6 +20,8 @@ import { client } from "~/utils/ApiClient";
 
 type FetchParams = PaginationParams & { collectionId: string };
 
+type FetchPageParams = PaginationParams & { template?: boolean };
+
 type ImportOptions = {
   publish?: boolean;
 };
@@ -283,8 +285,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchNamedPage = async (
     request = "list",
-    options: Record<string, any> | null | undefined
-  ): Promise<Document[] | null | undefined> => {
+    options: FetchPageParams | undefined
+  ): Promise<Document[] | undefined> => {
     this.isFetching = true;
 
     try {

@@ -21,9 +21,7 @@ export default class GroupsStore extends BaseStore<Group> {
   }
 
   @action
-  fetchPage = async (
-    params: FetchPageParams | null | undefined
-  ): Promise<any> => {
+  fetchPage = async (params: FetchPageParams | undefined): Promise<any> => {
     this.isFetching = true;
 
     try {

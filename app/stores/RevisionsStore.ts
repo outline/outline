@@ -4,7 +4,7 @@ import { action, runInAction } from "mobx";
 import BaseStore, { RPCAction } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import Revision from "~/models/Revision";
-import { FetchOptions, PaginationParams } from "~/types";
+import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 
 export default class RevisionsStore extends BaseStore<Revision> {
@@ -48,9 +48,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
   }
 
   @action
-  fetchPage = async (
-    options: PaginationParams | null | undefined
-  ): Promise<any> => {
+  fetchPage = async (options: PaginationParams | undefined): Promise<any> => {
     this.isFetching = true;
 
     try {
