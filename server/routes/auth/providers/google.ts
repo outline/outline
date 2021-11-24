@@ -46,13 +46,11 @@ if (GOOGLE_CLIENT_ID) {
           const domain = profile._json.hd;
 
           if (!domain) {
-            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-            throw new GoogleWorkspaceRequiredError();
+            throw GoogleWorkspaceRequiredError();
           }
 
           if (allowedDomains.length && !allowedDomains.includes(domain)) {
-            // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-            throw new GoogleWorkspaceInvalidError();
+            throw GoogleWorkspaceInvalidError();
           }
 
           const subdomain = domain.split(".")[0];

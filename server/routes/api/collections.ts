@@ -619,13 +619,15 @@ router.post("collections.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   const user = ctx.state.user;
   assertUuid(id, "id is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "delete", collection);
+
   const total = await Collection.count();
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  if (total === 1) throw new ValidationError("Cannot delete last collection");
+  if (total === 1) throw ValidationError("Cannot delete last collection");
+
   await collection.destroy();
   await Event.create({
     name: "collections.delete",

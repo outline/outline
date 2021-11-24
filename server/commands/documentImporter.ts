@@ -91,16 +91,14 @@ async function confluenceToMarkdown(file): Promise<string> {
   // Word documents should call into the docxToMarkdown importer.
   // See: https://jira.atlassian.com/browse/CONFSERVER-38237
   if (!value.includes("Content-Type: multipart/related")) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new FileImportError("Unsupported Word file");
+    throw FileImportError("Unsupported Word file");
   }
 
   // get boundary marker
   const boundaryMarker = value.match(/boundary="(.+)"/);
 
   if (!boundaryMarker) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new FileImportError("Unsupported Word file (No boundary marker)");
+    throw FileImportError("Unsupported Word file (No boundary marker)");
   }
 
   // get content between multipart boundaries
@@ -126,8 +124,7 @@ async function confluenceToMarkdown(file): Promise<string> {
   });
 
   if (!lines.length) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new FileImportError("Unsupported Word file (No content found)");
+    throw FileImportError("Unsupported Word file (No content found)");
   }
 
   // Mime attachment is "quoted printable" encoded, must be decoded first
@@ -176,8 +173,7 @@ export default async function documentImporter({
   })[0];
 
   if (!fileInfo) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError(`File type ${file.type} not supported`);
+    throw InvalidRequestError(`File type ${file.type} not supported`);
   }
 
   let title = deserializeFilename(file.name.replace(/\.[^/.]+$/, ""));

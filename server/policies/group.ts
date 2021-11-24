@@ -7,8 +7,8 @@ const { allow } = policy;
 allow(User, "createGroup", Team, (actor, team) => {
   if (!team || actor.isViewer || actor.teamId !== team.id) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "read", Group, (actor, group) => {
@@ -21,6 +21,6 @@ allow(User, "read", Group, (actor, group) => {
 allow(User, ["update", "delete"], Group, (actor, group) => {
   if (!group || actor.isViewer || actor.teamId !== group.teamId) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });

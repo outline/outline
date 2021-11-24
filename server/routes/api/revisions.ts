@@ -17,14 +17,14 @@ router.post("revisions.info", auth(), async (ctx) => {
   const revision = await Revision.findByPk(id);
 
   if (!revision) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new NotFoundError();
+    throw NotFoundError();
   }
 
   const document = await Document.findByPk(revision.documentId, {
     userId: user.id,
   });
   authorize(user, "read", document);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: await presentRevision(revision),

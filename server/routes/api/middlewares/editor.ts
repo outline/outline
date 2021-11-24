@@ -22,8 +22,7 @@ export default function editor() {
         parsedClientVersion.major < parsedCurrentVersion.major ||
         parsedClientVersion.minor < parsedCurrentVersion.minor
       ) {
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        throw new EditorUpdateError();
+        throw EditorUpdateError();
       }
     }
 

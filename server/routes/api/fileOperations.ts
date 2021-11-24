@@ -21,8 +21,7 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   authorize(user, fileOperation.type, team);
 
   if (!fileOperation) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new NotFoundError();
+    throw NotFoundError();
   }
 
   ctx.body = {
@@ -74,15 +73,13 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   const fileOp = await FileOperation.unscoped().findByPk(id);
 
   if (!fileOp) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new NotFoundError();
+    throw NotFoundError();
   }
 
   authorize(user, fileOp.type, team);
 
   if (fileOp.state !== "complete") {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new ValidationError(`${fileOp.type} is not complete yet`);
+    throw ValidationError(`${fileOp.type} is not complete yet`);
   }
 
   const accessUrl = await getSignedUrl(fileOp.key);
@@ -98,8 +95,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   const fileOp = await FileOperation.findByPk(id);
 
   if (!fileOp) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new NotFoundError();
+    throw NotFoundError();
   }
 
   authorize(user, fileOp.type, team);

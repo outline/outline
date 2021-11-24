@@ -10,13 +10,11 @@ function getJWTPayload(token) {
   try {
     payload = JWT.decode(token);
   } catch (err) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Unable to decode JWT token");
+    throw AuthenticationError("Unable to decode JWT token");
   }
 
   if (!payload) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid token");
+    throw AuthenticationError("Invalid token");
   }
 
   return payload;
@@ -28,8 +26,7 @@ export async function getUserForJWT(token: string): Promise<User> {
 
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'type' does not exist on type 'string | J... Remove this comment to see the full error message
   if (payload.type === "email-signin") {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid token");
+    throw AuthenticationError("Invalid token");
   }
 
   // check the token is within it's expiration time
@@ -37,8 +34,7 @@ export async function getUserForJWT(token: string): Promise<User> {
   if (payload.expiresAt) {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'expiresAt' does not exist on type 'strin... Remove this comment to see the full error message
     if (new Date(payload.expiresAt) < new Date()) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthenticationError("Expired token");
+      throw AuthenticationError("Expired token");
     }
   }
 
@@ -59,16 +55,14 @@ export async function getUserForJWT(token: string): Promise<User> {
     // created then it's no longer valid, they'll need to sign in again.
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'createdAt' does not exist on type 'strin... Remove this comment to see the full error message
     if (user.lastActiveAt > new Date(payload.createdAt)) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthenticationError("Token has already been used");
+      throw AuthenticationError("Token has already been used");
     }
   }
 
   try {
     JWT.verify(token, user.jwtSecret);
   } catch (err) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid token");
+    throw AuthenticationError("Invalid token");
   }
 
   return user;
@@ -80,8 +74,7 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
 
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'type' does not exist on type 'string | J... Remove this comment to see the full error message
   if (payload.type !== "email-signin") {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid token");
+    throw AuthenticationError("Invalid token");
   }
 
   // check the token is within it's expiration time
@@ -89,8 +82,7 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
   if (payload.createdAt) {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'createdAt' does not exist on type 'strin... Remove this comment to see the full error message
     if (new Date(payload.createdAt) < subMinutes(new Date(), 10)) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthenticationError("Expired token");
+      throw AuthenticationError("Expired token");
     }
   }
 
@@ -109,15 +101,13 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
   // it's no longer valid, they'll need a new one.
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'createdAt' does not exist on type 'strin... Remove this comment to see the full error message
   if (user.lastSignedInAt > payload.createdAt) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Token has already been used");
+    throw AuthenticationError("Token has already been used");
   }
 
   try {
     JWT.verify(token, user.jwtSecret);
   } catch (err) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid token");
+    throw AuthenticationError("Invalid token");
   }
 
   return user;

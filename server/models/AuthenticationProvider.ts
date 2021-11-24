@@ -55,10 +55,7 @@ AuthenticationProvider.prototype.disable = async function () {
       enabled: false,
     });
   } else {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new ValidationError(
-      "At least one authentication provider is required"
-    );
+    throw ValidationError("At least one authentication provider is required");
   }
 };
 

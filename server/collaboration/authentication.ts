@@ -16,15 +16,13 @@ export default class Authentication {
     const [, documentId] = documentName.split(".");
 
     if (!token) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthenticationError("Authentication required");
+      throw AuthenticationError("Authentication required");
     }
 
     const user = await getUserForJWT(token);
 
     if (user.isSuspended) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthenticationError("Account suspended");
+      throw AuthenticationError("Account suspended");
     }
 
     const document = await Document.findByPk(documentId, {
@@ -32,8 +30,7 @@ export default class Authentication {
     });
 
     if (!can(user, "read", document)) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthenticationError("Authorization required");
+      throw AuthenticationError("Authorization required");
     }
 
     // set document to read only for the current user, thus changes will not be

@@ -63,8 +63,7 @@ router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 
 router.post("*", (ctx) => {
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  ctx.throw(new NotFoundError("Endpoint not found"));
+  ctx.throw(NotFoundError("Endpoint not found"));
 });
 
 // Router is embedded in a Koa application wrapper, because koa-router does not

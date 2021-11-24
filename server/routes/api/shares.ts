@@ -218,6 +218,7 @@ router.post("shares.create", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   // user could be creating the share link to share with team members
   authorize(user, "read", document);
+
   const [share, isCreated] = await Share.findOrCreate({
     where: {
       documentId,
@@ -263,8 +264,7 @@ router.post("shares.revoke", auth(), async (ctx) => {
   const document = await Document.findByPk(share.documentId);
 
   if (!document) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new NotFoundError();
+    throw NotFoundError();
   }
 
   await share.revoke(user.id);

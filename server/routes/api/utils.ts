@@ -13,8 +13,7 @@ router.post("utils.gc", async (ctx) => {
   const { token, limit = 500 } = ctx.body;
 
   if (process.env.UTILS_SECRET !== token) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid secret token");
+    throw AuthenticationError("Invalid secret token");
   }
 
   Logger.info(

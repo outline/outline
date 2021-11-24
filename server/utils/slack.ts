@@ -19,12 +19,12 @@ export async function post(endpoint: string, body: Record<string, any>) {
     });
     data = await response.json();
   } catch (err) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError(err.message);
+    throw InvalidRequestError(err.message);
   }
 
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  if (!data.ok) throw new InvalidRequestError(data.error);
+  if (!data.ok) {
+    throw InvalidRequestError(data.error);
+  }
   return data;
 }
 
@@ -37,12 +37,12 @@ export async function request(endpoint: string, body: Record<string, any>) {
     );
     data = await response.json();
   } catch (err) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError(err.message);
+    throw InvalidRequestError(err.message);
   }
 
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  if (!data.ok) throw new InvalidRequestError(data.error);
+  if (!data.ok) {
+    throw InvalidRequestError(data.error);
+  }
   return data;
 }
 

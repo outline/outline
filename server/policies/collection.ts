@@ -14,16 +14,16 @@ allow(User, "createCollection", Team, (user, team) => {
 allow(User, "importCollection", Team, (actor, team) => {
   if (!team || actor.teamId !== team.id) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "move", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
   if (collection.deletedAt) return false;
   if (user.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "read", Collection, (user, collection) => {
@@ -109,6 +109,6 @@ allow(User, "delete", Collection, (user, collection) => {
 
   if (user.isAdmin) return true;
   if (user.id === collection.createdById) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });

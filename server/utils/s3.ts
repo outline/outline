@@ -99,11 +99,13 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // for access outside of docker containers in local development
   // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+
   // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   const host = process.env.AWS_S3_UPLOAD_BUCKET_URL.replace(
     "s3:",
     "localhost:"
   ).replace(/\/$/, "");
+
   // support old path-style S3 uploads and new virtual host uploads by checking
   // for the bucket name in the endpoint url before appending.
   const isVirtualHost = host.includes(AWS_S3_UPLOAD_BUCKET_NAME);

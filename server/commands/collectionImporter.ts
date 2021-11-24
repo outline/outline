@@ -33,13 +33,11 @@ export default async function collectionImporter({
   try {
     items = await await parseOutlineExport(zipData);
   } catch (err) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new FileImportError(err.message);
+    throw FileImportError(err.message);
   }
 
   if (!items.filter((item) => item.type === "document").length) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new FileImportError(
+    throw FileImportError(
       "Uploaded file does not contain importable documents"
     );
   }

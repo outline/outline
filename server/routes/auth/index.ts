@@ -27,8 +27,7 @@ router.get("/redirect", auth(), async (ctx) => {
   const jwtToken = user.getJwtToken();
 
   if (jwtToken === ctx.params.token) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Cannot extend token");
+    throw AuthenticationError("Cannot extend token");
   }
 
   // ensure that the lastActiveAt on user is updated to prevent replay requests

@@ -14,30 +14,30 @@ allow(
 allow(User, "inviteUser", Team, (actor, team) => {
   if (!team || actor.teamId !== team.id) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "update", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "delete", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
   if (actor.isAdmin && !user.lastActiveAt) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, ["activate", "suspend"], User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "readDetails", User, (actor, user) => {
@@ -50,14 +50,14 @@ allow(User, "promote", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.isAdmin || user.isSuspended) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });
 
 allow(User, "demote", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.isSuspended) return false;
   if (actor.isAdmin) return true;
-  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-  throw new AdminRequiredError();
+
+  throw AdminRequiredError();
 });

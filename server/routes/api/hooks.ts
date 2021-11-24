@@ -23,8 +23,7 @@ router.post("hooks.unfurl", async (ctx) => {
   if (challenge) return (ctx.body = ctx.body.challenge);
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid token");
+    throw AuthenticationError("Invalid token");
   }
 
   const user = await User.findOne({
@@ -81,8 +80,7 @@ router.post("hooks.interactive", async (ctx) => {
   assertPresent(callback_id, "callback_id is required");
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid verification token");
+    throw AuthenticationError("Invalid verification token");
   }
 
   // we find the document based on the users teamId to ensure access
@@ -91,8 +89,7 @@ router.post("hooks.interactive", async (ctx) => {
   );
 
   if (!document) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError("Invalid callback_id");
+    throw InvalidRequestError("Invalid callback_id");
   }
 
   const team = await Team.findByPk(document.teamId);
@@ -119,8 +116,7 @@ router.post("hooks.slack", async (ctx) => {
   assertPresent(user_id, "user_id is required");
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new AuthenticationError("Invalid verification token");
+    throw AuthenticationError("Invalid verification token");
   }
 
   // Handle "help" command or no input

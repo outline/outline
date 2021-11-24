@@ -42,6 +42,7 @@ if (AZURE_CLIENT_ID) {
         // see docs for what the fields in profile represent here:
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens
         const profile = jwt.decode(params.id_token);
+
         // Load the users profile from the Microsoft Graph API
         // https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
         const profileResponse = await request(
@@ -50,8 +51,7 @@ if (AZURE_CLIENT_ID) {
         );
 
         if (!profileResponse) {
-          // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-          throw new MicrosoftGraphError(
+          throw MicrosoftGraphError(
             "Unable to load user profile from Microsoft Graph API"
           );
         }

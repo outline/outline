@@ -560,8 +560,7 @@ async function loadDocument({
     });
 
     if (!share || share.document.archivedAt) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new InvalidRequestError("Document could not be found for shareId");
+      throw InvalidRequestError("Document could not be found for shareId");
     }
 
     // It is possible to pass both an id and a shareId to the documents.info
@@ -603,16 +602,14 @@ async function loadDocument({
     // We already know that there's either no logged in user or the user doesn't
     // have permission to read the document, so we can throw an error.
     if (!share.published) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthorizationError();
+      throw AuthorizationError();
     }
 
     // It is possible to disable sharing at the collection so we must check
     collection = await Collection.findByPk(document.collectionId);
 
     if (!collection.sharing) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthorizationError();
+      throw AuthorizationError();
     }
 
     // If we're attempting to load a document that isn't the document originally
@@ -623,8 +620,7 @@ async function loadDocument({
         !share.includeChildDocuments ||
         !collection.isChildDocument(share.document.id, document.id)
       ) {
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        throw new AuthorizationError();
+        throw AuthorizationError();
       }
     }
 
@@ -632,8 +628,7 @@ async function loadDocument({
     const team = await Team.findByPk(document.teamId);
 
     if (!team.sharing) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new AuthorizationError();
+      throw AuthorizationError();
     }
 
     await share.update({
@@ -646,8 +641,7 @@ async function loadDocument({
     });
 
     if (!document) {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      throw new NotFoundError();
+      throw NotFoundError();
     }
 
     if (document.deletedAt) {
@@ -735,8 +729,7 @@ router.post("documents.restore", auth(), async (ctx) => {
   });
 
   if (!document) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new NotFoundError();
+    throw NotFoundError();
   }
 
   // Passing collectionId allows restoring to a different collection than the
@@ -1131,8 +1124,7 @@ router.post("documents.update", auth(), async (ctx) => {
   authorize(user, "update", document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError("Document has changed since last revision");
+    throw InvalidRequestError("Document has changed since last revision");
   }
 
   const previousTitle = document.title;
@@ -1243,8 +1235,7 @@ router.post("documents.move", auth(), async (ctx) => {
   }
 
   if (parentDocumentId === id) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError(
+    throw InvalidRequestError(
       "Infinite loop detected, cannot nest a document inside itself"
     );
   }
@@ -1404,8 +1395,7 @@ router.post("documents.import", auth(), async (ctx) => {
   const { publish, collectionId, parentDocumentId, index } = ctx.body;
 
   if (!ctx.is("multipart/form-data")) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError("Request type must be multipart/form-data");
+    throw InvalidRequestError("Request type must be multipart/form-data");
   }
 
   // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
@@ -1414,8 +1404,7 @@ router.post("documents.import", auth(), async (ctx) => {
 
   // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
   if (file.size > env.MAXIMUM_IMPORT_SIZE) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new InvalidRequestError("The selected file was too large to import");
+    throw InvalidRequestError("The selected file was too large to import");
   }
 
   assertUuid(collectionId, "collectionId must be an uuid");

@@ -14,8 +14,7 @@ export default async function userSuspender({
   ip: string;
 }): Promise<void> {
   if (user.id === actorId) {
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    throw new ValidationError("Unable to suspend the current user");
+    throw ValidationError("Unable to suspend the current user");
   }
 
   await sequelize.transaction(async (transaction: Transaction) => {
