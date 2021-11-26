@@ -70,9 +70,9 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const team = useCurrentTeam();
-  const { ui, policies } = useStores();
+  const { ui, policies, auth } = useStores();
   const { resolvedTheme } = ui;
+  const { team } = auth;
   const isMobile = useMobile();
 
   const handleSave = React.useCallback(() => {
