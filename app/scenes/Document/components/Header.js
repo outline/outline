@@ -22,7 +22,6 @@ import Header from "components/Header";
 import Tooltip from "components/Tooltip";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
-import useCurrentTeam from "hooks/useCurrentTeam";
 import useMobile from "hooks/useMobile";
 import useStores from "hooks/useStores";
 import DocumentMenu from "menus/DocumentMenu";
