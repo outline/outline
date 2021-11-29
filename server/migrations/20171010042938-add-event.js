@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('events', {
+    await queryInterface.createTable("events", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -18,21 +18,21 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       collectionId: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'collections',
+          model: "collections",
         },
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'teams',
+          model: "teams",
         },
       },
       createdAt: {
@@ -45,8 +45,7 @@ module.exports = {
       },
     });
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('events');
+    await queryInterface.dropTable("events");
   },
 };

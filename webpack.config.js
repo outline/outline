@@ -18,7 +18,7 @@ module.exports = {
   module: {
     rules: [
       {
-       test: /\.js$/,
+       test: /\.[jt]sx?$/,
        loader: 'babel-loader',
        exclude: [
          path.join(__dirname, 'node_modules')
@@ -41,12 +41,15 @@ module.exports = {
     ]
   },
   resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.json'],
     modules: [
       path.resolve(__dirname, 'app'),
       'node_modules'
     ],
     alias: {
-      shared: path.resolve(__dirname, 'shared'),
+      "~": path.resolve(__dirname, 'app'),
+      "@shared": path.resolve(__dirname, 'shared'),
+      "@server": path.resolve(__dirname, 'server'),
       'boundless-arrow-key-navigation': 'boundless-arrow-key-navigation/build',
       'boundless-popover': 'boundless-popover/build',
       'boundless-utils-omit-keys': 'boundless-utils-omit-keys/build',

@@ -1,56 +1,55 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.changeColumn('documents', 'atlasId', {
+    await queryInterface.changeColumn("documents", "atlasId", {
       type: Sequelize.UUID,
       allowNull: true,
-      onDelete: 'cascade',
+      onDelete: "cascade",
       references: {
-        model: 'collections',
+        model: "collections",
       },
     });
-    await queryInterface.changeColumn('documents', 'userId', {
+    await queryInterface.changeColumn("documents", "userId", {
       type: Sequelize.UUID,
       allowNull: true,
       references: {
-        model: 'users',
+        model: "users",
       },
     });
-    await queryInterface.changeColumn('documents', 'parentDocumentId', {
+    await queryInterface.changeColumn("documents", "parentDocumentId", {
       type: Sequelize.UUID,
       allowNull: true,
       references: {
-        model: 'documents',
+        model: "documents",
       },
     });
-    await queryInterface.changeColumn('documents', 'teamId', {
+    await queryInterface.changeColumn("documents", "teamId", {
       type: Sequelize.UUID,
       allowNull: true,
-      onDelete: 'cascade',
+      onDelete: "cascade",
       references: {
-        model: 'teams',
+        model: "teams",
       },
     });
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.query(
       'ALTER TABLE documents DROP CONSTRAINT "atlasId_foreign_idx";'
     );
-    await queryInterface.removeIndex('documents', 'atlasId_foreign_idx');
+    await queryInterface.removeIndex("documents", "atlasId_foreign_idx");
     await queryInterface.sequelize.query(
       'ALTER TABLE documents DROP CONSTRAINT "userId_foreign_idx";'
     );
-    await queryInterface.removeIndex('documents', 'userId_foreign_idx');
+    await queryInterface.removeIndex("documents", "userId_foreign_idx");
     await queryInterface.sequelize.query(
       'ALTER TABLE documents DROP CONSTRAINT "parentDocumentId_foreign_idx";'
     );
     await queryInterface.removeIndex(
-      'documents',
-      'parentDocumentId_foreign_idx'
+      "documents",
+      "parentDocumentId_foreign_idx"
     );
     await queryInterface.sequelize.query(
       'ALTER TABLE documents DROP CONSTRAINT "teamId_foreign_idx";'
     );
-    await queryInterface.removeIndex('documents', 'teamId_foreign_idx');
+    await queryInterface.removeIndex("documents", "teamId_foreign_idx");
   },
 };

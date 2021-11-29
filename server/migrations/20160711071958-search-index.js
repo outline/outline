@@ -16,7 +16,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER documents_tsvectorupdate BEFORE INSERT OR UPDATE
 ON documents FOR EACH ROW EXECUTE PROCEDURE documents_search_trigger();
     `;
-
     const searchCollection = `
 ALTER TABLE atlases ADD COLUMN "searchVector" tsvector;
 CREATE INDEX atlases_tsv_idx ON atlases USING gin("searchVector");
@@ -33,11 +32,9 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER atlases_tsvectorupdate BEFORE INSERT OR UPDATE
 ON atlases FOR EACH ROW EXECUTE PROCEDURE atlases_search_trigger();
     `;
-
     await queryInterface.sequelize.query(searchDocument);
     await queryInterface.sequelize.query(searchCollection);
   },
-
   down: async (queryInterface, Sequelize) => {
     // TODO?
   },

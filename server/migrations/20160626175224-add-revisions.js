@@ -1,70 +1,66 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('revisions', {
+    await queryInterface.createTable("revisions", {
       id: {
-        type: 'UUID',
+        type: "UUID",
         allowNull: false,
         primaryKey: true,
       },
       title: {
-        type: 'CHARACTER VARYING',
+        type: "CHARACTER VARYING",
         allowNull: false,
       },
       text: {
-        type: 'TEXT',
+        type: "TEXT",
         allowNull: true,
       },
       html: {
-        type: 'TEXT',
+        type: "TEXT",
         allowNull: true,
       },
       preview: {
-        type: 'TEXT',
+        type: "TEXT",
         allowNull: true,
       },
       createdAt: {
-        type: 'TIMESTAMP WITH TIME ZONE',
+        type: "TIMESTAMP WITH TIME ZONE",
         allowNull: false,
       },
       updatedAt: {
-        type: 'TIMESTAMP WITH TIME ZONE',
+        type: "TIMESTAMP WITH TIME ZONE",
         allowNull: false,
       },
       userId: {
-        type: 'UUID',
+        type: "UUID",
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       documentId: {
-        type: 'UUID',
+        type: "UUID",
         allowNull: false,
         references: {
-          model: 'documents',
-          onDelete: 'CASCADE',
+          model: "documents",
+          onDelete: "CASCADE",
         },
       },
     });
-
-    await queryInterface.addColumn('documents', 'lastModifiedById', {
-      type: 'UUID',
+    await queryInterface.addColumn("documents", "lastModifiedById", {
+      type: "UUID",
       allowNull: false,
       references: {
-        model: 'users',
+        model: "users",
       },
     });
-
-    await queryInterface.addColumn('documents', 'revisionCount', {
-      type: 'INTEGER',
+    await queryInterface.addColumn("documents", "revisionCount", {
+      type: "INTEGER",
       defaultValue: 0,
     });
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('revisions');
-
-    await queryInterface.removeColumn('documents', 'lastModifiedById');
-    await queryInterface.removeColumn('documents', 'revisionCount');
+    await queryInterface.dropTable("revisions");
+    await queryInterface.removeColumn("documents", "lastModifiedById");
+    await queryInterface.removeColumn("documents", "revisionCount");
   },
 };

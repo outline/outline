@@ -6,7 +6,6 @@ module.exports = {
       type: Sequelize.BLOB,
     });
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn("collections", "state");
   },
