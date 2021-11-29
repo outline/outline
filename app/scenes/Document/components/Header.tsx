@@ -200,7 +200,7 @@ function DocumentHeader({
                 <TableOfContentsMenu headings={headings} />
               </TocWrapper>
             )}
-            {!isPublishing && isSaving && !team.collaborativeEditing && (
+            {!isPublishing && isSaving && !team?.collaborativeEditing && (
               <Status>{t("Saving")}…</Status>
             )}
             <Collaborators document={document} />
@@ -237,7 +237,7 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && !team.collaborativeEditing && editAction}
+            {canEdit && !team?.collaborativeEditing && editAction}
             {canEdit && can.createChildDocument && !isMobile && (
               <Action>
                 <NewChildDocumentMenu
