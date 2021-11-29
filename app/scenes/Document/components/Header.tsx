@@ -20,7 +20,6 @@ import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -74,9 +73,9 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const team = useCurrentTeam();
-  const { ui, policies } = useStores();
+  const { ui, policies, auth } = useStores();
   const { resolvedTheme } = ui;
+  const { team } = auth;
   const isMobile = useMobile();
 
   const handleSave = React.useCallback(() => {
