@@ -31,14 +31,13 @@ const DocumentLink = styled(Link)`
   }
 `;
 
-const Title = styled.h3`
-  display: flex;
-  align-items: center;
+const Title = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 14px;
-  margin-top: 0;
-  margin-bottom: 0.25em;
+  font-weight: 500;
+  line-height: 1.25;
+  padding-top: 3px;
   white-space: nowrap;
   color: ${(props) => props.theme.text};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
@@ -78,16 +77,18 @@ function ReferenceListItem({
       }}
       {...rest}
     >
-      <Title dir="auto">
+      <div style={{ display: "flex" }}>
         {document instanceof Document && document.emoji ? (
           <Emoji>{document.emoji}</Emoji>
         ) : (
           <StyledDocumentIcon color="currentColor" />
-        )}{" "}
-        {document instanceof Document && document.emoji
-          ? document.title.replace(new RegExp(`^${document.emoji}`), "")
-          : document.title}
-      </Title>
+        )}
+        <Title dir="auto">
+          {document instanceof Document && document.emoji
+            ? document.title.replace(new RegExp(`^${document.emoji}`), "")
+            : document.title}
+        </Title>
+      </div>
       {document instanceof Document && document.updatedBy && (
         <DocumentMeta document={document} showCollection={showCollection} />
       )}
