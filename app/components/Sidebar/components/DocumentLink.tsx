@@ -197,7 +197,7 @@ function DocumentLink(
   });
 
   // Drop to reorder
-  const [{ isOverReorder }, dropToReorder] = useDrop({
+  const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
     accept: "document",
     drop: (item: DragObject) => {
       if (!collection) return;
@@ -212,6 +212,7 @@ function DocumentLink(
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
+      isDraggingAnyDocument: !!monitor.canDrop(),
     }),
   });
 
@@ -275,7 +276,7 @@ function DocumentLink(
             </DropToImport>
           </div>
         </Draggable>
-        {manualSort && (
+        {manualSort && isDraggingAnyDocument && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>

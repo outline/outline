@@ -27,8 +27,6 @@ type Props = {
   activeDocument: Document | null | undefined;
   prefetchDocument: (id: string) => Promise<any>;
   belowCollection: Collection | void;
-  isDraggingAnyCollection: boolean;
-  onChangeDragging: (dragging: boolean) => void;
 };
 
 function CollectionLink({
@@ -37,8 +35,6 @@ function CollectionLink({
   prefetchDocument,
   canUpdate,
   belowCollection,
-  isDraggingAnyCollection,
-  onChangeDragging,
 }: Props) {
   const history = useHistory();
   const { t } = useTranslation();
@@ -68,24 +64,11 @@ function CollectionLink({
     collection.id === ui.activeCollectionId
   );
 
-  React.useEffect(() => {
-    // If we're viewing a starred document through the starred menu then don't
-    // touch the expanded / collapsed state of the collections
-    if (search === "?starred") {
-      return;
-    }
-
-    if (isDraggingAnyCollection) {
-      setExpanded(false);
-    } else {
-      setExpanded(collection.id === ui.activeCollectionId);
-    }
-  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId, search]);
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
-  // Drop to re-parent
+  // Drop to re-parent document
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: (item: DragObject, monitor) => {
@@ -117,7 +100,7 @@ function CollectionLink({
     }),
   });
 
-  // Drop to reorder
+  // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item: DragObject) => {
@@ -129,8 +112,11 @@ function CollectionLink({
     }),
   });
 
-  // Drop to reorder Collection
-  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
+  // Drop to reorder collection
+  const [
+    { isCollectionDropping, isDraggingAnotherCollection },
+    dropToReorderCollection,
+  ] = useDrop({
     accept: "collection",
     drop: async (item: DragObject) => {
       collections.move(
@@ -146,14 +132,14 @@ function CollectionLink({
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
+      isDraggingAnotherCollection: monitor.canDrop(),
     }),
   });
 
-  // Drag to reorder Collection
+  // Drag to reorder collection
   const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
     type: "collection",
     item: () => {
-      onChangeDragging(true);
       return {
         id: collection.id,
       };
@@ -164,10 +150,24 @@ function CollectionLink({
     canDrag: () => {
       return can.move;
     },
-    end: () => {
-      onChangeDragging(false);
-    },
   });
+
+  const isDraggingAnyCollection =
+    isDraggingAnotherCollection || isCollectionDragging;
+
+  React.useEffect(() => {
+    // If we're viewing a starred document through the starred menu then don't
+    // touch the expanded / collapsed state of the collections
+    if (search === "?starred") {
+      return;
+    }
+
+    if (isDraggingAnyCollection) {
+      setExpanded(false);
+    } else {
+      setExpanded(collection.id === ui.activeCollectionId);
+    }
+  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId, search]);
 
   return (
     <>
