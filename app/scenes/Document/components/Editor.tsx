@@ -98,6 +98,7 @@ class DocumentEditor extends React.Component<Props> {
           document={document}
           onGoToNextInput={this.handleGoToNextInput}
           onChange={onChangeTitle}
+          starrable={!shareId}
         />
         {!shareId && (
           <DocumentMetaWithViews
