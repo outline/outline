@@ -4,7 +4,11 @@
 // it avoids recalculating the link match again.
 import { Location, createLocation } from "history";
 import * as React from "react";
-import { __RouterContext as RouterContext, matchPath } from "react-router";
+import {
+  __RouterContext as RouterContext,
+  matchPath,
+  match,
+} from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 
@@ -32,7 +36,7 @@ export type Props = React.HTMLAttributes<HTMLAnchorElement> & {
   className?: string;
   scrollIntoViewIfNeeded?: boolean;
   exact?: boolean;
-  isActive?: any;
+  isActive?: (match: match | null, location: Location) => boolean;
   location?: Location;
   strict?: boolean;
   style?: React.CSSProperties;
