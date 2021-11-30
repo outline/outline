@@ -7,7 +7,6 @@ import { MAX_TITLE_LENGTH } from "@shared/constants";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
-import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -227,7 +226,7 @@ function DocumentLink(
         >
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
-              <StyledSidebarLink
+              <SidebarLink
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
@@ -307,20 +306,6 @@ const Relative = styled.div`
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
-`;
-
-const StyledSidebarLink = styled(SidebarLink)`
-  & + * {
-    ${NudeButton} {
-      background: ${(props) => props.theme.sidebarBackground};
-    }
-  }
-
-  &[aria-current="page"] + * {
-    ${NudeButton} {
-      background: ${(props) => props.theme.sidebarItemBackground};
-    }
-  }
 `;
 
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));

@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import Fade from "~/components/Fade";
-import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -73,7 +72,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
   return (
     <>
       <Relative>
-        <StyledSidebarLink
+        <SidebarLink
           depth={depth}
           to={`${to}?starred`}
           isActive={(match, location) =>
@@ -127,20 +126,6 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
 
 const Relative = styled.div`
   position: relative;
-`;
-
-const StyledSidebarLink = styled(SidebarLink)`
-  & + * {
-    ${NudeButton} {
-      background: ${(props) => props.theme.sidebarBackground};
-    }
-  }
-
-  &[aria-current="page"] + * {
-    ${NudeButton} {
-      background: ${(props) => props.theme.sidebarItemBackground};
-    }
-  }
 `;
 
 const ObserveredStarredLink = observer(StarredLink);
