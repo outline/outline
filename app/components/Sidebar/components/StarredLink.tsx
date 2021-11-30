@@ -75,9 +75,8 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
         <SidebarLink
           depth={depth}
           to={`${to}?starred`}
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'match' implicitly has an 'any' type.
           isActive={(match, location) =>
-            match && location.search === "?starred"
+            !!match && location.search === "?starred"
           }
           label={
             <>

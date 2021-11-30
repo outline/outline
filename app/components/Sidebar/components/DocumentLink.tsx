@@ -250,9 +250,8 @@ function DocumentLink(
                     />
                   </>
                 }
-                // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'match' implicitly has an 'any' type.
                 isActive={(match, location) =>
-                  match && location.search !== "?starred"
+                  !!match && location.search !== "?starred"
                 }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}

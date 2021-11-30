@@ -3,6 +3,7 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
+import NudeButton from "~/components/NudeButton";
 import { NavigationNode } from "~/types";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
 
@@ -153,8 +154,27 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
       transparentize("0.25", props.theme.sidebarItemBackground)};
   }
 
+  & + ${Actions} {
+    ${NudeButton} {
+      background: ${(props) => props.theme.sidebarBackground};
+    }
+  }
+
+  &:focus + ${Actions} {
+    ${NudeButton} {
+      background: ${(props) =>
+        transparentize("0.25", props.theme.sidebarItemBackground)};
+    }
+  }
+
+  &[aria-current="page"] + ${Actions} {
+    ${NudeButton} {
+      background: ${(props) => props.theme.sidebarItemBackground};
+    }
+  }
+
   ${breakpoint("tablet")`
-    padding: 4px 32px 4px 16px;
+    padding: 4px 8px 4px 16px;
     font-size: 15px;
   `}
 

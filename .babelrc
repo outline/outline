@@ -25,5 +25,17 @@
     "@babel/plugin-transform-destructuring",
     "@babel/plugin-transform-regenerator",
     "transform-class-properties"
-  ]
+  ],
+  "env": {
+    "production": {
+      "plugins": [
+        [
+          "styled-components",
+          {
+            "displayName": false
+          }
+        ]
+      ]
+    }
+  }
 }
