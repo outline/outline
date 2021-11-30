@@ -305,6 +305,8 @@ export default class Document extends BaseModel {
           },
           {
             lastRevision: options.lastRevision,
+            publish: options?.publish,
+            done: options?.done,
           }
         );
       }
