@@ -22,7 +22,7 @@ function SearchInput({ defaultValue, ...rest }: Props) {
     inputRef.current?.setSelectionRange(len, len);
     const timeoutId = setTimeout(() => {
       focusInput();
-    }, 10); // arbitrary number
+    }, 100); // arbitrary number
 
     return () => {
       clearTimeout(timeoutId);
