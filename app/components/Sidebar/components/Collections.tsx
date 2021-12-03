@@ -26,9 +26,6 @@ function Collections() {
   const isPreloaded = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
-  const [isDraggingAnyCollection, setIsDraggingAnyCollection] = React.useState(
-    false
-  );
 
   React.useEffect(() => {
     async function load() {
@@ -85,8 +82,6 @@ function Collections() {
           activeDocument={documents.active}
           prefetchDocument={documents.prefetchDocument}
           canUpdate={policies.abilities(collection.id).update}
-          isDraggingAnyCollection={isDraggingAnyCollection}
-          onChangeDragging={setIsDraggingAnyCollection}
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
