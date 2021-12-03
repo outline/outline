@@ -49,6 +49,10 @@ export const ToggleButton = styled.button<{ $direction?: "left" | "right" }>`
     pointer-events: all;
     cursor: pointer;
   `}
+
+  @media (hover: none) {
+    opacity: 1;
+  }
 `;
 
 export const Positioner = styled.div`
