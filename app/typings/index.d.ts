@@ -8,6 +8,8 @@ declare module "string-replace-to-array";
 
 declare module "styled-components-breakpoint";
 
+declare module "formidable/lib/file";
+
 declare module "socket.io-redis" {
   import { Redis } from "ioredis";
 

@@ -6,8 +6,10 @@ import { flushdb } from "@server/test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
+
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("auth/redirect", () => {
   it("should redirect to home", async () => {
     const user = await buildUser();

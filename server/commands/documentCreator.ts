@@ -32,8 +32,7 @@ export default async function documentCreator({
   editorVersion?: string;
   source?: "import";
   ip: string;
-  // @ts-expect-error ts-migrate(1064) FIXME: The return type of an async function or method mus... Remove this comment to see the full error message
-}): Document {
+}): Promise<Document> {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
   const templateId = templateDocument ? templateDocument.id : undefined;
   const document = await Document.create({

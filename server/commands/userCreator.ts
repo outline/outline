@@ -1,8 +1,7 @@
-import Sequelize from "sequelize";
+import { Op } from "sequelize";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 import { sequelize } from "../sequelize";
 
-const Op = Sequelize.Op;
 type UserCreatorResult = {
   // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;

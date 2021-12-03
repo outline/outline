@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
 import Logger from "@server/logging/logger";
@@ -12,7 +11,6 @@ export default function createMiddleware(providerName: string) {
       {
         session: false,
       },
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
       async (err, user, result: AccountProvisionerResult) => {
         if (err) {
           Logger.error("Error during authentication", err);

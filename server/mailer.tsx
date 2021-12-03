@@ -127,10 +127,7 @@ export class Mailer {
     }
   }
 
-  sendMail = async (
-    data: EmailSendOptions
-    // @ts-expect-error ts-migrate(1064) FIXME: The return type of an async function or method mus... Remove this comment to see the full error message
-  ): Promise<any> | null | undefined => {
+  sendMail = async (data: EmailSendOptions): Promise<void> => {
     const { transporter } = this;
 
     if (transporter) {

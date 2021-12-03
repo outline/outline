@@ -1,7 +1,6 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'form... Remove this comment to see the full error message
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import { values, keys } from "lodash";
@@ -14,13 +13,17 @@ import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
 import documentImporter from "./documentImporter";
 
+type FileWithPath = File & {
+  path: string;
+};
+
 export default async function collectionImporter({
   file,
   type,
   user,
   ip,
 }: {
-  file: File;
+  file: FileWithPath;
   // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   type: "outline";

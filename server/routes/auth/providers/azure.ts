@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import passport from "@outlinewiki/koa-passport";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
