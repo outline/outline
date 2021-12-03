@@ -54,7 +54,7 @@ function DocumentTasks({ document }: Props) {
   );
 }
 
-const Done = styled(DoneIcon)`
+const Done = styled(DoneIcon)<{ $animated: boolean }>`
   margin: -1px;
   animation: ${(props) => (props.$animated ? bounceIn : "none")} 600ms;
   transform-origin: center center;

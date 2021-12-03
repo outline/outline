@@ -44,7 +44,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
   }, [collection, collectionId, collections, document, documentId, documents]);
 
   const handleDisclosureClick = React.useCallback(
-    (ev: React.MouseEvent<HTMLDivElement>) => {
+    (ev: React.MouseEvent<SVGElement>) => {
       ev.preventDefault();
       ev.stopPropagation();
       setExpanded((prevExpanded) => !prevExpanded);

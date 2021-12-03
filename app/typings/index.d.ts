@@ -2,8 +2,6 @@ declare module "autotrack/autotrack.js";
 
 declare module "boundless-arrow-key-navigation";
 
-declare module "outline-icons";
-
 declare module "string-replace-to-array";
 
 declare module "styled-components-breakpoint";

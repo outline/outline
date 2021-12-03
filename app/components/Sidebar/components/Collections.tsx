@@ -113,7 +113,7 @@ function Collections() {
   );
 }
 
-const Disclosure = styled(CollapsedIcon)`
+const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
   transition: transform 100ms ease, fill 50ms !important;
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;

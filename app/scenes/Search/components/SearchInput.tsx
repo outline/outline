@@ -24,12 +24,7 @@ function SearchInput({ defaultValue, ...rest }: Props) {
 
   return (
     <Wrapper align="center">
-      <StyledIcon
-        type="Search"
-        size={46}
-        color={theme.textTertiary}
-        onClick={focusInput}
-      />
+      <StyledIcon size={46} color={theme.textTertiary} onClick={focusInput} />
       <StyledInput
         {...rest}
         defaultValue={defaultValue}

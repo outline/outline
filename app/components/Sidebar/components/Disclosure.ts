@@ -1,7 +1,7 @@
 import { CollapsedIcon } from "outline-icons";
 import styled from "styled-components";
 
-const Disclosure = styled(CollapsedIcon)`
+const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
   transition: transform 100ms ease, fill 50ms !important;
   position: absolute;
   left: -24px;
