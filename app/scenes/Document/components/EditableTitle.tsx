@@ -15,9 +15,15 @@ import { isModKey } from "~/utils/keyboard";
 type Props = {
   value: string;
   document: Document;
+  /** Should the title be editable, policies will also be considered separately */
   readOnly?: boolean;
+  /** Whether the title show the option to star, policies will also be considered separately (defaults to true) */
+  starrable?: boolean;
+  /** Callback called on any edits to text */
   onChange: (text: string) => void;
+  /** Callback called when the user expects to move to the "next" input */
   onGoToNextInput: (insertParagraph?: boolean) => void;
+  /** Callback called when the user expects to save (CMD+S) */
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
 };
 
@@ -28,6 +34,7 @@ function EditableTitle({
   onChange,
   onSave,
   onGoToNextInput,
+  starrable,
 }: Props) {
   const { policies } = useStores();
   const { t } = useTranslation();
@@ -94,7 +101,9 @@ function EditableTitle({
       readOnly={readOnly}
       dir="auto"
     >
-      {(can.star || can.unstar) && <StarButton document={document} size={32} />}
+      {(can.star || can.unstar) && starrable !== false && (
+        <StarButton document={document} size={32} />
+      )}
     </Title>
   );
 }
@@ -105,10 +114,12 @@ const StarButton = styled(Star)`
   left: 4px;
 `;
 
-const Title = styled(ContentEditable)<{
+type TitleProps = {
   $startsWithEmojiAndSpace: boolean;
   $isStarred: boolean;
-}>`
+};
+
+const Title = styled(ContentEditable)<TitleProps>`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
@@ -133,7 +144,7 @@ const Title = styled(ContentEditable)<{
   }
 
   ${breakpoint("tablet")`
-    margin-left: ${(props: any) =>
+    margin-left: ${(props: TitleProps) =>
       props.$startsWithEmojiAndSpace ? "-1.2em" : 0};
   `};
 
@@ -152,8 +163,8 @@ const Title = styled(ContentEditable)<{
   }
 
   @media print {
-    color: ${(props) => light.text};
-    -webkit-text-fill-color: ${(props) => light.text};
+    color: ${light.text};
+    -webkit-text-fill-color: ${light.text};
     background: none;
   }
 `;
