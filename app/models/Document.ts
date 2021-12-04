@@ -7,6 +7,7 @@ import unescape from "@shared/utils/unescape";
 import DocumentsStore from "~/stores/DocumentsStore";
 import BaseModel from "~/models/BaseModel";
 import User from "~/models/User";
+import { NavigationNode } from "~/types";
 import View from "./View";
 
 type SaveOptions = {
@@ -375,6 +376,22 @@ export default class Document extends BaseModel {
     const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
     return result;
   };
+
+  @computed
+  get isActive(): boolean {
+    return !this.isDeleted && !this.isTemplate && !this.isArchived;
+  }
+
+  asNavigationNode(): NavigationNode {
+    return {
+      id: this.id,
+      title: this.title,
+      children: this.store.orderedData
+        .filter((doc) => doc.parentDocumentId === this.id)
+        .map((doc) => doc.asNavigationNode()),
+      url: this.url,
+    };
+  }
 
   download = async () => {
     // Ensure the document is upto date with latest server contents

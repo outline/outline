@@ -22,7 +22,8 @@ type Props = {
   canUpdate: boolean;
   collection?: Collection;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (documentId: string) => Promise<any>;
+  prefetchDocument: (documentId: string) => Promise<Document | void>;
+  isDraft?: boolean;
   depth: number;
   index: number;
   parentId?: string;
@@ -35,6 +36,7 @@ function DocumentLink(
     collection,
     activeDocument,
     prefetchDocument,
+    isDraft,
     depth,
     index,
     parentId,
@@ -259,6 +261,7 @@ function DocumentLink(
                 exact={false}
                 showActions={menuOpen}
                 scrollIntoViewIfNeeded={!document?.isStarred}
+                isDraft={isDraft}
                 ref={ref}
                 menu={
                   document && !isMoving ? (
@@ -279,6 +282,22 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
+      {activeDocument?.isDraft &&
+        activeDocument?.isActive &&
+        activeDocument?.parentDocumentId === node.id &&
+        !isDragging && (
+          <DocumentLink
+            key={activeDocument.id}
+            node={activeDocument.asNavigationNode()}
+            collection={collection}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            canUpdate={canUpdate}
+            isDraft
+            depth={depth + 1}
+            index={0}
+          />
+        )}
       {expanded && !isDragging && (
         <>
           {node.children.map((childNode, index) => (

@@ -1,11 +1,5 @@
 import { observer } from "mobx-react";
-import {
-  ArchiveIcon,
-  EditIcon,
-  GoToIcon,
-  ShapesIcon,
-  TrashIcon,
-} from "outline-icons";
+import { ArchiveIcon, GoToIcon, ShapesIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -38,14 +32,6 @@ function useCategory(document: Document) {
       icon: <ArchiveIcon color="currentColor" />,
       title: t("Archive"),
       to: "/archive",
-    };
-  }
-
-  if (document.isDraft) {
-    return {
-      icon: <EditIcon color="currentColor" />,
-      title: t("Drafts"),
-      to: "/drafts",
     };
   }
 
@@ -84,7 +70,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
 
   const path = React.useMemo(
     () => collection?.pathToDocument?.(document.id).slice(0, -1) || [],
-    [collection, document.id]
+    [collection, document]
   );
 
   const items = React.useMemo(() => {
@@ -96,10 +82,10 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
 
     output.push(collectionNode);
 
-    path.forEach((p: NavigationNode) => {
+    path.forEach((node: NavigationNode) => {
       output.push({
-        title: p.title,
-        to: p.url,
+        title: node.title,
+        to: node.url,
       });
     });
     return output;
@@ -113,10 +99,10 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
     return (
       <>
         {collection?.name}
-        {path.map((n: any) => (
-          <React.Fragment key={n.id}>
+        {path.map((node: NavigationNode) => (
+          <React.Fragment key={node.id}>
             <SmallSlash />
-            {n.title}
+            {node.title}
           </React.Fragment>
         ))}
       </>

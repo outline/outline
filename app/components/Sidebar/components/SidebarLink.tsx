@@ -1,6 +1,6 @@
-import { transparentize } from "polished";
+import { transparentize, darken } from "polished";
 import * as React from "react";
-import styled, { useTheme } from "styled-components";
+import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
@@ -25,6 +25,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   showActions?: boolean;
   active?: boolean;
   isActiveDrop?: boolean;
+  isDraft?: boolean;
   depth?: number;
   scrollIntoViewIfNeeded?: boolean;
 };
@@ -42,6 +43,7 @@ function SidebarLink(
     label,
     active,
     isActiveDrop,
+    isDraft,
     menu,
     showActions,
     exact,
@@ -74,6 +76,7 @@ function SidebarLink(
     <>
       <Link
         $isActiveDrop={isActiveDrop}
+        $isDraft={isDraft}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}
@@ -127,7 +130,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   }
 `;
 
-const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
+const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
@@ -142,6 +145,12 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean }>`
   font-size: 16px;
   cursor: pointer;
   overflow: hidden;
+
+  ${(props) =>
+    props.$isDraft &&
+    css`
+      outline: 1px dashed ${darken("0.35", props.theme.sidebarText)};
+    `}
 
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}

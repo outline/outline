@@ -25,7 +25,7 @@ type Props = {
   document: Document;
   highlight?: string | undefined;
   context?: string | undefined;
-  showNestedDocuments?: boolean;
+  showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
   showPin?: boolean;
@@ -52,7 +52,7 @@ function DocumentListItem(
 
   const {
     document,
-    showNestedDocuments,
+    showParentDocuments,
     showCollection,
     showPublished,
     showPin,
@@ -122,7 +122,7 @@ function DocumentListItem(
           document={document}
           showCollection={showCollection}
           showPublished={showPublished}
-          showNestedDocuments={showNestedDocuments}
+          showParentDocuments={showParentDocuments}
           showLastViewed
         />
       </Content>

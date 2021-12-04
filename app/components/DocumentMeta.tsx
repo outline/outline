@@ -34,7 +34,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showLastViewed?: boolean;
-  showNestedDocuments?: boolean;
+  showParentDocuments?: boolean;
   document: Document;
   children?: React.ReactNode;
   to?: string;
@@ -44,7 +44,7 @@ function DocumentMeta({
   showPublished,
   showCollection,
   showLastViewed,
-  showNestedDocuments,
+  showParentDocuments,
   document,
   children,
   to,
@@ -152,7 +152,7 @@ function DocumentMeta({
           </strong>
         </span>
       )}
-      {showNestedDocuments && nestedDocumentsCount > 0 && (
+      {showParentDocuments && nestedDocumentsCount > 0 && (
         <span>
           &nbsp;• {nestedDocumentsCount}{" "}
           {t("nested document", {

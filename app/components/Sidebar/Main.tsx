@@ -101,13 +101,6 @@ function MainSidebar() {
                       <Bubble count={documents.totalDrafts} />
                     </Drafts>
                   }
-                  active={
-                    documents.active
-                      ? !documents.active.publishedAt &&
-                        !documents.active.isDeleted &&
-                        !documents.active.isTemplate
-                      : undefined
-                  }
                 />
               )}
             </Section>

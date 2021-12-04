@@ -25,7 +25,7 @@ type Props = {
   collection: Collection;
   canUpdate: boolean;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (id: string) => Promise<any>;
+  prefetchDocument: (id: string) => Promise<Document | void>;
   belowCollection: Collection | void;
 };
 
@@ -230,19 +230,38 @@ function CollectionLink({
         )}
       </div>
 
-      {expanded &&
-        collection.documents.map((node, index) => (
-          <DocumentLink
-            key={node.id}
-            node={node}
-            collection={collection}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            canUpdate={canUpdate}
-            depth={2}
-            index={index}
-          />
-        ))}
+      {expanded && (
+        <>
+          {activeDocument?.isActive &&
+            activeDocument?.isDraft &&
+            activeDocument?.collectionId === collection.id &&
+            !activeDocument?.parentDocumentId && (
+              <DocumentLink
+                key={activeDocument.id}
+                node={activeDocument.asNavigationNode()}
+                collection={collection}
+                activeDocument={activeDocument}
+                prefetchDocument={prefetchDocument}
+                canUpdate={canUpdate}
+                isDraft
+                depth={2}
+                index={0}
+              />
+            )}
+          {collection.documents.map((node, index) => (
+            <DocumentLink
+              key={node.id}
+              node={node}
+              collection={collection}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              canUpdate={canUpdate}
+              depth={2}
+              index={index}
+            />
+          ))}
+        </>
+      )}
       <Modal
         title={t("Move document")}
         onRequestClose={handlePermissionClose}

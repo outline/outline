@@ -112,6 +112,7 @@ export default class Collection extends BaseModel {
 
   pathToDocument(documentId: string) {
     let path: NavigationNode[] | undefined;
+    const document = this.store.rootStore.documents.get(documentId);
 
     const travelNodes = (
       nodes: NavigationNode[],
@@ -122,6 +123,14 @@ export default class Collection extends BaseModel {
 
         if (node.id === documentId) {
           path = newPath;
+          return;
+        }
+
+        if (
+          document?.parentDocumentId &&
+          node?.id === document?.parentDocumentId
+        ) {
+          path = [...newPath, document.asNavigationNode()];
           return;
         }
 

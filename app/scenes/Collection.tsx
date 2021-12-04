@@ -377,7 +377,7 @@ function CollectionScene() {
                           sort: collection.sort.field,
                           direction: "ASC",
                         }}
-                        showNestedDocuments
+                        showParentDocuments
                         showPin
                       />
                     </Route>
