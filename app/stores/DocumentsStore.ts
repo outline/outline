@@ -745,7 +745,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.starredIds.set(document.id, true);
 
     try {
-      return client.post("/documents.star", {
+      return await client.post("/documents.star", {
         id: document.id,
       });
     } catch (err) {
@@ -757,11 +757,11 @@ export default class DocumentsStore extends BaseStore<Document> {
     this.starredIds.set(document.id, false);
 
     try {
-      return client.post("/documents.unstar", {
+      return await client.post("/documents.unstar", {
         id: document.id,
       });
     } catch (err) {
-      this.starredIds.set(document.id, false);
+      this.starredIds.set(document.id, true);
     }
   };
 
