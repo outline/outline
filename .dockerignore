@@ -15,4 +15,3 @@ build
 docker-compose.yml
 fakes3
 node_modules
-tsconfig.json
