@@ -44,7 +44,6 @@ type Props = {
   publishingIsDisabled: boolean;
   savingIsDisabled: boolean;
   onSelectTemplate: (template: Document) => void;
-  onDiscard: () => void;
   onSave: (options: {
     done?: boolean;
     publish?: boolean;

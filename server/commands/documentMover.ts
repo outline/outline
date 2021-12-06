@@ -1,9 +1,12 @@
+import { Transaction } from "sequelize";
 import { Document, Attachment, Collection, User, Event } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { sequelize } from "../sequelize";
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'options' implicitly has an 'any' type.
-async function copyAttachments(document: Document, options) {
+async function copyAttachments(
+  document: Document,
+  options?: { transaction?: Transaction }
+) {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'Document'.
   let text = document.text;
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
@@ -41,7 +44,6 @@ export default async function documentMover({
   user,
   document,
   collectionId,
-  // @ts-expect-error ts-migrate(2322) FIXME: Type 'null' is not assignable to type 'string'.
   parentDocumentId = null,
   // convert undefined to null so parentId comparison treats them as equal
   index,
@@ -51,12 +53,11 @@ export default async function documentMover({
   user: User;
   document: Document;
   collectionId: string;
-  parentDocumentId?: string;
+  parentDocumentId?: string | null;
   index?: number;
   ip: string;
 }) {
-  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'transaction' implicitly has type 'any' i... Remove this comment to see the full error message
-  let transaction;
+  let transaction: Transaction | undefined;
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
   const collectionChanged = collectionId !== document.collectionId;
   const result = {
@@ -86,6 +87,7 @@ export default async function documentMover({
   } else {
     try {
       transaction = await sequelize.transaction();
+
       // remove from original collection
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
       const collection = await Collection.findByPk(document.collectionId, {
@@ -98,6 +100,7 @@ export default async function documentMover({
       ] = (await collection.removeDocumentInStructure(document, {
         save: false,
       })) || [undefined, index];
+
       // if we're reordering from within the same parent
       // the original and destination collection are the same,
       // so when the initial item is removed above, the list will reduce by 1.
@@ -166,7 +169,6 @@ export default async function documentMover({
             childDocuments.map(async (child) => {
               await loopChildren(child.id);
               child.text = await copyAttachments(child, {
-                // @ts-expect-error ts-migrate(7005) FIXME: Variable 'transaction' implicitly has an 'any' typ... Remove this comment to see the full error message
                 transaction,
               });
               child.collectionId = collectionId;
@@ -190,7 +192,10 @@ export default async function documentMover({
       document.collection = newCollection;
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Document' is not assignable to p... Remove this comment to see the full error message
       result.documents.push(document);
-      await transaction.commit();
+
+      if (transaction) {
+        await transaction.commit();
+      }
     } catch (err) {
       if (transaction) {
         await transaction.rollback();

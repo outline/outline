@@ -9,7 +9,7 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   url: string;
-  children: (arg0: React.ReactNode) => React.ReactNode;
+  children: (content: React.ReactNode) => React.ReactNode;
 };
 
 function HoverPreviewDocument({ url, children }: Props) {
@@ -23,20 +23,27 @@ function HoverPreviewDocument({ url, children }: Props) {
   const document = slug ? documents.getByUrl(slug) : undefined;
   if (!document) return null;
 
-  return children(
-    <Content to={document.url}>
-      <Heading>{document.titleWithDefault}</Heading>
-      <DocumentMetaWithViews isDraft={document.isDraft} document={document} />
+  return (
+    <>
+      {children(
+        <Content to={document.url}>
+          <Heading>{document.titleWithDefault}</Heading>
+          <DocumentMetaWithViews
+            isDraft={document.isDraft}
+            document={document}
+          />
 
-      <React.Suspense fallback={<div />}>
-        <Editor
-          key={document.id}
-          defaultValue={document.getSummary()}
-          disableEmbeds
-          readOnly
-        />
-      </React.Suspense>
-    </Content>
+          <React.Suspense fallback={<div />}>
+            <Editor
+              key={document.id}
+              defaultValue={document.getSummary()}
+              disableEmbeds
+              readOnly
+            />
+          </React.Suspense>
+        </Content>
+      )}
+    </>
   );
 }
 
@@ -49,5 +56,4 @@ const Heading = styled.h2`
   color: ${(props) => props.theme.text};
 `;
 
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ url, children }: Props) => Re... Remove this comment to see the full error message
 export default observer(HoverPreviewDocument);

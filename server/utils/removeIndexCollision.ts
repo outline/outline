@@ -1,13 +1,13 @@
 import fractionalIndex from "fractional-index";
 import { Collection } from "@server/models";
 import { sequelize, Op } from "../sequelize";
+
 /**
  *
  * @param teamId The team id whose collections has to be fetched
  * @param index the index for which collision has to be checked
  * @returns An index, if there is collision returns a new index otherwise the same index
  */
-
 export default async function removeIndexCollision(
   teamId: string,
   index: string

@@ -27,6 +27,7 @@ export default async function collectionExporter({
     userId: user.id,
     teamId: user.teamId,
   });
+
   // Event is consumed on worker in queues/processors/exports
   await Event.create({
     name: collection ? "collections.export" : "collections.export_all",
@@ -36,6 +37,7 @@ export default async function collectionExporter({
     modelId: fileOperation.id,
     ip,
   });
+
   fileOperation.user = user;
   fileOperation.collection = collection;
   return fileOperation;

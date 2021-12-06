@@ -3,11 +3,11 @@ import JSZip from "jszip";
 import tmp from "tmp";
 import Logger from "@server/logging/logger";
 import { Attachment, Collection, Document } from "@server/models";
+import { NavigationNode } from "~/types";
 import { serializeFilename } from "./fs";
 import { getFileByKey } from "./s3";
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'zip' implicitly has an 'any' type.
-async function addToArchive(zip, documents) {
+async function addToArchive(zip: JSZip, documents: NavigationNode[]) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
 
@@ -39,15 +39,19 @@ async function addToArchive(zip, documents) {
 
     if (doc.children && doc.children.length) {
       const folder = zip.folder(title);
-      await addToArchive(folder, doc.children);
+
+      if (folder) {
+        await addToArchive(folder, doc.children);
+      }
     }
   }
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'zip' implicitly has an 'any' type.
-async function addImageToArchive(zip, key) {
+async function addImageToArchive(zip: JSZip, key: string) {
   try {
     const img = await getFileByKey(key);
+
+    // @ts-expect-error Blob
     zip.file(key, img, {
       createFolders: true,
     });
@@ -58,8 +62,7 @@ async function addImageToArchive(zip, key) {
   }
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'zip' implicitly has an 'any' type.
-async function archiveToPath(zip) {
+async function archiveToPath(zip: JSZip) {
   return new Promise((resolve, reject) => {
     tmp.file(
       {
@@ -88,7 +91,10 @@ export async function archiveCollections(collections: Collection[]) {
   for (const collection of collections) {
     if (collection.documentStructure) {
       const folder = zip.folder(collection.name);
-      await addToArchive(folder, collection.documentStructure);
+
+      if (folder) {
+        await addToArchive(folder, collection.documentStructure);
+      }
     }
   }
 

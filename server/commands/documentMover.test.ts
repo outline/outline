@@ -134,6 +134,7 @@ describe("documentMover", () => {
       title: "Child document",
       text: `content ![attachment](${attachment.redirectUrl})`,
     });
+
     await collection.addDocumentToStructure(newDocument);
     await documentMover({
       user,
@@ -143,9 +144,11 @@ describe("documentMover", () => {
       index: 0,
       ip,
     });
+
     // check document ids where updated
     await newDocument.reload();
     expect(newDocument.collectionId).toBe(newCollection.id);
+
     // check new attachment was created pointint to same key
     const attachmentIds = parseAttachmentIds(newDocument.text);
     const newAttachment = await Attachment.findByPk(attachmentIds[0]);

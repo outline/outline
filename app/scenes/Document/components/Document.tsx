@@ -497,8 +497,6 @@ class DocumentScene extends React.Component<Props> {
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
-              // @ts-expect-error ts-migrate(2322) FIXME: Type '{ document: Document; shareId: any; isRevisi... Remove this comment to see the full error message
-              goBack={this.goBack}
               onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
               headings={headings}
