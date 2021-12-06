@@ -1,7 +1,6 @@
-import { useTheme } from "styled-components";
+import { base } from "@shared/theme";
 import useMediaQuery from "~/hooks/useMediaQuery";
 
 export default function useMobile(): boolean {
-  const theme = useTheme();
-  return useMediaQuery(`(max-width: ${theme.breakpoints.tablet - 1}px)`);
+  return useMediaQuery(`(max-width: ${base.breakpoints.tablet - 1}px)`);
 }

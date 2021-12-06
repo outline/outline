@@ -227,9 +227,9 @@ export const dark: DefaultTheme = {
 
 export const lightMobile = light;
 
-export const darkMobile = (theme: DefaultTheme): DefaultTheme => ({
-  ...theme,
+export const darkMobile = {
+  ...dark,
   background: colors.black,
-});
+};
 
 export default light;
