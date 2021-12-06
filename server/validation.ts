@@ -4,21 +4,23 @@ import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "./errors";
 
-export const assertPresent = (value: any, message: string) => {
+export const assertPresent = (value: unknown, message: string) => {
   if (value === undefined || value === null || value === "") {
     throw ParamRequiredError(message);
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertArray = (value, message) => {
+export const assertArray = (value: unknown, message?: string) => {
   if (!isArrayLike(value)) {
     throw ValidationError(message);
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertIn = (value, options, message) => {
+export const assertIn = (
+  value: string,
+  options: (string | null)[],
+  message?: string
+) => {
   if (!options.includes(value)) {
     throw ValidationError(message);
   }
@@ -34,22 +36,19 @@ export const assertSort = (
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertNotEmpty = (value, message) => {
+export const assertNotEmpty = (value: unknown, message?: string) => {
   if (value === "") {
     throw ValidationError(message);
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'message' implicitly has an 'any' type.
-export const assertEmail = (value = "", message) => {
+export const assertEmail = (value = "", message?: string) => {
   if (!validator.isEmail(value)) {
     throw ValidationError(message);
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'message' implicitly has an 'any' type.
-export const assertUuid = (value, message) => {
+export const assertUuid = (value: unknown, message?: string) => {
   if (typeof value !== "string") {
     throw ValidationError(message);
   }
@@ -58,8 +57,7 @@ export const assertUuid = (value, message) => {
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertPositiveInteger = (value, message) => {
+export const assertPositiveInteger = (value: unknown, message?: string) => {
   if (
     !validator.isInt(String(value), {
       min: 0,
@@ -69,22 +67,23 @@ export const assertPositiveInteger = (value, message) => {
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertHexColor = (value, message) => {
+export const assertHexColor = (value: string, message?: string) => {
   if (!validateColorHex(value)) {
     throw ValidationError(message);
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertValueInArray = (value, values, message) => {
+export const assertValueInArray = (
+  value: string,
+  values: string[],
+  message?: string
+) => {
   if (!values.includes(value)) {
     throw ValidationError(message);
   }
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'value' implicitly has an 'any' type.
-export const assertIndexCharacters = (value, message) => {
+export const assertIndexCharacters = (value: string, message?: string) => {
   if (!validateIndexCharacters(value)) {
     throw ValidationError(message);
   }

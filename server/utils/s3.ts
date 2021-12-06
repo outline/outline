@@ -7,7 +7,7 @@ import Logger from "@server/logging/logger";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const AWS_REGION = process.env.AWS_REGION;
+const AWS_REGION = process.env.AWS_REGION || "";
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
 const s3 = new AWS.S3({
@@ -25,11 +25,13 @@ const s3 = new AWS.S3({
   signatureVersion: "v4",
 });
 
-const hmac = (key: string, message: string, encoding: any) => {
-  return crypto
-    .createHmac("sha256", key)
-    .update(message, "utf8")
-    .digest(encoding);
+const hmac = (
+  key: string | Buffer,
+  message: string,
+  encoding?: "base64" | "hex"
+) => {
+  const o = crypto.createHmac("sha256", key).update(message, "utf8");
+  return encoding ? o.digest(encoding) : o.digest();
 };
 
 export const makeCredential = () => {
@@ -75,20 +77,17 @@ export const makePolicy = (
     ],
     expiration: format(tomorrow, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
   };
+
   return Buffer.from(JSON.stringify(policy)).toString("base64");
 };
 
-export const getSignature = (policy: any) => {
-  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
+export const getSignature = (policy: string) => {
   const kDate = hmac(
     "AWS4" + AWS_SECRET_ACCESS_KEY,
     format(new Date(), "yyyyMMdd")
   );
-  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kRegion = hmac(kDate, AWS_REGION);
-  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kService = hmac(kRegion, "s3");
-  // @ts-expect-error ts-migrate(2554) FIXME: Expected 3 arguments, but got 2.
   const kCredentials = hmac(kService, "aws4_request");
   const signature = hmac(kCredentials, policy, "hex");
   return signature;
@@ -198,7 +197,6 @@ export const getAWSKeyForFileOp = (teamId: string, name: string) => {
   return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
-// @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
 export const getFileByKey = async (key: string) => {
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
@@ -207,10 +205,12 @@ export const getFileByKey = async (key: string) => {
 
   try {
     const data = await s3.getObject(params).promise();
-    return data.Body;
+    return data.Body || null;
   } catch (err) {
     Logger.error("Error getting file from S3 by key", err, {
       key,
     });
   }
+
+  return null;
 };

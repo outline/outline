@@ -124,7 +124,7 @@ class DocumentEditor extends React.Component<Props> {
           {...rest}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !shareId && readOnly && (
+        {this.activeLinkEvent && !shareId && (
           <HoverPreview
             node={this.activeLinkEvent.target as HTMLAnchorElement}
             event={this.activeLinkEvent}
