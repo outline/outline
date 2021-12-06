@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { Request } from "koa";
@@ -8,8 +9,8 @@ export class StateStore {
   key = "state";
 
   store = (req: Request, callback: () => void) => {
-    // Produce an 8-character random string as state
-    const state = Math.random().toString(36).slice(-8);
+    // Produce a random string as state
+    const state = crypto.randomBytes(8).toString("hex");
 
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'cookies' does not exist on type 'Request... Remove this comment to see the full error message
     req.cookies.set(this.key, state, {
