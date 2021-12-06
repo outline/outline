@@ -18,7 +18,7 @@ export const assertArray = (value: unknown, message?: string) => {
 
 export const assertIn = (
   value: string,
-  options: (string | null)[],
+  options: (string | undefined | null)[],
   message?: string
 ) => {
   if (!options.includes(value)) {
