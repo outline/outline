@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import util from "util";
 import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
@@ -24,6 +25,10 @@ const s3 = new AWS.S3({
       new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
+const createPresignedPost = util.promisify<
+  AWS.S3.PresignedPost.Params,
+  AWS.S3.PresignedPost
+>(s3.createPresignedPost);
 
 const hmac = (
   key: string | Buffer,
@@ -91,6 +96,29 @@ export const getSignature = (policy: string) => {
   const kCredentials = hmac(kService, "aws4_request");
   const signature = hmac(kCredentials, policy, "hex");
   return signature;
+};
+
+export const getPresignedPost = (
+  key: string,
+  acl: string,
+  contentType = "image"
+) => {
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Conditions: [
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
+      ["starts-with", "$Content-Type", contentType],
+      ["starts-with", "$Cache-Control", ""],
+    ],
+    Fields: {
+      key,
+      acl,
+    },
+    Expires: 3600,
+  };
+
+  return createPresignedPost(params);
 };
 
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
