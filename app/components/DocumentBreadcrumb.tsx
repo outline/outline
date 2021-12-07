@@ -4,10 +4,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "~/models/Document";
-import Breadcrumb, { Crumb } from "~/components/Breadcrumb";
+import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/CollectionIcon";
 import useStores from "~/hooks/useStores";
-import { NavigationNode } from "~/types";
+import { MenuInternalLink, NavigationNode } from "~/types";
 import { collectionUrl } from "~/utils/routeHelpers";
 
 type Props = {
@@ -16,11 +16,12 @@ type Props = {
   onlyText?: boolean;
 };
 
-function useCategory(document: Document) {
+function useCategory(document: Document): MenuInternalLink | null {
   const { t } = useTranslation();
 
   if (document.isDeleted) {
     return {
+      type: "route",
       icon: <TrashIcon color="currentColor" />,
       title: t("Trash"),
       to: "/trash",
@@ -29,6 +30,7 @@ function useCategory(document: Document) {
 
   if (document.isArchived) {
     return {
+      type: "route",
       icon: <ArchiveIcon color="currentColor" />,
       title: t("Archive"),
       to: "/archive",
@@ -37,6 +39,7 @@ function useCategory(document: Document) {
 
   if (document.isTemplate) {
     return {
+      type: "route",
       icon: <ShapesIcon color="currentColor" />,
       title: t("Templates"),
       to: "/templates",
@@ -52,16 +55,18 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   const category = useCategory(document);
   const collection = collections.get(document.collectionId);
 
-  let collectionNode: Crumb;
+  let collectionNode: MenuInternalLink;
 
   if (collection) {
     collectionNode = {
+      type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
       to: collectionUrl(collection.url),
     };
   } else {
     collectionNode = {
+      type: "route",
       title: t("Deleted Collection"),
       icon: undefined,
       to: collectionUrl("deleted-collection"),
@@ -74,7 +79,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
   );
 
   const items = React.useMemo(() => {
-    const output: Crumb[] = [];
+    const output = [];
 
     if (category) {
       output.push(category);
@@ -84,6 +89,7 @@ const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
 
     path.forEach((node: NavigationNode) => {
       output.push({
+        type: "route",
         title: node.title,
         to: node.url,
       });

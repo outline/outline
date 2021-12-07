@@ -60,7 +60,13 @@ const Modal = ({
     <DialogBackdrop {...dialog}>
       {(props) => (
         <Backdrop {...props}>
-          <Dialog {...dialog} preventBodyScroll hideOnEsc hide={onRequestClose}>
+          <Dialog
+            {...dialog}
+            preventBodyScroll
+            hideOnEsc
+            hideOnClickOutside={false}
+            hide={onRequestClose}
+          >
             {(props) => (
               <Scene
                 $nested={!!depth}
