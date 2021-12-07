@@ -148,6 +148,7 @@ declare module "styled-components" {
     placeholder: string;
     sidebarBackground: string;
     sidebarItemBackground: string;
+    sidebarDraftBorder: string;
     sidebarText: string;
     backdrop: string;
     shadow: string;

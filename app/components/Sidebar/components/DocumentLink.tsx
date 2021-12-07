@@ -4,6 +4,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
@@ -253,9 +254,17 @@ function DocumentLink(
                     />
                   </>
                 }
-                isActive={(match, location) =>
-                  !!match && location.search !== "?starred"
-                }
+                isActive={(match, location) => {
+                  // allows us to match against only the urlId portion of the
+                  // pathname rather than the slugified title
+                  const urlId = location.pathname.split("/")[2];
+                  const slugMatch = urlId?.match(SLUG_URL_REGEX);
+
+                  return (
+                    (!!match || slugMatch?.[1] === document?.urlId) &&
+                    location.search !== "?starred"
+                  );
+                }}
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}

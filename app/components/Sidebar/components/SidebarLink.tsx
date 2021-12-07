@@ -1,4 +1,4 @@
-import { transparentize, darken } from "polished";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -149,7 +149,8 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   ${(props) =>
     props.$isDraft &&
     css`
-      outline: 1px dashed ${darken("0.35", props.theme.sidebarText)};
+      padding: 4px 14px;
+      border: 1px dashed ${props.theme.sidebarDraftBorder};
     `}
 
   svg {
