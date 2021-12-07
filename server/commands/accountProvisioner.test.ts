@@ -195,9 +195,13 @@ describe("accountProvisioner", () => {
     expect(collectionCount).toEqual(1);
   });
 
+  it("should skip findExistingTeam in hosted context", async () => {
+    expect(false).toBeTruthy(); // fail on purpose
+  });
+
   it("should create new team if no team in self-hosted context", async () => {
-    const deployment = process.env.DEPLOYMENT;
-    process.env.DEPLOYMENT = "xxx"; // self to something that isn't hosted
+    const env = process.env;
+    process.env = { ...env, DEPLOYMENT: "xxx" }; // self to something that isn't hosted
 
     const existingTeam = await findExistingTeam({
       name: "slack",
@@ -205,44 +209,54 @@ describe("accountProvisioner", () => {
     });
     expect(existingTeam).toBeNull();
 
-    process.env.DEPLOYMENT = deployment; // reset
+    process.env = env; // reset
   });
 
   it("should return existing team, in self-hosted context", async () => {
-    const deployment = process.env.DEPLOYMENT;
-    process.env.DEPLOYMENT = "xxx"; // self to something that isn't hosted
+    const env = process.env;
+    process.env = { ...env, DEPLOYMENT: "xxx" }; // self to something that isn't hosted
 
-    const team = buildTeam();
-    const authenticationProvider = team.getAuthenticationProviders()[0];
+    const team = await buildTeam();
+    const authenticationProvider = (await team.getAuthenticationProviders())[0];
     const existingTeam = await findExistingTeam({
       name: authenticationProvider.name,
       providerId: authenticationProvider.providerId,
     });
-    expect(existingTeam).toEqual({
-      team,
-      authenticationProvider,
-      isNewTeam: false,
-    });
+    expect(existingTeam).toBeTruthy();
+    expect(existingTeam?.authenticationProvider).toEqual(
+      authenticationProvider
+    );
+    expect(existingTeam?.team.id).toEqual(team.id);
+    expect(existingTeam?.isNewTeam).toBeFalsy();
 
-    process.env.DEPLOYMENT = deployment; // reset
+    process.env = env; // reset
   });
 
   it("should create new authentication provider on existing team if in self-hosted context", async () => {
-    const deployment = process.env.DEPLOYMENT;
-    process.env.DEPLOYMENT = "xxx"; // self to something that isn't hosted
+    const env = process.env;
+    process.env = { ...env, DEPLOYMENT: "xxx" }; // self to something that isn't hosted
 
-    const team = buildTeam(); // initial team accountProvider is slack
+    const team = await buildTeam(); // initial team accountProvider is slack
     const providerId = uuidv4();
     const existingTeam = await findExistingTeam({ name: "OICD", providerId });
-    expect(existingTeam).toEqual({
-      team,
-      authenticationProvider: {
-        name: "OICD",
-        providerId,
-      },
-      isNewTeam: false,
-    });
 
-    process.env.DEPLOYMENT = deployment; // reset
+    expect(existingTeam).toBeTruthy();
+    expect(existingTeam?.authenticationProvider).toEqual({
+      name: "OICD",
+      providerId,
+    });
+    expect(existingTeam?.team.id).toEqual(team.id);
+    expect(existingTeam?.isNewTeam).toBeFalsy();
+
+    process.env = env; // reset
+  });
+
+  it("should find existing team in account provisioner if self-hosted", async () => {
+    const env = process.env;
+    process.env = { ...env, DEPLOYMENT: "xxx" }; // self to something that isn't hosted
+
+    const team = await buildTeam();
+
+    process.env = env; // reset
   });
 });

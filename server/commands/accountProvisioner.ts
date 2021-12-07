@@ -50,6 +50,7 @@ export async function findExistingTeam(
 ): Promise<TeamCreatorResult | null> {
   // Should outline deployed in a multi-tenant environment, skip searching
   // for an existing team.
+  console.log(process.env.DEVELOPMENT);
   if (process.env.DEPLOYMENT === "hosted") return null;
 
   // get the first team that exists, ordered by createdAt
