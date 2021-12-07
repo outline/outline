@@ -1,8 +1,9 @@
+import { v4 as uuidv4 } from "uuid";
 import { Collection, UserAuthentication } from "@server/models";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import mailer from "../mailer";
-import accountProvisioner from "./accountProvisioner";
+import accountProvisioner, { findExistingTeam } from "./accountProvisioner";
 
 jest.mock("../mailer");
 jest.mock("aws-sdk", () => {
@@ -192,5 +193,56 @@ describe("accountProvisioner", () => {
     // should provision welcome collection
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(1);
+  });
+
+  it("should create new team if no team in self-hosted context", async () => {
+    const deployment = process.env.DEPLOYMENT;
+    process.env.DEPLOYMENT = "xxx"; // self to something that isn't hosted
+
+    const existingTeam = await findExistingTeam({
+      name: "slack",
+      providerId: uuidv4(),
+    });
+    expect(existingTeam).toBeNull();
+
+    process.env.DEPLOYMENT = deployment; // reset
+  });
+
+  it("should return existing team, in self-hosted context", async () => {
+    const deployment = process.env.DEPLOYMENT;
+    process.env.DEPLOYMENT = "xxx"; // self to something that isn't hosted
+
+    const team = buildTeam();
+    const authenticationProvider = team.getAuthenticationProviders()[0];
+    const existingTeam = await findExistingTeam({
+      name: authenticationProvider.name,
+      providerId: authenticationProvider.providerId,
+    });
+    expect(existingTeam).toEqual({
+      team,
+      authenticationProvider,
+      isNewTeam: false,
+    });
+
+    process.env.DEPLOYMENT = deployment; // reset
+  });
+
+  it("should create new authentication provider on existing team if in self-hosted context", async () => {
+    const deployment = process.env.DEPLOYMENT;
+    process.env.DEPLOYMENT = "xxx"; // self to something that isn't hosted
+
+    const team = buildTeam(); // initial team accountProvider is slack
+    const providerId = uuidv4();
+    const existingTeam = await findExistingTeam({ name: "OICD", providerId });
+    expect(existingTeam).toEqual({
+      team,
+      authenticationProvider: {
+        name: "OICD",
+        providerId,
+      },
+      isNewTeam: false,
+    });
+
+    process.env.DEPLOYMENT = deployment; // reset
   });
 });

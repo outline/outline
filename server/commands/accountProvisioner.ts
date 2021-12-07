@@ -45,10 +45,9 @@ export type AccountProvisionerResult = {
   isNewUser: boolean;
 };
 
-export async function findExistingTeam(authenticationProvider: {
-  name: string;
-  providerId: string;
-}): Promise<TeamCreatorResult | null> {
+export async function findExistingTeam(
+  authenticationProvider: Props["authenticationProvider"]
+): Promise<TeamCreatorResult | null> {
   // Should outline deployed in a multi-tenant environment, skip searching
   // for an existing team.
   if (process.env.DEPLOYMENT === "hosted") return null;
@@ -60,7 +59,7 @@ export async function findExistingTeam(authenticationProvider: {
   }
 
   // query if a corresponding authenticationProvider already exists
-  let authenticationProviders = await team.getAuthenticationProviders({
+  const authenticationProviders = await team.getAuthenticationProviders({
     where: {
       name: authenticationProvider.name,
     },
@@ -68,7 +67,7 @@ export async function findExistingTeam(authenticationProvider: {
 
   // ... if this is not the case, create a new authentication provider
   // that we use instead, overwriting the providerId with the domain of the team
-  let authP =
+  const authP =
     authenticationProviders.length === 0
       ? await team.createAuthenticationProvider({
           ...authenticationProvider,
