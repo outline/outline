@@ -3,12 +3,20 @@ import { find } from "lodash";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import io, { Socket } from "socket.io-client";
+import io from "socket.io-client";
 import RootStore from "~/stores/RootStore";
 import withStores from "~/components/withStores";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
 
-type SocketWithAuthentication = Socket & { authenticated?: boolean };
+type SocketWithAuthentication = {
+  authenticated?: boolean;
+  disconnected: boolean;
+  disconnect: () => void;
+  close: () => void;
+  on: (event: string, callback: (data: any) => void) => void;
+  emit: (event: string, data: any) => void;
+  io: any;
+};
 
 export const SocketContext: any = React.createContext<SocketWithAuthentication | null>(
   null
@@ -80,7 +88,7 @@ class SocketProvider extends React.Component<Props> {
       });
     });
 
-    this.socket.on("disconnect", (reason: string) => {
+    this.socket.on("disconnect", () => {
       // when the socket is disconnected we need to clear all presence state as
       // it's no longer reliable.
       presence.clear();
@@ -113,7 +121,7 @@ class SocketProvider extends React.Component<Props> {
       throw err;
     });
 
-    this.socket.on("entities", async (event) => {
+    this.socket.on("entities", async (event: any) => {
       if (event.documentIds) {
         for (const documentDescriptor of event.documentIds) {
           const documentId = documentDescriptor.id;
@@ -252,20 +260,21 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("documents.star", (event) => {
+    this.socket.on("documents.star", (event: any) => {
       documents.starredIds.set(event.documentId, true);
     });
 
-    this.socket.on("documents.unstar", (event) => {
+    this.socket.on("documents.unstar", (event: any) => {
       documents.starredIds.set(event.documentId, false);
     });
 
-    this.socket.on("documents.permanent_delete", (event) => {
+    this.socket.on("documents.permanent_delete", (event: any) => {
       documents.remove(event.documentId);
     });
+
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.
-    this.socket.on("collections.add_user", (event) => {
+    this.socket.on("collections.add_user", (event: any) => {
       if (auth.user && event.userId === auth.user.id) {
         collections.fetch(event.collectionId, {
           force: true,
@@ -277,10 +286,11 @@ class SocketProvider extends React.Component<Props> {
         policies.remove(document.id);
       });
     });
+
     // received when a user is removed from having access to a collection
     // to keep state in sync we must update our UI if the user is us,
     // or otherwise just remove any membership state we have for that user.
-    this.socket.on("collections.remove_user", (event) => {
+    this.socket.on("collections.remove_user", (event: any) => {
       if (auth.user && event.userId === auth.user.id) {
         collections.remove(event.collectionId);
         memberships.removeCollectionMemberships(event.collectionId);
@@ -290,7 +300,7 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("collections.update_index", (event) => {
+    this.socket.on("collections.update_index", (event: any) => {
       const collection = collections.get(event.collectionId);
 
       if (collection) {
@@ -298,7 +308,7 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("fileOperations.update", async (event) => {
+    this.socket.on("fileOperations.update", async (event: any) => {
       const user = auth.user;
       let collection = null;
       if (event.collectionId)
@@ -308,37 +318,43 @@ class SocketProvider extends React.Component<Props> {
         fileOperations.add({ ...event, user, collection });
       }
     });
+
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
-    this.socket.on("join", (event) => {
+    this.socket.on("join", (event: any) => {
       this.socket?.emit("join", event);
     });
+
     // received a message from the API server that we should request
     // to leave a specific room. Forward that to the ws server.
-    this.socket.on("leave", (event) => {
+    this.socket.on("leave", (event: any) => {
       this.socket?.emit("leave", event);
     });
+
     // received whenever we join a document room, the payload includes
     // userIds that are present/viewing and those that are editing.
-    this.socket.on("document.presence", (event) => {
+    this.socket.on("document.presence", (event: any) => {
       presence.init(event.documentId, event.userIds, event.editingIds);
     });
+
     // received whenever a new user joins a document room, aka they
     // navigate to / start viewing a document
-    this.socket.on("user.join", (event) => {
+    this.socket.on("user.join", (event: any) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
       views.touch(event.documentId, event.userId);
     });
+
     // received whenever a new user leaves a document room, aka they
     // navigate away / stop viewing a document
-    this.socket.on("user.leave", (event) => {
+    this.socket.on("user.leave", (event: any) => {
       presence.leave(event.documentId, event.userId);
       views.touch(event.documentId, event.userId);
     });
+
     // received when another client in a document room wants to change
     // or update it's presence. Currently the only property is whether
     // the client is in editing state or not.
-    this.socket.on("user.presence", (event) => {
+    this.socket.on("user.presence", (event: any) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
   };

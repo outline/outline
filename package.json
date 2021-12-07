@@ -231,7 +231,7 @@
     "@types/sequelize": "^4.28.10",
     "@types/slug": "^5.0.2",
     "@types/socket.io": "2.1.13",
-    "@types/socket.io-client": "^3.0.0",
+    "@types/socket.io-parser": "^2.2.1",
     "@types/stoppable": "^1.1.1",
     "@types/styled-components": "^5.1.15",
     "@types/throng": "^5.0.3",
@@ -279,6 +279,7 @@
     "yarn-deduplicate": "^3.1.0"
   },
   "resolutions": {
+    "socket.io-parser": "^3.4.0",
     "prosemirror-view": "1.22.0",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1"
