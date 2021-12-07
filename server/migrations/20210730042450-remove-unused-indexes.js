@@ -7,9 +7,11 @@ module.exports = {
     await queryInterface.removeIndex("users", "users_slack_id");
     await queryInterface.removeIndex("teams", "teams_slack_id");
     await queryInterface.removeIndex("teams", "teams_google_id");
-    await queryInterface.removeIndex("collection_users", "collection_users_permission");
+    await queryInterface.removeIndex(
+      "collection_users",
+      "collection_users_permission"
+    );
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.addIndex("documents", ["collaboratorIds"]);
     await queryInterface.addIndex("documents", ["id", "deletedAt"]);
@@ -17,5 +19,5 @@ module.exports = {
     await queryInterface.addIndex("teams", ["slackId"]);
     await queryInterface.addIndex("teams", ["googleId"]);
     await queryInterface.addIndex("collection_users", ["permission"]);
-  }
+  },
 };

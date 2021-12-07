@@ -6,14 +6,12 @@ __mocks__
 .DS_Store
 .env*
 .eslint*
-.flowconfig
 .log
 Makefile
 Procfile
 app.json
+crowdin.yml
 build
 docker-compose.yml
 fakes3
-flow-typed
 node_modules
-setupJest.js

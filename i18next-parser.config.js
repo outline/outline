@@ -1,4 +1,3 @@
-// @flow
 module.exports = {
   contextSeparator: "_",
   // Key separator used in your translation keys

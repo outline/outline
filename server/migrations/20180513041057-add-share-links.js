@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('shares', {
+    await queryInterface.createTable("shares", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -10,21 +10,21 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'teams',
+          model: "teams",
         },
       },
       documentId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'documents',
+          model: "documents",
         },
       },
       createdAt: {
@@ -37,8 +37,7 @@ module.exports = {
       },
     });
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('shares');
+    await queryInterface.dropTable("shares");
   },
 };

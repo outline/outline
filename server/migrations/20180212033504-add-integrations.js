@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('integrations', {
+    await queryInterface.createTable("integrations", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -14,14 +14,14 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'teams',
+          model: "teams",
         },
       },
       serviceId: {
@@ -32,14 +32,14 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'collections',
+          model: "collections",
         },
       },
       authenticationId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'authentications',
+          model: "authentications",
         },
       },
       events: {
@@ -60,8 +60,7 @@ module.exports = {
       },
     });
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('integrations');
+    await queryInterface.dropTable("integrations");
   },
 };

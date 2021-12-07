@@ -9,7 +9,6 @@ module.exports = {
       type: Sequelize.BOOLEAN,
     });
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn("documents", "state");
     await queryInterface.removeColumn("teams", "collaborativeEditing");

@@ -1,0 +1,163 @@
+import { subMinutes } from "date-fns";
+import Router from "koa-router";
+import { find } from "lodash";
+import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import { AuthorizationError } from "@server/errors";
+import mailer from "@server/mailer";
+import errorHandling from "@server/middlewares/errorHandling";
+import methodOverride from "@server/middlewares/methodOverride";
+import { User, Team } from "@server/models";
+import { signIn } from "@server/utils/authentication";
+import { isCustomDomain } from "@server/utils/domains";
+import { getUserForEmailSigninToken } from "@server/utils/jwt";
+import { assertEmail, assertPresent } from "@server/validation";
+
+const router = new Router();
+
+export const config = {
+  name: "Email",
+  enabled: true,
+};
+
+router.use(methodOverride());
+
+router.post("email", errorHandling(), async (ctx) => {
+  const { email } = ctx.body;
+  assertEmail(email, "email is required");
+  const users = await User.scope("withAuthentications").findAll({
+    where: {
+      email: email.toLowerCase(),
+    },
+  });
+
+  if (users.length) {
+    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'team' implicitly has type 'any' in some ... Remove this comment to see the full error message
+    let team;
+
+    if (isCustomDomain(ctx.request.hostname)) {
+      team = await Team.scope("withAuthenticationProviders").findOne({
+        where: {
+          domain: ctx.request.hostname,
+        },
+      });
+    }
+
+    if (
+      process.env.SUBDOMAINS_ENABLED === "true" &&
+      isCustomSubdomain(ctx.request.hostname) &&
+      !isCustomDomain(ctx.request.hostname)
+    ) {
+      const domain = parseDomain(ctx.request.hostname);
+      const subdomain = domain ? domain.subdomain : undefined;
+      team = await Team.scope("withAuthenticationProviders").findOne({
+        where: {
+          subdomain,
+        },
+      });
+    }
+
+    // If there are multiple users with this email address then give precedence
+    // to the one that is active on this subdomain/domain (if any)
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
+    let user = users.find((user) => team && user.teamId === team.id);
+
+    // A user was found for the email address, but they don't belong to the team
+    // that this subdomain belongs to, we load their team and allow the logic to
+    // continue
+    if (!user) {
+      user = users[0];
+      team = await Team.scope("withAuthenticationProviders").findByPk(
+        user.teamId
+      );
+    }
+
+    if (!team) {
+      team = await Team.scope("withAuthenticationProviders").findByPk(
+        user.teamId
+      );
+    }
+
+    if (!team) {
+      ctx.redirect(`/?notice=auth-error`);
+      return;
+    }
+
+    // If the user matches an email address associated with an SSO
+    // provider then just forward them directly to that sign-in page
+    if (user.authentications.length) {
+      const authProvider = find(team.authenticationProviders, {
+        id: user.authentications[0].authenticationProviderId,
+      });
+      ctx.body = {
+        redirect: `${team.url}/auth/${authProvider.name}`,
+      };
+      return;
+    }
+
+    if (!team.guestSignin) {
+      throw AuthorizationError();
+    }
+
+    // basic rate limit of endpoint to prevent send email abuse
+    if (
+      user.lastSigninEmailSentAt &&
+      user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
+    ) {
+      ctx.body = {
+        redirect: `${team.url}?notice=email-auth-ratelimit`,
+        message: "Rate limit exceeded",
+        success: false,
+      };
+      return;
+    }
+
+    // send email to users registered address with a short-lived token
+    await mailer.sendTemplate("signin", {
+      to: user.email,
+      token: user.getEmailSigninToken(),
+      teamUrl: team.url,
+    });
+    user.lastSigninEmailSentAt = new Date();
+    await user.save();
+  }
+
+  // respond with success regardless of whether an email was sent
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.get("email.callback", async (ctx) => {
+  const { token } = ctx.request.query;
+  assertPresent(token, "token is required");
+
+  try {
+    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
+    const user = await getUserForEmailSigninToken(token);
+
+    if (!user.team.guestSignin) {
+      return ctx.redirect("/?notice=auth-error");
+    }
+
+    if (user.isSuspended) {
+      return ctx.redirect("/?notice=suspended");
+    }
+
+    if (user.isInvited) {
+      await mailer.sendTemplate("welcome", {
+        to: user.email,
+        teamUrl: user.team.url,
+      });
+    }
+
+    await user.update({
+      lastActiveAt: new Date(),
+    });
+    // set cookies on response and redirect to team subdomain
+    await signIn(ctx, user, user.team, "email", false, false);
+  } catch (err) {
+    ctx.redirect(`/?notice=expired-token`);
+  }
+});
+
+export default router;
