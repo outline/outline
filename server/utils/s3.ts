@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import util from "util";
 import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
@@ -25,10 +24,6 @@ const s3 = new AWS.S3({
       new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
-const createPresignedPost = util.promisify<
-  AWS.S3.PresignedPost.Params,
-  AWS.S3.PresignedPost
->(s3.createPresignedPost);
 
 const hmac = (
   key: string | Buffer,
@@ -118,7 +113,15 @@ export const getPresignedPost = (
     Expires: 3600,
   };
 
-  return createPresignedPost(params);
+  return new Promise<AWS.S3.PresignedPost>((resolve, reject) => {
+    s3.createPresignedPost(params, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
 };
 
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
