@@ -24,6 +24,7 @@ WORKDIR $APP_PATH
 
 COPY . .
 COPY --from=deps-dev $APP_PATH/node_modules ./node_modules
+ARG CDN_URL
 RUN yarn build
 
 # ---
