@@ -110,12 +110,6 @@ class DocumentScene extends React.Component<Props> {
       this.lastRevision = document.revision;
     }
 
-    if (this.props.readOnly) {
-      if (document.title !== this.title) {
-        this.title = document.title;
-      }
-    }
-
     if (
       !this.props.readOnly &&
       !auth.team?.collaborativeEditing &&
@@ -142,7 +136,6 @@ class DocumentScene extends React.Component<Props> {
   }
 
   replaceDocument = (template: Document | Revision) => {
-    this.title = template.title;
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -255,12 +248,10 @@ class DocumentScene extends React.Component<Props> {
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
-    const title = this.title;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === "" && title.trim() === "") return;
+    if (text.trim() === "" && document.title.trim() === "") return;
 
-    document.title = title;
     document.text = text;
     document.tasks = getTasks(document.text);
 
@@ -320,7 +311,8 @@ class DocumentScene extends React.Component<Props> {
     const editorText = this.getEditorText().trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = (!editorText || editorText === "#") && !this.title;
+    this.isEmpty =
+      (!editorText || editorText === "#") && !this.props.document.title;
   };
 
   updateIsEmptyDebounced = debounce(this.updateIsEmpty, 500);
@@ -362,7 +354,6 @@ class DocumentScene extends React.Component<Props> {
 
   onChangeTitle = action((value: string) => {
     const { document, documents } = this.props;
-    this.title = value;
     document.title = value;
 
     const collection = documents.getCollectionForDocument(document);
@@ -550,7 +541,7 @@ class DocumentScene extends React.Component<Props> {
                     shareId={shareId}
                     isDraft={document.isDraft}
                     template={document.isTemplate}
-                    title={revision ? revision.title : this.title}
+                    title={revision ? revision.title : document.title}
                     document={document}
                     value={readOnly ? value : undefined}
                     defaultValue={value}
