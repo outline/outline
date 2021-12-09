@@ -213,11 +213,6 @@ export default class Document extends BaseModel {
     });
   };
 
-  @action
-  updateFromJson = (data: Partial<Document>) => {
-    set(this, data);
-  };
-
   archive = () => {
     return this.store.archive(this);
   };

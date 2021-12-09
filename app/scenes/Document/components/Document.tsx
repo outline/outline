@@ -52,7 +52,6 @@ import PublicReferences from "./PublicReferences";
 import References from "./References";
 
 const AUTOSAVE_DELAY = 3000;
-const IS_DIRTY_DELAY = 500;
 
 type Props = WithTranslation &
   RootStore &
@@ -266,7 +265,7 @@ class DocumentScene extends React.Component<Props> {
     document.tasks = getTasks(document.text);
 
     // prevent autosave if nothing has changed
-    if (!document.isDirty) {
+    if (options.autosave && !document.isDirty()) {
       return;
     }
 
@@ -324,7 +323,7 @@ class DocumentScene extends React.Component<Props> {
     this.isEmpty = (!editorText || editorText === "#") && !this.title;
   };
 
-  updateIsEmptyDebounced = debounce(this.updateIsEmpty, IS_DIRTY_DELAY);
+  updateIsEmptyDebounced = debounce(this.updateIsEmpty, 500);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -454,7 +453,7 @@ class DocumentScene extends React.Component<Props> {
               <>
                 <Prompt
                   when={
-                    document.isDirty &&
+                    document.isDirty() &&
                     !this.isUploading &&
                     !team?.collaborativeEditing
                   }
@@ -463,7 +462,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 />
                 <Prompt
-                  when={this.isUploading && !document.isDirty}
+                  when={this.isUploading && !document.isDirty()}
                   message={t(
                     `Images are still uploading.\nAre you sure you want to discard them?`
                   )}

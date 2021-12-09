@@ -12,7 +12,7 @@ export default class BaseModel {
   store: any;
 
   constructor(fields: Record<string, any>, store: any) {
-    set(this, fields);
+    this.updateFromJson(fields);
     this.store = store;
   }
 
@@ -36,6 +36,11 @@ export default class BaseModel {
     } finally {
       this.isSaving = false;
     }
+  };
+
+  updateFromJson = (data: any) => {
+    set(this, data);
+    this.persistedAttributes = this.toJS();
   };
 
   fetch = (options?: any) => {
@@ -65,13 +70,26 @@ export default class BaseModel {
    */
   toJS = (): Record<string, any> => {
     const fields = getFieldsForModel(this);
+    return pick(this, fields) || [];
+  };
 
-    if (!fields) {
-      throw new Error("Called toJS on a model without @Field decorators");
+  /**
+   * Returns a boolean indicating if the model has changed since it was last
+   * persisted to the server
+   *
+   * @returns boolean true if unsaved
+   */
+  isDirty(): boolean {
+    const attributes = this.toJS();
+
+    if (Object.keys(attributes).length === 0) {
+      console.warn("Checking dirty on model with no @Field decorators");
     }
 
-    return pick(this, fields);
-  };
+    return (
+      JSON.stringify(this.persistedAttributes) !== JSON.stringify(attributes)
+    );
+  }
 
   /**
    * Returns a boolean indicating whether the model has been persisted to db
@@ -81,18 +99,6 @@ export default class BaseModel {
   @computed
   get isNew(): boolean {
     return !this.id;
-  }
-
-  /**
-   * Returns a boolean indicating if the model has changed since it was last saved
-   *
-   * @returns boolean true if unsaved
-   */
-  @computed
-  get isDirty(): boolean {
-    return (
-      JSON.stringify(this.persistedAttributes) !== JSON.stringify(this.toJS())
-    );
   }
 
   protected persistedAttributes: Partial<BaseModel> = {};
