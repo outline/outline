@@ -89,7 +89,7 @@ function DocumentListItem(
             highlight={highlight}
             dir={document.dir}
           />
-          {document.isNew && document.createdBy.id !== currentUser.id && (
+          {document.isBadgedNew && document.createdBy.id !== currentUser.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (

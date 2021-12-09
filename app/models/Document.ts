@@ -9,6 +9,7 @@ import BaseModel from "~/models/BaseModel";
 import User from "~/models/User";
 import { NavigationNode } from "~/types";
 import View from "./View";
+import Field from "./decorators/Field";
 
 type SaveOptions = {
   publish?: boolean;
@@ -29,9 +30,35 @@ export default class Document extends BaseModel {
 
   store: DocumentsStore;
 
-  collaboratorIds: string[];
-
+  @Field
+  @observable
   collectionId: string;
+
+  @Field
+  @observable
+  id: string;
+
+  @Field
+  @observable
+  text: string;
+
+  @Field
+  @observable
+  title: string;
+
+  @Field
+  @observable
+  template: boolean;
+
+  @Field
+  @observable
+  templateId: string | undefined;
+
+  @Field
+  @observable
+  parentDocumentId: string | undefined;
+
+  collaboratorIds: string[];
 
   createdAt: string;
 
@@ -41,21 +68,7 @@ export default class Document extends BaseModel {
 
   updatedBy: User;
 
-  id: string;
-
-  team: string;
-
   pinned: boolean;
-
-  text: string;
-
-  title: string;
-
-  template: boolean;
-
-  templateId: string | undefined;
-
-  parentDocumentId: string | undefined;
 
   publishedAt: string | undefined;
 
@@ -77,7 +90,7 @@ export default class Document extends BaseModel {
   constructor(fields: Record<string, any>, store: DocumentsStore) {
     super(fields, store);
 
-    if (this.isNewDocument && this.isFromTemplate) {
+    if (this.isPersistedOnce && this.isFromTemplate) {
       this.title = "";
     }
   }
@@ -123,7 +136,7 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get isNew(): boolean {
+  get isBadgedNew(): boolean {
     return (
       !this.lastViewedAt &&
       differenceInDays(new Date(), new Date(this.createdAt)) < 14
@@ -170,7 +183,7 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get isNewDocument(): boolean {
+  get isPersistedOnce(): boolean {
     return this.createdAt === this.updatedAt;
   }
 
@@ -201,7 +214,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  updateFromJson = (data: Record<string, any>) => {
+  updateFromJson = (data: Partial<Document>) => {
     set(this, data);
   };
 
@@ -382,13 +395,14 @@ export default class Document extends BaseModel {
     return !this.isDeleted && !this.isTemplate && !this.isArchived;
   }
 
-  asNavigationNode(): NavigationNode {
+  @computed
+  get asNavigationNode(): NavigationNode {
     return {
       id: this.id,
       title: this.title,
       children: this.store.orderedData
         .filter((doc) => doc.parentDocumentId === this.id)
-        .map((doc) => doc.asNavigationNode()),
+        .map((doc) => doc.asNavigationNode),
       url: this.url,
     };
   }

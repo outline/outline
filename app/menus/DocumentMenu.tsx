@@ -359,7 +359,8 @@ function DocumentMenu({
               type: "button",
               title: `${t("Create template")}…`,
               onClick: () => setShowTemplateModal(true),
-              visible: !!can.update && !document.isTemplate,
+              visible:
+                !!can.update && !document.isTemplate && !document.isDraft,
               icon: <ShapesIcon />,
             },
             {

@@ -138,9 +138,10 @@ function DocumentLink(
     }),
     canDrag: () => {
       return (
-        policies.abilities(node.id).move ||
-        policies.abilities(node.id).archive ||
-        policies.abilities(node.id).delete
+        !isDraft &&
+        (policies.abilities(node.id).move ||
+          policies.abilities(node.id).archive ||
+          policies.abilities(node.id).delete)
       );
     },
   });
@@ -297,7 +298,7 @@ function DocumentLink(
         !isDragging && (
           <DocumentLink
             key={activeDocument.id}
-            node={activeDocument.asNavigationNode()}
+            node={activeDocument.asNavigationNode}
             collection={collection}
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}

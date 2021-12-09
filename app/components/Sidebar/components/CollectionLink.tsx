@@ -238,7 +238,7 @@ function CollectionLink({
             !activeDocument?.parentDocumentId && (
               <DocumentLink
                 key={activeDocument.id}
-                node={activeDocument.asNavigationNode()}
+                node={activeDocument.asNavigationNode}
                 collection={collection}
                 activeDocument={activeDocument}
                 prefetchDocument={prefetchDocument}

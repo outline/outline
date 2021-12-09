@@ -47,7 +47,7 @@ export type Props = {
   readOnlyWriteCheckboxes?: boolean;
   onBlur?: () => void;
   onFocus?: () => void;
-  onPublish?: (event: React.SyntheticEvent) => any;
+  onPublish?: (event: React.MouseEvent) => any;
   onSave?: (arg0: {
     done?: boolean;
     autosave?: boolean;

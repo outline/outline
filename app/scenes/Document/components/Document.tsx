@@ -74,7 +74,7 @@ type Props = WithTranslation &
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable
-  editor = React.createRef();
+  editor = React.createRef<typeof Editor>();
 
   @observable
   isUploading = false;
@@ -84,9 +84,6 @@ class DocumentScene extends React.Component<Props> {
 
   @observable
   isPublishing = false;
-
-  @observable
-  isDirty = false;
 
   @observable
   isEmpty = true;
@@ -100,14 +97,14 @@ class DocumentScene extends React.Component<Props> {
   getEditorText: () => string = () => this.props.document.text;
 
   componentDidMount() {
-    this.updateIsDirty();
+    this.updateIsEmpty();
   }
 
   componentDidUpdate(prevProps: Props) {
     const { auth, document, t } = this.props;
 
     if (prevProps.readOnly && !this.props.readOnly) {
-      this.updateIsDirty();
+      this.updateIsEmpty();
     }
 
     if (this.props.readOnly || auth.team?.collaborativeEditing) {
@@ -147,7 +144,6 @@ class DocumentScene extends React.Component<Props> {
 
   replaceDocument = (template: Document | Revision) => {
     this.title = template.title;
-    this.isDirty = true;
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -168,7 +164,7 @@ class DocumentScene extends React.Component<Props> {
 
     this.props.document.title = template.title;
     this.props.document.text = template.text;
-    this.updateIsDirty();
+    this.updateIsEmpty();
   };
 
   onSynced = async () => {
@@ -192,8 +188,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-  goToMove = (ev) => {
+  goToMove = (ev: KeyboardEvent) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
     const { document, abilities } = this.props;
@@ -203,8 +198,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-  goToEdit = (ev) => {
+  goToEdit = (ev: KeyboardEvent) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
     const { document, abilities } = this.props;
@@ -214,8 +208,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-  goToHistory = (ev) => {
+  goToHistory = (ev: KeyboardEvent) => {
     if (!this.props.readOnly) return;
     if (ev.ctrlKey) return;
     ev.preventDefault();
@@ -228,8 +221,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-  onPublish = (ev) => {
+  onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
     const { document } = this.props;
     if (document.publishedAt) return;
@@ -239,8 +231,7 @@ class DocumentScene extends React.Component<Props> {
     });
   };
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ev' implicitly has an 'any' type.
-  onToggleTableOfContents = (ev) => {
+  onToggleTableOfContents = (ev: KeyboardEvent) => {
     if (!this.props.readOnly) return;
     ev.preventDefault();
     const { ui } = this.props;
@@ -268,22 +259,17 @@ class DocumentScene extends React.Component<Props> {
     const title = this.title;
 
     // prevent save before anything has been written (single hash is empty doc)
-    // @ts-expect-error ts-migrate(2367) FIXME: This condition will always return 'false' since th... Remove this comment to see the full error message
-    if (text.trim() === "" && title.trim === "") return;
-
-    // prevent autosave if nothing has changed
-    if (
-      options.autosave &&
-      document.text.trim() === text.trim() &&
-      document.title.trim() === title.trim()
-    ) {
-      return;
-    }
+    if (text.trim() === "" && title.trim() === "") return;
 
     document.title = title;
     document.text = text;
     document.tasks = getTasks(document.text);
-    const isNew = !document.id;
+
+    // prevent autosave if nothing has changed
+    if (!document.isDirty) {
+      return;
+    }
+
     this.isSaving = true;
     this.isPublishing = !!options.publish;
 
@@ -305,13 +291,12 @@ class DocumentScene extends React.Component<Props> {
         });
       }
 
-      this.isDirty = false;
       this.lastRevision = savedDocument.revision;
 
       if (options.done) {
         this.props.history.push(savedDocument.url);
         this.props.ui.setActiveDocument(savedDocument);
-      } else if (isNew) {
+      } else if (document.isNew) {
         this.props.history.push(editDocumentUrl(savedDocument));
         this.props.ui.setActiveDocument(savedDocument);
       }
@@ -332,18 +317,14 @@ class DocumentScene extends React.Component<Props> {
     });
   }, AUTOSAVE_DELAY);
 
-  updateIsDirty = () => {
-    const { document } = this.props;
+  updateIsEmpty = () => {
     const editorText = this.getEditorText().trim();
-    const titleChanged = this.title !== document.title;
-    const bodyChanged = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
     this.isEmpty = (!editorText || editorText === "#") && !this.title;
-    this.isDirty = bodyChanged || titleChanged;
   };
 
-  updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
+  updateIsEmptyDebounced = debounce(this.updateIsEmpty, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -370,22 +351,27 @@ class DocumentScene extends React.Component<Props> {
     // document change while read only is presumed to be a checkbox edit,
     // in that case we don't delay in saving for a better user experience.
     if (this.props.readOnly) {
-      this.updateIsDirty();
       this.onSave({
         done: false,
         autosave: true,
       });
     } else {
-      this.updateIsDirtyDebounced();
+      this.updateIsEmptyDebounced();
       this.autosave();
     }
   };
 
-  onChangeTitle = (value: string) => {
+  onChangeTitle = action((value: string) => {
+    const { document, documents } = this.props;
     this.title = value;
-    this.updateIsDirtyDebounced();
+    document.title = value;
+
+    const collection = documents.getCollectionForDocument(document);
+    if (collection) collection.updateDocument(document);
+
+    this.updateIsEmpty();
     this.autosave();
-  };
+  });
 
   goBack = () => {
     this.props.history.push(this.props.document.url);
@@ -468,7 +454,7 @@ class DocumentScene extends React.Component<Props> {
               <>
                 <Prompt
                   when={
-                    this.isDirty &&
+                    document.isDirty &&
                     !this.isUploading &&
                     !team?.collaborativeEditing
                   }
@@ -477,7 +463,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 />
                 <Prompt
-                  when={this.isUploading && !this.isDirty}
+                  when={this.isUploading && !document.isDirty}
                   message={t(
                     `Images are still uploading.\nAre you sure you want to discard them?`
                   )}
@@ -639,11 +625,13 @@ const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
   }
 `;
 
-const MaxWidth = styled(Flex)<{
+type MaxWidthProps = {
   isEditing?: boolean;
   archived?: boolean;
   showContents?: boolean;
-}>`
+};
+
+const MaxWidth = styled(Flex)<MaxWidthProps>`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
 
@@ -657,7 +645,7 @@ const MaxWidth = styled(Flex)<{
   ${breakpoint("tablet")`
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${(props: any) =>
+    max-width: calc(48px + ${(props: MaxWidthProps) =>
       props.showContents ? "64em" : "46em"});
   `};
 
