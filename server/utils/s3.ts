@@ -93,6 +93,37 @@ export const getSignature = (policy: string) => {
   return signature;
 };
 
+export const getPresignedPost = (
+  key: string,
+  acl: string,
+  contentType = "image"
+) => {
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Conditions: [
+      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
+      ["starts-with", "$Content-Type", contentType],
+      ["starts-with", "$Cache-Control", ""],
+    ],
+    Fields: {
+      key,
+      acl,
+    },
+    Expires: 3600,
+  };
+
+  return new Promise<AWS.S3.PresignedPost>((resolve, reject) => {
+    s3.createPresignedPost(params, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+};
+
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
   // for access outside of docker containers in local development
