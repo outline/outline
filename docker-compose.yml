@@ -18,19 +18,3 @@ services:
       - "127.0.0.1:4569:4569"
     volumes:
       - ./fakes3:/fakes3_root
-  outline:
-    image: outline:v001
-    command: yarn dev
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        pull: 1
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/opt/outline
-    depends_on:
-      - postgres
-      - redis
-      - s3
