@@ -85,6 +85,9 @@ class DocumentScene extends React.Component<Props> {
   isPublishing = false;
 
   @observable
+  isEditorDirty = false;
+
+  @observable
   isEmpty = true;
 
   @observable
@@ -96,14 +99,14 @@ class DocumentScene extends React.Component<Props> {
   getEditorText: () => string = () => this.props.document.text;
 
   componentDidMount() {
-    this.updateIsEmpty();
+    this.updateIsDirty();
   }
 
   componentDidUpdate(prevProps: Props) {
     const { auth, document, t } = this.props;
 
     if (prevProps.readOnly && !this.props.readOnly) {
-      this.updateIsEmpty();
+      this.updateIsDirty();
     }
 
     if (this.props.readOnly || auth.team?.collaborativeEditing) {
@@ -150,13 +153,15 @@ class DocumentScene extends React.Component<Props> {
         .replaceSelectionWith(parser.parse(template.text))
     );
 
+    this.isEditorDirty = true;
+
     if (template instanceof Document) {
       this.props.document.templateId = template.id;
     }
 
     this.props.document.title = template.title;
     this.props.document.text = template.text;
-    this.updateIsEmpty();
+    this.updateIsDirty();
   };
 
   onSynced = async () => {
@@ -256,7 +261,7 @@ class DocumentScene extends React.Component<Props> {
     document.tasks = getTasks(document.text);
 
     // prevent autosave if nothing has changed
-    if (options.autosave && !document.isDirty()) {
+    if (options.autosave && !this.isEditorDirty && !document.isDirty()) {
       return;
     }
 
@@ -281,6 +286,7 @@ class DocumentScene extends React.Component<Props> {
         });
       }
 
+      this.isEditorDirty = false;
       this.lastRevision = savedDocument.revision;
 
       if (options.done) {
@@ -307,15 +313,16 @@ class DocumentScene extends React.Component<Props> {
     });
   }, AUTOSAVE_DELAY);
 
-  updateIsEmpty = () => {
+  updateIsDirty = () => {
+    const { document } = this.props;
     const editorText = this.getEditorText().trim();
+    this.isEditorDirty = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty =
-      (!editorText || editorText === "#") && !this.props.document.title;
+    this.isEmpty = (!editorText || editorText === "#") && !this.title;
   };
 
-  updateIsEmptyDebounced = debounce(this.updateIsEmpty, 500);
+  updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -342,12 +349,13 @@ class DocumentScene extends React.Component<Props> {
     // document change while read only is presumed to be a checkbox edit,
     // in that case we don't delay in saving for a better user experience.
     if (this.props.readOnly) {
+      this.updateIsDirty();
       this.onSave({
         done: false,
         autosave: true,
       });
     } else {
-      this.updateIsEmptyDebounced();
+      this.updateIsDirtyDebounced();
       this.autosave();
     }
   };
@@ -359,7 +367,7 @@ class DocumentScene extends React.Component<Props> {
     const collection = documents.getCollectionForDocument(document);
     if (collection) collection.updateDocument(document);
 
-    this.updateIsEmpty();
+    this.updateIsDirty();
     this.autosave();
   });
 
@@ -444,7 +452,7 @@ class DocumentScene extends React.Component<Props> {
               <>
                 <Prompt
                   when={
-                    document.isDirty() &&
+                    this.isEditorDirty &&
                     !this.isUploading &&
                     !team?.collaborativeEditing
                   }
@@ -453,7 +461,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 />
                 <Prompt
-                  when={this.isUploading && !document.isDirty()}
+                  when={this.isUploading && !this.isEditorDirty}
                   message={t(
                     `Images are still uploading.\nAre you sure you want to discard them?`
                   )}
