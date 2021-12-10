@@ -4,6 +4,7 @@ import teamCreator from "./teamCreator";
 
 jest.mock("aws-sdk", () => {
   const mS3 = {
+    createPresignedPost: jest.fn(),
     putObject: jest.fn().mockReturnThis(),
     promise: jest.fn(),
   };
