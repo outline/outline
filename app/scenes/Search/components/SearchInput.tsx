@@ -12,15 +12,22 @@ function SearchInput({ defaultValue, ...rest }: Props) {
   const theme = useTheme();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  const focusInput = React.useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
   React.useEffect(() => {
     // ensure that focus is placed at end of input
     const len = (defaultValue || "").length;
     inputRef.current?.setSelectionRange(len, len);
-  }, [defaultValue]);
+    const timeoutId = setTimeout(() => {
+      focusInput();
+    }, 100); // arbitrary number
 
-  const focusInput = React.useCallback(() => {
-    inputRef.current?.focus();
-  }, []);
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [defaultValue, focusInput]);
 
   return (
     <Wrapper align="center">
