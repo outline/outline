@@ -1,2 +1,2 @@
-web: yarn start --services=web,websockets
+web: yarn start --services=web,websockets,collaboration
 worker: yarn start --services=worker
