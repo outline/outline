@@ -399,6 +399,7 @@ export default class Document extends BaseModel {
         .filter((doc) => doc.parentDocumentId === this.id)
         .map((doc) => doc.asNavigationNode),
       url: this.url,
+      isDraft: this.isDraft,
     };
   }
 

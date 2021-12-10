@@ -11,6 +11,7 @@ import {
   RouteComponentProps,
   StaticContext,
   withRouter,
+  Redirect,
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -41,6 +42,7 @@ import {
   documentHistoryUrl,
   editDocumentUrl,
   documentUrl,
+  updateDocumentUrl,
 } from "~/utils/routeHelpers";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -361,12 +363,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChangeTitle = action((value: string) => {
-    const { document, documents } = this.props;
-    document.title = value;
-
-    const collection = documents.getCollectionForDocument(document);
-    if (collection) collection.updateDocument(document);
-
+    this.props.document.title = value;
     this.updateIsDirty();
     this.autosave();
   });
@@ -404,8 +401,13 @@ class DocumentScene extends React.Component<Props> {
       !revision &&
       !isShare;
 
+    const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
+
     return (
       <ErrorBoundary>
+        {this.props.location.pathname !== canonicalUrl && (
+          <Redirect to={canonicalUrl} />
+        )}
         <RegisterKeyDown trigger="m" handler={this.goToMove} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />

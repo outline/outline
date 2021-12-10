@@ -4,7 +4,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
-import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
@@ -220,6 +220,33 @@ function DocumentLink(
     }),
   });
 
+  const nodeChildren = React.useMemo(() => {
+    if (
+      collection &&
+      activeDocument?.isDraft &&
+      activeDocument?.isActive &&
+      activeDocument?.parentDocumentId === node.id
+    ) {
+      return sortNavigationNodes(
+        [activeDocument?.asNavigationNode, ...node.children],
+        collection.sort
+      );
+    }
+
+    return node.children;
+  }, [
+    activeDocument?.isActive,
+    activeDocument?.isDraft,
+    activeDocument?.parentDocumentId,
+    activeDocument?.asNavigationNode,
+    collection,
+    node,
+  ]);
+
+  const title =
+    (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
+    t("Untitled");
+
   return (
     <>
       <Relative onDragLeave={resetHoverExpanding}>
@@ -248,24 +275,16 @@ function DocumentLink(
                       />
                     )}
                     <EditableTitle
-                      title={node.title || t("Untitled")}
+                      title={title}
                       onSubmit={handleTitleChange}
                       canUpdate={canUpdate}
                       maxLength={MAX_TITLE_LENGTH}
                     />
                   </>
                 }
-                isActive={(match, location) => {
-                  // allows us to match against only the urlId portion of the
-                  // pathname rather than the slugified title
-                  const urlId = location.pathname.split("/")[2];
-                  const slugMatch = urlId?.match(SLUG_URL_REGEX);
-
-                  return (
-                    (!!match || slugMatch?.[1] === document?.urlId) &&
-                    location.search !== "?starred"
-                  );
-                }}
+                isActive={(match, location) =>
+                  !!match && location.search !== "?starred"
+                }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
@@ -292,39 +311,22 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
-      {activeDocument?.isDraft &&
-        activeDocument?.isActive &&
-        activeDocument?.parentDocumentId === node.id &&
-        !isDragging && (
-          <DocumentLink
-            key={activeDocument.id}
-            node={activeDocument.asNavigationNode}
+      {expanded &&
+        !isDragging &&
+        nodeChildren.map((childNode, index) => (
+          <ObservedDocumentLink
+            key={childNode.id}
             collection={collection}
+            node={childNode}
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}
-            canUpdate={canUpdate}
-            isDraft
+            isDraft={childNode.isDraft}
             depth={depth + 1}
-            index={0}
+            canUpdate={canUpdate}
+            index={index}
+            parentId={node.id}
           />
-        )}
-      {expanded && !isDragging && (
-        <>
-          {node.children.map((childNode, index) => (
-            <ObservedDocumentLink
-              key={childNode.id}
-              collection={collection}
-              node={childNode}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              depth={depth + 1}
-              canUpdate={canUpdate}
-              index={index}
-              parentId={node.id}
-            />
-          ))}
-        </>
-      )}
+        ))}
     </>
   );
 }

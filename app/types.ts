@@ -134,6 +134,7 @@ export type NavigationNode = {
   title: string;
   url: string;
   children: NavigationNode[];
+  isDraft?: boolean;
 };
 
 // Pagination response in an API call

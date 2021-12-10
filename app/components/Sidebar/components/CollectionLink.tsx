@@ -5,6 +5,7 @@ import { useDrop, useDrag } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
@@ -152,6 +153,31 @@ function CollectionLink({
     },
   });
 
+  const collectionDocuments = React.useMemo(() => {
+    if (
+      activeDocument?.isActive &&
+      activeDocument?.isDraft &&
+      activeDocument?.collectionId === collection.id &&
+      !activeDocument?.parentDocumentId
+    ) {
+      return sortNavigationNodes(
+        [activeDocument.asNavigationNode, ...collection.documents],
+        collection.sort
+      );
+    }
+
+    return collection.documents;
+  }, [
+    activeDocument?.isActive,
+    activeDocument?.isDraft,
+    activeDocument?.collectionId,
+    activeDocument?.parentDocumentId,
+    activeDocument?.asNavigationNode,
+    collection.documents,
+    collection.id,
+    collection.sort,
+  ]);
+
   const isDraggingAnyCollection =
     isDraggingAnotherCollection || isCollectionDragging;
 
@@ -229,39 +255,20 @@ function CollectionLink({
           />
         )}
       </div>
-
-      {expanded && (
-        <>
-          {activeDocument?.isActive &&
-            activeDocument?.isDraft &&
-            activeDocument?.collectionId === collection.id &&
-            !activeDocument?.parentDocumentId && (
-              <DocumentLink
-                key={activeDocument.id}
-                node={activeDocument.asNavigationNode}
-                collection={collection}
-                activeDocument={activeDocument}
-                prefetchDocument={prefetchDocument}
-                canUpdate={canUpdate}
-                isDraft
-                depth={2}
-                index={0}
-              />
-            )}
-          {collection.documents.map((node, index) => (
-            <DocumentLink
-              key={node.id}
-              node={node}
-              collection={collection}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              canUpdate={canUpdate}
-              depth={2}
-              index={index}
-            />
-          ))}
-        </>
-      )}
+      {expanded &&
+        collectionDocuments.map((node, index) => (
+          <DocumentLink
+            key={node.id}
+            node={node}
+            collection={collection}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            canUpdate={canUpdate}
+            isDraft={node.isDraft}
+            depth={2}
+            index={index}
+          />
+        ))}
       <Modal
         title={t("Move document")}
         onRequestClose={handlePermissionClose}

@@ -70,7 +70,10 @@ export function documentHistoryUrl(doc: Document, revisionId?: string): string {
  */
 export function updateDocumentUrl(oldUrl: string, document: Document): string {
   // Update url to match the current one
-  return oldUrl.replace(new RegExp("/doc/[0-9a-zA-Z-_~]*"), document.url);
+  return oldUrl.replace(
+    new RegExp("/doc/([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})"),
+    document.url
+  );
 }
 
 export function newDocumentPath(
