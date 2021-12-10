@@ -64,7 +64,7 @@ export default async function collectionImporter({
   for (const item of items) {
     if (item.type === "collection") {
       // check if collection with name exists
-      const [collection, isCreated] = await Collection.findOrCreate({
+      const response = await Collection.findOrCreate({
         where: {
           teamId: user.teamId,
           name: item.name,
@@ -75,12 +75,14 @@ export default async function collectionImporter({
         },
       });
 
+      let collection = response[0];
+      const isCreated = response[1];
+
       // create new collection if name already exists, yes it's possible that
       // there is also a "Name (Imported)" but this is a case not worth dealing
       // with right now
       if (!isCreated) {
         const name = `${item.name} (Imported)`;
-        // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'collection' because it is a cons... Remove this comment to see the full error message
         collection = await Collection.create({
           teamId: user.teamId,
           createdById: user.id,
@@ -107,6 +109,7 @@ export default async function collectionImporter({
       const collectionDir = item.dir.split("/")[0];
       const collection = collections[collectionDir];
       invariant(collection, `Collection must exist for document ${item.dir}`);
+
       // we have a document
       const content = await item.item.async("string");
       const name = path.basename(item.name);
@@ -171,7 +174,7 @@ export default async function collectionImporter({
     Logger.info("commands", `Skipped importing ${item.path}`);
   }
 
-  // All collections, documents, and attachments have been created – time to
+  // All collections, documents, and attachments have been created - time to
   // update the documents to point to newly uploaded attachments where possible
   for (const attachmentPath of keys(attachments)) {
     const attachment = attachments[attachmentPath];

@@ -8,13 +8,14 @@ export default function download(
   strFileName: string,
   strMimeType?: string
 ) {
-  const self = window,
-    // this script is only for browsers anyway...
-    u = "application/octet-stream",
-    // this default mime also triggers iframe downloads
-    m = strMimeType || u,
-    x = data,
-    D = document,
+  const self = window;
+  // this script is only for browsers anyway...
+  const u = "application/octet-stream";
+
+  // this default mime also triggers iframe downloads
+  let m = strMimeType || u,
+    x = data;
+  const D = document,
     a = D.createElement("a"),
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'a' implicitly has an 'any' type.
     z = function (a) {
@@ -24,21 +25,15 @@ export default function download(
     B = self.Blob || self.MozBlob || self.WebKitBlob || z,
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'WebKitBlobBuilder' does not exist on typ... Remove this comment to see the full error message
     BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
-    fn = strFileName || "download",
-    // @ts-expect-error ts-migrate(1155) FIXME: 'const' declarations must be initialized.
-    blob,
-    // @ts-expect-error ts-migrate(1155) FIXME: 'const' declarations must be initialized.
-    b,
-    // @ts-expect-error ts-migrate(1155) FIXME: 'const' declarations must be initialized.
-    fr;
+    fn = strFileName || "download";
+
+  let blob, b, fr;
 
   if (String(this) === "true") {
-    //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'x' because it is a constant.
+    // reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
+    // @ts-expect-error this is weird code
     x = [x, m];
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'm' because it is a constant.
     m = x[0];
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'x' because it is a constant.
     x = x[1];
   }
 
@@ -50,7 +45,6 @@ export default function download(
 
   //end if dataURL passed?
   try {
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'blob' because it is a constant.
     blob =
       x instanceof B
         ? x
@@ -59,16 +53,13 @@ export default function download(
           });
   } catch (y) {
     if (BB) {
-      // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'b' because it is a constant.
       b = new BB();
       b.append([x]);
-      // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'blob' because it is a constant.
       blob = b.getBlob(m); // the blob
     }
   }
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'u' implicitly has an 'any' type.
-  function d2b(u) {
+  function d2b(u: string) {
     if (typeof u !== "string") {
       throw Error("Attempted to pass non-string to d2b");
     }
@@ -79,10 +70,9 @@ export default function download(
       // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
       bin = dec(p.pop()),
       mx = bin.length,
-      i = 0,
       uia = new Uint8Array(mx);
 
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'i' because it is a constant.
+    let i = 0;
     for (i; i < mx; ++i) uia[i] = bin.charCodeAt(i);
 
     return new B([uia], {
@@ -90,7 +80,7 @@ export default function download(
     });
   }
 
-  function saver(url: string, winMode: boolean) {
+  function saver(url: string, winMode = false) {
     if (typeof url !== "string") {
       throw Error("Attempted to pass non-string url to saver");
     }
@@ -141,19 +131,15 @@ export default function download(
       typeof m === "string"
     ) {
       try {
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         return saver("data:" + m + ";base64," + self.btoa(blob));
       } catch (y) {
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         return saver("data:" + m + "," + encodeURIComponent(blob));
       }
     }
 
     // Blob but not URL:
-    // @ts-expect-error ts-migrate(2588) FIXME: Cannot assign to 'fr' because it is a constant.
     fr = new FileReader();
 
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'e' implicitly has an 'any' type.
     fr.onload = function (e) {
       // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
       saver(this.result);
