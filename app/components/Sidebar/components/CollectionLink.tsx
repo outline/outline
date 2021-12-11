@@ -49,6 +49,7 @@ function CollectionLink({
   const itemRef = React.useRef<
     NavigationNode & { depth: number; active: boolean; collectionId: string }
   >();
+  const [isEditing, setIsEditing] = React.useState(false);
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -59,6 +60,10 @@ function CollectionLink({
     },
     [collection, history]
   );
+
+  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
+    setIsEditing(isEditing);
+  }, []);
 
   const { ui, documents, policies, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
@@ -210,37 +215,40 @@ function CollectionLink({
           $isMoving={isCollectionDragging}
         >
           <DropToImport collectionId={collection.id}>
-            <SidebarLinkWithPadding
+            <SidebarLink
               to={collection.url}
               icon={
                 <CollectionIcon collection={collection} expanded={expanded} />
               }
-              showActions={menuOpen || expanded}
+              showActions={menuOpen}
               isActiveDrop={isOver && canDrop}
               label={
                 <EditableTitle
                   title={collection.name}
                   onSubmit={handleTitleChange}
+                  onEditing={handleTitleEditing}
                   canUpdate={canUpdate}
                 />
               }
               exact={false}
               depth={0.5}
               menu={
-                <>
-                  {can.update && (
-                    <CollectionSortMenuWithMargin
+                !isEditing && (
+                  <>
+                    {can.update && (
+                      <CollectionSortMenuWithMargin
+                        collection={collection}
+                        onOpen={handleMenuOpen}
+                        onClose={handleMenuClose}
+                      />
+                    )}
+                    <CollectionMenu
                       collection={collection}
                       onOpen={handleMenuOpen}
                       onClose={handleMenuClose}
                     />
-                  )}
-                  <CollectionMenu
-                    collection={collection}
-                    onOpen={handleMenuOpen}
-                    onClose={handleMenuClose}
-                  />
-                </>
+                  </>
+                )
               }
             />
           </DropToImport>
@@ -290,10 +298,6 @@ function CollectionLink({
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
-`;
-
-const SidebarLinkWithPadding = styled(SidebarLink)`
-  padding-right: 60px;
 `;
 
 const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`

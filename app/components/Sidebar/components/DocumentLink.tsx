@@ -50,6 +50,7 @@ function DocumentLink(
   const hasChildDocuments = !!node.children.length;
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
+  const [isEditing, setIsEditing] = React.useState(false);
 
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
@@ -243,6 +244,10 @@ function DocumentLink(
     node,
   ]);
 
+  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
+    setIsEditing(isEditing);
+  }, []);
+
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
@@ -277,6 +282,7 @@ function DocumentLink(
                     <EditableTitle
                       title={title}
                       onSubmit={handleTitleChange}
+                      onEditing={handleTitleEditing}
                       canUpdate={canUpdate}
                       maxLength={MAX_TITLE_LENGTH}
                     />
@@ -293,7 +299,7 @@ function DocumentLink(
                 isDraft={isDraft}
                 ref={ref}
                 menu={
-                  document && !isMoving ? (
+                  document && !isMoving && !isEditing ? (
                     <Fade>
                       <DocumentMenu
                         document={document}

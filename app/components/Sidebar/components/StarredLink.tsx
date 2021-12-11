@@ -32,6 +32,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     ? collection.getDocumentChildren(documentId)
     : [];
   const hasChildDocuments = childDocuments.length > 0;
+  const [isEditing, setIsEditing] = React.useState(false);
 
   useEffect(() => {
     async function load() {
@@ -69,6 +70,10 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
     [documents, document]
   );
 
+  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
+    setIsEditing(isEditing);
+  }, []);
+
   return (
     <>
       <Relative>
@@ -89,6 +94,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
               <EditableTitle
                 title={title || t("Untitled")}
                 onSubmit={handleTitleChange}
+                onEditing={handleTitleEditing}
                 canUpdate={canUpdate}
                 maxLength={MAX_TITLE_LENGTH}
               />
@@ -97,7 +103,7 @@ function StarredLink({ depth, title, to, documentId, collectionId }: Props) {
           exact={false}
           showActions={menuOpen}
           menu={
-            document ? (
+            document && !isEditing ? (
               <Fade>
                 <DocumentMenu
                   document={document}

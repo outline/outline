@@ -4,12 +4,19 @@ import useToasts from "~/hooks/useToasts";
 
 type Props = {
   onSubmit: (title: string) => Promise<void>;
+  onEditing?: (isEditing: boolean) => void;
   title: string;
   canUpdate: boolean;
   maxLength?: number;
 };
 
-function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
+function EditableTitle({
+  title,
+  onSubmit,
+  canUpdate,
+  onEditing,
+  ...rest
+}: Props) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
@@ -66,6 +73,10 @@ function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
     [originalValue, showToast, value, onSubmit]
   );
 
+  React.useEffect(() => {
+    onEditing?.(isEditing);
+  }, [onEditing, isEditing]);
+
   return (
     <>
       {isEditing ? (
@@ -91,10 +102,9 @@ function EditableTitle({ title, onSubmit, canUpdate, ...rest }: Props) {
 }
 
 const Input = styled.input`
-  margin-left: -4px;
   color: ${(props) => props.theme.sidebarText};
   background: ${(props) => props.theme.background};
-  width: calc(100% - 10px);
+  width: calc(100% + 12px);
   border-radius: 3px;
   border: 1px solid ${(props) => props.theme.inputBorderFocused};
   padding: 5px 6px;
