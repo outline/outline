@@ -25,10 +25,7 @@ const s3 = new AWS.S3({
       new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
-const createPresignedPost = util.promisify<
-  AWS.S3.PresignedPost.Params,
-  AWS.S3.PresignedPost
->(s3.createPresignedPost);
+const createPresignedPost = util.promisify(s3.createPresignedPost).bind(s3);
 
 const hmac = (
   key: string | Buffer,
