@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.2
 ARG APP_PATH=/opt/outline
-FROM node:14-alpine AS deps-common
+FROM node:16-alpine AS deps-common
 
 ARG APP_PATH
 WORKDIR $APP_PATH
@@ -17,7 +17,7 @@ RUN yarn install --production=true --frozen-lockfile && \
   yarn cache clean
 
 # ---
-FROM node:14-alpine AS builder
+FROM node:16-alpine AS builder
 
 ARG APP_PATH
 WORKDIR $APP_PATH
@@ -28,7 +28,7 @@ ARG CDN_URL
 RUN yarn build
 
 # ---
-FROM node:14-alpine AS runner
+FROM node:16-alpine AS runner
 
 ARG APP_PATH
 WORKDIR $APP_PATH
