@@ -4,6 +4,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
@@ -22,7 +23,8 @@ type Props = {
   canUpdate: boolean;
   collection?: Collection;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (documentId: string) => Promise<any>;
+  prefetchDocument: (documentId: string) => Promise<Document | void>;
+  isDraft?: boolean;
   depth: number;
   index: number;
   parentId?: string;
@@ -35,6 +37,7 @@ function DocumentLink(
     collection,
     activeDocument,
     prefetchDocument,
+    isDraft,
     depth,
     index,
     parentId,
@@ -135,9 +138,10 @@ function DocumentLink(
     }),
     canDrag: () => {
       return (
-        policies.abilities(node.id).move ||
-        policies.abilities(node.id).archive ||
-        policies.abilities(node.id).delete
+        !isDraft &&
+        (policies.abilities(node.id).move ||
+          policies.abilities(node.id).archive ||
+          policies.abilities(node.id).delete)
       );
     },
   });
@@ -216,6 +220,33 @@ function DocumentLink(
     }),
   });
 
+  const nodeChildren = React.useMemo(() => {
+    if (
+      collection &&
+      activeDocument?.isDraft &&
+      activeDocument?.isActive &&
+      activeDocument?.parentDocumentId === node.id
+    ) {
+      return sortNavigationNodes(
+        [activeDocument?.asNavigationNode, ...node.children],
+        collection.sort
+      );
+    }
+
+    return node.children;
+  }, [
+    activeDocument?.isActive,
+    activeDocument?.isDraft,
+    activeDocument?.parentDocumentId,
+    activeDocument?.asNavigationNode,
+    collection,
+    node,
+  ]);
+
+  const title =
+    (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
+    t("Untitled");
+
   return (
     <>
       <Relative onDragLeave={resetHoverExpanding}>
@@ -244,7 +275,7 @@ function DocumentLink(
                       />
                     )}
                     <EditableTitle
-                      title={node.title || t("Untitled")}
+                      title={title}
                       onSubmit={handleTitleChange}
                       canUpdate={canUpdate}
                       maxLength={MAX_TITLE_LENGTH}
@@ -259,6 +290,7 @@ function DocumentLink(
                 exact={false}
                 showActions={menuOpen}
                 scrollIntoViewIfNeeded={!document?.isStarred}
+                isDraft={isDraft}
                 ref={ref}
                 menu={
                   document && !isMoving ? (
@@ -279,23 +311,22 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
-      {expanded && !isDragging && (
-        <>
-          {node.children.map((childNode, index) => (
-            <ObservedDocumentLink
-              key={childNode.id}
-              collection={collection}
-              node={childNode}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              depth={depth + 1}
-              canUpdate={canUpdate}
-              index={index}
-              parentId={node.id}
-            />
-          ))}
-        </>
-      )}
+      {expanded &&
+        !isDragging &&
+        nodeChildren.map((childNode, index) => (
+          <ObservedDocumentLink
+            key={childNode.id}
+            collection={collection}
+            node={childNode}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            isDraft={childNode.isDraft}
+            depth={depth + 1}
+            canUpdate={canUpdate}
+            index={index}
+            parentId={node.id}
+          />
+        ))}
     </>
   );
 }

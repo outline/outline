@@ -1,7 +1,7 @@
 import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Document from "~/models/Document";
 import NudeButton from "./NudeButton";
 
@@ -12,6 +12,7 @@ type Props = {
 
 function Star({ size, document, ...rest }: Props) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const handleClick = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -32,24 +33,24 @@ function Star({ size, document, ...rest }: Props) {
   }
 
   return (
-    <Button
+    <NudeButton
       onClick={handleClick}
       size={size}
       aria-label={document.isStarred ? t("Unstar") : t("Star")}
       {...rest}
     >
       {document.isStarred ? (
-        <AnimatedStar size={size} color="currentColor" />
+        <AnimatedStar size={size} color={theme.textSecondary} />
       ) : (
-        <AnimatedStar size={size} color="currentColor" as={UnstarredIcon} />
+        <AnimatedStar
+          size={size}
+          color={theme.textTertiary}
+          as={UnstarredIcon}
+        />
       )}
-    </Button>
+    </NudeButton>
   );
 }
-
-const Button = styled(NudeButton)`
-  color: ${(props) => props.theme.text};
-`;
 
 export const AnimatedStar = styled(StarredIcon)`
   flex-shrink: 0;

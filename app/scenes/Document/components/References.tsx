@@ -27,13 +27,13 @@ function References({ document }: Props) {
     ? collection.getDocumentChildren(document.id)
     : [];
   const showBacklinks = !!backlinks.length;
-  const showNestedDocuments = !!children.length;
-  const isBacklinksTab = location.hash === "#backlinks" || !showNestedDocuments;
+  const showParentDocuments = !!children.length;
+  const isBacklinksTab = location.hash === "#backlinks" || !showParentDocuments;
 
-  return showBacklinks || showNestedDocuments ? (
+  return showBacklinks || showParentDocuments ? (
     <Fade>
       <Tabs>
-        {showNestedDocuments && (
+        {showParentDocuments && (
           <Tab to="#children" isActive={() => !isBacklinksTab}>
             <Trans>Nested documents</Trans>
           </Tab>

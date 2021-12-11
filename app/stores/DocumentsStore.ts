@@ -233,7 +233,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @computed
-  get active(): Document | null | undefined {
+  get active(): Document | undefined {
     return this.rootStore.ui.activeDocumentId
       ? this.data.get(this.rootStore.ui.activeDocumentId)
       : undefined;

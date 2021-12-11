@@ -90,7 +90,7 @@ function DocumentHeader({
     });
   }, [onSave]);
 
-  const isNew = document.isNewDocument;
+  const isNew = document.isPersistedOnce;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
   const canToggleEmbeds = team?.documentEmbeds;

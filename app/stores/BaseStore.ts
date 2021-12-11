@@ -86,7 +86,7 @@ export default class BaseStore<T extends BaseModel> {
       const existingModel = this.data.get(item.id);
 
       if (existingModel) {
-        set(existingModel, item);
+        existingModel.updateFromJson(item);
         return existingModel;
       }
 

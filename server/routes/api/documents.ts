@@ -91,7 +91,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     // index sort is special because it uses the order of the documents in the
     // collection.documentStructure rather than a database column
     if (sort === "index") {
-      documentIds = collection.documentStructure
+      documentIds = (collection.documentStructure || [])
         // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
         .map((node) => node.id)
         .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);

@@ -1,23 +1,5 @@
-import naturalSort from "@shared/utils/naturalSort";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import { Collection } from "@server/models";
-
-type Document = {
-  children: Document[];
-  id: string;
-  title: string;
-  url: string;
-};
-
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'sort' implicitly has an 'any' type.
-const sortDocuments = (documents: Document[], sort): Document[] => {
-  const orderedDocs = naturalSort(documents, sort.field, {
-    direction: sort.direction,
-  });
-  return orderedDocs.map((document) => ({
-    ...document,
-    children: sortDocuments(document.children, sort),
-  }));
-};
 
 // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 export default function present(collection: Collection) {
@@ -47,11 +29,7 @@ export default function present(collection: Collection) {
     };
   }
 
-  // "index" field is manually sorted and is represented by the documentStructure
-  // already saved in the database, no further sort is needed
-  if (data.sort.field !== "index") {
-    data.documents = sortDocuments(collection.documentStructure, data.sort);
-  }
+  data.documents = sortNavigationNodes(collection.documentStructure, data.sort);
 
   return data;
 }

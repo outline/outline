@@ -9,7 +9,7 @@ type Props = {
   options?: Record<string, any>;
   heading?: React.ReactNode;
   empty?: React.ReactNode;
-  showNestedDocuments?: boolean;
+  showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
   showPin?: boolean;

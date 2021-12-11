@@ -5,6 +5,7 @@ import { useDrop, useDrag } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
@@ -25,7 +26,7 @@ type Props = {
   collection: Collection;
   canUpdate: boolean;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (id: string) => Promise<any>;
+  prefetchDocument: (id: string) => Promise<Document | void>;
   belowCollection: Collection | void;
 };
 
@@ -152,6 +153,31 @@ function CollectionLink({
     },
   });
 
+  const collectionDocuments = React.useMemo(() => {
+    if (
+      activeDocument?.isActive &&
+      activeDocument?.isDraft &&
+      activeDocument?.collectionId === collection.id &&
+      !activeDocument?.parentDocumentId
+    ) {
+      return sortNavigationNodes(
+        [activeDocument.asNavigationNode, ...collection.documents],
+        collection.sort
+      );
+    }
+
+    return collection.documents;
+  }, [
+    activeDocument?.isActive,
+    activeDocument?.isDraft,
+    activeDocument?.collectionId,
+    activeDocument?.parentDocumentId,
+    activeDocument?.asNavigationNode,
+    collection.documents,
+    collection.id,
+    collection.sort,
+  ]);
+
   const isDraggingAnyCollection =
     isDraggingAnotherCollection || isCollectionDragging;
 
@@ -229,9 +255,8 @@ function CollectionLink({
           />
         )}
       </div>
-
       {expanded &&
-        collection.documents.map((node, index) => (
+        collectionDocuments.map((node, index) => (
           <DocumentLink
             key={node.id}
             node={node}
@@ -239,6 +264,7 @@ function CollectionLink({
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}
             canUpdate={canUpdate}
+            isDraft={node.isDraft}
             depth={2}
             index={index}
           />

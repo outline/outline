@@ -124,6 +124,7 @@ class Drafts extends React.Component<Props> {
           fetch={this.props.documents.fetchDrafts}
           documents={this.props.documents.drafts(options)}
           options={options}
+          showParentDocuments
           showCollection
         />
       </Scene>

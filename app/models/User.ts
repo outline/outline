@@ -1,17 +1,30 @@
-import { computed } from "mobx";
+import { computed, observable } from "mobx";
 import { Role } from "@shared/types";
 import BaseModel from "./BaseModel";
+import Field from "./decorators/Field";
 
 class User extends BaseModel {
-  avatarUrl: string;
-
+  @Field
+  @observable
   id: string;
 
+  @Field
+  @observable
+  avatarUrl: string;
+
+  @Field
+  @observable
   name: string;
 
-  email: string;
-
+  @Field
+  @observable
   color: string;
+
+  @Field
+  @observable
+  language: string;
+
+  email: string;
 
   isAdmin: boolean;
 
@@ -22,8 +35,6 @@ class User extends BaseModel {
   isSuspended: boolean;
 
   createdAt: string;
-
-  language: string;
 
   @computed
   get isInvited(): boolean {

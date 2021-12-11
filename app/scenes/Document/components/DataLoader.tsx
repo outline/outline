@@ -15,7 +15,7 @@ import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit, updateDocumentUrl } from "~/utils/routeHelpers";
+import { matchDocumentEdit } from "~/utils/routeHelpers";
 import { isInternalUrl } from "~/utils/urls";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
@@ -227,17 +227,6 @@ class DataLoader extends React.Component<Props> {
             throw err;
           }
         });
-      }
-
-      const isMove = this.props.location.pathname.match(/move$/);
-      const canRedirect = !revisionId && !isMove && !shareId;
-
-      if (canRedirect) {
-        const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
-
-        if (this.props.location.pathname !== canonicalUrl) {
-          history.replace(canonicalUrl);
-        }
       }
     }
   };

@@ -1,9 +1,10 @@
-import { pick, trim } from "lodash";
+import { trim } from "lodash";
 import { action, computed, observable } from "mobx";
 import BaseModel from "~/models/BaseModel";
 import Document from "~/models/Document";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
+import Field from "./decorators/Field";
 
 export default class Collection extends BaseModel {
   @observable
@@ -12,21 +13,44 @@ export default class Collection extends BaseModel {
   @observable
   isLoadingUsers: boolean;
 
+  @Field
+  @observable
   id: string;
 
+  @Field
+  @observable
   name: string;
 
+  @Field
+  @observable
   description: string;
 
+  @Field
+  @observable
   icon: string;
 
+  @Field
+  @observable
   color: string;
 
+  @Field
+  @observable
   permission: "read" | "read_write" | void;
 
+  @Field
+  @observable
   sharing: boolean;
 
+  @Field
+  @observable
   index: string;
+
+  @Field
+  @observable
+  sort: {
+    field: string;
+    direction: "asc" | "desc";
+  };
 
   documents: NavigationNode[];
 
@@ -35,11 +59,6 @@ export default class Collection extends BaseModel {
   updatedAt: string;
 
   deletedAt: string | null | undefined;
-
-  sort: {
-    field: string;
-    direction: "asc" | "desc";
-  };
 
   url: string;
 
@@ -112,6 +131,7 @@ export default class Collection extends BaseModel {
 
   pathToDocument(documentId: string) {
     let path: NavigationNode[] | undefined;
+    const document = this.store.rootStore.documents.get(documentId);
 
     const travelNodes = (
       nodes: NavigationNode[],
@@ -125,6 +145,14 @@ export default class Collection extends BaseModel {
           return;
         }
 
+        if (
+          document?.parentDocumentId &&
+          node?.id === document?.parentDocumentId
+        ) {
+          path = [...newPath, document.asNavigationNode];
+          return;
+        }
+
         return travelNodes(node.children, newPath);
       });
     };
@@ -135,20 +163,6 @@ export default class Collection extends BaseModel {
 
     return path || [];
   }
-
-  toJS = () => {
-    return pick(this, [
-      "id",
-      "name",
-      "color",
-      "description",
-      "sharing",
-      "icon",
-      "permission",
-      "sort",
-      "index",
-    ]);
-  };
 
   export = () => {
     return client.get("/collections.export", {
