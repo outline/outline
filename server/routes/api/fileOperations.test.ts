@@ -15,6 +15,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 jest.mock("aws-sdk", () => {
   const mS3 = {
+    createPresignedPost: jest.fn(),
     deleteObject: jest.fn().mockReturnThis(),
     promise: jest.fn(),
   };

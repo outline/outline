@@ -6,6 +6,7 @@ import documentPermanentDeleter from "./documentPermanentDeleter";
 
 jest.mock("aws-sdk", () => {
   const mS3 = {
+    createPresignedPost: jest.fn(),
     deleteObject: jest.fn().mockReturnThis(),
     promise: jest.fn(),
   };
