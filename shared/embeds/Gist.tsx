@@ -1,15 +1,9 @@
 import * as React from "react";
+import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
   "^https://gist.github.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
 );
-type Props = {
-  isSelected: boolean;
-  attrs: {
-    href: string;
-    matches: string[];
-  };
-};
 
 class Gist extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

@@ -1,16 +1,11 @@
 import * as React from "react";
 import Frame from "./components/Frame";
 import Image from "./components/Image";
+import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
   "^https://docs.google.com/drawings/d/(.*)/(edit|preview)(.*)$"
 );
-type Props = {
-  attrs: {
-    href: string;
-    matches: string[];
-  };
-};
 
 export default class GoogleDrawings extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
@@ -19,7 +14,6 @@ export default class GoogleDrawings extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; icon: Element; canonicalUrl: ... Remove this comment to see the full error message
         src={this.props.attrs.href.replace("/edit", "/preview")}
         icon={
           <Image

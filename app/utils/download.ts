@@ -59,27 +59,6 @@ export default function download(
     }
   }
 
-  function d2b(u: string) {
-    if (typeof u !== "string") {
-      throw Error("Attempted to pass non-string to d2b");
-    }
-
-    const p = u.split(/[:;,]/),
-      t = p[1],
-      dec = p[2] === "base64" ? atob : decodeURIComponent,
-      // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-      bin = dec(p.pop()),
-      mx = bin.length,
-      uia = new Uint8Array(mx);
-
-    let i = 0;
-    for (i; i < mx; ++i) uia[i] = bin.charCodeAt(i);
-
-    return new B([uia], {
-      type: t,
-    });
-  }
-
   function saver(url: string, winMode = false) {
     if (typeof url !== "string") {
       throw Error("Attempted to pass non-string url to saver");
@@ -140,7 +119,7 @@ export default function download(
     // Blob but not URL:
     fr = new FileReader();
 
-    fr.onload = function (e) {
+    fr.onload = function () {
       // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
       saver(this.result);
     };

@@ -84,8 +84,17 @@ function CollectionDescription({ collection }: Props) {
         <span onClick={can.update ? handleStartEditing : undefined}>
           {collections.isSaving && <LoadingIndicator />}
           {collection.hasDescription || isEditing || isDirty ? (
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-            <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
+            <React.Suspense
+              fallback={
+                <Placeholder
+                  onClick={() => {
+                    //
+                  }}
+                >
+                  Loading…
+                </Placeholder>
+              }
+            >
               <Editor
                 key={key}
                 defaultValue={collection.description || ""}

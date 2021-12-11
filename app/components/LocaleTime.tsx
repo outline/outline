@@ -40,8 +40,7 @@ function LocaleTime({
   tooltipDelay,
 }: Props) {
   const userLocale = useUserLocale();
-  const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line no-unused-vars
-
+  const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const callback = React.useRef<() => void>();
 
   React.useEffect(() => {

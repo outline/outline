@@ -1,12 +1,6 @@
 import * as React from "react";
 import Frame from "./components/Frame";
-
-type Props = {
-  attrs: {
-    href: string;
-    matches: Record<string, any>;
-  };
-};
+import { EmbedProps as Props } from ".";
 
 export default class Lucidchart extends React.Component<Props> {
   static ENABLED = [
@@ -16,11 +10,11 @@ export default class Lucidchart extends React.Component<Props> {
 
   render() {
     const { matches } = this.props.attrs;
-    const { chartId } = matches.groups;
+    const chartId = matches.groups?.chartId;
+
     return (
       <Frame
         {...this.props}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; attrs: { href:... Remove this comment to see the full error message
         src={`https://lucidchart.com/documents/embeddedchart/${chartId}`}
         title="Lucidchart Embed"
       />

@@ -13,7 +13,7 @@ const StyledIframe = styled(Iframe)`
   border-radius: ${(props) => (props.$withBar ? "3px 3px 0 0" : "3px")};
   display: block;
 `;
-type Props = {
+type Props = React.HTMLAttributes<HTMLIFrameElement> & {
   src?: string;
   border?: boolean;
   title?: string;
@@ -22,6 +22,7 @@ type Props = {
   isSelected?: boolean;
   width?: string;
   height?: string;
+  allow?: string;
 };
 
 type PropsWithRef = Props & {
@@ -147,7 +148,7 @@ const Bar = styled.div`
   user-select: none;
 `;
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<Frame, Props>((props, ref) => (
   // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   <Frame {...props} forwardedRef={ref} />
 ));

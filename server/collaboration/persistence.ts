@@ -2,7 +2,7 @@ import { onChangePayload, onLoadDocumentPayload } from "@hocuspocus/server";
 import { debounce } from "lodash";
 import * as Y from "yjs";
 import Logger from "@server/logging/logger";
-import { Document, User } from "@server/models";
+import { Document } from "@server/models";
 import documentUpdater from "../commands/documentUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 

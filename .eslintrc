@@ -26,8 +26,18 @@
   "rules": {
     "eqeqeq": 2,
     "no-mixed-operators": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "args": "after-used",
+        "ignoreRestSiblings": true
+      }
+    ],
     "padding-line-between-statements": ["error", { "blankLine": "always", "prev": "*", "next": "export" }],
     "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
     "import/newline-after-import": 2,
     "import/order": [
       "error",

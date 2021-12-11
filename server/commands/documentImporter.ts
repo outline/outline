@@ -28,7 +28,7 @@ turndownService
   .use(tables)
   .addRule("breaks", {
     filter: ["br"],
-    replacement: function (content) {
+    replacement: function () {
       return "\n";
     },
   });

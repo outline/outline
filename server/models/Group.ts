@@ -79,7 +79,7 @@ Group.associate = (models) => {
 
 // Cascade deletes to group and collection relations
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
-Group.addHook("afterDestroy", async (group, options) => {
+Group.addHook("afterDestroy", async (group) => {
   if (!group.deletedAt) return;
   await GroupUser.destroy({
     where: {

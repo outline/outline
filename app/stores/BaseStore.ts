@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { orderBy } from "lodash";
-import { observable, set, action, computed, runInAction } from "mobx";
+import { observable, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "~/stores/RootStore";
 import BaseModel from "~/models/BaseModel";

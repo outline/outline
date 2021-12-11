@@ -39,7 +39,7 @@ class Metrics {
     return ddMetrics.gauge(key, value, [...tags, `instance:${instanceId}`]);
   }
 
-  increment(key: string, tags?: Record<string, string>): void {
+  increment(key: string, _tags?: Record<string, string>): void {
     if (!this.enabled) {
       return;
     }

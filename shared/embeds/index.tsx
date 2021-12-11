@@ -34,10 +34,17 @@ import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
 import Image from "./components/Image";
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'Component' implicitly has an 'any' type... Remove this comment to see the full error message
-function matcher(Component) {
-  // @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
+export type EmbedProps = {
+  isSelected: boolean;
+  attrs: {
+    href: string;
+    matches: RegExpMatchArray;
+  };
+};
+
+function matcher(Component: React.ComponentType<EmbedProps>) {
   return (url: string) => {
+    // @ts-expect-error not aware of static
     const regexes = Component.ENABLED;
 
     for (const regex of regexes) {
@@ -47,6 +54,8 @@ function matcher(Component) {
         return result;
       }
     }
+
+    return undefined;
   };
 }
 
@@ -60,16 +69,15 @@ export default [
   {
     title: "Abstract",
     keywords: "design",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/abstract.png" />,
+    defaultHidden: true,
+    icon: () => <Img src="/images/abstract.png" alt="Abstract" />,
     component: Abstract,
     matcher: matcher(Abstract),
   },
   {
     title: "Airtable",
     keywords: "spreadsheet",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/airtable.png" />,
+    icon: () => <Img src="/images/airtable.png" alt="Airtable" />,
     component: Airtable,
     matcher: matcher(Airtable),
   },
@@ -77,8 +85,7 @@ export default [
     title: "Bilibili",
     keywords: "video",
     defaultHidden: true,
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/bilibili.png" />,
+    icon: () => <Img src="/images/bilibili.png" alt="Bilibili" />,
     component: Bilibili,
     matcher: matcher(Bilibili),
   },
@@ -86,120 +93,106 @@ export default [
     title: "Cawemo",
     keywords: "bpmn process",
     defaultHidden: true,
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/cawemo.png" />,
+    icon: () => <Img src="/images/cawemo.png" alt="Cawemo" />,
     component: Cawemo,
     matcher: matcher(Cawemo),
   },
   {
     title: "ClickUp",
     keywords: "project",
-    defaultHidden: true,
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/clickup.png" />,
+    icon: () => <Img src="/images/clickup.png" alt="ClickUp" />,
     component: ClickUp,
     matcher: matcher(ClickUp),
   },
   {
     title: "Codepen",
     keywords: "code editor",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/codepen.png" />,
+    icon: () => <Img src="/images/codepen.png" alt="Codepen" />,
     component: Codepen,
     matcher: matcher(Codepen),
   },
   {
     title: "Descript",
     keywords: "audio",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/descript.png" />,
+    icon: () => <Img src="/images/descript.png" alt="Descript" />,
     component: Descript,
     matcher: matcher(Descript),
   },
   {
     title: "Figma",
     keywords: "design svg vector",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/figma.png" />,
+    icon: () => <Img src="/images/figma.png" alt="Figma" />,
     component: Figma,
     matcher: matcher(Figma),
   },
   {
     title: "Framer",
     keywords: "design prototyping",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/framer.png" />,
+    icon: () => <Img src="/images/framer.png" alt="Framer" />,
     component: Framer,
     matcher: matcher(Framer),
   },
   {
     title: "GitHub Gist",
     keywords: "code",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/github-gist.png" />,
+    icon: () => <Img src="/images/github-gist.png" alt="GitHub" />,
     component: Gist,
     matcher: matcher(Gist),
   },
   {
     title: "Diagrams.net",
     keywords: "diagrams drawio",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/diagrams.png" />,
+    icon: () => <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
     matcher: matcher(Diagrams),
   },
   {
     title: "Google Drawings",
     keywords: "drawings",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-drawings.png" />,
+    icon: () => <Img src="/images/google-drawings.png" alt="Google Drawings" />,
     component: GoogleDrawings,
     matcher: matcher(GoogleDrawings),
   },
   {
     title: "Google Drive",
     keywords: "drive",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-drive.png" />,
+    icon: () => <Img src="/images/google-drive.png" alt="Google Drive" />,
     component: GoogleDrive,
     matcher: matcher(GoogleDrive),
   },
   {
     title: "Google Docs",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-docs.png" />,
+    icon: () => <Img src="/images/google-docs.png" alt="Google Docs" />,
     component: GoogleDocs,
     matcher: matcher(GoogleDocs),
   },
   {
     title: "Google Sheets",
     keywords: "excel spreadsheet",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-sheets.png" />,
+    icon: () => <Img src="/images/google-sheets.png" alt="Google Sheets" />,
     component: GoogleSheets,
     matcher: matcher(GoogleSheets),
   },
   {
     title: "Google Slides",
     keywords: "presentation slideshow",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-slides.png" />,
+    icon: () => <Img src="/images/google-slides.png" alt="Google Slides" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
   },
   {
     title: "Google Calendar",
     keywords: "calendar",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-calendar.png" />,
+    icon: () => <Img src="/images/google-calendar.png" alt="Google Calendar" />,
     component: GoogleCalendar,
     matcher: matcher(GoogleCalendar),
   },
   {
     title: "Google Data Studio",
-    keywords: "business intelligence",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/google-datastudio.png" />,
+    keywords: "bi business intelligence",
+    icon: () => (
+      <Img src="/images/google-datastudio.png" alt="Google Data Studio" />
+    ),
     component: GoogleDataStudio,
     matcher: matcher(GoogleDataStudio),
   },
@@ -207,48 +200,42 @@ export default [
     title: "InVision",
     keywords: "design prototype",
     defaultHidden: true,
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/invision.png" />,
+    icon: () => <Img src="/images/invision.png" alt="InVision" />,
     component: InVision,
     matcher: matcher(InVision),
   },
   {
     title: "Loom",
     keywords: "video screencast",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/loom.png" />,
+    icon: () => <Img src="/images/loom.png" alt="Loom" />,
     component: Loom,
     matcher: matcher(Loom),
   },
   {
     title: "Lucidchart",
     keywords: "chart",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/lucidchart.png" />,
+    icon: () => <Img src="/images/lucidchart.png" alt="Lucidchart" />,
     component: Lucidchart,
     matcher: matcher(Lucidchart),
   },
   {
     title: "Marvel",
     keywords: "design prototype",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/marvel.png" />,
+    icon: () => <Img src="/images/marvel.png" alt="Marvel" />,
     component: Marvel,
     matcher: matcher(Marvel),
   },
   {
     title: "Mindmeister",
     keywords: "mindmap",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/mindmeister.png" />,
+    icon: () => <Img src="/images/mindmeister.png" alt="Mindmeister" />,
     component: Mindmeister,
     matcher: matcher(Mindmeister),
   },
   {
     title: "Miro",
     keywords: "whiteboard",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/miro.png" />,
+    icon: () => <Img src="/images/miro.png" alt="Miro" />,
     component: Miro,
     matcher: matcher(Miro),
   },
@@ -256,8 +243,7 @@ export default [
     title: "Mode",
     keywords: "analytics",
     defaultHidden: true,
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/mode-analytics.png" />,
+    icon: () => <Img src="/images/mode-analytics.png" alt="Mode" />,
     component: ModeAnalytics,
     matcher: matcher(ModeAnalytics),
   },
@@ -265,56 +251,49 @@ export default [
     title: "Pitch",
     keywords: "presentation",
     defaultHidden: true,
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/pitch.png" />,
+    icon: () => <Img src="/images/pitch.png" alt="Pitch" />,
     component: Pitch,
     matcher: matcher(Pitch),
   },
   {
     title: "Prezi",
     keywords: "presentation",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/prezi.png" />,
+    icon: () => <Img src="/images/prezi.png" alt="Prezi" />,
     component: Prezi,
     matcher: matcher(Prezi),
   },
   {
     title: "Spotify",
     keywords: "music",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/spotify.png" />,
+    icon: () => <Img src="/images/spotify.png" alt="Spotify" />,
     component: Spotify,
     matcher: matcher(Spotify),
   },
   {
     title: "Trello",
     keywords: "kanban",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/trello.png" />,
+    icon: () => <Img src="/images/trello.png" alt="Trello" />,
     component: Trello,
     matcher: matcher(Trello),
   },
   {
     title: "Typeform",
     keywords: "form survey",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/typeform.png" />,
+    icon: () => <Img src="/images/typeform.png" alt="Typeform" />,
     component: Typeform,
     matcher: matcher(Typeform),
   },
   {
     title: "Vimeo",
     keywords: "video",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/vimeo.png" />,
+    icon: () => <Img src="/images/vimeo.png" alt="Vimeo" />,
     component: Vimeo,
     matcher: matcher(Vimeo),
   },
   {
     title: "YouTube",
     keywords: "google video",
-    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-    icon: () => <Img src="/images/youtube.png" />,
+    icon: () => <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
     matcher: matcher(YouTube),
   },

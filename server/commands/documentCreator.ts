@@ -11,7 +11,6 @@ export default async function documentCreator({
   // allows override for import
   updatedAt,
   template,
-  index,
   user,
   editorVersion,
   source,

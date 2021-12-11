@@ -14,7 +14,7 @@ type Props = {
   onClose?: () => void;
 };
 
-function CollectionSortMenu({ collection, onOpen, onClose, ...rest }: Props) {
+function CollectionSortMenu({ collection, onOpen, onClose }: Props) {
   const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,

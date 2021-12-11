@@ -2,12 +2,7 @@ import * as React from "react";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp("https?://open.spotify.com/(.*)$");
-type Props = {
-  attrs: {
-    href: string;
-    matches: string[];
-  };
-};
+import { EmbedProps as Props } from ".";
 
 export default class Spotify extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
@@ -36,7 +31,6 @@ export default class Spotify extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ width: string; height: string; src: string... Remove this comment to see the full error message
         width="100%"
         height={`${height}px`}
         src={`https://open.spotify.com/embed${normalizedPath}`}

@@ -1,12 +1,6 @@
 import * as React from "react";
 import Frame from "./components/Frame";
-
-type Props = {
-  attrs: {
-    href: string;
-    matches: string[];
-  };
-};
+import { EmbedProps as Props } from ".";
 
 export default class Abstract extends React.Component<Props> {
   static ENABLED = [
@@ -20,7 +14,6 @@ export default class Abstract extends React.Component<Props> {
     return (
       <Frame
         {...this.props}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ src: string; title: string; attrs: { href:... Remove this comment to see the full error message
         src={`https://app.goabstract.com/embed/${shareId}`}
         title={`Abstract (${shareId})`}
       />
