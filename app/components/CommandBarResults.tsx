@@ -1,33 +1,24 @@
-import { useMatches, KBarResults, Action } from "kbar";
+import { useMatches, KBarResults } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
 import CommandBarItem from "~/components/CommandBarItem";
-import { CommandBarAction } from "~/types";
 
 export default function CommandBarResults() {
-  const matches = useMatches();
-  const items = React.useMemo(
-    () =>
-      matches
-        .reduce((acc, curr) => {
-          const { actions, name } = curr;
-          acc.push(name);
-          acc.push(...actions);
-          return acc;
-        }, [] as (Action | string)[])
-        .filter((i) => i !== "none"),
-    [matches]
-  );
+  const { results, rootActionId } = useMatches();
 
   return (
     <KBarResults
-      items={items}
+      items={results}
       maxHeight={400}
       onRender={({ item, active }) =>
         typeof item === "string" ? (
           <Header>{item}</Header>
         ) : (
-          <CommandBarItem action={item as CommandBarAction} active={active} />
+          <CommandBarItem
+            action={item}
+            active={active}
+            currentRootActionId={rootActionId}
+          />
         )
       }
     />

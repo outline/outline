@@ -1,5 +1,6 @@
 import {
   BookmarkedIcon,
+  BicycleIcon,
   CollectionIcon,
   CoinsIcon,
   AcademicCapIcon,
@@ -26,6 +27,7 @@ import {
   SportIcon,
   SunIcon,
   TargetIcon,
+  TerminalIcon,
   ToolsIcon,
   VehicleIcon,
   WarningIcon,
@@ -73,6 +75,10 @@ export const icons = {
   academicCap: {
     component: AcademicCapIcon,
     keywords: "learn teach lesson guide tutorial onboarding training",
+  },
+  bicycle: {
+    component: BicycleIcon,
+    keywords: "bicycle bike cycle",
   },
   beaker: {
     component: BeakerIcon,
@@ -161,6 +167,10 @@ export const icons = {
   target: {
     component: TargetIcon,
     keywords: "target goal sales",
+  },
+  terminal: {
+    component: TerminalIcon,
+    keywords: "terminal code",
   },
   tools: {
     component: ToolsIcon,
