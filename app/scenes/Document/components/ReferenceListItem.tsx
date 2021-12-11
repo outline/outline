@@ -47,6 +47,7 @@ const Title = styled.div`
 const StyledDocumentIcon = styled(DocumentIcon)`
   margin-left: -4px;
   color: ${(props) => props.theme.textSecondary};
+  flex-shrink: 0;
 `;
 
 const Emoji = styled.span`
