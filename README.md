@@ -87,7 +87,7 @@ For contributing features and fixes you can quickly get an environment running u
 
 1. Install these dependencies if you don't already have them
    1. [Docker for Desktop](https://www.docker.com)
-   1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
+   1. [Node.js](https://nodejs.org/) (v16 LTS preferred)
    1. [Yarn](https://yarnpkg.com)
 1. Clone this repo
 1. Register a Slack app at https://api.slack.com/apps
