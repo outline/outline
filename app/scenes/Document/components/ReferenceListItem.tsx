@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
+import Flex from "~/components/Flex";
 import { NavigationNode } from "~/types";
 
 type Props = {
@@ -78,18 +79,18 @@ function ReferenceListItem({
       }}
       {...rest}
     >
-      <div style={{ display: "flex" }}>
+      <Flex gap={4} dir="auto">
         {document instanceof Document && document.emoji ? (
           <Emoji>{document.emoji}</Emoji>
         ) : (
           <StyledDocumentIcon color="currentColor" />
         )}
-        <Title dir="auto">
+        <Title>
           {document instanceof Document && document.emoji
             ? document.title.replace(new RegExp(`^${document.emoji}`), "")
             : document.title}
         </Title>
-      </div>
+      </Flex>
       {document instanceof Document && document.updatedBy && (
         <DocumentMeta document={document} showCollection={showCollection} />
       )}
