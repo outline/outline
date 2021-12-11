@@ -102,20 +102,12 @@ export function actionToKBar(
       name: resolvedName,
       section: resolvedSection,
       placeholder: resolvedPlaceholder,
-      keywords: `${action.keywords || ""} ${children
-        .filter((c) => !!c.keywords)
-        .map((c) => c.keywords)
-        .join(" ")}`,
+      keywords: `${action.keywords}`,
       shortcut: action.shortcut || [],
-      icon: resolvedIcon
-        ? React.cloneElement(resolvedIcon, {
-            color: "currentColor",
-          })
-        : undefined,
+      icon: resolvedIcon,
       perform: action.perform
         ? () => action.perform && action.perform(context)
         : undefined,
-      children: children.length ? children.map((a) => a.id) : undefined,
     },
     // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
   ].concat(children.map((child) => ({ ...child, parent: action.id })));
