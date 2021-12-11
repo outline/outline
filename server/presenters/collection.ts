@@ -18,7 +18,7 @@ export default function present(collection: Collection) {
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: collection.documentStructure || [],
+    documents: collection.documentStructure,
   };
 
   // Handle the "sort" field being empty here for backwards compatability
@@ -29,7 +29,10 @@ export default function present(collection: Collection) {
     };
   }
 
-  data.documents = sortNavigationNodes(collection.documentStructure, data.sort);
+  data.documents = sortNavigationNodes(
+    collection.documentStructure || [],
+    data.sort
+  );
 
   return data;
 }
