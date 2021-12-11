@@ -33,7 +33,7 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import ContextMenu from "~/components/ContextMenu";
 import Flex from "~/components/Flex";
@@ -197,6 +197,7 @@ type Props = {
 
 function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const menu = useMenuState({
     modal: true,
     placement: "bottom-end",
@@ -248,6 +249,19 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
               onChange={(color) => onChange(color.hex, icon)}
               colors={colors}
               triangle="hide"
+              styles={{
+                default: {
+                  hash: {
+                    color: theme.text,
+                    background: theme.inputBorder,
+                  },
+                  input: {
+                    color: theme.text,
+                    boxShadow: `inset 0 0 0 1px ${theme.inputBorder}`,
+                    background: "transparent",
+                  },
+                },
+              }}
             />
           </React.Suspense>
         </Flex>
