@@ -1,7 +1,7 @@
 import { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
-import styled, { css } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
 
@@ -15,6 +15,7 @@ function CommandBarItem(
   { action, active, currentRootActionId }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
+  const theme = useTheme();
   const ancestors = React.useMemo(() => {
     if (!currentRootActionId) {
       return action.ancestors;
@@ -47,7 +48,7 @@ function CommandBarItem(
         {ancestors.map((ancestor) => (
           <React.Fragment key={ancestor.id}>
             <Ancestor>{ancestor.name}</Ancestor>
-            <ForwardIcon color="currentColor" size={20} />
+            <ForwardIcon color={theme.textSecondary} size={22} />
           </React.Fragment>
         ))}
         {action.name}

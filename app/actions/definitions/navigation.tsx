@@ -9,6 +9,7 @@ import {
   ShapesIcon,
   KeyboardIcon,
   EmailIcon,
+  LogoutIcon,
 } from "outline-icons";
 import * as React from "react";
 import {
@@ -138,6 +139,7 @@ export const openKeyboardShortcuts = createAction({
 export const logout = createAction({
   name: ({ t }) => t("Log out"),
   section: NavigationSection,
+  icon: <LogoutIcon />,
   perform: () => stores.auth.logout(),
 });
 
