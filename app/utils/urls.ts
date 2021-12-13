@@ -1,7 +1,13 @@
 import { parseDomain } from "@shared/utils/domains";
 
 export function isInternalUrl(href: string) {
-  if (href[0] === "/") return true;
+  const attachment = "/api/attachments.redirect?";
+  if (href.includes(attachment)) {
+    return false;
+  }
+  if (href[0] === "/") {
+    return true;
+  }
   const outline = parseDomain(window.location.href);
   const parsed = parseDomain(href);
 
