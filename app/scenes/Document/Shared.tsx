@@ -1,10 +1,14 @@
 import { Location } from "history";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import Flex from "~/components/Flex";
+import Sidebar from "~/components/Sidebar/Shared";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
 import { OfflineError } from "~/utils/errors";
@@ -20,7 +24,13 @@ type Props = RouteComponentProps<{
   location: Location<{ title?: string }>;
 };
 
-export default function SharedDocumentScene(props: Props) {
+function SharedDocumentScene(props: Props) {
+  const { ui } = useStores();
+  const sidebarCollapsed = ui.sidebarCollapsed;
+
+  console.log(ui.sidebarCollapsed);
+  console.log({ ui });
+
   const theme = useTheme();
   const [response, setResponse] = React.useState<{
     document: DocumentModel;
@@ -59,12 +69,63 @@ export default function SharedDocumentScene(props: Props) {
   }
 
   return (
-    <Document
-      abilities={EMPTY_OBJECT}
-      document={response.document}
-      sharedTree={response.sharedTree}
-      shareId={shareId}
-      readOnly
-    />
+    <Container auto>
+      <Sidebar />
+      <Content
+        auto
+        justify="center"
+        $isResizing={ui.sidebarIsResizing}
+        $sidebarCollapsed={sidebarCollapsed}
+        style={
+          sidebarCollapsed
+            ? undefined
+            : {
+                marginLeft: `${ui.sidebarWidth}px`,
+              }
+        }
+      >
+        <Document
+          abilities={EMPTY_OBJECT}
+          document={response.document}
+          sharedTree={response.sharedTree}
+          shareId={shareId}
+          readOnly
+        />
+      </Content>{" "}
+    </Container>
   );
 }
+
+// XXX this is copy paste and should be factored out into its own thing, along with the usage in layout
+const Container = styled(Flex)`
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+`;
+
+const Content = styled(Flex)<{
+  $isResizing?: boolean;
+  $sidebarCollapsed?: boolean;
+}>`
+  margin: 0;
+  transition: ${(props) =>
+    props.$isResizing ? "none" : `margin-left 100ms ease-out`};
+
+  @media print {
+    margin: 0 !important;
+  }
+
+  ${breakpoint("mobile", "tablet")`
+    margin-left: 0 !important;
+  `}
+
+  ${breakpoint("tablet")`
+    ${(props: any) =>
+      props.$sidebarCollapsed &&
+      `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
+  `};
+`;
+
+export default observer(SharedDocumentScene);
