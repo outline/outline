@@ -1,13 +1,14 @@
 import { lighten } from "polished";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
-import { Extension } from "rich-markdown-editor";
-import styled, { DefaultTheme, withTheme } from "styled-components";
+import { Props as EditorProps } from "rich-markdown-editor";
+import { EmbedDescriptor } from "rich-markdown-editor/dist/types";
+import styled, { useTheme } from "styled-components";
+import { Optional } from "utility-types";
 import embeds from "@shared/embeds";
 import { light } from "@shared/theme";
-import UiStore from "~/stores/UiStore";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Tooltip from "~/components/Tooltip";
+import useDictionary from "~/hooks/useDictionary";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useToasts from "~/hooks/useToasts";
 import history from "~/utils/history";
@@ -23,56 +24,25 @@ const RichMarkdownEditor = React.lazy(
     )
 );
 
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'EMPTY_ARRAY' implicitly has type 'any[]'... Remove this comment to see the full error message
-const EMPTY_ARRAY = [];
+const EMPTY_ARRAY: EmbedDescriptor[] = [];
 
-export type Props = {
-  id?: string;
-  value?: string;
-  defaultValue?: string;
-  readOnly?: boolean;
-  grow?: boolean;
+export type Props = Optional<
+  EditorProps,
+  "placeholder" | "defaultValue" | "tooltip" | "onClickLink" | "embeds"
+> & {
+  shareId?: string | undefined;
   disableEmbeds?: boolean;
-  ui?: UiStore;
-  style?: React.CSSProperties;
-  extensions?: Extension[];
-  shareId?: string | null | undefined;
-  autoFocus?: boolean;
-  template?: boolean;
-  placeholder?: string;
-  maxLength?: number;
-  scrollTo?: string;
-  theme?: DefaultTheme;
-  className?: string;
-  readOnlyWriteCheckboxes?: boolean;
-  onBlur?: () => void;
-  onFocus?: () => void;
-  onPublish?: (event: React.MouseEvent) => any;
-  onSave?: (arg0: {
-    done?: boolean;
-    autosave?: boolean;
-    publish?: boolean;
-  }) => any;
+  grow?: boolean;
   onSynced?: () => Promise<void>;
-  onCancel?: () => any;
-  onDoubleClick?: () => any;
-  onChange?: (getValue: () => string) => any;
-  onSearchLink?: (title: string) => any;
-  onHoverLink?: (event: MouseEvent) => any;
-  onCreateLink?: (title: string) => Promise<string>;
-  onImageUploadStart?: () => any;
-  onImageUploadStop?: () => any;
+  onPublish?: (event: React.MouseEvent) => any;
 };
 
-type PropsWithRef = Props & {
-  forwardedRef: React.Ref<any>;
-};
-
-function Editor(props: PropsWithRef) {
+function Editor(props: Props, ref: React.Ref<any>) {
   const { id, shareId } = props;
-  const { t } = useTranslation();
+  const theme = useTheme();
   const { showToast } = useToasts();
   const isPrinting = useMediaQuery("print");
+  const dictionary = useDictionary();
 
   const onUploadImage = React.useCallback(
     async (file: File) => {
@@ -115,7 +85,7 @@ function Editor(props: PropsWithRef) {
         window.open(href, "_blank");
       }
     },
-    [history, shareId]
+    [shareId]
   );
 
   const onShowToast = React.useCallback(
@@ -125,88 +95,20 @@ function Editor(props: PropsWithRef) {
     [showToast]
   );
 
-  const dictionary = React.useMemo(() => {
-    return {
-      addColumnAfter: t("Insert column after"),
-      addColumnBefore: t("Insert column before"),
-      addRowAfter: t("Insert row after"),
-      addRowBefore: t("Insert row before"),
-      alignCenter: t("Align center"),
-      alignLeft: t("Align left"),
-      alignRight: t("Align right"),
-      bulletList: t("Bulleted list"),
-      checkboxList: t("Todo list"),
-      codeBlock: t("Code block"),
-      codeCopied: t("Copied to clipboard"),
-      codeInline: t("Code"),
-      createLink: t("Create link"),
-      createLinkError: t("Sorry, an error occurred creating the link"),
-      createNewDoc: t("Create a new doc"),
-      deleteColumn: t("Delete column"),
-      deleteRow: t("Delete row"),
-      deleteTable: t("Delete table"),
-      deleteImage: t("Delete image"),
-      downloadImage: t("Download image"),
-      alignImageLeft: t("Float left"),
-      alignImageRight: t("Float right"),
-      alignImageDefault: t("Center large"),
-      em: t("Italic"),
-      embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
-      findOrCreateDoc: `${t("Find or create a doc")}…`,
-      h1: t("Big heading"),
-      h2: t("Medium heading"),
-      h3: t("Small heading"),
-      heading: t("Heading"),
-      hr: t("Divider"),
-      image: t("Image"),
-      imageUploadError: t("Sorry, an error occurred uploading the image"),
-      imageCaptionPlaceholder: t("Write a caption"),
-      info: t("Info"),
-      infoNotice: t("Info notice"),
-      link: t("Link"),
-      linkCopied: t("Link copied to clipboard"),
-      mark: t("Highlight"),
-      newLineEmpty: `${t("Type '/' to insert")}…`,
-      newLineWithSlash: `${t("Keep typing to filter")}…`,
-      noResults: t("No results"),
-      openLink: t("Open link"),
-      orderedList: t("Ordered list"),
-      pageBreak: t("Page break"),
-      pasteLink: `${t("Paste a link")}…`,
-      pasteLinkWithTitle: (service: string) =>
-        t("Paste a {{service}} link…", {
-          service,
-        }),
-      placeholder: t("Placeholder"),
-      quote: t("Quote"),
-      removeLink: t("Remove link"),
-      searchOrPasteLink: `${t("Search or paste a link")}…`,
-      strikethrough: t("Strikethrough"),
-      strong: t("Bold"),
-      subheading: t("Subheading"),
-      table: t("Table"),
-      tip: t("Tip"),
-      tipNotice: t("Tip notice"),
-      warning: t("Warning"),
-      warningNotice: t("Warning notice"),
-    };
-  }, [t]);
-
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <StyledEditor
-        ref={props.forwardedRef}
+        ref={ref}
         uploadImage={onUploadImage}
-        onClickLink={onClickLink}
         onShowToast={onShowToast}
-        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'EMPTY_ARRAY' implicitly has an 'any[]' t... Remove this comment to see the full error message
         embeds={props.disableEmbeds ? EMPTY_ARRAY : embeds}
-        tooltip={EditorTooltip}
         dictionary={dictionary}
         {...props}
+        tooltip={EditorTooltip}
+        onClickLink={onClickLink}
         placeholder={props.placeholder || ""}
         defaultValue={props.defaultValue || ""}
-        theme={isPrinting ? light : props.theme}
+        theme={isPrinting ? light : theme}
       />
     </ErrorBoundary>
   );
@@ -320,20 +222,19 @@ const StyledEditor = styled(RichMarkdownEditor)<{ grow?: boolean }>`
   }
 `;
 
-// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'children' implicitly has an 'any'... Remove this comment to see the full error message
-const EditorTooltip = ({ children, ...props }) => (
-  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  <Tooltip offset="0, 16" delay={150} {...props}>
-    <Span>{children}</Span>
+type TooltipProps = {
+  children: React.ReactNode;
+  tooltip: string;
+};
+
+const EditorTooltip = ({ children, tooltip, ...props }: TooltipProps) => (
+  <Tooltip offset="0, 16" delay={150} tooltip={tooltip} {...props}>
+    <TooltipContent>{children}</TooltipContent>
   </Tooltip>
 );
 
-const Span = styled.span`
+const TooltipContent = styled.span`
   outline: none;
 `;
 
-const EditorWithTheme = withTheme(Editor);
-
-export default React.forwardRef<typeof Editor, Props>((props, ref) => (
-  <EditorWithTheme {...props} forwardedRef={ref} />
-));
+export default React.forwardRef<typeof Editor, Props>(Editor);

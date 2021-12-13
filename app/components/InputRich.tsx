@@ -5,7 +5,6 @@ import styled from "styled-components";
 import Editor from "~/components/Editor";
 import HelpText from "~/components/HelpText";
 import { LabelText, Outline } from "~/components/Input";
-import useStores from "~/hooks/useStores";
 
 type Props = {
   label: string;
@@ -16,7 +15,6 @@ type Props = {
 
 function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
   const [focused, setFocused] = React.useState<boolean>(false);
-  const { ui } = useStores();
   const handleBlur = React.useCallback(() => {
     setFocused(false);
   }, []);
@@ -39,13 +37,7 @@ function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
             </HelpText>
           }
         >
-          <Editor
-            onBlur={handleBlur}
-            onFocus={handleFocus}
-            ui={ui}
-            grow
-            {...rest}
-          />
+          <Editor onBlur={handleBlur} onFocus={handleFocus} grow {...rest} />
         </React.Suspense>
       </StyledOutline>
     </>

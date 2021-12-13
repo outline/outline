@@ -1,4 +1,5 @@
 import * as React from "react";
+import { EmbedDescriptor } from "rich-markdown-editor/dist/types";
 import styled from "styled-components";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
@@ -43,7 +44,7 @@ export type EmbedProps = {
 };
 
 function matcher(Component: React.ComponentType<EmbedProps>) {
-  return (url: string) => {
+  return (url: string): boolean | [] | RegExpMatchArray => {
     // @ts-expect-error not aware of static
     const regexes = Component.ENABLED;
 
@@ -55,7 +56,7 @@ function matcher(Component: React.ComponentType<EmbedProps>) {
       }
     }
 
-    return undefined;
+    return false;
   };
 }
 
@@ -65,7 +66,7 @@ const Img = styled(Image)`
   height: 18px;
 `;
 
-export default [
+const embeds: EmbedDescriptor[] = [
   {
     title: "Abstract",
     keywords: "design",
@@ -162,6 +163,7 @@ export default [
   },
   {
     title: "Google Docs",
+    keywords: "documents word",
     icon: () => <Img src="/images/google-docs.png" alt="Google Docs" />,
     component: GoogleDocs,
     matcher: matcher(GoogleDocs),
@@ -298,3 +300,5 @@ export default [
     matcher: matcher(YouTube),
   },
 ];
+
+export default embeds;

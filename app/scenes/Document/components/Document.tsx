@@ -568,7 +568,6 @@ class DocumentScene extends React.Component<Props> {
                     onCancel={this.goBack}
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
-                    ui={this.props.ui}
                   >
                     {shareId && (
                       <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>

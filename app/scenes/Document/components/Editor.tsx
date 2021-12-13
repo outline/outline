@@ -18,7 +18,6 @@ type Props = EditorProps &
     title: string;
     document: Document;
     isDraft: boolean;
-    shareId: string | null | undefined;
     multiplayer?: boolean;
     onSave: (arg0: {
       done?: boolean;
@@ -60,6 +59,7 @@ class DocumentEditor extends React.Component<Props> {
 
   handleLinkActive = (event: MouseEvent) => {
     this.activeLinkEvent = event;
+    return false;
   };
 
   handleLinkInactive = () => {

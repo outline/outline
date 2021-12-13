@@ -1,15 +1,11 @@
-import Tippy from "@tippy.js/react";
+import Tippy, { TippyProps } from "@tippy.js/react";
 import { TFunctionResult } from "i18next";
 import * as React from "react";
 import styled from "styled-components";
 
-type Props = {
+type Props = Omit<TippyProps, "content" | "theme"> & {
   tooltip: React.ReactChild | React.ReactChild[] | TFunctionResult;
   shortcut?: React.ReactNode;
-  placement?: "top" | "bottom" | "left" | "right";
-  children: React.ReactElement<any>;
-  delay?: number;
-  className?: string;
 };
 
 function Tooltip({ shortcut, tooltip, delay = 50, ...rest }: Props) {
