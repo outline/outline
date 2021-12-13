@@ -72,7 +72,7 @@ const RealButton = styled.button<{
       fill: ${props.iconColor || props.theme.buttonNeutralText};
     }`
     }
-    
+
 
     &:hover:not(:disabled) {
       background: ${
@@ -100,7 +100,7 @@ const RealButton = styled.button<{
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
-      &:hover {
+      &:hover:not(:disabled) {
         background: ${darken(0.05, props.theme.danger)};
       }
   `};
