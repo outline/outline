@@ -47,7 +47,8 @@ function DocumentLink(
   const { documents, policies } = useStores();
   const { t } = useTranslation();
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
-  const hasChildDocuments = !!node.children.length;
+  const hasChildDocuments =
+    !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
@@ -167,7 +168,9 @@ function DocumentLink(
       documents.move(item.id, collection.id, node.id);
     },
     canDrop: (_item, monitor) =>
-      !!pathToNode && !pathToNode.includes(monitor.getItem<DragObject>().id),
+      !isDraft &&
+      !!pathToNode &&
+      !pathToNode.includes(monitor.getItem<DragObject>().id),
     hover: (item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
