@@ -31,6 +31,9 @@ import {
   ToolsIcon,
   VehicleIcon,
   WarningIcon,
+  DatabaseIcon,
+  SmileyIcon,
+  LightningIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -56,22 +59,6 @@ const TwitterPicker = React.lazy(
 );
 
 export const icons = {
-  bookmark: {
-    component: BookmarkedIcon,
-    keywords: "bookmark",
-  },
-  collection: {
-    component: CollectionIcon,
-    keywords: "collection",
-  },
-  coins: {
-    component: CoinsIcon,
-    keywords: "coins money finance sales income revenue cash",
-  },
-  camera: {
-    component: CameraIcon,
-    keywords: "photo picture",
-  },
   academicCap: {
     component: AcademicCapIcon,
     keywords: "learn teach lesson guide tutorial onboarding training",
@@ -88,6 +75,22 @@ export const icons = {
     component: BuildingBlocksIcon,
     keywords: "app blocks product prototype",
   },
+  bookmark: {
+    component: BookmarkedIcon,
+    keywords: "bookmark",
+  },
+  collection: {
+    component: CollectionIcon,
+    keywords: "collection",
+  },
+  coins: {
+    component: CoinsIcon,
+    keywords: "coins money finance sales income revenue cash",
+  },
+  camera: {
+    component: CameraIcon,
+    keywords: "photo picture",
+  },
   cloud: {
     component: CloudIcon,
     keywords: "cloud service aws infrastructure",
@@ -95,6 +98,10 @@ export const icons = {
   code: {
     component: CodeIcon,
     keywords: "developer api code development engineering programming",
+  },
+  database: {
+    component: DatabaseIcon,
+    keywords: "server ops database",
   },
   email: {
     component: EmailIcon,
@@ -123,6 +130,10 @@ export const icons = {
   lightbulb: {
     component: LightBulbIcon,
     keywords: "lightbulb idea",
+  },
+  lightning: {
+    component: LightningIcon,
+    keywords: "lightning fast zap",
   },
   math: {
     component: MathIcon,
@@ -163,6 +174,10 @@ export const icons = {
   sport: {
     component: SportIcon,
     keywords: "sport outdoor racket game",
+  },
+  smiley: {
+    component: SmileyIcon,
+    keywords: "emoji smiley happy",
   },
   target: {
     component: TargetIcon,
