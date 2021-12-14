@@ -1,3 +1,4 @@
+import { Next } from "koa";
 import { User, Team, ApiKey } from "@server/models";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError, UserSuspendedError } from "../errors";
@@ -8,10 +9,7 @@ export default function auth(
     required?: boolean;
   } = {}
 ) {
-  return async function authMiddleware(
-    ctx: ContextWithState,
-    next: () => Promise<unknown>
-  ) {
+  return async function authMiddleware(ctx: ContextWithState, next: Next) {
     let token;
     const authorizationHeader = ctx.request.get("authorization");
 
