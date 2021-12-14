@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
+import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/CollectionIcon";
 import Heading from "~/components/Heading";
@@ -18,6 +19,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import SlackButton from "./components/SlackButton";
+import SlackListItem from "./components/SlackListItem";
 
 function Slack() {
   const team = useCurrentTeam();
@@ -39,6 +41,16 @@ function Slack() {
     integrations.slackIntegrations,
     (i) => i.type === "command"
   );
+
+  const groupedCollections = collections.orderedData
+    .map<[Collection, Integration | undefined]>((collection) => {
+      const integration = find(integrations.slackIntegrations, {
+        collectionId: collection.id,
+      });
+
+      return [collection, integration];
+    })
+    .sort((a) => (a[1] ? -1 : 1));
 
   return (
     <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
@@ -83,6 +95,7 @@ function Slack() {
                 scopes={["commands", "links:read", "links:write"]}
                 redirectUri={`${env.URL}/auth/slack.commands`}
                 state={team.id}
+                icon={<SlackIcon color="currentColor" />}
               />
             )}
           </p>
@@ -98,33 +111,13 @@ function Slack() {
           </HelpText>
 
           <List>
-            {collections.orderedData.map((collection: Collection) => {
-              const integration = find(integrations.slackIntegrations, {
-                collectionId: collection.id,
-              });
-
+            {groupedCollections.map(([collection, integration]) => {
               if (integration) {
                 return (
-                  <ListItem
+                  <SlackListItem
                     key={integration.id}
-                    title={collection.name}
-                    image={<CollectionIcon collection={collection} />}
-                    subtitle={
-                      <Trans
-                        defaults={`Connected to the <em>{{ channelName }}</em> channel`}
-                        values={{
-                          channelName: integration.settings.channel,
-                        }}
-                        components={{
-                          em: <strong />,
-                        }}
-                      />
-                    }
-                    actions={
-                      <Button onClick={integration.delete} neutral>
-                        {t("Disconnect")}
-                      </Button>
-                    }
+                    collection={collection}
+                    integration={integration}
                   />
                 );
               }

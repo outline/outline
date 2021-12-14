@@ -153,6 +153,7 @@ if (SLACK_CLIENT_ID) {
       const { code, error, state } = ctx.request.query;
       const user = ctx.state.user;
       assertPresent(code || error, "code is required");
+
       const collectionId = state;
       assertUuid(collectionId, "collectionId must be an uuid");
 
@@ -179,8 +180,7 @@ if (SLACK_CLIENT_ID) {
       }
 
       const endpoint = `${process.env.URL || ""}/auth/slack.post`;
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
-      const data = await Slack.oauthAccess(code, endpoint);
+      const data = await Slack.oauthAccess(code as string, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: "slack",
         userId: user.id,
@@ -188,6 +188,7 @@ if (SLACK_CLIENT_ID) {
         token: data.access_token,
         scopes: data.scope.split(","),
       });
+
       await Integration.create({
         service: "slack",
         type: "post",
@@ -195,7 +196,7 @@ if (SLACK_CLIENT_ID) {
         teamId: user.teamId,
         authenticationId: authentication.id,
         collectionId,
-        events: [],
+        events: ["documents.update", "documents.publish"],
         settings: {
           url: data.incoming_webhook.url,
           channel: data.incoming_webhook.channel,

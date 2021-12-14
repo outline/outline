@@ -4,7 +4,7 @@ import { Event } from "@server/models";
 import Integration from "@server/models/Integration";
 import policy from "@server/policies";
 import { presentIntegration } from "@server/presenters";
-import { assertSort, assertUuid } from "@server/validation";
+import { assertSort, assertUuid, assertArray } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
@@ -31,13 +31,37 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
   };
 });
 
+router.post("integrations.update", auth(), async (ctx) => {
+  const { id, events } = ctx.body;
+  assertUuid(id, "id is required");
+
+  assertArray(events, "events must be an array");
+
+  const { user } = ctx.state;
+  const integration = await Integration.findByPk(id);
+  authorize(user, "update", integration);
+
+  if (integration.type === "post") {
+    integration.events = events.filter((event: string) =>
+      ["documents.update", "documents.publish"].includes(event)
+    );
+  }
+
+  await integration.save();
+
+  ctx.body = {
+    data: presentIntegration(integration),
+  };
+});
+
 router.post("integrations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const integration = await Integration.findByPk(id);
   authorize(user, "delete", integration);
+
   await integration.destroy();
   await Event.create({
     name: "integrations.delete",
@@ -46,6 +70,7 @@ router.post("integrations.delete", auth(), async (ctx) => {
     actorId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };

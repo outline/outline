@@ -21,11 +21,11 @@ export default class BaseModel {
 
     try {
       // ensure that the id is passed if the document has one
-      if (params) {
-        params = { ...params, id: this.id };
+      if (!params) {
+        params = this.toJS();
       }
 
-      const model = await this.store.save(params || this.toJS());
+      const model = await this.store.save({ ...params, id: this.id });
 
       // if saving is successful set the new values on the model itself
       set(this, { ...params, ...model });
