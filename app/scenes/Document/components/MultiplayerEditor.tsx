@@ -76,7 +76,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         "scrollY",
         window.scrollY / window.innerHeight
       );
-    }, 500);
+    }, 200);
 
     const finishObserving = () => {
       if (ui.observingUserId) {
