@@ -1,6 +1,7 @@
 import * as React from "react";
 import { EmbedDescriptor } from "rich-markdown-editor/dist/types";
 import styled from "styled-components";
+import { cdnPath } from "@shared/utils/urls";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Bilibili from "./Bilibili";
@@ -72,14 +73,14 @@ const embeds: EmbedDescriptor[] = [
     title: "Abstract",
     keywords: "design",
     defaultHidden: true,
-    icon: () => <Img src="/images/abstract.png" alt="Abstract" />,
+    icon: () => <Img src={cdnPath("/images/abstract.png")} alt="Abstract" />,
     component: Abstract,
     matcher: matcher(Abstract),
   },
   {
     title: "Airtable",
     keywords: "spreadsheet",
-    icon: () => <Img src="/images/airtable.png" alt="Airtable" />,
+    icon: () => <Img src={cdnPath("/images/airtable.png")} alt="Airtable" />,
     component: Airtable,
     matcher: matcher(Airtable),
   },
@@ -87,7 +88,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Bilibili",
     keywords: "video",
     defaultHidden: true,
-    icon: () => <Img src="/images/bilibili.png" alt="Bilibili" />,
+    icon: () => <Img src={cdnPath("/images/bilibili.png")} alt="Bilibili" />,
     component: Bilibili,
     matcher: matcher(Bilibili),
   },
@@ -95,98 +96,112 @@ const embeds: EmbedDescriptor[] = [
     title: "Cawemo",
     keywords: "bpmn process",
     defaultHidden: true,
-    icon: () => <Img src="/images/cawemo.png" alt="Cawemo" />,
+    icon: () => <Img src={cdnPath("/images/cawemo.png")} alt="Cawemo" />,
     component: Cawemo,
     matcher: matcher(Cawemo),
   },
   {
     title: "ClickUp",
     keywords: "project",
-    icon: () => <Img src="/images/clickup.png" alt="ClickUp" />,
+    icon: () => <Img src={cdnPath("/images/clickup.png")} alt="ClickUp" />,
     component: ClickUp,
     matcher: matcher(ClickUp),
   },
   {
     title: "Codepen",
     keywords: "code editor",
-    icon: () => <Img src="/images/codepen.png" alt="Codepen" />,
+    icon: () => <Img src={cdnPath("/images/codepen.png")} alt="Codepen" />,
     component: Codepen,
     matcher: matcher(Codepen),
   },
   {
     title: "Descript",
     keywords: "audio",
-    icon: () => <Img src="/images/descript.png" alt="Descript" />,
+    icon: () => <Img src={cdnPath("/images/descript.png")} alt="Descript" />,
     component: Descript,
     matcher: matcher(Descript),
   },
   {
     title: "Figma",
     keywords: "design svg vector",
-    icon: () => <Img src="/images/figma.png" alt="Figma" />,
+    icon: () => <Img src={cdnPath("/images/figma.png")} alt="Figma" />,
     component: Figma,
     matcher: matcher(Figma),
   },
   {
     title: "Framer",
     keywords: "design prototyping",
-    icon: () => <Img src="/images/framer.png" alt="Framer" />,
+    icon: () => <Img src={cdnPath("/images/framer.png")} alt="Framer" />,
     component: Framer,
     matcher: matcher(Framer),
   },
   {
     title: "GitHub Gist",
     keywords: "code",
-    icon: () => <Img src="/images/github-gist.png" alt="GitHub" />,
+    icon: () => <Img src={cdnPath("/images/github-gist.png")} alt="GitHub" />,
     component: Gist,
     matcher: matcher(Gist),
   },
   {
     title: "Diagrams.net",
     keywords: "diagrams drawio",
-    icon: () => <Img src="/images/diagrams.png" alt="Diagrams.net" />,
+    icon: () => (
+      <Img src={cdnPath("/images/diagrams.png")} alt="Diagrams.net" />
+    ),
     component: Diagrams,
     matcher: matcher(Diagrams),
   },
   {
     title: "Google Drawings",
     keywords: "drawings",
-    icon: () => <Img src="/images/google-drawings.png" alt="Google Drawings" />,
+    icon: () => (
+      <Img src={cdnPath("/images/google-drawings.png")} alt="Google Drawings" />
+    ),
     component: GoogleDrawings,
     matcher: matcher(GoogleDrawings),
   },
   {
     title: "Google Drive",
     keywords: "drive",
-    icon: () => <Img src="/images/google-drive.png" alt="Google Drive" />,
+    icon: () => (
+      <Img src={cdnPath("/images/google-drive.png")} alt="Google Drive" />
+    ),
     component: GoogleDrive,
     matcher: matcher(GoogleDrive),
   },
   {
     title: "Google Docs",
     keywords: "documents word",
-    icon: () => <Img src="/images/google-docs.png" alt="Google Docs" />,
+    icon: () => (
+      <Img src={cdnPath("/images/google-docs.png")} alt="Google Docs" />
+    ),
     component: GoogleDocs,
     matcher: matcher(GoogleDocs),
   },
   {
     title: "Google Sheets",
     keywords: "excel spreadsheet",
-    icon: () => <Img src="/images/google-sheets.png" alt="Google Sheets" />,
+    icon: () => (
+      <Img src={cdnPath("/images/google-sheets.png")} alt="Google Sheets" />
+    ),
     component: GoogleSheets,
     matcher: matcher(GoogleSheets),
   },
   {
     title: "Google Slides",
     keywords: "presentation slideshow",
-    icon: () => <Img src="/images/google-slides.png" alt="Google Slides" />,
+    icon: () => (
+      <Img src={cdnPath("/images/google-slides.png")} alt="Google Slides" />
+    ),
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
   },
   {
     title: "Google Calendar",
     keywords: "calendar",
-    icon: () => <Img src="/images/google-calendar.png" alt="Google Calendar" />,
+    icon: () => (
+      <Img src={cdnPath("/images/google-calendar.png")} alt="Google Calendar" />
+    ),
     component: GoogleCalendar,
     matcher: matcher(GoogleCalendar),
   },
@@ -194,7 +209,10 @@ const embeds: EmbedDescriptor[] = [
     title: "Google Data Studio",
     keywords: "bi business intelligence",
     icon: () => (
-      <Img src="/images/google-datastudio.png" alt="Google Data Studio" />
+      <Img
+        src={cdnPath("/images/google-datastudio.png")}
+        alt="Google Data Studio"
+      />
     ),
     component: GoogleDataStudio,
     matcher: matcher(GoogleDataStudio),
@@ -203,42 +221,46 @@ const embeds: EmbedDescriptor[] = [
     title: "InVision",
     keywords: "design prototype",
     defaultHidden: true,
-    icon: () => <Img src="/images/invision.png" alt="InVision" />,
+    icon: () => <Img src={cdnPath("/images/invision.png")} alt="InVision" />,
     component: InVision,
     matcher: matcher(InVision),
   },
   {
     title: "Loom",
     keywords: "video screencast",
-    icon: () => <Img src="/images/loom.png" alt="Loom" />,
+    icon: () => <Img src={cdnPath("/images/loom.png")} alt="Loom" />,
     component: Loom,
     matcher: matcher(Loom),
   },
   {
     title: "Lucidchart",
     keywords: "chart",
-    icon: () => <Img src="/images/lucidchart.png" alt="Lucidchart" />,
+    icon: () => (
+      <Img src={cdnPath("/images/lucidchart.png")} alt="Lucidchart" />
+    ),
     component: Lucidchart,
     matcher: matcher(Lucidchart),
   },
   {
     title: "Marvel",
     keywords: "design prototype",
-    icon: () => <Img src="/images/marvel.png" alt="Marvel" />,
+    icon: () => <Img src={cdnPath("/images/marvel.png")} alt="Marvel" />,
     component: Marvel,
     matcher: matcher(Marvel),
   },
   {
     title: "Mindmeister",
     keywords: "mindmap",
-    icon: () => <Img src="/images/mindmeister.png" alt="Mindmeister" />,
+    icon: () => (
+      <Img src={cdnPath("/images/mindmeister.png")} alt="Mindmeister" />
+    ),
     component: Mindmeister,
     matcher: matcher(Mindmeister),
   },
   {
     title: "Miro",
     keywords: "whiteboard",
-    icon: () => <Img src="/images/miro.png" alt="Miro" />,
+    icon: () => <Img src={cdnPath("/images/miro.png")} alt="Miro" />,
     component: Miro,
     matcher: matcher(Miro),
   },
@@ -246,7 +268,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Mode",
     keywords: "analytics",
     defaultHidden: true,
-    icon: () => <Img src="/images/mode-analytics.png" alt="Mode" />,
+    icon: () => <Img src={cdnPath("/images/mode-analytics.png")} alt="Mode" />,
     component: ModeAnalytics,
     matcher: matcher(ModeAnalytics),
   },
@@ -254,56 +276,56 @@ const embeds: EmbedDescriptor[] = [
     title: "Pitch",
     keywords: "presentation",
     defaultHidden: true,
-    icon: () => <Img src="/images/pitch.png" alt="Pitch" />,
+    icon: () => <Img src={cdnPath("/images/pitch.png")} alt="Pitch" />,
     component: Pitch,
     matcher: matcher(Pitch),
   },
   {
     title: "Prezi",
     keywords: "presentation",
-    icon: () => <Img src="/images/prezi.png" alt="Prezi" />,
+    icon: () => <Img src={cdnPath("/images/prezi.png")} alt="Prezi" />,
     component: Prezi,
     matcher: matcher(Prezi),
   },
   {
     title: "Spotify",
     keywords: "music",
-    icon: () => <Img src="/images/spotify.png" alt="Spotify" />,
+    icon: () => <Img src={cdnPath("/images/spotify.png")} alt="Spotify" />,
     component: Spotify,
     matcher: matcher(Spotify),
   },
   {
     title: "Trello",
     keywords: "kanban",
-    icon: () => <Img src="/images/trello.png" alt="Trello" />,
+    icon: () => <Img src={cdnPath("/images/trello.png")} alt="Trello" />,
     component: Trello,
     matcher: matcher(Trello),
   },
   {
     title: "Typeform",
     keywords: "form survey",
-    icon: () => <Img src="/images/typeform.png" alt="Typeform" />,
+    icon: () => <Img src={cdnPath("/images/typeform.png")} alt="Typeform" />,
     component: Typeform,
     matcher: matcher(Typeform),
   },
   {
     title: "Vimeo",
     keywords: "video",
-    icon: () => <Img src="/images/vimeo.png" alt="Vimeo" />,
+    icon: () => <Img src={cdnPath("/images/vimeo.png")} alt="Vimeo" />,
     component: Vimeo,
     matcher: matcher(Vimeo),
   },
   {
     title: "Whimsical",
     keywords: "whiteboard",
-    icon: () => <Img src="/images/whimsical.png" alt="Whimsical" />,
+    icon: () => <Img src={cdnPath("/images/whimsical.png")} alt="Whimsical" />,
     component: Whimsical,
     matcher: matcher(Whimsical),
   },
   {
     title: "YouTube",
     keywords: "google video",
-    icon: () => <Img src="/images/youtube.png" alt="YouTube" />,
+    icon: () => <Img src={cdnPath("/images/youtube.png")} alt="YouTube" />,
     component: YouTube,
     matcher: matcher(YouTube),
   },
