@@ -1,9 +1,9 @@
 {
-  "Open collection": "Open collection",
+  "Open collection": "باز کردن مجموعه",
   "New collection": "مجموعه جدید",
   "Create a collection": "ایجاد مجموعه",
   "Edit collection": "ویرایش مجموعه",
-  "Delete IndexedDB cache": "Delete IndexedDB cache",
+  "Delete IndexedDB cache": "کش IndexedDB حذف گردد",
   "IndexedDB cache deleted": "IndexedDB cache deleted",
   "Development": "توسعه",
   "Open document": "Open document",
