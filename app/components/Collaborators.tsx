@@ -23,7 +23,7 @@ function Collaborators(props: Props) {
   const user = useCurrentUser();
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = React.useState<string[]>([]);
-  const { users, presence } = useStores();
+  const { users, presence, ui } = useStores();
   const { document } = props;
   const documentPresence = presence.get(document.id);
   const documentPresenceArray = documentPresence
@@ -81,14 +81,24 @@ function Collaborators(props: Props) {
               renderAvatar={(user) => {
                 const isPresent = presentIds.includes(user.id);
                 const isEditing = editingIds.includes(user.id);
+                const isObserving = ui.observingUserId === user.id;
+
                 return (
                   <AvatarWithPresence
                     key={user.id}
                     user={user}
                     isPresent={isPresent}
                     isEditing={isEditing}
+                    isObserving={isObserving}
                     isCurrentUser={currentUserId === user.id}
                     profileOnClick={false}
+                    onClick={(ev) => {
+                      if (isPresent) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        ui.setObservingUser(isObserving ? undefined : user.id);
+                      }
+                    }}
                   />
                 );
               }}

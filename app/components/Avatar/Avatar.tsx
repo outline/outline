@@ -11,7 +11,7 @@ type Props = {
   icon?: React.ReactNode;
   user?: User;
   alt?: string;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLImageElement>;
   className?: string;
 };
 
