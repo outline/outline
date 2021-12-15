@@ -6,25 +6,7 @@ import RevisionsService from "./revisions";
 const Revisions = new RevisionsService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
-describe("documents.publish", () => {
-  test("should create a revision", async () => {
-    const document = await buildDocument();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
-    await Revisions.on({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: document.createdById,
-    });
-    const amount = await Revision.count({
-      where: {
-        documentId: document.id,
-      },
-    });
-    expect(amount).toBe(1);
-  });
-});
+
 describe("documents.update.debounced", () => {
   test("should create a revision", async () => {
     const document = await buildDocument();
