@@ -11,6 +11,7 @@ import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
@@ -21,6 +22,7 @@ type Props = {
 function Collaborators(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const team = useCurrentTeam();
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = React.useState<string[]>([]);
   const { users, presence, ui } = useStores();
@@ -78,27 +80,35 @@ function Collaborators(props: Props) {
           <NudeButton width={collaborators.length * 32} height={32} {...props}>
             <FacepileHiddenOnMobile
               users={collaborators}
-              renderAvatar={(user) => {
-                const isPresent = presentIds.includes(user.id);
-                const isEditing = editingIds.includes(user.id);
-                const isObserving = ui.observingUserId === user.id;
+              renderAvatar={(collaborator) => {
+                const isPresent = presentIds.includes(collaborator.id);
+                const isEditing = editingIds.includes(collaborator.id);
+                const isObserving = ui.observingUserId === collaborator.id;
+                const isObservable =
+                  team.collaborativeEditing && collaborator.id !== user.id;
 
                 return (
                   <AvatarWithPresence
-                    key={user.id}
-                    user={user}
+                    key={collaborator.id}
+                    user={collaborator}
                     isPresent={isPresent}
                     isEditing={isEditing}
                     isObserving={isObserving}
-                    isCurrentUser={currentUserId === user.id}
+                    isCurrentUser={currentUserId === collaborator.id}
                     profileOnClick={false}
-                    onClick={(ev) => {
-                      if (isPresent) {
-                        ev.preventDefault();
-                        ev.stopPropagation();
-                        ui.setObservingUser(isObserving ? undefined : user.id);
-                      }
-                    }}
+                    onClick={
+                      isObservable
+                        ? (ev) => {
+                            if (isPresent) {
+                              ev.preventDefault();
+                              ev.stopPropagation();
+                              ui.setObservingUser(
+                                isObserving ? undefined : collaborator.id
+                              );
+                            }
+                          }
+                        : undefined
+                    }
                   />
                 );
               }}

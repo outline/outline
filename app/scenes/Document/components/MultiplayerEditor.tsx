@@ -255,6 +255,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default React.forwardRef<typeof MultiplayerEditor, any>(
+export default React.forwardRef<typeof MultiplayerEditor, Props>(
   MultiplayerEditor
 );

@@ -16,6 +16,7 @@ type Props = EditorProps &
   WithTranslation & {
     onChangeTitle: (text: string) => void;
     title: string;
+    id: string;
     document: Document;
     isDraft: boolean;
     multiplayer?: boolean;

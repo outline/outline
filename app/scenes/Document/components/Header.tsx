@@ -29,6 +29,7 @@ import TemplatesMenu from "~/menus/TemplatesMenu";
 import { NavigationNode } from "~/types";
 import { metaDisplay } from "~/utils/keyboard";
 import { newDocumentPath, editDocumentUrl } from "~/utils/routeHelpers";
+import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 
@@ -194,6 +195,7 @@ function DocumentHeader({
         }
         actions={
           <>
+            <ObservingBanner />
             {isMobile && (
               <TocWrapper>
                 <TableOfContentsMenu headings={headings} />
