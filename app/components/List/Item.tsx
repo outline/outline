@@ -6,6 +6,7 @@ import NavLink from "~/components/NavLink";
 type Props = {
   image?: React.ReactNode;
   to?: string;
+  exact?: boolean;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;

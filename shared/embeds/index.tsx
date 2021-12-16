@@ -32,6 +32,7 @@ import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
+import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
 import Image from "./components/Image";
 
@@ -291,6 +292,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/vimeo.png" alt="Vimeo" />,
     component: Vimeo,
     matcher: matcher(Vimeo),
+  },
+  {
+    title: "Whimsical",
+    keywords: "whiteboard",
+    icon: () => <Img src="/images/whimsical.png" alt="Whimsical" />,
+    component: Whimsical,
+    matcher: matcher(Whimsical),
   },
   {
     title: "YouTube",

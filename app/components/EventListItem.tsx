@@ -86,6 +86,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
   return (
     <ListItem
       small
+      exact
       to={to}
       title={
         <Time

@@ -6,7 +6,6 @@ import { DocumentEvent, RevisionEvent } from "../../types";
 export default class RevisionsProcessor {
   async on(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
-      case "documents.publish":
       case "documents.update.debounced": {
         const document = await Document.findByPk(event.documentId);
         invariant(document, "Document should exist");
