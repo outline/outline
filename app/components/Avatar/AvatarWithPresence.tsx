@@ -41,9 +41,7 @@ class AvatarWithPresence extends React.Component<Props> {
       isCurrentUser,
       t,
     } = this.props;
-    const status = isObserving
-      ? t("you are observing")
-      : isPresent
+    const status = isPresent
       ? isEditing
         ? t("currently editing")
         : t("currently viewing")
@@ -52,7 +50,6 @@ class AvatarWithPresence extends React.Component<Props> {
     return (
       <>
         <Tooltip
-          hideOnClick={false}
           tooltip={
             <Centered>
               <strong>{user.name}</strong> {isCurrentUser && `(${t("You")})`}
