@@ -376,6 +376,7 @@
   "Publish": "انتشار",
   "Publishing": "در حال انتشار",
   "Sorry, it looks like you don’t have permission to access the document": "متأسفانه به نظر می رسد مجوز دسترسی به سند را ندارید",
+  "Observing {{ userName }}": "Observing {{ userName }}",
   "Nested documents": "زیرسندها",
   "Referenced by": "ارجاع شده توسط",
   "Anyone with the link <1></1>can view this document": "هر فردی با پیوند <1></1> می‌تواند این سند را ببیند",
