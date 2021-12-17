@@ -9,6 +9,7 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import Document from "~/models/Document";
 import Bubble from "~/components/Bubble";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
@@ -25,20 +26,20 @@ import {
   settingsPath,
 } from "~/utils/routeHelpers";
 import Sidebar from "./Sidebar";
-import ArchiveLink from "./components/ArchiveLink";
-import Collections from "./components/Collections";
 import Section from "./components/Section";
+import DocumentLink from "./components/SharedDocumentLink";
 import SidebarAction from "./components/SidebarAction";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
-import TeamButton from "./components/TeamButton";
-import TrashLink from "./components/TrashLink";
 
-function MainSidebar() {
+type Props = {
+  document: Document;
+};
+
+function MainSidebar({ document }: Props) {
   const { t } = useTranslation();
   const { policies, documents } = useStores();
   const team = useCurrentTeam();
-  const user = useCurrentUser();
 
   React.useEffect(() => {
     documents.fetchDrafts();
@@ -54,17 +55,6 @@ function MainSidebar() {
     <Sidebar ref={handleSidebarRef}>
       {dndArea && (
         <>
-          <AccountMenu>
-            {(props) => (
-              <TeamButton
-                {...props}
-                subheading={user.name}
-                teamName={team.name}
-                logoUrl={team.avatarUrl}
-                showDisclosure
-              />
-            )}
-          </AccountMenu>
           <Scrollable flex topShadow>
             <Section>
               <SidebarLink
@@ -84,50 +74,9 @@ function MainSidebar() {
                 label={t("Search")}
                 exact={false}
               />
-              {can.createDocument && (
-                <SidebarLink
-                  to={draftsPath()}
-                  icon={<EditIcon color="currentColor" />}
-                  label={
-                    <Drafts align="center">
-                      {t("Drafts")}
-                      <Bubble count={documents.totalDrafts} />
-                    </Drafts>
-                  }
-                  active={
-                    documents.active
-                      ? !documents.active.publishedAt &&
-                        !documents.active.isDeleted &&
-                        !documents.active.isTemplate
-                      : undefined
-                  }
-                />
-              )}
             </Section>
             <Starred />
-            <Section auto>
-              <Collections />
-            </Section>
             <Section>
-              {can.createDocument && (
-                <>
-                  <SidebarLink
-                    to={templatesPath()}
-                    icon={<ShapesIcon color="currentColor" />}
-                    exact={false}
-                    label={t("Templates")}
-                    active={
-                      documents.active
-                        ? documents.active.isTemplate &&
-                          !documents.active.isDeleted &&
-                          !documents.active.isArchived
-                        : undefined
-                    }
-                  />
-                  <ArchiveLink />
-                  <TrashLink />
-                </>
-              )}
               <SidebarLink
                 to={settingsPath()}
                 icon={<SettingsIcon color="currentColor" />}
@@ -135,6 +84,8 @@ function MainSidebar() {
                 label={t("Settings")}
               />
               <SidebarAction action={inviteUser} />
+
+              <DocumentLink node={document} />
             </Section>
           </Scrollable>
         </>

@@ -70,7 +70,7 @@ function SharedDocumentScene(props: Props) {
 
   return (
     <Container auto>
-      <Sidebar />
+      <Sidebar document={response.document} />
       <Content
         auto
         justify="center"
