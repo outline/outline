@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import fetch from "fetch-with-proxy";
 
-export const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
+export const DEFAULT_AVATAR_HOST =
+  process.env.DEFAULT_AVATAR_HOST || "https://tiley.herokuapp.com";
 
 export async function generateAvatarUrl({
   id,
