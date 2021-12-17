@@ -376,6 +376,7 @@
   "Publish": "发布",
   "Publishing": "发布中",
   "Sorry, it looks like you don’t have permission to access the document": "抱歉，看起来您没有权限访问此文档",
+  "Observing {{ userName }}": "Observing {{ userName }}",
   "Nested documents": "子文档",
   "Referenced by": "引用于：",
   "Anyone with the link <1></1>can view this document": "拥有此链接<1></1>的任何人都能查看此内容",
