@@ -37,6 +37,7 @@ class DocumentEditor extends React.Component<Props> {
   activeLinkEvent: MouseEvent | null | undefined;
 
   ref = React.createRef<HTMLDivElement | HTMLInputElement>();
+  titleRef = React.createRef<HTMLSpanElement>();
 
   focusAtStart = () => {
     if (this.props.innerRef.current) {
@@ -94,6 +95,7 @@ class DocumentEditor extends React.Component<Props> {
     return (
       <Flex auto column>
         <EditableTitle
+          ref={this.titleRef}
           value={title}
           readOnly={readOnly}
           document={document}
@@ -107,8 +109,9 @@ class DocumentEditor extends React.Component<Props> {
             document={document}
             to={documentHistoryUrl(document)}
             rtl={
-              this.ref.current
-                ? window.getComputedStyle(this.ref.current).direction === "rtl"
+              this.titleRef.current
+                ? window.getComputedStyle(this.titleRef.current).direction ===
+                  "rtl"
                 : false
             }
           />
