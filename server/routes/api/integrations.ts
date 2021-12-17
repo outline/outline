@@ -35,11 +35,11 @@ router.post("integrations.update", auth(), async (ctx) => {
   const { id, events } = ctx.body;
   assertUuid(id, "id is required");
 
-  assertArray(events, "events must be an array");
-
   const { user } = ctx.state;
   const integration = await Integration.findByPk(id);
   authorize(user, "update", integration);
+
+  assertArray(events, "events must be an array");
 
   if (integration.type === "post") {
     integration.events = events.filter((event: string) =>
