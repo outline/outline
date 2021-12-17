@@ -2,17 +2,17 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { slackAuth } from "@shared/utils/routeHelpers";
 import Button from "~/components/Button";
-import SlackIcon from "~/components/SlackIcon";
 import env from "~/env";
 
 type Props = {
   scopes?: string[];
   redirectUri: string;
+  icon?: React.ReactNode;
   state?: string;
   label?: string;
 };
 
-function SlackButton({ state = "", scopes, redirectUri, label }: Props) {
+function SlackButton({ state = "", scopes, redirectUri, label, icon }: Props) {
   const { t } = useTranslation();
 
   const handleClick = () =>
@@ -24,11 +24,7 @@ function SlackButton({ state = "", scopes, redirectUri, label }: Props) {
     ));
 
   return (
-    <Button
-      onClick={handleClick}
-      icon={<SlackIcon color="currentColor" />}
-      neutral
-    >
+    <Button onClick={handleClick} icon={icon} neutral>
       {label || t("Add to Slack")}
     </Button>
   );

@@ -2,13 +2,15 @@ import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
 };
 
-export default function ButtonLink(props: Props) {
-  return <Button {...props} />;
-}
+const ButtonLink = React.forwardRef(
+  (props: Props, ref: React.Ref<HTMLButtonElement>) => {
+    return <Button {...props} ref={ref} />;
+  }
+);
 
 const Button = styled.button`
   margin: 0;
@@ -20,3 +22,5 @@ const Button = styled.button`
   text-decoration: none;
   cursor: pointer;
 `;
+
+export default ButtonLink;
