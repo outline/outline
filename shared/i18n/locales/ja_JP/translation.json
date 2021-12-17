@@ -376,6 +376,7 @@
   "Publish": "公開",
   "Publishing": "公開中",
   "Sorry, it looks like you don’t have permission to access the document": "Sorry, it looks like you don’t have permission to access the document",
+  "Observing {{ userName }}": "Observing {{ userName }}",
   "Nested documents": "ネストされたドキュメント",
   "Referenced by": "Referenced by",
   "Anyone with the link <1></1>can view this document": "このリンク<1></1>があれば誰でもドキュメントを見ることができます。",
