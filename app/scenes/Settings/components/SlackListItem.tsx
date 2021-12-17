@@ -2,14 +2,18 @@ import { uniq } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
+import ButtonLink from "~/components/ButtonLink";
 import Checkbox from "~/components/Checkbox";
 import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
+import HelpText from "~/components/HelpText";
 import ListItem from "~/components/List/Item";
+import Popover from "~/components/Popover";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -37,6 +41,16 @@ function SlackListItem({ integration, collection }: Props) {
     });
   };
 
+  const mapping = {
+    "documents.publish": t("document published"),
+    "documents.update": t("document updated"),
+  };
+
+  const popover = usePopoverState({
+    gutter: 0,
+    placement: "bottom-start",
+  });
+
   return (
     <ListItem
       key={integration.id}
@@ -48,16 +62,26 @@ function SlackListItem({ integration, collection }: Props) {
       subtitle={
         <>
           <Trans
-            defaults={`Connected to the <em>{{ channelName }}</em> channel, posting when:`}
+            defaults={`Posting to the <em>{{ channelName }}</em> channel on`}
             values={{
               channelName: integration.settings.channel,
+              events: integration.events.map((ev) => mapping[ev]).join(", "),
             }}
             components={{
               em: <strong />,
             }}
-          />
-          <IntegrationDetails justify="space-between" align="flex-end">
-            <div>
+          />{" "}
+          <PopoverDisclosure {...popover}>
+            {(props) => (
+              <ButtonLink {...props}>
+                {integration.events.map((ev) => mapping[ev]).join(", ")}
+              </ButtonLink>
+            )}
+          </PopoverDisclosure>
+          <Popover {...popover} aria-label={t("Settings")}>
+            <Events>
+              <h3>Notifications</h3>
+              <HelpText>These events should be posted to Slack</HelpText>
               <Checkbox
                 label={t("New document published")}
                 name="documents.publish"
@@ -70,19 +94,22 @@ function SlackListItem({ integration, collection }: Props) {
                 checked={integration.events.includes("documents.update")}
                 onChange={handleChange}
               />
-            </div>
-            <Button onClick={integration.delete} neutral>
-              {t("Disconnect")}
-            </Button>
-          </IntegrationDetails>
+            </Events>
+          </Popover>
         </>
+      }
+      actions={
+        <Button onClick={integration.delete} neutral>
+          {t("Disconnect")}
+        </Button>
       }
     />
   );
 }
 
-const IntegrationDetails = styled(Flex)`
-  margin-top: 16px;
+const Events = styled.div`
+  color: ${(props) => props.theme.text};
+  margin-top: -12px;
 `;
 
 export default observer(SlackListItem);
