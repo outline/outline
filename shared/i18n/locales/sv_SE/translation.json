@@ -376,6 +376,7 @@
   "Publish": "Publicera",
   "Publishing": "Publishing",
   "Sorry, it looks like you don’t have permission to access the document": "Sorry, it looks like you don’t have permission to access the document",
+  "Observing {{ userName }}": "Observing {{ userName }}",
   "Nested documents": "Nested documents",
   "Referenced by": "Referenced by",
   "Anyone with the link <1></1>can view this document": "Anyone with the link <1></1>can view this document",
