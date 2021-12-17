@@ -80,8 +80,8 @@ function SlackListItem({ integration, collection }: Props) {
           </PopoverDisclosure>
           <Popover {...popover} aria-label={t("Settings")}>
             <Events>
-              <h3>Notifications</h3>
-              <HelpText>These events should be posted to Slack</HelpText>
+              <h3>{t("Notifications")}</h3>
+              <HelpText>{t("These events should be posted to Slack")}</HelpText>
               <Checkbox
                 label={t("Document published")}
                 name="documents.publish"
