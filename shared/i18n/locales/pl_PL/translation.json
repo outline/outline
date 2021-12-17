@@ -376,6 +376,7 @@
   "Publish": "Opublikuj",
   "Publishing": "Publikowanie",
   "Sorry, it looks like you don’t have permission to access the document": "Przepraszamy, wygląda na to, że nie masz uprawnień dostępu do dokumentu",
+  "Observing {{ userName }}": "Observing {{ userName }}",
   "Nested documents": "Dokumenty zagnieżdżone",
   "Referenced by": "Odwołuje się do",
   "Anyone with the link <1></1>can view this document": "Każdy, kto ma link <1></1> może wyświetlić ten dokument",
