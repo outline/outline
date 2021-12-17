@@ -376,6 +376,7 @@
   "Publish": "게시하기",
   "Publishing": "게시 중",
   "Sorry, it looks like you don’t have permission to access the document": "Sorry, it looks like you don’t have permission to access the document",
+  "Observing {{ userName }}": "Observing {{ userName }}",
   "Nested documents": "Nested documents",
   "Referenced by": "Referenced by",
   "Anyone with the link <1></1>can view this document": "링크 <1></1> 가 있는 모든 사용자는 이 문서를 볼 수 있습니다",
