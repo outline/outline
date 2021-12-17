@@ -83,7 +83,7 @@ function SlackListItem({ integration, collection }: Props) {
               <h3>Notifications</h3>
               <HelpText>These events should be posted to Slack</HelpText>
               <Checkbox
-                label={t("New document published")}
+                label={t("Document published")}
                 name="documents.publish"
                 checked={integration.events.includes("documents.publish")}
                 onChange={handleChange}
