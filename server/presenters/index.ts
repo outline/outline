@@ -12,6 +12,7 @@ import presentMembership from "./membership";
 import presentNotificationSetting from "./notificationSetting";
 import presentPolicies from "./policy";
 import presentRevision from "./revision";
+import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
 import presentSlackAttachment from "./slackAttachment";
 import presentTeam from "./team";
@@ -29,6 +30,7 @@ export {
   presentRevision,
   presentCollection,
   presentShare,
+  presentSearchQuery,
   presentTeam,
   presentGroup,
   presentIntegration,
