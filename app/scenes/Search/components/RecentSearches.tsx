@@ -1,8 +1,11 @@
 import { observer } from "mobx-react";
+import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
 import { searchUrl } from "~/utils/routeHelpers";
 
@@ -25,6 +28,16 @@ function RecentSearches() {
               to={searchUrl(searchQuery.query)}
             >
               {searchQuery.query}
+              <Tooltip tooltip={t("Remove search")} delay={150}>
+                <RemoveButton
+                  onClick={(ev) => {
+                    ev.preventDefault();
+                    searchQuery.delete();
+                  }}
+                >
+                  <CloseIcon color="currentColor" />
+                </RemoveButton>
+              </Tooltip>
             </RecentSearch>
           </ListItem>
         ))}
@@ -60,8 +73,18 @@ const ListItem = styled.li`
   }
 `;
 
+const RemoveButton = styled(NudeButton)`
+  opacity: 0;
+  color: ${(props) => props.theme.textTertiary};
+
+  &:hover {
+    color: ${(props) => props.theme.text};
+  }
+`;
+
 const RecentSearch = styled(Link)`
-  display: block;
+  display: flex;
+  justify-content: space-between;
   color: ${(props) => props.theme.textSecondary};
   padding: 1px 4px;
   border-radius: 4px;
@@ -69,6 +92,10 @@ const RecentSearch = styled(Link)`
   &:hover {
     color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.secondaryBackground};
+
+    ${RemoveButton} {
+      opacity: 1;
+    }
   }
 `;
 

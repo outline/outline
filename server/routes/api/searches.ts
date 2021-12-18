@@ -1,17 +1,16 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { SearchQuery } from "@server/models";
-import policy from "@server/policies";
 import { presentSearchQuery } from "@server/presenters";
-import { assertUuid } from "@server/validation";
+import { assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("searches.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
-  const keys = await SearchQuery.findAll({
+
+  const searches = await SearchQuery.findAll({
     where: {
       userId: user.id,
     },
@@ -22,20 +21,21 @@ router.post("searches.list", auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: keys.map(presentSearchQuery),
+    data: searches.map(presentSearchQuery),
   };
 });
 
 router.post("searches.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
+  const { id, query } = ctx.body;
+  assertPresent(id || query, "id or query is required");
 
   const { user } = ctx.state;
-  const searchQuery = await SearchQuery.findByPk(id);
-
-  authorize(user, "delete", searchQuery);
-
-  await searchQuery.destroy();
+  await SearchQuery.destroy({
+    where: {
+      ...(id ? { id } : { query }),
+      userId: user.id,
+    },
+  });
 
   ctx.body = {
     success: true,
