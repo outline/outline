@@ -78,18 +78,23 @@ class AddGroupsToCollection extends React.Component<Props> {
   };
 
   render() {
-    const { groups, collection, auth, t } = this.props;
+    const { groups, policies, collection, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
+
+    const can = policies.abilities(team.id);
+
     return (
       <Flex column>
-        <HelpText>
-          {t("Can’t find the group you’re looking for?")}{" "}
-          <ButtonLink onClick={this.handleNewGroupModalOpen}>
-            {t("Create a group")}
-          </ButtonLink>
-          .
-        </HelpText>
+        {can.createGroup && (
+          <HelpText>
+            {t("Can’t find the group you’re looking for?")}{" "}
+            <ButtonLink onClick={this.handleNewGroupModalOpen}>
+              {t("Create a group")}
+            </ButtonLink>
+            .
+          </HelpText>
+        )}
 
         <Input
           type="search"
@@ -125,13 +130,15 @@ class AddGroupsToCollection extends React.Component<Props> {
             />
           )}
         />
-        <Modal
-          title={t("Create a group")}
-          onRequestClose={this.handleNewGroupModalClose}
-          isOpen={this.newGroupModalOpen}
-        >
-          <GroupNew onSubmit={this.handleNewGroupModalClose} />
-        </Modal>
+        {can.createGroup && (
+          <Modal
+            title={t("Create a group")}
+            onRequestClose={this.handleNewGroupModalClose}
+            isOpen={this.newGroupModalOpen}
+          >
+            <GroupNew onSubmit={this.handleNewGroupModalClose} />
+          </Modal>
+        )}
       </Flex>
     );
   }
