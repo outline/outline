@@ -30,6 +30,7 @@ import { newDocumentPath, searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
+import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
@@ -66,9 +67,6 @@ class Search extends React.Component<Props> {
 
   @observable
   isLoading = false;
-
-  @observable
-  pinToTop = !!this.props.match.params.term;
 
   componentDidMount() {
     this.handleTermChange();
@@ -225,7 +223,6 @@ class Search extends React.Component<Props> {
 
       try {
         const results = await this.props.documents.search(this.query, params);
-        this.pinToTop = true;
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;
@@ -239,7 +236,6 @@ class Search extends React.Component<Props> {
         this.isLoading = false;
       }
     } else {
-      this.pinToTop = false;
       this.isLoading = false;
       this.lastQuery = this.query;
     }
@@ -257,10 +253,9 @@ class Search extends React.Component<Props> {
   };
 
   render() {
-    const { documents, notFound, location, t, auth, policies } = this.props;
+    const { documents, notFound, t, auth, policies } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
-    const showShortcutTip = !this.pinToTop && location.state?.fromMenu;
     const can = policies.abilities(auth.team?.id ? auth.team.id : "");
     const canCollection = policies.abilities(this.collectionId || "");
 
@@ -277,28 +272,14 @@ class Search extends React.Component<Props> {
             </Empty>
           </div>
         )}
-        <ResultsWrapper pinToTop={this.pinToTop} column auto>
+        <ResultsWrapper column auto>
           <SearchInput
             placeholder={`${t("Search")}…`}
             onKeyDown={this.handleKeyDown}
             defaultValue={this.query}
           />
-          {showShortcutTip && (
-            <Fade>
-              <HelpText small>
-                <Trans
-                  defaults="Use the <em>{{ shortcut }}</em> shortcut to search from anywhere in your knowledge base"
-                  values={{
-                    shortcut: "/",
-                  }}
-                  components={{
-                    em: <strong />,
-                  }}
-                />
-              </HelpText>
-            </Fade>
-          )}
-          {this.pinToTop && (
+
+          {this.query ? (
             <Filters>
               <StatusFilter
                 includeArchived={this.includeArchived}
@@ -333,6 +314,8 @@ class Search extends React.Component<Props> {
                 }
               />
             </Filters>
+          ) : (
+            <RecentSearches />
           )}
           {showEmpty && (
             <Fade>
@@ -365,7 +348,7 @@ class Search extends React.Component<Props> {
               </Centered>
             </Fade>
           )}
-          <ResultList column visible={this.pinToTop}>
+          <ResultList column>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
@@ -415,21 +398,18 @@ const Container = styled(CenteredContent)`
   }
 `;
 
-const ResultsWrapper = styled(Flex)<{ pinToTop: boolean }>`
+const ResultsWrapper = styled(Flex)`
   position: absolute;
-  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${(props) => (props.pinToTop ? "0%" : "50%")};
+  top: 0;
   width: 100%;
 
   ${breakpoint("tablet")`	
-    margin-top: ${(props: any) => (props.pinToTop ? "40px" : "-75px")};
+    margin-top: 40px;
   `};
 `;
 
-const ResultList = styled(Flex)<{ visible: boolean }>`
+const ResultList = styled(Flex)`
   margin-bottom: 150px;
-  opacity: ${(props) => (props.visible ? "1" : "0")};
-  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
 
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
