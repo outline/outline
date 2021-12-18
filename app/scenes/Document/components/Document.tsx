@@ -401,7 +401,9 @@ class DocumentScene extends React.Component<Props> {
       !revision &&
       !isShare;
 
-    const canonicalUrl = updateDocumentUrl(this.props.match.url, document);
+    const canonicalUrl = shareId
+      ? this.props.match.url
+      : updateDocumentUrl(this.props.match.url, document);
 
     return (
       <ErrorBoundary>
