@@ -11,6 +11,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
+import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
 import CenteredContent from "~/components/CenteredContent";
 import DocumentListItem from "~/components/DocumentListItem";
@@ -22,7 +23,7 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
-import { newDocumentPath, searchUrl } from "~/utils/routeHelpers";
+import { searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
@@ -43,11 +44,11 @@ type Props = RouteComponentProps<
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: React.Component<any> | null | undefined;
+  firstDocument: HTMLAnchorElement | null | undefined;
 
   lastQuery = "";
 
-  lastParams: Record<string, any>;
+  lastParams: SearchParams;
 
   @observable
   query: string = decodeURIComponentSafe(this.props.match.params.term || "");
@@ -184,6 +185,7 @@ class Search extends React.Component<Props> {
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
     if (!this.allowLoadMore || this.isLoading) return;
+
     // Fetch more results
     await this.fetchResults();
   };
@@ -238,7 +240,7 @@ class Search extends React.Component<Props> {
     });
   };
 
-  setFirstDocumentRef = (ref: any) => {
+  setFirstDocumentRef = (ref: HTMLAnchorElement | null) => {
     this.firstDocument = ref;
   };
 
