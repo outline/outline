@@ -38,8 +38,7 @@ View.increment = async (where) => {
   return model;
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
-View.findByDocument = async (documentId) => {
+View.findByDocument = async (documentId: string) => {
   return View.findAll({
     where: {
       documentId,
@@ -54,8 +53,7 @@ View.findByDocument = async (documentId) => {
   });
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
-View.findRecentlyEditingByDocument = async (documentId) => {
+View.findRecentlyEditingByDocument = async (documentId: string) => {
   return View.findAll({
     where: {
       documentId,

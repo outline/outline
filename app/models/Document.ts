@@ -276,7 +276,7 @@ export default class Document extends BaseModel {
   @action
   view = () => {
     // we don't record views for documents in the trash
-    if (this.isDeleted || !this.publishedAt) {
+    if (this.isDeleted) {
       return;
     }
 
