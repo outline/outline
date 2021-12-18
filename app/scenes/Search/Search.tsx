@@ -2,19 +2,16 @@ import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
 import { RouteComponentProps, StaticContext, withRouter } from "react-router";
-import { Link } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
-import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
@@ -25,7 +22,6 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
-import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import { newDocumentPath, searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -149,12 +145,6 @@ class Search extends React.Component<Props> {
     });
   };
 
-  handleNewDoc = () => {
-    if (this.collectionId) {
-      this.props.history.push(newDocumentPath(this.collectionId));
-    }
-  };
-
   get includeArchived() {
     return this.params.get("includeArchived") === "true";
   }
@@ -253,11 +243,9 @@ class Search extends React.Component<Props> {
   };
 
   render() {
-    const { documents, notFound, t, auth, policies } = this.props;
+    const { documents, notFound, t } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
-    const can = policies.abilities(auth.team?.id ? auth.team.id : "");
-    const canCollection = policies.abilities(this.collectionId || "");
 
     return (
       <Container>
@@ -321,30 +309,8 @@ class Search extends React.Component<Props> {
             <Fade>
               <Centered column>
                 <HelpText>
-                  <Trans>
-                    No documents found for your search filters. <br />
-                  </Trans>
-                  {can.createDocument && <Trans>Create a new document?</Trans>}
+                  <Trans>No documents found for your search filters.</Trans>
                 </HelpText>
-                <Wrapper>
-                  {this.collectionId &&
-                  can.createDocument &&
-                  canCollection.update ? (
-                    <Button
-                      onClick={this.handleNewDoc}
-                      icon={<PlusIcon />}
-                      primary
-                    >
-                      {t("New doc")}
-                    </Button>
-                  ) : (
-                    <NewDocumentMenu />
-                  )}
-                  &nbsp;&nbsp;
-                  <Button as={Link} to="/search" neutral>
-                    {t("Clear filters")}
-                  </Button>
-                </Wrapper>
               </Centered>
             </Fade>
           )}
@@ -379,11 +345,6 @@ class Search extends React.Component<Props> {
   }
 }
 
-const Wrapper = styled(Flex)`
-  justify-content: center;
-  margin: 10px 0;
-`;
-
 const Centered = styled(Flex)`
   text-align: center;
   margin: 30vh auto 0;
@@ -399,10 +360,6 @@ const Container = styled(CenteredContent)`
 `;
 
 const ResultsWrapper = styled(Flex)`
-  position: absolute;
-  top: 0;
-  width: 100%;
-
   ${breakpoint("tablet")`	
     margin-top: 40px;
   `};

@@ -15,6 +15,6 @@ export default class SearchesStore extends BaseStore<SearchQuery> {
 
   @computed
   get recent(): SearchQuery[] {
-    return uniqBy(this.orderedData, "query").slice(0, 10);
+    return uniqBy(this.orderedData, "query").slice(0, 8);
   }
 }
