@@ -52,6 +52,10 @@ export default class Document extends BaseModel {
 
   @Field
   @observable
+  fullWidth: boolean;
+
+  @Field
+  @observable
   templateId: string | undefined;
 
   @Field
