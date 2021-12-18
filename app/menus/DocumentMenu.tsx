@@ -25,14 +25,17 @@ import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentTemplatize from "~/scenes/DocumentTemplatize";
+import Checkbox from "~/components/Checkbox";
 import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import Separator from "~/components/ContextMenu/Separator";
 import Template from "~/components/ContextMenu/Template";
 import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
@@ -453,6 +456,17 @@ function DocumentMenu({
             },
           ]}
         />
+        <Separator />
+        <Style>
+          <StyledCheckbox
+            label={t("Full width")}
+            checked={document.fullWidth}
+            onChange={(ev) => {
+              document.fullWidth = ev.target.checked;
+              document.save();
+            }}
+          />
+        </Style>
       </ContextMenu>
       {renderModals && (
         <>
@@ -515,6 +529,23 @@ function DocumentMenu({
     </>
   );
 }
+
+const StyledCheckbox = styled(Checkbox)`
+  margin-left: 2px;
+
+  span {
+    font-weight: normal;
+  }
+`;
+
+const Style = styled.div`
+  padding: 12px;
+
+  ${breakpoint("tablet")`
+    padding: 4px 12px;
+    font-size: 14px;
+  `};
+`;
 
 const CollectionName = styled.div`
   overflow: hidden;

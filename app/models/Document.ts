@@ -315,6 +315,7 @@ export default class Document extends BaseModel {
           {
             id: this.id,
             title: options.title || this.title,
+            fullWidth: this.fullWidth,
           },
           {
             lastRevision: options.lastRevision,
@@ -331,7 +332,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  save = async (options: SaveOptions | undefined) => {
+  save = async (options?: SaveOptions | undefined) => {
     if (this.isSaving) return this;
     const isCreating = !this.id;
     this.isSaving = true;
@@ -353,24 +354,21 @@ export default class Document extends BaseModel {
         );
       }
 
-      if (options?.lastRevision) {
-        return await this.store.update(
-          {
-            id: this.id,
-            title: this.title,
-            text: this.text,
-            templateId: this.templateId,
-          },
-          {
-            lastRevision: options?.lastRevision,
-            publish: options?.publish,
-            done: options?.done,
-            autosave: options?.autosave,
-          }
-        );
-      }
-
-      throw new Error("Attempting to update without a lastRevision");
+      return await this.store.update(
+        {
+          id: this.id,
+          title: this.title,
+          text: this.text,
+          fullWidth: this.fullWidth,
+          templateId: this.templateId,
+        },
+        {
+          lastRevision: options?.lastRevision || this.revision,
+          publish: options?.publish,
+          done: options?.done,
+          autosave: options?.autosave,
+        }
+      );
     } finally {
       this.isSaving = false;
     }

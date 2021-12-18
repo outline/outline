@@ -493,6 +493,7 @@ class DocumentScene extends React.Component<Props> {
               archived={document.isArchived}
               showContents={showContents}
               isEditing={!readOnly}
+              isFullWidth={document.fullWidth}
               column
               auto
             >
@@ -628,6 +629,7 @@ const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
 
 type MaxWidthProps = {
   isEditing?: boolean;
+  isFullWidth?: boolean;
   archived?: boolean;
   showContents?: boolean;
 };
@@ -646,12 +648,15 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   ${breakpoint("tablet")`
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${(props: MaxWidthProps) =>
-      props.showContents ? "64em" : "46em"});
+    max-width: ${(props: MaxWidthProps) =>
+      props.isFullWidth
+        ? "100vw"
+        : `calc(48px + ${props.showContents ? "64em" : "46em"});`}
   `};
 
   ${breakpoint("desktopLarge")`
-    max-width: calc(48px + 52em);
+    max-width: ${(props: MaxWidthProps) =>
+      props.isFullWidth ? "100vw" : `calc(48px + 56em);`}
   `};
 `;
 

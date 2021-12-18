@@ -641,6 +641,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       id: string;
       title: string;
       text?: string;
+      fullWidth?: boolean;
       templateId?: string;
     },
     options?: {
