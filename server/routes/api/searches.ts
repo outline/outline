@@ -41,3 +41,5 @@ router.post("searches.delete", auth(), async (ctx) => {
     success: true,
   };
 });
+
+export default router;
