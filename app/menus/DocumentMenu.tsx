@@ -55,7 +55,8 @@ type Props = {
   document: Document;
   className?: string;
   isRevision?: boolean;
-  showPrint?: boolean;
+  /** Pass true if the document is currently being displayed */
+  showDisplayOptions?: boolean;
   modal?: boolean;
   showToggleEmbeds?: boolean;
   showPin?: boolean;
@@ -70,7 +71,7 @@ function DocumentMenu({
   className,
   modal = true,
   showToggleEmbeds,
-  showPrint,
+  showDisplayOptions,
   showPin,
   label,
   onOpen,
@@ -451,22 +452,26 @@ function DocumentMenu({
               type: "button",
               title: t("Print"),
               onClick: handlePrint,
-              visible: !!showPrint,
+              visible: !!showDisplayOptions,
               icon: <PrintIcon />,
             },
           ]}
         />
-        <Separator />
-        <Style>
-          <StyledCheckbox
-            label={t("Full width")}
-            checked={document.fullWidth}
-            onChange={(ev) => {
-              document.fullWidth = ev.target.checked;
-              document.save();
-            }}
-          />
-        </Style>
+        {showDisplayOptions && (
+          <>
+            <Separator />
+            <Style>
+              <StyledCheckbox
+                label={t("Full width")}
+                checked={document.fullWidth}
+                onChange={(ev) => {
+                  document.fullWidth = ev.target.checked;
+                  document.save();
+                }}
+              />
+            </Style>
+          </>
+        )}
       </ContextMenu>
       {renderModals && (
         <>
@@ -531,8 +536,6 @@ function DocumentMenu({
 }
 
 const StyledCheckbox = styled(Checkbox)`
-  margin-left: 2px;
-
   span {
     font-weight: normal;
   }

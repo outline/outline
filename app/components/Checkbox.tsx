@@ -12,18 +12,15 @@ export type Props = {
   disabled?: boolean;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   note?: React.ReactNode;
-  small?: boolean;
 };
 
-const LabelText = styled.span<{ small?: boolean }>`
+const LabelText = styled.span`
   font-weight: 500;
-  margin-left: ${(props) => (props.small ? "6px" : "10px")};
-  ${(props) => (props.small ? `color: ${props.theme.textSecondary}` : "")};
+  margin-left: 10px;
 `;
 
-const Wrapper = styled.div<{ small?: boolean }>`
+const Wrapper = styled.div`
   padding-bottom: 8px;
-  ${(props) => (props.small ? "font-size: 14px" : "")};
   width: 100%;
 `;
 
@@ -33,21 +30,66 @@ const Label = styled.label`
   user-select: none;
 `;
 
+const Toggle = styled.label`
+  cursor: pointer;
+  text-indent: -9999px;
+  width: 26px;
+  height: 14px;
+  background: ${(props) => props.theme.slate};
+  display: block;
+  border-radius: 10px;
+  position: relative;
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background: ${(props) => props.theme.white};
+    border-radius: 5px;
+    transition: width 100ms ease-in-out;
+  }
+
+  &:active:after {
+    width: 12px;
+  }
+`;
+
+const HiddenInput = styled.input`
+  height: 0;
+  width: 0;
+  visibility: hidden;
+
+  &:checked + ${Toggle} {
+    background: ${(props) => props.theme.primary};
+  }
+
+  &:checked + ${Toggle}:after {
+    left: calc(100% - 2px);
+    transform: translateX(-100%);
+  }
+`;
+
+let inputId = 0;
+
 export default function Checkbox({
   label,
   labelHidden,
   note,
   className,
-  small,
   ...rest
 }: Props) {
-  const wrappedLabel = <LabelText small={small}>{label}</LabelText>;
+  const wrappedLabel = <LabelText>{label}</LabelText>;
+  const [id] = React.useState(`checkbox-input-${inputId++}`);
 
   return (
     <>
-      <Wrapper small={small} className={className}>
+      <Wrapper className={className}>
         <Label>
-          <input type="checkbox" {...rest} />
+          <HiddenInput type="checkbox" id={id} {...rest} />
+          <Toggle htmlFor={id} />
           {label &&
             (labelHidden ? (
               <VisuallyHidden>{wrappedLabel}</VisuallyHidden>

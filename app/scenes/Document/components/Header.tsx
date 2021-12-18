@@ -306,7 +306,7 @@ function DocumentHeader({
                       />
                     )}
                     showToggleEmbeds={canToggleEmbeds}
-                    showPrint
+                    showDisplayOptions
                   />
                 </Action>
               </>
