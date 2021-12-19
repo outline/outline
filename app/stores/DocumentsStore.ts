@@ -22,6 +22,16 @@ type FetchParams = PaginationParams & { collectionId: string };
 
 type FetchPageParams = PaginationParams & { template?: boolean };
 
+export type SearchParams = {
+  offset?: number;
+  limit?: number;
+  dateFilter?: DateFilter;
+  includeArchived?: boolean;
+  includeDrafts?: boolean;
+  collectionId?: string;
+  userId?: string;
+};
+
 type ImportOptions = {
   publish?: boolean;
 };
@@ -392,15 +402,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   search = async (
     query: string,
-    options: {
-      offset?: number;
-      limit?: number;
-      dateFilter?: DateFilter;
-      includeArchived?: boolean;
-      includeDrafts?: boolean;
-      collectionId?: string;
-      userId?: string;
-    }
+    options: SearchParams
   ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
