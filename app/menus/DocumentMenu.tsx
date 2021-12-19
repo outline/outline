@@ -25,6 +25,7 @@ import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -33,9 +34,11 @@ import DocumentTemplatize from "~/scenes/DocumentTemplatize";
 import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import Separator from "~/components/ContextMenu/Separator";
 import Template from "~/components/ContextMenu/Template";
 import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
+import Toggle from "~/components/Toggle";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -52,7 +55,8 @@ type Props = {
   document: Document;
   className?: string;
   isRevision?: boolean;
-  showPrint?: boolean;
+  /** Pass true if the document is currently being displayed */
+  showDisplayOptions?: boolean;
   modal?: boolean;
   showToggleEmbeds?: boolean;
   showPin?: boolean;
@@ -67,7 +71,7 @@ function DocumentMenu({
   className,
   modal = true,
   showToggleEmbeds,
-  showPrint,
+  showDisplayOptions,
   showPin,
   label,
   onOpen,
@@ -448,11 +452,26 @@ function DocumentMenu({
               type: "button",
               title: t("Print"),
               onClick: handlePrint,
-              visible: !!showPrint,
+              visible: !!showDisplayOptions,
               icon: <PrintIcon />,
             },
           ]}
         />
+        {showDisplayOptions && (
+          <>
+            <Separator />
+            <Style>
+              <ToggleMenuItem
+                label={t("Full width")}
+                checked={document.fullWidth}
+                onChange={(ev) => {
+                  document.fullWidth = ev.target.checked;
+                  document.save();
+                }}
+              />
+            </Style>
+          </>
+        )}
       </ContextMenu>
       {renderModals && (
         <>
@@ -515,6 +534,21 @@ function DocumentMenu({
     </>
   );
 }
+
+const ToggleMenuItem = styled(Toggle)`
+  span {
+    font-weight: normal;
+  }
+`;
+
+const Style = styled.div`
+  padding: 12px;
+
+  ${breakpoint("tablet")`
+    padding: 4px 12px;
+    font-size: 14px;
+  `};
+`;
 
 const CollectionName = styled.div`
   overflow: hidden;

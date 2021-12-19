@@ -493,6 +493,7 @@ class DocumentScene extends React.Component<Props> {
               archived={document.isArchived}
               showContents={showContents}
               isEditing={!readOnly}
+              isFullWidth={document.fullWidth}
               column
               auto
             >
@@ -544,7 +545,12 @@ class DocumentScene extends React.Component<Props> {
               )}
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
-                  {showContents && <Contents headings={headings} />}
+                  {showContents && (
+                    <Contents
+                      headings={headings}
+                      isFullWidth={document.fullWidth}
+                    />
+                  )}
                   <Editor
                     id={document.id}
                     key={disableEmbeds ? "disabled" : "enabled"}
@@ -628,6 +634,7 @@ const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
 
 type MaxWidthProps = {
   isEditing?: boolean;
+  isFullWidth?: boolean;
   archived?: boolean;
   showContents?: boolean;
 };
@@ -636,22 +643,23 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
 
-  // Adds space to the gutter to make room for heading annotations on mobile
+  // Adds space to the gutter to make room for heading annotations
   padding: 0 32px;
   transition: padding 100ms;
-
   max-width: 100vw;
   width: 100%;
 
   ${breakpoint("tablet")`
-    padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${(props: MaxWidthProps) =>
-      props.showContents ? "64em" : "46em"});
+    max-width: ${(props: MaxWidthProps) =>
+      props.isFullWidth
+        ? "100vw"
+        : `calc(64px + 46em + ${props.showContents ? "256px" : "0px"});`}
   `};
 
   ${breakpoint("desktopLarge")`
-    max-width: calc(48px + 52em);
+    max-width: ${(props: MaxWidthProps) =>
+      props.isFullWidth ? "100vw" : `calc(64px + 52em);`}
   `};
 `;
 
