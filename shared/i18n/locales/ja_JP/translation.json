@@ -241,6 +241,7 @@
   "Move": "移動",
   "Enable embeds": "埋め込みを有効にする",
   "Disable embeds": "埋め込みを無効にする",
+  "Full width": "Full width",
   "Move {{ documentName }}": "{{ documentName }} を移動",
   "Permanently delete {{ documentName }}": "{{ documentName }} を完全に削除します。",
   "Export options": "エクスポート設定",
