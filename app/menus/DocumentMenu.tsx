@@ -31,7 +31,6 @@ import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentTemplatize from "~/scenes/DocumentTemplatize";
-import Checkbox from "~/components/Checkbox";
 import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
@@ -39,6 +38,7 @@ import Separator from "~/components/ContextMenu/Separator";
 import Template from "~/components/ContextMenu/Template";
 import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
+import Toggle from "~/components/Toggle";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -461,7 +461,7 @@ function DocumentMenu({
           <>
             <Separator />
             <Style>
-              <StyledCheckbox
+              <ToggleMenuItem
                 label={t("Full width")}
                 checked={document.fullWidth}
                 onChange={(ev) => {
@@ -535,7 +535,7 @@ function DocumentMenu({
   );
 }
 
-const StyledCheckbox = styled(Checkbox)`
+const ToggleMenuItem = styled(Toggle)`
   span {
     font-weight: normal;
   }

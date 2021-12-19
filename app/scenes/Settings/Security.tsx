@@ -4,11 +4,11 @@ import { PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Checkbox from "~/components/Checkbox";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
+import Toggle from "~/components/Toggle";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -69,7 +69,7 @@ function Security() {
         </Trans>
       </HelpText>
 
-      <Checkbox
+      <Toggle
         label={t("Allow email authentication")}
         name="guestSignin"
         checked={data.guestSignin}
@@ -81,7 +81,7 @@ function Security() {
         }
         disabled={!env.EMAIL_ENABLED}
       />
-      <Checkbox
+      <Toggle
         label={t("Public document sharing")}
         name="sharing"
         checked={data.sharing}
@@ -90,7 +90,7 @@ function Security() {
           "When enabled, documents can be shared publicly on the internet by any team member"
         )}
       />
-      <Checkbox
+      <Toggle
         label={t("Rich service embeds")}
         name="documentEmbeds"
         checked={data.documentEmbeds}

@@ -1,6 +1,6 @@
 import * as React from "react";
 import NotificationSetting from "~/models/NotificationSetting";
-import Checkbox from "~/components/Checkbox";
+import Toggle from "~/components/Toggle";
 
 type Props = {
   setting?: NotificationSetting;
@@ -20,7 +20,7 @@ const NotificationListItem = ({
   description,
 }: Props) => {
   return (
-    <Checkbox
+    <Toggle
       label={title}
       name={event}
       checked={!!setting}

@@ -30,7 +30,7 @@ const Label = styled.label`
   user-select: none;
 `;
 
-const Toggle = styled.label`
+const SlideToggle = styled.label`
   cursor: pointer;
   text-indent: -9999px;
   width: 26px;
@@ -62,11 +62,11 @@ const HiddenInput = styled.input`
   width: 0;
   visibility: hidden;
 
-  &:checked + ${Toggle} {
+  &:checked + ${SlideToggle} {
     background: ${(props) => props.theme.primary};
   }
 
-  &:checked + ${Toggle}:after {
+  &:checked + ${SlideToggle}:after {
     left: calc(100% - 2px);
     transform: translateX(-100%);
   }
@@ -74,7 +74,7 @@ const HiddenInput = styled.input`
 
 let inputId = 0;
 
-export default function Checkbox({
+export default function Toggle({
   label,
   labelHidden,
   note,
@@ -89,7 +89,7 @@ export default function Checkbox({
       <Wrapper className={className}>
         <Label>
           <HiddenInput type="checkbox" id={id} {...rest} />
-          <Toggle htmlFor={id} />
+          <SlideToggle htmlFor={id} />
           {label &&
             (labelHidden ? (
               <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
