@@ -9,6 +9,7 @@ import { RouteComponentProps, StaticContext, withRouter } from "react-router";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { v4 as uuidv4 } from "uuid";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import { SearchParams } from "~/stores/DocumentsStore";
@@ -215,6 +216,14 @@ class Search extends React.Component<Props> {
 
       try {
         const results = await this.props.documents.search(this.query, params);
+
+        // Add to the searches store so this search can immediately appear in
+        // the recent searches list without a flash of load
+        this.props.searches.add({
+          id: uuidv4(),
+          query: this.query,
+          createdAt: new Date().toISOString(),
+        });
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;

@@ -6,6 +6,8 @@ class SearchQuery extends BaseModel {
 
   query: string;
 
+  createdAt: string;
+
   delete = async () => {
     this.isSaving = true;
 

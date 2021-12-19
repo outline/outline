@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
@@ -12,12 +13,13 @@ import { searchUrl } from "~/utils/routeHelpers";
 function RecentSearches() {
   const { searches } = useStores();
   const { t } = useTranslation();
+  const [isPreloaded] = React.useState(searches.recent.length > 0);
 
   React.useEffect(() => {
     searches.fetchPage({});
   }, [searches]);
 
-  return searches.recent.length ? (
+  const content = searches.recent.length ? (
     <>
       <Heading>{t("Recent searches")}</Heading>
       <List>
@@ -44,6 +46,8 @@ function RecentSearches() {
       </List>
     </>
   ) : null;
+
+  return isPreloaded ? content : <Fade>{content}</Fade>;
 }
 
 const Heading = styled.h2`
