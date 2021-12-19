@@ -241,6 +241,7 @@
   "Move": "انتقال",
   "Enable embeds": "فعال‌سازی جاسازی‌ها",
   "Disable embeds": "غیرفعال‌سازی جاسازی‌ها",
+  "Full width": "Full width",
   "Move {{ documentName }}": "انتقال {{ documentName }}",
   "Permanently delete {{ documentName }}": "حذف همیشگی {{ documentName }}",
   "Export options": "گزینه های صدور",
