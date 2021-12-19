@@ -241,6 +241,7 @@
   "Move": "Flytta",
   "Enable embeds": "Enable embeds",
   "Disable embeds": "Disable embeds",
+  "Full width": "Full width",
   "Move {{ documentName }}": "Move {{ documentName }}",
   "Permanently delete {{ documentName }}": "Permanently delete {{ documentName }}",
   "Export options": "Export options",
