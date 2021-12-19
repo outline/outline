@@ -241,6 +241,7 @@
   "Move": "移動",
   "Enable embeds": "啟用嵌入物件",
   "Disable embeds": "停用嵌入物件",
+  "Full width": "Full width",
   "Move {{ documentName }}": "移動 {{ documentName }}",
   "Permanently delete {{ documentName }}": "永久刪除 {{ documentName }}",
   "Export options": "匯出選項",
