@@ -241,6 +241,7 @@
   "Move": "Verplaats",
   "Enable embeds": "Embeds inschakelen",
   "Disable embeds": "Embeds uitschakelen",
+  "Full width": "Full width",
   "Move {{ documentName }}": "Verplaats {{ documentName }}",
   "Permanently delete {{ documentName }}": "Definitief verwijderen {{ documentName }}",
   "Export options": "Exporteer instellingen",
