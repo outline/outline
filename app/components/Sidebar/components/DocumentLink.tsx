@@ -315,6 +315,7 @@ function DocumentLink(
                     <Fade>
                       {can.createChildDocument && (
                         <NudeButton
+                          type={undefined}
                           aria-label={t("New nested document")}
                           as={Link}
                           to={newDocumentPath(document.collectionId, {
