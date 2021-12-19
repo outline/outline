@@ -241,6 +241,7 @@
   "Move": "Déplacer",
   "Enable embeds": "Activer les intégrations",
   "Disable embeds": "Désactiver les intégrations",
+  "Full width": "Full width",
   "Move {{ documentName }}": "Déplacer {{ documentName }}",
   "Permanently delete {{ documentName }}": "Supprimer définitivement {{ documentName }}",
   "Export options": "Options d'exportation",
