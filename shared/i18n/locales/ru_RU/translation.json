@@ -241,6 +241,7 @@
   "Move": "Переместить",
   "Enable embeds": "Включить встраивание",
   "Disable embeds": "Отключить встраивание",
+  "Full width": "Full width",
   "Move {{ documentName }}": "Переместить {{ documentName }}",
   "Permanently delete {{ documentName }}": "Окончательно удалить {{ documentName }}",
   "Export options": "Параметры экспорта",
