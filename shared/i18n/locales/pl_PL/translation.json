@@ -241,6 +241,7 @@
   "Move": "Przenieś",
   "Enable embeds": "Włącz osadzanie",
   "Disable embeds": "Wyłącz osadzanie",
+  "Full width": "Full width",
   "Move {{ documentName }}": "Przenieś {{ documentName }}",
   "Permanently delete {{ documentName }}": "Usuń na stałe {{ documentName }}",
   "Export options": "Opcje eksportu",
