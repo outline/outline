@@ -241,6 +241,7 @@
   "Move": "移动",
   "Enable embeds": "启用嵌入",
   "Disable embeds": "禁用嵌入",
+  "Full width": "Full width",
   "Move {{ documentName }}": "移动 {{ documentName }}",
   "Permanently delete {{ documentName }}": "永久删除 {{ documentName }}",
   "Export options": "导出选项",
