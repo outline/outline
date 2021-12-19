@@ -241,6 +241,7 @@
   "Move": "이동",
   "Enable embeds": "임베드 활성화",
   "Disable embeds": "임베드 비활성화",
+  "Full width": "Full width",
   "Move {{ documentName }}": "{{ documentName }} 를 이동함",
   "Permanently delete {{ documentName }}": "영구 삭제 {{ documentName }}",
   "Export options": "Export options",
