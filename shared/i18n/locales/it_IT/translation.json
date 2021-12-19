@@ -241,6 +241,7 @@
   "Move": "Sposta",
   "Enable embeds": "Abilita l'embedding",
   "Disable embeds": "Disabilita l'embedding",
+  "Full width": "Full width",
   "Move {{ documentName }}": "Move {{ documentName }}",
   "Permanently delete {{ documentName }}": "Permanently delete {{ documentName }}",
   "Export options": "Export options",
