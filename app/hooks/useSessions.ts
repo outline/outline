@@ -16,7 +16,7 @@ function loadSessionsFromCookie(): Session[] {
   }));
 }
 
-export default function useSessions() {
+export default function useSessions(): [Session[], () => void] {
   const [sessions, setSessions] = React.useState(loadSessionsFromCookie);
   const reload = React.useCallback(() => {
     setSessions(loadSessionsFromCookie());

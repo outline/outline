@@ -49,7 +49,7 @@ export default function ContextMenu({
 }: Props) {
   const previousVisible = usePrevious(rest.visible);
   const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
-  const backgroundRef = React.useRef();
+  const backgroundRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
@@ -79,8 +79,7 @@ export default function ContextMenu({
           // kind of hacky, but this is an effective way of telling which way
           // the menu will _actually_ be placed when taking into account screen
           // positioning.
-          // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-          const topAnchor = props.style.top === "0";
+          const topAnchor = props.style?.top === "0";
           // @ts-expect-error ts-migrate(2339) FIXME: Property 'placement' does not exist on type 'Extra... Remove this comment to see the full error message
           const rightAnchor = props.placement === "bottom-end";
 
@@ -90,7 +89,6 @@ export default function ContextMenu({
                 dir="auto"
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
-                // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
                 ref={backgroundRef}
                 style={
                   maxHeight && topAnchor

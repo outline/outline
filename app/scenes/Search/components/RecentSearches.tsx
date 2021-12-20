@@ -24,11 +24,8 @@ function RecentSearches() {
       <Heading>{t("Recent searches")}</Heading>
       <List>
         {searches.recent.map((searchQuery) => (
-          <ListItem>
-            <RecentSearch
-              key={searchQuery.id}
-              to={searchUrl(searchQuery.query)}
-            >
+          <ListItem key={searchQuery.id}>
+            <RecentSearch to={searchUrl(searchQuery.query)}>
               {searchQuery.query}
               <Tooltip tooltip={t("Remove search")} delay={150}>
                 <RemoveButton
