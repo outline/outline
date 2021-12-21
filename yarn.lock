@@ -3188,6 +3188,11 @@
   resolved "https://registry.yarnpkg.com/@types/scheduler/-/scheduler-0.16.2.tgz#1a62f89525723dde24ba1b01b092bf5df8ad4d39"
   integrity sha512-hppQEBDmlwhFAXKJX2KnWLYu5yMfi91yazPb2l+lbJiwW+wdo1gNeRA+3RgNSO39WYX2euey41KEwnqesU2Jew==
 
+"@types/semver@^7.3.9":
+  version "7.3.9"
+  resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.3.9.tgz#152c6c20a7688c30b967ec1841d31ace569863fc"
+  integrity sha512-L/TMpyURfBkf+o/526Zb6kd/tchUP3iBDEPjqjb+U2MAJhVRxxrmr2fwpe08E7QsV7YLcpq0tUaQ9O9x97ZIxQ==
+
 "@types/sequelize@^4.28.10":
   version "4.28.10"
   resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.28.10.tgz#514b716718d4f6f398daaff78c05153534f2104e"
@@ -11184,10 +11189,10 @@ os-browserify@^0.3.0:
   resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
   integrity sha1-hUNzx/XCMVkU/Jv8a9gjj92h7Cc=
 
-outline-icons@^1.38.1:
-  version "1.38.1"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.38.1.tgz#2f72e360549cb3dda5b3e7c17feaccaab1617da0"
-  integrity sha512-Lkdn8jvh3/hoS298hAdVgNZMxtDlx1zUJRFU4teESL7cyodFpFaG7WUBs6ZM+11j8uMisp/8PyPrZ5IPJwmrcg==
+outline-icons@^1.38.1, outline-icons@^1.39.0:
+  version "1.39.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.39.0.tgz#d7b1ecf5d3d2803b4e0defa86300e397f7c4ac2e"
+  integrity sha512-5TpVKHhGYzqeLJvY+FEP+Atn7pEMPM3Rkv6iezb2yZkPoQx5Tbnla1jUdE2aCSzeFZws+mLm17hzANcoRW2sYQ==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -12986,10 +12991,10 @@ reusify@^1.0.4:
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz#90da382b1e126efc02146e90845a88db12925d76"
   integrity sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==
 
-rich-markdown-editor@^11.21.0:
-  version "11.21.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.21.0.tgz#bd94e8831940cb11514ab1f891e5c494916406e2"
-  integrity sha512-gH06ZQnSS1Nqj7LZe6yF4DaQXM8rBoRPkomd+9dmO41MQlNRV7sCln7+brarz+hzis4I7yaAXaw3Jr81o1u6kA==
+rich-markdown-editor@^11.21.2:
+  version "11.21.2"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.21.2.tgz#c855e1a253c29cb9812f3954cc12edcac94a2a01"
+  integrity sha512-26N+5h4Ap50+QZcnGSUIzMqjMbnM84125OSpGE7oTAqGsOxQImUfnPqqDayrLLqQmiXlS/iZKvHZqQ4IPFaiTw==
   dependencies:
     copy-to-clipboard "^3.0.8"
     fuzzy-search "^3.2.1"

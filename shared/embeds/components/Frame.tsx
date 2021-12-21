@@ -4,15 +4,6 @@ import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 
-// This wrapper allows us to pass non-standard HTML attributes through to the DOM element
-// https://www.styled-components.com/docs/basics#passed-props
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'props' implicitly has an 'any' type.
-const Iframe = (props) => <iframe title="Embed" {...props} />;
-
-const StyledIframe = styled(Iframe)`
-  border-radius: ${(props) => (props.$withBar ? "3px 3px 0 0" : "3px")};
-  display: block;
-`;
 type Props = React.HTMLAttributes<HTMLIFrameElement> & {
   src?: string;
   border?: boolean;
@@ -26,7 +17,7 @@ type Props = React.HTMLAttributes<HTMLIFrameElement> & {
 };
 
 type PropsWithRef = Props & {
-  forwardedRef: React.Ref<typeof StyledIframe>;
+  forwardedRef: React.Ref<HTMLIFrameElement>;
 };
 
 @observer
@@ -62,7 +53,6 @@ class Frame extends React.Component<PropsWithRef> {
       isSelected,
       src,
     } = this.props;
-    const Component = border ? StyledIframe : "iframe";
     const withBar = !!(icon || canonicalUrl);
 
     return (
@@ -70,17 +60,16 @@ class Frame extends React.Component<PropsWithRef> {
         width={width}
         height={height}
         $withBar={withBar}
+        $border={border}
         className={isSelected ? "ProseMirror-selectednode" : ""}
       >
         {this.isLoaded && (
-          <Component
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
+          <Iframe
             ref={forwardedRef}
             $withBar={withBar}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             width={width}
             height={height}
-            type="text/html"
             frameBorder="0"
             title="embed"
             loading="lazy"
@@ -107,12 +96,19 @@ class Frame extends React.Component<PropsWithRef> {
   }
 }
 
+const Iframe = styled.iframe<{ $withBar: boolean }>`
+  border-radius: ${(props) => (props.$withBar ? "3px 3px 0 0" : "3px")};
+  display: block;
+`;
+
 const Rounded = styled.div<{
   width: string;
   height: string;
   $withBar: boolean;
+  $border?: boolean;
 }>`
-  border: 1px solid ${(props) => props.theme.embedBorder};
+  border: 1px solid
+    ${(props) => (props.$border ? props.theme.embedBorder : "transparent")};
   border-radius: 6px;
   overflow: hidden;
   width: ${(props) => props.width};
@@ -148,7 +144,6 @@ const Bar = styled.div`
   user-select: none;
 `;
 
-export default React.forwardRef<Frame, Props>((props, ref) => (
-  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
+export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));

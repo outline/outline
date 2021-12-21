@@ -1,4 +1,5 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
+import { throttle } from "lodash";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -27,7 +28,9 @@ export type ConnectionStatus =
   | "disconnected"
   | void;
 
-type AwarenessChangeEvent = { states: { user: { id: string }; cursor: any }[] };
+type AwarenessChangeEvent = {
+  states: { user: { id: string }; cursor: any; scrollY: number | undefined }[];
+};
 
 type ConnectionStatusEvent = { status: ConnectionStatus };
 
@@ -68,6 +71,23 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       token,
     });
 
+    const syncScrollPosition = throttle(() => {
+      provider.setAwarenessField(
+        "scrollY",
+        window.scrollY / window.innerHeight
+      );
+    }, 200);
+
+    const finishObserving = () => {
+      if (ui.observingUserId) {
+        ui.setObservingUser(undefined);
+      }
+    };
+
+    window.addEventListener("click", finishObserving);
+    window.addEventListener("wheel", finishObserving);
+    window.addEventListener("scroll", syncScrollPosition);
+
     provider.on("authenticationFailed", () => {
       showToast(
         t(
@@ -78,12 +98,16 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     provider.on("awarenessChange", ({ states }: AwarenessChangeEvent) => {
-      states.forEach(({ user, cursor }) => {
+      states.forEach(({ user, cursor, scrollY }) => {
         if (user) {
-          // could know if the user is editing here using `state.cursor` but it
-          // feels distracting in the UI, once multiplayer is on for everyone we
-          // can stop diffentiating
           presence.touch(documentId, user.id, !!cursor);
+
+          if (scrollY !== undefined && user.id === ui.observingUserId) {
+            window.scrollTo({
+              top: scrollY * window.innerHeight,
+              behavior: "smooth",
+            });
+          }
         }
       });
     });
@@ -128,6 +152,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     setRemoteProvider(provider);
 
     return () => {
+      window.removeEventListener("click", finishObserving);
+      window.removeEventListener("wheel", finishObserving);
+      window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
       localProvider?.destroy();
       setRemoteProvider(null);
@@ -228,6 +255,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default React.forwardRef<typeof MultiplayerEditor, any>(
+export default React.forwardRef<typeof MultiplayerEditor, Props>(
   MultiplayerEditor
 );

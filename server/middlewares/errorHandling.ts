@@ -1,12 +1,9 @@
-import { Context } from "koa";
+import { Context, Next } from "koa";
 import { snakeCase } from "lodash";
 import Sequelize from "sequelize";
 
 export default function errorHandling() {
-  return async function errorHandlingMiddleware(
-    ctx: Context,
-    next: () => Promise<any>
-  ) {
+  return async function errorHandlingMiddleware(ctx: Context, next: Next) {
     try {
       await next();
     } catch (err) {

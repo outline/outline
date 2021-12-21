@@ -1,11 +1,8 @@
 import stream from "stream";
-import { Context } from "koa";
+import { Context, Next } from "koa";
 
 export default function apiWrapper() {
-  return async function apiWrapperMiddleware(
-    ctx: Context,
-    next: () => Promise<any>
-  ) {
+  return async function apiWrapperMiddleware(ctx: Context, next: Next) {
     await next();
     const ok = ctx.status < 400;
 

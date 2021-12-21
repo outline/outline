@@ -1,4 +1,5 @@
 import fetch from "fetch-with-proxy";
+import { Op } from "sequelize";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
 import {
@@ -38,8 +39,10 @@ export default class SlackProcessor {
       ],
     });
     if (!integration) return;
+
     const collection = integration.collection;
     if (!collection) return;
+
     await fetch(integration.settings.url, {
       method: "POST",
       headers: {
@@ -68,14 +71,19 @@ export default class SlackProcessor {
       Team.findByPk(event.teamId),
     ]);
     if (!document) return;
+
     // never send notifications for draft documents
     if (!document.publishedAt) return;
+
     const integration = await Integration.findOne({
       where: {
         teamId: document.teamId,
         collectionId: document.collectionId,
         service: "slack",
         type: "post",
+        events: {
+          [Op.contains]: [event.name],
+        },
       },
     });
     if (!integration) return;

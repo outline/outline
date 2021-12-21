@@ -1,13 +1,12 @@
-import { extendObservable, action } from "mobx";
+import { observable } from "mobx";
 import BaseModel from "~/models/BaseModel";
-import { client } from "~/utils/ApiClient";
+import Field from "./decorators/Field";
 
 type Settings = {
   url: string;
   channel: string;
   channelId: string;
 };
-type Events = "documents.create" | "collections.create";
 
 class Integration extends BaseModel {
   id: string;
@@ -18,24 +17,11 @@ class Integration extends BaseModel {
 
   collectionId: string;
 
-  events: Events;
+  @Field
+  @observable
+  events: string[];
 
   settings: Settings;
-
-  @action
-  update = async (data: Record<string, any>) => {
-    await client.post("/integrations.update", {
-      id: this.id,
-      ...data,
-    });
-    extendObservable(this, data);
-    return true;
-  };
-
-  @action
-  delete = () => {
-    return this.store.delete(this);
-  };
 }
 
 export default Integration;

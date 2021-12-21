@@ -1,12 +1,9 @@
 import querystring from "querystring";
-import { Context } from "koa";
+import { Context, Next } from "koa";
 import { InvalidRequestError } from "@server/errors";
 
 export default function pagination(options?: Record<string, any>) {
-  return async function paginationMiddleware(
-    ctx: Context,
-    next: () => Promise<any>
-  ) {
+  return async function paginationMiddleware(ctx: Context, next: Next) {
     const opts = {
       defaultLimit: 15,
       defaultOffset: 0,
