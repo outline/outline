@@ -1,11 +1,27 @@
 "use strict";
 
+const { v4 } = require("uuid");
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("pins", {
+      id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        primaryKey: true,
+      },
+      documentId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        onDelete: "cascade",
+        references: {
+          model: "documents",
+        },
+      },
       collectionId: {
         type: Sequelize.UUID,
         allowNull: true,
+        onDelete: "cascade",
         references: {
           model: "collections",
         },
@@ -13,6 +29,7 @@ module.exports = {
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
+        onDelete: "cascade",
         references: {
           model: "teams",
         },
@@ -45,6 +62,8 @@ module.exports = {
     for (const document of documents) {
       await queryInterface.sequelize.query(`
         INSERT INTO pins (
+          "id",
+          "documentId",
           "collectionId",
           "teamId",
           "createdById",
@@ -52,6 +71,8 @@ module.exports = {
           "updatedAt"
         )
         VALUES (
+          :id,
+          :documentId,
           :collectionId,
           :teamId,
           :createdById,
@@ -60,10 +81,11 @@ module.exports = {
         )
       `, {
         replacements: {
-          createdById: document.pinnedById,
+          id: v4(),
           documentId: document.id,
           collectionId: document.collectionId,
           teamId: document.teamId,
+          createdById: document.pinnedById,
           updatedAt: createdAt,
           createdAt,
         },

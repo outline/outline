@@ -308,15 +308,15 @@ function DocumentMenu({
             {
               type: "button",
               title: t("Unpin"),
-              onClick: document.unpin,
-              visible: !!(showPin && document.pinned && can.unpin),
+              onClick: () => document.unpin(false),
+              visible: !!(showPin && document.pinned() && can.unpin),
               icon: <PinIcon />,
             },
             {
               type: "button",
               title: t("Pin to collection"),
-              onClick: document.pin,
-              visible: !!(showPin && !document.pinned && can.pin),
+              onClick: () => document.pin(false),
+              visible: !!(showPin && !document.pinned() && can.pin),
               icon: <PinIcon />,
             },
             {

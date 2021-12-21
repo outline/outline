@@ -56,7 +56,7 @@ function CollectionScene() {
   const history = useHistory();
   const match = useRouteMatch();
   const { t } = useTranslation();
-  const { documents, policies, collections, ui } = useStores();
+  const { documents, policies, pins, collections, ui } = useStores();
   const { showToast } = useToasts();
   const team = useCurrentTeam();
   const [isFetching, setFetching] = React.useState(false);
@@ -94,11 +94,11 @@ function CollectionScene() {
     setError(undefined);
 
     if (collection) {
-      documents.fetchPinned({
+      pins.fetchPage({
         collectionId: collection.id,
       });
     }
-  }, [documents, collection]);
+  }, [pins, collection]);
 
   React.useEffect(() => {
     async function load() {

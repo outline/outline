@@ -181,8 +181,7 @@ Document.associate = (models) => {
       },
     },
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
-  Document.addScope("withCollection", (userId, paranoid = true) => {
+  Document.addScope("withCollection", (userId: string, paranoid = true) => {
     if (userId) {
       return {
         include: [
@@ -220,8 +219,7 @@ Document.associate = (models) => {
       },
     ],
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
-  Document.addScope("withViews", (userId) => {
+  Document.addScope("withViews", (userId: string) => {
     if (!userId) return {};
     return {
       include: [
@@ -237,8 +235,7 @@ Document.associate = (models) => {
       ],
     };
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
-  Document.addScope("withStarred", (userId) => ({
+  Document.addScope("withStarred", (userId: string) => ({
     include: [
       {
         model: models.Star,
@@ -251,20 +248,40 @@ Document.associate = (models) => {
       },
     ],
   }));
+  Document.defaultScopeWithUser = (userId: string) => {
+    const starredScope = {
+      method: ["withStarred", userId],
+    };
+    const collectionScope = {
+      method: ["withCollection", userId],
+    };
+    const viewScope = {
+      method: ["withViews", userId],
+    };
+    return Document.scope(
+      "defaultScope",
+      starredScope,
+      collectionScope,
+      viewScope
+    );
+  };
 };
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'id' implicitly has an 'any' type.
-Document.findByPk = async function (id, options = {}) {
+Document.findByPk = async function (
+  id: string,
+  options: {
+    userId?: string;
+    paranoid?: boolean;
+  } = {}
+) {
   // allow default preloading of collection membership if `userId` is passed in find options
   // almost every endpoint needs the collection membership to determine policy permissions.
   const scope = this.scope(
     "withUnpublished",
     {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'userId' does not exist on type '{}'.
       method: ["withCollection", options.userId, options.paranoid],
     },
     {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'userId' does not exist on type '{}'.
       method: ["withViews", options.userId],
     }
   );
@@ -276,10 +293,13 @@ Document.findByPk = async function (id, options = {}) {
       },
       ...options,
     });
-  } else if (id.match(SLUG_URL_REGEX)) {
+  }
+
+  const match = id.match(SLUG_URL_REGEX);
+  if (match) {
     return scope.findOne({
       where: {
-        urlId: id.match(SLUG_URL_REGEX)[1],
+        urlId: match[1],
       },
       ...options,
     });

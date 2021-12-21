@@ -26,7 +26,7 @@ async function replaceImageAttachments(text: string) {
 
 export default async function present(
   document: any,
-  options: Options | null | undefined
+  options: Options | null | undefined = {}
 ) {
   options = {
     isPublic: false,
@@ -58,7 +58,6 @@ export default async function present(
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
-    pinned: undefined,
     collectionId: undefined,
     parentDocumentId: undefined,
     lastViewedAt: undefined,
@@ -69,8 +68,6 @@ export default async function present(
   }
 
   if (!options.isPublic) {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean' is not assignable to type 'undefine... Remove this comment to see the full error message
-    data.pinned = !!document.pinnedById;
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
     // @ts-expect-error ts-migrate(2322) FIXME: Type 'UserPresentation | null | undefined' is not ... Remove this comment to see the full error message

@@ -18,9 +18,10 @@ import {
 } from "~/types";
 import { client } from "~/utils/ApiClient";
 
-type FetchParams = PaginationParams & { collectionId: string };
-
-type FetchPageParams = PaginationParams & { template?: boolean };
+type FetchPageParams = PaginationParams & {
+  template?: boolean;
+  collectionId?: string;
+};
 
 export type SearchParams = {
   offset?: number;
@@ -128,9 +129,11 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   pinnedInCollection(collectionId: string): Document[] {
+    const pins = this.rootStore.pins.inCollection(collectionId);
+
     return filter(
       this.recentlyUpdatedInCollection(collectionId),
-      (document) => document.pinned
+      (document) => !!pins.find((pin) => pin.documentId === document.id)
     );
   }
 
@@ -296,7 +299,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetchNamedPage = async (
     request = "list",
     options: FetchPageParams | undefined
-  ): Promise<Document[] | undefined> => {
+  ): Promise<Document[]> => {
     this.isFetching = true;
 
     try {
@@ -375,11 +378,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchDrafts = (options?: PaginationParams): Promise<any> => {
     return this.fetchNamedPage("drafts", options);
-  };
-
-  @action
-  fetchPinned = (options?: FetchParams): Promise<any> => {
-    return this.fetchNamedPage("pinned", options);
   };
 
   @action

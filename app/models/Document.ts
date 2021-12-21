@@ -1,5 +1,4 @@
 import { addDays, differenceInDays } from "date-fns";
-import invariant from "invariant";
 import { floor } from "lodash";
 import { action, computed, observable } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
@@ -71,8 +70,6 @@ export default class Document extends BaseModel {
   updatedAt: string;
 
   updatedBy: User;
-
-  pinned: boolean;
 
   publishedAt: string | undefined;
 
@@ -240,32 +237,31 @@ export default class Document extends BaseModel {
   };
 
   @action
-  pin = async () => {
-    this.pinned = true;
-
-    try {
-      const res = await this.store.pin(this);
-      invariant(res && res.data, "Data should be available");
-      this.updateFromJson(res.data);
-    } catch (err) {
-      this.pinned = false;
-      throw err;
-    }
+  pin = async (home = false) => {
+    await this.store.rootStore.pins.create({
+      documentId: this.id,
+      ...(home ? {} : { collectionId: this.collectionId }),
+    });
   };
 
   @action
-  unpin = async () => {
-    this.pinned = false;
+  unpin = async (home = false) => {
+    const pin = this.store.rootStore.pins.orderedData.find(
+      (pin) =>
+        pin.documentId === this.id &&
+        (home || pin.collectionId === this.collectionId)
+    );
 
-    try {
-      const res = await this.store.unpin(this);
-      invariant(res && res.data, "Data should be available");
-      this.updateFromJson(res.data);
-    } catch (err) {
-      this.pinned = true;
-      throw err;
-    }
+    await pin?.delete();
   };
+
+  pinned(home = false): boolean {
+    return !!this.store.rootStore.pins.orderedData.find(
+      (pin) =>
+        pin.documentId === this.id &&
+        (home || pin.collectionId === this.collectionId)
+    );
+  }
 
   @action
   star = () => {

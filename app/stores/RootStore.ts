@@ -12,6 +12,7 @@ import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationSettingsStore from "./NotificationSettingsStore";
+import PinsStore from "./PinsStore";
 import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
 import SearchesStore from "./SearchesStore";
@@ -35,6 +36,7 @@ export default class RootStore {
   memberships: MembershipsStore;
   notificationSettings: NotificationSettingsStore;
   presence: DocumentPresenceStore;
+  pins: PinsStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
   searches: SearchesStore;
@@ -59,6 +61,7 @@ export default class RootStore {
     this.groupMemberships = new GroupMembershipsStore(this);
     this.integrations = new IntegrationsStore(this);
     this.memberships = new MembershipsStore(this);
+    this.pins = new PinsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
     this.presence = new DocumentPresenceStore();
     this.revisions = new RevisionsStore(this);
@@ -84,6 +87,7 @@ export default class RootStore {
     this.memberships.clear();
     this.notificationSettings.clear();
     this.presence.clear();
+    this.pins.clear();
     this.policies.clear();
     this.revisions.clear();
     this.searches.clear();
