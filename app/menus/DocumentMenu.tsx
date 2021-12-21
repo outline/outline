@@ -538,6 +538,7 @@ function DocumentMenu({
 const ToggleMenuItem = styled(Toggle)`
   span {
     font-weight: normal;
+    color: ${(props) => props.theme.textSecondary};
   }
 `;
 
