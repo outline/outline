@@ -142,6 +142,7 @@ Document.associate = (models) => {
     as: "updatedBy",
     foreignKey: "lastModifiedById",
   });
+  /** Deprecated – use Pins relationship instead */
   Document.belongsTo(models.User, {
     as: "pinnedBy",
     foreignKey: "pinnedById",
