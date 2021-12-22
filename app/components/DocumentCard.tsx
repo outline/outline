@@ -9,8 +9,6 @@ import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
 import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
-import Highlight from "~/components/Highlight";
-import StarButton, { AnimatedStar } from "~/components/Star";
 import useStores from "~/hooks/useStores";
 import CollectionIcon from "./CollectionIcon";
 
@@ -24,50 +22,36 @@ function DocumentCard(props: Props, ref: React.RefObject<HTMLAnchorElement>) {
   const { collections } = useStores();
   const { document } = props;
   const collection = collections.get(document.collectionId);
-  const canStar =
-    !document.isDraft && !document.isArchived && !document.isTemplate;
 
   return (
-    <Card>
-      <DocumentLink
-        ref={ref}
-        dir={document.dir}
-        $isStarred={document.isStarred}
-        style={{ background: collection?.color }}
-        to={{
-          pathname: document.url,
-          state: {
-            title: document.titleWithDefault,
-          },
-        }}
-      >
-        <Content justify="space-between" column>
-          {collection?.icon &&
-          collection?.icon !== "collection" &&
-          props.showCollectionIcon ? (
-            <CollectionIcon collection={collection} color="white" />
-          ) : (
-            <DocumentIcon color="white" />
-          )}
-          <div>
-            <Heading dir={document.dir}>
-              {document.titleWithDefault}
-              {canStar && (
-                <StarPositioner>
-                  <StarButton document={document} />
-                </StarPositioner>
-              )}
-            </Heading>
+    <DocumentLink
+      ref={ref}
+      dir={document.dir}
+      style={{ background: collection?.color }}
+      to={{
+        pathname: document.url,
+        state: {
+          title: document.titleWithDefault,
+        },
+      }}
+    >
+      <Content justify="space-between" column>
+        {collection?.icon &&
+        collection?.icon !== "collection" &&
+        props.showCollectionIcon ? (
+          <CollectionIcon collection={collection} color="white" />
+        ) : (
+          <DocumentIcon color="white" />
+        )}
+        <div>
+          <Heading dir={document.dir}>{document.titleWithDefault}</Heading>
 
-            <StyledDocumentMeta document={document} />
-          </div>
-        </Content>
-      </DocumentLink>
-    </Card>
+          <StyledDocumentMeta document={document} />
+        </div>
+      </Content>
+    </DocumentLink>
   );
 }
-
-const Card = styled.div``;
 
 const Content = styled(Flex)`
   min-width: 0;
@@ -91,7 +75,6 @@ const StyledDocumentMeta = styled(DocumentMeta)`
 `;
 
 const DocumentLink = styled(Link)<{
-  $isStarred?: boolean;
   $menuOpen?: boolean;
 }>`
   position: relative;
@@ -116,16 +99,8 @@ const DocumentLink = styled(Link)<{
     pointer-events: none;
   }
 
-  ${breakpoint("tablet")`
-    width: auto;
-  `};
-
   ${Actions} {
     opacity: 0;
-  }
-
-  ${AnimatedStar} {
-    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
   &:hover,
@@ -137,14 +112,6 @@ const DocumentLink = styled(Link)<{
 
     ${Actions} {
       opacity: 1;
-    }
-
-    ${AnimatedStar} {
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
     }
   }
 
@@ -160,10 +127,6 @@ const DocumentLink = styled(Link)<{
       ${Actions} {
         opacity: 1;
       }
-
-      ${AnimatedStar} {
-        opacity: 0.5;
-      }
     `}
 `;
 
@@ -177,14 +140,6 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   color: ${(props) => props.theme.white};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-`;
-
-const StarPositioner = styled(Flex)`
-  display: inline-flex;
-  margin-left: 4px;
-  align-items: center;
-  position: relative;
-  top: 4px;
 `;
 
 export default observer(React.forwardRef(DocumentCard));
