@@ -279,13 +279,7 @@ function CollectionScene() {
                   <CollectionDescription collection={collection} />
 
                   {hasPinnedDocuments && (
-                    <>
-                      <Subheading sticky>
-                        <TinyPinIcon size={18} color="currentColor" />{" "}
-                        {t("Pinned")}
-                      </Subheading>
-                      <DocumentList documents={pinnedDocuments} showPin />
-                    </>
+                    <DocumentList documents={pinnedDocuments} showPin />
                   )}
 
                   <Tabs>

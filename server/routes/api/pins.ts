@@ -7,7 +7,7 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { assertUuid } from "@server/validation";
+import { assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

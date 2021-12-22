@@ -8,6 +8,16 @@ const Pin = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    teamId: {
+      type: DataTypes.UUID,
+    },
+    documentId: {
+      type: DataTypes.UUID,
+    },
+    collectionId: {
+      type: DataTypes.UUID,
+      defaultValue: null,
+    },
     index: {
       type: DataTypes.STRING,
       defaultValue: null,
@@ -22,17 +32,14 @@ Pin.associate = (models: any) => {
   Pin.belongsTo(models.Document, {
     as: "document",
     foreignKey: "documentId",
-    primary: true,
   });
   Pin.belongsTo(models.Collection, {
     as: "collection",
     foreignKey: "collectionId",
-    primary: true,
   });
   Pin.belongsTo(models.Team, {
     as: "team",
     foreignKey: "teamId",
-    primary: true,
   });
   Pin.belongsTo(models.User, {
     as: "createdBy",

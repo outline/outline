@@ -1,5 +1,4 @@
 import Sequelize from "sequelize";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'sequ... Remove this comment to see the full error message
 import EncryptedField from "sequelize-encrypted";
 import Logger from "./logging/logger";
 
