@@ -46,7 +46,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
-      <DocumentList documents={pinnedDocuments} showPin />
+      <DocumentList documents={pinnedDocuments} type="card" />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

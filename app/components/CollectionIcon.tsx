@@ -10,19 +10,26 @@ type Props = {
   collection: Collection;
   expanded?: boolean;
   size?: number;
+  color?: string;
 };
 
-function ResolvedCollectionIcon({ collection, expanded, size }: Props) {
+function ResolvedCollectionIcon({
+  collection,
+  color: inputColor,
+  expanded,
+  size,
+}: Props) {
   const { ui } = useStores();
 
   // If the chosen icon color is very dark then we invert it in dark mode
   // otherwise it will be impossible to see against the dark background.
   const color =
-    ui.resolvedTheme === "dark" && collection.color !== "currentColor"
+    inputColor ||
+    (ui.resolvedTheme === "dark" && collection.color !== "currentColor"
       ? getLuminance(collection.color) > 0.09
         ? collection.color
         : "currentColor"
-      : collection.color;
+      : collection.color);
 
   if (collection.icon && collection.icon !== "collection") {
     try {
