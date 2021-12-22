@@ -1,4 +1,6 @@
 import { observer } from "mobx-react";
+import { DocumentIcon } from "outline-icons";
+import { transparentize } from "polished";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -15,7 +17,7 @@ import CollectionIcon from "./CollectionIcon";
 type Props = {
   document: Document;
   context?: string | undefined;
-  showCollection?: boolean;
+  showCollectionIcon?: boolean;
 };
 
 function DocumentCard(props: Props, ref: React.RefObject<HTMLAnchorElement>) {
@@ -40,16 +42,16 @@ function DocumentCard(props: Props, ref: React.RefObject<HTMLAnchorElement>) {
         }}
       >
         <Content justify="space-between" column>
-          {collection && (
+          {collection?.icon &&
+          collection?.icon !== "collection" &&
+          props.showCollectionIcon ? (
             <CollectionIcon collection={collection} color="white" />
+          ) : (
+            <DocumentIcon color="white" />
           )}
           <div>
             <Heading dir={document.dir}>
-              <Title
-                text={document.titleWithDefault}
-                dir={document.dir}
-                highlight=""
-              />
+              {document.titleWithDefault}
               {canStar && (
                 <StarPositioner>
                   <StarButton document={document} />
@@ -57,7 +59,7 @@ function DocumentCard(props: Props, ref: React.RefObject<HTMLAnchorElement>) {
               )}
             </Heading>
 
-            <DocumentMeta document={document} />
+            <StyledDocumentMeta document={document} />
           </div>
         </Content>
       </DocumentLink>
@@ -84,6 +86,10 @@ const Actions = styled(EventBoundary)`
   `};
 `;
 
+const StyledDocumentMeta = styled(DocumentMeta)`
+  color: ${(props) => transparentize(0.25, props.theme.white)} !important;
+`;
+
 const DocumentLink = styled(Link)<{
   $isStarred?: boolean;
   $menuOpen?: boolean;
@@ -92,7 +98,7 @@ const DocumentLink = styled(Link)<{
   display: block;
   padding: 12px;
   border-radius: 8px;
-  height: 140px;
+  height: 160px;
   background: ${(props) => props.theme.listItemHoverBackground};
   color: ${(props) => props.theme.white};
   transition: transform 50ms ease-in-out;
@@ -105,8 +111,9 @@ const DocumentLink = styled(Link)<{
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.075));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.1));
     border-radius: 8px;
+    pointer-events: none;
   }
 
   ${breakpoint("tablet")`
@@ -126,7 +133,7 @@ const DocumentLink = styled(Link)<{
   &:focus,
   &:focus-within {
     background: ${(props) => props.theme.listItemHoverBackground};
-    transform: scale(1.025);
+    transform: scale(1.02);
 
     ${Actions} {
       opacity: 1;
@@ -161,28 +168,23 @@ const DocumentLink = styled(Link)<{
 `;
 
 const Heading = styled.h3<{ rtl?: boolean }>`
-  display: flex;
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
-  align-items: center;
-  height: 24px;
   margin-top: 0;
-  margin-bottom: 0.25em;
+  margin-bottom: 0.35em;
+  line-height: 22px;
+  max-height: 52px;
   overflow: hidden;
-  white-space: nowrap;
+
   color: ${(props) => props.theme.white};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
 const StarPositioner = styled(Flex)`
+  display: inline-flex;
   margin-left: 4px;
   align-items: center;
-`;
-
-const Title = styled(Highlight)`
-  max-width: calc(100% - 24px);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  position: relative;
+  top: 4px;
 `;
 
 export default observer(React.forwardRef(DocumentCard));

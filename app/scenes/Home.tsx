@@ -4,12 +4,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import { Action } from "~/components/Actions";
-import DocumentList from "~/components/DocumentList";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import PinnedDocuments from "~/components/PinnedDocuments";
 import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
@@ -46,7 +46,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
-      <DocumentList documents={pinnedDocuments} type="card" />
+      <PinnedDocuments documents={pinnedDocuments} showCollectionIcon />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

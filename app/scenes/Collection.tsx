@@ -22,7 +22,6 @@ import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import CollectionDescription from "~/components/CollectionDescription";
 import CollectionIcon from "~/components/CollectionIcon";
-import DocumentList from "~/components/DocumentList";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
@@ -31,6 +30,7 @@ import PlaceholderList from "~/components/List/Placeholder";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Modal from "~/components/Modal";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
@@ -276,7 +276,7 @@ function CollectionScene() {
                   </Heading>
                   <CollectionDescription collection={collection} />
 
-                  <DocumentList documents={pinnedDocuments} showPin />
+                  <PinnedDocuments documents={pinnedDocuments} />
 
                   <Tabs>
                     <Tab to={collectionUrl(collection.url)} exact>

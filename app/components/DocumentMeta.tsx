@@ -26,7 +26,6 @@ const Viewed = styled.span`
 `;
 
 const Modified = styled.span<{ highlight?: boolean }>`
-  color: ${(props) => props.theme.textTertiary};
   font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
