@@ -1106,6 +1106,7 @@ router.post("documents.update", auth(), async (ctx) => {
     id,
     title,
     text,
+    fullWidth,
     publish,
     autosave,
     done,
@@ -1128,10 +1129,12 @@ router.post("documents.update", auth(), async (ctx) => {
   }
 
   const previousTitle = document.title;
+
   // Update document
   if (title) document.title = title;
   if (editorVersion) document.editorVersion = editorVersion;
   if (templateId) document.templateId = templateId;
+  if (fullWidth !== undefined) document.fullWidth = fullWidth;
 
   if (!user.team?.collaborativeEditing) {
     if (append) {

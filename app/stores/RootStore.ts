@@ -14,6 +14,7 @@ import MembershipsStore from "./MembershipsStore";
 import NotificationSettingsStore from "./NotificationSettingsStore";
 import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
+import SearchesStore from "./SearchesStore";
 import SharesStore from "./SharesStore";
 import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
@@ -36,6 +37,7 @@ export default class RootStore {
   presence: DocumentPresenceStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
+  searches: SearchesStore;
   shares: SharesStore;
   ui: UiStore;
   users: UsersStore;
@@ -60,6 +62,7 @@ export default class RootStore {
     this.notificationSettings = new NotificationSettingsStore(this);
     this.presence = new DocumentPresenceStore();
     this.revisions = new RevisionsStore(this);
+    this.searches = new SearchesStore(this);
     this.shares = new SharesStore(this);
     this.ui = new UiStore();
     this.users = new UsersStore(this);
@@ -83,6 +86,7 @@ export default class RootStore {
     this.presence.clear();
     this.policies.clear();
     this.revisions.clear();
+    this.searches.clear();
     this.shares.clear();
     this.fileOperations.clear();
     // this.ui omitted to keep ui settings between sessions

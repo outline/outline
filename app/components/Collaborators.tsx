@@ -3,8 +3,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import { AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
@@ -78,7 +76,7 @@ function Collaborators(props: Props) {
       <PopoverDisclosure {...popover}>
         {(props) => (
           <NudeButton width={collaborators.length * 32} height={32} {...props}>
-            <FacepileHiddenOnMobile
+            <Facepile
               users={collaborators}
               renderAvatar={(collaborator) => {
                 const isPresent = presentIds.includes(collaborator.id);
@@ -122,11 +120,5 @@ function Collaborators(props: Props) {
     </>
   );
 }
-
-const FacepileHiddenOnMobile = styled(Facepile)`
-  ${breakpoint("mobile", "tablet")`
-    display: none;
-  `};
-`;
 
 export default observer(Collaborators);

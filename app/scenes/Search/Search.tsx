@@ -2,19 +2,18 @@ import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
 import { RouteComponentProps, StaticContext, withRouter } from "react-router";
-import { Link } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { v4 as uuidv4 } from "uuid";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
+import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
-import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
@@ -25,11 +24,11 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
-import NewDocumentMenu from "~/menus/NewDocumentMenu";
-import { newDocumentPath, searchUrl } from "~/utils/routeHelpers";
+import { searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
+import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
@@ -46,11 +45,11 @@ type Props = RouteComponentProps<
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: React.Component<any> | null | undefined;
+  firstDocument: HTMLAnchorElement | null | undefined;
 
   lastQuery = "";
 
-  lastParams: Record<string, any>;
+  lastParams: SearchParams;
 
   @observable
   query: string = decodeURIComponentSafe(this.props.match.params.term || "");
@@ -66,9 +65,6 @@ class Search extends React.Component<Props> {
 
   @observable
   isLoading = false;
-
-  @observable
-  pinToTop = !!this.props.match.params.term;
 
   componentDidMount() {
     this.handleTermChange();
@@ -151,12 +147,6 @@ class Search extends React.Component<Props> {
     });
   };
 
-  handleNewDoc = () => {
-    if (this.collectionId) {
-      this.props.history.push(newDocumentPath(this.collectionId));
-    }
-  };
-
   get includeArchived() {
     return this.params.get("includeArchived") === "true";
   }
@@ -196,6 +186,7 @@ class Search extends React.Component<Props> {
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
     if (!this.allowLoadMore || this.isLoading) return;
+
     // Fetch more results
     await this.fetchResults();
   };
@@ -225,7 +216,14 @@ class Search extends React.Component<Props> {
 
       try {
         const results = await this.props.documents.search(this.query, params);
-        this.pinToTop = true;
+
+        // Add to the searches store so this search can immediately appear in
+        // the recent searches list without a flash of load
+        this.props.searches.add({
+          id: uuidv4(),
+          query: this.query,
+          createdAt: new Date().toISOString(),
+        });
 
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;
@@ -239,7 +237,6 @@ class Search extends React.Component<Props> {
         this.isLoading = false;
       }
     } else {
-      this.pinToTop = false;
       this.isLoading = false;
       this.lastQuery = this.query;
     }
@@ -252,17 +249,14 @@ class Search extends React.Component<Props> {
     });
   };
 
-  setFirstDocumentRef = (ref: any) => {
+  setFirstDocumentRef = (ref: HTMLAnchorElement | null) => {
     this.firstDocument = ref;
   };
 
   render() {
-    const { documents, notFound, location, t, auth, policies } = this.props;
+    const { documents, notFound, t } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isLoading && this.query && results.length === 0;
-    const showShortcutTip = !this.pinToTop && location.state?.fromMenu;
-    const can = policies.abilities(auth.team?.id ? auth.team.id : "");
-    const canCollection = policies.abilities(this.collectionId || "");
 
     return (
       <Container>
@@ -277,28 +271,14 @@ class Search extends React.Component<Props> {
             </Empty>
           </div>
         )}
-        <ResultsWrapper pinToTop={this.pinToTop} column auto>
+        <ResultsWrapper column auto>
           <SearchInput
             placeholder={`${t("Search")}…`}
             onKeyDown={this.handleKeyDown}
             defaultValue={this.query}
           />
-          {showShortcutTip && (
-            <Fade>
-              <HelpText small>
-                <Trans
-                  defaults="Use the <em>{{ shortcut }}</em> shortcut to search from anywhere in your knowledge base"
-                  values={{
-                    shortcut: "/",
-                  }}
-                  components={{
-                    em: <strong />,
-                  }}
-                />
-              </HelpText>
-            </Fade>
-          )}
-          {this.pinToTop && (
+
+          {this.query ? (
             <Filters>
               <StatusFilter
                 includeArchived={this.includeArchived}
@@ -333,39 +313,19 @@ class Search extends React.Component<Props> {
                 }
               />
             </Filters>
+          ) : (
+            <RecentSearches />
           )}
           {showEmpty && (
             <Fade>
               <Centered column>
                 <HelpText>
-                  <Trans>
-                    No documents found for your search filters. <br />
-                  </Trans>
-                  {can.createDocument && <Trans>Create a new document?</Trans>}
+                  <Trans>No documents found for your search filters.</Trans>
                 </HelpText>
-                <Wrapper>
-                  {this.collectionId &&
-                  can.createDocument &&
-                  canCollection.update ? (
-                    <Button
-                      onClick={this.handleNewDoc}
-                      icon={<PlusIcon />}
-                      primary
-                    >
-                      {t("New doc")}
-                    </Button>
-                  ) : (
-                    <NewDocumentMenu />
-                  )}
-                  &nbsp;&nbsp;
-                  <Button as={Link} to="/search" neutral>
-                    {t("Clear filters")}
-                  </Button>
-                </Wrapper>
               </Centered>
             </Fade>
           )}
-          <ResultList column visible={this.pinToTop}>
+          <ResultList column>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
@@ -396,11 +356,6 @@ class Search extends React.Component<Props> {
   }
 }
 
-const Wrapper = styled(Flex)`
-  justify-content: center;
-  margin: 10px 0;
-`;
-
 const Centered = styled(Flex)`
   text-align: center;
   margin: 30vh auto 0;
@@ -415,21 +370,14 @@ const Container = styled(CenteredContent)`
   }
 `;
 
-const ResultsWrapper = styled(Flex)<{ pinToTop: boolean }>`
-  position: absolute;
-  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${(props) => (props.pinToTop ? "0%" : "50%")};
-  width: 100%;
-
+const ResultsWrapper = styled(Flex)`
   ${breakpoint("tablet")`	
-    margin-top: ${(props: any) => (props.pinToTop ? "40px" : "-75px")};
+    margin-top: 40px;
   `};
 `;
 
-const ResultList = styled(Flex)<{ visible: boolean }>`
+const ResultList = styled(Flex)`
   margin-bottom: 150px;
-  opacity: ${(props) => (props.visible ? "1" : "0")};
-  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
 
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`

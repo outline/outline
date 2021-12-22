@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
-const Button = styled.button.attrs(() => ({ type: "button" }))<{
+const Button = styled.button.attrs((props) => ({
+  type: "type" in props ? props.type : "button",
+}))<{
   width?: number;
   height?: number;
   size?: number;

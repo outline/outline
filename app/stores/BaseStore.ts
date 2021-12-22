@@ -50,6 +50,8 @@ export default class BaseStore<T extends BaseModel> {
 
   modelName: string;
 
+  apiEndpoint: string;
+
   rootStore: RootStore;
 
   actions = [
@@ -65,6 +67,10 @@ export default class BaseStore<T extends BaseModel> {
     this.rootStore = rootStore;
     this.model = model;
     this.modelName = modelNameFromClassName(model.name);
+
+    if (!this.apiEndpoint) {
+      this.apiEndpoint = `${this.modelName}s`;
+    }
   }
 
   @action
@@ -125,7 +131,7 @@ export default class BaseStore<T extends BaseModel> {
     this.isSaving = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.create`, {
+      const res = await client.post(`/${this.apiEndpoint}.create`, {
         ...params,
         ...options,
       });
@@ -150,7 +156,7 @@ export default class BaseStore<T extends BaseModel> {
     this.isSaving = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.update`, {
+      const res = await client.post(`/${this.apiEndpoint}.update`, {
         ...params,
         ...options,
       });
@@ -172,7 +178,7 @@ export default class BaseStore<T extends BaseModel> {
     this.isSaving = true;
 
     try {
-      await client.post(`/${this.modelName}s.delete`, {
+      await client.post(`/${this.apiEndpoint}.delete`, {
         id: item.id,
         ...options,
       });
@@ -193,7 +199,7 @@ export default class BaseStore<T extends BaseModel> {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.info`, {
+      const res = await client.post(`/${this.apiEndpoint}.info`, {
         id,
       });
       invariant(res && res.data, "Data should be available");
@@ -219,7 +225,7 @@ export default class BaseStore<T extends BaseModel> {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.list`, params);
+      const res = await client.post(`/${this.apiEndpoint}.list`, params);
       invariant(res && res.data, "Data not available");
 
       runInAction(`list#${this.modelName}`, () => {

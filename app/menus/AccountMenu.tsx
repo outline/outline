@@ -47,9 +47,7 @@ function AccountMenu(props: Props) {
   }, [menu, theme, previousTheme]);
 
   const actions = React.useMemo(() => {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'filter' does not exist on type 'Session[... Remove this comment to see the full error message
     const otherSessions = sessions.filter(
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'session' implicitly has an 'any' type.
       (session) => session.teamId !== team.id && session.url !== team.url
     );
 
@@ -69,9 +67,10 @@ function AccountMenu(props: Props) {
             createAction({
               name: t("Switch team"),
               section: "account",
-              // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'session' implicitly has an 'any' type.
               children: otherSessions.map((session) => ({
+                id: session.url,
                 name: session.name,
+                section: "account",
                 icon: <Logo alt={session.name} src={session.logoUrl} />,
                 perform: () => (window.location.href = session.url),
               })),

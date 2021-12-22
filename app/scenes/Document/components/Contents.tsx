@@ -7,6 +7,7 @@ import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 const HEADING_OFFSET = 20;
 
 type Props = {
+  isFullWidth: boolean;
   headings: {
     title: string;
     level: number;
@@ -14,7 +15,7 @@ type Props = {
   }[];
 };
 
-export default function Contents({ headings }: Props) {
+export default function Contents({ headings, isFullWidth }: Props) {
   const [activeSlug, setActiveSlug] = React.useState<string>();
   const position = useWindowScrollPosition({
     throttle: 100,
@@ -49,8 +50,8 @@ export default function Contents({ headings }: Props) {
   const headingAdjustment = minHeading - 1;
 
   return (
-    <div>
-      <Wrapper>
+    <Wrapper isFullWidth={isFullWidth}>
+      <Sticky>
         <Heading>Contents</Heading>
         {headings.length ? (
           <List>
@@ -67,30 +68,38 @@ export default function Contents({ headings }: Props) {
         ) : (
           <Empty>Headings you add to the document will appear here</Empty>
         )}
-      </Wrapper>
-    </div>
+      </Sticky>
+    </Wrapper>
   );
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ isFullWidth: boolean }>`
+  width: 256px;
   display: none;
+
+  ${breakpoint("tablet")`
+    display: block;
+  `};
+
+  ${(props) =>
+    !props.isFullWidth &&
+    breakpoint("desktopLarge")`
+    transform: translateX(-256px);
+    width: 0;
+    `}
+`;
+
+const Sticky = styled.div`
   position: sticky;
   top: 80px;
   max-height: calc(100vh - 80px);
 
   box-shadow: 1px 0 0 ${(props) => props.theme.divider};
   margin-top: 40px;
-  margin-right: 3.2em;
+  margin-right: 32px;
+  width: 224px;
   min-height: 40px;
   overflow-y: auto;
-
-  ${breakpoint("desktopLarge")`
-    margin-left: -16em;
-  `};
-
-  ${breakpoint("tablet")`
-    display: block;
-  `};
 `;
 
 const Heading = styled.h3`

@@ -11,7 +11,7 @@ import pagination from "./middlewares/pagination";
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
-// @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
+
 router.post("shares.info", auth(), async (ctx) => {
   const { id, documentId, apiVersion } = ctx.body;
   assertUuid(id || documentId, "id or documentId is required");
@@ -40,7 +40,8 @@ router.post("shares.info", auth(), async (ctx) => {
   // Deprecated API response returns just the share for the current documentId
   if (apiVersion !== 2) {
     if (!share || !share.document) {
-      return (ctx.response.status = 204);
+      ctx.response.status = 204;
+      return;
     }
 
     authorize(user, "read", share);
@@ -86,7 +87,8 @@ router.post("shares.info", auth(), async (ctx) => {
   }
 
   if (!shares.length) {
-    return (ctx.response.status = 204);
+    ctx.response.status = 204;
+    return;
   }
 
   ctx.body = {

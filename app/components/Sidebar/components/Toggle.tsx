@@ -7,7 +7,7 @@ import Arrow from "~/components/Arrow";
 type Props = {
   direction: "left" | "right";
   style?: React.CSSProperties;
-  onClick?: () => any;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 const Toggle = React.forwardRef<HTMLButtonElement, Props>(

@@ -14,6 +14,7 @@ import "./collection";
 import "./document";
 import "./integration";
 import "./notificationSetting";
+import "./searchQuery";
 import "./share";
 import "./user";
 import "./team";

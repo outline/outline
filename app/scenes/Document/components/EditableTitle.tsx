@@ -27,86 +27,92 @@ type Props = {
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
 };
 
-function EditableTitle({
-  value,
-  document,
-  readOnly,
-  onChange,
-  onSave,
-  onGoToNextInput,
-  starrable,
-}: Props) {
-  const { policies } = useStores();
-  const { t } = useTranslation();
-  const can = policies.abilities(document.id);
-  const { emoji } = parseTitle(value);
-  const startsWithEmojiAndSpace = !!(emoji && value.startsWith(`${emoji} `));
-  const normalizedTitle =
-    !value && readOnly ? document.titleWithDefault : value;
+const EditableTitle = React.forwardRef(
+  (
+    {
+      value,
+      document,
+      readOnly,
+      onChange,
+      onSave,
+      onGoToNextInput,
+      starrable,
+    }: Props,
+    ref: React.RefObject<HTMLSpanElement>
+  ) => {
+    const { policies } = useStores();
+    const { t } = useTranslation();
+    const can = policies.abilities(document.id);
+    const { emoji } = parseTitle(value);
+    const startsWithEmojiAndSpace = !!(emoji && value.startsWith(`${emoji} `));
+    const normalizedTitle =
+      !value && readOnly ? document.titleWithDefault : value;
 
-  const handleKeyDown = React.useCallback(
-    (event: React.KeyboardEvent) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
+    const handleKeyDown = React.useCallback(
+      (event: React.KeyboardEvent) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
 
-        if (isModKey(event)) {
+          if (isModKey(event)) {
+            onSave?.({
+              done: true,
+            });
+            return;
+          }
+
+          onGoToNextInput(true);
+          return;
+        }
+
+        if (event.key === "Tab" || event.key === "ArrowDown") {
+          event.preventDefault();
+          onGoToNextInput();
+          return;
+        }
+
+        if (event.key === "p" && isModKey(event) && event.shiftKey) {
+          event.preventDefault();
           onSave?.({
+            publish: true,
             done: true,
           });
           return;
         }
 
-        onGoToNextInput(true);
-        return;
-      }
+        if (event.key === "s" && isModKey(event)) {
+          event.preventDefault();
+          onSave?.({});
+          return;
+        }
+      },
+      [onGoToNextInput, onSave]
+    );
 
-      if (event.key === "Tab" || event.key === "ArrowDown") {
-        event.preventDefault();
-        onGoToNextInput();
-        return;
-      }
-
-      if (event.key === "p" && isModKey(event) && event.shiftKey) {
-        event.preventDefault();
-        onSave?.({
-          publish: true,
-          done: true,
-        });
-        return;
-      }
-
-      if (event.key === "s" && isModKey(event)) {
-        event.preventDefault();
-        onSave?.({});
-        return;
-      }
-    },
-    [onGoToNextInput, onSave]
-  );
-
-  return (
-    <Title
-      onChange={onChange}
-      onKeyDown={handleKeyDown}
-      placeholder={
-        document.isTemplate
-          ? t("Start your template…")
-          : t("Start with a title…")
-      }
-      value={normalizedTitle}
-      $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
-      $isStarred={document.isStarred}
-      autoFocus={!value}
-      maxLength={MAX_TITLE_LENGTH}
-      readOnly={readOnly}
-      dir="auto"
-    >
-      {(can.star || can.unstar) && starrable !== false && (
-        <StarButton document={document} size={32} />
-      )}
-    </Title>
-  );
-}
+    return (
+      <Title
+        onChange={onChange}
+        onKeyDown={handleKeyDown}
+        placeholder={
+          document.isTemplate
+            ? t("Start your template…")
+            : t("Start with a title…")
+        }
+        value={normalizedTitle}
+        $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
+        $isStarred={document.isStarred}
+        autoFocus={!value}
+        maxLength={MAX_TITLE_LENGTH}
+        readOnly={readOnly}
+        dir="auto"
+        ref={ref}
+      >
+        {(can.star || can.unstar) && starrable !== false && (
+          <StarButton document={document} size={32} />
+        )}
+      </Title>
+    );
+  }
+);
 
 const StarButton = styled(Star)`
   position: relative;

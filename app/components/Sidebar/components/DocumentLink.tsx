@@ -1,17 +1,21 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
+import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
+import { newDocumentPath } from "~/utils/routeHelpers";
 import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -255,6 +259,8 @@ function DocumentLink(
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
 
+  const can = policies.abilities(node.id);
+
   return (
     <>
       <Relative onDragLeave={resetHoverExpanding}>
@@ -302,8 +308,23 @@ function DocumentLink(
                 isDraft={isDraft}
                 ref={ref}
                 menu={
-                  document && !isMoving && !isEditing ? (
+                  document &&
+                  !isMoving &&
+                  !isEditing &&
+                  !isDraggingAnyDocument ? (
                     <Fade>
+                      {can.createChildDocument && (
+                        <NudeButton
+                          type={undefined}
+                          aria-label={t("New nested document")}
+                          as={Link}
+                          to={newDocumentPath(document.collectionId, {
+                            parentDocumentId: document.id,
+                          })}
+                        >
+                          <PlusIcon />
+                        </NudeButton>
+                      )}
                       <DocumentMenu
                         document={document}
                         onOpen={handleMenuOpen}

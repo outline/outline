@@ -20,78 +20,85 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
  * Defines a content editable component with the same interface as a native
  * HTMLInputElement (or, as close as we can get).
  */
-function ContentEditable({
-  disabled,
-  onChange,
-  onInput,
-  onBlur,
-  onKeyDown,
-  value,
-  children,
-  className,
-  maxLength,
-  autoFocus,
-  placeholder,
-  readOnly,
-  ...rest
-}: Props) {
-  const ref = React.useRef<HTMLSpanElement>(null);
-  const [innerHTML, setInnerHTML] = React.useState<string>(value);
-  const lastValue = React.useRef("");
+const ContentEditable = React.forwardRef(
+  (
+    {
+      disabled,
+      onChange,
+      onInput,
+      onBlur,
+      onKeyDown,
+      value,
+      children,
+      className,
+      maxLength,
+      autoFocus,
+      placeholder,
+      readOnly,
+      dir,
+      ...rest
+    }: Props,
+    forwardedRef: React.RefObject<HTMLSpanElement>
+  ) => {
+    const innerRef = React.useRef<HTMLSpanElement>(null);
+    const ref = forwardedRef || innerRef;
+    const [innerHTML, setInnerHTML] = React.useState<string>(value);
+    const lastValue = React.useRef("");
 
-  const wrappedEvent = (
-    callback:
-      | React.FocusEventHandler<HTMLSpanElement>
-      | React.FormEventHandler<HTMLSpanElement>
-      | React.KeyboardEventHandler<HTMLSpanElement>
-      | undefined
-  ) => (event: any) => {
-    const text = ref.current?.innerText || "";
+    const wrappedEvent = (
+      callback:
+        | React.FocusEventHandler<HTMLSpanElement>
+        | React.FormEventHandler<HTMLSpanElement>
+        | React.KeyboardEventHandler<HTMLSpanElement>
+        | undefined
+    ) => (event: any) => {
+      const text = ref.current?.innerText || "";
 
-    if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
-      event?.preventDefault();
-      return;
-    }
+      if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
+        event?.preventDefault();
+        return;
+      }
 
-    if (text !== lastValue.current) {
-      lastValue.current = text;
-      onChange && onChange(text);
-    }
+      if (text !== lastValue.current) {
+        lastValue.current = text;
+        onChange && onChange(text);
+      }
 
-    callback?.(event);
-  };
+      callback?.(event);
+    };
 
-  React.useLayoutEffect(() => {
-    if (autoFocus) {
-      ref.current?.focus();
-    }
-  });
+    React.useLayoutEffect(() => {
+      if (autoFocus) {
+        ref.current?.focus();
+      }
+    });
 
-  React.useEffect(() => {
-    if (value !== ref.current?.innerText) {
-      setInnerHTML(value);
-    }
-  }, [value]);
+    React.useEffect(() => {
+      if (value !== ref.current?.innerText) {
+        setInnerHTML(value);
+      }
+    }, [value, ref]);
 
-  return (
-    <div className={className}>
-      <Content
-        ref={ref}
-        contentEditable={!disabled && !readOnly}
-        onInput={wrappedEvent(onInput)}
-        onBlur={wrappedEvent(onBlur)}
-        onKeyDown={wrappedEvent(onKeyDown)}
-        data-placeholder={placeholder}
-        role="textbox"
-        dangerouslySetInnerHTML={{
-          __html: innerHTML,
-        }}
-        {...rest}
-      />
-      {children}
-    </div>
-  );
-}
+    return (
+      <div className={className} dir={dir}>
+        <Content
+          ref={ref}
+          contentEditable={!disabled && !readOnly}
+          onInput={wrappedEvent(onInput)}
+          onBlur={wrappedEvent(onBlur)}
+          onKeyDown={wrappedEvent(onKeyDown)}
+          data-placeholder={placeholder}
+          role="textbox"
+          dangerouslySetInnerHTML={{
+            __html: innerHTML,
+          }}
+          {...rest}
+        />
+        {children}
+      </div>
+    );
+  }
+);
 
 const Content = styled.span`
   &:empty {
@@ -108,4 +115,4 @@ const Content = styled.span`
   }
 `;
 
-export default React.memo<Props>(ContentEditable);
+export default ContentEditable;

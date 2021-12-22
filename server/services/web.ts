@@ -111,7 +111,7 @@ export default function init(app: Koa = new Koa()): Koa {
         scriptSrc,
         styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
         imgSrc: ["*", "data:", "blob:"],
-        frameSrc: ["*"],
+        frameSrc: ["*", "data:"],
         connectSrc: ["*"], // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
       },
