@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { NewDocumentIcon, PlusIcon, PinIcon, MoreIcon } from "outline-icons";
+import { NewDocumentIcon, PlusIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation, Trans } from "react-i18next";
@@ -33,7 +33,6 @@ import Modal from "~/components/Modal";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
@@ -133,10 +132,9 @@ function CollectionScene() {
   }
 
   const pinnedDocuments = collection
-    ? documents.pinnedInCollection(collection.id)
+    ? documents.pinnedToCollection(collection.id)
     : [];
   const collectionName = collection ? collection.name : "";
-  const hasPinnedDocuments = !!pinnedDocuments.length;
 
   return collection ? (
     <Scene
@@ -278,9 +276,7 @@ function CollectionScene() {
                   </Heading>
                   <CollectionDescription collection={collection} />
 
-                  {hasPinnedDocuments && (
-                    <DocumentList documents={pinnedDocuments} showPin />
-                  )}
+                  <DocumentList documents={pinnedDocuments} showPin />
 
                   <Tabs>
                     <Tab to={collectionUrl(collection.url)} exact>
@@ -438,12 +434,6 @@ const Centered = styled(Flex)`
   margin: 40vh auto 0;
   max-width: 380px;
   transform: translateY(-50%);
-`;
-
-const TinyPinIcon = styled(PinIcon)`
-  position: relative;
-  top: 4px;
-  opacity: 0.8;
 `;
 
 const Empty = styled(Flex)`

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import { Action } from "~/components/Actions";
+import DocumentList from "~/components/DocumentList";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
@@ -17,10 +18,16 @@ import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, ui } = useStores();
+  const { documents, pins, ui } = useStores();
   const user = useCurrentUser();
   const userId = user?.id;
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    pins.fetchPage();
+  }, [pins]);
+
+  const pinnedDocuments = documents.pinnedToHome;
 
   return (
     <Scene
@@ -39,6 +46,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
+      <DocumentList documents={pinnedDocuments} showPin />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

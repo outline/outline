@@ -307,6 +307,20 @@ function DocumentMenu({
             },
             {
               type: "button",
+              title: t("Unpin from home"),
+              onClick: () => document.unpin(true),
+              visible: !!(document.pinned(true) && can.unpin),
+              icon: <PinIcon />,
+            },
+            {
+              type: "button",
+              title: t("Pin to home"),
+              onClick: () => document.pin(true),
+              visible: !!(!document.pinned(true) && can.pin),
+              icon: <PinIcon />,
+            },
+            {
+              type: "button",
               title: t("Unpin"),
               onClick: () => document.unpin(false),
               visible: !!(showPin && document.pinned() && can.unpin),

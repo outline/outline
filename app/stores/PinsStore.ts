@@ -16,7 +16,7 @@ export default class PinsStore extends BaseStore<Pin> {
   }
 
   @action
-  fetchPage = async (params: FetchParams | undefined): Promise<void> => {
+  fetchPage = async (params?: FetchParams | undefined): Promise<void> => {
     this.isFetching = true;
 
     try {
