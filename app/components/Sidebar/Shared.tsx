@@ -18,6 +18,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
+import { NavigationNode } from "~/types";
 import {
   homePath,
   searchUrl,
@@ -33,69 +34,34 @@ import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 
 type Props = {
-  document: Document;
+  rootNode: NavigationNode;
+  shareId: string;
 };
 
-function MainSidebar({ document }: Props) {
-  const { t } = useTranslation();
-  const { policies, documents } = useStores();
-  const team = useCurrentTeam();
+function MainSidebar({ rootNode, shareId }: Props) {
+  const { documents } = useStores();
 
   React.useEffect(() => {
     documents.fetchDrafts();
     documents.fetchTemplates();
   }, [documents]);
-
-  const [dndArea, setDndArea] = React.useState();
-  const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
-
-  const can = policies.abilities(team.id);
+  console.log({ shareId });
 
   return (
-    <Sidebar ref={handleSidebarRef}>
-      {dndArea && (
-        <>
-          <Scrollable flex topShadow>
-            <Section>
-              <SidebarLink
-                to={homePath()}
-                icon={<HomeIcon color="currentColor" />}
-                exact={false}
-                label={t("Home")}
-              />
-              <SidebarLink
-                to={{
-                  pathname: searchUrl(),
-                  state: {
-                    fromMenu: true,
-                  },
-                }}
-                icon={<SearchIcon color="currentColor" />}
-                label={t("Search")}
-                exact={false}
-              />
-            </Section>
-            <Starred />
-            <Section>
-              <SidebarLink
-                to={settingsPath()}
-                icon={<SettingsIcon color="currentColor" />}
-                exact={false}
-                label={t("Settings")}
-              />
-              <SidebarAction action={inviteUser} />
-
-              <DocumentLink node={document} />
-            </Section>
-          </Scrollable>
-        </>
-      )}
+    <Sidebar>
+      <Scrollable flex topShadow>
+        <Section>
+          <DocumentLink
+            shareId={shareId}
+            depth={1}
+            node={rootNode}
+            activeDocument={documents.active}
+            prefetchDocument={documents.prefetchDocument}
+          />
+        </Section>
+      </Scrollable>
     </Sidebar>
   );
 }
-
-const Drafts = styled(Flex)`
-  height: 24px;
-`;
 
 export default observer(MainSidebar);

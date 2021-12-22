@@ -27,6 +27,7 @@ type Props = {
   isDraft?: boolean;
   depth: number;
   index: number;
+  shareId: string;
   parentId?: string;
 };
 
@@ -39,6 +40,7 @@ function DocumentLink(
     prefetchDocument,
     isDraft,
     depth,
+    shareId,
     index,
     parentId,
   }: Props,
@@ -46,6 +48,7 @@ function DocumentLink(
 ) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
+
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
@@ -66,17 +69,9 @@ function DocumentLink(
   );
 
   const showChildren = React.useMemo(() => {
-    return !!(
-      hasChildDocuments &&
-      activeDocument &&
-      collection &&
-      (collection
-        .pathToDocument(activeDocument.id)
-        .map((entry) => entry.id)
-        .includes(node.id) ||
-        isActiveDocument)
-    );
-  }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
+    return !!hasChildDocuments;
+  }, [hasChildDocuments]);
+
   const [expanded, setExpanded] = React.useState(showChildren);
 
   React.useEffect(() => {
@@ -84,14 +79,6 @@ function DocumentLink(
       setExpanded(showChildren);
     }
   }, [showChildren]);
-
-  // when the last child document is removed,
-  // also close the local folder state to closed
-  React.useEffect(() => {
-    if (expanded && !hasChildDocuments) {
-      setExpanded(false);
-    }
-  }, [expanded, hasChildDocuments]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.SyntheticEvent) => {
@@ -124,28 +111,6 @@ function DocumentLink(
   );
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
-
-  // Draggable
-  const [{ isDragging }, drag] = useDrag({
-    type: "document",
-    item: () => ({
-      ...node,
-      depth,
-      active: isActiveDocument,
-      collectionId: collection?.id || "",
-    }),
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-    canDrag: () => {
-      return (
-        !isDraft &&
-        (policies.abilities(node.id).move ||
-          policies.abilities(node.id).archive ||
-          policies.abilities(node.id).delete)
-      );
-    },
-  });
 
   const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
 
@@ -188,72 +153,43 @@ function DocumentLink(
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
+  console.log({ shareId });
 
   return (
     <>
-      <Relative onDragLeave={resetHoverExpanding}>
-        <Draggable
-          key={node.id}
-          ref={drag}
-          $isDragging={isDragging}
-          $isMoving={isMoving}
-        >
-          <div>
-            <DropToImport documentId={node.id} activeClassName="activeDropZone">
-              <SidebarLink
-                onMouseEnter={handleMouseEnter}
-                to={{
-                  pathname: node.url,
-                  state: {
-                    title: node.title,
-                  },
-                }}
-                label={
-                  <>
-                    {hasChildDocuments && (
-                      <Disclosure
-                        expanded={expanded && !isDragging}
-                        onClick={handleDisclosureClick}
-                      />
-                    )}
-                    <EditableTitle
-                      title={title}
-                      onSubmit={handleTitleChange}
-                      onEditing={handleTitleEditing}
-                      canUpdate={canUpdate}
-                      maxLength={MAX_TITLE_LENGTH}
-                    />
-                  </>
-                }
-                isActive={(match, location) =>
-                  !!match && location.search !== "?starred"
-                }
-                depth={depth}
-                exact={false}
-                showActions={menuOpen}
-                scrollIntoViewIfNeeded={!document?.isStarred}
-                isDraft={isDraft}
-                ref={ref}
-                menu={
-                  document && !isMoving && !isEditing ? (
-                    <Fade>
-                      <DocumentMenu
-                        document={document}
-                        onOpen={handleMenuOpen}
-                        onClose={handleMenuClose}
-                      />
-                    </Fade>
-                  ) : undefined
-                }
-              />
-            </DropToImport>
-          </div>
-        </Draggable>
-      </Relative>
+      <SidebarLink
+        onMouseEnter={handleMouseEnter}
+        to={{
+          pathname: `/share/${shareId}${node.url}`,
+          state: {
+            title: node.title,
+          },
+        }}
+        label={
+          <>
+            {hasChildDocuments && (
+              <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
+            )}
+            <EditableTitle
+              title={title}
+              onSubmit={handleTitleChange}
+              onEditing={handleTitleEditing}
+              canUpdate={canUpdate}
+              maxLength={MAX_TITLE_LENGTH}
+            />
+          </>
+        }
+        depth={depth}
+        exact={false}
+        showActions={menuOpen}
+        scrollIntoViewIfNeeded={!document?.isStarred}
+        isDraft={isDraft}
+        ref={ref}
+      />
       {expanded &&
-        !isDragging &&
         nodeChildren.map((childNode, index) => (
           <ObservedDocumentLink
+            shareId={shareId}
             key={childNode.id}
             collection={collection}
             node={childNode}
@@ -272,11 +208,6 @@ function DocumentLink(
 
 const Relative = styled.div`
   position: relative;
-`;
-
-const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
-  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
 
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));

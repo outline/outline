@@ -28,9 +28,6 @@ function SharedDocumentScene(props: Props) {
   const { ui } = useStores();
   const sidebarCollapsed = ui.sidebarCollapsed;
 
-  console.log(ui.sidebarCollapsed);
-  console.log({ ui });
-
   const theme = useTheme();
   const [response, setResponse] = React.useState<{
     document: DocumentModel;
@@ -52,6 +49,7 @@ function SharedDocumentScene(props: Props) {
           shareId,
         });
         setResponse(response);
+        ui.setActiveDocument(response.document);
       } catch (err) {
         setError(err);
       }
@@ -68,9 +66,13 @@ function SharedDocumentScene(props: Props) {
     return <Loading location={props.location} />;
   }
 
+  console.log({ shareId });
+
   return (
     <Container auto>
-      <Sidebar document={response.document} />
+      {response.sharedTree && shareId && (
+        <Sidebar rootNode={response.sharedTree} shareId={shareId} />
+      )}
       <Content
         auto
         justify="center"

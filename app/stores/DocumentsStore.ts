@@ -273,7 +273,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.post(`/documents.list`, {
       parentDocumentId: documentId,
     });
-    invariant(res && res.data, "Document list not available");
+    invariant(res && res.data, "Document list not available!");
     const { data } = res;
 
     runInAction("DocumentsStore#fetchChildDocuments", () => {
@@ -291,7 +291,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     try {
       const res = await client.post(`/documents.${request}`, options);
-      invariant(res && res.data, "Document list not available");
+      invariant(res && res.data, "Document list not available2");
       runInAction("DocumentsStore#fetchNamedPage", () => {
         res.data.forEach(this.add);
         this.addPolicies(res.policies);
