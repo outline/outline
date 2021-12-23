@@ -1,3 +1,4 @@
+import { Reorder, useDragControls } from "framer-motion";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import { transparentize } from "polished";
@@ -18,40 +19,72 @@ type Props = {
   showCollectionIcon?: boolean;
 };
 
-function DocumentCard(props: Props, ref: React.RefObject<HTMLAnchorElement>) {
-  const { collections } = useStores();
+function DocumentCard(props: Props) {
+  const { collections, policies } = useStores();
   const { document } = props;
   const collection = collections.get(document.collectionId);
+  const can = policies.abilities(document.collectionId);
+  const controls = useDragControls();
 
   return (
-    <DocumentLink
-      ref={ref}
-      dir={document.dir}
-      style={{ background: collection?.color }}
-      to={{
-        pathname: document.url,
-        state: {
-          title: document.titleWithDefault,
-        },
-      }}
+    <Reorderable
+      value={document.id}
+      dragControls={controls}
+      dragListener={false}
+      drag
     >
-      <Content justify="space-between" column>
-        {collection?.icon &&
-        collection?.icon !== "collection" &&
-        props.showCollectionIcon ? (
-          <CollectionIcon collection={collection} color="white" />
-        ) : (
-          <DocumentIcon color="white" />
-        )}
-        <div>
-          <Heading dir={document.dir}>{document.titleWithDefault}</Heading>
+      <DocumentLink
+        dir={document.dir}
+        style={{ background: collection?.color }}
+        to={{
+          pathname: document.url,
+          state: {
+            title: document.titleWithDefault,
+          },
+        }}
+      >
+        <Content justify="space-between" column>
+          {collection?.icon &&
+          collection?.icon !== "collection" &&
+          props.showCollectionIcon ? (
+            <CollectionIcon collection={collection} color="white" />
+          ) : (
+            <DocumentIcon color="white" />
+          )}
+          <div>
+            <Heading dir={document.dir}>{document.titleWithDefault}</Heading>
 
-          <StyledDocumentMeta document={document} />
-        </div>
-      </Content>
-    </DocumentLink>
+            <StyledDocumentMeta document={document} />
+          </div>
+        </Content>
+      </DocumentLink>
+      <DragHandle onPointerDown={(e) => controls.start(e)} dir={document.dir}>
+        :::
+      </DragHandle>
+    </Reorderable>
   );
 }
+
+const DragHandle = styled.div<{ dir: string }>`
+  position: absolute;
+  top: 12px;
+  right: ${(props) => (props.dir === "rtl" ? "auto" : "12px")};
+  left: ${(props) => (props.dir === "rtl" ? "12px" : "auto")};
+  cursor: grab;
+  opacity: 0;
+  padding: 0 4px;
+  font-weight: bold;
+  color: white;
+`;
+
+const Reorderable = styled(Reorder.Item)`
+  position: relative;
+  user-select: none;
+
+  &:hover ${DragHandle} {
+    opacity: 1;
+  }
+`;
 
 const Content = styled(Flex)`
   min-width: 0;
@@ -76,6 +109,7 @@ const StyledDocumentMeta = styled(DocumentMeta)`
 
 const DocumentLink = styled(Link)<{
   $menuOpen?: boolean;
+  $isDragging?: boolean;
 }>`
   position: relative;
   display: block;
@@ -85,6 +119,7 @@ const DocumentLink = styled(Link)<{
   background: ${(props) => props.theme.listItemHoverBackground};
   color: ${(props) => props.theme.white};
   transition: transform 50ms ease-in-out;
+  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
 
   &:after {
     content: "";
@@ -107,16 +142,9 @@ const DocumentLink = styled(Link)<{
   &:active,
   &:focus,
   &:focus-within {
-    background: ${(props) => props.theme.listItemHoverBackground};
-    transform: scale(1.02);
-
     ${Actions} {
       opacity: 1;
     }
-  }
-
-  &:active {
-    transform: scale(1);
   }
 
   ${(props) =>
@@ -130,7 +158,7 @@ const DocumentLink = styled(Link)<{
     `}
 `;
 
-const Heading = styled.h3<{ rtl?: boolean }>`
+const Heading = styled.h3`
   margin-top: 0;
   margin-bottom: 0.35em;
   line-height: 22px;
@@ -142,4 +170,4 @@ const Heading = styled.h3<{ rtl?: boolean }>`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
-export default observer(React.forwardRef(DocumentCard));
+export default observer(DocumentCard);
