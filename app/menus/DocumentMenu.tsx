@@ -169,6 +169,7 @@ function DocumentMenu({
 
   const collection = collections.get(document.collectionId);
   const can = policies.abilities(document.id);
+  const canUser = policies.abilities(team.id);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [
@@ -307,34 +308,6 @@ function DocumentMenu({
             },
             {
               type: "button",
-              title: t("Unpin from home"),
-              onClick: () => document.unpin(true),
-              visible: !!(document.pinned(true) && can.unpin),
-              icon: <PinIcon />,
-            },
-            {
-              type: "button",
-              title: t("Pin to home"),
-              onClick: () => document.pin(true),
-              visible: !!(!document.pinned(true) && can.pin),
-              icon: <PinIcon />,
-            },
-            {
-              type: "button",
-              title: t("Unpin"),
-              onClick: () => document.unpin(false),
-              visible: !!(showPin && document.pinned() && can.unpin),
-              icon: <PinIcon />,
-            },
-            {
-              type: "button",
-              title: t("Pin to collection"),
-              onClick: () => document.pin(false),
-              visible: !!(showPin && !document.pinned() && can.pin),
-              icon: <PinIcon />,
-            },
-            {
-              type: "button",
               title: t("Unstar"),
               onClick: handleUnstar,
               visible: document.isStarred && !!can.unstar,
@@ -346,6 +319,20 @@ function DocumentMenu({
               onClick: handleStar,
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
+            },
+            {
+              type: "button",
+              title: t("Pin to home"),
+              onClick: () => document.pin(true),
+              visible: !!(!document.pinned(true) && canUser.createPin),
+              icon: <PinIcon />,
+            },
+            {
+              type: "button",
+              title: t("Pin to collection"),
+              onClick: () => document.pin(false),
+              visible: !!(showPin && !document.pinned() && can.pin),
+              icon: <PinIcon />,
             },
             {
               type: "separator",

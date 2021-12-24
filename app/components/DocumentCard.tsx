@@ -1,18 +1,20 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { DocumentIcon, PinIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
-import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import useStores from "~/hooks/useStores";
 import CollectionIcon from "./CollectionIcon";
+import Tooltip from "./Tooltip";
 
 type Props = {
   document: Document;
@@ -22,6 +24,7 @@ type Props = {
 };
 
 function DocumentCard(props: Props) {
+  const { t } = useTranslation();
   const { collections } = useStores();
   const { document, canUpdate } = props;
   const collection = collections.get(document.collectionId);
@@ -39,6 +42,10 @@ function DocumentCard(props: Props) {
     transition,
   };
 
+  const handleUnpin = React.useCallback(() => {
+    document.unpin(true);
+  }, [document]);
+
   return (
     <Reorderable
       ref={setNodeRef}
@@ -46,60 +53,97 @@ function DocumentCard(props: Props) {
       $isDragging={isDragging}
       {...attributes}
     >
-      <DocumentLink
-        dir={document.dir}
-        style={{ background: collection?.color }}
-        to={{
-          pathname: document.url,
-          state: {
-            title: document.titleWithDefault,
+      <AnimatePresence
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          transition: {
+            type: "spring",
+            bounce: 0.6,
           },
         }}
+        exit={{ opacity: 0, scale: 0.95 }}
       >
-        <Content justify="space-between" column>
-          {collection?.icon &&
-          collection?.icon !== "collection" &&
-          props.showCollectionIcon ? (
-            <CollectionIcon collection={collection} color="white" />
-          ) : (
-            <DocumentIcon color="white" />
-          )}
-          <div>
-            <Heading dir={document.dir}>{document.titleWithDefault}</Heading>
+        <DocumentLink
+          dir={document.dir}
+          style={{ background: collection?.color }}
+          $isDragging={isDragging}
+          to={{
+            pathname: document.url,
+            state: {
+              title: document.titleWithDefault,
+            },
+          }}
+        >
+          <Content justify="space-between" column>
+            {collection?.icon &&
+            collection?.icon !== "collection" &&
+            props.showCollectionIcon ? (
+              <CollectionIcon collection={collection} color="white" />
+            ) : (
+              <DocumentIcon color="white" />
+            )}
+            <div>
+              <Heading dir={document.dir}>{document.titleWithDefault}</Heading>
 
-            <StyledDocumentMeta document={document} />
-          </div>
-        </Content>
-      </DocumentLink>
-      {canUpdate && (
-        <DragHandle dir={document.dir} $isDragging={isDragging} {...listeners}>
-          :::
-        </DragHandle>
-      )}
+              <StyledDocumentMeta document={document} />
+            </div>
+          </Content>
+        </DocumentLink>
+        {canUpdate && (
+          <Actions dir={document.dir} gap={4}>
+            {!isDragging && (
+              <Tooltip tooltip={t("Unpin")}>
+                <PinButton onClick={handleUnpin}>
+                  <PinIcon color="currentColor" />
+                </PinButton>
+              </Tooltip>
+            )}
+            <DragHandle $isDragging={isDragging} {...listeners}>
+              :::
+            </DragHandle>
+          </Actions>
+        )}
+      </AnimatePresence>
     </Reorderable>
   );
 }
 
-const DragHandle = styled.div<{ dir: string; $isDragging: boolean }>`
-  position: absolute;
-  top: 12px;
-  right: ${(props) => (props.dir === "rtl" ? "auto" : "12px")};
-  left: ${(props) => (props.dir === "rtl" ? "12px" : "auto")};
-  cursor: ${(props) => (props.$isDragging ? "grabbing" : "grab")};
-  opacity: 0;
-  transition: opacity 100ms ease-in-out;
-  padding: 0 4px;
-  font-weight: bold;
+const PinButton = styled(NudeButton)`
   color: ${(props) => props.theme.white75};
-
-  // move drag handle above content
-  z-index: 2;
 
   &:hover,
   &:active {
     color: ${(props) => props.theme.white};
   }
 `;
+
+const Actions = styled(Flex)`
+  position: absolute;
+  top: 12px;
+  right: ${(props) => (props.dir === "rtl" ? "auto" : "12px")};
+  left: ${(props) => (props.dir === "rtl" ? "12px" : "auto")};
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  // move actions above content
+  z-index: 2;
+`;
+
+const DragHandle = styled.div<{ $isDragging: boolean }>`
+  cursor: ${(props) => (props.$isDragging ? "grabbing" : "grab")};
+  padding: 0 4px;
+  font-weight: bold;
+  color: ${(props) => props.theme.white75};
+
+  &:hover,
+  &:active {
+    color: ${(props) => props.theme.white};
+  }
+`;
+
+const AnimatePresence = m.div;
 
 const Reorderable = styled.div<{ $isDragging: boolean }>`
   position: relative;
@@ -112,7 +156,7 @@ const Reorderable = styled.div<{ $isDragging: boolean }>`
   box-shadow: ${(props) =>
     props.$isDragging ? "0 0 20px rgba(0,0,0,0.3);" : "0 0 0 rgba(0,0,0,0)"};
 
-  &:hover ${DragHandle} {
+  &:hover ${Actions} {
     opacity: 1;
   }
 `;
@@ -124,18 +168,6 @@ const Content = styled(Flex)`
   // move content above ::after
   position: relative;
   z-index: 1;
-`;
-
-const Actions = styled(EventBoundary)`
-  display: none;
-  align-items: center;
-  margin: 8px;
-  flex-shrink: 0;
-  flex-grow: 0;
-
-  ${breakpoint("tablet")`
-    display: flex;
-  `};
 `;
 
 const StyledDocumentMeta = styled(DocumentMeta)`
@@ -154,7 +186,6 @@ const DocumentLink = styled(Link)<{
   background: ${(props) => props.theme.listItemHoverBackground};
   color: ${(props) => props.theme.white};
   transition: transform 50ms ease-in-out;
-  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
 
   &:after {
     content: "";
@@ -181,9 +212,13 @@ const DocumentLink = styled(Link)<{
       opacity: 1;
     }
 
-    &:after {
-      background: rgba(0, 0, 0, 0.1);
-    }
+    ${(props) =>
+      !props.$isDragging &&
+      css`
+        &:after {
+          background: rgba(0, 0, 0, 0.1);
+        }
+      `}
   }
 
   ${(props) =>

@@ -14,6 +14,7 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
+import { AnimatePresence } from "framer-motion";
 import { keyBy } from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -59,6 +60,10 @@ export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
     }
   }, []);
 
+  if (!order.length) {
+    return null;
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -68,13 +73,14 @@ export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
     >
       <SortableContext items={order} strategy={rectSortingStrategy}>
         <List>
-          {order.map((documentId) => (
-            <DocumentCard
-              key={documentId}
-              document={items[documentId]}
-              {...rest}
-            />
-          ))}
+          <AnimatePresence initial={false}>
+            {order.map((documentId) => {
+              const document = items[documentId];
+              return document ? (
+                <DocumentCard key={documentId} document={document} {...rest} />
+              ) : null;
+            })}
+          </AnimatePresence>
         </List>
       </SortableContext>
     </DndContext>
