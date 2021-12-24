@@ -169,7 +169,7 @@ function DocumentMenu({
 
   const collection = collections.get(document.collectionId);
   const can = policies.abilities(document.id);
-  const canUser = policies.abilities(team.id);
+  const canTeam = policies.abilities(team.id);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [
@@ -323,15 +323,15 @@ function DocumentMenu({
             {
               type: "button",
               title: t("Pin to home"),
-              onClick: () => document.pin(true),
-              visible: !!(!document.pinned(true) && canUser.createPin),
+              onClick: () => document.pin(),
+              visible: !!(!document.pinnedToHome && canTeam.createPin),
               icon: <PinIcon />,
             },
             {
               type: "button",
               title: t("Pin to collection"),
-              onClick: () => document.pin(false),
-              visible: !!(showPin && !document.pinned() && can.pin),
+              onClick: () => document.pin(document.collectionId),
+              visible: !!(showPin && !document.pinned && can.pin),
               icon: <PinIcon />,
             },
             {

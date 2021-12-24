@@ -55,7 +55,7 @@ function CollectionScene() {
   const history = useHistory();
   const match = useRouteMatch();
   const { t } = useTranslation();
-  const { documents, policies, pins, collections, ui } = useStores();
+  const { documents, pins, policies, collections, ui } = useStores();
   const { showToast } = useToasts();
   const team = useCurrentTeam();
   const [isFetching, setFetching] = React.useState(false);
@@ -131,9 +131,6 @@ function CollectionScene() {
     return <Search notFound />;
   }
 
-  const pinnedDocuments = collection
-    ? documents.pinnedToCollection(collection.id)
-    : [];
   const collectionName = collection ? collection.name : "";
 
   return collection ? (
@@ -277,7 +274,7 @@ function CollectionScene() {
                   <CollectionDescription collection={collection} />
 
                   <PinnedDocuments
-                    documents={pinnedDocuments}
+                    pins={pins.inCollection(collection.id)}
                     canUpdate={can.update}
                   />
 
@@ -312,7 +309,6 @@ function CollectionScene() {
                         options={{
                           collectionId: collection.id,
                         }}
-                        showPin
                       />
                     </Route>
                     <Route path={collectionUrl(collection.url, "old")}>
@@ -325,7 +321,6 @@ function CollectionScene() {
                         options={{
                           collectionId: collection.id,
                         }}
-                        showPin
                       />
                     </Route>
                     <Route path={collectionUrl(collection.url, "recent")}>
@@ -344,7 +339,6 @@ function CollectionScene() {
                           collectionId: collection.id,
                         }}
                         showPublished
-                        showPin
                       />
                     </Route>
                     <Route path={collectionUrl(collection.url, "updated")}>
@@ -357,7 +351,6 @@ function CollectionScene() {
                         options={{
                           collectionId: collection.id,
                         }}
-                        showPin
                       />
                     </Route>
                     <Route path={collectionUrl(collection.url)} exact>
@@ -371,7 +364,6 @@ function CollectionScene() {
                           direction: "ASC",
                         }}
                         showParentDocuments
-                        showPin
                       />
                     </Route>
                   </Switch>

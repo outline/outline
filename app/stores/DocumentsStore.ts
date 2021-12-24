@@ -128,26 +128,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
-  get pinnedToHome(): Document[] {
-    const pins = this.rootStore.pins.orderedData.filter(
-      (pin) => !pin.collectionId
-    );
-
-    return filter(
-      this.recentlyUpdated,
-      (document) => !!pins.find((pin) => pin.documentId === document.id)
-    );
-  }
-
-  pinnedToCollection(collectionId: string): Document[] {
-    const pins = this.rootStore.pins.inCollection(collectionId);
-
-    return filter(
-      this.recentlyUpdatedInCollection(collectionId),
-      (document) => !!pins.find((pin) => pin.documentId === document.id)
-    );
-  }
-
   publishedInCollection(collectionId: string): Document[] {
     return filter(
       this.all,

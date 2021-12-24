@@ -36,7 +36,6 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
   const [items, setItems] = React.useState(pins.map((pin) => pin.documentId));
 
   React.useEffect(() => {
-    console.log("setItems from pins", pins);
     setItems(pins.map((pin) => pin.documentId));
   }, [pins]);
 

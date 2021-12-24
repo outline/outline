@@ -43,7 +43,7 @@ function DocumentCard(props: Props) {
   };
 
   const handleUnpin = React.useCallback(() => {
-    document.unpin(true);
+    document.unpin();
   }, [document]);
 
   return (

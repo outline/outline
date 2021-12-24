@@ -237,31 +237,24 @@ export default class Document extends BaseModel {
   };
 
   @action
-  pin = async (home = false) => {
+  pin = async (collectionId?: string) => {
     await this.store.rootStore.pins.create({
       documentId: this.id,
-      ...(home ? {} : { collectionId: this.collectionId }),
+      ...(collectionId ? { collectionId } : {}),
     });
   };
 
   @action
-  unpin = async (home = false) => {
+  unpin = async (collectionId?: string) => {
     const pin = this.store.rootStore.pins.orderedData.find(
       (pin) =>
         pin.documentId === this.id &&
-        (home || pin.collectionId === this.collectionId)
+        (pin.collectionId === collectionId ||
+          (!collectionId && !pin.collectionId))
     );
 
     await pin?.delete();
   };
-
-  pinned(home = false): boolean {
-    return !!this.store.rootStore.pins.orderedData.find(
-      (pin) =>
-        pin.documentId === this.id &&
-        (home || pin.collectionId === this.collectionId)
-    );
-  }
 
   @action
   star = () => {
@@ -382,6 +375,21 @@ export default class Document extends BaseModel {
     const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
     return result;
   };
+
+  @computed
+  get pinned(): boolean {
+    return !!this.store.rootStore.pins.orderedData.find(
+      (pin) =>
+        pin.documentId === this.id && pin.collectionId === this.collectionId
+    );
+  }
+
+  @computed
+  get pinnedToHome(): boolean {
+    return !!this.store.rootStore.pins.orderedData.find(
+      (pin) => pin.documentId === this.id && !pin.collectionId
+    );
+  }
 
   @computed
   get isActive(): boolean {
