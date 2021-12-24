@@ -1,4 +1,5 @@
-import { Reorder, useDragControls } from "framer-motion";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import { transparentize } from "polished";
@@ -17,21 +18,33 @@ type Props = {
   document: Document;
   context?: string | undefined;
   showCollectionIcon?: boolean;
+  canUpdate?: boolean;
 };
 
 function DocumentCard(props: Props) {
-  const { collections, policies } = useStores();
-  const { document } = props;
+  const { collections } = useStores();
+  const { document, canUpdate } = props;
   const collection = collections.get(document.collectionId);
-  const can = policies.abilities(document.collectionId);
-  const controls = useDragControls();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.document.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   return (
     <Reorderable
-      value={document.id}
-      dragControls={controls}
-      dragListener={false}
-      drag
+      ref={setNodeRef}
+      style={style}
+      $isDragging={isDragging}
+      {...attributes}
     >
       <DocumentLink
         dir={document.dir}
@@ -58,28 +71,46 @@ function DocumentCard(props: Props) {
           </div>
         </Content>
       </DocumentLink>
-      <DragHandle onPointerDown={(e) => controls.start(e)} dir={document.dir}>
-        :::
-      </DragHandle>
+      {canUpdate && (
+        <DragHandle dir={document.dir} $isDragging={isDragging} {...listeners}>
+          :::
+        </DragHandle>
+      )}
     </Reorderable>
   );
 }
 
-const DragHandle = styled.div<{ dir: string }>`
+const DragHandle = styled.div<{ dir: string; $isDragging: boolean }>`
   position: absolute;
   top: 12px;
   right: ${(props) => (props.dir === "rtl" ? "auto" : "12px")};
   left: ${(props) => (props.dir === "rtl" ? "12px" : "auto")};
-  cursor: grab;
+  cursor: ${(props) => (props.$isDragging ? "grabbing" : "grab")};
   opacity: 0;
+  transition: opacity 100ms ease-in-out;
   padding: 0 4px;
   font-weight: bold;
-  color: white;
+  color: ${(props) => props.theme.white75};
+
+  // move drag handle above content
+  z-index: 2;
+
+  &:hover,
+  &:active {
+    color: ${(props) => props.theme.white};
+  }
 `;
 
-const Reorderable = styled(Reorder.Item)`
+const Reorderable = styled.div<{ $isDragging: boolean }>`
   position: relative;
   user-select: none;
+  border-radius: 8px;
+
+  // move above other cards when dragging
+  z-index: ${(props) => (props.$isDragging ? 1 : "inherit")};
+  transform: scale(${(props) => (props.$isDragging ? "1.025" : "1")});
+  box-shadow: ${(props) =>
+    props.$isDragging ? "0 0 20px rgba(0,0,0,0.3);" : "0 0 0 rgba(0,0,0,0)"};
 
   &:hover ${DragHandle} {
     opacity: 1;
@@ -89,6 +120,10 @@ const Reorderable = styled(Reorder.Item)`
 const Content = styled(Flex)`
   min-width: 0;
   height: 100%;
+
+  // move content above ::after
+  position: relative;
+  z-index: 1;
 `;
 
 const Actions = styled(EventBoundary)`
@@ -145,6 +180,10 @@ const DocumentLink = styled(Link)<{
     ${Actions} {
       opacity: 1;
     }
+
+    &:after {
+      background: rgba(0, 0, 0, 0.1);
+    }
   }
 
   ${(props) =>
@@ -162,7 +201,7 @@ const Heading = styled.h3`
   margin-top: 0;
   margin-bottom: 0.35em;
   line-height: 22px;
-  max-height: 52px;
+  max-height: 44px;
   overflow: hidden;
 
   color: ${(props) => props.theme.white};

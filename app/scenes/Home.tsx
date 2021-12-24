@@ -13,12 +13,14 @@ import PinnedDocuments from "~/components/PinnedDocuments";
 import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, pins, ui } = useStores();
+  const { documents, policies, pins, ui } = useStores();
+  const team = useCurrentTeam();
   const user = useCurrentUser();
   const userId = user?.id;
   const { t } = useTranslation();
@@ -28,6 +30,7 @@ function Home() {
   }, [pins]);
 
   const pinnedDocuments = documents.pinnedToHome;
+  const canCreatePin = policies.abilities(team.id).createPin;
 
   return (
     <Scene
@@ -46,7 +49,11 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
-      <PinnedDocuments documents={pinnedDocuments} showCollectionIcon />
+      <PinnedDocuments
+        documents={pinnedDocuments}
+        canUpdate={canCreatePin}
+        showCollectionIcon
+      />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

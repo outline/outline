@@ -1,5 +1,19 @@
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
-import { Reorder } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
 import { keyBy } from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -10,6 +24,8 @@ import DocumentCard from "~/components/DocumentCard";
 type Props = {
   documents: Document[];
   limit?: number;
+  canUpdate?: boolean;
+  showCollectionIcon?: boolean;
 };
 
 export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
@@ -23,18 +39,49 @@ export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
     setOrder(Object.keys(items));
   }, [items]);
 
-  console.log({ order });
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = React.useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setOrder((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }, []);
 
   return (
-    <List values={order} onReorder={setOrder}>
-      {order.map((documentId) => (
-        <DocumentCard key={documentId} document={items[documentId]} {...rest} />
-      ))}
-    </List>
+    <DndContext
+      sensors={sensors}
+      modifiers={[restrictToParentElement]}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={order} strategy={rectSortingStrategy}>
+        <List>
+          {order.map((documentId) => (
+            <DocumentCard
+              key={documentId}
+              document={items[documentId]}
+              {...rest}
+            />
+          ))}
+        </List>
+      </SortableContext>
+    </DndContext>
   );
 }
 
-const List = styled(Reorder.Group)`
+const List = styled.div`
   display: grid;
   column-gap: 8px;
   row-gap: 8px;

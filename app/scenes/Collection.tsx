@@ -276,7 +276,10 @@ function CollectionScene() {
                   </Heading>
                   <CollectionDescription collection={collection} />
 
-                  <PinnedDocuments documents={pinnedDocuments} />
+                  <PinnedDocuments
+                    documents={pinnedDocuments}
+                    canUpdate={can.update}
+                  />
 
                   <Tabs>
                     <Tab to={collectionUrl(collection.url)} exact>
