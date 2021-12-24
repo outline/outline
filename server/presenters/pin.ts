@@ -5,5 +5,6 @@ export default function present(pin: any) {
     collectionId: pin.collectionId,
     index: pin.index,
     createdAt: pin.createdAt,
+    updatedAt: pin.updatedAt,
   };
 }

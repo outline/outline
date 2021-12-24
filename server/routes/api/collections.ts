@@ -57,19 +57,6 @@ router.post("collections.create", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   authorize(user, "createCollection", user.team);
-  const collections = await Collection.findAll({
-    where: {
-      teamId: user.teamId,
-      deletedAt: null,
-    },
-    attributes: ["id", "index", "updatedAt"],
-    limit: 1,
-    order: [
-      // using LC_COLLATE:"C" because we need byte order to drive the sorting
-      sequelize.literal('"collection"."index" collate "C"'),
-      ["updatedAt", "DESC"],
-    ],
-  });
 
   if (index) {
     assertIndexCharacters(
@@ -77,6 +64,20 @@ router.post("collections.create", auth(), async (ctx) => {
       "Index characters must be between x20 to x7E ASCII"
     );
   } else {
+    const collections = await Collection.findAll({
+      where: {
+        teamId: user.teamId,
+        deletedAt: null,
+      },
+      attributes: ["id", "index", "updatedAt"],
+      limit: 1,
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+    });
+
     index = fractionalIndex(
       null,
       collections.length ? collections[0].index : null

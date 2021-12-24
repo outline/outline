@@ -1,16 +1,14 @@
 import invariant from "invariant";
-import { action, runInAction } from "mobx";
+import { action, runInAction, computed } from "mobx";
 import Pin from "~/models/Pin";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore, { RPCAction } from "./BaseStore";
+import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 
 type FetchParams = PaginationParams & { collectionId?: string };
 
 export default class PinsStore extends BaseStore<Pin> {
-  actions = [RPCAction.Delete, RPCAction.List, RPCAction.Create];
-
   constructor(rootStore: RootStore) {
     super(rootStore, Pin);
   }
@@ -36,4 +34,22 @@ export default class PinsStore extends BaseStore<Pin> {
   inCollection = (collectionId: string) => {
     return this.orderedData.filter((pin) => pin.collectionId === collectionId);
   };
+
+  @computed
+  get home() {
+    return this.orderedData.filter((pin) => !pin.collectionId);
+  }
+
+  @computed
+  get orderedData(): Pin[] {
+    const pins = Array.from(this.data.values());
+
+    return pins.sort((a, b) => {
+      if (a.index === b.index) {
+        return a.updatedAt > b.updatedAt ? -1 : 1;
+      }
+
+      return a.index < b.index ? -1 : 1;
+    });
+  }
 }

@@ -236,7 +236,7 @@ const Heading = styled.h3`
   margin-top: 0;
   margin-bottom: 0.35em;
   line-height: 22px;
-  max-height: 44px;
+  max-height: 66px; // 3*line-height
   overflow: hidden;
 
   color: ${(props) => props.theme.white};

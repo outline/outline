@@ -14,31 +14,31 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
-import { AnimatePresence } from "framer-motion";
-import { keyBy } from "lodash";
+import fractionalIndex from "fractional-index";
+import { m, AnimatePresence } from "framer-motion";
+import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Document from "~/models/Document";
+import Pin from "~/models/Pin";
 import DocumentCard from "~/components/DocumentCard";
+import useStores from "~/hooks/useStores";
 
 type Props = {
-  documents: Document[];
+  pins: Pin[];
   limit?: number;
   canUpdate?: boolean;
   showCollectionIcon?: boolean;
 };
 
-export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
-  const items = React.useMemo(
-    () => keyBy(limit ? documents.splice(0, limit) : documents, "id"),
-    [limit, documents]
-  );
-  const [order, setOrder] = React.useState(Object.keys(items));
+function PinnedDocuments({ limit, pins, ...rest }: Props) {
+  const { documents } = useStores();
+  const [items, setItems] = React.useState(pins.map((pin) => pin.documentId));
 
   React.useEffect(() => {
-    setOrder(Object.keys(items));
-  }, [items]);
+    console.log("setItems from pins", pins);
+    setItems(pins.map((pin) => pin.documentId));
+  }, [pins]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -47,22 +47,37 @@ export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
     })
   );
 
-  const handleDragEnd = React.useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = React.useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      setOrder((items) => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
+      if (over && active.id !== over.id) {
+        setItems((items) => {
+          const activePos = items.indexOf(active.id);
+          const overPos = items.indexOf(over.id);
 
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  }, []);
+          const overIndex = pins[overPos]?.index || null;
+          const nextIndex = pins[overPos + 1]?.index || null;
+          const prevIndex = pins[overPos - 1]?.index || null;
+          const pin = pins[activePos];
 
-  if (!order.length) {
-    return null;
-  }
+          pin
+            .save({
+              index:
+                overPos === 0
+                  ? fractionalIndex(null, overIndex)
+                  : activePos > overPos
+                  ? fractionalIndex(prevIndex, overIndex)
+                  : fractionalIndex(overIndex, nextIndex),
+            })
+            .catch(() => setItems(items));
+
+          return arrayMove(items, activePos, overPos);
+        });
+      }
+    },
+    [pins]
+  );
 
   return (
     <DndContext
@@ -71,11 +86,11 @@ export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={order} strategy={rectSortingStrategy}>
-        <List>
+      <SortableContext items={items} strategy={rectSortingStrategy}>
+        <List initial={false}>
           <AnimatePresence initial={false}>
-            {order.map((documentId) => {
-              const document = items[documentId];
+            {items.map((documentId) => {
+              const document = documents.get(documentId);
               return document ? (
                 <DocumentCard key={documentId} document={document} {...rest} />
               ) : null;
@@ -87,16 +102,21 @@ export default function PinnedDocuments({ limit, documents, ...rest }: Props) {
   );
 }
 
-const List = styled.div`
+const List = styled(m.div)`
   display: grid;
   column-gap: 8px;
   row-gap: 8px;
-  margin: 16px 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 0;
   list-style: none;
+
+  &:not(:empty) {
+    margin: 16px 0 32px;
+  }
 
   ${breakpoint("desktop")`
     grid-template-columns: repeat(4, minmax(0, 1fr));
   `};
 `;
+
+export default observer(PinnedDocuments);

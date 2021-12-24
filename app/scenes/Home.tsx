@@ -19,7 +19,7 @@ import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, policies, pins, ui } = useStores();
+  const { documents, pins, policies, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const userId = user?.id;
@@ -29,7 +29,6 @@ function Home() {
     pins.fetchPage();
   }, [pins]);
 
-  const pinnedDocuments = documents.pinnedToHome;
   const canCreatePin = policies.abilities(team.id).createPin;
 
   return (
@@ -50,7 +49,7 @@ function Home() {
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
       <PinnedDocuments
-        documents={pinnedDocuments}
+        pins={pins.home}
         canUpdate={canCreatePin}
         showCollectionIcon
       />
