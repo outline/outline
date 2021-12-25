@@ -843,68 +843,7 @@ describe("#documents.list", () => {
     expect(body).toMatchSnapshot();
   });
 });
-describe("#documents.pinned", () => {
-  it("should return pinned documents", async () => {
-    const { user, document } = await seed();
-    document.pinnedById = user.id;
-    await document.save();
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: document.collectionId,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(document.id);
-  });
 
-  it("should return pinned documents in private collections member of", async () => {
-    const { user, collection, document } = await seed();
-    collection.permission = null;
-    await collection.save();
-    document.pinnedById = user.id;
-    await document.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
-      permission: "read_write",
-    });
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: document.collectionId,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(document.id);
-  });
-
-  it("should not return pinned documents in private collections not a member of", async () => {
-    const collection = await buildCollection({
-      permission: null,
-    });
-    const user = await buildUser({
-      teamId: collection.teamId,
-    });
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: collection.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.pinned");
-    expect(res.status).toEqual(401);
-  });
-});
 describe("#documents.drafts", () => {
   it("should return unpublished documents", async () => {
     const { user, document } = await seed();
