@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { DocumentIcon, PinIcon } from "outline-icons";
-import { transparentize } from "polished";
+import { getLuminance, transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -20,13 +20,13 @@ import Tooltip from "./Tooltip";
 type Props = {
   pin: Pin | undefined;
   document: Document;
-  canUpdate?: boolean;
+  canUpdatePin?: boolean;
 };
 
 function DocumentCard(props: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
-  const { document, pin, canUpdate } = props;
+  const { document, pin, canUpdatePin } = props;
   const collection = collections.get(document.collectionId);
   const {
     attributes,
@@ -67,7 +67,12 @@ function DocumentCard(props: Props) {
       >
         <DocumentLink
           dir={document.dir}
-          style={{ background: collection?.color }}
+          style={{
+            background:
+              collection?.color && getLuminance(collection.color) < 0.6
+                ? collection.color
+                : undefined,
+          }}
           $isDragging={isDragging}
           to={{
             pathname: document.url,
@@ -91,7 +96,7 @@ function DocumentCard(props: Props) {
             </div>
           </Content>
         </DocumentLink>
-        {canUpdate && (
+        {canUpdatePin && (
           <Actions dir={document.dir} gap={4}>
             {!isDragging && pin && (
               <Tooltip tooltip={t("Unpin")}>
@@ -183,7 +188,7 @@ const DocumentLink = styled(Link)<{
   padding: 12px;
   border-radius: 8px;
   height: 160px;
-  background: ${(props) => props.theme.listItemHoverBackground};
+  background: ${(props) => props.theme.slate};
   color: ${(props) => props.theme.white};
   transition: transform 50ms ease-in-out;
 

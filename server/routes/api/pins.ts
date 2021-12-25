@@ -47,7 +47,7 @@ router.post("pins.create", auth(), async (ctx) => {
 
   const count = await Pin.count({ where });
   if (count >= MAX_PINS) {
-    throw ValidationError("You have reached the maximum number of pins.");
+    throw ValidationError(`You cannot pin more than ${MAX_PINS} documents`);
   }
 
   if (index) {
@@ -131,32 +131,6 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("pins.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
-
-  const { user } = ctx.state;
-  const pin = await Pin.findByPk(id);
-  const document = await Document.findByPk(pin.documentId, {
-    userId: user.id,
-  });
-  authorize(user, "pin", document);
-
-  await pin.destroy();
-
-  await Event.create({
-    name: "pins.delete",
-    modelId: pin.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
-
 router.post("pins.update", auth(), async (ctx) => {
   const { id, index } = ctx.body;
   assertUuid(id, "id is required");
@@ -171,7 +145,12 @@ router.post("pins.update", auth(), async (ctx) => {
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });
-  authorize(user, "pin", document);
+
+  if (pin.collectionId) {
+    authorize(user, "pin", document);
+  } else {
+    authorize(user, "updatePin", user.team);
+  }
 
   pin.index = index;
   await pin.save();
@@ -187,6 +166,36 @@ router.post("pins.update", auth(), async (ctx) => {
   ctx.body = {
     data: presentPin(pin),
     policies: presentPolicies(user, [pin]),
+  };
+});
+
+router.post("pins.delete", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  assertUuid(id, "id is required");
+
+  const { user } = ctx.state;
+  const pin = await Pin.findByPk(id);
+  const document = await Document.findByPk(pin.documentId, {
+    userId: user.id,
+  });
+  if (pin.collectionId) {
+    authorize(user, "pin", document);
+  } else {
+    authorize(user, "deletePin", user.team);
+  }
+
+  await pin.destroy();
+
+  await Event.create({
+    name: "pins.delete",
+    modelId: pin.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
   };
 });
 

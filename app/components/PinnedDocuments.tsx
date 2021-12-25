@@ -15,7 +15,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import fractionalIndex from "fractional-index";
-import { m, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
@@ -25,12 +25,15 @@ import DocumentCard from "~/components/DocumentCard";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** Pins to display */
   pins: Pin[];
+  /** Maximum number of pins to display */
   limit?: number;
+  /** Whether the user has permission to update pins */
   canUpdate?: boolean;
 };
 
-function PinnedDocuments({ limit, pins, ...rest }: Props) {
+function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
   const { documents } = useStores();
   const [items, setItems] = React.useState(pins.map((pin) => pin.documentId));
 
@@ -59,6 +62,7 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
           const prevIndex = pins[overPos - 1]?.index || null;
           const pin = pins[activePos];
 
+          // Update the order on the backend, revert if the call fails
           pin
             .save({
               index:
@@ -70,6 +74,7 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
             })
             .catch(() => setItems(items));
 
+          // Update the order in state immediately
           return arrayMove(items, activePos, overPos);
         });
       }
@@ -85,7 +90,7 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={items} strategy={rectSortingStrategy}>
-        <List initial={false}>
+        <List>
           <AnimatePresence initial={false}>
             {items.map((documentId) => {
               const document = documents.get(documentId);
@@ -95,6 +100,7 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
                 <DocumentCard
                   key={documentId}
                   document={document}
+                  canUpdatePin={canUpdate}
                   pin={pin}
                   {...rest}
                 />
@@ -107,7 +113,7 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
   );
 }
 
-const List = styled(m.div)`
+const List = styled.div`
   display: grid;
   column-gap: 8px;
   row-gap: 8px;

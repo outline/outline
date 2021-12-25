@@ -721,18 +721,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     if (collection) collection.refresh();
   };
 
-  pin = (document: Document) => {
-    return client.post("/documents.pin", {
-      id: document.id,
-    });
-  };
-
-  unpin = (document: Document) => {
-    return client.post("/documents.unpin", {
-      id: document.id,
-    });
-  };
-
   star = async (document: Document) => {
     this.starredIds.set(document.id, true);
 
