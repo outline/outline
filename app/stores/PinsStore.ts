@@ -32,7 +32,9 @@ export default class PinsStore extends BaseStore<Pin> {
   };
 
   inCollection = (collectionId: string) => {
-    return this.orderedData.filter((pin) => pin.collectionId === collectionId);
+    return computed(() => this.orderedData)
+      .get()
+      .filter((pin) => pin.collectionId === collectionId);
   };
 
   @computed
