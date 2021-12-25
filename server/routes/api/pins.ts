@@ -1,5 +1,6 @@
 import fractionalIndex from "fractional-index";
 import Router from "koa-router";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Collection, Document, Pin, Event } from "@server/models";
 import policy from "@server/policies";
@@ -12,6 +13,7 @@ import { sequelize, Op } from "@server/sequelize";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
+const MAX_PINS = 8;
 const { authorize } = policy;
 const router = new Router();
 
@@ -24,13 +26,28 @@ router.post("pins.create", auth(), async (ctx) => {
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
-  authorize(user, "pin", document);
+  authorize(user, "read", document);
+
+  if (!collectionId) {
+    authorize(user, "createPin", user.team);
+  }
 
   if (collectionId) {
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
-    authorize(user, "read", collection);
+    authorize(user, "update", collection);
+    authorize(user, "pin", document);
+  }
+
+  const where = {
+    teamId: user.teamId,
+    ...(collectionId ? { collectionId } : { collectionId: { [Op.eq]: null } }),
+  };
+
+  const count = await Pin.count({ where });
+  if (count >= MAX_PINS) {
+    throw ValidationError("You have reached the maximum number of pins.");
   }
 
   if (index) {
@@ -40,12 +57,7 @@ router.post("pins.create", auth(), async (ctx) => {
     );
   } else {
     const pins = await Pin.findAll({
-      where: {
-        teamId: user.teamId,
-        ...(collectionId
-          ? { collectionId }
-          : { collectionId: { [Op.eq]: null } }),
-      },
+      where,
       attributes: ["id", "index", "updatedAt"],
       limit: 1,
       order: [
