@@ -125,6 +125,10 @@ const List = styled.div`
     margin: 16px 0 32px;
   }
 
+  ${breakpoint("tablet")`
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  `};
+
   ${breakpoint("desktop")`
     grid-template-columns: repeat(4, minmax(0, 1fr));
   `};

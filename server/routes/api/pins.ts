@@ -1,6 +1,6 @@
-import fractionalIndex from "fractional-index";
 import Router from "koa-router";
-import { ValidationError } from "@server/errors";
+import pinCreator from "@server/commands/pinCreator";
+import pinUpdater from "@server/commands/pinUpdater";
 import auth from "@server/middlewares/authentication";
 import { Collection, Document, Pin, Event } from "@server/models";
 import policy from "@server/policies";
@@ -13,13 +13,12 @@ import { sequelize, Op } from "@server/sequelize";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const MAX_PINS = 8;
 const { authorize } = policy;
 const router = new Router();
 
 router.post("pins.create", auth(), async (ctx) => {
   const { documentId, collectionId } = ctx.body;
-  let { index } = ctx.body;
+  const { index } = ctx.body;
   assertUuid(documentId, "documentId is required");
 
   const { user } = ctx.state;
@@ -40,50 +39,19 @@ router.post("pins.create", auth(), async (ctx) => {
     authorize(user, "pin", document);
   }
 
-  const where = {
-    teamId: user.teamId,
-    ...(collectionId ? { collectionId } : { collectionId: { [Op.eq]: null } }),
-  };
-
-  const count = await Pin.count({ where });
-  if (count >= MAX_PINS) {
-    throw ValidationError(`You cannot pin more than ${MAX_PINS} documents`);
-  }
-
   if (index) {
     assertIndexCharacters(
       index,
       "Index characters must be between x20 to x7E ASCII"
     );
-  } else {
-    const pins = await Pin.findAll({
-      where,
-      attributes: ["id", "index", "updatedAt"],
-      limit: 1,
-      order: [
-        // using LC_COLLATE:"C" because we need byte order to drive the sorting
-        sequelize.literal('"pins"."index" collate "C" DESC'),
-        ["updatedAt", "ASC"],
-      ],
-    });
-
-    index = fractionalIndex(pins.length ? pins[0].index : null, null);
   }
 
-  const pin = await Pin.create({
-    createdById: user.id,
-    teamId: user.teamId,
-    collectionId,
+  const pin = await pinCreator({
+    user,
     documentId,
-    index,
-  });
-
-  await Event.create({
-    name: "pins.create",
-    modelId: pin.id,
-    teamId: user.teamId,
-    actorId: user.id,
+    collectionId,
     ip: ctx.request.ip,
+    index,
   });
 
   ctx.body = {
@@ -141,7 +109,7 @@ router.post("pins.update", auth(), async (ctx) => {
   );
 
   const { user } = ctx.state;
-  const pin = await Pin.findByPk(id);
+  let pin = await Pin.findByPk(id);
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });
@@ -152,15 +120,11 @@ router.post("pins.update", auth(), async (ctx) => {
     authorize(user, "updatePin", user.team);
   }
 
-  pin.index = index;
-  await pin.save();
-
-  await Event.create({
-    name: "pins.update",
-    modelId: pin.id,
-    teamId: user.teamId,
-    actorId: user.id,
+  pin = await pinUpdater({
+    user,
+    pin,
     ip: ctx.request.ip,
+    index,
   });
 
   ctx.body = {
