@@ -48,11 +48,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
-      <PinnedDocuments
-        pins={pins.home}
-        canUpdate={canCreatePin}
-        showCollectionIcon
-      />
+      <PinnedDocuments pins={pins.home} canUpdate={canCreatePin} />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

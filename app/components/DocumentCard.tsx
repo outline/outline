@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import Document from "~/models/Document";
+import Pin from "~/models/Pin";
 import DocumentMeta from "~/components/DocumentMeta";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -17,16 +18,15 @@ import CollectionIcon from "./CollectionIcon";
 import Tooltip from "./Tooltip";
 
 type Props = {
+  pin: Pin | undefined;
   document: Document;
-  context?: string | undefined;
-  showCollectionIcon?: boolean;
   canUpdate?: boolean;
 };
 
 function DocumentCard(props: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
-  const { document, canUpdate } = props;
+  const { document, pin, canUpdate } = props;
   const collection = collections.get(document.collectionId);
   const {
     attributes,
@@ -43,8 +43,8 @@ function DocumentCard(props: Props) {
   };
 
   const handleUnpin = React.useCallback(() => {
-    document.unpin();
-  }, [document]);
+    pin?.delete();
+  }, [pin]);
 
   return (
     <Reorderable
@@ -79,7 +79,7 @@ function DocumentCard(props: Props) {
           <Content justify="space-between" column>
             {collection?.icon &&
             collection?.icon !== "collection" &&
-            props.showCollectionIcon ? (
+            !pin?.collectionId ? (
               <CollectionIcon collection={collection} color="white" />
             ) : (
               <DocumentIcon color="white" />
@@ -93,7 +93,7 @@ function DocumentCard(props: Props) {
         </DocumentLink>
         {canUpdate && (
           <Actions dir={document.dir} gap={4}>
-            {!isDragging && (
+            {!isDragging && pin && (
               <Tooltip tooltip={t("Unpin")}>
                 <PinButton onClick={handleUnpin}>
                   <PinIcon color="currentColor" />

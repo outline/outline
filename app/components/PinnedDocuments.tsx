@@ -28,7 +28,6 @@ type Props = {
   pins: Pin[];
   limit?: number;
   canUpdate?: boolean;
-  showCollectionIcon?: boolean;
 };
 
 function PinnedDocuments({ limit, pins, ...rest }: Props) {
@@ -90,8 +89,15 @@ function PinnedDocuments({ limit, pins, ...rest }: Props) {
           <AnimatePresence initial={false}>
             {items.map((documentId) => {
               const document = documents.get(documentId);
+              const pin = pins.find((pin) => pin.documentId === documentId);
+
               return document ? (
-                <DocumentCard key={documentId} document={document} {...rest} />
+                <DocumentCard
+                  key={documentId}
+                  document={document}
+                  pin={pin}
+                  {...rest}
+                />
               ) : null;
             })}
           </AnimatePresence>
