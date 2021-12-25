@@ -171,6 +171,48 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   };
 });
 
+router.post("documents.archived", auth(), pagination(), async (ctx) => {
+  const { sort = "updatedAt" } = ctx.body;
+
+  assertSort(sort, Document);
+  let direction = ctx.body.direction;
+  if (direction !== "ASC") direction = "DESC";
+  const user = ctx.state.user;
+  const collectionIds = await user.collectionIds();
+  const collectionScope = {
+    method: ["withCollection", user.id],
+  };
+  const viewScope = {
+    method: ["withViews", user.id],
+  };
+  const documents = await Document.scope(
+    "defaultScope",
+    collectionScope,
+    viewScope
+  ).findAll({
+    where: {
+      teamId: user.teamId,
+      collectionId: collectionIds,
+      archivedAt: {
+        [Op.ne]: null,
+      },
+    },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+  const data = await Promise.all(
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
+    documents.map((document) => presentDocument(document))
+  );
+  const policies = presentPolicies(user, documents);
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+    policies,
+  };
+});
+
 router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const { sort = "deletedAt" } = ctx.body;
 

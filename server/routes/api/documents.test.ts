@@ -1473,39 +1473,7 @@ describe("#documents.starred", () => {
     expect(body).toMatchSnapshot();
   });
 });
-describe("#documents.pin", () => {
-  it("should pin the document", async () => {
-    const { user, document } = await seed();
-    const res = await server.post("/api/documents.pin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.pinned).toEqual(true);
-  });
 
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.pin");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.pin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
 describe("#documents.move", () => {
   it("should move the document", async () => {
     const { user, document } = await seed();
@@ -1746,41 +1714,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 });
-describe("#documents.unpin", () => {
-  it("should unpin the document", async () => {
-    const { user, document } = await seed();
-    document.pinnedBy = user;
-    await document.save();
-    const res = await server.post("/api/documents.unpin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.pinned).toEqual(false);
-  });
 
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.unpin");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.unpin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
 describe("#documents.star", () => {
   it("should star the document", async () => {
     const { user, document } = await seed();
