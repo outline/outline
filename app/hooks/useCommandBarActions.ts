@@ -5,6 +5,12 @@ import { actionToKBar } from "~/actions";
 import { Action } from "~/types";
 import useActionContext from "./useActionContext";
 
+/**
+ * Hook to add actions to the command bar while the hook is inside a mounted
+ * component.
+ *
+ * @param actions actions to make available
+ */
 export default function useCommandBarActions(actions: Action[]) {
   const location = useLocation();
   const context = useActionContext({

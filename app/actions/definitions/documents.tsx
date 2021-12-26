@@ -134,6 +134,10 @@ export const duplicateDocument = createAction({
   },
 });
 
+/**
+ * Pin a document to a collection. Pinned documents will be displayed at the top
+ * of the collection for all collection members to see.
+ */
 export const pinDocument = createAction({
   name: ({ t }) => t("Pin to collection"),
   section: DocumentSection,
@@ -164,6 +168,10 @@ export const pinDocument = createAction({
   },
 });
 
+/**
+ * Pin a document to team home. Pinned documents will be displayed at the top
+ * of the home screen for all team members to see.
+ */
 export const pinDocumentToHome = createAction({
   name: ({ t }) => t("Pin to home"),
   section: DocumentSection,

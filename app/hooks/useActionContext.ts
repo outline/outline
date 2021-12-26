@@ -3,6 +3,13 @@ import { useLocation } from "react-router";
 import useStores from "~/hooks/useStores";
 import { ActionContext } from "~/types";
 
+/**
+ * Hook to get the current action context, an object that is passed to all
+ * action definitions.
+ *
+ * @param overrides Overides of the default action context.
+ * @returns The current action context.
+ */
 export default function useActionContext(
   overrides?: Partial<ActionContext>
 ): ActionContext {
