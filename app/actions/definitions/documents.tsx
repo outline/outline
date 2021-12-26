@@ -17,7 +17,7 @@ import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import history from "~/utils/history";
-import { collectionUrl, homePath, newDocumentPath } from "~/utils/routeHelpers";
+import { homePath, newDocumentPath } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -156,7 +156,9 @@ export const pinDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.pin(document.collectionId);
 
-    if (!location.pathname.startsWith(collectionUrl(activeCollectionId))) {
+    const collection = stores.collections.get(activeCollectionId);
+
+    if (!collection || !location.pathname.startsWith(collection?.url)) {
       stores.toasts.showToast(t("Pinned to collection"));
     }
   },
