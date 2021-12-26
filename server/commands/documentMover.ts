@@ -1,7 +1,8 @@
 import { Transaction } from "sequelize";
-import { Document, Attachment, Collection, User, Event } from "@server/models";
+import { Document, Attachment, Collection, Pin, Event } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { sequelize } from "../sequelize";
+import pinDestroyer from "./pinDestroyer";
 
 async function copyAttachments(
   document: Document,
@@ -51,36 +52,30 @@ export default async function documentMover({
 }: {
   // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
-  document: Document;
+  document: any;
   collectionId: string;
   parentDocumentId?: string | null;
   index?: number;
   ip: string;
 }) {
   let transaction: Transaction | undefined;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
   const collectionChanged = collectionId !== document.collectionId;
+  const previousCollectionId = document.collectionId;
   const result = {
     collections: [],
     documents: [],
     collectionChanged,
   };
 
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'template' does not exist on type 'Docume... Remove this comment to see the full error message
   if (document.template) {
     if (!collectionChanged) {
       return result;
     }
 
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
     document.collectionId = collectionId;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
     document.parentDocumentId = null;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'lastModifiedById' does not exist on type... Remove this comment to see the full error message
     document.lastModifiedById = user.id;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedBy' does not exist on type 'Docum... Remove this comment to see the full error message
     document.updatedBy = user;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'save' does not exist on type 'Document'.
     await document.save();
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Document' is not assignable to p... Remove this comment to see the full error message
     result.documents.push(document);
@@ -89,7 +84,6 @@ export default async function documentMover({
       transaction = await sequelize.transaction();
 
       // remove from original collection
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
       const collection = await Collection.findByPk(document.collectionId, {
         transaction,
         paranoid: false,
@@ -107,9 +101,7 @@ export default async function documentMover({
       // We need to compensate for this when reordering
       const toIndex =
         index !== undefined &&
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
         document.parentDocumentId === parentDocumentId &&
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
         document.collectionId === collectionId &&
         fromIndex < index
           ? index - 1
@@ -121,21 +113,17 @@ export default async function documentMover({
         await collection.save({
           transaction,
         });
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'Document'.
         document.text = await copyAttachments(document, {
           transaction,
         });
       }
 
       // add to new collection (may be the same)
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Do... Remove this comment to see the full error message
       document.collectionId = collectionId;
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
       document.parentDocumentId = parentDocumentId;
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'lastModifiedById' does not exist on type... Remove this comment to see the full error message
       document.lastModifiedById = user.id;
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedBy' does not exist on type 'Docum... Remove this comment to see the full error message
       document.updatedBy = user;
+
       // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
       const newCollection: Collection = collectionChanged
         ? await Collection.scope({
@@ -180,15 +168,27 @@ export default async function documentMover({
           );
         };
 
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
         await loopChildren(document.id);
+
+        const pin = await Pin.findOne({
+          where: {
+            documentId: document.id,
+            collectionId: previousCollectionId,
+          },
+        });
+
+        if (pin) {
+          await pinDestroyer({
+            user,
+            pin,
+            ip,
+          });
+        }
       }
 
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'save' does not exist on type 'Document'.
       await document.save({
         transaction,
       });
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'Docu... Remove this comment to see the full error message
       document.collection = newCollection;
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Document' is not assignable to p... Remove this comment to see the full error message
       result.documents.push(document);
@@ -208,10 +208,8 @@ export default async function documentMover({
   await Event.create({
     name: "documents.move",
     actorId: user.id,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
     documentId: document.id,
     collectionId,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'teamId' does not exist on type 'Document... Remove this comment to see the full error message
     teamId: document.teamId,
     data: {
       title: document.title,
@@ -222,6 +220,7 @@ export default async function documentMover({
     },
     ip,
   });
+
   // we need to send all updated models back to the client
   return result;
 }

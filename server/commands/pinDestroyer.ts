@@ -1,3 +1,4 @@
+import { Transaction } from "sequelize";
 import { Event } from "@server/models";
 import { sequelize } from "@server/sequelize";
 
@@ -8,6 +9,8 @@ type Props = {
   pin: any;
   /** The IP address of the user creating the pin */
   ip: string;
+  /** Optional existing transaction */
+  transaction?: Transaction;
 };
 
 /**
@@ -21,8 +24,9 @@ export default async function pinDestroyer({
   user,
   pin,
   ip,
+  transaction: t,
 }: Props): Promise<any> {
-  const transaction = await sequelize.transaction();
+  const transaction = t || (await sequelize.transaction());
 
   try {
     await Event.create(
