@@ -1,8 +1,9 @@
 import Router from "koa-router";
 import pinCreator from "@server/commands/pinCreator";
+import pinDestroyer from "@server/commands/pinDestroyer";
 import pinUpdater from "@server/commands/pinUpdater";
 import auth from "@server/middlewares/authentication";
-import { Collection, Document, Pin, Event } from "@server/models";
+import { Collection, Document, Pin } from "@server/models";
 import policy from "@server/policies";
 import {
   presentPin,
@@ -40,10 +41,7 @@ router.post("pins.create", auth(), async (ctx) => {
   }
 
   if (index) {
-    assertIndexCharacters(
-      index,
-      "Index characters must be between x20 to x7E ASCII"
-    );
+    assertIndexCharacters(index);
   }
 
   const pin = await pinCreator({
@@ -103,10 +101,7 @@ router.post("pins.update", auth(), async (ctx) => {
   const { id, index } = ctx.body;
   assertUuid(id, "id is required");
 
-  assertIndexCharacters(
-    index,
-    "Index characters must be between x20 to x7E ASCII"
-  );
+  assertIndexCharacters(index);
 
   const { user } = ctx.state;
   let pin = await Pin.findByPk(id);
@@ -142,21 +137,14 @@ router.post("pins.delete", auth(), async (ctx) => {
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });
+
   if (pin.collectionId) {
     authorize(user, "pin", document);
   } else {
     authorize(user, "deletePin", user.team);
   }
 
-  await pin.destroy();
-
-  await Event.create({
-    name: "pins.delete",
-    modelId: pin.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
-  });
+  await pinDestroyer({ user, pin, ip: ctx.request.ip });
 
   ctx.body = {
     success: true,

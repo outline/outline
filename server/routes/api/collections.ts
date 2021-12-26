@@ -59,10 +59,7 @@ router.post("collections.create", auth(), async (ctx) => {
   authorize(user, "createCollection", user.team);
 
   if (index) {
-    assertIndexCharacters(
-      index,
-      "Index characters must be between x20 to x7E ASCII"
-    );
+    assertIndexCharacters(index);
   } else {
     const collections = await Collection.findAll({
       where: {
@@ -649,10 +646,7 @@ router.post("collections.move", auth(), async (ctx) => {
   const id = ctx.body.id;
   let index = ctx.body.index;
   assertPresent(index, "index is required");
-  assertIndexCharacters(
-    index,
-    "Index characters must be between x20 to x7E ASCII"
-  );
+  assertIndexCharacters(index);
   assertUuid(id, "id must be a uuid");
   const user = ctx.state.user;
   const collection = await Collection.findByPk(id);
