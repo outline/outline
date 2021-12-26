@@ -184,7 +184,7 @@ export const pinDocumentToHome = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
-      !!stores.policies.abilities(currentTeamId).createPin &&
+      !!stores.policies.abilities(activeDocumentId).pinToHome &&
       !document?.pinnedToHome
     );
   },

@@ -90,6 +90,15 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, ["pinToHome"], Document, (user, document) => {
+  if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
+  if (document.template) return false;
+  if (!document.publishedAt) return false;
+
+  return user.teamId === document.teamId && user.isAdmin;
+});
+
 allow(User, "delete", Document, (user, document) => {
   if (user.isViewer) return false;
   if (document.deletedAt) return false;

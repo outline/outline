@@ -28,16 +28,14 @@ router.post("pins.create", auth(), async (ctx) => {
   });
   authorize(user, "read", document);
 
-  if (!collectionId) {
-    authorize(user, "createPin", user.team);
-  }
-
   if (collectionId) {
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
     authorize(user, "update", collection);
     authorize(user, "pin", document);
+  } else {
+    authorize(user, "pinToHome", document);
   }
 
   if (index) {
@@ -116,7 +114,7 @@ router.post("pins.update", auth(), async (ctx) => {
   if (pin.collectionId) {
     authorize(user, "pin", document);
   } else {
-    authorize(user, "updatePin", user.team);
+    authorize(user, "update", pin);
   }
 
   pin = await pinUpdater({
@@ -143,9 +141,9 @@ router.post("pins.delete", auth(), async (ctx) => {
   });
 
   if (pin.collectionId) {
-    authorize(user, "pin", document);
+    authorize(user, "unpin", document);
   } else {
-    authorize(user, "deletePin", user.team);
+    authorize(user, "delete", pin);
   }
 
   await pinDestroyer({ user, pin, ip: ctx.request.ip });

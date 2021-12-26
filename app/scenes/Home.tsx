@@ -29,7 +29,7 @@ function Home() {
     pins.fetchPage();
   }, [pins]);
 
-  const canCreatePin = policies.abilities(team.id).createPin;
+  const canManageTeam = policies.abilities(team.id).manage;
 
   return (
     <Scene
@@ -48,7 +48,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
-      <PinnedDocuments pins={pins.home} canUpdate={canCreatePin} />
+      <PinnedDocuments pins={pins.home} canUpdate={canManageTeam} />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { DocumentIcon, PinIcon } from "outline-icons";
+import { CloseIcon, DocumentIcon } from "outline-icons";
 import { getLuminance, transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -101,7 +101,7 @@ function DocumentCard(props: Props) {
             {!isDragging && pin && (
               <Tooltip tooltip={t("Unpin")}>
                 <PinButton onClick={handleUnpin}>
-                  <PinIcon color="currentColor" />
+                  <CloseIcon color="currentColor" />
                 </PinButton>
               </Tooltip>
             )}
@@ -141,6 +141,7 @@ const DragHandle = styled.div<{ $isDragging: boolean }>`
   padding: 0 4px;
   font-weight: bold;
   color: ${(props) => props.theme.white75};
+  line-height: 1.35;
 
   &:hover,
   &:active {
