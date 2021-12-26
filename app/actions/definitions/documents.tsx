@@ -9,6 +9,7 @@ import {
   NewDocumentIcon,
   ShapesIcon,
   ImportIcon,
+  PinIcon,
 } from "outline-icons";
 import * as React from "react";
 import DocumentTemplatize from "~/scenes/DocumentTemplatize";
@@ -16,7 +17,7 @@ import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import history from "~/utils/history";
-import { newDocumentPath } from "~/utils/routeHelpers";
+import { collectionUrl, homePath, newDocumentPath } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -133,6 +134,62 @@ export const duplicateDocument = createAction({
   },
 });
 
+export const pinDocument = createAction({
+  name: ({ t }) => t("Pin to collection"),
+  section: DocumentSection,
+  icon: <PinIcon />,
+  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
+    if (!activeDocumentId || !activeCollectionId) {
+      return false;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!stores.policies.abilities(activeDocumentId).pin && !document?.pinned
+    );
+  },
+  perform: async ({ activeDocumentId, activeCollectionId, t, stores }) => {
+    if (!activeDocumentId || !activeCollectionId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    await document?.pin(document.collectionId);
+
+    if (!location.pathname.startsWith(collectionUrl(activeCollectionId))) {
+      stores.toasts.showToast(t("Pinned to collection"));
+    }
+  },
+});
+
+export const pinDocumentToHome = createAction({
+  name: ({ t }) => t("Pin to home"),
+  section: DocumentSection,
+  icon: <PinIcon />,
+  visible: ({ activeDocumentId, currentTeamId, stores }) => {
+    if (!currentTeamId || !activeDocumentId) {
+      return false;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    return (
+      !!stores.policies.abilities(currentTeamId).createPin &&
+      !document?.pinnedToHome
+    );
+  },
+  perform: async ({ activeDocumentId, location, t, stores }) => {
+    if (!activeDocumentId) return;
+    const document = stores.documents.get(activeDocumentId);
+
+    await document?.pin();
+
+    if (location.pathname !== homePath()) {
+      stores.toasts.showToast(t("Pinned to team home"));
+    }
+  },
+});
+
 export const printDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Print") : t("Print document"),
@@ -234,4 +291,6 @@ export const rootDocumentActions = [
   unstarDocument,
   duplicateDocument,
   printDocument,
+  pinDocument,
+  pinDocumentToHome,
 ];

@@ -1,18 +1,17 @@
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   useMenuState,
   MenuButton,
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
 import styled from "styled-components";
-import { $Shape } from "utility-types";
 import Flex from "~/components/Flex";
 import MenuIconWrapper from "~/components/MenuIconWrapper";
 import { actionToMenuItem } from "~/actions";
-import useStores from "~/hooks/useStores";
+import useActionContext from "~/hooks/useActionContext";
 import {
   Action,
   ActionContext,
@@ -27,7 +26,7 @@ import ContextMenu from ".";
 
 type Props = {
   actions?: (Action | MenuSeparator | MenuHeading)[];
-  context?: $Shape<ActionContext>;
+  context?: Partial<ActionContext>;
   items?: TMenuItem[];
 };
 
@@ -90,20 +89,9 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
 }
 
 function Template({ items, actions, context, ...menu }: Props) {
-  const { t } = useTranslation();
-  const location = useLocation();
-  const stores = useStores();
-  const { ui } = stores;
-  const ctx = {
-    t,
-    isCommandBar: false,
+  const ctx = useActionContext({
     isContextMenu: true,
-    activeCollectionId: ui.activeCollectionId,
-    activeDocumentId: ui.activeDocumentId,
-    location,
-    stores,
-    ...context,
-  };
+  });
 
   const templateItems = actions
     ? actions.map((item) =>
