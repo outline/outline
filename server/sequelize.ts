@@ -24,6 +24,6 @@ export const sequelize = new Sequelize(
             }
           : false,
     },
-    models: [__dirname + "/server/models"],
+    models: [`${__dirname}/models`],
   }
 );

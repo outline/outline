@@ -8,9 +8,6 @@ import {
   Unique,
   IsIn,
   Default,
-  CreatedAt,
-  UpdatedAt,
-  DeletedAt,
   BeforeValidate,
   BeforeSave,
   AfterDestroy,
@@ -26,7 +23,6 @@ import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import slugify from "@server/utils/slugify";
 import { NavigationNode } from "~/types";
 import { Op, sequelize } from "../sequelize";
-import BaseModel from "./BaseModel";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
@@ -34,6 +30,7 @@ import Group from "./Group";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
+import ParanoidModel from "./base/ParanoidModel";
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -114,7 +111,7 @@ import User from "./User";
   }),
 }))
 @Table({ tableName: "collections", modelName: "collection" })
-class Collection extends BaseModel {
+class Collection extends ParanoidModel {
   @Column
   @Unique
   urlId: string;
@@ -176,15 +173,6 @@ class Collection extends BaseModel {
     direction: "asc" | "desc";
   };
 
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
-
-  @DeletedAt
-  deletedAt: Date | null;
-
   // getters
 
   get url(): string {
@@ -195,22 +183,22 @@ class Collection extends BaseModel {
   // hooks
 
   @BeforeValidate
-  static async onBeforeValidate(instance: Collection) {
-    instance.urlId = instance.urlId || randomstring.generate(10);
+  static async onBeforeValidate(model: Collection) {
+    model.urlId = model.urlId || randomstring.generate(10);
   }
 
   @BeforeSave
-  static async onBeforeSave(instance: Collection) {
-    if (instance.icon === "collection") {
-      instance.icon = null;
+  static async onBeforeSave(model: Collection) {
+    if (model.icon === "collection") {
+      model.icon = null;
     }
   }
 
   @AfterDestroy
-  static async onAfterDestroy(instance: Collection) {
+  static async onAfterDestroy(model: Collection) {
     await Document.destroy({
       where: {
-        collectionId: instance.id,
+        collectionId: model.id,
         archivedAt: {
           [Op.eq]: null,
         },
@@ -220,18 +208,18 @@ class Collection extends BaseModel {
 
   @AfterCreate
   static async onAfterCreate(
-    instance: Collection,
+    model: Collection,
     options: { transaction: Transaction }
   ) {
-    if (instance.permission !== "read_write") {
+    if (model.permission !== "read_write") {
       return CollectionUser.findOrCreate({
         where: {
-          collectionId: instance.id,
-          userId: instance.createdById,
+          collectionId: model.id,
+          userId: model.createdById,
         },
         defaults: {
           permission: "read_write",
-          createdById: instance.createdById,
+          createdById: model.createdById,
         },
         transaction: options.transaction,
       });
@@ -257,7 +245,7 @@ class Collection extends BaseModel {
   @BelongsToMany(() => CollectionGroup, "collectionId")
   groups: CollectionGroup[];
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, "createdById")
   user: User;
 
   @ForeignKey(() => User)

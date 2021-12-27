@@ -1,24 +1,42 @@
-import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import {
+  BelongsTo,
+  Column,
+  ForeignKey,
+  Table,
+  Unique,
+} from "sequelize-typescript";
+import { encryptedFields } from "../sequelize";
+import AuthenticationProvider from "./AuthenticationProvider";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const UserAuthentication = sequelize.define("user_authentications", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  scopes: DataTypes.ARRAY(DataTypes.STRING),
-  accessToken: encryptedFields().vault("accessToken"),
-  refreshToken: encryptedFields().vault("refreshToken"),
-  providerId: {
-    type: DataTypes.STRING,
-    unique: true,
-  },
-});
+@Table({ tableName: "user_authentications", modelName: "user_authentication" })
+class UserAuthentication extends ParanoidModel {
+  @Column
+  scopes: string[];
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-UserAuthentication.associate = (models) => {
-  UserAuthentication.belongsTo(models.AuthenticationProvider);
-  UserAuthentication.belongsTo(models.User);
-};
+  @Column(encryptedFields().vault("accessToken"))
+  accessToken: string;
+
+  @Column(encryptedFields().vault("refreshToken"))
+  refreshToken: string;
+
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => AuthenticationProvider, "providerId")
+  authenticationProvider: AuthenticationProvider;
+
+  @Column
+  @Unique
+  @ForeignKey(() => AuthenticationProvider)
+  providerId: string;
+}
 
 export default UserAuthentication;

@@ -10,15 +10,13 @@ import {
   HasOne,
   Default,
   IsIn,
-  CreatedAt,
-  UpdatedAt,
-  DeletedAt,
   BeforeDestroy,
   BeforeSave,
   BeforeCreate,
   AfterCreate,
   BelongsTo,
   ForeignKey,
+  DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
@@ -28,7 +26,8 @@ import { palette } from "@server/utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import { sequelize, encryptedFields, Op } from "../sequelize";
-import BaseModel from "./BaseModel";
+import Team from "./Team";
+import ParanoidModel from "./base/ParanoidModel";
 import {
   UserAuthentication,
   Star,
@@ -36,10 +35,9 @@ import {
   NotificationSetting,
   ApiKey,
 } from ".";
-import Team from "./Team";
 
 @Table({ tableName: "users", modelName: "user" })
-class User extends BaseModel {
+class User extends ParanoidModel {
   @Column
   @IsEmail
   email: string | null;
@@ -89,19 +87,9 @@ class User extends BaseModel {
   @IsIn([languages])
   language: string;
 
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
-
-  @DeletedAt
-  deletedAt: Date;
-
-  @Column
+  @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
-
 
     if (original) {
       return original;
@@ -114,15 +102,15 @@ class User extends BaseModel {
       .update(this.email || "")
       .digest("hex");
     return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
-  };
+  }
 
   set avatarUrl(value: string | null) {
-    this.setDataValue('avatarUrl', value)
+    this.setDataValue("avatarUrl", value);
   }
 
   // associations
 
-  @BelongsTo(() => Team);
+  @BelongsTo(() => Team)
   team: Team;
 
   @ForeignKey(() => User)
@@ -143,7 +131,7 @@ class User extends BaseModel {
     const idAsHex = crypto.createHash("md5").update(this.id).digest("hex");
     const idAsNumber = parseInt(idAsHex, 16);
     return palette[idAsNumber % palette.length];
-  };
+  }
 
   collectionIds = async function (options = {}) {
     const collectionStubs = await Collection.scope({
@@ -230,10 +218,7 @@ class User extends BaseModel {
     );
   };
 
-  demote = async function (
-    teamId: string,
-    to: "member" | "viewer"
-  ) {
+  demote = async function (teamId: string, to: "member" | "viewer") {
     const res = await User.findAndCountAll({
       where: {
         teamId,
@@ -244,7 +229,7 @@ class User extends BaseModel {
       },
       limit: 1,
     });
-  
+
     if (res.count >= 1) {
       if (to === "member") {
         return this.update({
@@ -409,12 +394,12 @@ class User extends BaseModel {
     });
 
     const counts: {
-      activeCount: string,
-      adminCount: string,
-      invitedCount: string,
-      suspendedCount: string,
-      viewerCount: string,
-      count: string,
+      activeCount: string;
+      adminCount: string;
+      invitedCount: string;
+      suspendedCount: string;
+      viewerCount: string;
+      count: string;
     } = results[0] as any;
 
     return {
@@ -429,12 +414,12 @@ class User extends BaseModel {
 
   static findAllInBatches = async (
     query: FindOptions<User>,
-    callback: (users: Array<User>, query: Record<string, any>) => Promise<void>
+    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
   ) => {
     if (!query.offset) query.offset = 0;
     if (!query.limit) query.limit = 10;
     let results;
-  
+
     do {
       results = await User.findAll(query);
       await callback(results, query);
