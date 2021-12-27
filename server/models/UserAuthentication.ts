@@ -8,7 +8,7 @@ import {
 import { encryptedFields } from "../sequelize";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import ParanoidModel from "./base/ParanoidModel";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
 class UserAuthentication extends ParanoidModel {
