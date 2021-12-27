@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
 import { snakeCase } from "lodash";
-import Sequelize from "sequelize";
+import Sequelize from "sequelize-typescript";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(ctx: Context, next: Next) {

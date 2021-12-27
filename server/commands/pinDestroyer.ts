@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Transaction } from "sequelize-typescript";
 import { Event } from "@server/models";
 import { sequelize } from "@server/sequelize";
 

@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import Sequelize from "sequelize";
+import Sequelize from "sequelize-typescript";
 import { Collection, Team, User } from "@server/models";
 import {
   AuthenticationError,

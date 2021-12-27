@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import Sequelize from "sequelize";
+import Sequelize from "sequelize-typescript";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Collection } from "@server/models";
 import policy from "@server/policies";

@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Transaction } from "sequelize-typescript";
 import { User, Event, GroupUser } from "@server/models";
 import { ValidationError } from "../errors";
 import { sequelize } from "../sequelize";

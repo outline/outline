@@ -2,7 +2,7 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import Sequelize, { Transaction } from "sequelize";
+import Sequelize, { Transaction } from "sequelize-typescript";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'slat... Remove this comment to see the full error message
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";

@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Transaction } from "sequelize-typescript";
 import { Document, Attachment, Collection, Pin, Event } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { sequelize } from "../sequelize";

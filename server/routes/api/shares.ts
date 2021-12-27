@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import Sequelize from "sequelize";
+import Sequelize from "sequelize-typescript";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";

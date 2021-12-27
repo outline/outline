@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op } from "sequelize-typescript";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 import { sequelize } from "../sequelize";
 

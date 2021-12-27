@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import Sequelize from "sequelize";
+import Sequelize from "sequelize-typescript";
 import { subtractDate } from "@shared/utils/date";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";

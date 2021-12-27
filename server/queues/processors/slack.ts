@@ -1,5 +1,5 @@
 import fetch from "fetch-with-proxy";
-import { Op } from "sequelize";
+import { Op } from "sequelize-typescript";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
 import {
