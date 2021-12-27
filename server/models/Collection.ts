@@ -259,6 +259,11 @@ class Collection extends ParanoidModel {
   @Column
   teamId: string;
 
+  static DEFAULT_SORT = {
+    field: "index",
+    direction: "asc",
+  };
+
   static membershipUserIds = async (collectionId: string) => {
     const collection = await Collection.scope("withAllMemberships").findByPk(
       collectionId
