@@ -1,7 +1,10 @@
 import crypto from "crypto";
 import fetch from "fetch-with-proxy";
 import invariant from "invariant";
-import { User, Team, Collection, Document } from "@server/models";
+import Collection from "@server/models/Collection";
+import Document from "@server/models/Document";
+import Team from "@server/models/Team";
+import User from "@server/models/User";
 import packageInfo from "../../package.json";
 import { client } from "../redis";
 

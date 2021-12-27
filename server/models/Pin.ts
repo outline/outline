@@ -1,50 +1,44 @@
-import { DataTypes, sequelize } from "../sequelize";
+import { Column, ForeignKey, BelongsTo, Table } from "sequelize-typescript";
+import Collection from "./Collection";
+import Document from "./Document";
+import Team from "./Team";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const Pin = sequelize.define(
-  "pins",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    teamId: {
-      type: DataTypes.UUID,
-    },
-    documentId: {
-      type: DataTypes.UUID,
-    },
-    collectionId: {
-      type: DataTypes.UUID,
-      defaultValue: null,
-    },
-    index: {
-      type: DataTypes.STRING,
-      defaultValue: null,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+@Table({ tableName: "pins", modelName: "pin" })
+class Pin extends BaseModel {
+  @Column
+  index: string | null;
 
-Pin.associate = (models: any) => {
-  Pin.belongsTo(models.Document, {
-    as: "document",
-    foreignKey: "documentId",
-  });
-  Pin.belongsTo(models.Collection, {
-    as: "collection",
-    foreignKey: "collectionId",
-  });
-  Pin.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-  Pin.belongsTo(models.User, {
-    as: "createdBy",
-    foreignKey: "createdById",
-  });
-};
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  createdBy: User;
+
+  @ForeignKey(() => User)
+  @Column
+  createdById: string;
+
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection;
+
+  @ForeignKey(() => Collection)
+  @Column
+  collectionId: string;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @ForeignKey(() => Document)
+  @Column
+  documentId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column
+  teamId: string;
+}
 
 export default Pin;

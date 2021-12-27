@@ -13,7 +13,6 @@ export default async function attachmentCreator({
   name: string;
   type: string;
   buffer: Buffer;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   source?: "import";
   ip: string;

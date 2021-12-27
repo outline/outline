@@ -1,7 +1,14 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import { Transaction, Op, QueryTypes, FindOptions } from "sequelize";
+import {
+  Transaction,
+  Op,
+  QueryTypes,
+  FindOptions,
+  DataTypes,
+  sequelize,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -29,7 +36,6 @@ import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import unescape from "@shared/utils/unescape";
 import { Collection, User } from "@server/models";
 import slugify from "@server/utils/slugify";
-import { DataTypes, sequelize } from "../sequelize";
 import Backlink from "./Backlink";
 import Revision from "./Revision";
 import Star from "./Star";
@@ -184,7 +190,7 @@ class Document extends ParanoidModel {
   text: string;
 
   @Column(DataTypes.BLOB)
-  state: Blob;
+  state: Uint8Array;
 
   @Column
   @Default(false)
@@ -369,9 +375,8 @@ class Document extends ParanoidModel {
 
   static findByPk = async function (
     id: string,
-    options: {
+    options: FindOptions<Document> & {
       userId?: string;
-      paranoid?: boolean;
     } = {}
   ) {
     // allow default preloading of collection membership if `userId` is passed in find options

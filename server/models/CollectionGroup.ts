@@ -1,4 +1,12 @@
-import { BelongsTo, Default, IsIn, Model, Table } from "sequelize-typescript";
+import {
+  BelongsTo,
+  Column,
+  Default,
+  ForeignKey,
+  IsIn,
+  Model,
+  Table,
+} from "sequelize-typescript";
 import Collection from "./Collection";
 import Group from "./Group";
 import User from "./User";
@@ -14,8 +22,16 @@ class CollectionGroup extends Model {
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection;
 
+  @ForeignKey(() => Collection)
+  @Column
+  collectionId: string;
+
   @BelongsTo(() => Group, "groupId")
   group: Group;
+
+  @ForeignKey(() => Group)
+  @Column
+  groupId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;

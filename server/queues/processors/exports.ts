@@ -91,7 +91,6 @@ export default class ExportsProcessor {
   }
 
   async updateFileOperation(
-    // @ts-expect-error ts-migrate(2749) FIXME: 'FileOperation' refers to a value, but is being us... Remove this comment to see the full error message
     fileOperation: FileOperation,
     actorId: string,
     teamId: string,

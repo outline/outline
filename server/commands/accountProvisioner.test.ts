@@ -1,4 +1,5 @@
-import { Collection, UserAuthentication } from "@server/models";
+import Collection from "@server/models/Collection";
+import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import mailer from "../mailer";

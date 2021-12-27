@@ -1,5 +1,5 @@
 import * as React from "react";
-import { User, Team, Collection } from "@server/models";
+import { Document, User, Team, Collection } from "@server/models";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -9,12 +9,9 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 export type Props = {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   actor: User;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team;
-  document: any;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
+  document: Document;
   collection: Collection;
   eventName: string;
   unsubscribeUrl: string;

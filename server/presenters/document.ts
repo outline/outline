@@ -1,4 +1,5 @@
-import { Attachment } from "@server/models";
+import { Document } from "@server/models";
+import Attachment from "@server/models/Attachment";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
 import presentUser from "./user";
@@ -25,7 +26,7 @@ async function replaceImageAttachments(text: string) {
 }
 
 export default async function present(
-  document: any,
+  document: Document,
   options: Options | null | undefined = {}
 ) {
   options = {

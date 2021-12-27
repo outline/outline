@@ -1,7 +1,14 @@
 import { Transaction } from "sequelize";
-import { Document, Attachment, Collection, Pin, Event } from "@server/models";
+import {
+  User,
+  Document,
+  Attachment,
+  Collection,
+  Pin,
+  Event,
+} from "@server/models";
+import { sequelize } from "@server/sequelize";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { sequelize } from "../sequelize";
 import pinDestroyer from "./pinDestroyer";
 
 async function copyAttachments(
@@ -47,9 +54,8 @@ export default async function documentMover({
   index,
   ip,
 }: {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
-  document: any;
+  document: Document;
   collectionId: string;
   parentDocumentId?: string | null;
   index?: number;
@@ -121,15 +127,14 @@ export default async function documentMover({
       document.lastModifiedById = user.id;
       document.updatedBy = user;
 
-      // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
-      const newCollection: Collection = collectionChanged
+      const newCollection = collectionChanged
         ? await Collection.scope({
             method: ["withMembership", user.id],
           }).findByPk(collectionId, {
             transaction,
           })
         : collection;
-      await newCollection.addDocumentToStructure(document, toIndex, {
+      await newCollection?.addDocumentToStructure(document, toIndex, {
         documentJson,
       });
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message

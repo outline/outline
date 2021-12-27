@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
+import { DataTypes, Op } from "sequelize";
 import {
   Column,
   IsLowercase,
@@ -21,7 +22,6 @@ import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import Logger from "@server/logging/logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
-import { DataTypes, Op } from "../sequelize";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";

@@ -1,35 +1,54 @@
-import { DataTypes, sequelize } from "../sequelize";
+import { DataTypes } from "sequelize";
+import { ForeignKey, BelongsTo, Column, Table } from "sequelize-typescript";
+import Collection from "./Collection";
+import IntegrationAuthentication from "./IntegrationAuthentication";
+import Team from "./Team";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const Integration = sequelize.define("integration", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  type: DataTypes.STRING,
-  service: DataTypes.STRING,
-  settings: DataTypes.JSONB,
-  events: DataTypes.ARRAY(DataTypes.STRING),
-});
+@Table({ tableName: "integrations", modelName: "integration" })
+class Integration extends BaseModel {
+  @Column
+  type: string;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-Integration.associate = (models) => {
-  Integration.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-  Integration.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-  Integration.belongsTo(models.Collection, {
-    as: "collection",
-    foreignKey: "collectionId",
-  });
-  Integration.belongsTo(models.IntegrationAuthentication, {
-    as: "authentication",
-    foreignKey: "authenticationId",
-  });
-};
+  @Column
+  service: string;
+
+  @Column(DataTypes.JSONB)
+  settings: any;
+
+  @Column(DataTypes.ARRAY(DataTypes.STRING))
+  events: string[];
+
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column
+  teamId: string;
+
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection;
+
+  @ForeignKey(() => Collection)
+  @Column
+  collectionId: string;
+
+  @BelongsTo(() => IntegrationAuthentication, "authenticationId")
+  authentication: IntegrationAuthentication;
+
+  @ForeignKey(() => IntegrationAuthentication)
+  @Column
+  authenticationId: string;
+}
 
 export default Integration;

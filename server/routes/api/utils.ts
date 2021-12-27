@@ -4,7 +4,7 @@ import documentPermanentDeleter from "@server/commands/documentPermanentDeleter"
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import { AuthenticationError } from "@server/errors";
 import { Document, Team, FileOperation } from "@server/models";
-import { Op } from "@server/sequelize";
+import { Op } from "sequelize";
 import Logger from "../../logging/logger";
 
 const router = new Router();

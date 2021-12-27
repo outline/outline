@@ -1,26 +1,36 @@
-import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { DataTypes } from "sequelize";
+import { Table, ForeignKey, BelongsTo, Column } from "sequelize-typescript";
+import { encryptedFields } from "@server/sequelize";
+import Team from "./Team";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const IntegrationAuthentication = sequelize.define("authentication", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  service: DataTypes.STRING,
-  scopes: DataTypes.ARRAY(DataTypes.STRING),
-  token: encryptedFields().vault("token"),
-});
+@Table({ tableName: "authentications", modelName: "authentication" })
+class IntegrationAuthentication extends BaseModel {
+  @Column
+  service: string;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-IntegrationAuthentication.associate = (models) => {
-  IntegrationAuthentication.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-  IntegrationAuthentication.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-};
+  @Column(DataTypes.ARRAY(DataTypes.STRING))
+  scopes: string[];
+
+  @Column(encryptedFields().vault("token"))
+  token: string;
+
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column
+  teamId: string;
+}
 
 export default IntegrationAuthentication;

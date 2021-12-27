@@ -1,15 +1,14 @@
+import { Op } from "sequelize";
 import { Event, User } from "@server/models";
+import { sequelize } from "@server/sequelize";
 import { ValidationError } from "../errors";
-import { Op, sequelize } from "../sequelize";
 
 export default async function userDestroyer({
   user,
   actor,
   ip,
 }: {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   actor: User;
   ip: string;
 }) {

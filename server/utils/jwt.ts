@@ -1,6 +1,8 @@
 import { subMinutes } from "date-fns";
+import invariant from "invariant";
 import JWT from "jsonwebtoken";
-import { Team, User } from "@server/models";
+import Team from "@server/models/Team";
+import User from "@server/models/User";
 import { AuthenticationError } from "../errors";
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'token' implicitly has an 'any' type.
@@ -20,7 +22,6 @@ function getJWTPayload(token) {
   return payload;
 }
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
 export async function getUserForJWT(token: string): Promise<User> {
   const payload = getJWTPayload(token);
 
@@ -48,6 +49,7 @@ export async function getUserForJWT(token: string): Promise<User> {
       },
     ],
   });
+  invariant(user, "User not found");
 
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'type' does not exist on type 'string | J... Remove this comment to see the full error message
   if (payload.type === "transfer") {
@@ -68,7 +70,6 @@ export async function getUserForJWT(token: string): Promise<User> {
   return user;
 }
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
 export async function getUserForEmailSigninToken(token: string): Promise<User> {
   const payload = getJWTPayload(token);
 
@@ -96,6 +97,7 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
       },
     ],
   });
+  invariant(user, "User not found");
 
   // if user has signed in at all since the token was created then
   // it's no longer valid, they'll need a new one.

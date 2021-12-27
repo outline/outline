@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import Sequelize from "sequelize-typescript";
+import { Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Collection } from "@server/models";
 import policy from "@server/policies";
@@ -7,7 +7,6 @@ import { presentEvent } from "@server/presenters";
 import { assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
@@ -55,7 +54,6 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     });
     where = {
       ...where,
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ [Sequelize.Op.or]: { collectionId: any; }[... Remove this comment to see the full error message
       [Op.or]: [
         {
           collectionId: collectionIds,

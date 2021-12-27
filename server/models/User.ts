@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Transaction, QueryTypes, FindOptions } from "sequelize";
+import { Transaction, QueryTypes, FindOptions, Op } from "sequelize";
 import {
   Table,
   Column,
@@ -17,15 +17,16 @@ import {
   BelongsTo,
   ForeignKey,
   DataType,
+  HasMany,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import Logger from "@server/logging/logger";
+import { sequelize, encryptedFields } from "@server/sequelize";
 import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
 import { palette } from "@server/utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
-import { sequelize, encryptedFields, Op } from "../sequelize";
 import Team from "./Team";
 import ParanoidModel from "./base/ParanoidModel";
 import {
@@ -116,6 +117,9 @@ class User extends ParanoidModel {
   @ForeignKey(() => User)
   @Column
   teamId: string;
+
+  @HasMany(() => UserAuthentication)
+  authentications: UserAuthentication[];
 
   // getters
 

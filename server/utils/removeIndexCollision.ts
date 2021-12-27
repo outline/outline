@@ -1,7 +1,6 @@
 import fractionalIndex from "fractional-index";
-import { Sequelize } from "sequelize";
-import { Collection } from "@server/models";
-import { Op } from "../sequelize";
+import { Op, Sequelize } from "sequelize";
+import Collection from "@server/models/Collection";
 
 /**
  *

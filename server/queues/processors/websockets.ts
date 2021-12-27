@@ -8,7 +8,7 @@ import {
   Pin,
 } from "@server/models";
 import { presentPin } from "@server/presenters";
-import { Op } from "@server/sequelize";
+import { Op } from "sequelize";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {

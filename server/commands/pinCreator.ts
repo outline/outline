@@ -1,14 +1,14 @@
 import fractionalIndex from "fractional-index";
 import { Sequelize, Op } from "sequelize";
 import { ValidationError } from "@server/errors";
-import { Pin, Event } from "@server/models";
+import { Pin, User, Event } from "@server/models";
 import { sequelize } from "@server/sequelize";
 
 const MAX_PINS = 8;
 
 type Props = {
   /** The user creating the pin */
-  user: any;
+  user: User;
   /** The document to pin */
   documentId: string;
   /** The collection to pin the document in. If no collection is provided then it will be pinned to home */
@@ -32,7 +32,7 @@ export default async function pinCreator({
   collectionId,
   ip,
   ...rest
-}: Props): Promise<any> {
+}: Props): Promise<Pin> {
   let { index } = rest;
   const where = {
     teamId: user.teamId,

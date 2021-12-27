@@ -1,36 +1,46 @@
-import { DataTypes, sequelize } from "../sequelize";
+import {
+  Table,
+  ForeignKey,
+  Model,
+  Column,
+  PrimaryKey,
+  IsUUID,
+  CreatedAt,
+  BelongsTo,
+} from "sequelize-typescript";
+import User from "./User";
 
-const Notification = sequelize.define(
-  "notification",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    event: {
-      type: DataTypes.STRING,
-    },
-    email: {
-      type: DataTypes.BOOLEAN,
-    },
-  },
-  {
-    timestamps: true,
-    updatedAt: false,
-  }
-);
+@Table({ tableName: "notifications", modelName: "notification" })
+class Notification extends Model {
+  @IsUUID(4)
+  @Column
+  @PrimaryKey
+  id: string;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-Notification.associate = (models) => {
-  Notification.belongsTo(models.User, {
-    as: "actor",
-    foreignKey: "actorId",
-  });
-  Notification.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-};
+  @CreatedAt
+  createdAt: Date;
+
+  @Column
+  event: string;
+
+  @Column
+  email: boolean;
+
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => User, "actorId")
+  actor: User;
+
+  @ForeignKey(() => User)
+  @Column
+  actorId: string;
+}
 
 export default Notification;

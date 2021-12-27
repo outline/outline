@@ -21,7 +21,7 @@ export default async function teamCreator({
   name: string;
   domain?: string;
   subdomain: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   authenticationProvider: {
     name: string;
     providerId: string;

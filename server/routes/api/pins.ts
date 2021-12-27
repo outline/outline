@@ -92,7 +92,7 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
     data: {
       pins: pins.map(presentPin),
       documents: await Promise.all(
-        documents.map((document: any) => presentDocument(document))
+        documents.map((document: Document) => presentDocument(document))
       ),
     },
     policies,

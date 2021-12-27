@@ -6,7 +6,7 @@ import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
 import policy from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
-import { Op } from "@server/sequelize";
+import { Op } from "sequelize";
 import {
   assertIn,
   assertSort,

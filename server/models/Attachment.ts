@@ -1,5 +1,5 @@
 import path from "path";
-import { FindOptions } from "sequelize";
+import { FindOptions, DataTypes } from "sequelize";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -10,7 +10,6 @@ import {
   Table,
 } from "sequelize-typescript";
 import { deleteFromS3, getFileByKey } from "@server/utils/s3";
-import { DataTypes } from "../sequelize";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";

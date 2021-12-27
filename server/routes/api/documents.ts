@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import Sequelize from "sequelize-typescript";
+import { Op } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
@@ -41,7 +41,6 @@ import {
 import env from "../../env";
 import pagination from "./middlewares/pagination";
 
-const Op = Sequelize.Op;
 const { authorize, cannot, can } = policy;
 const router = new Router();
 
@@ -91,8 +90,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     // index sort is special because it uses the order of the documents in the
     // collection.documentStructure rather than a database column
     if (sort === "index") {
-      documentIds = (collection.documentStructure || [])
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
+      documentIds = (collection?.documentStructure || [])
         .map((node) => node.id)
         .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
       // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id: any; teamId: any; archivedAt: { [Seque... Remove this comment to see the full error message
@@ -160,7 +158,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   }
 
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -202,7 +199,6 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -255,7 +251,6 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -309,14 +304,12 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'view' implicitly has an 'any' type.
   const documents = views.map((view) => {
     const document = view.document;
     document.views = [view];
     return document;
   });
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -366,10 +359,9 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'star' implicitly has an 'any' type.
+
   const documents = stars.map((star) => star.document);
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -435,7 +427,6 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
@@ -447,17 +438,16 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
 });
 
 async function loadDocument({
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'id' implicitly has an 'any' type.
   id,
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'shareId' implicitly has an 'any' ... Remove this comment to see the full error message
   shareId,
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'user' implicitly has an 'any' typ... Remove this comment to see the full error message
   user,
+}: {
+  id?: string;
+  shareId?: string;
+  user: User;
 }): Promise<{
   document: Document;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Share' refers to a value, but is being used as a ... Remove this comment to see the full error message
   share?: Share;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
   collection: Collection;
 }> {
   let document;
@@ -648,7 +638,6 @@ router.post(
       user,
     });
     ctx.body = {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'toMarkdown' does not exist on type 'Docu... Remove this comment to see the full error message
       data: document.toMarkdown(),
     };
   }
@@ -789,7 +778,6 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   });
   const policies = presentPolicies(user, documents);
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
   );
   ctx.body = {
@@ -845,10 +833,9 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     offset,
     limit,
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
+
   const documents = results.map((result) => result.document);
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
     results.map(async (result) => {
       const document = await presentDocument(result.document);
       return { ...result, document };

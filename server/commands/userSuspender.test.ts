@@ -1,4 +1,4 @@
-import { GroupUser } from "@server/models";
+import GroupUser from "@server/models/GroupUser";
 import { buildGroup, buildAdmin, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import userSuspender from "./userSuspender";

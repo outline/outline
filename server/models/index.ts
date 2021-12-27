@@ -24,41 +24,6 @@ import User from "./User";
 import UserAuthentication from "./UserAuthentication";
 import View from "./View";
 
-const models = {
-  ApiKey,
-  Attachment,
-  AuthenticationProvider,
-  Backlink,
-  Collection,
-  CollectionGroup,
-  CollectionUser,
-  Document,
-  Event,
-  Group,
-  GroupUser,
-  Integration,
-  IntegrationAuthentication,
-  Notification,
-  NotificationSetting,
-  Pin,
-  Revision,
-  SearchQuery,
-  Share,
-  Star,
-  Team,
-  User,
-  UserAuthentication,
-  View,
-  FileOperation,
-};
-
-// based on https://github.com/sequelize/express-example/blob/master/models/index.js
-Object.keys(models).forEach((modelName) => {
-  if ("associate" in models[modelName]) {
-    models[modelName]?.associate(models);
-  }
-});
-
 export {
   ApiKey,
   Attachment,
@@ -75,10 +40,10 @@ export {
   IntegrationAuthentication,
   Notification,
   NotificationSetting,
-  Pin,
   Revision,
   SearchQuery,
   Share,
+  Pin,
   Star,
   Team,
   User,

@@ -9,7 +9,7 @@ import {
   presentUser,
   presentGroupMembership,
 } from "@server/presenters";
-import { Op } from "@server/sequelize";
+import { Op } from "sequelize";
 import { assertPresent, assertUuid, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 

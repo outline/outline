@@ -1,6 +1,6 @@
 import path from "path";
 import File from "formidable/lib/file";
-import { Attachment } from "@server/models";
+import Attachment from "@server/models/Attachment";
 import { buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import documentImporter from "./documentImporter";

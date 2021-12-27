@@ -1,13 +1,13 @@
-import { Event } from "@server/models";
+import { Event, Pin, User } from "@server/models";
 import { sequelize } from "@server/sequelize";
 
 type Props = {
   /** The user updating the pin */
-  user: any;
+  user: User;
   /** The existing pin */
-  pin: any;
+  pin: Pin;
   /** The index to pin the document at */
-  index?: string;
+  index: string;
   /** The IP address of the user creating the pin */
   ip: string;
 };
@@ -24,7 +24,7 @@ export default async function pinUpdater({
   pin,
   index,
   ip,
-}: Props): Promise<any> {
+}: Props): Promise<Pin> {
   const transaction = await sequelize.transaction();
 
   try {

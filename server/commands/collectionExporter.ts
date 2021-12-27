@@ -7,11 +7,8 @@ export default async function collectionExporter({
   user,
   ip,
 }: {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
   collection?: Collection;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   ip: string;
 }) {
@@ -39,6 +36,10 @@ export default async function collectionExporter({
   });
 
   fileOperation.user = user;
-  fileOperation.collection = collection;
+
+  if (collection) {
+    fileOperation.collection = collection;
+  }
+
   return fileOperation;
 }

@@ -2,7 +2,7 @@ import { subMilliseconds } from "date-fns";
 import { FindOptions } from "sequelize";
 import { BelongsTo, Column, Default, ForeignKey } from "sequelize-typescript";
 import { USER_PRESENCE_INTERVAL } from "@shared/constants";
-import { DataTypes, Op } from "../sequelize";
+import { DataTypes, Op } from "sequelize";
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";

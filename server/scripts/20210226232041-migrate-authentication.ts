@@ -1,4 +1,5 @@
 import "./bootstrap";
+import { Op } from "sequelize";
 import Logger from "@server/logging/logger";
 import {
   Team,
@@ -6,7 +7,6 @@ import {
   AuthenticationProvider,
   UserAuthentication,
 } from "@server/models";
-import { Op } from "../sequelize";
 
 const cache = {};
 const page = 0;

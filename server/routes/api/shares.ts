@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import Sequelize from "sequelize-typescript";
+import { Op } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
@@ -8,7 +8,6 @@ import { presentShare, presentPolicies } from "@server/presenters";
 import { assertUuid, assertSort, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 

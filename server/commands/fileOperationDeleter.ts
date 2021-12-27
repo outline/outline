@@ -1,8 +1,7 @@
 import { FileOperation, Event, User } from "@server/models";
-import { sequelize } from "../sequelize";
+import { sequelize } from "@server/sequelize";
 
 export default async function fileOperationDeleter(
-  // @ts-expect-error ts-migrate(2749) FIXME: 'FileOperation' refers to a value, but is being us... Remove this comment to see the full error message
   fileOp: FileOperation,
   user: User,
   ip: string

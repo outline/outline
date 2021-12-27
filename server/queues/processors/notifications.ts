@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import {
   View,
   Document,
@@ -6,7 +7,6 @@ import {
   User,
   NotificationSetting,
 } from "@server/models";
-import { Op } from "@server/sequelize";
 import Logger from "../../logging/logger";
 import mailer from "../../mailer";
 import {

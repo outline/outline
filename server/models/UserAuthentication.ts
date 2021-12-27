@@ -5,7 +5,7 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
-import { encryptedFields } from "../sequelize";
+import { encryptedFields } from "@server/sequelize";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -36,7 +36,7 @@ class UserAuthentication extends ParanoidModel {
   @Column
   @Unique
   @ForeignKey(() => AuthenticationProvider)
-  providerId: string;
+  authenticationProviderId: string;
 }
 
 export default UserAuthentication;

@@ -1,67 +1,42 @@
-import { DataTypes, sequelize } from "../sequelize";
+import {
+  ForeignKey,
+  BelongsTo,
+  Column,
+  DefaultScope,
+  Table,
+  Scopes,
+} from "sequelize-typescript";
+import Collection from "./Collection";
+import Document from "./Document";
+import Team from "./Team";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const Share = sequelize.define(
-  "share",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "user",
+      paranoid: false,
     },
-    published: DataTypes.BOOLEAN,
-    includeChildDocuments: DataTypes.BOOLEAN,
-    revokedAt: DataTypes.DATE,
-    revokedById: DataTypes.UUID,
-    lastAccessedAt: DataTypes.DATE,
-  },
-  {
-    getterMethods: {
-      isRevoked() {
-        return !!this.revokedAt;
-      },
+    {
+      association: "document",
     },
-  }
-);
-
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-Share.associate = (models) => {
-  Share.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-  Share.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-  Share.belongsTo(models.Document.scope("withUnpublished"), {
-    as: "document",
-    foreignKey: "documentId",
-  });
-  Share.addScope("defaultScope", {
-    include: [
-      {
-        association: "user",
-        paranoid: false,
-      },
-      {
-        association: "document",
-      },
-      {
-        association: "team",
-      },
-    ],
-  });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
-  Share.addScope("withCollection", (userId) => {
+    {
+      association: "team",
+    },
+  ],
+}))
+@Scopes(() => ({
+  withCollection: (userId: string) => {
     return {
       include: [
         {
-          model: models.Document,
+          model: Document,
           paranoid: true,
           as: "document",
           include: [
             {
-              model: models.Collection.scope({
+              model: Collection.scope({
                 method: ["withMembership", userId],
               }),
               as: "collection",
@@ -77,14 +52,61 @@ Share.associate = (models) => {
         },
       ],
     };
-  });
-};
+  },
+}))
+@Table({ tableName: "shares", modelName: "share" })
+class Share extends BaseModel {
+  @Column
+  published: boolean;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
-Share.prototype.revoke = function (userId) {
-  this.revokedAt = new Date();
-  this.revokedById = userId;
-  return this.save();
-};
+  @Column
+  includeChildDocuments: boolean;
+
+  @Column
+  revokedAt: Date | null;
+
+  @Column
+  lastAccessedAt: Date | null;
+
+  revoke(userId: string) {
+    this.revokedAt = new Date();
+    this.revokedById = userId;
+    return this.save();
+  }
+
+  get isRevoked() {
+    return !!this.revokedAt;
+  }
+
+  // associations
+
+  @BelongsTo(() => User, "revokedById")
+  revokedBy: User;
+
+  @ForeignKey(() => User)
+  @Column
+  revokedById: string;
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column
+  teamId: string;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @ForeignKey(() => Document)
+  @Column
+  documentId: string;
+}
 
 export default Share;

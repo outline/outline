@@ -1,4 +1,4 @@
-import { Attachment } from "@server/models";
+import Attachment from "@server/models/Attachment";
 import {
   buildDocument,
   buildAttachment,
@@ -152,8 +152,8 @@ describe("documentMover", () => {
     // check new attachment was created pointint to same key
     const attachmentIds = parseAttachmentIds(newDocument.text);
     const newAttachment = await Attachment.findByPk(attachmentIds[0]);
-    expect(newAttachment.documentId).toBe(newDocument.id);
-    expect(newAttachment.key).toBe(attachment.key);
+    expect(newAttachment?.documentId).toBe(newDocument.id);
+    expect(newAttachment?.key).toBe(attachment.key);
     await document.reload();
     expect(document.collectionId).toBe(newCollection.id);
   });

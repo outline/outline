@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
 import { snakeCase } from "lodash";
-import Sequelize from "sequelize-typescript";
+import { ValidationError } from "sequelize";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(ctx: Context, next: Next) {
@@ -11,7 +11,7 @@ export default function errorHandling() {
       let message = err.message || err.name;
       let error;
 
-      if (err instanceof Sequelize.ValidationError) {
+      if (err instanceof ValidationError) {
         // super basic form error handling
         ctx.status = 400;
 

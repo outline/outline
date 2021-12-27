@@ -1,4 +1,4 @@
-import { Document } from "@server/models";
+import Document from "@server/models/Document";
 import {
   buildDocument,
   buildCollection,

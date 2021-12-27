@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -10,7 +11,6 @@ import {
 } from "sequelize-typescript";
 import { ValidationError } from "../errors";
 import providers from "../routes/auth/providers";
-import { Op } from "../sequelize";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import BaseModel from "./base/BaseModel";

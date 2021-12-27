@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import naturalSort from "@shared/utils/naturalSort";
-import { Collection } from "@server/models";
+import Collection from "@server/models/Collection";
 
 export default async function collectionIndexing(teamId: string) {
   const collections = await Collection.findAll({
@@ -11,7 +11,6 @@ export default async function collectionIndexing(teamId: string) {
     //no point in maintaining index of deleted collections.
     attributes: ["id", "index", "name"],
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
   let sortableCollections = collections.map((collection) => {
     return [collection, collection.index];
   });
@@ -34,7 +33,6 @@ export default async function collectionIndexing(teamId: string) {
   }
 
   const indexedCollections = {};
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
   sortableCollections.forEach((collection) => {
     indexedCollections[collection[0].id] = collection[0].index;
   });

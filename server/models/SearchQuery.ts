@@ -1,48 +1,57 @@
-import { DataTypes, sequelize } from "../sequelize";
+import { DataTypes } from "sequelize";
+import {
+  Table,
+  ForeignKey,
+  Model,
+  Column,
+  PrimaryKey,
+  IsUUID,
+  CreatedAt,
+  BelongsTo,
+} from "sequelize-typescript";
+import Team from "./Team";
+import User from "./User";
 
-const SearchQuery = sequelize.define(
-  "search_queries",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    source: {
-      type: DataTypes.ENUM("slack", "app", "api"),
-      allowNull: false,
-    },
-    query: {
-      type: DataTypes.STRING,
+@Table({ tableName: "search_queries", modelName: "search_query" })
+class SearchQuery extends Model {
+  @IsUUID(4)
+  @Column
+  @PrimaryKey
+  id: string;
 
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'val' implicitly has an 'any' type.
-      set(val) {
-        this.setDataValue("query", val.substring(0, 255));
-      },
+  @CreatedAt
+  createdAt: Date;
 
-      allowNull: false,
-    },
-    results: {
-      type: DataTypes.NUMBER,
-      allowNull: false,
-    },
-  },
-  {
-    timestamps: true,
-    updatedAt: false,
+  @Column(DataTypes.ENUM("slack", "app", "api"))
+  source: string;
+
+  @Column(DataTypes.STRING)
+  set query(value: string) {
+    this.setDataValue("query", value.substring(0, 255));
   }
-);
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-SearchQuery.associate = (models) => {
-  SearchQuery.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-  SearchQuery.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-};
+  get query() {
+    return this.getDataValue("query");
+  }
+
+  @Column
+  results: number;
+
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column
+  teamId: string;
+}
 
 export default SearchQuery;

@@ -16,7 +16,6 @@ type UserPresentation = {
 };
 
 export default (
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User,
   options: Options = {}
 ): UserPresentation | null | undefined => {

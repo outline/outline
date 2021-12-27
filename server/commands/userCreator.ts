@@ -22,7 +22,7 @@ export default async function userCreator({
   email: string;
   username?: string;
   isAdmin?: boolean;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   teamId: string;
   ip: string;
   authentication: {

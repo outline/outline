@@ -1,6 +1,6 @@
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import { Identifier, Transaction } from "sequelize";
+import { Identifier, Transaction, Op } from "sequelize";
 import {
   Sequelize,
   Table,
@@ -20,9 +20,9 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
+import { sequelize } from "@server/sequelize";
 import slugify from "@server/utils/slugify";
 import { NavigationNode } from "~/types";
-import { Op, sequelize } from "../sequelize";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
@@ -533,7 +533,7 @@ class Collection extends ParanoidModel {
 
   addDocumentToStructure = async function (
     document: Document,
-    index: number,
+    index?: number,
     options?: {
       save?: boolean;
     }
