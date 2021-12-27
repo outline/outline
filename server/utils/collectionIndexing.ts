@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import naturalSort from "@shared/utils/naturalSort";
-import Collection from "@server/models/Collection";
+import { Collection } from "@server/models";
 
 export default async function collectionIndexing(teamId: string) {
   const collections = await Collection.findAll({
@@ -11,14 +11,19 @@ export default async function collectionIndexing(teamId: string) {
     //no point in maintaining index of deleted collections.
     attributes: ["id", "index", "name"],
   });
-  let sortableCollections = collections.map((collection) => {
-    return [collection, collection.index];
-  });
+
+  let sortableCollections: [Collection, string | null][] = collections.map(
+    (collection) => {
+      return [collection, collection.index];
+    }
+  );
+
   sortableCollections = naturalSort(
     sortableCollections,
     // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(collection: any) => any' is not... Remove this comment to see the full error message
     (collection) => collection[0].name
   );
+
   //for each collection with null index, use previous collection index to create new index
   let previousCollectionIndex = null;
 

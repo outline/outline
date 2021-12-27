@@ -30,7 +30,6 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { sequelize } from "@server/sequelize";
 import {
   assertUuid,
   assertSort,
@@ -1013,7 +1012,7 @@ router.post("documents.update", auth(), async (ctx) => {
   let transaction;
 
   try {
-    transaction = await sequelize.transaction();
+    transaction = await document.sequelize.transaction();
 
     if (publish) {
       await document.publish(user.id, {

@@ -7,7 +7,7 @@ import {
   QueryTypes,
   FindOptions,
   DataTypes,
-  sequelize,
+  ScopeOptions,
 } from "sequelize";
 import {
   ForeignKey,
@@ -186,7 +186,7 @@ class Document extends ParanoidModel {
   @Column
   emoji: string | null;
 
-  @Column
+  @Column(DataTypes.TEXT)
   text: string;
 
   @Column(DataTypes.BLOB)
@@ -356,21 +356,21 @@ class Document extends ParanoidModel {
   views: View[];
 
   static defaultScopeWithUser = (userId: string) => {
-    const starredScope = {
+    const starredScope: Readonly<ScopeOptions> = {
       method: ["withStarred", userId],
     };
-    const collectionScope = {
+    const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollection", userId],
     };
-    const viewScope = {
+    const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
     };
-    return Document.scope(
+    return Document.scope([
       "defaultScope",
       starredScope,
       collectionScope,
-      viewScope
-    );
+      viewScope,
+    ]);
   };
 
   static findByPk = async function (
@@ -462,11 +462,11 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
     };
-    const resultsQuery = sequelize.query(selectSql, {
+    const resultsQuery = Document.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
       replacements: { ...queryReplacements, limit, offset },
     });
-    const countQuery = sequelize.query(countSql, {
+    const countQuery = Document.sequelize!.query(countSql, {
       type: QueryTypes.SELECT,
       replacements: queryReplacements,
     });
@@ -592,11 +592,11 @@ class Document extends ParanoidModel {
       collectionIds,
       dateFilter,
     };
-    const resultsQuery = sequelize.query(selectSql, {
+    const resultsQuery = Document.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
       replacements: { ...queryReplacements, limit, offset },
     });
-    const countQuery = sequelize.query(countSql, {
+    const countQuery = Document.sequelize!.query(countSql, {
       type: QueryTypes.SELECT,
       replacements: queryReplacements,
     });
@@ -643,7 +643,7 @@ class Document extends ParanoidModel {
     };
   };
 
-  toMarkdown = function () {
+  toMarkdown = function (this: Document) {
     const text = unescape(this.text);
 
     if (this.version) {
@@ -653,7 +653,7 @@ class Document extends ParanoidModel {
     return text;
   };
 
-  migrateVersion = function () {
+  migrateVersion = function (this: Document) {
     let migrated = false;
 
     // migrate from document version 0 -> 1
@@ -685,7 +685,10 @@ class Document extends ParanoidModel {
   // Note: This method marks the document and it's children as deleted
   // in the database, it does not permanently delete them OR remove
   // from the collection structure.
-  deleteWithChildren = async function (options?: FindOptions<Document>) {
+  deleteWithChildren = async function (
+    this: Document,
+    options?: FindOptions<Document>
+  ) {
     // Helper to destroy all child documents for a document
     const loopChildren = async (
       documentId: string,
@@ -707,6 +710,7 @@ class Document extends ParanoidModel {
   };
 
   archiveWithChildren = async function (
+    this: Document,
     userId: string,
     options?: FindOptions<Document>
   ) {
@@ -733,7 +737,11 @@ class Document extends ParanoidModel {
     return this.save(options);
   };
 
-  publish = async function (userId: string, options?: FindOptions<Document>) {
+  publish = async function (
+    this: Document,
+    userId: string,
+    options?: FindOptions<Document>
+  ) {
     if (this.publishedAt) return this.save(options);
 
     if (!this.template) {
@@ -747,14 +755,18 @@ class Document extends ParanoidModel {
     return this;
   };
 
-  unpublish = async function (userId: string, options?: FindOptions<Document>) {
+  unpublish = async function (
+    this: Document,
+    userId: string,
+    options?: FindOptions<Document>
+  ) {
     if (!this.publishedAt) return this;
     const collection = await this.getCollection();
     await collection.removeDocumentInStructure(this);
 
     // unpublishing a document converts the "ownership" to yourself, so that it
     // can appear in your drafts rather than the original creators
-    this.userId = userId;
+    this.createdById = userId;
     this.lastModifiedById = userId;
     this.publishedAt = null;
     await this.save(options);
@@ -763,7 +775,7 @@ class Document extends ParanoidModel {
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async function (userId: string) {
+  archive = async function (this: Document, userId: string) {
     // archive any children and remove from the document structure
     const collection = await this.getCollection();
     await collection.removeDocumentInStructure(this);
@@ -773,7 +785,7 @@ class Document extends ParanoidModel {
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async function (userId: string) {
+  unarchive = async function (this: Document, userId: string) {
     const collection = await this.getCollection();
 
     // check to see if the documents parent hasn't been archived also
@@ -806,8 +818,8 @@ class Document extends ParanoidModel {
   };
 
   // Delete a document, archived or otherwise.
-  delete = function (userId: string) {
-    return sequelize.transaction(
+  delete = function (this: Document, userId: string) {
+    return this.sequelize.transaction(
       async (transaction: Transaction): Promise<Document> => {
         if (!this.archivedAt && !this.template) {
           // delete any children and remove from the document structure
@@ -876,7 +888,7 @@ class Document extends ParanoidModel {
 function escape(query: string): string {
   // replace "\" with escaped "\\" because sequelize.escape doesn't do it
   // https://github.com/sequelize/sequelize/issues/2950
-  return sequelize.escape(query).replace(/\\/g, "\\\\");
+  return Document.sequelize!.escape(query).replace(/\\/g, "\\\\");
 }
 
 export default Document;

@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import {
   User,
   Document,
@@ -7,7 +8,6 @@ import {
   Pin,
   Event,
 } from "@server/models";
-import { sequelize } from "@server/sequelize";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import pinDestroyer from "./pinDestroyer";
 

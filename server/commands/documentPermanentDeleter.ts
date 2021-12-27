@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/logger";
 import { Document, Attachment } from "@server/models";
-import { sequelize } from "@server/sequelize";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 
 export default async function documentPermanentDeleter(documents: Document[]) {

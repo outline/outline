@@ -1,8 +1,8 @@
 import fractionalIndex from "fractional-index";
 import { Sequelize, Op } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
 import { Pin, User, Event } from "@server/models";
-import { sequelize } from "@server/sequelize";
 
 const MAX_PINS = 8;
 

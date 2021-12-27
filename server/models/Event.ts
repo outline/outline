@@ -7,6 +7,7 @@ import {
   Column,
   IsIP,
   IsUUID,
+  Table,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
 import Collection from "./Collection";
@@ -15,6 +16,7 @@ import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
 
+@Table({ tableName: "events", modelName: "event" })
 class Event extends BaseModel {
   @Column
   @IsUUID(4)

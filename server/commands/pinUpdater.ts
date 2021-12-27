@@ -1,5 +1,5 @@
+import { sequelize } from "@server/database/sequelize";
 import { Event, Pin, User } from "@server/models";
-import { sequelize } from "@server/sequelize";
 
 type Props = {
   /** The user updating the pin */

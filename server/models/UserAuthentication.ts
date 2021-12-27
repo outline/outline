@@ -5,7 +5,7 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
-import { encryptedFields } from "@server/sequelize";
+import encryptedFields from "@server/database/encryptedFields";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";

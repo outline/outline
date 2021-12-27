@@ -1,6 +1,5 @@
 import Logger from "@server/logging/logger";
 import { Team, AuthenticationProvider } from "@server/models";
-import { sequelize } from "@server/sequelize";
 import { getAllowedDomains } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { MaximumTeamsError } from "../errors";
@@ -11,13 +10,7 @@ type TeamCreatorResult = {
   isNewTeam: boolean;
 };
 
-export default async function teamCreator({
-  name,
-  domain,
-  subdomain,
-  avatarUrl,
-  authenticationProvider,
-}: {
+type Props = {
   name: string;
   domain?: string;
   subdomain: string;
@@ -26,7 +19,15 @@ export default async function teamCreator({
     name: string;
     providerId: string;
   };
-}): Promise<TeamCreatorResult> {
+};
+
+export default async function teamCreator({
+  name,
+  domain,
+  subdomain,
+  avatarUrl,
+  authenticationProvider,
+}: Props): Promise<TeamCreatorResult> {
   let authP = await AuthenticationProvider.findOne({
     where: authenticationProvider,
     include: [
@@ -82,7 +83,7 @@ export default async function teamCreator({
     });
   }
 
-  const transaction = await sequelize.transaction();
+  const transaction = await Team.sequelize!.transaction();
   let team;
 
   try {

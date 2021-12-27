@@ -21,21 +21,19 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
+import encryptedFields from "@server/database/encryptedFields";
 import Logger from "@server/logging/logger";
-import { sequelize, encryptedFields } from "@server/sequelize";
 import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
 import { palette } from "@server/utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
+import ApiKey from "./ApiKey";
+import Collection from "./Collection";
+import NotificationSetting from "./NotificationSetting";
+import Star from "./Star";
 import Team from "./Team";
+import UserAuthentication from "./UserAuthentication";
 import ParanoidModel from "./base/ParanoidModel";
-import {
-  UserAuthentication,
-  Star,
-  Collection,
-  NotificationSetting,
-  ApiKey,
-} from ".";
 
 @Table({ tableName: "users", modelName: "user" })
 class User extends ParanoidModel {
@@ -80,13 +78,24 @@ class User extends ParanoidModel {
   @Column
   suspendedAt: Date | null;
 
-  @HasOne(() => User, "suspendedById")
-  suspendedBy: User;
-
   @Column
   @Default(process.env.DEFAULT_LANGUAGE)
   @IsIn([languages])
   language: string;
+
+  /**
+   * [Deprecated] This definition is only retained for those running migrations
+   * from an older version of the application.
+   */
+  @Column
+  service: string;
+
+  /**
+   * [Deprecated] This definition is only retained for those running migrations
+   * from an older version of the application.
+   */
+  @Column
+  serviceId: string;
 
   @Column(DataType.STRING)
   get avatarUrl() {
@@ -110,6 +119,13 @@ class User extends ParanoidModel {
   }
 
   // associations
+
+  @HasOne(() => User, "suspendedById")
+  suspendedBy: User;
+
+  @ForeignKey(() => User)
+  @Column
+  suspendedById: string;
 
   @BelongsTo(() => Team)
   team: Team;
@@ -390,7 +406,7 @@ class User extends ParanoidModel {
       WHERE "deletedAt" IS NULL
       AND "teamId" = :teamId
     `;
-    const results = await sequelize.query(countSql, {
+    const [results] = await User.sequelize!.query(countSql, {
       type: QueryTypes.SELECT,
       replacements: {
         teamId,
@@ -404,7 +420,7 @@ class User extends ParanoidModel {
       suspendedCount: string;
       viewerCount: string;
       count: string;
-    } = results[0] as any;
+    } = results as any;
 
     return {
       active: parseInt(counts.activeCount),

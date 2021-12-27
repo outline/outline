@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import { Event, Pin, User } from "@server/models";
-import { sequelize } from "@server/sequelize";
 
 type Props = {
   /** The user destroying the pin */

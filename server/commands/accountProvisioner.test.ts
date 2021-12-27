@@ -99,9 +99,9 @@ describe("accountProvisioner", () => {
       },
     });
     const auth = await UserAuthentication.findByPk(authentication.id);
-    expect(auth.accessToken).toEqual("123");
-    expect(auth.scopes.length).toEqual(1);
-    expect(auth.scopes[0]).toEqual("read");
+    expect(auth?.accessToken).toEqual("123");
+    expect(auth?.scopes.length).toEqual(1);
+    expect(auth?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
     expect(user.username).toEqual(newUsername);
     expect(isNewTeam).toEqual(false);

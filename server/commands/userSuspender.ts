@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import { User, Event, GroupUser } from "@server/models";
-import { sequelize } from "@server/sequelize";
 import { ValidationError } from "../errors";
 
 export default async function userSuspender({

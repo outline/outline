@@ -1,6 +1,5 @@
 import { Op } from "sequelize";
 import { Event, Team, User, UserAuthentication } from "@server/models";
-import { sequelize } from "@server/sequelize";
 
 type UserCreatorResult = {
   user: User;
@@ -8,16 +7,7 @@ type UserCreatorResult = {
   authentication: UserAuthentication;
 };
 
-export default async function userCreator({
-  name,
-  email,
-  username,
-  isAdmin,
-  avatarUrl,
-  teamId,
-  authentication,
-  ip,
-}: {
+type Props = {
   name: string;
   email: string;
   username?: string;
@@ -32,7 +22,18 @@ export default async function userCreator({
     accessToken?: string;
     refreshToken?: string;
   };
-}): Promise<UserCreatorResult> {
+};
+
+export default async function userCreator({
+  name,
+  email,
+  username,
+  isAdmin,
+  avatarUrl,
+  teamId,
+  authentication,
+  ip,
+}: Props): Promise<UserCreatorResult> {
   const { authenticationProviderId, providerId, ...rest } = authentication;
   const auth = await UserAuthentication.findOne({
     where: {
@@ -103,7 +104,7 @@ export default async function userCreator({
   // We have an existing invite for his user, so we need to update it with our
   // new details and link up the authentication method
   if (invite && !invite.authentications.length) {
-    const transaction = await sequelize.transaction();
+    const transaction = await User.sequelize!.transaction();
     let auth;
 
     try {
@@ -133,7 +134,7 @@ export default async function userCreator({
   }
 
   // No auth, no user – this is an entirely new sign in.
-  const transaction = await sequelize.transaction();
+  const transaction = await User.sequelize!.transaction();
 
   try {
     const { defaultUserRole } = await Team.findByPk(teamId, {

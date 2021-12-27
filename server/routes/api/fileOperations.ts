@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { NotFoundError, ValidationError } from "@server/errors";
@@ -18,6 +19,8 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   const fileOperation = await FileOperation.findByPk(id);
+  invariant(fileOperation, "File operation not found");
+
   authorize(user, fileOperation.type, team);
 
   if (!fileOperation) {

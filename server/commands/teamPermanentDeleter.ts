@@ -1,3 +1,4 @@
+import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/logger";
 import {
   ApiKey,
@@ -17,7 +18,6 @@ import {
   SearchQuery,
   Share,
 } from "@server/models";
-import { sequelize } from "@server/sequelize";
 
 export default async function teamPermanentDeleter(team: Team) {
   if (!team.deletedAt) {

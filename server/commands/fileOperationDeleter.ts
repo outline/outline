@@ -1,5 +1,5 @@
+import { sequelize } from "@server/database/sequelize";
 import { FileOperation, Event, User } from "@server/models";
-import { sequelize } from "@server/sequelize";
 
 export default async function fileOperationDeleter(
   fileOp: FileOperation,

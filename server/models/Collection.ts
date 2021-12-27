@@ -1,4 +1,4 @@
-import { find, findIndex, concat, remove, uniq } from "lodash";
+import { find, findIndex, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import { Identifier, Transaction, Op } from "sequelize";
 import {
@@ -20,7 +20,6 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
-import { sequelize } from "@server/sequelize";
 import slugify from "@server/utils/slugify";
 import { NavigationNode } from "~/types";
 import CollectionGroup from "./CollectionGroup";
@@ -276,10 +275,10 @@ class Collection extends ParanoidModel {
     const groupMemberships = collection.collectionGroupMemberships
       .map((cgm) => cgm.group.groupMemberships)
       .flat();
-    const membershipUserIds = concat(
-      groupMemberships,
-      collection.memberships
-    ).map((membership) => membership.userId);
+    const membershipUserIds = [
+      ...groupMemberships,
+      ...collection.memberships,
+    ].map((membership) => membership.userId);
     return uniq(membershipUserIds);
   };
 
@@ -373,7 +372,7 @@ class Collection extends ParanoidModel {
 
     try {
       // documentStructure can only be updated by one request at the time
-      transaction = await sequelize.transaction();
+      transaction = await this.sequelize.transaction();
 
       const removeFromChildren = async (
         children: NavigationNode[],
@@ -493,7 +492,7 @@ class Collection extends ParanoidModel {
 
     try {
       // documentStructure can only be updated by one request at the time
-      transaction = await sequelize.transaction();
+      transaction = await this.sequelize.transaction();
       const { id } = updatedDocument;
 
       const updateChildren = (documents: NavigationNode[]) => {
@@ -547,7 +546,7 @@ class Collection extends ParanoidModel {
     try {
       // documentStructure can only be updated by one request at a time
       if (options?.save !== false) {
-        transaction = await sequelize.transaction();
+        transaction = await this.sequelize.transaction();
       }
 
       // If moving existing document with children, use existing structure

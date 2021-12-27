@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import { Table, ForeignKey, BelongsTo, Column } from "sequelize-typescript";
-import { encryptedFields } from "@server/sequelize";
+import encryptedFields from "@server/database/encryptedFields";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";

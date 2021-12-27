@@ -1,12 +1,18 @@
 import { subMilliseconds } from "date-fns";
-import { FindOptions } from "sequelize";
-import { BelongsTo, Column, Default, ForeignKey } from "sequelize-typescript";
+import { FindOptions, DataTypes, Op } from "sequelize";
+import {
+  BelongsTo,
+  Column,
+  Default,
+  ForeignKey,
+  Table,
+} from "sequelize-typescript";
 import { USER_PRESENCE_INTERVAL } from "@shared/constants";
-import { DataTypes, Op } from "sequelize";
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
 
+@Table({ tableName: "views", modelName: "view" })
 class View extends BaseModel {
   @Column
   lastEditingAt: Date | null;

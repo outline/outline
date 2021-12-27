@@ -1,8 +1,7 @@
 import { subMinutes } from "date-fns";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
-import Team from "@server/models/Team";
-import User from "@server/models/User";
+import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
 
 // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'token' implicitly has an 'any' type.
