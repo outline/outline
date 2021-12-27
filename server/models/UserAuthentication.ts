@@ -1,6 +1,7 @@
 import {
   BelongsTo,
   Column,
+  DataType,
   ForeignKey,
   Table,
   Unique,
@@ -12,7 +13,7 @@ import ParanoidModel from "./base/ParanoidModel";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
 class UserAuthentication extends ParanoidModel {
-  @Column
+  @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 
   @Column(encryptedFields().vault("accessToken"))
@@ -27,15 +28,15 @@ class UserAuthentication extends ParanoidModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => AuthenticationProvider, "providerId")
   authenticationProvider: AuthenticationProvider;
 
-  @Column
-  @Unique
   @ForeignKey(() => AuthenticationProvider)
+  @Unique
+  @Column(DataType.UUID)
   authenticationProviderId: string;
 }
 

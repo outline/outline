@@ -1,5 +1,5 @@
 import path from "path";
-import { FindOptions, DataTypes } from "sequelize";
+import { FindOptions } from "sequelize";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -8,6 +8,7 @@ import {
   ForeignKey,
   IsIn,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import { deleteFromS3, getFileByKey } from "@server/utils/s3";
 import Document from "./Document";
@@ -26,13 +27,15 @@ class Attachment extends BaseModel {
   @Column
   contentType: string;
 
-  @Column(DataTypes.BIGINT)
+  @Column(DataType.BIGINT)
   size: number;
 
-  @Column
   @Default("public-read")
   @IsIn([["private", "public-read"]])
+  @Column
   acl: string;
+
+  // getters
 
   get name() {
     return path.parse(this.key).base;
@@ -63,21 +66,21 @@ class Attachment extends BaseModel {
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
 
   @BelongsTo(() => User, "userId")
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   static findAllInBatches = async (

@@ -1,9 +1,15 @@
-import { Model, Column, PrimaryKey, IsUUID } from "sequelize-typescript";
+import {
+  Model,
+  Column,
+  PrimaryKey,
+  IsUUID,
+  DataType,
+} from "sequelize-typescript";
 
 class BaseModel extends Model {
   @IsUUID(4)
-  @Column
   @PrimaryKey
+  @Column(DataType.UUID)
   id: string;
 }
 

@@ -1,4 +1,10 @@
-import { BelongsTo, ForeignKey, Column, Table } from "sequelize-typescript";
+import {
+  DataType,
+  BelongsTo,
+  ForeignKey,
+  Column,
+  Table,
+} from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
@@ -9,21 +15,21 @@ class Backlink extends BaseModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
 
   @BelongsTo(() => Document, "reverseDocumentId")
   reverseDocument: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   reverseDocumentId: string;
 }
 

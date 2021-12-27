@@ -3,6 +3,7 @@ import {
   BelongsTo,
   Column,
   CreatedAt,
+  DataType,
   Default,
   ForeignKey,
   HasMany,
@@ -20,12 +21,12 @@ import BaseModel from "./base/BaseModel";
   modelName: "authentication_provider",
 })
 class AuthenticationProvider extends BaseModel {
-  @Column
   @IsIn([providers.map((p) => p.id)])
+  @Column
   name: string;
 
-  @Column
   @Default(true)
+  @Column
   enabled: boolean;
 
   @Column
@@ -40,7 +41,7 @@ class AuthenticationProvider extends BaseModel {
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @HasMany(() => UserAuthentication, "providerId")

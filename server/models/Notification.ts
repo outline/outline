@@ -7,14 +7,15 @@ import {
   IsUUID,
   CreatedAt,
   BelongsTo,
+  DataType,
 } from "sequelize-typescript";
 import User from "./User";
 
 @Table({ tableName: "notifications", modelName: "notification" })
 class Notification extends Model {
   @IsUUID(4)
-  @Column
   @PrimaryKey
+  @Column(DataType.UUID)
   id: string;
 
   @CreatedAt
@@ -32,14 +33,14 @@ class Notification extends Model {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => User, "actorId")
   actor: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   actorId: string;
 }
 

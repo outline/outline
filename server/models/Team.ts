@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
-import { DataTypes, Op } from "sequelize";
+import { Op } from "sequelize";
 import {
   Column,
   IsLowercase,
@@ -16,6 +16,7 @@ import {
   Scopes,
   Length,
   Is,
+  DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
@@ -45,7 +46,6 @@ class Team extends ParanoidModel {
   @Column
   name: string;
 
-  @Column
   @IsLowercase
   @Unique
   @Length({ min: 4, max: 32, msg: "Must be between 4 and 32 characters" })
@@ -57,39 +57,42 @@ class Team extends ParanoidModel {
     args: [RESERVED_SUBDOMAINS],
     msg: "You chose a restricted word, please try another.",
   })
+  @Column
   subdomain: string | null;
 
-  @Column
   @Unique
+  @Column
   domain: true | null;
 
   @Column
   avatarUrl: string | null;
 
-  @Column
   @Default(true)
+  @Column
   sharing: boolean;
 
-  @Column(DataTypes.JSONB)
   @Default(true)
+  @Column(DataType.JSONB)
   signupQueryParams: { [key: string]: string } | null;
 
-  @Column
   @Default(true)
+  @Column
   guestSignin: boolean;
 
-  @Column
   @Default(true)
+  @Column
   documentEmbeds: boolean;
 
-  @Column
   @Default(false)
+  @Column
   collaborativeEditing: boolean;
 
-  @Column
   @Default("member")
   @IsIn([["viewer", "member"]])
+  @Column
   defaultUserRole: string;
+
+  // getters
 
   get url() {
     if (this.domain) {

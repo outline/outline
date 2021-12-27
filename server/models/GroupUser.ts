@@ -4,6 +4,7 @@ import {
   ForeignKey,
   Column,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import Group from "./Group";
 import User from "./User";
@@ -22,21 +23,21 @@ class GroupUser extends ParanoidModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Group, "groupId")
   group: Group;
 
   @ForeignKey(() => Group)
-  @Column
+  @Column(DataType.UUID)
   groupId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 }
 

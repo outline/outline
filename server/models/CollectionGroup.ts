@@ -6,6 +6,7 @@ import {
   IsIn,
   Model,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Group from "./Group";
@@ -15,6 +16,7 @@ import User from "./User";
 class CollectionGroup extends Model {
   @Default("read_write")
   @IsIn([["read", "read_write", "maintainer"]])
+  @Column
   permission: string;
 
   // associations
@@ -23,14 +25,14 @@ class CollectionGroup extends Model {
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 
   @BelongsTo(() => Group, "groupId")
   group: Group;
 
   @ForeignKey(() => Group)
-  @Column
+  @Column(DataType.UUID)
   groupId: string;
 
   @BelongsTo(() => User, "createdById")

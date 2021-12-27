@@ -5,6 +5,7 @@ import {
   DefaultScope,
   Table,
   Scopes,
+  DataType,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -68,11 +69,7 @@ class Share extends BaseModel {
   @Column
   lastAccessedAt: Date | null;
 
-  revoke(userId: string) {
-    this.revokedAt = new Date();
-    this.revokedById = userId;
-    return this.save();
-  }
+  // getters
 
   get isRevoked() {
     return !!this.revokedAt;
@@ -84,29 +81,35 @@ class Share extends BaseModel {
   revokedBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   revokedById: string;
 
   @BelongsTo(() => User, "userId")
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
+
+  revoke(userId: string) {
+    this.revokedAt = new Date();
+    this.revokedById = userId;
+    return this.save();
+  }
 }
 
 export default Share;

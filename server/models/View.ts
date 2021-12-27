@@ -1,11 +1,12 @@
 import { subMilliseconds } from "date-fns";
-import { FindOptions, DataTypes, Op } from "sequelize";
+import { FindOptions, Op } from "sequelize";
 import {
   BelongsTo,
   Column,
   Default,
   ForeignKey,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import { USER_PRESENCE_INTERVAL } from "@shared/constants";
 import Document from "./Document";
@@ -17,8 +18,8 @@ class View extends BaseModel {
   @Column
   lastEditingAt: Date | null;
 
-  @Column(DataTypes.INTEGER)
   @Default(1)
+  @Column(DataType.INTEGER)
   count: number;
 
   // associations
@@ -27,14 +28,14 @@ class View extends BaseModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
 
   static incrementOrCreate = async (

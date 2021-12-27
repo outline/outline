@@ -5,13 +5,14 @@ import {
   Column,
   PrimaryKey,
   IsUUID,
+  DataType,
 } from "sequelize-typescript";
 import BaseModel from "./BaseModel";
 
 class ParanoidModel extends BaseModel {
   @IsUUID(4)
-  @Column
   @PrimaryKey
+  @Column(DataType.UUID)
   id: string;
 
   @CreatedAt

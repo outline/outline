@@ -9,6 +9,7 @@ import {
   HasMany,
   BelongsToMany,
   DefaultScope,
+  DataType,
 } from "sequelize-typescript";
 import CollectionGroup from "./CollectionGroup";
 import GroupUser from "./GroupUser";
@@ -78,14 +79,14 @@ class Group extends ParanoidModel {
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 
   @BelongsToMany(() => User, () => GroupUser)

@@ -37,8 +37,8 @@ import ParanoidModel from "./base/ParanoidModel";
 
 @Table({ tableName: "users", modelName: "user" })
 class User extends ParanoidModel {
-  @Column
   @IsEmail
+  @Column
   email: string | null;
 
   @Column
@@ -47,12 +47,12 @@ class User extends ParanoidModel {
   @Column
   name: string;
 
-  @Column
   @Default(false)
+  @Column
   isAdmin: boolean;
 
-  @Column
   @Default(false)
+  @Column
   isViewer: boolean;
 
   @Column(encryptedFields().vault("jwtSecret"))
@@ -61,15 +61,15 @@ class User extends ParanoidModel {
   @Column
   lastActiveAt: Date | null;
 
-  @Column
   @IsIP
+  @Column
   lastActiveIp: string | null;
 
   @Column
   lastSignedInAt: Date | null;
 
-  @Column
   @IsIP
+  @Column
   lastSignedInIp: string | null;
 
   @Column
@@ -78,9 +78,9 @@ class User extends ParanoidModel {
   @Column
   suspendedAt: Date | null;
 
-  @Column
   @Default(process.env.DEFAULT_LANGUAGE)
   @IsIn([languages])
+  @Column
   language: string;
 
   /**
@@ -124,14 +124,14 @@ class User extends ParanoidModel {
   suspendedBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   suspendedById: string;
 
   @BelongsTo(() => Team)
   team: Team;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @HasMany(() => UserAuthentication)

@@ -1,4 +1,3 @@
-import { DataTypes } from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
@@ -6,6 +5,7 @@ import {
   BeforeDestroy,
   BelongsTo,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import { deleteFromS3 } from "@server/utils/s3";
 import Collection from "./Collection";
@@ -29,11 +29,11 @@ import BaseModel from "./base/BaseModel";
 }))
 @Table({ tableName: "attachments", modelName: "attachment" })
 class FileOperation extends BaseModel {
-  @Column(DataTypes.ENUM("import", "export"))
+  @Column(DataType.ENUM("import", "export"))
   type: "import" | "export";
 
   @Column(
-    DataTypes.ENUM("creating", "uploading", "complete", "error", "expired")
+    DataType.ENUM("creating", "uploading", "complete", "error", "expired")
   )
   state: "creating" | "uploading" | "complete" | "error" | "expired";
 
@@ -43,7 +43,7 @@ class FileOperation extends BaseModel {
   @Column
   url: string;
 
-  @Column(DataTypes.BIGINT)
+  @Column(DataType.BIGINT)
   size: number;
 
   expire = async function () {
@@ -65,21 +65,21 @@ class FileOperation extends BaseModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 }
 

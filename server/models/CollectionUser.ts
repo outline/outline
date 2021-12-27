@@ -5,6 +5,7 @@ import {
   Default,
   IsIn,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import User from "./User";
@@ -12,9 +13,9 @@ import BaseModel from "./base/BaseModel";
 
 @Table({ tableName: "collection_users", modelName: "collection_user" })
 class CollectionUser extends BaseModel {
-  @Column
   @Default("read_write")
   @IsIn([["read", "read_write", "maintainer"]])
+  @Column
   permission: string;
 
   // associations
@@ -23,21 +24,21 @@ class CollectionUser extends BaseModel {
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 
   @BelongsTo(() => User, "userId")
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 }
 

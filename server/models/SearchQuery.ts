@@ -1,4 +1,3 @@
-import { DataTypes } from "sequelize";
 import {
   Table,
   ForeignKey,
@@ -8,6 +7,7 @@ import {
   IsUUID,
   CreatedAt,
   BelongsTo,
+  DataType,
 } from "sequelize-typescript";
 import Team from "./Team";
 import User from "./User";
@@ -15,17 +15,20 @@ import User from "./User";
 @Table({ tableName: "search_queries", modelName: "search_query" })
 class SearchQuery extends Model {
   @IsUUID(4)
-  @Column
   @PrimaryKey
+  @Column(DataType.UUID)
   id: string;
 
   @CreatedAt
   createdAt: Date;
 
-  @Column(DataTypes.ENUM("slack", "app", "api"))
+  @Column(DataType.ENUM("slack", "app", "api"))
   source: string;
 
-  @Column(DataTypes.STRING)
+  @Column
+  results: number;
+
+  @Column(DataType.STRING)
   set query(value: string) {
     this.setDataValue("query", value.substring(0, 255));
   }
@@ -34,23 +37,20 @@ class SearchQuery extends Model {
     return this.getDataValue("query");
   }
 
-  @Column
-  results: number;
-
   // associations
 
   @BelongsTo(() => User, "userId")
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 }
 

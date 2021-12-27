@@ -1,4 +1,10 @@
-import { Column, ForeignKey, BelongsTo, Table } from "sequelize-typescript";
+import {
+  DataType,
+  Column,
+  ForeignKey,
+  BelongsTo,
+  Table,
+} from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -16,28 +22,28 @@ class Pin extends BaseModel {
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 }
 

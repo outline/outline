@@ -17,6 +17,7 @@ import {
   BelongsTo,
   ForeignKey,
   Scopes,
+  DataType,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
@@ -111,8 +112,8 @@ import ParanoidModel from "./base/ParanoidModel";
 }))
 @Table({ tableName: "collections", modelName: "collection" })
 class Collection extends ParanoidModel {
-  @Column
   @Unique
+  @Column
   urlId: string;
 
   @Column
@@ -130,22 +131,23 @@ class Collection extends ParanoidModel {
   @Column
   index: string | null;
 
-  @Column
   @IsIn([["read", "read_write"]])
+  @Column
   permission: "read" | "read_write" | null;
 
-  @Column
   @Default(false)
+  @Column
   maintainerApprovalRequired: boolean;
 
   @Column
   documentStructure: NavigationNode[] | null;
 
-  @Column
   @Default(true)
+  @Column
   sharing: boolean;
 
   @Column({
+    type: DataType.JSONB,
     validate: {
       isSort(value: any) {
         if (
@@ -248,14 +250,14 @@ class Collection extends ParanoidModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   static DEFAULT_SORT = {

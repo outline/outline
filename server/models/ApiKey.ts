@@ -14,8 +14,8 @@ class ApiKey extends ParanoidModel {
   @Column
   name: string;
 
-  @Column
   @Unique
+  @Column
   secret: string;
 
   // hooks

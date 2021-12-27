@@ -1,5 +1,10 @@
-import { DataTypes } from "sequelize";
-import { ForeignKey, BelongsTo, Column, Table } from "sequelize-typescript";
+import {
+  ForeignKey,
+  BelongsTo,
+  Column,
+  Table,
+  DataType,
+} from "sequelize-typescript";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
 import Team from "./Team";
@@ -14,10 +19,10 @@ class Integration extends BaseModel {
   @Column
   service: string;
 
-  @Column(DataTypes.JSONB)
+  @Column(DataType.JSONB)
   settings: any;
 
-  @Column(DataTypes.ARRAY(DataTypes.STRING))
+  @Column(DataType.ARRAY(DataType.STRING))
   events: string[];
 
   // associations
@@ -26,28 +31,28 @@ class Integration extends BaseModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 
   @BelongsTo(() => IntegrationAuthentication, "authenticationId")
   authentication: IntegrationAuthentication;
 
   @ForeignKey(() => IntegrationAuthentication)
-  @Column
+  @Column(DataType.UUID)
   authenticationId: string;
 }
 

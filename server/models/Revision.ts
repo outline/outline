@@ -1,5 +1,6 @@
-import { DataTypes, FindOptions } from "sequelize";
+import { FindOptions } from "sequelize";
 import {
+  DataType,
   BelongsTo,
   Column,
   DefaultScope,
@@ -24,7 +25,7 @@ const serializer = new MarkdownSerializer();
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
 class Revision extends BaseModel {
-  @Column(DataTypes.SMALLINT)
+  @Column(DataType.SMALLINT)
   version: number;
 
   @Column
@@ -33,7 +34,7 @@ class Revision extends BaseModel {
   @Column
   title: string;
 
-  @Column(DataTypes.TEXT)
+  @Column(DataType.TEXT)
   text: string;
 
   // associations
@@ -42,14 +43,14 @@ class Revision extends BaseModel {
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
 
   @BelongsTo(() => User, "userId")
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   static findLatest = function (documentId: string) {

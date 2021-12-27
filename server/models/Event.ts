@@ -1,4 +1,3 @@
-import { DataTypes } from "sequelize";
 import {
   ForeignKey,
   AfterCreate,
@@ -8,6 +7,7 @@ import {
   IsIP,
   IsUUID,
   Table,
+  DataType,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
 import Collection from "./Collection";
@@ -18,8 +18,8 @@ import BaseModel from "./base/BaseModel";
 
 @Table({ tableName: "events", modelName: "event" })
 class Event extends BaseModel {
-  @Column
   @IsUUID(4)
+  @Column(DataType.UUID)
   modelId: string;
 
   @Column
@@ -29,7 +29,7 @@ class Event extends BaseModel {
   @IsIP
   ip: string | null;
 
-  @Column(DataTypes.JSONB)
+  @Column(DataType.JSONB)
   data: Record<string, any>;
 
   // hooks
@@ -53,35 +53,35 @@ class Event extends BaseModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   documentId: string;
 
   @BelongsTo(() => User, "actorId")
   actor: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   actorId: string;
 
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   // add can be used to send events into the event system without recording them

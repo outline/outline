@@ -9,6 +9,7 @@ import {
   CreatedAt,
   BelongsTo,
   IsIn,
+  DataType,
 } from "sequelize-typescript";
 import Team from "./Team";
 import User from "./User";
@@ -19,8 +20,8 @@ import User from "./User";
 })
 class NotificationSetting extends Model {
   @IsUUID(4)
-  @Column
   @PrimaryKey
+  @Column(DataType.UUID)
   id: string;
 
   @CreatedAt
@@ -55,14 +56,14 @@ class NotificationSetting extends Model {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   static getUnsubscribeToken = (userId: string) => {

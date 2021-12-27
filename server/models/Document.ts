@@ -6,7 +6,6 @@ import {
   Op,
   QueryTypes,
   FindOptions,
-  DataTypes,
   ScopeOptions,
 } from "sequelize";
 import {
@@ -25,6 +24,7 @@ import {
   DefaultScope,
   AfterCreate,
   Scopes,
+  DataType,
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
@@ -156,22 +156,22 @@ export const DOCUMENT_VERSION = 2;
 }))
 @Table({ tableName: "documents", modelName: "document" })
 class Document extends ParanoidModel {
-  @Column
   @PrimaryKey
+  @Column
   urlId: string;
 
-  @Column
   @Length({
     min: 0,
     max: MAX_TITLE_LENGTH,
     msg: `Document title must be less than ${MAX_TITLE_LENGTH} characters`,
   })
+  @Column
   title: string;
 
   @Column
   previousTitles: string[] = [];
 
-  @Column(DataTypes.SMALLINT)
+  @Column(DataType.SMALLINT)
   version: number;
 
   @Column
@@ -186,17 +186,17 @@ class Document extends ParanoidModel {
   @Column
   emoji: string | null;
 
-  @Column(DataTypes.TEXT)
+  @Column(DataType.TEXT)
   text: string;
 
-  @Column(DataTypes.BLOB)
+  @Column(DataType.BLOB)
   state: Uint8Array;
 
   @Column
   @Default(false)
   isWelcome: boolean;
 
-  @Column(DataTypes.INTEGER)
+  @Column(DataType.INTEGER)
   @Default(0)
   revisionCount: number;
 
@@ -210,11 +210,13 @@ class Document extends ParanoidModel {
   parentDocument: Document | null;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   parentDocumentId: string | null;
 
-  @Column(DataTypes.ARRAY(DataTypes.UUID))
+  @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[] = [];
+
+  // getters
 
   get url() {
     if (!this.title) return `/doc/untitled-${this.urlId}`;
@@ -312,35 +314,35 @@ class Document extends ParanoidModel {
   updatedBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   lastModifiedById: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 
   @BelongsTo(() => Document, "templateId")
   document: Document;
 
   @ForeignKey(() => Document)
-  @Column
+  @Column(DataType.UUID)
   templateId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection;
 
   @ForeignKey(() => Collection)
-  @Column
+  @Column(DataType.UUID)
   collectionId: string;
 
   @HasMany(() => Revision)

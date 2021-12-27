@@ -1,5 +1,10 @@
-import { DataTypes } from "sequelize";
-import { Table, ForeignKey, BelongsTo, Column } from "sequelize-typescript";
+import {
+  DataType,
+  Table,
+  ForeignKey,
+  BelongsTo,
+  Column,
+} from "sequelize-typescript";
 import encryptedFields from "@server/database/encryptedFields";
 import Team from "./Team";
 import User from "./User";
@@ -10,7 +15,7 @@ class IntegrationAuthentication extends BaseModel {
   @Column
   service: string;
 
-  @Column(DataTypes.ARRAY(DataTypes.STRING))
+  @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 
   @Column(encryptedFields().vault("token"))
@@ -22,14 +27,14 @@ class IntegrationAuthentication extends BaseModel {
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 }
 
