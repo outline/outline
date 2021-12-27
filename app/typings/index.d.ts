@@ -12,6 +12,10 @@ declare module "formidable/lib/file";
 
 declare module "socket.io-client";
 
+declare module "@tommoor/remove-markdown" {
+  export default function removeMarkdown(text: string): string;
+}
+
 declare module "socket.io-redis" {
   import { Redis } from "ioredis";
 

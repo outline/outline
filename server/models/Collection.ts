@@ -29,13 +29,13 @@ import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import slugify from "@server/utils/slugify";
 import { NavigationNode } from "~/types";
 import { Op, sequelize } from "../sequelize";
+import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
-import { CollectionGroup } from ".";
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -115,7 +115,7 @@ import { CollectionGroup } from ".";
     ],
   }),
 }))
-@Table({ tableName: "collections" })
+@Table({ tableName: "collections", modelName: "collection" })
 class Collection extends Model {
   @IsUUID(4)
   @Column

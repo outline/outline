@@ -2,7 +2,7 @@ import EncryptedField from "sequelize-encrypted";
 import { Sequelize } from "sequelize-typescript";
 import Logger from "./logging/logger";
 
-export { Op, DataTypes } from "sequelize-typescript";
+export { Op, DataTypes } from "sequelize";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isSSLDisabled = process.env.PGSSLMODE === "disable";
@@ -24,5 +24,6 @@ export const sequelize = new Sequelize(
             }
           : false,
     },
+    models: [__dirname + "/server/models"],
   }
 );

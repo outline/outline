@@ -1,37 +1,55 @@
 import randomstring from "randomstring";
-import { DataTypes, sequelize } from "../sequelize";
+import {
+  Model,
+  Column,
+  PrimaryKey,
+  Table,
+  IsUUID,
+  Unique,
+  DeletedAt,
+  CreatedAt,
+  UpdatedAt,
+  BeforeValidate,
+  BelongsTo,
+} from "sequelize-typescript";
+import User from "./User";
 
-const ApiKey = sequelize.define(
-  "apiKey",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    name: DataTypes.STRING,
-    secret: {
-      type: DataTypes.STRING,
-      unique: true,
-    },
-  },
-  {
-    paranoid: true,
-    hooks: {
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'key' implicitly has an 'any' type.
-      beforeValidate: (key) => {
-        key.secret = randomstring.generate(38);
-      },
-    },
+@Table({ tableName: "apiKeys", modelName: "apiKey" })
+class ApiKey extends Model {
+  @IsUUID(4)
+  @Column
+  @PrimaryKey
+  id: string;
+
+  @Column
+  name: string;
+
+  @Column
+  @Unique
+  secret: string;
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
+
+  @DeletedAt
+  deletedAt: Date;
+
+  // hooks
+
+  @BeforeValidate
+  static async generateSecret(instance: ApiKey) {
+    if (!instance.secret) {
+      instance.secret = randomstring.generate(38);
+    }
   }
-);
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-ApiKey.associate = (models) => {
-  ApiKey.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-};
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+}
 
 export default ApiKey;

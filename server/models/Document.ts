@@ -1,8 +1,7 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@tom... Remove this comment to see the full error message
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import Sequelize, { Transaction } from "sequelize-typescript";
+import Sequelize, { Transaction } from "sequelize";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'slat... Remove this comment to see the full error message
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
@@ -557,7 +556,6 @@ Document.searchForUser = async (
 };
 
 // Hooks
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'model' implicitly has an 'any' type.
 Document.addHook("beforeSave", async (model) => {
   if (!model.publishedAt || model.template) {
     return;
@@ -642,7 +640,6 @@ Document.prototype.deleteWithChildren = async function (options) {
         parentDocumentId: documentId,
       },
     });
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'child' implicitly has an 'any' type.
     childDocuments.forEach(async (child) => {
       await loopChildren(child.id, opts);
       await child.destroy(opts);
@@ -665,7 +662,6 @@ Document.prototype.archiveWithChildren = async function (userId, options) {
         parentDocumentId,
       },
     });
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'child' implicitly has an 'any' type.
     childDocuments.forEach(async (child) => {
       await archiveChildren(child.id);
       child.archivedAt = archivedAt;

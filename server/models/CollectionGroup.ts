@@ -22,12 +22,10 @@ CollectionGroup.associate = (models) => {
   CollectionGroup.belongsTo(models.Collection, {
     as: "collection",
     foreignKey: "collectionId",
-    primary: true,
   });
   CollectionGroup.belongsTo(models.Group, {
     as: "group",
     foreignKey: "groupId",
-    primary: true,
   });
   CollectionGroup.belongsTo(models.User, {
     as: "createdBy",
