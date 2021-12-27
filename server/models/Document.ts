@@ -47,7 +47,7 @@ type SearchResponse = {
   results: {
     ranking: number;
     context: string;
-    document: Document | undefined;
+    document: Document;
   }[];
   totalCount: number;
 };
@@ -168,7 +168,7 @@ class Document extends ParanoidModel {
   @Column
   title: string;
 
-  @Column
+  @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[] = [];
 
   @Column(DataType.SMALLINT)
@@ -192,12 +192,12 @@ class Document extends ParanoidModel {
   @Column(DataType.BLOB)
   state: Uint8Array;
 
-  @Column
   @Default(false)
+  @Column
   isWelcome: boolean;
 
-  @Column(DataType.INTEGER)
   @Default(0)
+  @Column(DataType.INTEGER)
   revisionCount: number;
 
   @Column
@@ -205,13 +205,6 @@ class Document extends ParanoidModel {
 
   @Column
   publishedAt: Date | null;
-
-  @BelongsTo(() => Document, "parentDocumentId")
-  parentDocument: Document | null;
-
-  @ForeignKey(() => Document)
-  @Column(DataType.UUID)
-  parentDocumentId: string | null;
 
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[] = [];
@@ -309,6 +302,13 @@ class Document extends ParanoidModel {
   }
 
   // associations
+
+  @BelongsTo(() => Document, "parentDocumentId")
+  parentDocument: Document | null;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  parentDocumentId: string | null;
 
   @BelongsTo(() => User, "lastModifiedById")
   updatedBy: User;
@@ -472,7 +472,7 @@ class Document extends ParanoidModel {
       type: QueryTypes.SELECT,
       replacements: queryReplacements,
     });
-    const [results, [{ count }]] = await Promise.all([
+    const [results, [{ count }]]: [any, any] = await Promise.all([
       resultsQuery,
       countQuery,
     ]);
@@ -507,7 +507,7 @@ class Document extends ParanoidModel {
         }),
         document: find(documents, {
           id: result.id,
-        }),
+        }) as Document,
       })),
       totalCount: count,
     };
@@ -602,10 +602,11 @@ class Document extends ParanoidModel {
       type: QueryTypes.SELECT,
       replacements: queryReplacements,
     });
-    const [results, [{ count }]] = await Promise.all([
+    const [results, [{ count }]]: [any, any] = await Promise.all([
       resultsQuery,
       countQuery,
     ]);
+
     // Final query to get associated document data
     const documents = await Document.scope([
       {
@@ -639,11 +640,15 @@ class Document extends ParanoidModel {
         }),
         document: find(documents, {
           id: result.id,
-        }),
+        }) as Document,
       })),
       totalCount: count,
     };
   };
+
+  getCollection(options?: FindOptions<Collection>) {
+    return Collection.findByPk(this.collectionId, options);
+  }
 
   toMarkdown = function (this: Document) {
     const text = unescape(this.text);
@@ -764,7 +769,7 @@ class Document extends ParanoidModel {
   ) {
     if (!this.publishedAt) return this;
     const collection = await this.getCollection();
-    await collection.removeDocumentInStructure(this);
+    await collection?.removeDocumentInStructure(this);
 
     // unpublishing a document converts the "ownership" to yourself, so that it
     // can appear in your drafts rather than the original creators
@@ -780,8 +785,11 @@ class Document extends ParanoidModel {
   archive = async function (this: Document, userId: string) {
     // archive any children and remove from the document structure
     const collection = await this.getCollection();
-    await collection.removeDocumentInStructure(this);
-    this.collection = collection;
+    if (collection) {
+      await collection.removeDocumentInStructure(this);
+      this.collection = collection;
+    }
+
     await this.archiveWithChildren(userId);
     return this;
   };
@@ -804,7 +812,7 @@ class Document extends ParanoidModel {
       if (!parent) this.parentDocumentId = null;
     }
 
-    if (!this.template) {
+    if (!this.template && collection) {
       await collection.addDocumentToStructure(this);
       this.collection = collection;
     }
@@ -828,10 +836,7 @@ class Document extends ParanoidModel {
           const collection = await this.getCollection({
             transaction,
           });
-          if (collection)
-            await collection.deleteDocument(this, {
-              transaction,
-            });
+          if (collection) await collection.deleteDocument(this);
         } else {
           await this.destroy({
             transaction,

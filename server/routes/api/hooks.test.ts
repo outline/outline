@@ -13,6 +13,7 @@ afterAll(() => server.close());
 jest.mock("../../utils/slack", () => ({
   post: jest.fn(),
 }));
+
 describe("#hooks.unfurl", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
@@ -45,6 +46,7 @@ describe("#hooks.unfurl", () => {
     expect(Slack.post).toHaveBeenCalled();
   });
 });
+
 describe("#hooks.slack", () => {
   it("should return no matches", async () => {
     const { user, team } = await seed();
@@ -259,6 +261,7 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#hooks.interactive", () => {
   it("should respond with replacement message", async () => {
     const { user, team } = await seed();

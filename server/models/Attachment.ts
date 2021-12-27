@@ -74,7 +74,7 @@ class Attachment extends BaseModel {
 
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
-  documentId: string;
+  documentId: string | null;
 
   @BelongsTo(() => User, "userId")
   user: User;

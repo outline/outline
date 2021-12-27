@@ -17,17 +17,17 @@ import User from "./User";
 @Table({
   tableName: "notification_settings",
   modelName: "notification_setting",
+  updatedAt: false,
 })
 class NotificationSetting extends Model {
   @IsUUID(4)
   @PrimaryKey
-  @Column(DataType.UUID)
+  @Column
   id: string;
 
   @CreatedAt
   createdAt: Date;
 
-  @Column
   @IsIn([
     [
       "documents.publish",
@@ -37,6 +37,7 @@ class NotificationSetting extends Model {
       "emails.features",
     ],
   ])
+  @Column(DataType.STRING)
   event: string;
 
   // getters

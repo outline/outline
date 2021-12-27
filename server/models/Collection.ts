@@ -1,6 +1,6 @@
 import { find, findIndex, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import { Identifier, Transaction, Op } from "sequelize";
+import { Identifier, Transaction, Op, SaveOptions } from "sequelize";
 import {
   Sequelize,
   Table,
@@ -139,7 +139,7 @@ class Collection extends ParanoidModel {
   @Column
   maintainerApprovalRequired: boolean;
 
-  @Column
+  @Column(DataType.JSONB)
   documentStructure: NavigationNode[] | null;
 
   @Default(true)
@@ -240,11 +240,11 @@ class Collection extends ParanoidModel {
   @HasMany(() => CollectionGroup, "collectionId")
   collectionGroupMemberships: CollectionGroup[];
 
-  @BelongsToMany(() => CollectionUser, "collectionId")
-  users: CollectionUser[];
+  @BelongsToMany(() => User, () => CollectionUser)
+  users: User[];
 
-  @BelongsToMany(() => CollectionGroup, "collectionId")
-  groups: CollectionGroup[];
+  @BelongsToMany(() => Group, () => CollectionGroup)
+  groups: Group[];
 
   @BelongsTo(() => User, "createdById")
   user: User;
@@ -365,7 +365,9 @@ class Collection extends ParanoidModel {
 
   removeDocumentInStructure = async function (
     document: Document,
-    options: any
+    options?: SaveOptions<Collection> & {
+      save?: boolean;
+    }
   ) {
     if (!this.documentStructure) return;
     // @ts-expect-error ts-migrate(7034) FIXME: Variable 'returnValue' implicitly has type 'any' i... Remove this comment to see the full error message
@@ -535,9 +537,10 @@ class Collection extends ParanoidModel {
   addDocumentToStructure = async function (
     document: Document,
     index?: number,
-    options?: {
+    options: {
       save?: boolean;
-    }
+      documentJson?: NavigationNode;
+    } = {}
   ) {
     if (!this.documentStructure) {
       this.documentStructure = [];
@@ -552,7 +555,6 @@ class Collection extends ParanoidModel {
       }
 
       // If moving existing document with children, use existing structure
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'toJSON' does not exist on type 'Document... Remove this comment to see the full error message
       const documentJson = { ...document.toJSON(), ...options.documentJson };
 
       if (!document.parentDocumentId) {

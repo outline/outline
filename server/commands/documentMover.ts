@@ -9,6 +9,7 @@ import {
   Event,
 } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { NavigationNode } from "~/types";
 import pinDestroyer from "./pinDestroyer";
 
 async function copyAttachments(

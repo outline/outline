@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
 
 beforeEach(() => flushdb());
+
 describe("revisionCreator", () => {
   const ip = "127.0.0.1";
 

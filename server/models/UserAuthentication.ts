@@ -22,6 +22,9 @@ class UserAuthentication extends ParanoidModel {
   @Column(encryptedFields().vault("refreshToken"))
   refreshToken: string;
 
+  @Column
+  providerId: string;
+
   // associations
 
   @BelongsTo(() => User, "userId")

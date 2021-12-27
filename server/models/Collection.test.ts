@@ -13,6 +13,7 @@ import slugify from "@server/utils/slugify";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("#url", () => {
   test("should return correct url for the collection", () => {
     const collection = new Collection({
@@ -21,6 +22,7 @@ describe("#url", () => {
     expect(collection.url).toBe(`/collection/untitled-${collection.urlId}`);
   });
 });
+
 describe("getDocumentParents", () => {
   test("should return array of parent document ids", async () => {
     const parent = await buildDocument();
@@ -55,6 +57,7 @@ describe("getDocumentParents", () => {
     expect(result).toBe(undefined);
   });
 });
+
 describe("getDocumentTree", () => {
   test("should return document tree", async () => {
     const document = await buildDocument();
@@ -79,6 +82,7 @@ describe("getDocumentTree", () => {
     expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
   });
 });
+
 describe("isChildDocument", () => {
   test("should return false with unexpected data", async () => {
     const document = await buildDocument();
@@ -128,6 +132,7 @@ describe("isChildDocument", () => {
     expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
   });
 });
+
 describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
     const { collection } = await seed();
@@ -215,6 +220,7 @@ describe("#addDocumentToStructure", () => {
     });
   });
 });
+
 describe("#updateDocument", () => {
   test("should update root document's data", async () => {
     const { collection, document } = await seed();
@@ -246,6 +252,7 @@ describe("#updateDocument", () => {
     );
   });
 });
+
 describe("#removeDocument", () => {
   test("should save if removing", async () => {
     const { collection, document } = await seed();
@@ -323,6 +330,7 @@ describe("#removeDocument", () => {
     expect(collectionDocuments.count).toBe(1);
   });
 });
+
 describe("#membershipUserIds", () => {
   test("should return collection and group memberships", async () => {
     const team = await buildTeam();
@@ -350,42 +358,42 @@ describe("#membershipUserIds", () => {
       teamId,
     });
     const createdById = users[0].id;
-    await group1.addUser(users[0], {
+    await group1.$add("user", users[0], {
       through: {
         createdById,
       },
     });
-    await group1.addUser(users[1], {
+    await group1.$add("user", users[1], {
       through: {
         createdById,
       },
     });
-    await group2.addUser(users[2], {
+    await group2.$add("user", users[2], {
       through: {
         createdById,
       },
     });
-    await group2.addUser(users[3], {
+    await group2.$add("user", users[3], {
       through: {
         createdById,
       },
     });
-    await collection.addUser(users[4], {
+    await collection.$add("user", users[4], {
       through: {
         createdById,
       },
     });
-    await collection.addUser(users[5], {
+    await collection.$add("user", users[5], {
       through: {
         createdById,
       },
     });
-    await collection.addGroup(group1, {
+    await collection.$add("group", group1, {
       through: {
         createdById,
       },
     });
-    await collection.addGroup(group2, {
+    await collection.$add("group", group2, {
       through: {
         createdById,
       },
@@ -394,6 +402,7 @@ describe("#membershipUserIds", () => {
     expect(membershipUserIds.length).toBe(6);
   });
 });
+
 describe("#findByPk", () => {
   test("should return collection with collection Id", async () => {
     const collection = await buildCollection();

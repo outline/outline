@@ -16,6 +16,7 @@ jest.mock("aws-sdk", () => {
   };
 });
 beforeEach(() => flushdb());
+
 describe("documentPermanentDeleter", () => {
   it("should destroy documents", async () => {
     const document = await buildDocument({

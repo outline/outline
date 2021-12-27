@@ -12,7 +12,11 @@ import {
 import Team from "./Team";
 import User from "./User";
 
-@Table({ tableName: "search_queries", modelName: "search_query" })
+@Table({
+  tableName: "search_queries",
+  modelName: "search_query",
+  updatedAt: false,
+})
 class SearchQuery extends Model {
   @IsUUID(4)
   @PrimaryKey

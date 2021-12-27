@@ -25,8 +25,8 @@ class Event extends BaseModel {
   @Column
   name: string;
 
-  @Column
   @IsIP
+  @Column
   ip: string | null;
 
   @Column(DataType.JSONB)

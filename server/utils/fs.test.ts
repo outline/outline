@@ -15,6 +15,7 @@ describe("serializeFilename", () => {
     );
   });
 });
+
 describe("deserializeFilename", () => {
   it("should deserialize forward slashes", () => {
     expect(deserializeFilename("%2F")).toBe("/");

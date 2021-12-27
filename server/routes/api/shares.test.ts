@@ -9,6 +9,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#shares.list", () => {
   it("should only return shares created by user", async () => {
     const { user, admin, document } = await seed();
@@ -133,6 +134,7 @@ describe("#shares.list", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#shares.create", () => {
   it("should allow creating a share record for document", async () => {
     const { user, document } = await seed();
@@ -284,6 +286,7 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#shares.info", () => {
   it("should allow reading share by id", async () => {
     const { user, document } = await seed();
@@ -551,6 +554,7 @@ describe("#shares.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#shares.update", () => {
   it("should allow user to update a share", async () => {
     const { user, document } = await seed();
@@ -647,6 +651,7 @@ describe("#shares.update", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#shares.revoke", () => {
   it("should allow author to revoke a share", async () => {
     const { user, document } = await seed();

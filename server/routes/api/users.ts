@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { Op } from "sequelize";
 import userDestroyer from "@server/commands/userDestroyer";
@@ -163,6 +164,7 @@ router.post("users.update", auth(), async (ctx) => {
     }),
   };
 });
+
 // Admin specific
 router.post("users.promote", auth(), async (ctx) => {
   const userId = ctx.body.id;
@@ -170,6 +172,8 @@ router.post("users.promote", auth(), async (ctx) => {
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId);
+  invariant(user, "user not found");
+
   authorize(actor, "promote", user);
   await user.promote();
   await Event.create({
@@ -200,6 +204,8 @@ router.post("users.demote", auth(), async (ctx) => {
   assertPresent(userId, "id is required");
   to = to === "viewer" ? "viewer" : "member";
   const user = await User.findByPk(userId);
+  invariant(user, "user not found");
+
   authorize(actor, "demote", user);
   await user.demote(teamId, to);
   await Event.create({
@@ -227,6 +233,8 @@ router.post("users.suspend", auth(), async (ctx) => {
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId);
+  invariant(user, "user not found");
+
   authorize(actor, "suspend", user);
   await userSuspender({
     user,
@@ -249,6 +257,8 @@ router.post("users.activate", auth(), async (ctx) => {
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId);
+  invariant(user, "user not found");
+
   authorize(actor, "activate", user);
   await user.activate();
   await Event.create({

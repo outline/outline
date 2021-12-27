@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 import script from "./20210716000000-backfill-revisions";
 
 beforeEach(() => flushdb());
+
 describe("#work", () => {
   it("should create events for revisions", async () => {
     const document = await buildDocument();

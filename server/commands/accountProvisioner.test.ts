@@ -22,6 +22,7 @@ beforeEach(() => {
   mailer.sendTemplate.mockReset();
   return flushdb();
 });
+
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
@@ -66,7 +67,7 @@ describe("accountProvisioner", () => {
 
   it("should update exising user and authentication", async () => {
     const existingTeam = await buildTeam();
-    const providers = await existingTeam.getAuthenticationProviders();
+    const providers = await existingTeam.$get("authenticationProviders");
     const authenticationProvider = providers[0];
     const existing = await buildUser({
       teamId: existingTeam.id,
@@ -113,7 +114,7 @@ describe("accountProvisioner", () => {
 
   it("should throw an error when authentication provider is disabled", async () => {
     const existingTeam = await buildTeam();
-    const providers = await existingTeam.getAuthenticationProviders();
+    const providers = await existingTeam.$get("authenticationProviders")();
     const authenticationProvider = providers[0];
     await authenticationProvider.update({
       enabled: false,
@@ -157,7 +158,9 @@ describe("accountProvisioner", () => {
 
   it("should create a new user in an existing team", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get(
+      "authenticationProviders"
+    )();
     const authenticationProvider = authenticationProviders[0];
     const { user, isNewUser } = await accountProvisioner({
       ip,

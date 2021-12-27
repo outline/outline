@@ -9,6 +9,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#revisions.info", () => {
   it("should return a document revision", async () => {
     const { user, document } = await seed();
@@ -38,6 +39,7 @@ describe("#revisions.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#revisions.list", () => {
   it("should return a document's revisions", async () => {
     const { user, document } = await seed();

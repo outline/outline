@@ -60,7 +60,7 @@ export default async function teamCreator({
     // authentication provider to the existing team
     if (teamCount === 1 && domain && getAllowedDomains().includes(domain)) {
       const team = await Team.findOne();
-      authP = await team.createAuthenticationProvider(authenticationProvider);
+      authP = await team.$create("authenticationProvider", authenticationProvider);
       return {
         authenticationProvider: authP,
         team,

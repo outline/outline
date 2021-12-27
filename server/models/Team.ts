@@ -62,7 +62,7 @@ class Team extends ParanoidModel {
 
   @Unique
   @Column
-  domain: true | null;
+  domain: string | null;
 
   @Column
   avatarUrl: string | null;

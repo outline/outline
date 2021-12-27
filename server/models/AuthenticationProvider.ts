@@ -9,19 +9,26 @@ import {
   HasMany,
   IsIn,
   Table,
+  Model,
+  IsUUID,
+  PrimaryKey,
 } from "sequelize-typescript";
 import { ValidationError } from "../errors";
 import providers from "../routes/auth/providers";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
-import BaseModel from "./base/BaseModel";
 
 @Table({
   tableName: "authentication_providers",
   modelName: "authentication_provider",
-  timestamps: true,
+  updatedAt: false,
 })
-class AuthenticationProvider extends BaseModel {
+class AuthenticationProvider extends Model {
+  @IsUUID(4)
+  @PrimaryKey
+  @Column(DataType.UUID)
+  id: string;
+
   @IsIn([providers.map((p) => p.id)])
   @Column
   name: string;

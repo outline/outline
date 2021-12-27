@@ -8,6 +8,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("/share/:id", () => {
   it("should return standard title in html when loading share", async () => {
     const share = await buildShare({

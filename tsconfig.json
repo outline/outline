@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "jsx": "react",
     "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "noImplicitOverride": false,

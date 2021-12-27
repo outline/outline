@@ -54,6 +54,7 @@ describe("documents.publish", () => {
     expect(backlinks.length).toBe(0);
   });
 });
+
 describe("documents.update", () => {
   test("should not fail on a document with no previous revisions", async () => {
     const otherDocument = await buildDocument();
@@ -158,6 +159,7 @@ describe("documents.update", () => {
     expect(backlinks[0].documentId).toBe(yetAnotherDocument.id);
   });
 });
+
 describe("documents.delete", () => {
   test("should destroy related backlinks", async () => {
     const otherDocument = await buildDocument();
@@ -188,6 +190,7 @@ describe("documents.delete", () => {
     expect(backlinks.length).toBe(0);
   });
 });
+
 describe("documents.title_change", () => {
   test("should update titles in backlinked documents", async () => {
     const newTitle = "test";

@@ -10,6 +10,7 @@ import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import documentMover from "./documentMover";
 
 beforeEach(() => flushdb());
+
 describe("documentMover", () => {
   const ip = "127.0.0.1";
 

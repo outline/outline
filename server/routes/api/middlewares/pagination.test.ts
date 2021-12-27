@@ -7,6 +7,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#pagination", () => {
   it("should allow offset and limit", async () => {
     const { user } = await seed();

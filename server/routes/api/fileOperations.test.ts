@@ -26,6 +26,7 @@ jest.mock("aws-sdk", () => {
 });
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#fileOperations.info", () => {
   it("should return fileOperation", async () => {
     const team = await buildTeam();
@@ -73,6 +74,7 @@ describe("#fileOperations.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#fileOperations.list", () => {
   it("should return fileOperations list", async () => {
     const team = await buildTeam();
@@ -212,6 +214,7 @@ describe("#fileOperations.list", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#fileOperations.redirect", () => {
   it("should not redirect when file operation is not complete", async () => {
     const team = await buildTeam();
@@ -234,6 +237,7 @@ describe("#fileOperations.redirect", () => {
     expect(body.message).toEqual("export is not complete yet");
   });
 });
+
 describe("#fileOperations.info", () => {
   it("should return file operation", async () => {
     const team = await buildTeam();
@@ -279,6 +283,7 @@ describe("#fileOperations.info", () => {
     expect(res.status).toBe(403);
   });
 });
+
 describe("#fileOperations.delete", () => {
   it("should delete file operation", async () => {
     const team = await buildTeam();

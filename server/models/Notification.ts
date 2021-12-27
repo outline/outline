@@ -11,7 +11,11 @@ import {
 } from "sequelize-typescript";
 import User from "./User";
 
-@Table({ tableName: "notifications", modelName: "notification" })
+@Table({
+  tableName: "notifications",
+  modelName: "notification",
+  updatedAt: false,
+})
 class Notification extends Model {
   @IsUUID(4)
   @PrimaryKey

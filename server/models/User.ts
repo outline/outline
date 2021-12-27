@@ -130,7 +130,7 @@ class User extends ParanoidModel {
   @BelongsTo(() => Team)
   team: Team;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
 

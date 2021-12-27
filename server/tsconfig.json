@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "sourceMap": false,
+    "outDir": "../build"
+  },
+  "include": [
+    "../server/**/*",
+    "../shared/**/*",
+  ],
+  "exclude": [
+    "../build",
+    "../app",
+    "./migrations",
+    "./test/*",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
+}

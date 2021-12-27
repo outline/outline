@@ -14,6 +14,7 @@ beforeEach(async () => {
   mailer.sendTemplate.mockReset();
 });
 afterAll(() => server.close());
+
 describe("email", () => {
   it("should require email param", async () => {
     const res = await server.post("/auth/email", {

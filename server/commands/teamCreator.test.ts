@@ -14,6 +14,7 @@ jest.mock("aws-sdk", () => {
   };
 });
 beforeEach(() => flushdb());
+
 describe("teamCreator", () => {
   it("should create team and authentication provider", async () => {
     const result = await teamCreator({
@@ -73,7 +74,7 @@ describe("teamCreator", () => {
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
     expect(isNewTeam).toEqual(false);
-    const providers = await team.getAuthenticationProviders();
+    const providers = await team.$get("authenticationProviders")();
     expect(providers.length).toEqual(2);
   });
 

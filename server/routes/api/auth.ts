@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
@@ -9,8 +10,7 @@ import providers from "../auth/providers";
 
 const router = new Router();
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'team' implicitly has an 'any' type.
-function filterProviders(team) {
+function filterProviders(team: Team) {
   return providers
     .sort((provider) => (provider.id === "email" ? 1 : -1))
     .filter((provider) => {
@@ -110,8 +110,9 @@ router.post("auth.config", async (ctx) => {
 });
 
 router.post("auth.info", auth(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
+  invariant(team, "Team not found");
 
   ctx.body = {
     data: {

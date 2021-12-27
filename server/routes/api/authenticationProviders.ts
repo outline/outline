@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { AuthenticationProvider, Event } from "@server/models";
@@ -7,7 +8,6 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { assertUuid, assertPresent } from "@server/validation";
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
 import allAuthenticationProviders from "../auth/providers";
 
 const router = new Router();
@@ -16,8 +16,9 @@ const { authorize } = policy;
 router.post("authenticationProviders.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
+  invariant(authenticationProvider, "authenticationProvider not found");
   authorize(user, "read", authenticationProvider);
 
   ctx.body = {
@@ -30,8 +31,10 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
   const { id, isEnabled } = ctx.body;
   assertUuid(id, "id is required");
   assertPresent(isEnabled, "isEnabled is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
+  invariant(authenticationProvider, "authenticationProvider not found");
+
   authorize(user, "update", authenticationProvider);
   const enabled = !!isEnabled;
 
@@ -59,10 +62,12 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
 });
 
 router.post("authenticationProviders.list", auth(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   authorize(user, "read", user.team);
-  const teamAuthenticationProviders = await user.team.getAuthenticationProviders();
-  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
+
+  const teamAuthenticationProviders = await user.team.$get(
+    "authenticationProviders"
+  )();
   const otherAuthenticationProviders = allAuthenticationProviders.filter(
     (p) =>
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.

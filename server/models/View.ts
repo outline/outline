@@ -38,9 +38,11 @@ class View extends BaseModel {
   @Column(DataType.UUID)
   documentId: string;
 
-  static incrementOrCreate = async (
-    where: Pick<FindOptions<View>, "where">
-  ) => {
+  static incrementOrCreate = async (where: {
+    userId?: string;
+    documentId?: string;
+    collectionId?: string;
+  }) => {
     const [model, created] = await View.findOrCreate({
       where,
     });

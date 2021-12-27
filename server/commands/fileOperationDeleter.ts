@@ -17,6 +17,7 @@ export default async function fileOperationDeleter(
         name: "fileOperations.delete",
         teamId: user.teamId,
         actorId: user.id,
+        // @ts-expect-error dataValues does exist
         data: fileOp.dataValues,
         ip,
       },

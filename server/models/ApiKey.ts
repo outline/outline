@@ -5,6 +5,7 @@ import {
   Unique,
   BeforeValidate,
   BelongsTo,
+  ForeignKey,
 } from "sequelize-typescript";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -31,6 +32,10 @@ class ApiKey extends ParanoidModel {
 
   @BelongsTo(() => User, "userId")
   user: User;
+
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
 }
 
 export default ApiKey;

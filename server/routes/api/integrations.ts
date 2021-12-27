@@ -16,7 +16,7 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
   if (direction !== "ASC") direction = "DESC";
   assertSort(sort, Integration);
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const integrations = await Integration.findAll({
     where: {
       teamId: user.teamId,

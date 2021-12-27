@@ -9,10 +9,11 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#views.list", () => {
   it("should return views for a document", async () => {
     const { user, document } = await seed();
-    await View.createOrIncrement({
+    await View.incrementOrCreate({
       documentId: document.id,
       userId: user.id,
     });
@@ -38,7 +39,7 @@ describe("#views.list", () => {
       userId: user.id,
       permission: "read",
     });
-    await View.createOrIncrement({
+    await View.incrementOrCreate({
       documentId: document.id,
       userId: user.id,
     });
@@ -78,6 +79,7 @@ describe("#views.list", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#views.create", () => {
   it("should allow creating a view record for document", async () => {
     const { user, document } = await seed();

@@ -37,7 +37,8 @@ export default async function present(
   const text = options.isPublic
     ? await replaceImageAttachments(document.text)
     : document.text;
-  const data = {
+
+  const data: Record<string, any> = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
@@ -71,9 +72,7 @@ export default async function present(
   if (!options.isPublic) {
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'UserPresentation | null | undefined' is not ... Remove this comment to see the full error message
     data.createdBy = presentUser(document.createdBy);
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'UserPresentation | null | undefined' is not ... Remove this comment to see the full error message
     data.updatedBy = presentUser(document.updatedBy);
     data.collaboratorIds = document.collaboratorIds;
   }

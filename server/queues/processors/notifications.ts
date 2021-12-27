@@ -149,7 +149,7 @@ export default class NotificationsProcessor {
 
     for (const setting of notificationSettings) {
       // Suppress notifications for suspended users
-      if (setting.user.isSuspended) {
+      if (setting.user.isSuspended || !setting.user.email) {
         continue;
       }
 

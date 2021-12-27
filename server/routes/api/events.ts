@@ -11,7 +11,7 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("events.list", auth(), pagination(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   let { direction } = ctx.body;
   const {
     sort = "createdAt",

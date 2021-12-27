@@ -16,7 +16,7 @@ const router = new Router();
 router.post("fileOperations.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   const fileOperation = await FileOperation.findByPk(id);
   invariant(fileOperation, "File operation not found");
@@ -43,7 +43,7 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   );
 
   if (direction !== "ASC") direction = "DESC";
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const where = {
     teamId: user.teamId,
     type,
@@ -72,7 +72,7 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   const fileOp = await FileOperation.unscoped().findByPk(id);
 
@@ -94,7 +94,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   const fileOp = await FileOperation.findByPk(id);
 

@@ -1,5 +1,5 @@
 import fetch from "fetch-with-proxy";
-import { Op } from "sequelize-typescript";
+import { Op } from "sequelize";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
 import {
@@ -70,7 +70,7 @@ export default class SlackProcessor {
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
-    if (!document) return;
+    if (!document || !team) return;
 
     // never send notifications for draft documents
     if (!document.publishedAt) return;

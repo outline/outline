@@ -7,6 +7,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#team.update", () => {
   it("should update team details", async () => {
     const { admin } = await seed();

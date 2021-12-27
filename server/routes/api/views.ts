@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { View, Document, Event } from "@server/models";
@@ -12,7 +13,7 @@ router.post("views.list", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   assertUuid(documentId, "documentId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
@@ -28,15 +29,18 @@ router.post("views.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   assertUuid(documentId, "documentId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
+  invariant(document, "document not found");
+
   authorize(user, "read", document);
-  const view = await View.createOrIncrement({
+  const view = await View.incrementOrCreate({
     documentId,
     userId: user.id,
   });
+
   await Event.create({
     name: "views.create",
     actorId: user.id,

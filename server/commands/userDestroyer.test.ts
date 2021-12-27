@@ -3,6 +3,7 @@ import { flushdb } from "@server/test/support";
 import userDestroyer from "./userDestroyer";
 
 beforeEach(() => flushdb());
+
 describe("userDestroyer", () => {
   const ip = "127.0.0.1";
 

@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("#findLatest", () => {
   test("should return latest revision", async () => {
     const document = await buildDocument({

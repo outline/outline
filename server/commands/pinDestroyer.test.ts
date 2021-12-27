@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 import pinDestroyer from "./pinDestroyer";
 
 beforeEach(() => flushdb());
+
 describe("pinCreator", () => {
   const ip = "127.0.0.1";
 

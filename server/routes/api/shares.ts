@@ -15,7 +15,7 @@ router.post("shares.info", auth(), async (ctx) => {
   const { id, documentId, apiVersion } = ctx.body;
   assertUuid(id || documentId, "id or documentId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const shares = [];
   const share = await Share.scope({
     method: ["withCollection", user.id],
@@ -104,7 +104,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   if (direction !== "ASC") direction = "DESC";
   assertSort(sort, Share);
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const where = {
     teamId: user.teamId,
     userId: user.id,
@@ -213,7 +213,7 @@ router.post("shares.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   assertPresent(documentId, "documentId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
@@ -261,7 +261,7 @@ router.post("shares.revoke", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const share = await Share.findByPk(id);
   authorize(user, "revoke", share);
   const document = await Document.findByPk(share.documentId);

@@ -3,6 +3,7 @@ import { flushdb } from "@server/test/support";
 import userInviter from "./userInviter";
 
 beforeEach(() => flushdb());
+
 describe("userInviter", () => {
   const ip = "127.0.0.1";
 
@@ -10,8 +11,8 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
+          role: "member",
           email: "test@example.com",
           name: "Test",
         },
@@ -26,8 +27,8 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
+          role: "member",
           email: " ",
           name: "Test",
         },
@@ -42,8 +43,8 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
+          role: "member",
           email: "notanemail",
           name: "Test",
         },
@@ -58,13 +59,13 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
+          role: "member",
           email: "the@same.com",
           name: "Test",
         },
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: strin... Remove this comment to see the full error message
         {
+          role: "member",
           email: "the@SAME.COM",
           name: "Test",
         },
@@ -79,9 +80,9 @@ describe("userInviter", () => {
     const user = await buildUser();
     const response = await userInviter({
       invites: [
-        // @ts-expect-error ts-migrate(2741) FIXME: Property 'role' is missing in type '{ email: any; ... Remove this comment to see the full error message
         {
-          email: user.email,
+          role: "member",
+          email: user.email!,
           name: user.name,
         },
       ],

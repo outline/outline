@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());
+
 describe("read_write permission", () => {
   it("should allow read write permissions for team member", async () => {
     const team = await buildTeam();
@@ -45,6 +46,7 @@ describe("read_write permission", () => {
     expect(abilities.share).toEqual(true);
   });
 });
+
 describe("read permission", () => {
   it("should allow read permissions for team member", async () => {
     const team = await buildTeam();
@@ -86,6 +88,7 @@ describe("read permission", () => {
     expect(abilities.share).toEqual(true);
   });
 });
+
 describe("no permission", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();

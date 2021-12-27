@@ -137,10 +137,12 @@ export default async function userCreator({
   const transaction = await User.sequelize!.transaction();
 
   try {
-    const { defaultUserRole } = await Team.findByPk(teamId, {
+    const team = await Team.findByPk(teamId, {
       attributes: ["defaultUserRole"],
       transaction,
     });
+    const defaultUserRole = team?.defaultUserRole;
+
     const user = await User.create(
       {
         name,

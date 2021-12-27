@@ -68,6 +68,8 @@ export default async function accountProvisioner({
   const { authenticationProvider, team, isNewTeam } = result;
 
   if (!authenticationProvider.enabled) {
+    console.log(authenticationProvider);
+
     throw AuthenticationProviderDisabledError();
   }
 

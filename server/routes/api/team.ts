@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
@@ -18,8 +19,10 @@ router.post("team.update", auth(), async (ctx) => {
     collaborativeEditing,
     defaultUserRole,
   } = ctx.body;
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
+  invariant(team, "team not found");
+
   authorize(user, "update", team);
 
   if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {

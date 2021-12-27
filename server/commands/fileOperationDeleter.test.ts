@@ -15,6 +15,7 @@ jest.mock("aws-sdk", () => {
   };
 });
 beforeEach(() => flushdb());
+
 describe("fileOperationDeleter", () => {
   const ip = "127.0.0.1";
 

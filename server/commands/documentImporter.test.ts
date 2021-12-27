@@ -7,6 +7,7 @@ import documentImporter from "./documentImporter";
 
 jest.mock("../utils/s3");
 beforeEach(() => flushdb());
+
 describe("documentImporter", () => {
   const ip = "127.0.0.1";
 

@@ -12,6 +12,7 @@ jest.mock("../../mailer");
 const Notifications = new NotificationsService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("documents.publish", () => {
   test("should not send a notification to author", async () => {
     const user = await buildUser();
@@ -82,6 +83,7 @@ describe("documents.publish", () => {
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
 });
+
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();

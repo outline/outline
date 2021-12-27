@@ -26,6 +26,7 @@ jest.mock("aws-sdk", () => {
 });
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#attachments.delete", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.delete");
@@ -120,12 +121,12 @@ describe("#attachments.delete", () => {
     });
     const document = await buildDocument({
       teamId: collection.teamId,
-      userId: collection.userId,
+      userId: collection.createdById,
       collectionId: collection.id,
     });
     const attachment = await buildAttachment({
       teamId: document.teamId,
-      userId: document.userId,
+      userId: document.createdById,
       documentId: document.id,
       acl: "private",
     });
@@ -138,6 +139,7 @@ describe("#attachments.delete", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#attachments.redirect", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.redirect");
@@ -221,12 +223,12 @@ describe("#attachments.redirect", () => {
     });
     const document = await buildDocument({
       teamId: collection.teamId,
-      userId: collection.userId,
+      userId: collection.createdById,
       collectionId: collection.id,
     });
     const attachment = await buildAttachment({
       teamId: document.teamId,
-      userId: document.userId,
+      userId: document.createdById,
       documentId: document.id,
       acl: "private",
     });

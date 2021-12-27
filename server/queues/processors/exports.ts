@@ -1,4 +1,5 @@
 import fs from "fs";
+import invariant from "invariant";
 import { FileOperation, Collection, Event, Team, User } from "@server/models";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
@@ -13,8 +14,14 @@ export default class ExportsProcessor {
       case "collections.export_all": {
         const { actorId, teamId } = event;
         const team = await Team.findByPk(teamId);
+        invariant(team, "team operation not found");
+
         const user = await User.findByPk(actorId);
+        invariant(user, "user operation not found");
+
         const exportData = await FileOperation.findByPk(event.modelId);
+        invariant(exportData, "exportData not found");
+
         const collectionIds =
           // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Co... Remove this comment to see the full error message
           event.collectionId || (await user.collectionIds());
@@ -101,6 +108,7 @@ export default class ExportsProcessor {
       name: "fileOperations.update",
       teamId,
       actorId,
+      // @ts-expect-error dataValues exists
       data: fileOperation.dataValues,
     });
   }

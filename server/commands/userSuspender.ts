@@ -3,15 +3,17 @@ import { sequelize } from "@server/database/sequelize";
 import { User, Event, GroupUser } from "@server/models";
 import { ValidationError } from "../errors";
 
+type Props = {
+  user: User;
+  actorId: string;
+  ip: string;
+};
+
 export default async function userSuspender({
   user,
   actorId,
   ip,
-}: {
-  user: User;
-  actorId: string;
-  ip: string;
-}): Promise<void> {
+}: Props): Promise<void> {
   if (user.id === actorId) {
     throw ValidationError("Unable to suspend the current user");
   }

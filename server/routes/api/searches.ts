@@ -8,7 +8,7 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("searches.list", auth(), pagination(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
 
   const searches = await SearchQuery.findAll({
     where: {

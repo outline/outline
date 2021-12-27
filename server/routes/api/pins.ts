@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
@@ -107,6 +108,8 @@ router.post("pins.update", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   let pin = await Pin.findByPk(id);
+  invariant(pin, "pin not found");
+
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });
@@ -136,6 +139,8 @@ router.post("pins.delete", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const pin = await Pin.findByPk(id);
+  invariant(pin, "pin not found");
+
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });

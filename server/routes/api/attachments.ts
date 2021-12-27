@@ -86,7 +86,7 @@ router.post("attachments.create", auth(), async (ctx) => {
 router.post("attachments.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id);
 
   if (!attachment) {
@@ -117,7 +117,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
 router.post("attachments.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id);
 
   if (!attachment) {

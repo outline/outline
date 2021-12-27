@@ -3,6 +3,7 @@ import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 
 beforeEach(() => flushdb());
+
 describe("user model", () => {
   describe("destroy", () => {
     it("should delete user authentications", async () => {

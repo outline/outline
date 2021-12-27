@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -13,7 +14,7 @@ const router = new Router();
 router.post("revisions.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const revision = await Revision.findByPk(id);
 
   if (!revision) {
@@ -38,10 +39,12 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
   assertSort(sort, Revision);
   assertPresent(documentId, "documentId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
+  invariant(document, "document not found");
+
   authorize(user, "read", document);
   const revisions = await Revision.findAll({
     where: {

@@ -22,7 +22,7 @@ export default async function documentCreator({
   publish?: boolean;
   collectionId: string;
   parentDocumentId?: string;
-  templateDocument?: Document;
+  templateDocument?: Document | null;
   template?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

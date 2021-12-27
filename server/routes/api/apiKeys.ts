@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { ApiKey, Event } from "@server/models";
@@ -12,7 +13,7 @@ const router = new Router();
 router.post("apiKeys.create", auth(), async (ctx) => {
   const { name } = ctx.body;
   assertPresent(name, "name is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   authorize(user, "createApiKey", user.team);
   const key = await ApiKey.create({
     name,
@@ -35,7 +36,7 @@ router.post("apiKeys.create", auth(), async (ctx) => {
 });
 
 router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const keys = await ApiKey.findAll({
     where: {
       userId: user.id,
@@ -54,8 +55,10 @@ router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
 router.post("apiKeys.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const key = await ApiKey.findByPk(id);
+  invariant(key, "key not found");
+
   authorize(user, "delete", key);
   await key.destroy();
   await Event.create({

@@ -109,7 +109,7 @@ export async function buildUser(overrides: Record<string, any> = {}) {
       lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
       authentications: [
         {
-          authenticationProviderId: authenticationProvider.id,
+          authenticationProviderId: authenticationProvider!.id,
           providerId: uuidv4(),
         },
       ],

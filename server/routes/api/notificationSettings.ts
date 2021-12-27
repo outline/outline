@@ -12,7 +12,7 @@ router.post("notificationSettings.create", auth(), async (ctx) => {
   const { event } = ctx.body;
   assertPresent(event, "event is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   authorize(user, "createNotificationSetting", user.team);
   const [setting] = await NotificationSetting.findOrCreate({
     where: {
@@ -28,7 +28,7 @@ router.post("notificationSettings.create", auth(), async (ctx) => {
 });
 
 router.post("notificationSettings.list", auth(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const settings = await NotificationSetting.findAll({
     where: {
       userId: user.id,
@@ -44,7 +44,7 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const setting = await NotificationSetting.findByPk(id);
   authorize(user, "delete", setting);
   await setting.destroy();

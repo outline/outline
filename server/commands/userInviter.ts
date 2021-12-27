@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
 import { User, Event, Team } from "@server/models";
@@ -22,6 +23,8 @@ export default async function userInviter({
   users: User[];
 }> {
   const team = await Team.findByPk(user.teamId);
+  invariant(team, "team not found");
+
   // filter out empties and obvious non-emails
   const compactedInvites = invites.filter(
     (invite) => !!invite.email.trim() && invite.email.match("@")

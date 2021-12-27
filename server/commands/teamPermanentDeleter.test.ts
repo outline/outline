@@ -21,6 +21,7 @@ jest.mock("aws-sdk", () => {
   };
 });
 beforeEach(() => flushdb());
+
 describe("teamPermanentDeleter", () => {
   it("should destroy related data", async () => {
     const team = await buildTeam({
