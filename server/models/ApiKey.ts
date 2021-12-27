@@ -1,10 +1,7 @@
 import randomstring from "randomstring";
 import {
-  Model,
   Column,
-  PrimaryKey,
   Table,
-  IsUUID,
   Unique,
   DeletedAt,
   CreatedAt,
@@ -12,15 +9,11 @@ import {
   BeforeValidate,
   BelongsTo,
 } from "sequelize-typescript";
+import BaseModel from "./BaseModel";
 import User from "./User";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
-class ApiKey extends Model {
-  @IsUUID(4)
-  @Column
-  @PrimaryKey
-  id: string;
-
+class ApiKey extends BaseModel {
   @Column
   name: string;
 

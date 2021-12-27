@@ -3,10 +3,8 @@ import randomstring from "randomstring";
 import { Identifier, Transaction } from "sequelize";
 import {
   Sequelize,
-  Model,
   Table,
   Column,
-  PrimaryKey,
   Unique,
   IsIn,
   Default,
@@ -20,7 +18,6 @@ import {
   HasMany,
   BelongsToMany,
   BelongsTo,
-  IsUUID,
   ForeignKey,
   Scopes,
 } from "sequelize-typescript";
@@ -29,6 +26,7 @@ import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import slugify from "@server/utils/slugify";
 import { NavigationNode } from "~/types";
 import { Op, sequelize } from "../sequelize";
+import BaseModel from "./BaseModel";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
@@ -116,12 +114,7 @@ import User from "./User";
   }),
 }))
 @Table({ tableName: "collections", modelName: "collection" })
-class Collection extends Model {
-  @IsUUID(4)
-  @Column
-  @PrimaryKey
-  id: string;
-
+class Collection extends BaseModel {
   @Column
   @Unique
   urlId: string;
