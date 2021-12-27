@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import {
@@ -34,6 +35,7 @@ async function copyAttachments(
     // then create a new attachment pointed to this doc and update the reference
     // in the text so that it gets the moved documents permissions
     if (existing && existing.documentId !== documentId) {
+      // @ts-expect-error dataValues exists
       const { id, ...rest } = existing.dataValues;
       const attachment = await Attachment.create(
         { ...rest, documentId },
@@ -92,12 +94,13 @@ export default async function documentMover({
         transaction,
         paranoid: false,
       });
-      const [
-        documentJson,
-        fromIndex,
-      ] = (await collection.removeDocumentInStructure(document, {
+
+      const response = await collection?.removeDocumentInStructure(document, {
         save: false,
-      })) || [undefined, index];
+      });
+
+      const documentJson = response?.[0];
+      const fromIndex = response?.[1] || 0;
 
       // if we're reordering from within the same parent
       // the original and destination collection are the same,
@@ -114,7 +117,7 @@ export default async function documentMover({
       // if the collection is the same then it will get saved below, this
       // line prevents a pointless intermediate save from occurring.
       if (collectionChanged) {
-        await collection.save({
+        await collection?.save({
           transaction,
         });
         document.text = await copyAttachments(document, {
@@ -163,7 +166,10 @@ export default async function documentMover({
               });
               child.collectionId = collectionId;
               await child.save();
-              child.collection = newCollection;
+
+              if (newCollection) {
+                child.collection = newCollection;
+              }
               // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
               result.documents.push(child);
             })
@@ -191,7 +197,10 @@ export default async function documentMover({
       await document.save({
         transaction,
       });
-      document.collection = newCollection;
+
+      if (newCollection) {
+        document.collection = newCollection;
+      }
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Document' is not assignable to p... Remove this comment to see the full error message
       result.documents.push(document);
 

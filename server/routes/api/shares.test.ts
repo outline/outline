@@ -185,7 +185,7 @@ describe("#shares.create", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await share.revoke();
+    await share.revoke(user.id);
     const res = await server.post("/api/shares.create", {
       body: {
         token: user.getJwtToken(),
@@ -378,7 +378,7 @@ describe("#shares.info", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await share.revoke();
+    await share.revoke(user.id);
     const res = await server.post("/api/shares.info", {
       body: {
         token: user.getJwtToken(),

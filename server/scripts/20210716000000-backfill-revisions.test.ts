@@ -11,11 +11,11 @@ describe("#work", () => {
     const revision = await Revision.createFromDocument(document);
     await script();
     const event = await Event.findOne();
-    expect(event.name).toEqual("revisions.create");
-    expect(event.modelId).toEqual(revision.id);
-    expect(event.documentId).toEqual(document.id);
-    expect(event.teamId).toEqual(document.teamId);
-    expect(event.createdAt).toEqual(revision.createdAt);
+    expect(event!.name).toEqual("revisions.create");
+    expect(event!.modelId).toEqual(revision.id);
+    expect(event!.documentId).toEqual(document.id);
+    expect(event!.teamId).toEqual(document.teamId);
+    expect(event!.createdAt).toEqual(revision.createdAt);
   });
 
   it("should create events for revisions of deleted documents", async () => {
@@ -24,11 +24,11 @@ describe("#work", () => {
     await document.destroy();
     await script();
     const event = await Event.findOne();
-    expect(event.name).toEqual("revisions.create");
-    expect(event.modelId).toEqual(revision.id);
-    expect(event.documentId).toEqual(document.id);
-    expect(event.teamId).toEqual(document.teamId);
-    expect(event.createdAt).toEqual(revision.createdAt);
+    expect(event!.name).toEqual("revisions.create");
+    expect(event!.modelId).toEqual(revision.id);
+    expect(event!.documentId).toEqual(document.id);
+    expect(event!.teamId).toEqual(document.teamId);
+    expect(event!.createdAt).toEqual(revision.createdAt);
   });
 
   it("should be idempotent", async () => {

@@ -1,7 +1,6 @@
 import { subDays } from "date-fns";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
-import { Op } from "sequelize";
 import { Document, FileOperation } from "@server/models";
 import webService from "@server/services/web";
 import { buildDocument, buildFileOperation } from "@server/test/factories";
@@ -113,9 +112,7 @@ describe("#utils.gc", () => {
     const data = await FileOperation.count({
       where: {
         type: "export",
-        state: {
-          [Op.eq]: "expired",
-        },
+        state: "expired",
       },
     });
     expect(res.status).toEqual(200);
@@ -140,9 +137,7 @@ describe("#utils.gc", () => {
     const data = await FileOperation.count({
       where: {
         type: "export",
-        state: {
-          [Op.eq]: "expired",
-        },
+        state: "expired",
       },
     });
     expect(res.status).toEqual(200);

@@ -31,7 +31,7 @@ type Policy = Record<string, boolean>;
  */
 export function serialize(
   model: User,
-  target: Attachment | Team | Collection | Document | Group
+  target: Attachment | Team | Collection | Document | User | Group | null
 ): Policy {
   const output = {};
   abilities.forEach((ability) => {

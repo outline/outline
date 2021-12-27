@@ -117,9 +117,13 @@ export default async function userCreator({
           transaction,
         }
       );
-      auth = await invite.createAuthentication(authentication, {
-        transaction,
-      });
+      auth = await invite.$create<UserAuthentication>(
+        "authentication",
+        authentication,
+        {
+          transaction,
+        }
+      );
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();

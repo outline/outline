@@ -480,7 +480,7 @@ describe("#collections.add_group", () => {
         groupId: group.id,
       },
     });
-    const groups = await collection.getGroups();
+    const groups = await collection.$get("groups");
     expect(groups.length).toEqual(1);
     expect(res.status).toEqual(200);
   });
@@ -545,7 +545,7 @@ describe("#collections.remove_group", () => {
         groupId: group.id,
       },
     });
-    let users = await collection.getGroups();
+    let users = await collection.$get("groups");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/collections.remove_group", {
       body: {
@@ -554,7 +554,7 @@ describe("#collections.remove_group", () => {
         groupId: group.id,
       },
     });
-    users = await collection.getGroups();
+    users = await collection.$get("groups");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(0);
   });

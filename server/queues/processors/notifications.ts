@@ -106,6 +106,10 @@ export default class NotificationsProcessor {
         continue;
       }
 
+      if (!setting.user.email) {
+        continue;
+      }
+
       mailer.documentNotification({
         to: setting.user.email,
         eventName,

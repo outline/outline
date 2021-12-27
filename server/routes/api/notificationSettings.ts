@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Team, NotificationSetting } from "@server/models";
@@ -46,6 +47,8 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const setting = await NotificationSetting.findByPk(id);
+  invariant(setting, "setting not found");
+
   authorize(user, "delete", setting);
   await setting.destroy();
 

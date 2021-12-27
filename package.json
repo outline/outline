@@ -211,7 +211,7 @@
     "@types/koa-static": "^4.0.2",
     "@types/markdown-it": "^12.2.3",
     "@types/natural-sort": "^0.0.21",
-    "@types/node": "^17.0.5",
+    "@types/node": "15.12.2",
     "@types/nodemailer": "^6.4.4",
     "@types/passport-oauth2": "^1.4.11",
     "@types/prosemirror-inputrules": "^1.0.4",

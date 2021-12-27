@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Logger from "@server/logging/logger";
 import { Team, AuthenticationProvider } from "@server/models";
 import { getAllowedDomains } from "@server/utils/authentication";
@@ -60,7 +61,12 @@ export default async function teamCreator({
     // authentication provider to the existing team
     if (teamCount === 1 && domain && getAllowedDomains().includes(domain)) {
       const team = await Team.findOne();
-      authP = await team.$create("authenticationProvider", authenticationProvider);
+      invariant(team, "Team should exist");
+
+      authP = await team.$create<AuthenticationProvider>(
+        "authentication_provider",
+        authenticationProvider
+      );
       return {
         authenticationProvider: authP,
         team,

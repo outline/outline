@@ -50,7 +50,7 @@ describe("accountProvisioner", () => {
         scopes: ["read"],
       },
     });
-    const authentications = await user.getAuthentications();
+    const authentications = await user.$get("authentications");
     const auth = authentications[0];
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);
@@ -72,7 +72,7 @@ describe("accountProvisioner", () => {
     const existing = await buildUser({
       teamId: existingTeam.id,
     });
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const authentication = authentications[0];
     const newEmail = "test@example.com";
     const newUsername = "tname";
@@ -114,7 +114,7 @@ describe("accountProvisioner", () => {
 
   it("should throw an error when authentication provider is disabled", async () => {
     const existingTeam = await buildTeam();
-    const providers = await existingTeam.$get("authenticationProviders")();
+    const providers = await existingTeam.$get("authenticationProviders");
     const authenticationProvider = providers[0];
     await authenticationProvider.update({
       enabled: false,
@@ -122,7 +122,7 @@ describe("accountProvisioner", () => {
     const existing = await buildUser({
       teamId: existingTeam.id,
     });
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const authentication = authentications[0];
     let error;
 
@@ -131,7 +131,7 @@ describe("accountProvisioner", () => {
         ip,
         user: {
           name: existing.name,
-          email: existing.email,
+          email: existing.email!,
           avatarUrl: existing.avatarUrl,
         },
         team: {
@@ -158,9 +158,7 @@ describe("accountProvisioner", () => {
 
   it("should create a new user in an existing team", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const { user, isNewUser } = await accountProvisioner({
       ip,
@@ -185,7 +183,7 @@ describe("accountProvisioner", () => {
         scopes: ["read"],
       },
     });
-    const authentications = await user.getAuthentications();
+    const authentications = await user.$get("authentications");
     const auth = authentications[0];
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);

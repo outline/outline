@@ -33,7 +33,7 @@ describe("getDocumentParents", () => {
       ],
     });
     const result = collection.getDocumentParents(document.id);
-    expect(result.length).toBe(1);
+    expect(result?.length).toBe(1);
     expect(result[0]).toBe(parent.id);
   });
 
@@ -46,7 +46,7 @@ describe("getDocumentParents", () => {
       ],
     });
     const result = collection.getDocumentParents(parent.id);
-    expect(result.length).toBe(0);
+    expect(result?.length).toBe(0);
   });
 
   test("should not error if documentStructure is empty", async () => {
@@ -206,11 +206,15 @@ describe("#addDocumentToStructure", () => {
       });
       await collection.addDocumentToStructure(newDocument, undefined, {
         documentJson: {
+          id,
+          title: "Parent",
+          url: "parent",
           children: [
             {
               id,
               title: "Totally fake",
               children: [],
+              url: "totally-fake",
             },
           ],
         },
@@ -247,7 +251,7 @@ describe("#updateDocument", () => {
     await newDocument.save();
     await collection.updateDocument(newDocument);
     const reloaded = await Collection.findByPk(collection.id);
-    expect(reloaded.documentStructure[0].children[0].title).toBe(
+    expect(reloaded!.documentStructure[0].children[0].title).toBe(
       "Updated title"
     );
   });
@@ -320,8 +324,8 @@ describe("#removeDocument", () => {
     // Remove the document
     await collection.deleteDocument(newDocument);
     const reloaded = await Collection.findByPk(collection.id);
-    expect(reloaded.documentStructure.length).toBe(1);
-    expect(reloaded.documentStructure[0].children.length).toBe(0);
+    expect(reloaded!.documentStructure.length).toBe(1);
+    expect(reloaded!.documentStructure[0].children.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
         collectionId: collection.id,
@@ -407,14 +411,14 @@ describe("#findByPk", () => {
   test("should return collection with collection Id", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id);
-    expect(response.id).toBe(collection.id);
+    expect(response!.id).toBe(collection.id);
   });
 
   test("should return collection when urlId is present", async () => {
     const collection = await buildCollection();
     const id = `${slugify(collection.name)}-${collection.urlId}`;
     const response = await Collection.findByPk(id);
-    expect(response.id).toBe(collection.id);
+    expect(response!.id).toBe(collection.id);
   });
 
   test("should return undefined when incorrect uuid type", async () => {

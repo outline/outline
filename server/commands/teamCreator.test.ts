@@ -74,7 +74,7 @@ describe("teamCreator", () => {
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
     expect(isNewTeam).toEqual(false);
-    const providers = await team.$get("authenticationProviders")();
+    const providers = await team.$get("authenticationProviders");
     expect(providers.length).toEqual(2);
   });
 

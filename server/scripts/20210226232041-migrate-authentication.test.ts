@@ -32,8 +32,8 @@ describe("#work", () => {
         providerId: "U123",
       },
     });
-    expect(authProvider.name).toEqual("slack");
-    expect(auth.userId).toEqual(user.id);
+    expect(authProvider!.name).toEqual("slack");
+    expect(auth!.userId).toEqual(user.id);
   });
 
   it("should create authentication record for deleted users", async () => {
@@ -60,8 +60,8 @@ describe("#work", () => {
         providerId: "123456789",
       },
     });
-    expect(authProvider.name).toEqual("google");
-    expect(auth.userId).toEqual(user.id);
+    expect(authProvider!.name).toEqual("google");
+    expect(auth!.userId).toEqual(user.id);
   });
 
   it("should create authentication record for suspended users", async () => {
@@ -88,8 +88,8 @@ describe("#work", () => {
         providerId: "123456789",
       },
     });
-    expect(authProvider.name).toEqual("google");
-    expect(auth.userId).toEqual(user.id);
+    expect(authProvider!.name).toEqual("google");
+    expect(auth!.userId).toEqual(user.id);
   });
 
   it("should create correct authentication record when team has both slackId and googleId", async () => {
@@ -116,8 +116,8 @@ describe("#work", () => {
         providerId: "U456",
       },
     });
-    expect(authProvider.name).toEqual("slack");
-    expect(auth.userId).toEqual(user.id);
+    expect(authProvider!.name).toEqual("slack");
+    expect(auth!.userId).toEqual(user.id);
   });
 
   it("should skip invited users", async () => {

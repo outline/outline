@@ -29,7 +29,6 @@ export default function init(app: Koa, server: http.Server) {
       const documentName = url.parse(req.url).pathname?.split("/").pop();
       invariant(documentName, "Document name must be provided");
 
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Duplex' is not assignable to par... Remove this comment to see the full error message
       wss.handleUpgrade(req, socket, head, (client) => {
         hocuspocus.handleConnection(client, req, documentName);
       });

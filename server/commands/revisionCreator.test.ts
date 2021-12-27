@@ -22,8 +22,8 @@ describe("revisionCreator", () => {
     const event = await Event.findOne();
     expect(revision.documentId).toEqual(document.id);
     expect(revision.userId).toEqual(user.id);
-    expect(event.name).toEqual("revisions.create");
-    expect(event.modelId).toEqual(revision.id);
-    expect(event.createdAt).toEqual(document.updatedAt);
+    expect(event!.name).toEqual("revisions.create");
+    expect(event!.modelId).toEqual(revision.id);
+    expect(event!.createdAt).toEqual(document.updatedAt);
   });
 });

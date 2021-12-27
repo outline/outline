@@ -9,6 +9,7 @@ it("should serialize policy", async () => {
   expect(response.update).toEqual(true);
   expect(response.delete).toEqual(true);
 });
+
 it("should serialize domain policies on Team", async () => {
   const team = await buildTeam();
   const user = await buildUser({

@@ -34,7 +34,7 @@ describe("documentMover", () => {
     const document = await buildDocument({
       collectionId: collection.id,
     });
-    await document.archive();
+    await document.archive(user.id);
     const response = await documentMover({
       user,
       document,

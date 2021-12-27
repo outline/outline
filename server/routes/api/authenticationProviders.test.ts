@@ -17,9 +17,7 @@ describe("#authenticationProviders.info", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
@@ -38,9 +36,7 @@ describe("#authenticationProviders.info", () => {
   it("should require authorization", async () => {
     const team = await buildTeam();
     const user = await buildUser();
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
@@ -52,9 +48,7 @@ describe("#authenticationProviders.info", () => {
 
   it("should require authentication", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
@@ -70,9 +64,7 @@ describe("#authenticationProviders.update", () => {
     const user = await buildAdmin({
       teamId: team.id,
     });
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -92,9 +84,7 @@ describe("#authenticationProviders.update", () => {
       name: "google",
       providerId: uuidv4(),
     });
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -114,9 +104,7 @@ describe("#authenticationProviders.update", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -129,9 +117,7 @@ describe("#authenticationProviders.update", () => {
 
   it("should require authentication", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.$get(
-      "authenticationProviders"
-    )();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,

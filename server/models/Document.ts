@@ -646,10 +646,6 @@ class Document extends ParanoidModel {
     };
   };
 
-  getCollection(options?: FindOptions<Collection>) {
-    return Collection.findByPk(this.collectionId, options);
-  }
-
   toMarkdown = function (this: Document) {
     const text = unescape(this.text);
 
@@ -687,6 +683,8 @@ class Document extends ParanoidModel {
         hooks: false,
       });
     }
+
+    return undefined;
   };
 
   // Note: This method marks the document and it's children as deleted
@@ -768,7 +766,7 @@ class Document extends ParanoidModel {
     options?: FindOptions<Document>
   ) {
     if (!this.publishedAt) return this;
-    const collection = await this.getCollection();
+    const collection = await this.$get("collection");
     await collection?.removeDocumentInStructure(this);
 
     // unpublishing a document converts the "ownership" to yourself, so that it
@@ -784,7 +782,7 @@ class Document extends ParanoidModel {
   // to the archived area, where it can be subsequently restored.
   archive = async function (this: Document, userId: string) {
     // archive any children and remove from the document structure
-    const collection = await this.getCollection();
+    const collection = await this.$get("collection");
     if (collection) {
       await collection.removeDocumentInStructure(this);
       this.collection = collection;
@@ -796,7 +794,7 @@ class Document extends ParanoidModel {
 
   // Restore an archived document back to being visible to the team
   unarchive = async function (this: Document, userId: string) {
-    const collection = await this.getCollection();
+    const collection = await this.$get("collection");
 
     // check to see if the documents parent hasn't been archived also
     // If it has then restore the document to the collection root.
@@ -833,7 +831,7 @@ class Document extends ParanoidModel {
       async (transaction: Transaction): Promise<Document> => {
         if (!this.archivedAt && !this.template) {
           // delete any children and remove from the document structure
-          const collection = await this.getCollection({
+          const collection = await this.$get("collection", {
             transaction,
           });
           if (collection) await collection.deleteDocument(this);

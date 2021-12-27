@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { Op } from "sequelize";
 import { NotFoundError } from "@server/errors";
@@ -173,6 +174,8 @@ router.post("shares.update", auth(), async (ctx) => {
   const share = await Share.scope({
     method: ["withCollection", user.id],
   }).findByPk(id);
+  invariant(share, "share not found");
+
   authorize(user, "update", share);
 
   if (published !== undefined) {
@@ -217,6 +220,8 @@ router.post("shares.create", auth(), async (ctx) => {
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
+  invariant(document, "document not found");
+
   const team = await Team.findByPk(user.teamId);
   // user could be creating the share link to share with team members
   authorize(user, "read", document);
@@ -247,7 +252,9 @@ router.post("shares.create", auth(), async (ctx) => {
     });
   }
 
-  share.team = team;
+  if (team) {
+    share.team = team;
+  }
   share.user = user;
   share.document = document;
 
@@ -263,6 +270,7 @@ router.post("shares.revoke", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const share = await Share.findByPk(id);
+  invariant(share, "share not found");
   authorize(user, "revoke", share);
   const document = await Document.findByPk(share.documentId);
 

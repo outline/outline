@@ -140,7 +140,13 @@ class Collection extends ParanoidModel {
   maintainerApprovalRequired: boolean;
 
   @Column(DataType.JSONB)
-  documentStructure: NavigationNode[] | null;
+  get documentStructure(): NavigationNode[] {
+    return this.getDataValue("documentStructure") || [];
+  }
+
+  set documentStructure(value: NavigationNode[]) {
+    this.setDataValue("documentStructure", value);
+  }
 
   @Default(true)
   @Column
@@ -461,8 +467,8 @@ class Collection extends ParanoidModel {
   };
 
   isChildDocument = function (
-    parentDocumentId: string,
-    documentId: string
+    parentDocumentId?: string,
+    documentId?: string
   ): boolean {
     let result = false;
 
@@ -474,7 +480,7 @@ class Collection extends ParanoidModel {
       documents.forEach((document) => {
         const parents = [...input];
 
-        if (document.id === documentId) {
+        if (document.id === documentId && parentDocumentId) {
           result = parents.includes(parentDocumentId);
         } else {
           parents.push(document.id);
