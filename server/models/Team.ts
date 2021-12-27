@@ -13,6 +13,8 @@ import {
   BeforeSave,
   HasMany,
   Scopes,
+  Length,
+  Is,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
@@ -43,17 +45,14 @@ class Team extends ParanoidModel {
   @Column
   name: string;
 
-  // is: {
-  //   args: [/^[a-z\d-]+$/, "i"],
-  //   msg: "Must be only alphanumeric and dashes",
-  // },
-  // len: {
-  //   args: [4, 32],
-  //   msg: "Must be between 4 and 32 characters",
-  // },
   @Column
   @IsLowercase
   @Unique
+  @Length({ min: 4, max: 32, msg: "Must be between 4 and 32 characters" })
+  @Is({
+    args: [/^[a-z\d-]+$/, "i"],
+    msg: "Must be only alphanumeric and dashes",
+  })
   @NotIn({
     args: [RESERVED_SUBDOMAINS],
     msg: "You chose a restricted word, please try another.",

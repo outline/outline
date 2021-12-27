@@ -1377,7 +1377,7 @@ describe("#documents.viewed", () => {
 
   it("should return recently viewed documents", async () => {
     const { user, document } = await seed();
-    await View.increment({
+    await View.createOrIncrement({
       documentId: document.id,
       userId: user.id,
     });
@@ -1395,7 +1395,7 @@ describe("#documents.viewed", () => {
 
   it("should not return recently viewed but deleted documents", async () => {
     const { user, document } = await seed();
-    await View.increment({
+    await View.createOrIncrement({
       documentId: document.id,
       userId: user.id,
     });
@@ -1412,7 +1412,7 @@ describe("#documents.viewed", () => {
 
   it("should not return recently viewed documents in collection not a member of", async () => {
     const { user, document, collection } = await seed();
-    await View.increment({
+    await View.createOrIncrement({
       documentId: document.id,
       userId: user.id,
     });

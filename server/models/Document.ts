@@ -19,7 +19,6 @@ import {
   AfterCreate,
   Scopes,
 } from "sequelize-typescript";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'slat... Remove this comment to see the full error message
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
@@ -42,7 +41,7 @@ type SearchResponse = {
   results: {
     ranking: number;
     context: string;
-    document: Document;
+    document: Document | undefined;
   }[];
   totalCount: number;
 };
@@ -266,11 +265,11 @@ class Document extends ParanoidModel {
       model.version = DOCUMENT_VERSION;
     }
 
-    return Document.beforeUpdate(model);
+    return Document.processUpdate(model);
   }
 
   @BeforeUpdate
-  static beforeUpdate(model: Document) {
+  static processUpdate(model: Document) {
     const { emoji } = parseTitle(model.text);
     // emoji in the title is split out for easier display
     model.emoji = emoji || null;
@@ -299,7 +298,6 @@ class Document extends ParanoidModel {
 
     // increment revision
     model.revisionCount += 1;
-    return model;
   }
 
   // associations

@@ -32,7 +32,7 @@ router.post("views.create", auth(), async (ctx) => {
     userId: user.id,
   });
   authorize(user, "read", document);
-  const view = await View.increment({
+  const view = await View.createOrIncrement({
     documentId,
     userId: user.id,
   });

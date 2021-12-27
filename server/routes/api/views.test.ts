@@ -12,7 +12,7 @@ afterAll(() => server.close());
 describe("#views.list", () => {
   it("should return views for a document", async () => {
     const { user, document } = await seed();
-    await View.increment({
+    await View.createOrIncrement({
       documentId: document.id,
       userId: user.id,
     });
@@ -38,7 +38,7 @@ describe("#views.list", () => {
       userId: user.id,
       permission: "read",
     });
-    await View.increment({
+    await View.createOrIncrement({
       documentId: document.id,
       userId: user.id,
     });

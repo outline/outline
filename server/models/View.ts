@@ -1,85 +1,98 @@
 import { subMilliseconds } from "date-fns";
+import { FindOptions } from "sequelize";
+import { BelongsTo, Column, Default, ForeignKey } from "sequelize-typescript";
 import { USER_PRESENCE_INTERVAL } from "@shared/constants";
-import { User } from "@server/models";
-import { DataTypes, Op, sequelize } from "../sequelize";
+import { DataTypes, Op } from "../sequelize";
+import Document from "./Document";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const View = sequelize.define("view", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  lastEditingAt: {
-    type: DataTypes.DATE,
-  },
-  count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 1,
-  },
-});
+class View extends BaseModel {
+  @Column
+  lastEditingAt: Date | null;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-View.associate = (models) => {
-  View.belongsTo(models.Document);
-  View.belongsTo(models.User);
-};
+  @Column(DataTypes.INTEGER)
+  @Default(1)
+  count: number;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'where' implicitly has an 'any' type.
-View.increment = async (where) => {
-  const [model, created] = await View.findOrCreate({
-    where,
-  });
+  // associations
 
-  if (!created) {
-    model.count += 1;
-    model.save();
-  }
+  @BelongsTo(() => User, "userId")
+  user: User;
 
-  return model;
-};
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
 
-View.findByDocument = async (documentId: string) => {
-  return View.findAll({
-    where: {
-      documentId,
-    },
-    order: [["updatedAt", "DESC"]],
-    include: [
-      {
-        model: User,
-        paranoid: false,
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @ForeignKey(() => Document)
+  @Column
+  documentId: string;
+
+  static incrementOrCreate = async (
+    where: Pick<FindOptions<View>, "where">
+  ) => {
+    const [model, created] = await View.findOrCreate({
+      where,
+    });
+
+    if (!created) {
+      model.count += 1;
+      model.save();
+    }
+
+    return model;
+  };
+
+  static findByDocument = async (documentId: string) => {
+    return View.findAll({
+      where: {
+        documentId,
       },
-    ],
-  });
-};
+      order: [["updatedAt", "DESC"]],
+      include: [
+        {
+          model: User,
+          paranoid: false,
+        },
+      ],
+    });
+  };
 
-View.findRecentlyEditingByDocument = async (documentId: string) => {
-  return View.findAll({
-    where: {
-      documentId,
-      lastEditingAt: {
-        [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
+  static findRecentlyEditingByDocument = async (documentId: string) => {
+    return View.findAll({
+      where: {
+        documentId,
+        lastEditingAt: {
+          [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
+        },
       },
-    },
-    order: [["lastEditingAt", "DESC"]],
-  });
-};
+      order: [["lastEditingAt", "DESC"]],
+    });
+  };
 
-View.touch = async (documentId: string, userId: string, isEditing: boolean) => {
-  const [view] = await View.findOrCreate({
-    where: {
-      userId,
-      documentId,
-    },
-  });
+  static touch = async (
+    documentId: string,
+    userId: string,
+    isEditing: boolean
+  ) => {
+    const [view] = await View.findOrCreate({
+      where: {
+        userId,
+        documentId,
+      },
+    });
 
-  if (isEditing) {
-    const lastEditingAt = new Date();
-    view.lastEditingAt = lastEditingAt;
-    await view.save();
-  }
+    if (isEditing) {
+      const lastEditingAt = new Date();
+      view.lastEditingAt = lastEditingAt;
+      await view.save();
+    }
 
-  return view;
-};
+    return view;
+  };
+}
 
 export default View;
