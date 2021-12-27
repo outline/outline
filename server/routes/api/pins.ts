@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { Sequelize, Op } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
 import pinDestroyer from "@server/commands/pinDestroyer";
 import pinUpdater from "@server/commands/pinUpdater";
@@ -10,7 +11,6 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { sequelize, Op } from "@server/sequelize";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -69,7 +69,7 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
         teamId: user.teamId,
       },
       order: [
-        sequelize.literal('"pins"."index" collate "C"'),
+        Sequelize.literal('"pins"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
       offset: ctx.state.pagination.offset,

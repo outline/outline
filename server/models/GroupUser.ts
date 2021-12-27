@@ -1,37 +1,43 @@
-import { sequelize } from "../sequelize";
+import {
+  DefaultScope,
+  BelongsTo,
+  ForeignKey,
+  Column,
+  Table,
+} from "sequelize-typescript";
+import Group from "./Group";
+import User from "./User";
+import ParanoidModel from "./base/ParanoidModel";
 
-const GroupUser = sequelize.define(
-  "group_user",
-  {},
-  {
-    timestamps: true,
-    paranoid: true,
-  }
-);
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "user",
+    },
+  ],
+}))
+@Table({ tableName: "group_users", modelName: "group_user" })
+class GroupUser extends ParanoidModel {
+  @BelongsTo(() => User, "userId")
+  user: User;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-GroupUser.associate = (models) => {
-  GroupUser.belongsTo(models.Group, {
-    as: "group",
-    foreignKey: "groupId",
-    primary: true,
-  });
-  GroupUser.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-    primary: true,
-  });
-  GroupUser.belongsTo(models.User, {
-    as: "createdBy",
-    foreignKey: "createdById",
-  });
-  GroupUser.addScope("defaultScope", {
-    include: [
-      {
-        association: "user",
-      },
-    ],
-  });
-};
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => Group, "groupId")
+  group: Group;
+
+  @ForeignKey(() => Group)
+  @Column
+  groupId: string;
+
+  @BelongsTo(() => User, "createdById")
+  createdBy: User;
+
+  @ForeignKey(() => User)
+  @Column
+  createdById: string;
+}
 
 export default GroupUser;

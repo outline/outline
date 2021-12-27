@@ -1,13 +1,4 @@
-import {
-  BelongsTo,
-  CreatedAt,
-  Default,
-  DeletedAt,
-  IsIn,
-  Model,
-  Table,
-  UpdatedAt,
-} from "sequelize-typescript";
+import { BelongsTo, Default, IsIn, Model, Table } from "sequelize-typescript";
 import Collection from "./Collection";
 import Group from "./Group";
 import User from "./User";
@@ -17,15 +8,6 @@ class CollectionGroup extends Model {
   @Default("read_write")
   @IsIn([["read", "read_write", "maintainer"]])
   permission: string;
-
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
-
-  @DeletedAt
-  deletedAt: Date;
 
   // associations
 

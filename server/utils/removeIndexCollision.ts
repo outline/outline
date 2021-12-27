@@ -1,6 +1,7 @@
 import fractionalIndex from "fractional-index";
+import { Sequelize } from "sequelize";
 import { Collection } from "@server/models";
-import { sequelize, Op } from "../sequelize";
+import { Op } from "../sequelize";
 
 /**
  *
@@ -35,7 +36,7 @@ export default async function removeIndexCollision(
     attributes: ["id", "index"],
     limit: 1,
     order: [
-      sequelize.literal('"collection"."index" collate "C"'),
+      Sequelize.literal('"collection"."index" collate "C"'),
       ["updatedAt", "DESC"],
     ],
   });

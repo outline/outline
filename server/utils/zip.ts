@@ -31,7 +31,6 @@ async function addToArchive(zip: JSZip, documents: NavigationNode[]) {
     zip.file(`${title}.md`, text, {
       date: document.updatedAt,
       comment: JSON.stringify({
-        pinned: document.pinned,
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
       }),

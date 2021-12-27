@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize-typescript";
+import { Transaction } from "sequelize";
 import { Document, Attachment, Collection, Pin, Event } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { sequelize } from "../sequelize";
@@ -8,9 +8,7 @@ async function copyAttachments(
   document: Document,
   options?: { transaction?: Transaction }
 ) {
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'Document'.
   let text = document.text;
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
   const documentId = document.id;
   // find any image attachments that are in this documents text
   const attachmentIds = parseAttachmentIds(text);
@@ -18,7 +16,6 @@ async function copyAttachments(
   for (const id of attachmentIds) {
     const existing = await Attachment.findOne({
       where: {
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'teamId' does not exist on type 'Document... Remove this comment to see the full error message
         teamId: document.teamId,
         id,
       },
@@ -153,7 +150,6 @@ export default async function documentMover({
             },
           });
           await Promise.all(
-            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'child' implicitly has an 'any' type.
             childDocuments.map(async (child) => {
               await loopChildren(child.id);
               child.text = await copyAttachments(child, {

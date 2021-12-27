@@ -534,7 +534,7 @@ class Collection extends ParanoidModel {
   addDocumentToStructure = async function (
     document: Document,
     index: number,
-    options: {
+    options?: {
       save?: boolean;
     }
   ) {
@@ -546,7 +546,7 @@ class Collection extends ParanoidModel {
 
     try {
       // documentStructure can only be updated by one request at a time
-      if (options.save !== false) {
+      if (options?.save !== false) {
         transaction = await sequelize.transaction();
       }
 
@@ -554,7 +554,6 @@ class Collection extends ParanoidModel {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'toJSON' does not exist on type 'Document... Remove this comment to see the full error message
       const documentJson = { ...document.toJSON(), ...options.documentJson };
 
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
       if (!document.parentDocumentId) {
         // Note: Index is supported on DB level but it's being ignored
         // by the API presentation until we build product support for it.
@@ -567,7 +566,6 @@ class Collection extends ParanoidModel {
         // Recursively place document
         const placeDocument = (documentList: NavigationNode[]) => {
           return documentList.map((childDocument) => {
-            // @ts-expect-error ts-migrate(2339) FIXME: Property 'parentDocumentId' does not exist on type... Remove this comment to see the full error message
             if (document.parentDocumentId === childDocument.id) {
               childDocument.children.splice(
                 index !== undefined ? index : childDocument.children.length,
@@ -589,7 +587,7 @@ class Collection extends ParanoidModel {
       // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
       this.changed("documentStructure", true);
 
-      if (options.save !== false) {
+      if (options?.save !== false) {
         await this.save({
           ...options,
           fields: ["documentStructure"],

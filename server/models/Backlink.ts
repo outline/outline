@@ -1,27 +1,30 @@
-import { DataTypes, sequelize } from "../sequelize";
+import { BelongsTo, ForeignKey, Column, Table } from "sequelize-typescript";
+import Document from "./Document";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
 
-const Backlink = sequelize.define("backlink", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-});
+@Table({ tableName: "backlinks", modelName: "backlink" })
+class Backlink extends BaseModel {
+  @BelongsTo(() => User, "userId")
+  user: User;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-Backlink.associate = (models) => {
-  Backlink.belongsTo(models.Document, {
-    as: "document",
-    foreignKey: "documentId",
-  });
-  Backlink.belongsTo(models.Document, {
-    as: "reverseDocument",
-    foreignKey: "reverseDocumentId",
-  });
-  Backlink.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-};
+  @ForeignKey(() => User)
+  @Column
+  userId: string;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @ForeignKey(() => Document)
+  @Column
+  documentId: string;
+
+  @BelongsTo(() => Document, "reverseDocumentId")
+  reverseDocument: Document;
+
+  @ForeignKey(() => Document)
+  @Column
+  reverseDocumentId: string;
+}
 
 export default Backlink;

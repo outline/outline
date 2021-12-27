@@ -1,12 +1,10 @@
-import { Op } from "sequelize-typescript";
+import { Op } from "sequelize";
 import { Event, Team, User, UserAuthentication } from "@server/models";
-import { sequelize } from "../sequelize";
+import { sequelize } from "@server/sequelize";
 
 type UserCreatorResult = {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   isNewUser: boolean;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'UserAuthentication' refers to a value, but is bei... Remove this comment to see the full error message
   authentication: UserAuthentication;
 };
 

@@ -1,7 +1,8 @@
 import fractionalIndex from "fractional-index";
+import { Sequelize, Op } from "sequelize";
 import { ValidationError } from "@server/errors";
 import { Pin, Event } from "@server/models";
-import { sequelize, Op } from "@server/sequelize";
+import { sequelize } from "@server/sequelize";
 
 const MAX_PINS = 8;
 
@@ -51,7 +52,7 @@ export default async function pinCreator({
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting
         // find only the last pin so we can create an index after it
-        sequelize.literal('"pins"."index" collate "C" DESC'),
+        Sequelize.literal('"pins"."index" collate "C" DESC'),
         ["updatedAt", "ASC"],
       ],
     });

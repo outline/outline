@@ -1,5 +1,6 @@
 import fractionalIndex from "fractional-index";
 import Router from "koa-router";
+import { Sequelize, Op } from "sequelize";
 import collectionExporter from "@server/commands/collectionExporter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -23,7 +24,6 @@ import {
   presentCollectionGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import { Op, sequelize } from "@server/sequelize";
 import collectionIndexing from "@server/utils/collectionIndexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
@@ -70,7 +70,7 @@ router.post("collections.create", auth(), async (ctx) => {
       limit: 1,
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting
-        sequelize.literal('"collection"."index" collate "C"'),
+        Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
     });

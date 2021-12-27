@@ -17,9 +17,8 @@ import {
   SearchQuery,
   Share,
 } from "@server/models";
-import { sequelize } from "../sequelize";
+import { sequelize } from "@server/sequelize";
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
 export default async function teamPermanentDeleter(team: Team) {
   if (!team.deletedAt) {
     throw new Error(
@@ -45,16 +44,14 @@ export default async function teamPermanentDeleter(team: Team) {
         limit: 100,
         offset: 0,
       },
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'attachments' implicitly has an 'any' ty... Remove this comment to see the full error message
       async (attachments, options) => {
         Logger.info(
           "commands",
           `Deleting attachments ${options.offset} – ${
-            options.offset + options.limit
+            (options.offset || 0) + (options?.limit || 0)
           }…`
         );
         await Promise.all(
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'attachment' implicitly has an 'any' typ... Remove this comment to see the full error message
           attachments.map((attachment) =>
             attachment.destroy({
               // @ts-expect-error ts-migrate(7005) FIXME: Variable 'transaction' implicitly has an 'any' typ... Remove this comment to see the full error message
@@ -74,9 +71,7 @@ export default async function teamPermanentDeleter(team: Team) {
         limit: 100,
         offset: 0,
       },
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'users' implicitly has an 'any' type.
       async (users) => {
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
         const userIds = users.map((user) => user.id);
         await UserAuthentication.destroy({
           where: {

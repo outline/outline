@@ -1,14 +1,12 @@
 import Logger from "@server/logging/logger";
 import { Team, AuthenticationProvider } from "@server/models";
+import { sequelize } from "@server/sequelize";
 import { getAllowedDomains } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { MaximumTeamsError } from "../errors";
-import { sequelize } from "../sequelize";
 
 type TeamCreatorResult = {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'Team' refers to a value, but is being used as a t... Remove this comment to see the full error message
   team: Team;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'AuthenticationProvider' refers to a value, but is... Remove this comment to see the full error message
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
 };
