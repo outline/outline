@@ -178,7 +178,6 @@ export default function init(app: Koa, server: http.Server) {
                 socket.emit("document.presence", {
                   documentId: event.documentId,
                   userIds: Array.from(userIds.keys()),
-                  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'view' implicitly has an 'any' type.
                   editingIds: editing.map((view) => view.userId),
                 });
               });

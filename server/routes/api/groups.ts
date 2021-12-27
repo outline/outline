@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
 import { User, Event, Group, GroupUser } from "@server/models";
@@ -9,7 +10,6 @@ import {
   presentUser,
   presentGroupMembership,
 } from "@server/presenters";
-import { Op } from "sequelize";
 import { assertPresent, assertUuid, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -37,10 +37,8 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
     data: {
       groups: groups.map(presentGroup),
       groupMemberships: groups
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'g' implicitly has an 'any' type.
         .map((g) =>
           g.groupMemberships
-            // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
             .filter((membership) => !!membership.user)
             .slice(0, MAX_AVATAR_DISPLAY)
         )
@@ -58,6 +56,7 @@ router.post("groups.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
   authorize(user, "read", group);
+
   ctx.body = {
     data: presentGroup(group),
     policies: presentPolicies(user, [group]),
@@ -87,6 +86,7 @@ router.post("groups.create", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: presentGroup(group),
     policies: presentPolicies(user, [group]),
@@ -141,6 +141,7 @@ router.post("groups.delete", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -179,11 +180,11 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
       },
     ],
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
       groupMemberships: memberships.map(presentGroupMembership),
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
       users: memberships.map((membership) => presentUser(membership.user)),
     },
   };
@@ -265,6 +266,7 @@ router.post("groups.remove_user", auth(), async (ctx) => {
   });
   // reload to get default scope
   group = await Group.findByPk(id);
+
   ctx.body = {
     data: {
       groups: [presentGroup(group)],

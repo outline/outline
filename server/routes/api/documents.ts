@@ -56,7 +56,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   let where = {
     teamId: user.teamId,
     archivedAt: {
-      [Op.eq]: null,
+      [Op.is]: null,
     },
   };
 
@@ -114,7 +114,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
       ...where,
       // @ts-expect-error ts-migrate(2322) FIXME: Type '{ parentDocumentId: { [Sequelize.Op.eq]: nul... Remove this comment to see the full error message
       parentDocumentId: {
-        [Op.eq]: null,
+        [Op.is]: null,
       },
     };
   }
@@ -160,6 +160,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -201,6 +202,7 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -253,6 +255,7 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -312,6 +315,7 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -364,6 +368,7 @@ router.post("documents.starred", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -394,7 +399,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     userId: user.id,
     collectionId: collectionIds,
     publishedAt: {
-      [Op.eq]: null,
+      [Op.is]: null,
     },
     updatedAt: undefined,
   };
@@ -429,6 +434,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -457,7 +463,7 @@ async function loadDocument({
     share = await Share.findOne({
       where: {
         revokedAt: {
-          [Op.eq]: null,
+          [Op.is]: null,
         },
         id: shareId,
       },
@@ -756,7 +762,7 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
       },
       collectionId: collectionIds,
       archivedAt: {
-        [Op.eq]: null,
+        [Op.is]: null,
       },
     },
     order: [["updatedAt", "DESC"]],
@@ -779,6 +785,7 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   const data = await Promise.all(
     documents.map((document) => presentDocument(document))
   );
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -854,6 +861,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   }
 
   const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
@@ -886,6 +894,7 @@ router.post("documents.star", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -916,6 +925,7 @@ router.post("documents.unstar", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -957,6 +967,7 @@ router.post("documents.templatize", auth(), async (ctx) => {
   document = await Document.findByPk(document.id, {
     userId: user.id,
   });
+
   ctx.body = {
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
@@ -1079,6 +1090,7 @@ router.post("documents.update", auth(), async (ctx) => {
 
   document.updatedBy = user;
   document.collection = collection;
+
   ctx.body = {
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
@@ -1129,6 +1141,7 @@ router.post("documents.move", auth(), async (ctx) => {
     index,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       documents: await Promise.all(
@@ -1162,6 +1175,7 @@ router.post("documents.archive", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
@@ -1246,6 +1260,7 @@ router.post("documents.unpublish", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),

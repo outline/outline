@@ -28,6 +28,7 @@ router.post("apiKeys.create", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: presentApiKey(key),
   };
@@ -43,6 +44,7 @@ router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: keys.map(presentApiKey),
@@ -66,6 +68,7 @@ router.post("apiKeys.delete", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };

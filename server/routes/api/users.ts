@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { Op } from "sequelize";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
@@ -6,7 +7,6 @@ import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
 import policy from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
-import { Op } from "sequelize";
 import {
   assertIn,
   assertSort,
@@ -74,9 +74,9 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     default: {
       where = {
         ...where,
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ suspendedAt: { [Op.eq]: null; }; teamId: a... Remove this comment to see the full error message
+        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ suspendedAt: { [Op.is]: null; }; teamId: a... Remove this comment to see the full error message
         suspendedAt: {
-          [Op.eq]: null,
+          [Op.is]: null,
         },
       };
       break;
@@ -104,9 +104,9 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
       where,
     }),
   ]);
+
   ctx.body = {
     pagination: { ...ctx.state.pagination, total },
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
     data: users.map((user) =>
       presentUser(user, {
         includeDetails: can(actor, "readDetails", user),
@@ -119,6 +119,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 router.post("users.count", auth(), async (ctx) => {
   const { user } = ctx.state;
   const counts = await User.getCounts(user.teamId);
+
   ctx.body = {
     data: {
       counts,
@@ -132,6 +133,7 @@ router.post("users.info", auth(), async (ctx) => {
   const user = id ? await User.findByPk(id) : actor;
   authorize(actor, "read", user);
   const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
     data: presentUser(user, {
       includeDetails,
@@ -154,6 +156,7 @@ router.post("users.update", auth(), async (ctx) => {
     teamId: user.teamId,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: presentUser(user, {
       includeDetails: true,
@@ -180,6 +183,7 @@ router.post("users.promote", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
     data: presentUser(user, {
       includeDetails,
@@ -209,6 +213,7 @@ router.post("users.demote", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
     data: presentUser(user, {
       includeDetails,
@@ -229,6 +234,7 @@ router.post("users.suspend", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
     data: presentUser(user, {
       includeDetails,
@@ -256,6 +262,7 @@ router.post("users.activate", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);
+
   ctx.body = {
     data: presentUser(user, {
       includeDetails,
@@ -275,6 +282,7 @@ router.post("users.invite", auth(), async (ctx) => {
     invites,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       sent: response.sent,
@@ -299,6 +307,7 @@ router.post("users.delete", auth(), async (ctx) => {
     actor,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };

@@ -18,7 +18,7 @@ describe("#findLatest", () => {
     await document.save();
     await Revision.createFromDocument(document);
     const revision = await Revision.findLatest(document.id);
-    expect(revision.title).toBe("Changed 2");
-    expect(revision.text).toBe("Content");
+    expect(revision?.title).toBe("Changed 2");
+    expect(revision?.text).toBe("Content");
   });
 });

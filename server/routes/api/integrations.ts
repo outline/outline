@@ -25,6 +25,7 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: integrations.map(presentIntegration),

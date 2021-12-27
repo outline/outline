@@ -21,6 +21,7 @@ router.post("notificationSettings.create", auth(), async (ctx) => {
       event,
     },
   });
+
   ctx.body = {
     data: presentNotificationSetting(setting),
   };
@@ -33,6 +34,7 @@ router.post("notificationSettings.list", auth(), async (ctx) => {
       userId: user.id,
     },
   });
+
   ctx.body = {
     data: settings.map(presentNotificationSetting),
   };
@@ -46,6 +48,7 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
   const setting = await NotificationSetting.findByPk(id);
   authorize(user, "delete", setting);
   await setting.destroy();
+
   ctx.body = {
     success: true,
   };

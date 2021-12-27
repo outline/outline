@@ -89,7 +89,7 @@ export default async function userCreator({
       email,
       teamId,
       lastActiveAt: {
-        [Op.eq]: null,
+        [Op.is]: null,
       },
     },
     include: [

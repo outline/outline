@@ -24,14 +24,14 @@ router.post("shares.info", auth(), async (ctx) => {
       ? {
           id,
           revokedAt: {
-            [Op.eq]: null,
+            [Op.is]: null,
           },
         }
       : {
           documentId,
           teamId: user.teamId,
           revokedAt: {
-            [Op.eq]: null,
+            [Op.is]: null,
           },
         },
   });
@@ -71,7 +71,7 @@ router.post("shares.info", auth(), async (ctx) => {
             documentId: parentIds,
             teamId: user.teamId,
             revokedAt: {
-              [Op.eq]: null,
+              [Op.is]: null,
             },
             includeChildDocuments: true,
             published: true,
@@ -110,7 +110,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
     userId: user.id,
     published: true,
     revokedAt: {
-      [Op.eq]: null,
+      [Op.is]: null,
     },
   };
 
@@ -154,9 +154,9 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'share' implicitly has an 'any' type.
     data: shares.map((share) => presentShare(share, user.isAdmin)),
     policies: presentPolicies(user, shares),
   };
@@ -202,6 +202,7 @@ router.post("shares.update", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: presentShare(share, user.isAdmin),
     policies: presentPolicies(user, [share]),
@@ -249,6 +250,7 @@ router.post("shares.create", auth(), async (ctx) => {
   share.team = team;
   share.user = user;
   share.document = document;
+
   ctx.body = {
     data: presentShare(share),
     policies: presentPolicies(user, [share]),
@@ -281,6 +283,7 @@ router.post("shares.revoke", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };

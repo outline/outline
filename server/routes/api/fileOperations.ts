@@ -61,6 +61,7 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
       where,
     }),
   ]);
+
   ctx.body = {
     pagination: { ...ctx.state.pagination, total },
     data: exports.map(presentFileOperation),
@@ -103,6 +104,7 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
 
   authorize(user, fileOp.type, team);
   await fileOperationDeleter(fileOp, user, ctx.request.ip);
+
   ctx.body = {
     success: true,
   };

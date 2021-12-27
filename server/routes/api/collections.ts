@@ -108,6 +108,7 @@ router.post("collections.create", auth(), async (ctx) => {
   collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(collection.id);
+
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
@@ -122,6 +123,7 @@ router.post("collections.info", auth(), async (ctx) => {
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "read", collection);
+
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
@@ -146,6 +148,7 @@ router.post("collections.import", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -191,6 +194,7 @@ router.post("collections.add_group", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       collectionGroupMemberships: [
@@ -222,6 +226,7 @@ router.post("collections.remove_group", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -324,6 +329,7 @@ router.post("collections.add_user", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       users: [presentUser(user)],
@@ -354,6 +360,7 @@ router.post("collections.remove_user", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -368,6 +375,7 @@ router.post("collections.users", auth(), async (ctx) => {
   }).findByPk(id);
   authorize(user, "read", collection);
   const users = await collection.getUsers();
+
   ctx.body = {
     data: users.map(presentUser),
   };
@@ -413,6 +421,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
       },
     ],
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
@@ -440,6 +449,7 @@ router.post("collections.export", auth(), async (ctx) => {
     team,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
     data: {
@@ -457,6 +467,7 @@ router.post("collections.export_all", auth(), async (ctx) => {
     team,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
     data: {
@@ -637,6 +648,7 @@ router.post("collections.delete", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -665,6 +677,7 @@ router.post("collections.move", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
     data: {

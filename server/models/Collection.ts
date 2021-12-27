@@ -199,7 +199,7 @@ class Collection extends ParanoidModel {
       where: {
         collectionId: model.id,
         archivedAt: {
-          [Op.eq]: null,
+          [Op.is]: null,
         },
       },
     });

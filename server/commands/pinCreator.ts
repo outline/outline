@@ -36,7 +36,7 @@ export default async function pinCreator({
   let { index } = rest;
   const where = {
     teamId: user.teamId,
-    ...(collectionId ? { collectionId } : { collectionId: { [Op.eq]: null } }),
+    ...(collectionId ? { collectionId } : { collectionId: { [Op.is]: null } }),
   };
 
   const count = await Pin.count({ where });

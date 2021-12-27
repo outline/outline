@@ -52,9 +52,9 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'revision' implicitly has an 'any' type.
     revisions.map((revision) => presentRevision(revision))
   );
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,

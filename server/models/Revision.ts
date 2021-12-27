@@ -63,7 +63,7 @@ class Revision extends BaseModel {
 
   static createFromDocument = function (
     document: Document,
-    options: FindOptions<Revision>
+    options?: FindOptions<Revision>
   ) {
     return Revision.create(
       {

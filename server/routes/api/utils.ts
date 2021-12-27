@@ -1,10 +1,10 @@
 import { subDays } from "date-fns";
 import Router from "koa-router";
+import { Op } from "sequelize";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import { AuthenticationError } from "@server/errors";
 import { Document, Team, FileOperation } from "@server/models";
-import { Op } from "sequelize";
 import Logger from "../../logging/logger";
 
 const router = new Router();
@@ -48,7 +48,6 @@ router.post("utils.gc", async (ctx) => {
     },
   });
   await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'e' implicitly has an 'any' type.
     exports.map(async (e) => {
       await e.expire();
     })

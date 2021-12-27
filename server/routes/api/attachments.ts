@@ -61,6 +61,7 @@ router.post("attachments.create", auth(), async (ctx) => {
     userId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
@@ -107,6 +108,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
     userId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };

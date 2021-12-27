@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Op } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Collection } from "@server/models";
 import policy from "@server/policies";
@@ -23,27 +23,34 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   assertSort(sort, Event);
-  let where = {
+  let where: WhereOptions<Event> = {
     name: Event.ACTIVITY_EVENTS,
     teamId: user.teamId,
   };
 
   if (actorId) {
     assertUuid(actorId, "actorId must be a UUID");
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ actorId: any; name: any; teamId: any; }' i... Remove this comment to see the full error message
     where = { ...where, actorId };
   }
 
   if (documentId) {
     assertUuid(documentId, "documentId must be a UUID");
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ documentId: any; name: any; teamId: any; }... Remove this comment to see the full error message
     where = { ...where, documentId };
+  }
+
+  if (auditLog) {
+    authorize(user, "manage", user.team);
+    where.name = Event.AUDIT_EVENTS;
+  }
+
+  if (name && (where.name as string[]).includes(name)) {
+    where.name = name;
   }
 
   if (collectionId) {
     assertUuid(collectionId, "collection must be a UUID");
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; name: any; teamId: any;... Remove this comment to see the full error message
     where = { ...where, collectionId };
+
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
@@ -60,20 +67,11 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
         },
         {
           collectionId: {
-            [Op.eq]: null,
+            [Op.is]: null,
           },
         },
       ],
     };
-  }
-
-  if (auditLog) {
-    authorize(user, "manage", user.team);
-    where.name = Event.AUDIT_EVENTS;
-  }
-
-  if (name && where.name.includes(name)) {
-    where.name = name;
   }
 
   const events = await Event.findAll({
@@ -89,9 +87,9 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
     data: events.map((event) => presentEvent(event, auditLog)),
   };
 });

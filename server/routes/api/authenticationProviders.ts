@@ -19,6 +19,7 @@ router.post("authenticationProviders.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
   authorize(user, "read", authenticationProvider);
+
   ctx.body = {
     data: presentAuthenticationProvider(authenticationProvider),
     policies: presentPolicies(user, [authenticationProvider]),
@@ -50,6 +51,7 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
     actorId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: presentAuthenticationProvider(authenticationProvider),
     policies: presentPolicies(user, [authenticationProvider]),
@@ -69,6 +71,7 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
       // wants to be here in the future – we'll need to migrate more data though
       p.id !== "email"
   );
+
   ctx.body = {
     data: {
       authenticationProviders: [

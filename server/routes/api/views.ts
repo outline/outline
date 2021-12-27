@@ -18,6 +18,7 @@ router.post("views.list", auth(), async (ctx) => {
   });
   authorize(user, "read", document);
   const views = await View.findByDocument(documentId);
+
   ctx.body = {
     data: views.map(presentView),
   };
@@ -48,6 +49,7 @@ router.post("views.create", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   view.user = user;
+
   ctx.body = {
     data: presentView(view),
   };

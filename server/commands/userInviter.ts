@@ -42,7 +42,6 @@ export default async function userInviter({
       email: emails,
     },
   });
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
   const existingEmails = existingUsers.map((user) => user.email);
   const filteredInvites = normalizedInvites.filter(
     (invite) => !existingEmails.includes(invite.email)

@@ -795,7 +795,7 @@ class Document extends ParanoidModel {
         where: {
           id: this.parentDocumentId,
           archivedAt: {
-            [Op.eq]: null,
+            [Op.is]: null,
           },
         },
       });

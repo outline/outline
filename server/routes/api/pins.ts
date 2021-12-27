@@ -65,7 +65,7 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
       where: {
         ...(collectionId
           ? { collectionId }
-          : { collectionId: { [Op.eq]: null } }),
+          : { collectionId: { [Op.is]: null } }),
         teamId: user.teamId,
       },
       order: [

@@ -17,8 +17,6 @@
     ]
   ],
   "plugins": [
-    "transform-class-properties",
-    "tsconfig-paths-module-resolver",
     "babel-plugin-transform-typescript-metadata",
     [
       "@babel/plugin-proposal-decorators",
@@ -34,6 +32,8 @@
           "SOURCE_VERSION"
         ]
       }
-    ]
+    ],
+    "transform-class-properties",
+    "tsconfig-paths-module-resolver",
   ]
 }
