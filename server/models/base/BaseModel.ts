@@ -1,9 +1,11 @@
 import {
-  Model,
+  CreatedAt,
+  UpdatedAt,
   Column,
   PrimaryKey,
   IsUUID,
   DataType,
+  Model,
 } from "sequelize-typescript";
 
 class BaseModel extends Model {
@@ -11,6 +13,12 @@ class BaseModel extends Model {
   @PrimaryKey
   @Column(DataType.UUID)
   id: string;
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
 }
 
 export default BaseModel;

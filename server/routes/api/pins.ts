@@ -80,7 +80,7 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
 
   const documents = await Document.defaultScopeWithUser(user.id).findAll({
     where: {
-      id: pins.map((pin: any) => pin.documentId),
+      id: pins.map((pin) => pin.documentId),
       collectionId: collectionIds,
     },
   });

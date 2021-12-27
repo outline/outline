@@ -19,6 +19,7 @@ import BaseModel from "./base/BaseModel";
 @Table({
   tableName: "authentication_providers",
   modelName: "authentication_provider",
+  timestamps: true,
 })
 class AuthenticationProvider extends BaseModel {
   @IsIn([providers.map((p) => p.id)])
