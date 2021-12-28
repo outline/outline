@@ -52,24 +52,22 @@ export default async function accountProvisioner({
 }: Props): Promise<AccountProvisionerResult> {
   let result;
 
-  //try {
-  result = await teamCreator({
-    name: teamParams.name,
-    domain: teamParams.domain,
-    subdomain: teamParams.subdomain,
-    avatarUrl: teamParams.avatarUrl,
-    authenticationProvider: authenticationProviderParams,
-  });
-  // } catch (err) {
-  //   throw AuthenticationError(err.message);
-  // }
+  try {
+    result = await teamCreator({
+      name: teamParams.name,
+      domain: teamParams.domain,
+      subdomain: teamParams.subdomain,
+      avatarUrl: teamParams.avatarUrl,
+      authenticationProvider: authenticationProviderParams,
+    });
+  } catch (err) {
+    throw AuthenticationError(err.message);
+  }
 
   invariant(result, "Team creator result must exist");
   const { authenticationProvider, team, isNewTeam } = result;
 
   if (!authenticationProvider.enabled) {
-    console.log(authenticationProvider);
-
     throw AuthenticationProviderDisabledError();
   }
 
