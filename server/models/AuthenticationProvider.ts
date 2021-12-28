@@ -17,15 +17,18 @@ import { ValidationError } from "../errors";
 import providers from "../routes/auth/providers";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
+import Fix from "./decorators/Fix";
 
 @Table({
   tableName: "authentication_providers",
   modelName: "authentication_provider",
   updatedAt: false,
 })
+@Fix
 class AuthenticationProvider extends Model {
   @IsUUID(4)
   @PrimaryKey
+  @Default(DataType.UUIDV4)
   @Column(DataType.UUID)
   id: string;
 

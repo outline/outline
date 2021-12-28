@@ -9,19 +9,23 @@ import {
   CreatedAt,
   BelongsTo,
   IsIn,
+  Default,
   DataType,
 } from "sequelize-typescript";
 import Team from "./Team";
 import User from "./User";
+import Fix from "./decorators/Fix";
 
 @Table({
   tableName: "notification_settings",
   modelName: "notification_setting",
   updatedAt: false,
 })
+@Fix
 class NotificationSetting extends Model {
   @IsUUID(4)
   @PrimaryKey
+  @Default(DataType.UUIDV4)
   @Column
   id: string;
 

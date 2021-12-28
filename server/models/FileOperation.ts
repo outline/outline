@@ -12,6 +12,7 @@ import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
   include: [
@@ -28,6 +29,7 @@ import BaseModel from "./base/BaseModel";
   ],
 }))
 @Table({ tableName: "attachments", modelName: "attachment" })
+@Fix
 class FileOperation extends BaseModel {
   @Column(DataType.ENUM("import", "export"))
   type: "import" | "export";

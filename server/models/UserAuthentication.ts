@@ -9,10 +9,12 @@ import {
 import encryptedFields from "@server/database/encryptedFields";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
-import ParanoidModel from "./base/ParanoidModel";
+import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
-class UserAuthentication extends ParanoidModel {
+@Fix
+class UserAuthentication extends BaseModel {
   @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 

@@ -9,8 +9,10 @@ import {
 } from "sequelize-typescript";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
+@Fix
 class ApiKey extends ParanoidModel {
   @Column
   name: string;

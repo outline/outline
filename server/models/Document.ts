@@ -42,6 +42,7 @@ import Star from "./Star";
 import Team from "./Team";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
 type SearchResponse = {
   results: {
@@ -155,6 +156,7 @@ export const DOCUMENT_VERSION = 2;
   }),
 }))
 @Table({ tableName: "documents", modelName: "document" })
+@Fix
 class Document extends ParanoidModel {
   @PrimaryKey
   @Column
@@ -357,7 +359,7 @@ class Document extends ParanoidModel {
   @HasMany(() => View)
   views: View[];
 
-  static defaultScopeWithUser = (userId: string) => {
+  static defaultScopeWithUser(userId: string) {
     const starredScope: Readonly<ScopeOptions> = {
       method: ["withStarred", userId],
     };
@@ -367,15 +369,15 @@ class Document extends ParanoidModel {
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
     };
-    return Document.scope([
+    return this.scope([
       "defaultScope",
       starredScope,
       collectionScope,
       viewScope,
     ]);
-  };
+  }
 
-  static findByPk = async function (
+  static async findByPk(
     id: string,
     options: FindOptions<Document> & {
       userId?: string;
@@ -383,7 +385,7 @@ class Document extends ParanoidModel {
   ) {
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
-    const scope = Document.scope([
+    const scope = this.scope([
       "withUnpublished",
       {
         method: ["withCollection", options.userId, options.paranoid],
@@ -413,13 +415,13 @@ class Document extends ParanoidModel {
     }
 
     return undefined;
-  };
+  }
 
-  static searchForTeam = async (
+  static async searchForTeam(
     team: Team,
     query: string,
     options: SearchOptions = {}
-  ): Promise<SearchResponse> => {
+  ): Promise<SearchResponse> {
     const limit = options.limit || 15;
     const offset = options.offset || 0;
     const wildcardQuery = `${escape(query)}:*`;
@@ -464,11 +466,11 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
     };
-    const resultsQuery = Document.sequelize!.query(selectSql, {
+    const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
       replacements: { ...queryReplacements, limit, offset },
     });
-    const countQuery = Document.sequelize!.query(countSql, {
+    const countQuery = this.sequelize!.query(countSql, {
       type: QueryTypes.SELECT,
       replacements: queryReplacements,
     });
@@ -477,7 +479,7 @@ class Document extends ParanoidModel {
       countQuery,
     ]);
     // Final query to get associated document data
-    const documents = await Document.findAll({
+    const documents = await this.findAll({
       where: {
         id: map(results, "id"),
       },
@@ -511,13 +513,13 @@ class Document extends ParanoidModel {
       })),
       totalCount: count,
     };
-  };
+  }
 
-  static searchForUser = async (
+  static async searchForUser(
     user: User,
     query: string,
     options: SearchOptions = {}
-  ): Promise<SearchResponse> => {
+  ): Promise<SearchResponse> {
     const limit = options.limit || 15;
     const offset = options.offset || 0;
     const wildcardQuery = `${escape(query)}:*`;
@@ -594,11 +596,11 @@ class Document extends ParanoidModel {
       collectionIds,
       dateFilter,
     };
-    const resultsQuery = Document.sequelize!.query(selectSql, {
+    const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
       replacements: { ...queryReplacements, limit, offset },
     });
-    const countQuery = Document.sequelize!.query(countSql, {
+    const countQuery = this.sequelize!.query(countSql, {
       type: QueryTypes.SELECT,
       replacements: queryReplacements,
     });
@@ -608,7 +610,7 @@ class Document extends ParanoidModel {
     ]);
 
     // Final query to get associated document data
-    const documents = await Document.scope([
+    const documents = await this.scope([
       {
         method: ["withViews", user.id],
       },
@@ -644,7 +646,7 @@ class Document extends ParanoidModel {
       })),
       totalCount: count,
     };
-  };
+  }
 
   toMarkdown = function (this: Document) {
     const text = unescape(this.text);

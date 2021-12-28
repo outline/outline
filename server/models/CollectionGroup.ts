@@ -11,8 +11,10 @@ import {
 import Collection from "./Collection";
 import Group from "./Group";
 import User from "./User";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "collection_groups", modelName: "collection_group" })
+@Fix
 class CollectionGroup extends Model {
   @Default("read_write")
   @IsIn([["read", "read_write", "maintainer"]])

@@ -12,6 +12,7 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
   include: [
@@ -56,6 +57,7 @@ import BaseModel from "./base/BaseModel";
   },
 }))
 @Table({ tableName: "shares", modelName: "share" })
+@Fix
 class Share extends BaseModel {
   @Column
   published: boolean;

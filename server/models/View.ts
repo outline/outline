@@ -1,5 +1,5 @@
 import { subMilliseconds } from "date-fns";
-import { FindOptions, Op } from "sequelize";
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -12,8 +12,10 @@ import { USER_PRESENCE_INTERVAL } from "@shared/constants";
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "views", modelName: "view" })
+@Fix
 class View extends BaseModel {
   @Column
   lastEditingAt: Date | null;
@@ -38,12 +40,12 @@ class View extends BaseModel {
   @Column(DataType.UUID)
   documentId: string;
 
-  static incrementOrCreate = async (where: {
+  static async incrementOrCreate(where: {
     userId?: string;
     documentId?: string;
     collectionId?: string;
-  }) => {
-    const [model, created] = await View.findOrCreate({
+  }) {
+    const [model, created] = await this.findOrCreate({
       where,
     });
 
@@ -53,10 +55,10 @@ class View extends BaseModel {
     }
 
     return model;
-  };
+  }
 
-  static findByDocument = async (documentId: string) => {
-    return View.findAll({
+  static async findByDocument(documentId: string) {
+    return this.findAll({
       where: {
         documentId,
       },
@@ -68,10 +70,10 @@ class View extends BaseModel {
         },
       ],
     });
-  };
+  }
 
-  static findRecentlyEditingByDocument = async (documentId: string) => {
-    return View.findAll({
+  static async findRecentlyEditingByDocument(documentId: string) {
+    return this.findAll({
       where: {
         documentId,
         lastEditingAt: {
@@ -80,14 +82,10 @@ class View extends BaseModel {
       },
       order: [["lastEditingAt", "DESC"]],
     });
-  };
+  }
 
-  static touch = async (
-    documentId: string,
-    userId: string,
-    isEditing: boolean
-  ) => {
-    const [view] = await View.findOrCreate({
+  static async touch(documentId: string, userId: string, isEditing: boolean) {
+    const [view] = await this.findOrCreate({
       where: {
         userId,
         documentId,
@@ -101,7 +99,7 @@ class View extends BaseModel {
     }
 
     return view;
-  };
+  }
 }
 
 export default View;

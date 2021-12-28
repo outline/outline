@@ -10,15 +10,17 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "pins", modelName: "pin" })
+@Fix
 class Pin extends BaseModel {
   @Column
   index: string | null;
 
   // associations
 
-  @BelongsTo(() => User, "userId")
+  @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)

@@ -28,6 +28,7 @@ import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -42,6 +43,7 @@ const readFile = util.promisify(fs.readFile);
   },
 }))
 @Table({ tableName: "teams", modelName: "team" })
+@Fix
 class Team extends ParanoidModel {
   @Column
   name: string;

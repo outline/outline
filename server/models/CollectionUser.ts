@@ -6,13 +6,15 @@ import {
   IsIn,
   Table,
   DataType,
+  Model,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "collection_users", modelName: "collection_user" })
-class CollectionUser extends BaseModel {
+@Fix
+class CollectionUser extends Model {
   @Default("read_write")
   @IsIn([["read", "read_write", "maintainer"]])
   @Column

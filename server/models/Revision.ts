@@ -11,6 +11,7 @@ import MarkdownSerializer from "slate-md-serializer";
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 const serializer = new MarkdownSerializer();
 
@@ -24,6 +25,7 @@ const serializer = new MarkdownSerializer();
   ],
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
+@Fix
 class Revision extends BaseModel {
   @Column(DataType.SMALLINT)
   version: number;
@@ -53,20 +55,20 @@ class Revision extends BaseModel {
   @Column(DataType.UUID)
   userId: string;
 
-  static findLatest = function (documentId: string) {
-    return Revision.findOne({
+  static findLatest(documentId: string) {
+    return this.findOne({
       where: {
         documentId,
       },
       order: [["createdAt", "DESC"]],
     });
-  };
+  }
 
-  static createFromDocument = function (
+  static createFromDocument(
     document: Document,
     options?: FindOptions<Revision>
   ) {
-    return Revision.create(
+    return this.create(
       {
         title: document.title,
         text: document.text,
@@ -80,7 +82,7 @@ class Revision extends BaseModel {
       },
       options
     );
-  };
+  }
 
   migrateVersion = function () {
     let migrated = false;

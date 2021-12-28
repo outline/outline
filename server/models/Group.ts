@@ -16,6 +16,7 @@ import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
   include: [
@@ -27,6 +28,7 @@ import ParanoidModel from "./base/ParanoidModel";
   order: [["name", "ASC"]],
 }))
 @Table({ tableName: "groups", modelName: "group" })
+@Fix
 class Group extends ParanoidModel {
   @Column
   name: string;

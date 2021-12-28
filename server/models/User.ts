@@ -34,8 +34,10 @@ import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "users", modelName: "user" })
+@Fix
 class User extends ParanoidModel {
   @IsEmail
   @Column
@@ -432,20 +434,20 @@ class User extends ParanoidModel {
     };
   };
 
-  static findAllInBatches = async (
+  static async findAllInBatches(
     query: FindOptions<User>,
     callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
-  ) => {
+  ) {
     if (!query.offset) query.offset = 0;
     if (!query.limit) query.limit = 10;
     let results;
 
     do {
-      results = await User.findAll(query);
+      results = await this.findAll(query);
       await callback(results, query);
       query.offset += query.limit;
     } while (results.length >= query.limit);
-  };
+  }
 }
 
 export default User;

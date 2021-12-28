@@ -15,8 +15,10 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "attachments", modelName: "attachment" })
+@Fix
 class Attachment extends BaseModel {
   @Column
   key: string;
@@ -83,23 +85,23 @@ class Attachment extends BaseModel {
   @Column(DataType.UUID)
   userId: string;
 
-  static findAllInBatches = async (
+  static async findAllInBatches(
     query: FindOptions<Attachment>,
     callback: (
       attachments: Array<Attachment>,
       query: FindOptions<Attachment>
     ) => Promise<void>
-  ) => {
+  ) {
     if (!query.offset) query.offset = 0;
     if (!query.limit) query.limit = 10;
     let results;
 
     do {
-      results = await Attachment.findAll(query);
+      results = await this.findAll(query);
       await callback(results, query);
       query.offset += query.limit;
     } while (results.length >= query.limit);
-  };
+  }
 }
 
 export default Attachment;

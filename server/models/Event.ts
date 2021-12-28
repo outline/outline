@@ -15,8 +15,10 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event" })
+@Fix
 class Event extends BaseModel {
   @IsUUID(4)
   @Column(DataType.UUID)

@@ -8,8 +8,10 @@ import {
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "backlinks", modelName: "backlink" })
+@Fix
 class Backlink extends BaseModel {
   @BelongsTo(() => User, "userId")
   user: User;

@@ -31,6 +31,7 @@ import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -111,6 +112,7 @@ import ParanoidModel from "./base/ParanoidModel";
   }),
 }))
 @Table({ tableName: "collections", modelName: "collection" })
+@Fix
 class Collection extends ParanoidModel {
   @Unique
   @Column
@@ -296,7 +298,7 @@ class Collection extends ParanoidModel {
     }
 
     if (isUUID(id)) {
-      return Collection.findOne({
+      return this.findOne({
         where: {
           id,
         },
@@ -306,7 +308,7 @@ class Collection extends ParanoidModel {
 
     const match = id.match(SLUG_URL_REGEX);
     if (match) {
-      return Collection.findOne({
+      return this.findOne({
         where: {
           urlId: match[1],
         },
@@ -325,7 +327,7 @@ class Collection extends ParanoidModel {
    */
   static async findFirstCollectionForUser(user: User) {
     const id = await user.collectionIds();
-    return Collection.findOne({
+    return this.findOne({
       where: {
         id,
       },

@@ -9,8 +9,10 @@ import encryptedFields from "@server/database/encryptedFields";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
 @Table({ tableName: "authentications", modelName: "authentication" })
+@Fix
 class IntegrationAuthentication extends BaseModel {
   @Column
   service: string;
