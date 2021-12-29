@@ -1283,8 +1283,7 @@ describe("#documents.search", () => {
     expect(body).toMatchSnapshot();
   });
 
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(done: DoneCallback) => Promise<... Remove this comment to see the full error message
-  it("should save search term, hits and source", async (done) => {
+  it("should save search term, hits and source", async () => {
     const { user } = await seed();
     await server.post("/api/documents.search", {
       body: {
@@ -1292,19 +1291,22 @@ describe("#documents.search", () => {
         query: "my term",
       },
     });
-    // setTimeout is needed here because SearchQuery is saved asynchronously
-    // in order to not slow down the response time.
-    setTimeout(async () => {
-      const searchQuery = await SearchQuery.findAll({
-        where: {
-          query: "my term",
-        },
-      });
-      expect(searchQuery.length).toBe(1);
-      expect(searchQuery[0].results).toBe(0);
-      expect(searchQuery[0].source).toBe("app");
-      done();
-    }, 100);
+
+    return new Promise((resolve) => {
+      // setTimeout is needed here because SearchQuery is saved asynchronously
+      // in order to not slow down the response time.
+      setTimeout(async () => {
+        const searchQuery = await SearchQuery.findAll({
+          where: {
+            query: "my term",
+          },
+        });
+        expect(searchQuery.length).toBe(1);
+        expect(searchQuery[0].results).toBe(0);
+        expect(searchQuery[0].source).toBe("app");
+        resolve(undefined);
+      }, 100);
+    });
   });
 });
 

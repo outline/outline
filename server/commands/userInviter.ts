@@ -1,8 +1,8 @@
 import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
+import mailer from "@server/mailer";
 import { User, Event, Team } from "@server/models";
-import mailer from "../mailer";
 
 type Invite = {
   name: string;

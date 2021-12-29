@@ -1,4 +1,5 @@
-import env from "./env"; // eslint-disable-line import/order
+/* eslint-disable import/order */
+import env from "./env";
 
 import "./tracing"; // must come before importing any instrumented module
 
@@ -10,6 +11,7 @@ import logger from "koa-logger";
 import onerror from "koa-onerror";
 import Router from "koa-router";
 import { uniq } from "lodash";
+import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
 import Logger from "./logging/logger";
@@ -104,8 +106,10 @@ async function start(id: number, disconnect: () => void) {
   server.on("listening", () => {
     const address = server.address();
 
-    // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-    Logger.info("lifecycle", `Listening on http://localhost:${address.port}`);
+    Logger.info(
+      "lifecycle",
+      `Listening on http://localhost:${(address as AddressInfo).port}`
+    );
   });
   server.listen(normalizedPortFlag || env.PORT || "3000");
   process.once("SIGTERM", shutdown);

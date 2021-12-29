@@ -1,12 +1,12 @@
 import invariant from "invariant";
 import { UniqueConstraintError } from "sequelize";
-import { Collection, Team, User } from "@server/models";
 import {
   AuthenticationError,
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
-} from "../errors";
-import mailer from "../mailer";
+} from "@server/errors";
+import mailer from "@server/mailer";
+import { Collection, Team, User } from "@server/models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
 

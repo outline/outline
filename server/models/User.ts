@@ -18,6 +18,7 @@ import {
   ForeignKey,
   DataType,
   HasMany,
+  Scopes,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
@@ -39,6 +40,16 @@ import Encrypted, {
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withAuthentications: {
+    include: [
+      {
+        model: UserAuthentication,
+        as: "authentications",
+      },
+    ],
+  },
+}))
 @Table({ tableName: "users", modelName: "user" })
 @Fix
 class User extends ParanoidModel {
@@ -439,10 +450,7 @@ class User extends ParanoidModel {
 
   static async findAllInBatches(
     query: FindOptions<User>,
-    callback: (
-      users: Array<User>,
-      query: FindOptions<User>
-    ) => Promise<void>
+    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
   ) {
     if (!query.offset) query.offset = 0;
     if (!query.limit) query.limit = 10;

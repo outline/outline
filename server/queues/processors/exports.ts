@@ -1,11 +1,11 @@
 import fs from "fs";
 import invariant from "invariant";
+import Logger from "@server/logging/logger";
+import mailer from "@server/mailer";
 import { FileOperation, Collection, Event, Team, User } from "@server/models";
+import { Event as TEvent } from "@server/types";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
-import Logger from "../../logging/logger";
-import mailer from "../../mailer";
-import { Event as TEvent } from "../../types";
 
 export default class ExportsProcessor {
   async on(event: TEvent) {

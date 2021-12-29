@@ -1,4 +1,6 @@
 import { Op } from "sequelize";
+import Logger from "@server/logging/logger";
+import mailer from "@server/mailer";
 import {
   View,
   Document,
@@ -7,14 +9,12 @@ import {
   User,
   NotificationSetting,
 } from "@server/models";
-import Logger from "../../logging/logger";
-import mailer from "../../mailer";
 import {
   DocumentEvent,
   CollectionEvent,
   RevisionEvent,
   Event,
-} from "../../types";
+} from "@server/types";
 
 export default class NotificationsProcessor {
   async on(event: Event) {
