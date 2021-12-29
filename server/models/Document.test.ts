@@ -24,7 +24,7 @@ paragraph 2`,
 
   test("should strip title when no version", async () => {
     const document = await buildDocument({
-      version: null,
+      version: 0,
       text: `# Heading
       
 *paragraph*`,

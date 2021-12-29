@@ -33,7 +33,7 @@ describe("documents.publish", () => {
     const otherDocument = await buildDocument();
     await otherDocument.destroy();
     const document = await buildDocument({
-      version: null,
+      version: 0,
       text: `[ ] checklist item`,
     });
     document.text = `[this is a link](${otherDocument.url})`;
@@ -80,7 +80,7 @@ describe("documents.update", () => {
   test("should not fail when previous revision is different document version", async () => {
     const otherDocument = await buildDocument();
     const document = await buildDocument({
-      version: null,
+      version: undefined,
       text: `[ ] checklist item`,
     });
     document.text = `[this is a link](${otherDocument.url})`;
