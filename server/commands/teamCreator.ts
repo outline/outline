@@ -64,7 +64,7 @@ export default async function teamCreator({
       invariant(team, "Team should exist");
 
       authP = await team.$create<AuthenticationProvider>(
-        "authentication_provider",
+        "authenticationProvider",
         authenticationProvider
       );
       return {

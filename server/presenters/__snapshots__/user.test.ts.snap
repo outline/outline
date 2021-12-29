@@ -2,13 +2,13 @@
 
 exports[`presents a user 1`] = `
 Object {
-  "avatarUrl": undefined,
-  "color": undefined,
+  "avatarUrl": "https://tiley.herokuapp.com/avatar/d41d8cd98f00b204e9800998ecf8427e/T.png?c=FF5C80",
+  "color": "#FF5C80",
   "createdAt": undefined,
   "id": "123",
-  "isAdmin": undefined,
-  "isSuspended": undefined,
-  "isViewer": undefined,
+  "isAdmin": false,
+  "isSuspended": false,
+  "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
 }
@@ -16,13 +16,13 @@ Object {
 
 exports[`presents a user without slack data 1`] = `
 Object {
-  "avatarUrl": undefined,
-  "color": undefined,
+  "avatarUrl": "https://tiley.herokuapp.com/avatar/d41d8cd98f00b204e9800998ecf8427e/T.png?c=FF5C80",
+  "color": "#FF5C80",
   "createdAt": undefined,
   "id": "123",
-  "isAdmin": undefined,
-  "isSuspended": undefined,
-  "isViewer": undefined,
+  "isAdmin": false,
+  "isSuspended": false,
+  "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
 }

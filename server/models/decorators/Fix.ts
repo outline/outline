@@ -15,6 +15,15 @@ export default function Fix(target: any): void {
       const associations = Object.keys(new.target.associations);
 
       rawAttributes.forEach((propertyKey) => {
+        // check if we already defined getter/setter – if so, do not override
+        const desc = Object.getOwnPropertyDescriptor(
+          target.prototype,
+          propertyKey
+        );
+        if (desc) {
+          return;
+        }
+
         Object.defineProperty(this, propertyKey, {
           get() {
             return this.getDataValue(propertyKey);
@@ -31,6 +40,7 @@ export default function Fix(target: any): void {
             return this.getDataValue(propertyKey);
           },
           set(value) {
+            // sets without changing the "changed" flag for associations
             this.dataValues[propertyKey] = value;
           },
         });

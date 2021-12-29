@@ -1,7 +1,6 @@
 import { Op } from "sequelize";
 import {
   AfterDestroy,
-  BeforeValidate,
   BelongsTo,
   Column,
   ForeignKey,
@@ -27,32 +26,35 @@ import Fix from "./decorators/Fix";
   ],
   order: [["name", "ASC"]],
 }))
-@Table({ tableName: "groups", modelName: "group" })
+@Table({
+  tableName: "groups",
+  modelName: "group",
+  validate: {
+    isUniqueNameInTeam: async function () {
+      const foundItem = await Group.findOne({
+        where: {
+          teamId: this.teamId,
+          name: {
+            [Op.iLike]: this.name,
+          },
+          id: {
+            [Op.not]: this.id,
+          },
+        },
+      });
+
+      if (foundItem) {
+        throw new Error("The name of this group is already in use");
+      }
+    },
+  },
+})
 @Fix
 class Group extends ParanoidModel {
   @Column
   name: string;
 
   // hooks
-
-  @BeforeValidate
-  static async validateName(model: Group) {
-    const foundItem = await this.findOne({
-      where: {
-        teamId: model.teamId,
-        name: {
-          [Op.iLike]: model.name,
-        },
-        id: {
-          [Op.not]: model.id,
-        },
-      },
-    });
-
-    if (foundItem) {
-      throw new Error("The name of this group is already in use");
-    }
-  }
 
   @AfterDestroy
   static async deleteGroupUsers(model: Group) {
