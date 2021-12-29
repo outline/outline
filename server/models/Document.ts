@@ -769,7 +769,7 @@ class Document extends ParanoidModel {
     // check to see if the documents parent hasn't been archived also
     // If it has then restore the document to the collection root.
     if (this.parentDocumentId) {
-      const parent = await Document.findOne({
+      const parent = await (this.constructor as typeof Document).findOne({
         where: {
           id: this.parentDocumentId,
           archivedAt: {

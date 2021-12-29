@@ -88,16 +88,16 @@ class Event extends BaseModel {
 
   // add can be used to send events into the event system without recording them
   // in the database or audit trail
-  static add = (event: Partial<Event>) => {
+  static add(event: Partial<Event>) {
     const now = new Date();
     globalEventQueue.add(
-      Event.build({
+      this.build({
         createdAt: now,
         updatedAt: now,
         ...event,
       })
     );
-  };
+  }
 
   static ACTIVITY_EVENTS = [
     "collections.create",

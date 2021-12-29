@@ -253,7 +253,7 @@ class User extends ParanoidModel {
   };
 
   demote = async (teamId: string, to: "member" | "viewer") => {
-    const res = await User.findAndCountAll({
+    const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
         teamId,
         isAdmin: true,
@@ -422,7 +422,7 @@ class User extends ParanoidModel {
       WHERE "deletedAt" IS NULL
       AND "teamId" = :teamId
     `;
-    const [results] = await User.sequelize!.query(countSql, {
+    const [results] = await this.sequelize.query(countSql, {
       type: QueryTypes.SELECT,
       replacements: {
         teamId,
