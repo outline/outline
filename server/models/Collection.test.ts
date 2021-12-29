@@ -144,8 +144,8 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: null,
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure.length).toBe(2);
-    expect(collection.documentStructure[1].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(2);
+    expect(collection.documentStructure![1].id).toBe(id);
   });
 
   test("should add with an index", async () => {
@@ -157,8 +157,8 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: null,
     });
     await collection.addDocumentToStructure(newDocument, 1);
-    expect(collection.documentStructure.length).toBe(2);
-    expect(collection.documentStructure[1].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(2);
+    expect(collection.documentStructure![1].id).toBe(id);
   });
 
   test("should add as a child if with parent", async () => {
@@ -170,10 +170,10 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: document.id,
     });
     await collection.addDocumentToStructure(newDocument, 1);
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].id).toBe(document.id);
-    expect(collection.documentStructure[0].children.length).toBe(1);
-    expect(collection.documentStructure[0].children[0].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].id).toBe(document.id);
+    expect(collection.documentStructure![0].children.length).toBe(1);
+    expect(collection.documentStructure![0].children[0].id).toBe(id);
   });
 
   test("should add as a child if with parent with index", async () => {
@@ -191,10 +191,10 @@ describe("#addDocumentToStructure", () => {
     });
     await collection.addDocumentToStructure(newDocument);
     await collection.addDocumentToStructure(secondDocument, 0);
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].id).toBe(document.id);
-    expect(collection.documentStructure[0].children.length).toBe(2);
-    expect(collection.documentStructure[0].children[0].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].id).toBe(document.id);
+    expect(collection.documentStructure![0].children.length).toBe(2);
+    expect(collection.documentStructure![0].children[0].id).toBe(id);
   });
   describe("options: documentJson", () => {
     test("should append supplied json over document's own", async () => {
@@ -220,8 +220,8 @@ describe("#addDocumentToStructure", () => {
           ],
         },
       });
-      expect(collection.documentStructure[1].children.length).toBe(1);
-      expect(collection.documentStructure[1].children[0].id).toBe(id);
+      expect(collection.documentStructure![1].children.length).toBe(1);
+      expect(collection.documentStructure![1].children[0].id).toBe(id);
     });
   });
 });
@@ -232,7 +232,7 @@ describe("#updateDocument", () => {
     document.title = "Updated title";
     await document.save();
     await collection.updateDocument(document);
-    expect(collection.documentStructure[0].title).toBe("Updated title");
+    expect(collection.documentStructure![0].title).toBe("Updated title");
   });
 
   test("should update child document's data", async () => {
@@ -252,7 +252,7 @@ describe("#updateDocument", () => {
     await newDocument.save();
     await collection.updateDocument(newDocument);
     const reloaded = await Collection.findByPk(collection.id);
-    expect(reloaded!.documentStructure[0].children[0].title).toBe(
+    expect(reloaded!.documentStructure![0].children[0].title).toBe(
       "Updated title"
     );
   });
@@ -269,7 +269,7 @@ describe("#removeDocument", () => {
   test("should remove documents from root", async () => {
     const { collection, document } = await seed();
     await collection.deleteDocument(document);
-    expect(collection.documentStructure.length).toBe(0);
+    expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -293,10 +293,10 @@ describe("#removeDocument", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure[0].children.length).toBe(1);
+    expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
     await collection.deleteDocument(document);
-    expect(collection.documentStructure.length).toBe(0);
+    expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
         collectionId: collection.id,
@@ -320,13 +320,13 @@ describe("#removeDocument", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].children.length).toBe(1);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
     await collection.deleteDocument(newDocument);
     const reloaded = await Collection.findByPk(collection.id);
-    expect(reloaded!.documentStructure.length).toBe(1);
-    expect(reloaded!.documentStructure[0].children.length).toBe(0);
+    expect(reloaded!.documentStructure!.length).toBe(1);
+    expect(reloaded!.documentStructure![0].children.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
         collectionId: collection.id,

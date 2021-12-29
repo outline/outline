@@ -31,7 +31,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">= 12 <=16"
+    "node": ">= 14 <=16"
   },
   "repository": {
     "type": "git",
@@ -277,7 +277,6 @@
     "react-refresh": "^0.9.0",
     "rimraf": "^2.5.4",
     "terser-webpack-plugin": "^4.1.0",
-    "tsconfig-paths": "^3.12.0",
     "typescript": "^4.4.4",
     "url-loader": "^0.6.2",
     "webpack": "4.44.1",
