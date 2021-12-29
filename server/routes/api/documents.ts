@@ -388,7 +388,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const collectionIds = collectionId
     ? [collectionId]
     : await user.collectionIds();
-  const whereConditions: WhereOptions<Document> = {
+  const where: WhereOptions<Document> = {
     createdById: user.id,
     collectionId: collectionIds,
     publishedAt: {
@@ -402,11 +402,11 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
       ["day", "week", "month", "year"],
       "dateFilter must be one of day,week,month,year"
     );
-    whereConditions.updatedAt = {
+    where.updatedAt = {
       [Op.gte]: subtractDate(new Date(), dateFilter),
     };
   } else {
-    delete whereConditions.updatedAt;
+    delete where.updatedAt;
   }
 
   const collectionScope: Readonly<ScopeOptions> = {
@@ -416,7 +416,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     "defaultScope",
     collectionScope,
   ]).findAll({
-    where: whereConditions,
+    where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,

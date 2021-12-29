@@ -1,7 +1,7 @@
 import fractionalIndex from "fractional-index";
 import invariant from "invariant";
 import Router from "koa-router";
-import { Sequelize, Op } from "sequelize";
+import { Sequelize, Op, WhereOptions } from "sequelize";
 import collectionExporter from "@server/commands/collectionExporter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -256,7 +256,7 @@ router.post(
       method: ["withMembership", user.id],
     }).findByPk(id);
     authorize(user, "read", collection);
-    let where = {
+    let where: WhereOptions<CollectionGroup> = {
       collectionId: id,
     };
     let groupWhere;
@@ -270,7 +270,6 @@ router.post(
     }
 
     if (permission) {
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ permission: any; collectionId: any; }' is ... Remove this comment to see the full error message
       where = { ...where, permission };
     }
 
@@ -411,7 +410,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "read", collection);
-  let where = {
+  let where: WhereOptions<CollectionUser> = {
     collectionId: id,
   };
   let userWhere;
@@ -425,7 +424,6 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   }
 
   if (permission) {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ permission: any; collectionId: any; }' is ... Remove this comment to see the full error message
     where = { ...where, permission };
   }
 

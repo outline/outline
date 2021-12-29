@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import Router from "koa-router";
-import { Op } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
@@ -106,7 +106,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   assertSort(sort, Share);
 
   const { user } = ctx.state;
-  const where = {
+  const where: WhereOptions<Share> = {
     teamId: user.teamId,
     userId: user.id,
     published: true,

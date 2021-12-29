@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import Router from "koa-router";
-import { Op } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
@@ -34,25 +34,22 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   }
 
   const actor = ctx.state.user;
-  let where = {
+  let where: WhereOptions<User> = {
     teamId: actor.teamId,
   };
 
   switch (filter) {
     case "invited": {
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ lastActiveAt: null; teamId: any; }' is not... Remove this comment to see the full error message
       where = { ...where, lastActiveAt: null };
       break;
     }
 
     case "viewers": {
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ isViewer: boolean; teamId: any; }' is not ... Remove this comment to see the full error message
       where = { ...where, isViewer: true };
       break;
     }
 
     case "admins": {
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ isAdmin: boolean; teamId: any; }' is not a... Remove this comment to see the full error message
       where = { ...where, isAdmin: true };
       break;
     }
@@ -60,7 +57,6 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     case "suspended": {
       where = {
         ...where,
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ suspendedAt: { [Op.ne]: null; }; teamId: a... Remove this comment to see the full error message
         suspendedAt: {
           [Op.ne]: null,
         },
@@ -75,7 +71,6 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     default: {
       where = {
         ...where,
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ suspendedAt: { [Op.is]: null; }; teamId: a... Remove this comment to see the full error message
         suspendedAt: {
           [Op.is]: null,
         },
@@ -87,7 +82,6 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   if (query) {
     where = {
       ...where,
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ name: { [Op.iLike]: string; }; teamId: any... Remove this comment to see the full error message
       name: {
         [Op.iLike]: `%${query}%`,
       },

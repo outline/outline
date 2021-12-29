@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import Router from "koa-router";
+import { WhereOptions } from "sequelize/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -44,12 +45,13 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
 
   if (direction !== "ASC") direction = "DESC";
   const { user } = ctx.state;
-  const where = {
+  const where: WhereOptions<FileOperation> = {
     teamId: user.teamId,
     type,
   };
   const team = await Team.findByPk(user.teamId);
   authorize(user, type, team);
+
   const [exports, total] = await Promise.all([
     await FileOperation.findAll({
       where,

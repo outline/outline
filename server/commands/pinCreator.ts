@@ -1,5 +1,5 @@
 import fractionalIndex from "fractional-index";
-import { Sequelize, Op } from "sequelize";
+import { Sequelize, Op, WhereOptions } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
 import { Pin, User, Event } from "@server/models";
@@ -34,7 +34,7 @@ export default async function pinCreator({
   ...rest
 }: Props): Promise<Pin> {
   let { index } = rest;
-  const where = {
+  const where: WhereOptions<Pin> = {
     teamId: user.teamId,
     ...(collectionId ? { collectionId } : { collectionId: { [Op.is]: null } }),
   };
