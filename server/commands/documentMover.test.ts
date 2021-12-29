@@ -97,8 +97,7 @@ describe("documentMover", () => {
     // check document ids where updated
     await newDocument.reload();
     expect(newDocument.collectionId).toBe(newCollection.id);
-    await document.reload();
-    expect(document.collectionId).toBe(newCollection.id);
+
     // check collection structure updated
     expect(response.collections[0].id).toBe(collection.id);
     expect(response.collections[1].id).toBe(newCollection.id);
@@ -107,6 +106,7 @@ describe("documentMover", () => {
     );
     expect(response.collections.length).toEqual(2);
     expect(response.documents.length).toEqual(2);
+
     expect(response.documents[0].collection.id).toEqual(newCollection.id);
     expect(response.documents[1].collection.id).toEqual(newCollection.id);
   });
