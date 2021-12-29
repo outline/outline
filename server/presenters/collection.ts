@@ -28,8 +28,10 @@ export default function present(collection: Collection) {
     };
   }
 
-  data.documents =
-    sortNavigationNodes(collection.documentStructure, data.sort) || [];
+  data.documents = sortNavigationNodes(
+    collection.documentStructure || [],
+    data.sort
+  );
 
   return data;
 }

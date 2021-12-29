@@ -67,7 +67,8 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
 
   const teamAuthenticationProviders = await user.team.$get(
     "authenticationProviders"
-  )();
+  );
+
   const otherAuthenticationProviders = allAuthenticationProviders.filter(
     (p) =>
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.

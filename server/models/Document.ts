@@ -649,7 +649,9 @@ class Document extends ParanoidModel {
     };
   }
 
-  toMarkdown = function (this: Document) {
+  // instance methods
+
+  toMarkdown = () => {
     const text = unescape(this.text);
 
     if (this.version) {
@@ -659,7 +661,7 @@ class Document extends ParanoidModel {
     return text;
   };
 
-  migrateVersion = function (this: Document) {
+  migrateVersion = () => {
     let migrated = false;
 
     // migrate from document version 0 -> 1
@@ -690,16 +692,16 @@ class Document extends ParanoidModel {
     return undefined;
   };
 
-  archiveWithChildren = async function (
-    this: Document,
+  archiveWithChildren = async (
     userId: string,
     options?: FindOptions<Document>
-  ) {
+  ) => {
     const archivedAt = new Date();
 
     // Helper to archive all child documents for a document
     const archiveChildren = async (parentDocumentId: string) => {
-      const childDocuments = await Document.findAll({
+      const childDocuments = await (this
+        .constructor as typeof Document).findAll({
         where: {
           parentDocumentId,
         },
@@ -718,11 +720,7 @@ class Document extends ParanoidModel {
     return this.save(options);
   };
 
-  publish = async function (
-    this: Document,
-    userId: string,
-    options?: FindOptions<Document>
-  ) {
+  publish = async (userId: string, options?: FindOptions<Document>) => {
     if (this.publishedAt) return this.save(options);
 
     if (!this.template) {
@@ -736,11 +734,7 @@ class Document extends ParanoidModel {
     return this;
   };
 
-  unpublish = async function (
-    this: Document,
-    userId: string,
-    options?: FindOptions<Document>
-  ) {
+  unpublish = async (userId: string, options?: FindOptions<Document>) => {
     if (!this.publishedAt) return this;
     const collection = await this.$get("collection");
     await collection?.removeDocumentInStructure(this);
@@ -756,7 +750,7 @@ class Document extends ParanoidModel {
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async function (this: Document, userId: string) {
+  archive = async (userId: string) => {
     // archive any children and remove from the document structure
     const collection = await this.$get("collection");
     if (collection) {
@@ -769,7 +763,7 @@ class Document extends ParanoidModel {
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async function (this: Document, userId: string) {
+  unarchive = async (userId: string) => {
     const collection = await this.$get("collection");
 
     // check to see if the documents parent hasn't been archived also
@@ -802,7 +796,7 @@ class Document extends ParanoidModel {
   };
 
   // Delete a document, archived or otherwise.
-  delete = function (this: Document, userId: string) {
+  delete = (userId: string) => {
     return this.sequelize.transaction(
       async (transaction: Transaction): Promise<Document> => {
         if (!this.archivedAt && !this.template) {

@@ -5,10 +5,13 @@ import {
   BelongsTo,
   Column,
 } from "sequelize-typescript";
-import encryptedFields from "@server/database/encryptedFields";
 import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Encrypted, {
+  getEncryptedColumn,
+  setEncryptedColumn,
+} from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "authentications", modelName: "authentication" })
@@ -20,8 +23,15 @@ class IntegrationAuthentication extends BaseModel {
   @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 
-  @Column(encryptedFields().vault("token"))
-  token: string;
+  @Column(DataType.BLOB)
+  @Encrypted
+  get token() {
+    return getEncryptedColumn(this, "token");
+  }
+
+  set token(value: string) {
+    setEncryptedColumn(this, "token", value);
+  }
 
   // associations
 

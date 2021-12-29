@@ -1,8 +1,8 @@
 /**
  * A decorator that must be applied to every model definition to workaround
- * babel<>typescript incompatibility.
+ * babel <> typescript incompatibility. See the following issue:
+ * https://github.com/RobinBuschmann/sequelize-typescript/issues/612#issuecomment-491890977
  *
- * see: https://github.com/RobinBuschmann/sequelize-typescript/issues/612#issuecomment-491890977
  * @param target model class
  */
 
@@ -37,7 +37,7 @@ export default function Fix(target: any): void {
       associations.forEach((propertyKey) => {
         Object.defineProperty(this, propertyKey, {
           get() {
-            return this.getDataValue(propertyKey);
+            return this.dataValues[propertyKey];
           },
           set(value) {
             // sets without changing the "changed" flag for associations

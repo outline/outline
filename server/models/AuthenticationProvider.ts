@@ -58,8 +58,11 @@ class AuthenticationProvider extends Model {
   @HasMany(() => UserAuthentication, "providerId")
   userAuthentications: UserAuthentication[];
 
-  disable = async function () {
-    const res = await AuthenticationProvider.findAndCountAll({
+  // instance methods
+
+  disable = async () => {
+    const res = await (this
+      .constructor as typeof AuthenticationProvider).findAndCountAll({
       where: {
         teamId: this.teamId,
         enabled: true,
@@ -79,7 +82,7 @@ class AuthenticationProvider extends Model {
     }
   };
 
-  enable = function () {
+  enable = () => {
     return this.update({
       enabled: true,
     });

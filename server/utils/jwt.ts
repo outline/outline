@@ -43,7 +43,9 @@ export async function getUserForJWT(token: string): Promise<User> {
       },
     ],
   });
-  invariant(user, "User not found");
+  if (!user) {
+    throw AuthenticationError("Invalid token");
+  }
 
   if (payload.type === "transfer") {
     // If the user has made a single API request since the transfer token was

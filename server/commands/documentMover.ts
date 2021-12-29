@@ -10,7 +10,6 @@ import {
   Event,
 } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { NavigationNode } from "~/types";
 import pinDestroyer from "./pinDestroyer";
 
 async function copyAttachments(
@@ -48,6 +47,21 @@ async function copyAttachments(
   return text;
 }
 
+type Props = {
+  user: User;
+  document: Document;
+  collectionId: string;
+  parentDocumentId?: string | null;
+  index?: number;
+  ip: string;
+};
+
+type Result = {
+  collections: Collection[];
+  documents: Document[];
+  collectionChanged: boolean;
+};
+
 export default async function documentMover({
   user,
   document,
@@ -56,18 +70,11 @@ export default async function documentMover({
   // convert undefined to null so parentId comparison treats them as equal
   index,
   ip,
-}: {
-  user: User;
-  document: Document;
-  collectionId: string;
-  parentDocumentId?: string | null;
-  index?: number;
-  ip: string;
-}) {
+}: Props): Promise<Result> {
   let transaction: Transaction | undefined;
   const collectionChanged = collectionId !== document.collectionId;
   const previousCollectionId = document.collectionId;
-  const result = {
+  const result: Result = {
     collections: [],
     documents: [],
     collectionChanged,
@@ -83,7 +90,6 @@ export default async function documentMover({
     document.lastModifiedById = user.id;
     document.updatedBy = user;
     await document.save();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Document' is not assignable to p... Remove this comment to see the full error message
     result.documents.push(document);
   } else {
     try {
@@ -138,21 +144,24 @@ export default async function documentMover({
             transaction,
           })
         : collection;
+
+      invariant(newCollection, "collection should exist");
+
       await newCollection?.addDocumentToStructure(document, toIndex, {
         documentJson,
       });
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
-      result.collections.push(collection);
+
+      if (collection) {
+        result.collections.push(collection);
+      }
 
       // if collection does not remain the same loop through children and change their
       // collectionId and move any attachments they may have too. This includes
       // archived children, otherwise their collection would be wrong once restored.
       if (collectionChanged) {
-        // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
         result.collections.push(newCollection);
 
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documentId' implicitly has an 'any' typ... Remove this comment to see the full error message
-        const loopChildren = async (documentId) => {
+        const loopChildren = async (documentId: string) => {
           const childDocuments = await Document.findAll({
             where: {
               parentDocumentId: documentId,
@@ -170,7 +179,6 @@ export default async function documentMover({
               if (newCollection) {
                 child.collection = newCollection;
               }
-              // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'any' is not assignable to parame... Remove this comment to see the full error message
               result.documents.push(child);
             })
           );
@@ -201,12 +209,9 @@ export default async function documentMover({
       if (newCollection) {
         document.collection = newCollection;
       }
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Document' is not assignable to p... Remove this comment to see the full error message
       result.documents.push(document);
 
-      if (transaction) {
-        await transaction.commit();
-      }
+      await transaction.commit();
     } catch (err) {
       if (transaction) {
         await transaction.rollback();
@@ -224,9 +229,7 @@ export default async function documentMover({
     teamId: document.teamId,
     data: {
       title: document.title,
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       collectionIds: result.collections.map((c) => c.id),
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'never'.
       documentIds: result.documents.map((d) => d.id),
     },
     ip,

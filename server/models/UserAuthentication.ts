@@ -6,10 +6,13 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
-import encryptedFields from "@server/database/encryptedFields";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
+import Encrypted, {
+  getEncryptedColumn,
+  setEncryptedColumn,
+} from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
@@ -18,11 +21,25 @@ class UserAuthentication extends BaseModel {
   @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 
-  @Column(encryptedFields().vault("accessToken"))
-  accessToken: string;
+  @Column(DataType.BLOB)
+  @Encrypted
+  get accessToken() {
+    return getEncryptedColumn(this, "accessToken");
+  }
 
-  @Column(encryptedFields().vault("refreshToken"))
-  refreshToken: string;
+  set accessToken(value: string) {
+    setEncryptedColumn(this, "accessToken", value);
+  }
+
+  @Column(DataType.BLOB)
+  @Encrypted
+  get refreshToken() {
+    return getEncryptedColumn(this, "refreshToken");
+  }
+
+  set refreshToken(value: string) {
+    setEncryptedColumn(this, "refreshToken", value);
+  }
 
   @Column
   providerId: string;

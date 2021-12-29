@@ -21,7 +21,6 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
-import encryptedFields from "@server/database/encryptedFields";
 import Logger from "@server/logging/logger";
 import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
 import { palette } from "@server/utils/color";
@@ -34,6 +33,10 @@ import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import ParanoidModel from "./base/ParanoidModel";
+import Encrypted, {
+  setEncryptedColumn,
+  getEncryptedColumn,
+} from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "users", modelName: "user" })
@@ -57,8 +60,15 @@ class User extends ParanoidModel {
   @Column
   isViewer: boolean;
 
-  @Column(encryptedFields().vault("jwtSecret"))
-  jwtSecret: string;
+  @Column(DataType.BLOB)
+  @Encrypted
+  get jwtSecret() {
+    return getEncryptedColumn(this, "jwtSecret");
+  }
+
+  set jwtSecret(value: string) {
+    setEncryptedColumn(this, "jwtSecret", value);
+  }
 
   @Column
   lastActiveAt: Date | null;
@@ -84,20 +94,6 @@ class User extends ParanoidModel {
   @IsIn([languages])
   @Column
   language: string;
-
-  /**
-   * [Deprecated] This definition is only retained for those running migrations
-   * from an older version of the application.
-   */
-  @Column
-  service: string;
-
-  /**
-   * [Deprecated] This definition is only retained for those running migrations
-   * from an older version of the application.
-   */
-  @Column
-  serviceId: string;
 
   @Column(DataType.STRING)
   get avatarUrl() {
@@ -155,7 +151,9 @@ class User extends ParanoidModel {
     return palette[idAsNumber % palette.length];
   }
 
-  collectionIds = async function (options = {}) {
+  // instance methods
+
+  collectionIds = async (options = {}) => {
     const collectionStubs = await Collection.scope({
       method: ["withMembership", this.id],
     }).findAll({
@@ -178,21 +176,24 @@ class User extends ParanoidModel {
       .map((c) => c.id);
   };
 
-  updateActiveAt = function (ip: string, force = false) {
+  updateActiveAt = (ip: string, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
     // we'll be constantly writing to the DB as API requests happen
-    if (this.lastActiveAt < fiveMinutesAgo || force) {
+    if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo || force) {
       this.lastActiveAt = new Date();
       this.lastActiveIp = ip;
+
       return this.save({
         hooks: false,
       });
     }
+
+    return this;
   };
 
-  updateSignedIn = function (ip: string) {
+  updateSignedIn = (ip: string) => {
     this.lastSignedInAt = new Date();
     this.lastSignedInIp = ip;
     return this.save({
@@ -202,7 +203,7 @@ class User extends ParanoidModel {
 
   // Returns a session token that is used to make API requests and is stored
   // in the client browser cookies to remain logged in.
-  getJwtToken = function (expiresAt?: Date) {
+  getJwtToken = (expiresAt?: Date) => {
     return JWT.sign(
       {
         id: this.id,
@@ -215,7 +216,7 @@ class User extends ParanoidModel {
 
   // Returns a temporary token that is only used for transferring a session
   // between subdomains or domains. It has a short expiry and can only be used once
-  getTransferToken = function () {
+  getTransferToken = () => {
     return JWT.sign(
       {
         id: this.id,
@@ -229,7 +230,7 @@ class User extends ParanoidModel {
 
   // Returns a temporary token that is only used for logging in from an email
   // It can only be used to sign in once and has a medium length expiry
-  getEmailSigninToken = function () {
+  getEmailSigninToken = () => {
     return JWT.sign(
       {
         id: this.id,
@@ -240,7 +241,7 @@ class User extends ParanoidModel {
     );
   };
 
-  demote = async function (teamId: string, to: "member" | "viewer") {
+  demote = async (teamId: string, to: "member" | "viewer") => {
     const res = await User.findAndCountAll({
       where: {
         teamId,
@@ -264,19 +265,21 @@ class User extends ParanoidModel {
           isViewer: true,
         });
       }
+
+      return undefined;
     } else {
       throw ValidationError("At least one admin is required");
     }
   };
 
-  promote = async function () {
+  promote = () => {
     return this.update({
       isAdmin: true,
       isViewer: false,
     });
   };
 
-  activate = async function () {
+  activate = () => {
     return this.update({
       suspendedById: null,
       suspendedAt: null,
@@ -436,7 +439,10 @@ class User extends ParanoidModel {
 
   static async findAllInBatches(
     query: FindOptions<User>,
-    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
+    callback: (
+      users: Array<User>,
+      query: FindOptions<User>
+    ) => Promise<void>
   ) {
     if (!query.offset) query.offset = 0;
     if (!query.limit) query.limit = 10;

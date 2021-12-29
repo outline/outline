@@ -148,13 +148,7 @@ class Collection extends ParanoidModel {
   maintainerApprovalRequired: boolean;
 
   @Column(DataType.JSONB)
-  get documentStructure(): NavigationNode[] {
-    return this.getDataValue("documentStructure") || [];
-  }
-
-  set documentStructure(value: NavigationNode[]) {
-    this.setDataValue("documentStructure", value);
-  }
+  documentStructure: NavigationNode[] | null;
 
   @Default(true)
   @Column
@@ -279,6 +273,13 @@ class Collection extends ParanoidModel {
     direction: "asc",
   };
 
+  /**
+   * Returns an array of unique userIds that are members of a collection,
+   * either via group or direct membership
+   *
+   * @param collectionId
+   * @returns userIds
+   */
   static async membershipUserIds(collectionId: string) {
     const collection = await this.scope("withAllMemberships").findByPk(
       collectionId
@@ -298,7 +299,13 @@ class Collection extends ParanoidModel {
     return uniq(membershipUserIds);
   }
 
-  static async findByPk(id: Identifier, options = {}) {
+  /**
+   * Overrides the standard findByPk behavior to allow also querying by urlId
+   *
+   * @param id uuid or urlId
+   * @returns collection instance
+   */
+  static async findByPk(id: Identifier, options: FindOptions<Collection> = {}) {
     if (typeof id !== "string") {
       return undefined;
     }
@@ -401,9 +408,11 @@ class Collection extends ParanoidModel {
       save?: boolean;
     }
   ) {
-    if (!this.documentStructure) return;
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'returnValue' implicitly has type 'any' i... Remove this comment to see the full error message
-    let result;
+    if (!this.documentStructure) {
+      return;
+    }
+
+    let result: [NavigationNode, number] | undefined;
     let transaction;
 
     try {
@@ -427,14 +436,15 @@ class Collection extends ParanoidModel {
         });
 
         if (match) {
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'returnValue' implicitly has an 'any' typ... Remove this comment to see the full error message
-          if (!result)
+          if (!result) {
             result = [
               match,
               findIndex(children, {
                 id,
               }),
             ];
+          }
+
           remove(children, {
             id,
           });
@@ -447,6 +457,7 @@ class Collection extends ParanoidModel {
         this.documentStructure,
         document.id
       );
+
       // Sequelize doesn't seem to set the value with splice on JSONB field
       // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
       this.changed("documentStructure", true);
@@ -577,7 +588,6 @@ class Collection extends ParanoidModel {
     if (!this.documentStructure) {
       this.documentStructure = [];
     }
-
     let transaction;
 
     try {
