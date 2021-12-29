@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import Router from "koa-router";
-import { Op, ScopeOptions } from "sequelize";
+import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
@@ -54,7 +54,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   if (direction !== "ASC") direction = "DESC";
   // always filter by the current team
   const { user } = ctx.state;
-  let where = {
+  let where: WhereOptions<Document> = {
     teamId: user.teamId,
     archivedAt: {
       [Op.is]: null,
@@ -62,7 +62,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   };
 
   if (template) {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ template: boolean; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, template: true };
   }
 
@@ -70,7 +69,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // exist in the team then nothing will be returned, so no need to check auth
   if (createdById) {
     assertUuid(createdById, "user must be a UUID");
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ createdById: any; teamId: any; archivedAt:... Remove this comment to see the full error message
     where = { ...where, createdById };
   }
 
@@ -80,7 +78,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // if a specific collection is passed then we need to check auth to view it
   if (collectionId) {
     assertUuid(collectionId, "collection must be a UUID");
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, collectionId };
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -93,18 +90,15 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
       documentIds = (collection?.documentStructure || [])
         .map((node) => node.id)
         .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id: any; teamId: any; archivedAt: { [Seque... Remove this comment to see the full error message
       where = { ...where, id: documentIds };
     } // otherwise, filter by all collections the user has access to
   } else {
     const collectionIds = await user.collectionIds();
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ collectionId: any; teamId: any; archivedAt... Remove this comment to see the full error message
     where = { ...where, collectionId: collectionIds };
   }
 
   if (parentDocumentId) {
     assertUuid(parentDocumentId, "parentDocumentId must be a UUID");
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ parentDocumentId: any; teamId: any; archiv... Remove this comment to see the full error message
     where = { ...where, parentDocumentId };
   }
 
@@ -113,7 +107,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   if (parentDocumentId === null) {
     where = {
       ...where,
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ parentDocumentId: { [Sequelize.Op.eq]: nul... Remove this comment to see the full error message
       parentDocumentId: {
         [Op.is]: null,
       },
@@ -130,7 +123,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     });
     where = {
       ...where,
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ id: any; teamId: any; archivedAt: { [Seque... Remove this comment to see the full error message
       id: backlinks.map((backlink) => backlink.reverseDocumentId),
     };
   }
@@ -396,13 +388,12 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const collectionIds = collectionId
     ? [collectionId]
     : await user.collectionIds();
-  const whereConditions = {
-    userId: user.id,
+  const whereConditions: WhereOptions<Document> = {
+    createdById: user.id,
     collectionId: collectionIds,
     publishedAt: {
       [Op.is]: null,
     },
-    updatedAt: undefined,
   };
 
   if (dateFilter) {
@@ -411,7 +402,6 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
       ["day", "week", "month", "year"],
       "dateFilter must be one of day,week,month,year"
     );
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ [Sequelize.Op.gte]: Date; }' is not assign... Remove this comment to see the full error message
     whereConditions.updatedAt = {
       [Op.gte]: subtractDate(new Date(), dateFilter),
     };
@@ -1212,9 +1202,10 @@ router.post("documents.delete", auth(), async (ctx) => {
       userId: user.id,
       paranoid: false,
     });
-    invariant(document, "document not found");
 
     authorize(user, "permanentDelete", document);
+    invariant(document, "document not found");
+
     await Document.update(
       {
         parentDocumentId: null,
@@ -1242,9 +1233,10 @@ router.post("documents.delete", auth(), async (ctx) => {
     const document = await Document.findByPk(id, {
       userId: user.id,
     });
-    invariant(document, "document not found");
 
     authorize(user, "delete", document);
+    invariant(document, "document not found");
+
     await document.delete(user.id);
     await Event.create({
       name: "documents.delete",
@@ -1271,9 +1263,10 @@ router.post("documents.unpublish", auth(), async (ctx) => {
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(document, "document not found");
 
   authorize(user, "unpublish", document);
+  invariant(document, "document not found");
+
   await document.unpublish(user.id);
   await Event.create({
     name: "documents.unpublish",

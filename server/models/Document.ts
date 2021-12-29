@@ -804,7 +804,9 @@ class Document extends ParanoidModel {
           const collection = await this.$get("collection", {
             transaction,
           });
-          if (collection) await collection.deleteDocument(this);
+          if (collection) {
+            await collection.deleteDocument(this);
+          }
         } else {
           await this.destroy({
             transaction,
@@ -830,11 +832,11 @@ class Document extends ParanoidModel {
     );
   };
 
-  getTimestamp = function () {
+  getTimestamp = () => {
     return Math.round(new Date(this.updatedAt).getTime() / 1000);
   };
 
-  getSummary = function () {
+  getSummary = () => {
     const plain = removeMarkdown(unescape(this.text), {
       stripHTML: false,
     });
@@ -848,7 +850,7 @@ class Document extends ParanoidModel {
     return notEmpty ? lines[1] : "";
   };
 
-  toJSON = function () {
+  toJSON = () => {
     // Warning: only use for new documents as order of children is
     // handled in the collection's documentStructure
     return {
