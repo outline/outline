@@ -28,7 +28,7 @@ import Fix from "./decorators/Fix";
     },
   ],
 }))
-@Table({ tableName: "attachments", modelName: "attachment" })
+@Table({ tableName: "file_operations", modelName: "file_operation" })
 @Fix
 class FileOperation extends BaseModel {
   @Column(DataType.ENUM("import", "export"))

@@ -1,6 +1,5 @@
 import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
-import { Collection, Document } from "@server/models";
 import {
   buildUser,
   buildGroup,
@@ -10,6 +9,8 @@ import {
 } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
 import slugify from "@server/utils/slugify";
+import Collection from "./Collection";
+import Document from "./Document";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

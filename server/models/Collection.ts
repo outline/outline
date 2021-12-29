@@ -1,6 +1,12 @@
 import { find, findIndex, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import { Identifier, Transaction, Op, SaveOptions } from "sequelize";
+import {
+  Identifier,
+  Transaction,
+  Op,
+  FindOptions,
+  SaveOptions,
+} from "sequelize";
 import {
   Sequelize,
   Table,
@@ -273,8 +279,8 @@ class Collection extends ParanoidModel {
     direction: "asc",
   };
 
-  static membershipUserIds = async (collectionId: string) => {
-    const collection = await Collection.scope("withAllMemberships").findByPk(
+  static async membershipUserIds(collectionId: string) {
+    const collection = await this.scope("withAllMemberships").findByPk(
       collectionId
     );
 
@@ -290,7 +296,7 @@ class Collection extends ParanoidModel {
       ...collection.memberships,
     ].map((membership) => membership.userId);
     return uniq(membershipUserIds);
-  };
+  }
 
   static async findByPk(id: Identifier, options = {}) {
     if (typeof id !== "string") {
@@ -368,7 +374,25 @@ class Collection extends ParanoidModel {
 
   deleteDocument = async function (document: Document) {
     await this.removeDocumentInStructure(document);
-    await document.deleteWithChildren();
+
+    // Helper to destroy all child documents for a document
+    const loopChildren = async (
+      documentId: string,
+      opts?: FindOptions<Document>
+    ) => {
+      const childDocuments = await Document.findAll({
+        where: {
+          parentDocumentId: documentId,
+        },
+      });
+      childDocuments.forEach(async (child) => {
+        await loopChildren(child.id, opts);
+        await child.destroy(opts);
+      });
+    };
+
+    await loopChildren(document.id);
+    await document.destroy();
   };
 
   removeDocumentInStructure = async function (

@@ -9,7 +9,7 @@ const tables = Object.keys(sequelize.models).map((model) => {
     typeof n === "string" ? n : n.tableName
   );
 });
-const flushQuery = `TRUNCATE ${tables.join(", ")}`;
+const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
 
 export function flushdb() {
   return sequelize.query(flushQuery);

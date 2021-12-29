@@ -1,6 +1,7 @@
-import { CollectionGroup, GroupUser } from "@server/models";
 import { buildUser, buildGroup, buildCollection } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
+import CollectionGroup from "./CollectionGroup";
+import GroupUser from "./GroupUser";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

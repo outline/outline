@@ -37,7 +37,7 @@ class Group extends ParanoidModel {
 
   @BeforeValidate
   static async validateName(model: Group) {
-    const foundItem = await Group.findOne({
+    const foundItem = await this.findOne({
       where: {
         teamId: model.teamId,
         name: {

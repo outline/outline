@@ -1,6 +1,7 @@
-import { UserAuthentication, CollectionUser } from "@server/models";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
+import CollectionUser from "./CollectionUser";
+import UserAuthentication from "./UserAuthentication";
 
 beforeEach(() => flushdb());
 

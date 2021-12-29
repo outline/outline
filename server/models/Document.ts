@@ -34,12 +34,13 @@ import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import unescape from "@shared/utils/unescape";
-import { Collection, User } from "@server/models";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
+import Collection from "./Collection";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
+import User from "./User";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -268,7 +269,7 @@ class Document extends ParanoidModel {
       model.version = DOCUMENT_VERSION;
     }
 
-    return Document.processUpdate(model);
+    return this.processUpdate(model);
   }
 
   @BeforeUpdate
@@ -687,33 +688,6 @@ class Document extends ParanoidModel {
     }
 
     return undefined;
-  };
-
-  // Note: This method marks the document and it's children as deleted
-  // in the database, it does not permanently delete them OR remove
-  // from the collection structure.
-  deleteWithChildren = async function (
-    this: Document,
-    options?: FindOptions<Document>
-  ) {
-    // Helper to destroy all child documents for a document
-    const loopChildren = async (
-      documentId: string,
-      opts?: FindOptions<Document>
-    ) => {
-      const childDocuments = await Document.findAll({
-        where: {
-          parentDocumentId: documentId,
-        },
-      });
-      childDocuments.forEach(async (child) => {
-        await loopChildren(child.id, opts);
-        await child.destroy(opts);
-      });
-    };
-
-    await loopChildren(this.id, options);
-    await this.destroy(options);
   };
 
   archiveWithChildren = async function (
