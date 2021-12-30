@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
 import { User, Event, Group, GroupUser } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import {
   presentGroup,
   presentPolicies,
@@ -14,7 +14,6 @@ import {
 import { assertPresent, assertUuid, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("groups.list", auth(), pagination(), async (ctx) => {

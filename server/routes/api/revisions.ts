@@ -3,12 +3,11 @@ import Router from "koa-router";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, Revision } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentRevision } from "@server/presenters";
 import { assertPresent, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("revisions.info", auth(), async (ctx) => {

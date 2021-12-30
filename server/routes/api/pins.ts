@@ -6,7 +6,7 @@ import pinDestroyer from "@server/commands/pinDestroyer";
 import pinUpdater from "@server/commands/pinUpdater";
 import auth from "@server/middlewares/authentication";
 import { Collection, Document, Pin } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import {
   presentPin,
   presentDocument,
@@ -15,7 +15,6 @@ import {
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("pins.create", auth(), async (ctx) => {

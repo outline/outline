@@ -5,13 +5,12 @@ import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { FileOperation, Team } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentFileOperation } from "@server/presenters";
 import { getSignedUrl } from "@server/utils/s3";
 import { assertPresent, assertIn, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("fileOperations.info", auth(), async (ctx) => {

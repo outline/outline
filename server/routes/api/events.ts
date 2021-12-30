@@ -2,12 +2,11 @@ import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Collection } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentEvent } from "@server/presenters";
 import { assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("events.list", auth(), pagination(), async (ctx) => {

@@ -2,11 +2,10 @@ import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Team, NotificationSetting } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentNotificationSetting } from "@server/presenters";
 import { assertPresent, assertUuid } from "@server/validation";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("notificationSettings.create", auth(), async (ctx) => {

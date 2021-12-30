@@ -6,7 +6,7 @@ import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
-import policy from "@server/policies";
+import { can, authorize } from "@server/policies/policy";
 import { presentUser, presentPolicies } from "@server/presenters";
 import {
   assertIn,
@@ -16,7 +16,6 @@ import {
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { can, authorize } = policy;
 const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {

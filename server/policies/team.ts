@@ -1,9 +1,7 @@
 import { Team, User } from "@server/models";
-import policy from "./policy";
+import { allow } from "./policy";
 
-const { allow } = policy;
-
-allow(User, "read", Team, (user, team) => team && user.teamId === team.id);
+allow(User, "read", Team, (user, team) => user.teamId === team?.id);
 
 allow(User, "share", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;

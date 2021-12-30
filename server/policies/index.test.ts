@@ -3,6 +3,7 @@ import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());
+
 it("should serialize policy", async () => {
   const user = await buildUser();
   const response = serialize(user, user);

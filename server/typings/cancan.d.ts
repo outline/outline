@@ -1,4 +1,6 @@
 declare module "cancan" {
+  import { Model } from "sequelize-typescript";
+
   namespace CanCan {
     interface Option {
       instanceOf?: ((instance: any, model: any) => boolean) | undefined;
@@ -9,20 +11,42 @@ declare module "cancan" {
   class CanCan {
     constructor(options?: CanCan.Option);
 
-    allow<T>(
-      model: any,
+    allow<
+      T extends new (...args: any) => any,
+      U extends new (...args: any) => any
+    >(
+      model: U,
       actions: string | ReadonlyArray<string>,
       targets: T | ReadonlyArray<T> | string | ReadonlyArray<string>,
       condition?:
         | object
-        | ((performer: any, target: any, options?: any) => boolean)
+        | ((
+            performer: InstanceType<U>,
+            target: InstanceType<T> | null,
+            options?: any
+          ) => boolean)
     ): void;
 
-    can(performer: any, action: string, target: any, options?: any): boolean;
+    can(
+      performer: Model,
+      action: string,
+      target: Model | null | undefined,
+      options?: any
+    ): boolean;
 
-    cannot(performer: any, action: string, target: any, options?: any): boolean;
+    cannot(
+      performer: Model,
+      action: string,
+      target: Model | null | undefined,
+      options?: any
+    ): boolean;
 
-    authorize(performer: any, action: string, target: any, options?: any): void;
+    authorize(
+      performer: Model,
+      action: string,
+      target: Model | null | undefined,
+      options?: any
+    ): asserts target;
 
     abilities: {
       model: any;

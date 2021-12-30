@@ -3,12 +3,11 @@ import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event } from "@server/models";
 import Integration from "@server/models/Integration";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentIntegration } from "@server/presenters";
 import { assertSort, assertUuid, assertArray } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("integrations.list", auth(), pagination(), async (ctx) => {

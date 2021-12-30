@@ -4,12 +4,11 @@ import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentShare, presentPolicies } from "@server/presenters";
 import { assertUuid, assertSort, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("shares.info", auth(), async (ctx) => {

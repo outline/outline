@@ -15,7 +15,7 @@ import {
   Group,
   Attachment,
 } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import {
   presentCollection,
   presentUser,
@@ -36,7 +36,6 @@ import {
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("collections.create", auth(), async (ctx) => {

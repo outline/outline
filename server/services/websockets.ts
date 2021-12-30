@@ -7,13 +7,11 @@ import SocketAuth from "socketio-auth";
 import Logger from "@server/logging/logger";
 import Metrics from "@server/logging/metrics";
 import { Document, Collection, View } from "@server/models";
+import { can } from "@server/policies/policy";
 import { getUserForJWT } from "@server/utils/jwt";
-import policy from "../policies";
 import { websocketsQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/websockets";
 import { client, subscriber } from "../redis";
-
-const { can } = policy;
 
 export default function init(app: Koa, server: http.Server) {
   const path = "/realtime";

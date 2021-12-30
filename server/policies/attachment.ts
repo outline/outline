@@ -1,7 +1,5 @@
 import { Attachment, User, Team } from "@server/models";
-import policy from "./policy";
-
-const { allow } = policy;
+import { allow } from "./policy";
 
 allow(User, "createAttachment", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;

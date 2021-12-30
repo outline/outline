@@ -2,7 +2,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { AuthenticationProvider, Event } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import {
   presentAuthenticationProvider,
   presentPolicies,
@@ -11,7 +11,6 @@ import { assertUuid, assertPresent } from "@server/validation";
 import allAuthenticationProviders from "../auth/providers";
 
 const router = new Router();
-const { authorize } = policy;
 
 router.post("authenticationProviders.info", auth(), async (ctx) => {
   const { id } = ctx.body;

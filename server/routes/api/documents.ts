@@ -25,7 +25,7 @@ import {
   View,
   Team,
 } from "@server/models";
-import policy from "@server/policies";
+import { authorize, cannot, can } from "@server/policies/policy";
 import {
   presentCollection,
   presentDocument,
@@ -41,7 +41,6 @@ import {
 import env from "../../env";
 import pagination from "./middlewares/pagination";
 
-const { authorize, cannot, can } = policy;
 const router = new Router();
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
@@ -72,8 +71,7 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     where = { ...where, createdById };
   }
 
-  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'documentIds' implicitly has type 'any[]'... Remove this comment to see the full error message
-  let documentIds = [];
+  let documentIds: string[] = [];
 
   // if a specific collection is passed then we need to check auth to view it
   if (collectionId) {
@@ -144,7 +142,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   // collection.documentStructure rather than a database column
   if (documentIds.length) {
     documents.sort(
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'a' implicitly has an 'any' type.
       (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
     );
   }
@@ -550,7 +547,7 @@ async function loadDocument({
 
     // It is possible to disable sharing at the team level so we must check
     const team = await Team.findByPk(document.teamId);
-    invariant(team, "collection not found");
+    invariant(team, "team not found");
 
     if (!team.sharing) {
       throw AuthorizationError();
@@ -711,9 +708,9 @@ router.post("documents.restore", auth(), async (ctx) => {
     // restore a document to a specific revision
     authorize(user, "update", document);
     const revision = await Revision.findByPk(revisionId);
-    invariant(revision, "revision not found");
 
     authorize(document, "restore", revision);
+
     document.text = revision.text;
     document.title = revision.title;
     await document.save();
@@ -1235,7 +1232,6 @@ router.post("documents.delete", auth(), async (ctx) => {
     });
 
     authorize(user, "delete", document);
-    invariant(document, "document not found");
 
     await document.delete(user.id);
     await Event.create({

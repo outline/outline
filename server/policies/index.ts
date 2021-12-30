@@ -6,7 +6,7 @@ import {
   Document,
   Group,
 } from "@server/models";
-import policy from "./policy";
+import { can, abilities } from "./policy";
 import "./apiKey";
 import "./attachment";
 import "./authenticationProvider";
@@ -21,7 +21,6 @@ import "./user";
 import "./team";
 import "./group";
 
-const { can, abilities } = policy;
 type Policy = Record<string, boolean>;
 
 /*
@@ -49,5 +48,3 @@ export function serialize(
   });
   return output;
 }
-
-export default policy;

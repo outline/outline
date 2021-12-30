@@ -1,8 +1,6 @@
 import { Group, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import policy from "./policy";
-
-const { allow } = policy;
+import { allow } from "./policy";
 
 allow(User, "createGroup", Team, (actor, team) => {
   if (!team || actor.isViewer || actor.teamId !== team.id) return false;

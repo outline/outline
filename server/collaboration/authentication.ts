@@ -1,10 +1,8 @@
 import { onAuthenticatePayload } from "@hocuspocus/server";
 import Document from "@server/models/Document";
+import { can } from "@server/policies/policy";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
-import policy from "../policies";
-
-const { can } = policy;
 
 export default class Authentication {
   async onAuthenticate({

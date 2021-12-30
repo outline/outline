@@ -2,10 +2,9 @@ import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies/policy";
 import { presentTeam, presentPolicies } from "@server/presenters";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("team.update", auth(), async (ctx) => {
