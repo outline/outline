@@ -31,12 +31,6 @@ module.exports = {
          cacheDirectory: true
        }
       },
-      // see: https://github.com/framer/motion/issues/1307#issuecomment-976626171
-      {
-        type: 'javascript/auto',
-        test: /\.mjs$/,
-        include: /node_modules/,
-      },
       // inline base64 URLs for <=8k images, direct URLs for the rest
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' },
       {
