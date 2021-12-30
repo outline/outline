@@ -84,7 +84,7 @@
     "file-loader": "^1.1.6",
     "focus-visible": "^5.2.0",
     "fractional-index": "^1.0.0",
-    "framer-motion": "^5.5.5",
+    "framer-motion": "^4.1.17",
     "fs-extra": "^4.0.2",
     "http-errors": "1.4.0",
     "i18next": "^20.6.1",
