@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/logger";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL || "";
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION || "";
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
@@ -16,13 +17,9 @@ const s3 = new AWS.S3({
   accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
   region: AWS_REGION,
-  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-  endpoint: process.env.AWS_S3_UPLOAD_BUCKET_URL.includes(
-    AWS_S3_UPLOAD_BUCKET_NAME
-  )
+  endpoint: AWS_S3_UPLOAD_BUCKET_URL.includes(AWS_S3_UPLOAD_BUCKET_NAME)
     ? undefined
-    : // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
-      new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+    : new AWS.Endpoint(AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
 const createPresignedPost = util.promisify(s3.createPresignedPost).bind(s3);
@@ -121,14 +118,12 @@ export const getPresignedPost = (
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
   // for access outside of docker containers in local development
-  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-  const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+  const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
 
-  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-  const host = process.env.AWS_S3_UPLOAD_BUCKET_URL.replace(
-    "s3:",
-    "localhost:"
-  ).replace(/\/$/, "");
+  const host = AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:").replace(
+    /\/$/,
+    ""
+  );
 
   // support old path-style S3 uploads and new virtual host uploads by checking
   // for the bucket name in the endpoint url before appending.
@@ -204,8 +199,7 @@ export const deleteFromS3 = (key: string) => {
 };
 
 export const getSignedUrl = async (key: string) => {
-  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-  const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+  const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,

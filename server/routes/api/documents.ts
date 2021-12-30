@@ -1297,8 +1297,7 @@ router.post("documents.import", auth(), async (ctx) => {
   const file: any = Object.values(ctx.request.files)[0];
   assertPresent(file, "file is required");
 
-  // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-  if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+  if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
     throw InvalidRequestError("The selected file was too large to import");
   }
 

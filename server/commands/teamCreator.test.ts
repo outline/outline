@@ -2,17 +2,6 @@ import { buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import teamCreator from "./teamCreator";
 
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    putObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
 beforeEach(() => flushdb());
 
 describe("teamCreator", () => {

@@ -4,17 +4,6 @@ import { buildAttachment, buildDocument } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    deleteObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
 beforeEach(() => flushdb());
 
 describe("documentPermanentDeleter", () => {
