@@ -1,10 +1,9 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import { presentShare, presentPolicies } from "@server/presenters";
 import { assertUuid, assertSort, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
@@ -173,7 +172,6 @@ router.post("shares.update", auth(), async (ctx) => {
   const share = await Share.scope({
     method: ["withCollection", user.id],
   }).findByPk(id);
-  invariant(share, "share not found");
 
   authorize(user, "update", share);
 
@@ -219,11 +217,11 @@ router.post("shares.create", auth(), async (ctx) => {
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
-  invariant(document, "document not found");
 
-  const team = await Team.findByPk(user.teamId);
   // user could be creating the share link to share with team members
   authorize(user, "read", document);
+
+  const team = await Team.findByPk(user.teamId);
 
   const [share, isCreated] = await Share.findOrCreate({
     where: {
@@ -269,13 +267,13 @@ router.post("shares.revoke", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const share = await Share.findByPk(id);
-  invariant(share, "share not found");
-  authorize(user, "revoke", share);
-  const document = await Document.findByPk(share.documentId);
 
-  if (!document) {
+  if (!share?.document) {
     throw NotFoundError();
   }
+
+  authorize(user, "revoke", share);
+  const { document } = share;
 
   await share.revoke(user.id);
   await Event.create({

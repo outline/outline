@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
 import { User, Event, Group, GroupUser } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import {
   presentGroup,
   presentPolicies,
@@ -55,8 +55,6 @@ router.post("groups.info", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const group = await Group.findByPk(id);
-  invariant(group, "group not found");
-
   authorize(user, "read", group);
 
   ctx.body = {
@@ -105,9 +103,8 @@ router.post("groups.update", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const group = await Group.findByPk(id);
-  invariant(group, "group not found");
-
   authorize(user, "update", group);
+
   group.name = name;
 
   if (group.changed()) {
@@ -136,9 +133,8 @@ router.post("groups.delete", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const group = await Group.findByPk(id);
-  invariant(group, "group not found");
-
   authorize(user, "delete", group);
+
   await group.destroy();
   await Event.create({
     name: "groups.delete",
@@ -205,13 +201,11 @@ router.post("groups.add_user", auth(), async (ctx) => {
   assertUuid(userId, "userId is required");
 
   const user = await User.findByPk(userId);
-  invariant(user, "user not found");
-
   authorize(ctx.state.user, "read", user);
-  let group = await Group.findByPk(id);
-  invariant(group, "group not found");
 
+  let group = await Group.findByPk(id);
   authorize(ctx.state.user, "update", group);
+
   let membership = await GroupUser.findOne({
     where: {
       groupId: id,
@@ -266,13 +260,11 @@ router.post("groups.remove_user", auth(), async (ctx) => {
   assertUuid(userId, "userId is required");
 
   let group = await Group.findByPk(id);
-  invariant(group, "group not found");
-
   authorize(ctx.state.user, "update", group);
-  const user = await User.findByPk(userId);
-  invariant(user, "user not found");
 
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
+
   await group.$remove("user", user);
   await Event.create({
     name: "groups.remove_user",

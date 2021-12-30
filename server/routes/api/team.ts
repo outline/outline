@@ -1,8 +1,7 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 
 const router = new Router();
@@ -20,8 +19,6 @@ router.post("team.update", auth(), async (ctx) => {
   } = ctx.body;
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  invariant(team, "team not found");
-
   authorize(user, "update", team);
 
   if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {

@@ -22,6 +22,7 @@ import Fix from "./decorators/Fix";
     },
     {
       association: "document",
+      required: false,
     },
     {
       association: "team",

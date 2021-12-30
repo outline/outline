@@ -1,9 +1,8 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event } from "@server/models";
 import Integration from "@server/models/Integration";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { assertSort, assertUuid, assertArray } from "@server/validation";
 import pagination from "./middlewares/pagination";
@@ -38,7 +37,6 @@ router.post("integrations.update", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const integration = await Integration.findByPk(id);
-  invariant(integration, "integration not found");
   authorize(user, "update", integration);
 
   assertArray(events, "events must be an array");
@@ -62,8 +60,6 @@ router.post("integrations.delete", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const integration = await Integration.findByPk(id);
-  invariant(integration, "integration not found");
-
   authorize(user, "delete", integration);
 
   await integration.destroy();

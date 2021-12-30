@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { ApiKey, Event } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
 import { assertUuid, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
@@ -12,6 +12,7 @@ router.post("apiKeys.create", auth(), async (ctx) => {
   const { name } = ctx.body;
   assertPresent(name, "name is required");
   const { user } = ctx.state;
+
   authorize(user, "createApiKey", user.team);
   const key = await ApiKey.create({
     name,

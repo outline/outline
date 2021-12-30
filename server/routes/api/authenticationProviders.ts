@@ -1,8 +1,7 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { AuthenticationProvider, Event } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import {
   presentAuthenticationProvider,
   presentPolicies,
@@ -17,7 +16,6 @@ router.post("authenticationProviders.info", auth(), async (ctx) => {
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
-  invariant(authenticationProvider, "authenticationProvider not found");
   authorize(user, "read", authenticationProvider);
 
   ctx.body = {
@@ -32,8 +30,6 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
   assertPresent(isEnabled, "isEnabled is required");
   const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
-  invariant(authenticationProvider, "authenticationProvider not found");
-
   authorize(user, "update", authenticationProvider);
   const enabled = !!isEnabled;
 

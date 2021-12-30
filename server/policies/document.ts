@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { Document, Revision, User, Team } from "@server/models";
 import { NavigationNode } from "~/types";
-import { allow, cannot } from "./policy";
+import { allow, _cannot as cannot } from "./cancan";
 
 allow(User, "createDocument", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;
@@ -36,6 +36,10 @@ allow(User, "share", Document, (user, document) => {
   if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
 
   if (cannot(user, "share", document.collection)) {
     return false;

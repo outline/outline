@@ -2,7 +2,7 @@ import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Collection } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import { presentEvent } from "@server/presenters";
 import { assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";

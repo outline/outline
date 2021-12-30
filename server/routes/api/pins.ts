@@ -6,7 +6,7 @@ import pinDestroyer from "@server/commands/pinDestroyer";
 import pinUpdater from "@server/commands/pinUpdater";
 import auth from "@server/middlewares/authentication";
 import { Collection, Document, Pin } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import {
   presentPin,
   presentDocument,

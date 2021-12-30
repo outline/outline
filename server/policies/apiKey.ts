@@ -1,5 +1,5 @@
 import { ApiKey, User, Team } from "@server/models";
-import { allow } from "./policy";
+import { allow } from "./cancan";
 
 allow(User, "createApiKey", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;

@@ -1,5 +1,5 @@
 import { Team, User } from "@server/models";
-import { allow } from "./policy";
+import { allow } from "./cancan";
 
 allow(User, "read", Team, (user, team) => user.teamId === team?.id);
 

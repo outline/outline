@@ -2,7 +2,7 @@ import invariant from "invariant";
 import { some } from "lodash";
 import { Collection, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import { allow } from "./policy";
+import { allow } from "./cancan";
 
 allow(User, "createCollection", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;

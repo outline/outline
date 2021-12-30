@@ -1,5 +1,5 @@
 import { User, Pin } from "@server/models";
-import { allow } from "./policy";
+import { allow } from "./cancan";
 
 allow(
   User,

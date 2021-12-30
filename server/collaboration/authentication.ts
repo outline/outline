@@ -1,6 +1,6 @@
 import { onAuthenticatePayload } from "@hocuspocus/server";
 import Document from "@server/models/Document";
-import { can } from "@server/policies/policy";
+import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
 

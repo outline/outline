@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import {
   getPresignedPost,
   publicS3Endpoint,

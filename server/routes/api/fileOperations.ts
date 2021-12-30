@@ -5,7 +5,7 @@ import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { FileOperation, Team } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
 import { getSignedUrl } from "@server/utils/s3";
 import { assertPresent, assertIn, assertUuid } from "@server/validation";

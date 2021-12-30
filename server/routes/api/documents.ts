@@ -25,7 +25,7 @@ import {
   View,
   Team,
 } from "@server/models";
-import { authorize, cannot, can } from "@server/policies/policy";
+import { authorize, cannot, can } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
@@ -868,12 +868,12 @@ router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
+
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(document, "document not found");
-
   authorize(user, "read", document);
+
   await Star.findOrCreate({
     where: {
       documentId: document.id,
@@ -902,12 +902,12 @@ router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
+
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(document, "document not found");
-
   authorize(user, "read", document);
+
   await Star.destroy({
     where: {
       documentId: document.id,
@@ -935,12 +935,12 @@ router.post("documents.templatize", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
+
   const original = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(original, "document not found");
-
   authorize(user, "update", original);
+
   const document = await Document.create({
     editorVersion: original.editorVersion,
     collectionId: original.collectionId,
@@ -996,10 +996,10 @@ router.post("documents.update", auth(), async (ctx) => {
   assertPresent(title || text, "title or text is required");
   if (append) assertPresent(text, "Text is required while appending");
   const { user } = ctx.state;
+
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(document, "document not found");
   authorize(user, "update", document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
@@ -1124,8 +1124,8 @@ router.post("documents.move", auth(), async (ctx) => {
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(document, "document not found");
   authorize(user, "move", document);
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(collectionId);
@@ -1164,12 +1164,12 @@ router.post("documents.archive", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
+
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-  invariant(document, "document not found");
-
   authorize(user, "archive", document);
+
   await document.archive(user.id);
   await Event.create({
     name: "documents.archive",
@@ -1199,9 +1199,7 @@ router.post("documents.delete", auth(), async (ctx) => {
       userId: user.id,
       paranoid: false,
     });
-
     authorize(user, "permanentDelete", document);
-    invariant(document, "document not found");
 
     await Document.update(
       {
@@ -1256,12 +1254,11 @@ router.post("documents.unpublish", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
+
   const document = await Document.findByPk(id, {
     userId: user.id,
   });
-
   authorize(user, "unpublish", document);
-  invariant(document, "document not found");
 
   await document.unpublish(user.id);
   await Event.create({
@@ -1306,6 +1303,7 @@ router.post("documents.import", auth(), async (ctx) => {
   if (index) assertPositiveInteger(index, "index must be an integer (>=0)");
   const { user } = ctx.state;
   authorize(user, "createDocument", user.team);
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findOne({
@@ -1314,8 +1312,6 @@ router.post("documents.import", auth(), async (ctx) => {
       teamId: user.teamId,
     },
   });
-  invariant(collection, "collection not found");
-
   authorize(user, "publish", collection);
   let parentDocument;
 
@@ -1376,6 +1372,7 @@ router.post("documents.create", auth(), async (ctx) => {
   if (index) assertPositiveInteger(index, "index must be an integer (>=0)");
   const { user } = ctx.state;
   authorize(user, "createDocument", user.team);
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findOne({
@@ -1384,9 +1381,8 @@ router.post("documents.create", auth(), async (ctx) => {
       teamId: user.teamId,
     },
   });
-  invariant(collection, "collection not found");
-
   authorize(user, "publish", collection);
+
   let parentDocument;
 
   if (parentDocumentId) {

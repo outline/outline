@@ -15,7 +15,7 @@ import {
   Group,
   Attachment,
 } from "@server/models";
-import { authorize } from "@server/policies/policy";
+import { authorize } from "@server/policies";
 import {
   presentCollection,
   presentUser,
@@ -123,7 +123,6 @@ router.post("collections.info", auth(), async (ctx) => {
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
 
   authorize(user, "read", collection);
 
@@ -161,16 +160,15 @@ router.post("collections.add_group", auth(), async (ctx) => {
   const { id, groupId, permission = "read_write" } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(ctx.state.user, "update", collection);
-  const group = await Group.findByPk(groupId);
-  invariant(group, "group not found");
 
+  const group = await Group.findByPk(groupId);
   authorize(ctx.state.user, "read", group);
+
   let membership = await CollectionGroup.findOne({
     where: {
       collectionId: id,
@@ -215,16 +213,15 @@ router.post("collections.remove_group", auth(), async (ctx) => {
   const { id, groupId } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(ctx.state.user, "update", collection);
-  const group = await Group.findByPk(groupId);
-  invariant(group, "group not found");
 
+  const group = await Group.findByPk(groupId);
   authorize(ctx.state.user, "read", group);
+
   await collection.$remove("group", group);
   await Event.create({
     name: "collections.remove_group",
@@ -251,10 +248,12 @@ router.post(
     const { id, query, permission } = ctx.body;
     assertUuid(id, "id is required");
     const { user } = ctx.state;
+
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(id);
     authorize(user, "read", collection);
+
     let where: WhereOptions<CollectionGroup> = {
       collectionId: id,
     };
@@ -302,16 +301,15 @@ router.post("collections.add_user", auth(), async (ctx) => {
   const { id, userId, permission = "read_write" } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(ctx.state.user, "update", collection);
-  const user = await User.findByPk(userId);
-  invariant(user, "user not found");
 
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
+
   let membership = await CollectionUser.findOne({
     where: {
       collectionId: id,
@@ -355,16 +353,15 @@ router.post("collections.remove_user", auth(), async (ctx) => {
   const { id, userId } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(ctx.state.user, "update", collection);
-  const user = await User.findByPk(userId);
-  invariant(user, "user not found");
 
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
+
   await collection.$remove("user", user);
   await Event.create({
     name: "collections.remove_user",
@@ -388,12 +385,12 @@ router.post("collections.users", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(user, "read", collection);
+
   const users = await collection.$get("users");
 
   ctx.body = {
@@ -405,10 +402,12 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "read", collection);
+
   let where: WhereOptions<CollectionUser> = {
     collectionId: id,
   };
@@ -455,15 +454,11 @@ router.post("collections.export", auth(), async (ctx) => {
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  invariant(team, "team not found");
   authorize(user, "export", team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
-  assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
 
   const fileOperation = await collectionExporter({
@@ -484,9 +479,8 @@ router.post("collections.export", auth(), async (ctx) => {
 router.post("collections.export_all", auth(), async (ctx) => {
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  invariant(team, "team not found");
-
   authorize(user, "export", team);
+
   const fileOperation = await collectionExporter({
     user,
     team,
@@ -521,8 +515,6 @@ router.post("collections.update", auth(), async (ctx) => {
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(user, "update", collection);
 
   // we're making this collection have no default access, ensure that the current
@@ -657,8 +649,6 @@ router.post("collections.delete", auth(), async (ctx) => {
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  invariant(collection, "collection not found");
-
   authorize(user, "delete", collection);
 
   const total = await Collection.count();
@@ -688,10 +678,10 @@ router.post("collections.move", auth(), async (ctx) => {
   assertIndexCharacters(index);
   assertUuid(id, "id must be a uuid");
   const { user } = ctx.state;
-  const collection = await Collection.findByPk(id);
-  invariant(collection, "collection not found");
 
+  const collection = await Collection.findByPk(id);
   authorize(user, "move", collection);
+
   index = await removeIndexCollision(user.teamId, index);
   await collection.update({
     index,

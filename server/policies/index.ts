@@ -6,7 +6,7 @@ import {
   Document,
   Group,
 } from "@server/models";
-import { can, abilities } from "./policy";
+import { _abilities, _can, _cannot, _authorize } from "./cancan";
 import "./apiKey";
 import "./attachment";
 import "./authenticationProvider";
@@ -22,6 +22,16 @@ import "./team";
 import "./group";
 
 type Policy = Record<string, boolean>;
+
+// this should not be needed but is a workaround for this TypeScript issue:
+// https://github.com/microsoft/TypeScript/issues/36931
+export const authorize: typeof _authorize = _authorize;
+
+export const can = _can;
+
+export const cannot = _cannot;
+
+export const abilities = _abilities;
 
 /*
  * Given a user and a model – output an object which describes the actions the

@@ -1,6 +1,6 @@
 import { User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import { allow } from "./policy";
+import { allow } from "./cancan";
 
 allow(
   User,
