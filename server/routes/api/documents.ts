@@ -150,7 +150,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     documents.map((document) => presentDocument(document))
   );
   const policies = presentPolicies(user, documents);
-
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
