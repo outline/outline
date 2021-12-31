@@ -80,6 +80,7 @@ declare module "styled-components" {
     white: string;
     white10: string;
     white50: string;
+    white75: string;
     black: string;
     black05: string;
     black10: string;

@@ -1,5 +1,4 @@
 import { addDays, differenceInDays } from "date-fns";
-import invariant from "invariant";
 import { floor } from "lodash";
 import { action, computed, observable } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
@@ -71,8 +70,6 @@ export default class Document extends BaseModel {
   updatedAt: string;
 
   updatedBy: User;
-
-  pinned: boolean;
 
   publishedAt: string | undefined;
 
@@ -240,31 +237,23 @@ export default class Document extends BaseModel {
   };
 
   @action
-  pin = async () => {
-    this.pinned = true;
-
-    try {
-      const res = await this.store.pin(this);
-      invariant(res && res.data, "Data should be available");
-      this.updateFromJson(res.data);
-    } catch (err) {
-      this.pinned = false;
-      throw err;
-    }
+  pin = async (collectionId?: string) => {
+    await this.store.rootStore.pins.create({
+      documentId: this.id,
+      ...(collectionId ? { collectionId } : {}),
+    });
   };
 
   @action
-  unpin = async () => {
-    this.pinned = false;
+  unpin = async (collectionId?: string) => {
+    const pin = this.store.rootStore.pins.orderedData.find(
+      (pin) =>
+        pin.documentId === this.id &&
+        (pin.collectionId === collectionId ||
+          (!collectionId && !pin.collectionId))
+    );
 
-    try {
-      const res = await this.store.unpin(this);
-      invariant(res && res.data, "Data should be available");
-      this.updateFromJson(res.data);
-    } catch (err) {
-      this.pinned = true;
-      throw err;
-    }
+    await pin?.delete();
   };
 
   @action
@@ -386,6 +375,21 @@ export default class Document extends BaseModel {
     const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
     return result;
   };
+
+  @computed
+  get pinned(): boolean {
+    return !!this.store.rootStore.pins.orderedData.find(
+      (pin) =>
+        pin.documentId === this.id && pin.collectionId === this.collectionId
+    );
+  }
+
+  @computed
+  get pinnedToHome(): boolean {
+    return !!this.store.rootStore.pins.orderedData.find(
+      (pin) => pin.documentId === this.id && !pin.collectionId
+    );
+  }
 
   @computed
   get isActive(): boolean {

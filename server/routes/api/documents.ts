@@ -142,22 +142,8 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   }
 
   assertSort(sort, Document);
-  // add the users starred state to the response by default
-  const starredScope = {
-    method: ["withStarred", user.id],
-  };
-  const collectionScope = {
-    method: ["withCollection", user.id],
-  };
-  const viewScope = {
-    method: ["withViews", user.id],
-  };
-  const documents = await Document.scope(
-    "defaultScope",
-    starredScope,
-    collectionScope,
-    viewScope
-  ).findAll({
+
+  const documents = await Document.defaultScopeWithUser(user.id).findAll({
     where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
@@ -173,57 +159,6 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
     );
   }
 
-  const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
-    documents.map((document) => presentDocument(document))
-  );
-  const policies = presentPolicies(user, documents);
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data,
-    policies,
-  };
-});
-
-router.post("documents.pinned", auth(), pagination(), async (ctx) => {
-  const { collectionId, sort = "updatedAt" } = ctx.body;
-  let direction = ctx.body.direction;
-  if (direction !== "ASC") direction = "DESC";
-
-  assertUuid(collectionId, "collectionId is required");
-  assertSort(sort, Document);
-
-  const user = ctx.state.user;
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(collectionId);
-  authorize(user, "read", collection);
-  const starredScope = {
-    method: ["withStarred", user.id],
-  };
-  const collectionScope = {
-    method: ["withCollection", user.id],
-  };
-  const viewScope = {
-    method: ["withViews", user.id],
-  };
-  const documents = await Document.scope(
-    "defaultScope",
-    starredScope,
-    collectionScope,
-    viewScope
-  ).findAll({
-    where: {
-      teamId: user.teamId,
-      collectionId,
-      pinnedById: {
-        [Op.ne]: null,
-      },
-    },
-    order: [[sort, direction]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
   const data = await Promise.all(
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
     documents.map((document) => presentDocument(document))
@@ -807,7 +742,6 @@ router.post("documents.restore", auth(), async (ctx) => {
   }
 
   ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -916,7 +850,6 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   const data = await Promise.all(
     // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
     results.map(async (result) => {
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
       const document = await presentDocument(result.document);
       return { ...result, document };
     })
@@ -939,62 +872,6 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     pagination: ctx.state.pagination,
     data,
     policies,
-  };
-});
-
-router.post("documents.pin", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertPresent(id, "id is required");
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "pin", document);
-  document.pinnedById = user.id;
-  await document.save();
-  await Event.create({
-    name: "documents.pin",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: {
-      title: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-  ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
-  };
-});
-
-router.post("documents.unpin", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertPresent(id, "id is required");
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "unpin", document);
-  document.pinnedById = null;
-  await document.save();
-  await Event.create({
-    name: "documents.unpin",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: {
-      title: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-  ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
   };
 });
 
@@ -1095,7 +972,6 @@ router.post("documents.templatize", auth(), async (ctx) => {
     userId: user.id,
   });
   ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1218,7 +1094,6 @@ router.post("documents.update", auth(), async (ctx) => {
   document.updatedBy = user;
   document.collection = collection;
   ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1271,7 +1146,6 @@ router.post("documents.move", auth(), async (ctx) => {
   ctx.body = {
     data: {
       documents: await Promise.all(
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
         documents.map((document) => presentDocument(document))
       ),
       collections: await Promise.all(
@@ -1303,7 +1177,6 @@ router.post("documents.archive", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1388,7 +1261,6 @@ router.post("documents.unpublish", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   };
@@ -1461,7 +1333,6 @@ router.post("documents.import", auth(), async (ctx) => {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'Docu... Remove this comment to see the full error message
   document.collection = collection;
   return (ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   });
@@ -1537,7 +1408,6 @@ router.post("documents.create", auth(), async (ctx) => {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'collection' does not exist on type 'Docu... Remove this comment to see the full error message
   document.collection = collection;
   return (ctx.body = {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
     data: await presentDocument(document),
     policies: presentPolicies(user, [document]),
   });

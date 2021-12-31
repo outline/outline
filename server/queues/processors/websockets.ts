@@ -5,7 +5,9 @@ import {
   Group,
   CollectionGroup,
   GroupUser,
+  Pin,
 } from "@server/models";
+import { presentPin } from "@server/presenters";
 import { Op } from "@server/sequelize";
 import { Event } from "../../types";
 
@@ -81,8 +83,6 @@ export default class WebsocketsProcessor {
           });
       }
 
-      case "documents.pin":
-      case "documents.unpin":
       case "documents.update": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -332,6 +332,30 @@ export default class WebsocketsProcessor {
         return socketio
           .to(`user-${event.actorId}`)
           .emit("fileOperations.update", event.data);
+      }
+
+      case "pins.create":
+      case "pins.update": {
+        const pin = await Pin.findByPk(event.modelId);
+        return socketio
+          .to(
+            pin.collectionId
+              ? `collection-${pin.collectionId}`
+              : `team-${pin.teamId}`
+          )
+          .emit(event.name, presentPin(pin));
+      }
+
+      case "pins.delete": {
+        return socketio
+          .to(
+            event.collectionId
+              ? `collection-${event.collectionId}`
+              : `team-${event.teamId}`
+          )
+          .emit(event.name, {
+            modelId: event.modelId,
+          });
       }
 
       case "groups.create":

@@ -57,26 +57,24 @@ router.post("collections.create", auth(), async (ctx) => {
 
   const user = ctx.state.user;
   authorize(user, "createCollection", user.team);
-  const collections = await Collection.findAll({
-    where: {
-      teamId: user.teamId,
-      deletedAt: null,
-    },
-    attributes: ["id", "index", "updatedAt"],
-    limit: 1,
-    order: [
-      // using LC_COLLATE:"C" because we need byte order to drive the sorting
-      sequelize.literal('"collection"."index" collate "C"'),
-      ["updatedAt", "DESC"],
-    ],
-  });
 
   if (index) {
-    assertIndexCharacters(
-      index,
-      "Index characters must be between x20 to x7E ASCII"
-    );
+    assertIndexCharacters(index);
   } else {
+    const collections = await Collection.findAll({
+      where: {
+        teamId: user.teamId,
+        deletedAt: null,
+      },
+      attributes: ["id", "index", "updatedAt"],
+      limit: 1,
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+    });
+
     index = fractionalIndex(
       null,
       collections.length ? collections[0].index : null
@@ -648,10 +646,7 @@ router.post("collections.move", auth(), async (ctx) => {
   const id = ctx.body.id;
   let index = ctx.body.index;
   assertPresent(index, "index is required");
-  assertIndexCharacters(
-    index,
-    "Index characters must be between x20 to x7E ASCII"
-  );
+  assertIndexCharacters(index);
   assertUuid(id, "id must be a uuid");
   const user = ctx.state.user;
   const collection = await Collection.findByPk(id);

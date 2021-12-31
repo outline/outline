@@ -18,9 +18,10 @@ import {
 } from "~/types";
 import { client } from "~/utils/ApiClient";
 
-type FetchParams = PaginationParams & { collectionId: string };
-
-type FetchPageParams = PaginationParams & { template?: boolean };
+type FetchPageParams = PaginationParams & {
+  template?: boolean;
+  collectionId?: string;
+};
 
 export type SearchParams = {
   offset?: number;
@@ -124,13 +125,6 @@ export default class DocumentsStore extends BaseStore<Document> {
       ),
       "updatedAt",
       "desc"
-    );
-  }
-
-  pinnedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.recentlyUpdatedInCollection(collectionId),
-      (document) => document.pinned
     );
   }
 
@@ -296,7 +290,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetchNamedPage = async (
     request = "list",
     options: FetchPageParams | undefined
-  ): Promise<Document[] | undefined> => {
+  ): Promise<Document[]> => {
     this.isFetching = true;
 
     try {
@@ -375,11 +369,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchDrafts = (options?: PaginationParams): Promise<any> => {
     return this.fetchNamedPage("drafts", options);
-  };
-
-  @action
-  fetchPinned = (options?: FetchParams): Promise<any> => {
-    return this.fetchNamedPage("pinned", options);
   };
 
   @action
@@ -730,18 +719,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
-  };
-
-  pin = (document: Document) => {
-    return client.post("/documents.pin", {
-      id: document.id,
-    });
-  };
-
-  unpin = (document: Document) => {
-    return client.post("/documents.unpin", {
-      id: document.id,
-    });
   };
 
   star = async (document: Document) => {

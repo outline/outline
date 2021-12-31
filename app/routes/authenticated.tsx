@@ -5,7 +5,6 @@ import Collection from "~/scenes/Collection";
 import DocumentNew from "~/scenes/DocumentNew";
 import Drafts from "~/scenes/Drafts";
 import Error404 from "~/scenes/Error404";
-import Home from "~/scenes/Home";
 import Search from "~/scenes/Search";
 import Templates from "~/scenes/Templates";
 import Trash from "~/scenes/Trash";
@@ -28,6 +27,13 @@ const Document = React.lazy(
     import(
       /* webpackChunkName: "document" */
       "~/scenes/Document"
+    )
+);
+const Home = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "home" */
+      "~/scenes/Home"
     )
 );
 

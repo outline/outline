@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import {
   EditIcon,
-  PinIcon,
   StarredIcon,
   UnstarredIcon,
   DuplicateIcon,
@@ -39,6 +38,12 @@ import Template from "~/components/ContextMenu/Template";
 import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Toggle from "~/components/Toggle";
+import { actionToMenuItem } from "~/actions";
+import {
+  pinDocument,
+  pinDocumentToHome,
+} from "~/actions/definitions/documents";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -72,7 +77,6 @@ function DocumentMenu({
   modal = true,
   showToggleEmbeds,
   showDisplayOptions,
-  showPin,
   label,
   onOpen,
   onClose,
@@ -87,6 +91,11 @@ function DocumentMenu({
     unstable_flip: true,
   });
   const history = useHistory();
+  const context = useActionContext({
+    isContextMenu: true,
+    activeDocumentId: document.id,
+    activeCollectionId: document.collectionId,
+  });
   const { t } = useTranslation();
   const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
@@ -307,20 +316,6 @@ function DocumentMenu({
             },
             {
               type: "button",
-              title: t("Unpin"),
-              onClick: document.unpin,
-              visible: !!(showPin && document.pinned && can.unpin),
-              icon: <PinIcon />,
-            },
-            {
-              type: "button",
-              title: t("Pin to collection"),
-              onClick: document.pin,
-              visible: !!(showPin && !document.pinned && can.pin),
-              icon: <PinIcon />,
-            },
-            {
-              type: "button",
               title: t("Unstar"),
               onClick: handleUnstar,
               visible: document.isStarred && !!can.unstar,
@@ -333,6 +328,8 @@ function DocumentMenu({
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
             },
+            actionToMenuItem(pinDocumentToHome, context),
+            actionToMenuItem(pinDocument, context),
             {
               type: "separator",
             },

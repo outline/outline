@@ -843,68 +843,7 @@ describe("#documents.list", () => {
     expect(body).toMatchSnapshot();
   });
 });
-describe("#documents.pinned", () => {
-  it("should return pinned documents", async () => {
-    const { user, document } = await seed();
-    document.pinnedById = user.id;
-    await document.save();
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: document.collectionId,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(document.id);
-  });
 
-  it("should return pinned documents in private collections member of", async () => {
-    const { user, collection, document } = await seed();
-    collection.permission = null;
-    await collection.save();
-    document.pinnedById = user.id;
-    await document.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
-      permission: "read_write",
-    });
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: document.collectionId,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(document.id);
-  });
-
-  it("should not return pinned documents in private collections not a member of", async () => {
-    const collection = await buildCollection({
-      permission: null,
-    });
-    const user = await buildUser({
-      teamId: collection.teamId,
-    });
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: collection.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.pinned");
-    expect(res.status).toEqual(401);
-  });
-});
 describe("#documents.drafts", () => {
   it("should return unpublished documents", async () => {
     const { user, document } = await seed();
@@ -1534,39 +1473,7 @@ describe("#documents.starred", () => {
     expect(body).toMatchSnapshot();
   });
 });
-describe("#documents.pin", () => {
-  it("should pin the document", async () => {
-    const { user, document } = await seed();
-    const res = await server.post("/api/documents.pin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.pinned).toEqual(true);
-  });
 
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.pin");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.pin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
 describe("#documents.move", () => {
   it("should move the document", async () => {
     const { user, document } = await seed();
@@ -1807,41 +1714,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 });
-describe("#documents.unpin", () => {
-  it("should unpin the document", async () => {
-    const { user, document } = await seed();
-    document.pinnedBy = user;
-    await document.save();
-    const res = await server.post("/api/documents.unpin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.pinned).toEqual(false);
-  });
 
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.unpin");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.unpin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
 describe("#documents.star", () => {
   it("should star the document", async () => {
     const { user, document } = await seed();

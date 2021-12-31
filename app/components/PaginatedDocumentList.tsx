@@ -12,7 +12,6 @@ type Props = {
   showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
-  showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
 };
@@ -33,7 +32,12 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
       fetch={fetch}
       options={options}
       renderItem={(item) => (
-        <DocumentListItem key={item.id} document={item} {...rest} />
+        <DocumentListItem
+          key={item.id}
+          document={item}
+          showPin={!!options?.collectionId}
+          {...rest}
+        />
       )}
     />
   );

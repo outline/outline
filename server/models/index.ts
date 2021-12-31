@@ -14,6 +14,7 @@ import Integration from "./Integration";
 import IntegrationAuthentication from "./IntegrationAuthentication";
 import Notification from "./Notification";
 import NotificationSetting from "./NotificationSetting";
+import Pin from "./Pin";
 import Revision from "./Revision";
 import SearchQuery from "./SearchQuery";
 import Share from "./Share";
@@ -39,6 +40,7 @@ const models = {
   IntegrationAuthentication,
   Notification,
   NotificationSetting,
+  Pin,
   Revision,
   SearchQuery,
   Share,
@@ -73,6 +75,7 @@ export {
   IntegrationAuthentication,
   Notification,
   NotificationSetting,
+  Pin,
   Revision,
   SearchQuery,
   Share,
