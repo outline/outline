@@ -37,6 +37,8 @@ function SharedDocumentScene(props: Props) {
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
 
+  console.log({ documentSlug });
+
   // ensure the wider page color always matches the theme
   React.useEffect(() => {
     window.document.body.style.background = theme.background;
@@ -44,9 +46,11 @@ function SharedDocumentScene(props: Props) {
 
   React.useEffect(() => {
     async function fetchData() {
+      console.log("triggered FETCH for", documentSlug);
       try {
         const response = await documents.fetchWithSharedTree(documentSlug, {
           shareId,
+          // force: true,
         });
         setResponse(response);
         ui.setActiveDocument(response.document);
@@ -66,11 +70,11 @@ function SharedDocumentScene(props: Props) {
     return <Loading location={props.location} />;
   }
 
-  console.log({ shareId });
+  console.log("SHAREDTREE", response.sharedTree);
 
   return (
     <Container auto>
-      {response.sharedTree && shareId && (
+      {response.sharedTree && (
         <Sidebar rootNode={response.sharedTree} shareId={shareId} />
       )}
       <Content

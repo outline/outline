@@ -681,6 +681,11 @@ router.post(
     });
     // Passing apiVersion=2 has a single effect, to change the response payload to
     // include document and sharedTree keys.
+
+    console.log({ share });
+    console.log(share && share.includeChildDocuments);
+    console.log(share && share.documentId);
+
     const data =
       apiVersion === 2
         ? {

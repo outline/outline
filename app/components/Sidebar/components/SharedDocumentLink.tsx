@@ -1,29 +1,21 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import Fade from "~/components/Fade";
-import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
-import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
-import DropCursor from "./DropCursor";
-import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import SidebarLink from "./SidebarLink";
 
 type Props = {
   node: NavigationNode;
   canUpdate: boolean;
   collection?: Collection;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (documentId: string) => Promise<Document | void>;
   isDraft?: boolean;
   depth: number;
   index: number;
@@ -37,7 +29,6 @@ function DocumentLink(
     canUpdate,
     collection,
     activeDocument,
-    prefetchDocument,
     isDraft,
     depth,
     shareId,
@@ -89,10 +80,6 @@ function DocumentLink(
     [expanded]
   );
 
-  const handleMouseEnter = React.useCallback(() => {
-    prefetchDocument(node.id);
-  }, [prefetchDocument, node]);
-
   const handleTitleChange = React.useCallback(
     async (title: string) => {
       if (!document) return;
@@ -109,19 +96,6 @@ function DocumentLink(
     },
     [documents, document]
   );
-  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const isMoving = documents.movingDocumentId === node.id;
-
-  const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
-
-  // We set a timeout when the user first starts hovering over the document link,
-  // to trigger expansion of children. Clear this timeout when they stop hovering.
-  const resetHoverExpanding = React.useCallback(() => {
-    if (hoverExpanding.current) {
-      clearTimeout(hoverExpanding.current);
-      hoverExpanding.current = undefined;
-    }
-  }, []);
 
   const nodeChildren = React.useMemo(() => {
     if (
@@ -153,12 +127,10 @@ function DocumentLink(
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
-  console.log({ shareId });
 
   return (
     <>
       <SidebarLink
-        onMouseEnter={handleMouseEnter}
         to={{
           pathname: `/share/${shareId}${node.url}`,
           state: {
@@ -181,7 +153,6 @@ function DocumentLink(
         }
         depth={depth}
         exact={false}
-        showActions={menuOpen}
         scrollIntoViewIfNeeded={!document?.isStarred}
         isDraft={isDraft}
         ref={ref}
@@ -194,7 +165,6 @@ function DocumentLink(
             collection={collection}
             node={childNode}
             activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
             isDraft={childNode.isDraft}
             depth={depth + 1}
             canUpdate={canUpdate}
@@ -205,10 +175,6 @@ function DocumentLink(
     </>
   );
 }
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
 

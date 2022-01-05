@@ -58,7 +58,7 @@ class DataLoader extends React.Component<Props> {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
     this.sharedTree = this.document
-      ? sharedTreeCache[this.document.id]
+      ? documents.getSharedTree(this.document.id)
       : undefined;
     this.loadDocument();
   }

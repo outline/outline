@@ -37,6 +37,8 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends BaseStore<Document> {
+  sharedTreeCache: Map<string, NavigationNode | undefined> = new Map();
+
   @observable
   searchCache: Map<string, SearchResult[]> = new Map();
 
@@ -269,13 +271,17 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
   };
 
-  getBacklinedDocuments(documentId: string): Document[] {
+  getBacklinkedDocuments(documentId: string): Document[] {
     const documentIds = this.backlinks.get(documentId) || [];
     return orderBy(
       compact(documentIds.map((id) => this.data.get(id))),
       "updatedAt",
       "desc"
     );
+  }
+
+  getSharedTree(documentId: string): NavigationNode | undefined {
+    return this.sharedTreeCache.get(documentId);
   }
 
   @action
@@ -482,9 +488,15 @@ export default class DocumentsStore extends BaseStore<Document> {
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
 
       if (doc && policy && !options.force) {
-        return {
-          document: doc,
-        };
+        if (!options.shareId)
+          return {
+            document: doc,
+          };
+        else if (this.sharedTreeCache.has(options.shareId))
+          return {
+            document: doc,
+            sharedTree: this.sharedTreeCache.get(options.shareId),
+          };
       }
 
       const res = await client.post("/documents.info", {
@@ -500,9 +512,16 @@ export default class DocumentsStore extends BaseStore<Document> {
       const document = this.data.get(res.data.document.id);
       invariant(document, "Document not available");
 
+      if (options.shareId) {
+        this.sharedTreeCache.set(options.shareId, res.data.sharedTree);
+        return {
+          document,
+          sharedTree: res.data.sharedTree,
+        };
+      }
+
       return {
         document,
-        sharedTree: res.data.sharedTree,
       };
     } finally {
       this.isFetching = false;

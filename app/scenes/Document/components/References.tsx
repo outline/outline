@@ -21,7 +21,7 @@ function References({ document }: Props) {
     documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
-  const backlinks = documents.getBacklinedDocuments(document.id);
+  const backlinks = documents.getBacklinkedDocuments(document.id);
   const collection = collections.get(document.collectionId);
   const children = collection
     ? collection.getDocumentChildren(document.id)

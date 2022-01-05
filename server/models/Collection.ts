@@ -484,6 +484,7 @@ Collection.prototype.getDocumentTree = function (documentId: string) {
       }
 
       if (document.id === documentId) {
+        console.log({ document });
         result = document;
       } else {
         loopChildren(document.children);
