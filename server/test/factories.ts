@@ -89,9 +89,13 @@ export async function buildGuestUser(overrides: Partial<User> = {}) {
 }
 
 export async function buildUser(overrides: Partial<User> = {}) {
+  let team;
+
   if (!overrides.teamId) {
-    const team = await buildTeam();
+    team = await buildTeam();
     overrides.teamId = team.id;
+  } else {
+    team = await Team.findByPk(overrides.teamId);
   }
 
   const authenticationProvider = await AuthenticationProvider.findOne({

@@ -22,6 +22,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   assertSort(sort, Event);
+
   let where: WhereOptions<Event> = {
     name: Event.ACTIVITY_EVENTS,
     teamId: user.teamId,
@@ -89,7 +90,9 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: events.map((event) => presentEvent(event, auditLog)),
+    data: await Promise.all(
+      events.map((event) => presentEvent(event, auditLog))
+    ),
   };
 });
 
