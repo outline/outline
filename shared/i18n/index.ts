@@ -61,6 +61,10 @@ export const languageOptions = [
     label: "Polskie (Polska)",
     value: "pl_PL",
   },
+  {
+    label: "Tiếng Việt (Vietnamese)",
+    value: "vi_VN",
+  },
 ];
 
 export const languages: string[] = languageOptions.map((i) => i.value);

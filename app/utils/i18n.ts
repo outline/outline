@@ -1,23 +1,24 @@
 import {
-  enUS,
   de,
+  enUS,
+  es,
   faIR,
   fr,
-  es,
   it,
   ja,
   ko,
   ptBR,
   pt,
+  pl,
+  ru,
+  vi,
   zhCN,
   zhTW,
-  ru,
-  pl,
 } from "date-fns/locale";
 
 const locales = {
-  en_US: enUS,
   de_DE: de,
+  en_US: enUS,
   es_ES: es,
   fa_IR: faIR,
   fr_FR: fr,
@@ -26,10 +27,11 @@ const locales = {
   ko_KR: ko,
   pt_BR: ptBR,
   pt_PT: pt,
+  pl_PL: pl,
+  ru_RU: ru,
+  vi_VN: vi,
   zh_CN: zhCN,
   zh_TW: zhTW,
-  ru_RU: ru,
-  pl_PL: pl,
 };
 
 export function dateLocale(userLocale: string | null | undefined) {
