@@ -1,14 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
-import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -33,31 +31,17 @@ function DocumentLink(
     depth,
     shareId,
     index,
-    parentId,
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
-  const { documents, policies } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
 
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
+
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
-  const { fetchChildDocuments } = documents;
-  const [isEditing, setIsEditing] = React.useState(false);
-
-  React.useEffect(() => {
-    if (isActiveDocument && hasChildDocuments) {
-      fetchChildDocuments(node.id);
-    }
-  }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
-
-  const pathToNode = React.useMemo(
-    () =>
-      collection && collection.pathToDocument(node.id).map((entry) => entry.id),
-    [collection, node]
-  );
 
   const showChildren = React.useMemo(() => {
     return !!hasChildDocuments;
@@ -78,23 +62,6 @@ function DocumentLink(
       setExpanded(!expanded);
     },
     [expanded]
-  );
-
-  const handleTitleChange = React.useCallback(
-    async (title: string) => {
-      if (!document) return;
-      await documents.update(
-        {
-          id: document.id,
-          text: document.text,
-          title,
-        },
-        {
-          lastRevision: document.revision,
-        }
-      );
-    },
-    [documents, document]
   );
 
   const nodeChildren = React.useMemo(() => {
@@ -120,10 +87,6 @@ function DocumentLink(
     node,
   ]);
 
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
-  }, []);
-
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
@@ -142,13 +105,7 @@ function DocumentLink(
             {hasChildDocuments && (
               <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
             )}
-            <EditableTitle
-              title={title}
-              onSubmit={handleTitleChange}
-              onEditing={handleTitleEditing}
-              canUpdate={canUpdate}
-              maxLength={MAX_TITLE_LENGTH}
-            />
+            {title}
           </>
         }
         depth={depth}

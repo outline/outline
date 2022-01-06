@@ -50,7 +50,6 @@ function SharedDocumentScene(props: Props) {
       try {
         const response = await documents.fetchWithSharedTree(documentSlug, {
           shareId,
-          // force: true,
         });
         setResponse(response);
         ui.setActiveDocument(response.document);
@@ -58,7 +57,6 @@ function SharedDocumentScene(props: Props) {
         setError(err);
       }
     }
-
     fetchData();
   }, [documents, documentSlug, shareId]);
 
@@ -69,8 +67,6 @@ function SharedDocumentScene(props: Props) {
   if (!response) {
     return <Loading location={props.location} />;
   }
-
-  console.log("SHAREDTREE", response.sharedTree);
 
   return (
     <Container auto>

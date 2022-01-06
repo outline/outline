@@ -15,11 +15,6 @@ type Props = {
 function MainSidebar({ rootNode, shareId }: Props) {
   const { documents } = useStores();
 
-  React.useEffect(() => {
-    documents.fetchDrafts();
-    documents.fetchTemplates();
-  }, [documents]);
-
   return (
     <Sidebar>
       <Scrollable flex topShadow>
