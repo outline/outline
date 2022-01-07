@@ -4,11 +4,9 @@ export default function getDataTransferFiles(
     | React.FormEvent<HTMLInputElement>
     | React.DragEvent<HTMLElement>
 ): File[] {
-  let dataTransferItemsList = [];
+  let dataTransferItemsList!: FileList | DataTransferItemList;
 
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'dataTransfer' does not exist on type 'Sy... Remove this comment to see the full error message
-  if (event.dataTransfer) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'dataTransfer' does not exist on type 'Sy... Remove this comment to see the full error message
+  if ("dataTransfer" in event) {
     const dt = event.dataTransfer;
 
     if (dt.files && dt.files.length) {
@@ -18,12 +16,13 @@ export default function getDataTransferFiles(
       // but Chrome implements some drag store, which is accesible via dataTransfer.items
       dataTransferItemsList = dt.items;
     }
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'files' does not exist on type 'EventTarg... Remove this comment to see the full error message
-  } else if (event.target && event.target.files) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'files' does not exist on type 'EventTarg... Remove this comment to see the full error message
+  } else if (event.target && "files" in event.target) {
+    // @ts-expect-error fallback
     dataTransferItemsList = event.target.files;
   }
 
   // Convert from DataTransferItemsList to the native Array
-  return Array.prototype.slice.call(dataTransferItemsList);
+  return dataTransferItemsList
+    ? Array.prototype.slice.call(dataTransferItemsList)
+    : [];
 }

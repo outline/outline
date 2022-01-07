@@ -353,7 +353,7 @@ class Collection extends ParanoidModel {
   }
 
   getDocumentTree = function (documentId: string): NavigationNode {
-    let result: NavigationNode;
+    let result!: NavigationNode;
 
     const loopChildren = (documents: NavigationNode[]) => {
       if (result) {
@@ -375,7 +375,6 @@ class Collection extends ParanoidModel {
 
     loopChildren(this.documentStructure);
 
-    // @ts-expect-error used before undefined
     return result;
   };
 
@@ -479,7 +478,7 @@ class Collection extends ParanoidModel {
   };
 
   getDocumentParents = function (documentId: string): string[] | void {
-    let result: string[];
+    let result!: string[];
 
     const loopChildren = (documents: NavigationNode[], path: string[] = []) => {
       if (result) {
@@ -499,7 +498,6 @@ class Collection extends ParanoidModel {
       loopChildren(this.documentStructure);
     }
 
-    // @ts-expect-error used before undefined
     return result;
   };
 

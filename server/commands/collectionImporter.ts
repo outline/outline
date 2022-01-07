@@ -45,18 +45,9 @@ export default async function collectionImporter({
   }
 
   // store progress and pointers
-  // @ts-expect-error ts-migrate(2741) FIXME: Property 'string' is missing in type '{}' but requ... Remove this comment to see the full error message
-  const collections: {
-    string: Collection;
-  } = {};
-  // @ts-expect-error ts-migrate(2741) FIXME: Property 'string' is missing in type '{}' but requ... Remove this comment to see the full error message
-  const documents: {
-    string: Document;
-  } = {};
-  // @ts-expect-error ts-migrate(2741) FIXME: Property 'string' is missing in type '{}' but requ... Remove this comment to see the full error message
-  const attachments: {
-    string: Attachment;
-  } = {};
+  const collections: Record<string, Collection> = {};
+  const documents: Record<string, Document> = {};
+  const attachments: Record<string, Attachment> = {};
 
   for (const item of items) {
     if (item.type === "collection") {
@@ -113,6 +104,7 @@ export default async function collectionImporter({
       const tmpDir = os.tmpdir();
       const tmpFilePath = `${tmpDir}/upload-${uuidv4()}`;
       await fs.promises.writeFile(tmpFilePath, content);
+
       const file = new File({
         name,
         type: "text/markdown",
@@ -123,6 +115,7 @@ export default async function collectionImporter({
         user,
         ip,
       });
+
       await fs.promises.unlink(tmpFilePath);
       // must be a nested document, find and reference the parent document
       let parentDocumentId;
@@ -142,10 +135,8 @@ export default async function collectionImporter({
         collectionId: collection.id,
         createdAt: item.metadata.createdAt
           ? new Date(item.metadata.createdAt)
-          : // @ts-expect-error ts-migrate(2339) FIXME: Property 'date' does not exist on type 'Item'.
-            item.date,
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'date' does not exist on type 'Item'.
-        updatedAt: item.date,
+          : item.item.date,
+        updatedAt: item.item.date,
         parentDocumentId,
         user,
         ip,

@@ -20,7 +20,6 @@ export default async function collectionIndexing(teamId: string) {
 
   sortableCollections = naturalSort(
     sortableCollections,
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(collection: any) => any' is not... Remove this comment to see the full error message
     (collection) => collection[0].name
   );
 

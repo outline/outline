@@ -230,7 +230,7 @@
     "@types/react-medium-image-zoom": "^3.0.1",
     "@types/react-portal": "^4.0.4",
     "@types/react-router-dom": "^5.3.2",
-    "@types/react-table": "^7.7.8",
+    "@types/react-table": "^7.7.9",
     "@types/react-virtualized-auto-sizer": "^1.0.1",
     "@types/react-window": "^1.8.5",
     "@types/semver": "^7.3.9",

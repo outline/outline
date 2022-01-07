@@ -12,8 +12,7 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import UserMenu from "~/menus/UserMenu";
 
-// @ts-expect-error ts-migrate(2344) FIXME: Type 'Props' does not satisfy the constraint 'Comp... Remove this comment to see the full error message
-const Table = React.lazy<TableProps>(
+const Table = React.lazy(
   () =>
     import(
       /* webpackChunkName: "table" */
@@ -40,38 +39,36 @@ function PeopleTable({ canManage, ...rest }: Props) {
           id: "name",
           Header: t("Name"),
           accessor: "name",
-          // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'value' implicitly has an 'any' ty... Remove this comment to see the full error message
-          Cell: observer(({ value, row }) => (
-            <Flex align="center" gap={8}>
-              <Avatar src={row.original.avatarUrl} size={32} /> {value}{" "}
-              {currentUser.id === row.original.id && `(${t("You")})`}
-            </Flex>
-          )),
+          Cell: observer(
+            ({ value, row }: { value: string; row: { original: User } }) => (
+              <Flex align="center" gap={8}>
+                <Avatar src={row.original.avatarUrl} size={32} /> {value}{" "}
+                {currentUser.id === row.original.id && `(${t("You")})`}
+              </Flex>
+            )
+          ),
         },
         canManage
           ? {
               id: "email",
               Header: t("Email"),
               accessor: "email",
-              // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'value' implicitly has an 'any' ty... Remove this comment to see the full error message
-              Cell: observer(({ value }) => value),
+              Cell: observer(({ value }: { value: string }) => <>{value}</>),
             }
           : undefined,
         {
           id: "lastActiveAt",
           Header: t("Last active"),
           accessor: "lastActiveAt",
-          Cell: observer(
-            // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'value' implicitly has an 'any' ty... Remove this comment to see the full error message
-            ({ value }) => value && <Time dateTime={value} addSuffix />
+          Cell: observer(({ value }: { value: string }) =>
+            value ? <Time dateTime={value} addSuffix /> : null
           ),
         },
         {
           id: "isAdmin",
           Header: t("Role"),
           accessor: "rank",
-          // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'row' implicitly has an 'any' type... Remove this comment to see the full error message
-          Cell: observer(({ row }) => (
+          Cell: observer(({ row }: { row: { original: User } }) => (
             <Badges>
               {!row.original.lastActiveAt && <Badge>{t("Invited")}</Badge>}
               {row.original.isAdmin && <Badge primary>{t("Admin")}</Badge>}
@@ -86,16 +83,17 @@ function PeopleTable({ canManage, ...rest }: Props) {
               accessor: "id",
               className: "actions",
               Cell: observer(
-                // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '({ row, value }: { row: any; val... Remove this comment to see the full error message
-                ({ row, value }) =>
-                  currentUser.id !== value && <UserMenu user={row.original} />
+                ({ row, value }: { value: string; row: { original: User } }) =>
+                  currentUser.id !== value ? (
+                    <UserMenu user={row.original} />
+                  ) : null
               ),
             }
           : undefined,
       ].filter((i) => i),
     [t, canManage, currentUser]
   );
-  // @ts-expect-error ts-migrate(2322) FIXME: Type '{ data: any[] & User[]; offset?: number | un... Remove this comment to see the full error message
+
   return <Table columns={columns} {...rest} />;
 }
 

@@ -1,3 +1,4 @@
+import Router from "koa-router";
 import { signin } from "@shared/utils/routeHelpers";
 import { requireDirectory } from "@server/utils/fs";
 
@@ -6,7 +7,7 @@ interface AuthenicationProvider {
   name: string;
   enabled: boolean;
   authUrl: string;
-  router: any;
+  router: Router;
 }
 
 const providers: AuthenicationProvider[] = [];

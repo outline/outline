@@ -51,15 +51,10 @@ function Table({
     headerGroups,
     rows,
     prepareRow,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'canNextPage' does not exist on type 'Tab... Remove this comment to see the full error message
     canNextPage,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'nextPage' does not exist on type 'TableI... Remove this comment to see the full error message
     nextPage,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'canPreviousPage' does not exist on type ... Remove this comment to see the full error message
     canPreviousPage,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'previousPage' does not exist on type 'Ta... Remove this comment to see the full error message
     previousPage,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'pageIndex' does not exist on type 'Table... Remove this comment to see the full error message
     state: { pageIndex, sortBy },
   } = useTable(
     {
@@ -71,7 +66,6 @@ function Table({
       autoResetPage: false,
       pageCount: totalPages,
       initialState: {
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ sortBy: { id: string; desc: boolean; }[]; ... Remove this comment to see the full error message
         sortBy: [
           {
             id: defaultSort,
@@ -82,7 +76,6 @@ function Table({
         pageIndex: page,
       },
       stateReducer: (newState, action, prevState) => {
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'sortBy' does not exist on type 'TableSta... Remove this comment to see the full error message
         if (!isEqual(newState.sortBy, prevState.sortBy)) {
           return { ...newState, pageIndex: 0 };
         }
@@ -127,20 +120,15 @@ function Table({
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
-                // @ts-expect-error ts-migrate(2339) FIXME: Property 'getSortByToggleProps' does not exist on ... Remove this comment to see the full error message
                 <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
                   <SortWrapper align="center" gap={4}>
                     {column.render("Header")}
-                    {
-                      // @ts-expect-error known issue: https://github.com/tannerlinsley/react-table/issues/2970
-                      column.isSorted &&
-                        // @ts-expect-error ts-migrate(2339) FIXME: Property 'isSortedDesc' does not exist on type 'He... Remove this comment to see the full error message
-                        (column.isSortedDesc ? (
-                          <DescSortIcon />
-                        ) : (
-                          <AscSortIcon />
-                        ))
-                    }
+                    {column.isSorted &&
+                      (column.isSortedDesc ? (
+                        <DescSortIcon />
+                      ) : (
+                        <AscSortIcon />
+                      ))}
                   </SortWrapper>
                 </Head>
               ))}

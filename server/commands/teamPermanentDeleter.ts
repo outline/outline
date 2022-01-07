@@ -1,3 +1,4 @@
+import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/logger";
 import {
@@ -31,8 +32,7 @@ export default async function teamPermanentDeleter(team: Team) {
     `Permanently deleting team ${team.name} (${team.id})`
   );
   const teamId = team.id;
-  // @ts-expect-error ts-migrate(7034) FIXME: Variable 'transaction' implicitly has type 'any' i... Remove this comment to see the full error message
-  let transaction;
+  let transaction!: Transaction;
 
   try {
     transaction = await sequelize.transaction();
@@ -54,7 +54,6 @@ export default async function teamPermanentDeleter(team: Team) {
         await Promise.all(
           attachments.map((attachment) =>
             attachment.destroy({
-              // @ts-expect-error ts-migrate(7005) FIXME: Variable 'transaction' implicitly has an 'any' typ... Remove this comment to see the full error message
               transaction,
             })
           )
@@ -78,7 +77,6 @@ export default async function teamPermanentDeleter(team: Team) {
             userId: userIds,
           },
           force: true,
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'transaction' implicitly has an 'any' typ... Remove this comment to see the full error message
           transaction,
         });
         await ApiKey.destroy({
@@ -86,7 +84,6 @@ export default async function teamPermanentDeleter(team: Team) {
             userId: userIds,
           },
           force: true,
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'transaction' implicitly has an 'any' typ... Remove this comment to see the full error message
           transaction,
         });
       }

@@ -38,10 +38,10 @@ class ApiClient {
   fetch = async (
     path: string,
     method: string,
-    data: (Record<string, any> | undefined) | FormData,
+    data: Record<string, any> | FormData | undefined,
     options: Record<string, any> = {}
   ) => {
-    let body;
+    let body: string | FormData | undefined;
     let modifiedPath;
     let urlToFetch;
     let isJson;
@@ -53,7 +53,9 @@ class ApiClient {
         modifiedPath = path;
       }
     } else if (method === "POST" || method === "PUT") {
-      body = data || undefined;
+      if (data instanceof FormData || typeof data === "string") {
+        body = data;
+      }
 
       // Only stringify data if its a normal object and
       // not if it's [object FormData], in addition to
@@ -76,7 +78,6 @@ class ApiClient {
     const headerOptions: any = {
       Accept: "application/json",
       "cache-control": "no-cache",
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'EDITOR_VERSION'.
       "x-editor-version": EDITOR_VERSION,
       pragma: "no-cache",
     };
@@ -100,7 +101,6 @@ class ApiClient {
     try {
       response = await fetchWithRetry(urlToFetch, {
         method,
-        // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | Record<string, any> | undefined' is... Remove this comment to see the full error message
         body,
         headers,
         redirect: "follow",
@@ -137,58 +137,52 @@ class ApiClient {
     }
 
     // Handle failed responses
-    const error = {};
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'statusCode' does not exist on type '{}'.
+    const error: {
+      statusCode?: number;
+      response?: Response;
+      message?: string;
+      error?: string;
+      data?: Record<string, any>;
+    } = {};
+
     error.statusCode = response.status;
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'response' does not exist on type '{}'.
     error.response = response;
 
     try {
       const parsed = await response.json();
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       error.message = parsed.message || "";
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'error' does not exist on type '{}'.
       error.error = parsed.error;
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type '{}'.
       error.data = parsed.data;
     } catch (_err) {
       // we're trying to parse an error so JSON may not be valid
     }
 
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'error' does not exist on type '{}'.
     if (response.status === 400 && error.error === "editor_update_required") {
       window.location.reload();
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       throw new UpdateRequiredError(error.message);
     }
 
     if (response.status === 400) {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       throw new BadRequestError(error.message);
     }
 
     if (response.status === 403) {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'error' does not exist on type '{}'.
       if (error.error === "user_suspended") {
         stores.auth.logout();
         return;
       }
 
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       throw new AuthorizationError(error.message);
     }
 
     if (response.status === 404) {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       throw new NotFoundError(error.message);
     }
 
     if (response.status === 503) {
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
       throw new ServiceUnavailableError(error.message);
     }
 
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'message' does not exist on type '{}'.
     throw new RequestError(error.message);
   };
 

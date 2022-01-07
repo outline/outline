@@ -8,26 +8,14 @@ declare module "formidable/lib/file";
 
 declare module "socket.io-client";
 
-declare module "@tommoor/remove-markdown" {
-  export default function removeMarkdown(
-    text: string,
-    options?: {
-      stripHTML: boolean;
-    }
-  ): string;
-}
-
-declare module "socket.io-redis" {
-  import { Redis } from "ioredis";
-
-  type Config = {
-    pubClient: Redis;
-    subClient: Redis;
-  };
-
-  const socketRedisAdapter: (config: Config) => void;
-
-  export = socketRedisAdapter;
-}
-
 declare module "oy-vey";
+
+declare module "fetch-test-server";
+
+declare module "joplin-turndown-plugin-gfm" {
+  import { Plugin } from "turndown";
+
+  export const strikethrough: Plugin;
+
+  export const tables: Plugin;
+}

@@ -79,8 +79,7 @@ class UiStore {
         "(prefers-color-scheme: dark)"
       );
 
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'event' implicitly has an 'any' type.
-      const setSystemTheme = (event) => {
+      const setSystemTheme = (event: MediaQueryListEvent | MediaQueryList) => {
         this.systemTheme = event.matches ? SystemTheme.Dark : SystemTheme.Light;
       };
 

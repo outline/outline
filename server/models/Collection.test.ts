@@ -343,8 +343,7 @@ describe("#membershipUserIds", () => {
     // Make 6 users
     const users = await Promise.all(
       Array(6)
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments, but got 0.
-        .fill()
+        .fill(undefined)
         .map(() =>
           buildUser({
             teamId,

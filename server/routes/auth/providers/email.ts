@@ -31,8 +31,7 @@ router.post("email", errorHandling(), async (ctx) => {
   });
 
   if (users.length) {
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'team' implicitly has type 'any' in some ... Remove this comment to see the full error message
-    let team;
+    let team!: Team | null;
 
     if (isCustomDomain(ctx.request.hostname)) {
       team = await Team.scope("withAuthenticationProviders").findOne({
@@ -58,7 +57,6 @@ router.post("email", errorHandling(), async (ctx) => {
 
     // If there are multiple users with this email address then give precedence
     // to the one that is active on this subdomain/domain (if any)
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'user' implicitly has an 'any' type.
     let user = users.find((user) => team && user.teamId === team.id);
 
     // A user was found for the email address, but they don't belong to the team
@@ -132,8 +130,7 @@ router.get("email.callback", async (ctx) => {
   assertPresent(token, "token is required");
 
   try {
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
-    const user = await getUserForEmailSigninToken(token);
+    const user = await getUserForEmailSigninToken(token as string);
 
     if (!user.team.guestSignin) {
       return ctx.redirect("/?notice=auth-error");
@@ -153,6 +150,7 @@ router.get("email.callback", async (ctx) => {
     await user.update({
       lastActiveAt: new Date(),
     });
+
     // set cookies on response and redirect to team subdomain
     await signIn(ctx, user, user.team, "email", false, false);
   } catch (err) {
