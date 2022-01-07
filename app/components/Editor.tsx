@@ -1,9 +1,9 @@
 import { lighten } from "polished";
 import * as React from "react";
-import { Props as EditorProps } from "rich-markdown-editor";
-import { EmbedDescriptor } from "rich-markdown-editor/dist/types";
 import styled, { useTheme } from "styled-components";
 import { Optional } from "utility-types";
+import { Props as EditorProps } from "@shared/editor";
+import { EmbedDescriptor } from "@shared/editor/types";
 import embeds from "@shared/embeds";
 import { light } from "@shared/theme";
 import ErrorBoundary from "~/components/ErrorBoundary";
@@ -19,8 +19,8 @@ import { isInternalUrl, isHash } from "~/utils/urls";
 const RichMarkdownEditor = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "rich-markdown-editor" */
-      "rich-markdown-editor"
+      /* webpackChunkName: "editor" */
+      "@shared/editor"
     )
 );
 

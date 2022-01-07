@@ -6,8 +6,6 @@ Outline is composed of a backend and frontend codebase in this monorepo. As both
 
 Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [MobX](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage.
 
-> Important Note: The Outline editor is built on [Prosemirror](https://github.com/prosemirror) and managed in a separate open source repository to encourage re-use: [rich-markdown-editor](https://github.com/outline/rich-markdown-editor).
-
 ```
 app
 ├── components  - React components reusable across scenes
@@ -61,6 +59,7 @@ small utilities.
 
 ```
 shared
+├── editor            - The text editor, based on Prosemirror
 ├── i18n              - Internationalization confiuration
 │   └── locales       - Language specific translation files
 ├── styles            - Styles, colors and other global aesthetics

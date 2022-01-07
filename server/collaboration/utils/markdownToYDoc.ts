@@ -1,7 +1,7 @@
 import { Node, Fragment } from "prosemirror-model";
-import { parser, schema } from "rich-markdown-editor";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
+import { parser, schema } from "@shared/editor";
 import embeds from "@shared/embeds";
 
 export default function markdownToYDoc(
@@ -10,7 +10,7 @@ export default function markdownToYDoc(
 ): Y.Doc {
   let node = parser.parse(markdown);
 
-  // in rich-markdown-editor embeds were created at runtime by converting links
+  // in the editor embeds were created at runtime by converting links
   // into embeds where they match. Because we're converting to a CRDT structure
   // on the server we need to mimic this behavior.
   function urlsToEmbeds(node: Node): Node {

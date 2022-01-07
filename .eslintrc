@@ -109,8 +109,5 @@
     "import/resolver": {
       "typescript": {}
     }
-  },
-  "globals": {
-    "EDITOR_VERSION": true
   }
 }
