@@ -1,5 +1,7 @@
 import fractionalIndex from "fractional-index";
+import invariant from "invariant";
 import Router from "koa-router";
+import { Sequelize, Op, WhereOptions } from "sequelize";
 import collectionExporter from "@server/commands/collectionExporter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -13,7 +15,7 @@ import {
   Group,
   Attachment,
 } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies";
 import {
   presentCollection,
   presentUser,
@@ -23,7 +25,6 @@ import {
   presentCollectionGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import { Op, sequelize } from "@server/sequelize";
 import collectionIndexing from "@server/utils/collectionIndexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
@@ -35,7 +36,6 @@ import {
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("collections.create", auth(), async (ctx) => {
@@ -55,7 +55,7 @@ router.post("collections.create", auth(), async (ctx) => {
     assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
   }
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   authorize(user, "createCollection", user.team);
 
   if (index) {
@@ -70,7 +70,7 @@ router.post("collections.create", auth(), async (ctx) => {
       limit: 1,
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting
-        sequelize.literal('"collection"."index" collate "C"'),
+        Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
     });
@@ -82,7 +82,7 @@ router.post("collections.create", auth(), async (ctx) => {
   }
 
   index = await removeIndexCollision(user.teamId, index);
-  let collection = await Collection.create({
+  const collection = await Collection.create({
     name,
     description,
     icon,
@@ -105,23 +105,27 @@ router.post("collections.create", auth(), async (ctx) => {
     ip: ctx.request.ip,
   });
   // we must reload the collection to get memberships for policy presenter
-  collection = await Collection.scope({
+  const reloaded = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(collection.id);
+  invariant(reloaded, "collection not found");
+
   ctx.body = {
-    data: presentCollection(collection),
-    policies: presentPolicies(user, [collection]),
+    data: presentCollection(reloaded),
+    policies: presentPolicies(user, [reloaded]),
   };
 });
 
 router.post("collections.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
+
   authorize(user, "read", collection);
+
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
@@ -132,7 +136,7 @@ router.post("collections.import", auth(), async (ctx) => {
   const { type, attachmentId } = ctx.body;
   assertIn(type, ["outline"], "type must be one of 'outline'");
   assertUuid(attachmentId, "attachmentId is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   authorize(user, "importCollection", user.team);
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);
@@ -146,6 +150,7 @@ router.post("collections.import", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -155,12 +160,15 @@ router.post("collections.add_group", auth(), async (ctx) => {
   const { id, groupId, permission = "read_write" } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
   authorize(ctx.state.user, "update", collection);
+
   const group = await Group.findByPk(groupId);
   authorize(ctx.state.user, "read", group);
+
   let membership = await CollectionGroup.findOne({
     where: {
       collectionId: id,
@@ -191,6 +199,7 @@ router.post("collections.add_group", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       collectionGroupMemberships: [
@@ -204,13 +213,16 @@ router.post("collections.remove_group", auth(), async (ctx) => {
   const { id, groupId } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
   authorize(ctx.state.user, "update", collection);
+
   const group = await Group.findByPk(groupId);
   authorize(ctx.state.user, "read", group);
-  await collection.removeGroup(group);
+
+  await collection.$remove("group", group);
   await Event.create({
     name: "collections.remove_group",
     collectionId: collection.id,
@@ -222,6 +234,7 @@ router.post("collections.remove_group", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -234,12 +247,14 @@ router.post(
   async (ctx) => {
     const { id, query, permission } = ctx.body;
     assertUuid(id, "id is required");
-    const user = ctx.state.user;
+    const { user } = ctx.state;
+
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(id);
     authorize(user, "read", collection);
-    let where = {
+
+    let where: WhereOptions<CollectionGroup> = {
       collectionId: id,
     };
     let groupWhere;
@@ -253,7 +268,6 @@ router.post(
     }
 
     if (permission) {
-      // @ts-expect-error ts-migrate(2322) FIXME: Type '{ permission: any; collectionId: any; }' is ... Remove this comment to see the full error message
       where = { ...where, permission };
     }
 
@@ -277,7 +291,6 @@ router.post(
         collectionGroupMemberships: memberships.map(
           presentCollectionGroupMembership
         ),
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
         groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };
@@ -288,12 +301,15 @@ router.post("collections.add_user", auth(), async (ctx) => {
   const { id, userId, permission = "read_write" } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
   authorize(ctx.state.user, "update", collection);
+
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
+
   let membership = await CollectionUser.findOne({
     where: {
       collectionId: id,
@@ -324,6 +340,7 @@ router.post("collections.add_user", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       users: [presentUser(user)],
@@ -336,13 +353,16 @@ router.post("collections.remove_user", auth(), async (ctx) => {
   const { id, userId } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
+
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
   }).findByPk(id);
   authorize(ctx.state.user, "update", collection);
+
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
-  await collection.removeUser(user);
+
+  await collection.$remove("user", user);
   await Event.create({
     name: "collections.remove_user",
     userId,
@@ -354,34 +374,41 @@ router.post("collections.remove_user", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
 });
+
 // DEPRECATED: Use collection.memberships which has pagination, filtering and permissions
 router.post("collections.users", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "read", collection);
-  const users = await collection.getUsers();
+
+  const users = await collection.$get("users");
+
   ctx.body = {
-    data: users.map(presentUser),
+    data: users.map((user) => presentUser(user)),
   };
 });
 
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
   authorize(user, "read", collection);
-  let where = {
+
+  let where: WhereOptions<CollectionUser> = {
     collectionId: id,
   };
   let userWhere;
@@ -395,7 +422,6 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   }
 
   if (permission) {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type '{ permission: any; collectionId: any; }' is ... Remove this comment to see the full error message
     where = { ...where, permission };
   }
 
@@ -413,11 +439,11 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
       },
     ],
   });
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
       memberships: memberships.map(presentMembership),
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'membership' implicitly has an 'any' typ... Remove this comment to see the full error message
       users: memberships.map((membership) => presentUser(membership.user)),
     },
   };
@@ -426,20 +452,22 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
 router.post("collections.export", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
+
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
-  assertPresent(collection, "Collection should be present");
   authorize(user, "read", collection);
+
   const fileOperation = await collectionExporter({
     collection,
     user,
     team,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
     data: {
@@ -449,14 +477,16 @@ router.post("collections.export", auth(), async (ctx) => {
 });
 
 router.post("collections.export_all", auth(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
+
   const fileOperation = await collectionExporter({
     user,
     team,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
     data: {
@@ -481,7 +511,7 @@ router.post("collections.update", auth(), async (ctx) => {
     assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
   }
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
@@ -580,7 +610,7 @@ router.post("collections.update", auth(), async (ctx) => {
 });
 
 router.post("collections.list", auth(), pagination(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
   const collections = await Collection.scope({
     method: ["withMembership", user.id],
@@ -594,13 +624,11 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const nullIndexCollection = collections.findIndex(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
     (collection) => collection.index === null
   );
 
   if (nullIndexCollection !== -1) {
     const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'collection' implicitly has an 'any' typ... Remove this comment to see the full error message
     collections.forEach((collection) => {
       collection.index = indexedCollections[collection.id];
     });
@@ -615,7 +643,7 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
 
 router.post("collections.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   assertUuid(id, "id is required");
 
   const collection = await Collection.scope({
@@ -637,6 +665,7 @@ router.post("collections.delete", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -648,9 +677,11 @@ router.post("collections.move", auth(), async (ctx) => {
   assertPresent(index, "index is required");
   assertIndexCharacters(index);
   assertUuid(id, "id must be a uuid");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
+
   const collection = await Collection.findByPk(id);
   authorize(user, "move", collection);
+
   index = await removeIndexCollision(user.teamId, index);
   await collection.update({
     index,
@@ -665,6 +696,7 @@ router.post("collections.move", auth(), async (ctx) => {
     },
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
     data: {

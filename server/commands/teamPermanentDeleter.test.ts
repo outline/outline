@@ -9,18 +9,8 @@ import {
 import { flushdb } from "@server/test/support";
 import teamPermanentDeleter from "./teamPermanentDeleter";
 
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    deleteObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
 beforeEach(() => flushdb());
+
 describe("teamPermanentDeleter", () => {
   it("should destroy related data", async () => {
     const team = await buildTeam({

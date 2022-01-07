@@ -2,7 +2,9 @@ import fs from "fs";
 import JSZip from "jszip";
 import tmp from "tmp";
 import Logger from "@server/logging/logger";
-import { Attachment, Collection, Document } from "@server/models";
+import Attachment from "@server/models/Attachment";
+import Collection from "@server/models/Collection";
+import Document from "@server/models/Document";
 import { NavigationNode } from "~/types";
 import { serializeFilename } from "./fs";
 import { getFileByKey } from "./s3";
@@ -31,7 +33,6 @@ async function addToArchive(zip: JSZip, documents: NavigationNode[]) {
     zip.file(`${title}.md`, text, {
       date: document.updatedAt,
       comment: JSON.stringify({
-        pinned: document.pinned,
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
       }),
@@ -84,7 +85,6 @@ async function archiveToPath(zip: JSZip) {
   });
 }
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 export async function archiveCollections(collections: Collection[]) {
   const zip = new JSZip();
 

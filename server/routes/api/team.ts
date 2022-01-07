@@ -1,10 +1,9 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("team.update", auth(), async (ctx) => {
@@ -18,7 +17,7 @@ router.post("team.update", auth(), async (ctx) => {
     collaborativeEditing,
     defaultUserRole,
   } = ctx.body;
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "update", team);
 

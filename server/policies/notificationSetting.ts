@@ -1,7 +1,5 @@
 import { NotificationSetting, Team, User } from "@server/models";
-import policy from "./policy";
-
-const { allow } = policy;
+import { allow } from "./cancan";
 
 allow(User, "createNotificationSetting", Team, (user, team) => {
   if (!team || user.teamId !== team.id) return false;
@@ -12,5 +10,5 @@ allow(
   User,
   ["read", "update", "delete"],
   NotificationSetting,
-  (user, setting) => user && user.id === setting.userId
+  (user, setting) => user && user.id === setting?.userId
 );

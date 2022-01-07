@@ -1,9 +1,10 @@
-import { GroupUser } from "@server/models";
+import GroupUser from "@server/models/GroupUser";
 import { buildGroup, buildAdmin, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import userSuspender from "./userSuspender";
 
 beforeEach(() => flushdb());
+
 describe("userSuspender", () => {
   const ip = "127.0.0.1";
 
@@ -46,7 +47,7 @@ describe("userSuspender", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },

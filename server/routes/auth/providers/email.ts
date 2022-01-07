@@ -89,7 +89,7 @@ router.post("email", errorHandling(), async (ctx) => {
         id: user.authentications[0].authenticationProviderId,
       });
       ctx.body = {
-        redirect: `${team.url}/auth/${authProvider.name}`,
+        redirect: `${team.url}/auth/${authProvider?.name}`,
       };
       return;
     }

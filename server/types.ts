@@ -3,7 +3,6 @@ import { User } from "./models";
 
 export type ContextWithState = Context & {
   state: {
-    // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
     user: User;
     token: string;
     authType: "app" | "api";

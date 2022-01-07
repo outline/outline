@@ -1,4 +1,6 @@
-export default function present(pin: any) {
+import { Pin } from "@server/models";
+
+export default function present(pin: Pin) {
   return {
     id: pin.id,
     documentId: pin.documentId,

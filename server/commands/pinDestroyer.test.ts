@@ -32,7 +32,7 @@ describe("pinCreator", () => {
     expect(count).toEqual(0);
 
     const event = await Event.findOne();
-    expect(event.name).toEqual("pins.delete");
-    expect(event.modelId).toEqual(pin.id);
+    expect(event!.name).toEqual("pins.delete");
+    expect(event!.modelId).toEqual(pin.id);
   });
 });

@@ -2,6 +2,7 @@ import { buildTeam, buildCollection } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 
 beforeEach(() => flushdb());
+
 describe("collectionIds", () => {
   it("should return non-private collection ids", async () => {
     const team = await buildTeam();
@@ -20,6 +21,7 @@ describe("collectionIds", () => {
     expect(response[0]).toEqual(collection.id);
   });
 });
+
 describe("provisionSubdomain", () => {
   it("should set subdomain if available", async () => {
     const team = await buildTeam();

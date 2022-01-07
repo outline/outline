@@ -1,24 +1,23 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { AuthenticationProvider, Event } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies";
 import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "@server/presenters";
 import { assertUuid, assertPresent } from "@server/validation";
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
 import allAuthenticationProviders from "../auth/providers";
 
 const router = new Router();
-const { authorize } = policy;
 
 router.post("authenticationProviders.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
   authorize(user, "read", authenticationProvider);
+
   ctx.body = {
     data: presentAuthenticationProvider(authenticationProvider),
     policies: presentPolicies(user, [authenticationProvider]),
@@ -29,7 +28,7 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
   const { id, isEnabled } = ctx.body;
   assertUuid(id, "id is required");
   assertPresent(isEnabled, "isEnabled is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
   authorize(user, "update", authenticationProvider);
   const enabled = !!isEnabled;
@@ -50,6 +49,7 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
     actorId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: presentAuthenticationProvider(authenticationProvider),
     policies: presentPolicies(user, [authenticationProvider]),
@@ -57,10 +57,13 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
 });
 
 router.post("authenticationProviders.list", auth(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   authorize(user, "read", user.team);
-  const teamAuthenticationProviders = await user.team.getAuthenticationProviders();
-  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'allAuthenticationProviders' implicitly h... Remove this comment to see the full error message
+
+  const teamAuthenticationProviders = await user.team.$get(
+    "authenticationProviders"
+  );
+
   const otherAuthenticationProviders = allAuthenticationProviders.filter(
     (p) =>
       // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
@@ -69,6 +72,7 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
       // wants to be here in the future – we'll need to migrate more data though
       p.id !== "email"
   );
+
   ctx.body = {
     data: {
       authenticationProviders: [

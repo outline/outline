@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
@@ -5,14 +6,11 @@ import auth from "@server/middlewares/authentication";
 import { Team } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import { isCustomDomain } from "@server/utils/domains";
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
 import providers from "../auth/providers";
 
 const router = new Router();
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'team' implicitly has an 'any' type.
-function filterProviders(team) {
-  // @ts-expect-error ts-migrate(7005) FIXME: Variable 'providers' implicitly has an 'any[]' typ... Remove this comment to see the full error message
+function filterProviders(team: Team) {
   return providers
     .sort((provider) => (provider.id === "email" ? 1 : -1))
     .filter((provider) => {
@@ -112,8 +110,10 @@ router.post("auth.config", async (ctx) => {
 });
 
 router.post("auth.info", auth(), async (ctx) => {
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
+  invariant(team, "Team not found");
+
   ctx.body = {
     data: {
       user: presentUser(user, {

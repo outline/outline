@@ -1,8 +1,9 @@
 import { SearchQuery, User } from "@server/models";
-import policy from "./policy";
+import { allow } from "./cancan";
 
-const { allow } = policy;
-
-allow(User, ["read", "delete"], SearchQuery, (user, searchQuery) => {
-  return user && user.id === searchQuery.userId;
-});
+allow(
+  User,
+  ["read", "delete"],
+  SearchQuery,
+  (user, searchQuery) => user && user.id === searchQuery?.userId
+);

@@ -1,3 +1,6 @@
+import { Op } from "sequelize";
+import Logger from "@server/logging/logger";
+import mailer from "@server/mailer";
 import {
   View,
   Document,
@@ -6,15 +9,12 @@ import {
   User,
   NotificationSetting,
 } from "@server/models";
-import { Op } from "@server/sequelize";
-import Logger from "../../logging/logger";
-import mailer from "../../mailer";
 import {
   DocumentEvent,
   CollectionEvent,
   RevisionEvent,
   Event,
-} from "../../types";
+} from "@server/types";
 
 export default class NotificationsProcessor {
   async on(event: Event) {
@@ -106,6 +106,10 @@ export default class NotificationsProcessor {
         continue;
       }
 
+      if (!setting.user.email) {
+        continue;
+      }
+
       mailer.documentNotification({
         to: setting.user.email,
         eventName,
@@ -149,7 +153,7 @@ export default class NotificationsProcessor {
 
     for (const setting of notificationSettings) {
       // Suppress notifications for suspended users
-      if (setting.user.isSuspended) {
+      if (setting.user.isSuspended || !setting.user.email) {
         continue;
       }
 

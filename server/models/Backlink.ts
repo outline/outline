@@ -1,27 +1,38 @@
-import { DataTypes, sequelize } from "../sequelize";
+import {
+  DataType,
+  BelongsTo,
+  ForeignKey,
+  Column,
+  Table,
+} from "sequelize-typescript";
+import Document from "./Document";
+import User from "./User";
+import BaseModel from "./base/BaseModel";
+import Fix from "./decorators/Fix";
 
-const Backlink = sequelize.define("backlink", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-});
+@Table({ tableName: "backlinks", modelName: "backlink" })
+@Fix
+class Backlink extends BaseModel {
+  @BelongsTo(() => User, "userId")
+  user: User;
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-Backlink.associate = (models) => {
-  Backlink.belongsTo(models.Document, {
-    as: "document",
-    foreignKey: "documentId",
-  });
-  Backlink.belongsTo(models.Document, {
-    as: "reverseDocument",
-    foreignKey: "reverseDocumentId",
-  });
-  Backlink.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-};
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  userId: string;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId: string;
+
+  @BelongsTo(() => Document, "reverseDocumentId")
+  reverseDocument: Document;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  reverseDocumentId: string;
+}
 
 export default Backlink;

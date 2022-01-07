@@ -1,13 +1,14 @@
 import fractionalIndex from "fractional-index";
+import { Sequelize, Op, WhereOptions } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
-import { Pin, Event } from "@server/models";
-import { sequelize, Op } from "@server/sequelize";
+import { Pin, User, Event } from "@server/models";
 
 const MAX_PINS = 8;
 
 type Props = {
   /** The user creating the pin */
-  user: any;
+  user: User;
   /** The document to pin */
   documentId: string;
   /** The collection to pin the document in. If no collection is provided then it will be pinned to home */
@@ -31,11 +32,11 @@ export default async function pinCreator({
   collectionId,
   ip,
   ...rest
-}: Props): Promise<any> {
+}: Props): Promise<Pin> {
   let { index } = rest;
-  const where = {
+  const where: WhereOptions<Pin> = {
     teamId: user.teamId,
-    ...(collectionId ? { collectionId } : { collectionId: { [Op.eq]: null } }),
+    ...(collectionId ? { collectionId } : { collectionId: { [Op.is]: null } }),
   };
 
   const count = await Pin.count({ where });
@@ -51,7 +52,7 @@ export default async function pinCreator({
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting
         // find only the last pin so we can create an index after it
-        sequelize.literal('"pins"."index" collate "C" DESC'),
+        Sequelize.literal('"pin"."index" collate "C" DESC'),
         ["updatedAt", "ASC"],
       ],
     });

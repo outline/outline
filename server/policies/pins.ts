@@ -1,9 +1,9 @@
 import { User, Pin } from "@server/models";
-import policy from "./policy";
+import { allow } from "./cancan";
 
-const { allow } = policy;
-
-allow(User, ["update", "delete"], Pin, (user, pin) => {
-  if (user.teamId === pin.teamId && user.isAdmin) return true;
-  return false;
-});
+allow(
+  User,
+  ["update", "delete"],
+  Pin,
+  (user, pin) => user.teamId === pin?.teamId && user.isAdmin
+);

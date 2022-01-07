@@ -1,6 +1,6 @@
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
-import { Attachment } from "@server/models";
+import Attachment from "@server/models/Attachment";
 import webService from "@server/services/web";
 import {
   buildUser,
@@ -13,19 +13,10 @@ import { flushdb } from "@server/test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    deleteObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
+
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#attachments.delete", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.delete");
@@ -120,12 +111,12 @@ describe("#attachments.delete", () => {
     });
     const document = await buildDocument({
       teamId: collection.teamId,
-      userId: collection.userId,
+      userId: collection.createdById,
       collectionId: collection.id,
     });
     const attachment = await buildAttachment({
       teamId: document.teamId,
-      userId: document.userId,
+      userId: document.createdById,
       documentId: document.id,
       acl: "private",
     });
@@ -138,6 +129,7 @@ describe("#attachments.delete", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#attachments.redirect", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.redirect");
@@ -221,12 +213,12 @@ describe("#attachments.redirect", () => {
     });
     const document = await buildDocument({
       teamId: collection.teamId,
-      userId: collection.userId,
+      userId: collection.createdById,
       collectionId: collection.id,
     });
     const attachment = await buildAttachment({
       teamId: document.teamId,
-      userId: document.userId,
+      userId: document.createdById,
       documentId: document.id,
       acl: "private",
     });

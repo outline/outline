@@ -1,88 +1,49 @@
-import ApiKey from "./ApiKey";
-import Attachment from "./Attachment";
-import AuthenticationProvider from "./AuthenticationProvider";
-import Backlink from "./Backlink";
-import Collection from "./Collection";
-import CollectionGroup from "./CollectionGroup";
-import CollectionUser from "./CollectionUser";
-import Document from "./Document";
-import Event from "./Event";
-import FileOperation from "./FileOperation";
-import Group from "./Group";
-import GroupUser from "./GroupUser";
-import Integration from "./Integration";
-import IntegrationAuthentication from "./IntegrationAuthentication";
-import Notification from "./Notification";
-import NotificationSetting from "./NotificationSetting";
-import Pin from "./Pin";
-import Revision from "./Revision";
-import SearchQuery from "./SearchQuery";
-import Share from "./Share";
-import Star from "./Star";
-import Team from "./Team";
-import User from "./User";
-import UserAuthentication from "./UserAuthentication";
-import View from "./View";
+export { default as ApiKey } from "./ApiKey";
 
-const models = {
-  ApiKey,
-  Attachment,
-  AuthenticationProvider,
-  Backlink,
-  Collection,
-  CollectionGroup,
-  CollectionUser,
-  Document,
-  Event,
-  Group,
-  GroupUser,
-  Integration,
-  IntegrationAuthentication,
-  Notification,
-  NotificationSetting,
-  Pin,
-  Revision,
-  SearchQuery,
-  Share,
-  Star,
-  Team,
-  User,
-  UserAuthentication,
-  View,
-  FileOperation,
-};
+export { default as Attachment } from "./Attachment";
 
-// based on https://github.com/sequelize/express-example/blob/master/models/index.js
-Object.keys(models).forEach((modelName) => {
-  if ("associate" in models[modelName]) {
-    models[modelName].associate(models);
-  }
-});
+export { default as AuthenticationProvider } from "./AuthenticationProvider";
 
-export {
-  ApiKey,
-  Attachment,
-  AuthenticationProvider,
-  Backlink,
-  Collection,
-  CollectionGroup,
-  CollectionUser,
-  Document,
-  Event,
-  Group,
-  GroupUser,
-  Integration,
-  IntegrationAuthentication,
-  Notification,
-  NotificationSetting,
-  Pin,
-  Revision,
-  SearchQuery,
-  Share,
-  Star,
-  Team,
-  User,
-  UserAuthentication,
-  View,
-  FileOperation,
-};
+export { default as Backlink } from "./Backlink";
+
+export { default as Collection } from "./Collection";
+
+export { default as CollectionGroup } from "./CollectionGroup";
+
+export { default as CollectionUser } from "./CollectionUser";
+
+export { default as Document } from "./Document";
+
+export { default as Event } from "./Event";
+
+export { default as FileOperation } from "./FileOperation";
+
+export { default as Group } from "./Group";
+
+export { default as GroupUser } from "./GroupUser";
+
+export { default as Integration } from "./Integration";
+
+export { default as IntegrationAuthentication } from "./IntegrationAuthentication";
+
+export { default as Notification } from "./Notification";
+
+export { default as NotificationSetting } from "./NotificationSetting";
+
+export { default as Pin } from "./Pin";
+
+export { default as Revision } from "./Revision";
+
+export { default as SearchQuery } from "./SearchQuery";
+
+export { default as Share } from "./Share";
+
+export { default as Star } from "./Star";
+
+export { default as Team } from "./Team";
+
+export { default as User } from "./User";
+
+export { default as UserAuthentication } from "./UserAuthentication";
+
+export { default as View } from "./View";

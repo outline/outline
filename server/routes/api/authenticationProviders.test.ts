@@ -17,7 +17,7 @@ describe("#authenticationProviders.info", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
@@ -36,7 +36,7 @@ describe("#authenticationProviders.info", () => {
   it("should require authorization", async () => {
     const team = await buildTeam();
     const user = await buildUser();
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
@@ -48,7 +48,7 @@ describe("#authenticationProviders.info", () => {
 
   it("should require authentication", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
@@ -57,13 +57,14 @@ describe("#authenticationProviders.info", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#authenticationProviders.update", () => {
   it("should not allow admins to disable when last authentication provider", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
       teamId: team.id,
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -79,11 +80,11 @@ describe("#authenticationProviders.update", () => {
     const user = await buildAdmin({
       teamId: team.id,
     });
-    await team.createAuthenticationProvider({
+    await team.$create("authenticationProvider", {
       name: "google",
       providerId: uuidv4(),
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -103,7 +104,7 @@ describe("#authenticationProviders.update", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -116,7 +117,7 @@ describe("#authenticationProviders.update", () => {
 
   it("should require authentication", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {
         id: authenticationProviders[0].id,
@@ -126,6 +127,7 @@ describe("#authenticationProviders.update", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#authenticationProviders.list", () => {
   it("should return enabled and available auth providers", async () => {
     const team = await buildTeam();

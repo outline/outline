@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies";
 import {
   getPresignedPost,
   publicS3Endpoint,
@@ -11,7 +11,6 @@ import {
 } from "@server/utils/s3";
 import { assertPresent } from "@server/validation";
 
-const { authorize } = policy;
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
@@ -61,6 +60,7 @@ router.post("attachments.create", auth(), async (ctx) => {
     userId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     data: {
       maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
@@ -85,7 +85,7 @@ router.post("attachments.create", auth(), async (ctx) => {
 router.post("attachments.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id);
 
   if (!attachment) {
@@ -107,6 +107,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
     userId: user.id,
     ip: ctx.request.ip,
   });
+
   ctx.body = {
     success: true,
   };
@@ -115,7 +116,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
 router.post("attachments.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id);
 
   if (!attachment) {

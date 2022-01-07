@@ -25,8 +25,8 @@ describe("pinCreator", () => {
     expect(pin.collectionId).toEqual(null);
     expect(pin.createdById).toEqual(user.id);
     expect(pin.index).toEqual("P");
-    expect(event.name).toEqual("pins.create");
-    expect(event.modelId).toEqual(pin.id);
+    expect(event!.name).toEqual("pins.create");
+    expect(event!.modelId).toEqual(pin.id);
   });
 
   it("should create pin to collection", async () => {
@@ -48,8 +48,8 @@ describe("pinCreator", () => {
     expect(pin.collectionId).toEqual(document.collectionId);
     expect(pin.createdById).toEqual(user.id);
     expect(pin.index).toEqual("P");
-    expect(event.name).toEqual("pins.create");
-    expect(event.modelId).toEqual(pin.id);
-    expect(event.collectionId).toEqual(pin.collectionId);
+    expect(event!.name).toEqual("pins.create");
+    expect(event!.modelId).toEqual(pin.id);
+    expect(event!.collectionId).toEqual(pin.collectionId);
   });
 });

@@ -3,12 +3,13 @@ import { flushdb } from "@server/test/support";
 import userCreator from "./userCreator";
 
 beforeEach(() => flushdb());
+
 describe("userCreator", () => {
   const ip = "127.0.0.1";
 
   it("should update exising user and authentication", async () => {
     const existing = await buildUser();
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
     const newUsername = "tname";
@@ -37,7 +38,7 @@ describe("userCreator", () => {
 
   it("should create user with deleted user matching providerId", async () => {
     const existing = await buildUser();
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
     await existing.destroy();
@@ -63,7 +64,7 @@ describe("userCreator", () => {
 
   it("should handle duplicate providerId for different iDP", async () => {
     const existing = await buildUser();
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
     let error;
 
@@ -89,7 +90,7 @@ describe("userCreator", () => {
 
   it("should create a new user", async () => {
     const team = await buildTeam();
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: "Test Name",
@@ -119,7 +120,7 @@ describe("userCreator", () => {
     const team = await buildTeam({
       defaultUserRole: "viewer",
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: "Test Name",
@@ -143,7 +144,7 @@ describe("userCreator", () => {
     const team = await buildTeam({
       defaultUserRole: "viewer",
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: "Test Name",
@@ -187,11 +188,11 @@ describe("userCreator", () => {
     const invite = await buildInvite({
       teamId: team.id,
     });
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: invite.name,
-      email: invite.email,
+      email: invite.email!,
       teamId: invite.teamId,
       ip,
       authentication: {

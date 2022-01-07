@@ -8,6 +8,7 @@ import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());
+
 describe("read_write collection", () => {
   it("should allow read write permissions for team member", async () => {
     const team = await buildTeam();
@@ -33,6 +34,7 @@ describe("read_write collection", () => {
     expect(abilities.move).toEqual(true);
   });
 });
+
 describe("read collection", () => {
   it("should allow read only permissions permissions for team member", async () => {
     const team = await buildTeam();
@@ -58,6 +60,7 @@ describe("read collection", () => {
     expect(abilities.move).toEqual(false);
   });
 });
+
 describe("private collection", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();

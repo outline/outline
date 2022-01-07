@@ -251,8 +251,8 @@ export class Mailer {
     });
   };
 
-  sendTemplate = async (type: EmailTypes, opts: Record<string, any> = {}) => {
-    await emailsQueue.add(
+  sendTemplate = (type: EmailTypes, opts: Record<string, any> = {}) => {
+    return emailsQueue.add(
       {
         type,
         opts,

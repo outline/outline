@@ -1,8 +1,9 @@
 import { onChangePayload, onLoadDocumentPayload } from "@hocuspocus/server";
+import invariant from "invariant";
 import { debounce } from "lodash";
 import * as Y from "yjs";
 import Logger from "@server/logging/logger";
-import { Document } from "@server/models";
+import Document from "@server/models/Document";
 import documentUpdater from "../commands/documentUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
@@ -20,6 +21,7 @@ export default class Persistence {
     }
 
     const document = await Document.findByPk(documentId);
+    invariant(document, "Document not found");
 
     if (document.state) {
       const ydoc = new Y.Doc();

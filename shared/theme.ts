@@ -1,5 +1,4 @@
 import { darken, lighten } from "polished";
-import { DefaultTheme } from "styled-components";
 
 const colors = {
   transparent: "transparent",
@@ -123,7 +122,7 @@ export const base = {
   },
 };
 
-export const light: DefaultTheme = {
+export const light = {
   ...base,
   background: colors.white,
   secondaryBackground: colors.warmGrey,
@@ -172,7 +171,7 @@ export const light: DefaultTheme = {
   scrollbarThumb: darken(0.15, colors.smokeDark),
 };
 
-export const dark: DefaultTheme = {
+export const dark = {
   ...base,
   background: colors.almostBlack,
   secondaryBackground: colors.black50,

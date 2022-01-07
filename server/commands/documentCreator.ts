@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import { Document, Event, User } from "@server/models";
 
 export default async function documentCreator({
@@ -21,18 +22,16 @@ export default async function documentCreator({
   publish?: boolean;
   collectionId: string;
   parentDocumentId?: string;
-  templateDocument?: Document;
+  templateDocument?: Document | null;
   template?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   index?: number;
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   editorVersion?: string;
   source?: "import";
   ip: string;
 }): Promise<Document> {
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'id' does not exist on type 'Document'.
   const templateId = templateDocument ? templateDocument.id : undefined;
   const document = await Document.create({
     parentDocumentId,
@@ -47,7 +46,6 @@ export default async function documentCreator({
     template,
     templateId,
     title: templateDocument ? templateDocument.title : title,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'Document'.
     text: templateDocument ? templateDocument.text : text,
   });
   await Event.create({
@@ -83,10 +81,13 @@ export default async function documentCreator({
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  return Document.findOne({
+  const doc = await Document.findOne({
     where: {
       id: document.id,
       publishedAt: document.publishedAt,
     },
   });
+  invariant(doc, "Document must exist");
+
+  return doc;
 }

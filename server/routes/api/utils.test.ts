@@ -2,26 +2,16 @@ import { subDays } from "date-fns";
 // @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { Document, FileOperation } from "@server/models";
-import { Op } from "@server/sequelize";
 import webService from "@server/services/web";
 import { buildDocument, buildFileOperation } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 
 const app = webService();
 const server = new TestServer(app.callback());
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    deleteObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
+
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#utils.gc", () => {
   it("should not destroy documents not deleted", async () => {
     await buildDocument({
@@ -112,9 +102,7 @@ describe("#utils.gc", () => {
     const data = await FileOperation.count({
       where: {
         type: "export",
-        state: {
-          [Op.eq]: "expired",
-        },
+        state: "expired",
       },
     });
     expect(res.status).toEqual(200);
@@ -139,9 +127,7 @@ describe("#utils.gc", () => {
     const data = await FileOperation.count({
       where: {
         type: "export",
-        state: {
-          [Op.eq]: "expired",
-        },
+        state: "expired",
       },
     });
     expect(res.status).toEqual(200);

@@ -1,10 +1,8 @@
 import invariant from "invariant";
-import { concat, some } from "lodash";
+import { some } from "lodash";
 import { Collection, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import policy from "./policy";
-
-const { allow } = policy;
+import { allow } from "./cancan";
 
 allow(User, "createCollection", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;
@@ -34,10 +32,10 @@ allow(User, "read", Collection, (user, collection) => {
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
     );
-    const allMemberships = concat(
-      collection.memberships,
-      collection.collectionGroupMemberships
-    );
+    const allMemberships = [
+      ...collection.memberships,
+      ...collection.collectionGroupMemberships,
+    ];
     return some(allMemberships, (m) =>
       ["read", "read_write", "maintainer"].includes(m.permission)
     );
@@ -56,10 +54,10 @@ allow(User, "share", Collection, (user, collection) => {
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
     );
-    const allMemberships = concat(
-      collection.memberships,
-      collection.collectionGroupMemberships
-    );
+    const allMemberships = [
+      ...collection.memberships,
+      ...collection.collectionGroupMemberships,
+    ];
     return some(allMemberships, (m) =>
       ["read_write", "maintainer"].includes(m.permission)
     );
@@ -77,10 +75,10 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
     );
-    const allMemberships = concat(
-      collection.memberships,
-      collection.collectionGroupMemberships
-    );
+    const allMemberships = [
+      ...collection.memberships,
+      ...collection.collectionGroupMemberships,
+    ];
     return some(allMemberships, (m) =>
       ["read_write", "maintainer"].includes(m.permission)
     );
@@ -98,10 +96,10 @@ allow(User, "delete", Collection, (user, collection) => {
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
     );
-    const allMemberships = concat(
-      collection.memberships,
-      collection.collectionGroupMemberships
-    );
+    const allMemberships = [
+      ...collection.memberships,
+      ...collection.collectionGroupMemberships,
+    ];
     return some(allMemberships, (m) =>
       ["read_write", "maintainer"].includes(m.permission)
     );

@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
 
 beforeEach(() => flushdb());
+
 describe("revisionCreator", () => {
   const ip = "127.0.0.1";
 
@@ -21,8 +22,8 @@ describe("revisionCreator", () => {
     const event = await Event.findOne();
     expect(revision.documentId).toEqual(document.id);
     expect(revision.userId).toEqual(user.id);
-    expect(event.name).toEqual("revisions.create");
-    expect(event.modelId).toEqual(revision.id);
-    expect(event.createdAt).toEqual(document.updatedAt);
+    expect(event!.name).toEqual("revisions.create");
+    expect(event!.modelId).toEqual(revision.id);
+    expect(event!.createdAt).toEqual(document.updatedAt);
   });
 });

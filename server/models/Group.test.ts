@@ -1,9 +1,11 @@
-import { CollectionGroup, GroupUser } from "@server/models";
 import { buildUser, buildGroup, buildCollection } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
+import CollectionGroup from "./CollectionGroup";
+import GroupUser from "./GroupUser";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("afterDestroy hook", () => {
   test("should destroy associated group and collection join relations", async () => {
     const group = await buildGroup();
@@ -23,22 +25,22 @@ describe("afterDestroy hook", () => {
       teamId,
     });
     const createdById = user1.id;
-    await group.addUser(user1, {
+    await group.$add("user", user1, {
       through: {
         createdById,
       },
     });
-    await group.addUser(user2, {
+    await group.$add("user", user2, {
       through: {
         createdById,
       },
     });
-    await collection1.addGroup(group, {
+    await collection1.$add("group", group, {
       through: {
         createdById,
       },
     });
-    await collection2.addGroup(group, {
+    await collection2.$add("group", group, {
       through: {
         createdById,
       },

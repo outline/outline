@@ -1,96 +1,100 @@
-import { CollectionGroup, GroupUser } from "@server/models";
-import { Op, DataTypes, sequelize } from "../sequelize";
+import { Op } from "sequelize";
+import {
+  AfterDestroy,
+  BelongsTo,
+  Column,
+  ForeignKey,
+  Table,
+  HasMany,
+  BelongsToMany,
+  DefaultScope,
+  DataType,
+} from "sequelize-typescript";
+import CollectionGroup from "./CollectionGroup";
+import GroupUser from "./GroupUser";
+import Team from "./Team";
+import User from "./User";
+import ParanoidModel from "./base/ParanoidModel";
+import Fix from "./decorators/Fix";
 
-const Group = sequelize.define(
-  "group",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "groupMemberships",
+      required: false,
     },
-    teamId: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
+  ],
+  order: [["name", "ASC"]],
+}))
+@Table({
+  tableName: "groups",
+  modelName: "group",
+  validate: {
+    isUniqueNameInTeam: async function () {
+      const foundItem = await Group.findOne({
+        where: {
+          teamId: this.teamId,
+          name: {
+            [Op.iLike]: this.name,
+          },
+          id: {
+            [Op.not]: this.id,
+          },
+        },
+      });
+
+      if (foundItem) {
+        throw new Error("The name of this group is already in use");
+      }
     },
   },
-  {
-    timestamps: true,
-    paranoid: true,
-    validate: {
-      isUniqueNameInTeam: async function () {
-        const foundItem = await Group.findOne({
-          where: {
-            teamId: this.teamId,
-            name: {
-              [Op.iLike]: this.name,
-            },
-            id: {
-              [Op.not]: this.id,
-            },
-          },
-        });
+})
+@Fix
+class Group extends ParanoidModel {
+  @Column
+  name: string;
 
-        if (foundItem) {
-          throw new Error("The name of this group is already in use");
-        }
+  // hooks
+
+  @AfterDestroy
+  static async deleteGroupUsers(model: Group) {
+    if (!model.deletedAt) return;
+    await GroupUser.destroy({
+      where: {
+        groupId: model.id,
       },
-    },
+    });
+    await CollectionGroup.destroy({
+      where: {
+        groupId: model.id,
+      },
+    });
   }
-);
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-Group.associate = (models) => {
-  Group.hasMany(models.GroupUser, {
-    as: "groupMemberships",
-    foreignKey: "groupId",
-  });
-  Group.hasMany(models.CollectionGroup, {
-    as: "collectionGroupMemberships",
-    foreignKey: "groupId",
-  });
-  Group.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-  Group.belongsTo(models.User, {
-    as: "createdBy",
-    foreignKey: "createdById",
-  });
-  Group.belongsToMany(models.User, {
-    as: "users",
-    through: models.GroupUser,
-    foreignKey: "groupId",
-  });
-  Group.addScope("defaultScope", {
-    include: [
-      {
-        association: "groupMemberships",
-        required: false,
-      },
-    ],
-    order: [["name", "ASC"]],
-  });
-};
+  // associations
 
-// Cascade deletes to group and collection relations
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'group' implicitly has an 'any' type.
-Group.addHook("afterDestroy", async (group) => {
-  if (!group.deletedAt) return;
-  await GroupUser.destroy({
-    where: {
-      groupId: group.id,
-    },
-  });
-  await CollectionGroup.destroy({
-    where: {
-      groupId: group.id,
-    },
-  });
-});
+  @HasMany(() => GroupUser, "groupId")
+  groupMemberships: GroupUser[];
+
+  @HasMany(() => CollectionGroup, "groupId")
+  collectionGroupMemberships: CollectionGroup[];
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column(DataType.UUID)
+  teamId: string;
+
+  @BelongsTo(() => User, "createdById")
+  createdBy: User;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  createdById: string;
+
+  @BelongsToMany(() => User, () => GroupUser)
+  users: User[];
+}
 
 export default Group;

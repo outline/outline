@@ -8,6 +8,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
     const user = await buildUser({
@@ -103,6 +104,7 @@ describe("#users.list", () => {
     expect(body.data[1].id).toEqual(admin.id);
   });
 });
+
 describe("#users.info", () => {
   it("should return current user with no id", async () => {
     const user = await buildUser();
@@ -154,6 +156,7 @@ describe("#users.info", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#users.invite", () => {
   it("should return sent invites", async () => {
     const user = await buildAdmin();
@@ -274,6 +277,7 @@ describe("#users.invite", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#users.delete", () => {
   it("should not allow deleting without confirmation", async () => {
     const user = await buildUser();
@@ -352,6 +356,7 @@ describe("#users.delete", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#users.update", () => {
   it("should update user profile information", async () => {
     const { user } = await seed();
@@ -373,6 +378,7 @@ describe("#users.update", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#users.promote", () => {
   it("should promote a new admin", async () => {
     const { admin, user } = await seed();
@@ -400,6 +406,7 @@ describe("#users.promote", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#users.demote", () => {
   it("should demote an admin", async () => {
     const { admin, user } = await seed();
@@ -480,6 +487,7 @@ describe("#users.demote", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#users.suspend", () => {
   it("should suspend an user", async () => {
     const { admin, user } = await seed();
@@ -520,6 +528,7 @@ describe("#users.suspend", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#users.activate", () => {
   it("should activate a suspended user", async () => {
     const { admin, user } = await seed();
@@ -552,6 +561,7 @@ describe("#users.activate", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#users.count", () => {
   it("should count active users", async () => {
     const team = await buildTeam();

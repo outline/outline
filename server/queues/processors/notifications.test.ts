@@ -1,3 +1,4 @@
+import mailer from "@server/mailer";
 import { View, NotificationSetting } from "@server/models";
 import {
   buildDocument,
@@ -5,13 +6,14 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
-import mailer from "../../mailer";
 import NotificationsService from "./notifications";
 
-jest.mock("../../mailer");
+jest.mock("@server/mailer");
+
 const Notifications = new NotificationsService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("documents.publish", () => {
   test("should not send a notification to author", async () => {
     const user = await buildUser();
@@ -24,13 +26,16 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await Notifications.on({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      ip: "127.0.0.1",
+      data: {
+        title: document.title,
+      },
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
@@ -45,13 +50,17 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
+
     await Notifications.on({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      ip: "127.0.0.1",
+      data: {
+        title: document.title,
+      },
     });
     expect(mailer.documentNotification).toHaveBeenCalled();
   });
@@ -71,17 +80,21 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await Notifications.on({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      ip: "127.0.0.1",
+      data: {
+        title: document.title,
+      },
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
 });
+
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
@@ -100,8 +113,6 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "revisions.create"; docu... Remove this comment to see the full error message
-      actorId: document.createdById,
     });
     expect(mailer.documentNotification).toHaveBeenCalled();
   });
@@ -124,8 +135,6 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "revisions.create"; docu... Remove this comment to see the full error message
-      actorId: document.createdById,
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });
@@ -146,8 +155,6 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "revisions.create"; docu... Remove this comment to see the full error message
-      actorId: document.createdById,
     });
     expect(mailer.documentNotification).not.toHaveBeenCalled();
   });

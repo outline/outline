@@ -1,13 +1,11 @@
 import { User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
-import policy from "./policy";
+import { allow } from "./cancan";
 
-const { allow } = policy;
 allow(
   User,
   "read",
   User,
-
   (actor, user) => user && user.teamId === actor.teamId
 );
 

@@ -9,6 +9,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#groups.create", () => {
   it("should create a group", async () => {
     const name = "hello I am a group";
@@ -24,6 +25,7 @@ describe("#groups.create", () => {
     expect(body.data.name).toEqual(name);
   });
 });
+
 describe("#groups.update", () => {
   it("should require authentication", async () => {
     const group = await buildGroup();
@@ -127,6 +129,7 @@ describe("#groups.update", () => {
     });
   });
 });
+
 describe("#groups.list", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.list");
@@ -140,7 +143,7 @@ describe("#groups.list", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
@@ -169,12 +172,12 @@ describe("#groups.list", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: me.id,
       },
     });
-    await group.addUser(me, {
+    await group.$add("user", me, {
       through: {
         createdById: me.id,
       },
@@ -196,6 +199,7 @@ describe("#groups.list", () => {
     expect(body.policies[0].abilities.read).toEqual(true);
   });
 });
+
 describe("#groups.info", () => {
   it("should return group if admin", async () => {
     const user = await buildAdmin();
@@ -218,7 +222,7 @@ describe("#groups.info", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
@@ -271,6 +275,7 @@ describe("#groups.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#groups.delete", () => {
   it("should require authentication", async () => {
     const group = await buildGroup();
@@ -324,13 +329,14 @@ describe("#groups.delete", () => {
     expect(body.success).toEqual(true);
   });
 });
+
 describe("#groups.memberships", () => {
   it("should return members in a group", async () => {
     const user = await buildUser();
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
@@ -361,17 +367,17 @@ describe("#groups.memberships", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
     });
-    await group.addUser(user2, {
+    await group.$add("user", user2, {
       through: {
         createdById: user.id,
       },
     });
-    await group.addUser(user3, {
+    await group.$add("user", user3, {
       through: {
         createdById: user.id,
       },
@@ -409,6 +415,7 @@ describe("#groups.memberships", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#groups.add_user", () => {
   it("should add user to group", async () => {
     const user = await buildAdmin();
@@ -422,7 +429,7 @@ describe("#groups.add_user", () => {
         userId: user.id,
       },
     });
-    const users = await group.getUsers();
+    const users = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
   });
@@ -470,6 +477,7 @@ describe("#groups.add_user", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#groups.remove_user", () => {
   it("should remove user from group", async () => {
     const user = await buildAdmin();
@@ -483,7 +491,7 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
-    const users = await group.getUsers();
+    const users = await group.$get("users");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/groups.remove_user", {
       body: {
@@ -492,7 +500,7 @@ describe("#groups.remove_user", () => {
         userId: user.id,
       },
     });
-    const users1 = await group.getUsers();
+    const users1 = await group.$get("users");
     expect(res.status).toEqual(200);
     expect(users1.length).toEqual(0);
   });

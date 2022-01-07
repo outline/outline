@@ -1,20 +1,20 @@
+import invariant from "invariant";
 import Router from "koa-router";
+import { Sequelize, Op } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
 import pinDestroyer from "@server/commands/pinDestroyer";
 import pinUpdater from "@server/commands/pinUpdater";
 import auth from "@server/middlewares/authentication";
 import { Collection, Document, Pin } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies";
 import {
   presentPin,
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { sequelize, Op } from "@server/sequelize";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("pins.create", auth(), async (ctx) => {
@@ -65,11 +65,11 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
       where: {
         ...(collectionId
           ? { collectionId }
-          : { collectionId: { [Op.eq]: null } }),
+          : { collectionId: { [Op.is]: null } }),
         teamId: user.teamId,
       },
       order: [
-        sequelize.literal('"pins"."index" collate "C"'),
+        Sequelize.literal('"pin"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
       offset: ctx.state.pagination.offset,
@@ -80,7 +80,7 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
 
   const documents = await Document.defaultScopeWithUser(user.id).findAll({
     where: {
-      id: pins.map((pin: any) => pin.documentId),
+      id: pins.map((pin) => pin.documentId),
       collectionId: collectionIds,
     },
   });
@@ -92,7 +92,7 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
     data: {
       pins: pins.map(presentPin),
       documents: await Promise.all(
-        documents.map((document: any) => presentDocument(document))
+        documents.map((document: Document) => presentDocument(document))
       ),
     },
     policies,
@@ -107,6 +107,8 @@ router.post("pins.update", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   let pin = await Pin.findByPk(id);
+  invariant(pin, "pin not found");
+
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });
@@ -136,6 +138,8 @@ router.post("pins.delete", auth(), async (ctx) => {
 
   const { user } = ctx.state;
   const pin = await Pin.findByPk(id);
+  invariant(pin, "pin not found");
+
   const document = await Document.findByPk(pin.documentId, {
     userId: user.id,
   });

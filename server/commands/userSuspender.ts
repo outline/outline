@@ -1,18 +1,19 @@
 import { Transaction } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import { User, Event, GroupUser } from "@server/models";
 import { ValidationError } from "../errors";
-import { sequelize } from "../sequelize";
+
+type Props = {
+  user: User;
+  actorId: string;
+  ip: string;
+};
 
 export default async function userSuspender({
   user,
   actorId,
   ip,
-}: {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
-  user: User;
-  actorId: string;
-  ip: string;
-}): Promise<void> {
+}: Props): Promise<void> {
   if (user.id === actorId) {
     throw ValidationError("Unable to suspend the current user");
   }

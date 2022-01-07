@@ -8,6 +8,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
@@ -44,6 +45,7 @@ describe("#auth.info", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#auth.config", () => {
   it("should return available SSO providers", async () => {
     const res = await server.post("/api/auth.config");
