@@ -91,7 +91,6 @@ function DocumentHeader({
     });
   }, [onSave]);
 
-  const isNew = document.isPersistedOnce;
   const isTemplate = document.isTemplate;
   const can = policies.abilities(document.id);
   const canToggleEmbeds = team?.documentEmbeds;
@@ -205,14 +204,16 @@ function DocumentHeader({
               <Status>{t("Saving")}…</Status>
             )}
             <Collaborators document={document} />
-            {isEditing && !isTemplate && isNew && (
-              <Action>
-                <TemplatesMenu
-                  document={document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
+            {(isEditing || team?.collaborativeEditing) &&
+              !isTemplate &&
+              document.revision < 3 && (
+                <Action>
+                  <TemplatesMenu
+                    document={document}
+                    onSelectTemplate={onSelectTemplate}
+                  />
+                </Action>
+              )}
             {!isEditing && (!isMobile || !isTemplate) && (
               <Action>
                 <ShareButton document={document} />
