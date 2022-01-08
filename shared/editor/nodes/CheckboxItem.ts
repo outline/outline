@@ -1,17 +1,18 @@
+import { NodeSpec } from "prosemirror-model";
 import {
   splitListItem,
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
-import Node from "./Node";
 import checkboxRule from "../rules/checkboxes";
+import Node from "./Node";
 
 export default class CheckboxItem extends Node {
   get name() {
     return "checkbox_item";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         checked: {
@@ -29,7 +30,7 @@ export default class CheckboxItem extends Node {
           }),
         },
       ],
-      toDOM: node => {
+      toDOM: (node) => {
         const input = document.createElement("input");
         input.type = "checkbox";
         input.tabIndex = -1;
@@ -48,7 +49,7 @@ export default class CheckboxItem extends Node {
           [
             "span",
             {
-              contentEditable: false,
+              contentEditable: "false",
             },
             input,
           ],
@@ -62,7 +63,7 @@ export default class CheckboxItem extends Node {
     return [checkboxRule];
   }
 
-  handleChange = event => {
+  handleChange = (event) => {
     const { view } = this.editor;
     const { tr } = view.state;
     const { top, left } = event.target.getBoundingClientRect();
@@ -94,7 +95,7 @@ export default class CheckboxItem extends Node {
   parseMarkdown() {
     return {
       block: "checkbox_item",
-      getAttrs: tok => ({
+      getAttrs: (tok) => ({
         checked: tok.attrGet("checked") ? true : undefined,
       }),
     };

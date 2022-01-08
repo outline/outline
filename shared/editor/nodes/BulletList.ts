@@ -1,4 +1,5 @@
 import { wrappingInputRule } from "prosemirror-inputrules";
+import { NodeSpec } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
 import Node from "./Node";
 
@@ -7,7 +8,7 @@ export default class BulletList extends Node {
     return "bullet_list";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "list_item+",
       group: "block",

@@ -1,6 +1,6 @@
-import Node from "./Node";
 import { isInTable } from "prosemirror-tables";
 import breakRule from "../rules/breaks";
+import Node from "./Node";
 
 export default class HardBreak extends Node {
   get name() {

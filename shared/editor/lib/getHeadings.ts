@@ -5,7 +5,7 @@ export default function getHeadings(view: EditorView) {
   const headings: { title: string; level: number; id: string }[] = [];
   const previouslySeen = {};
 
-  view.state.doc.forEach(node => {
+  view.state.doc.forEach((node) => {
     if (node.type.name === "heading") {
       // calculate the optimal id
       const id = headingToSlug(node);

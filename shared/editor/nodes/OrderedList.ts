@@ -1,4 +1,6 @@
+import Token from "markdown-it/lib/token";
 import { wrappingInputRule } from "prosemirror-inputrules";
+import { NodeSpec } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
 import Node from "./Node";
 
@@ -7,7 +9,7 @@ export default class OrderedList extends Node {
     return "ordered_list";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         order: {
@@ -26,7 +28,7 @@ export default class OrderedList extends Node {
           }),
         },
       ],
-      toDOM: node =>
+      toDOM: (node) =>
         node.attrs.order === 1
           ? ["ol", 0]
           : ["ol", { start: node.attrs.order }, 0],
@@ -48,7 +50,7 @@ export default class OrderedList extends Node {
       wrappingInputRule(
         /^(\d+)\.\s$/,
         type,
-        match => ({ order: +match[1] }),
+        (match) => ({ order: +match[1] }),
         (match, node) => node.childCount + node.attrs.order === +match[1]
       ),
     ];
@@ -61,7 +63,7 @@ export default class OrderedList extends Node {
     const maxW = `${start + node.childCount - 1}`.length;
     const space = state.repeat(" ", maxW + 2);
 
-    state.renderList(node, space, i => {
+    state.renderList(node, space, (i) => {
       const nStr = `${start + i}`;
       return state.repeat(" ", maxW - nStr.length) + nStr + ". ";
     });
@@ -70,7 +72,7 @@ export default class OrderedList extends Node {
   parseMarkdown() {
     return {
       block: "ordered_list",
-      getAttrs: tok => ({
+      getAttrs: (tok: Token) => ({
         order: parseInt(tok.attrGet("start") || "1", 10),
       }),
     };

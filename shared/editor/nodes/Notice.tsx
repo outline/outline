@@ -1,10 +1,13 @@
-import { wrappingInputRule } from "prosemirror-inputrules";
-import toggleWrap from "../commands/toggleWrap";
+import Token from "markdown-it/lib/token";
 import { WarningIcon, InfoIcon, StarredIcon } from "outline-icons";
+import { wrappingInputRule } from "prosemirror-inputrules";
+import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import Node from "./Node";
+import toggleWrap from "../commands/toggleWrap";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
+import Node from "./Node";
 
 export default class Notice extends Node {
   get styleOptions() {
@@ -23,7 +26,7 @@ export default class Notice extends Node {
     return [noticesRule];
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         style: {
@@ -48,7 +51,7 @@ export default class Notice extends Node {
           }),
         },
       ],
-      toDOM: node => {
+      toDOM: (node) => {
         const select = document.createElement("select");
         select.addEventListener("change", this.handleStyleChange);
 
@@ -78,21 +81,25 @@ export default class Notice extends Node {
           "div",
           { class: `notice-block ${node.attrs.style}` },
           icon,
-          ["div", { contentEditable: false }, select],
+          ["div", { contentEditable: "false" }, select],
           ["div", { class: "content" }, 0],
         ];
       },
     };
   }
 
-  commands({ type }) {
-    return attrs => toggleWrap(type, attrs);
+  commands({ type }: { type: NodeType }) {
+    return (attrs: any) => toggleWrap(type, attrs);
   }
 
-  handleStyleChange = event => {
+  handleStyleChange = (event: InputEvent) => {
     const { view } = this.editor;
     const { tr } = view.state;
     const element = event.target;
+    if (!(element instanceof HTMLSelectElement)) {
+      return;
+    }
+
     const { top, left } = element.getBoundingClientRect();
     const result = view.posAtCoords({ top, left });
 
@@ -104,11 +111,11 @@ export default class Notice extends Node {
     }
   };
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: NodeType }) {
     return [wrappingInputRule(/^:::$/, type)];
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write("\n:::" + (node.attrs.style || "info") + "\n");
     state.renderContent(node);
     state.ensureNewLine();
@@ -119,7 +126,7 @@ export default class Notice extends Node {
   parseMarkdown() {
     return {
       block: "container_notice",
-      getAttrs: tok => ({ style: tok.info }),
+      getAttrs: (tok: Token) => ({ style: tok.info }),
     };
   }
 }

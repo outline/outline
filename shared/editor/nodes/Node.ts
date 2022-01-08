@@ -1,13 +1,35 @@
-import { MarkdownSerializerState } from "prosemirror-markdown";
-import { Node as ProsemirrorNode } from "prosemirror-model";
-import Extension from "../lib/Extension";
+import {
+  Node as ProsemirrorNode,
+  NodeSpec,
+  NodeType,
+  Schema,
+} from "prosemirror-model";
+import Extension, { ExtensionInterface, Command } from "../lib/Extension";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
-export default abstract class Node extends Extension {
+export interface NodeInterface extends ExtensionInterface {
+  schema: NodeSpec;
+
+  markdownToken?: string;
+
+  keys: (options: {
+    type: NodeType;
+    schema: Schema;
+  }) => { [key: string]: Command };
+
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode): void;
+
+  parseMarkdown(): any;
+}
+
+export default abstract class Node extends Extension implements NodeInterface {
   get type() {
     return "node";
   }
 
-  abstract get schema();
+  get schema(): NodeSpec {
+    return {};
+  }
 
   get markdownToken(): string {
     return "";

@@ -1,14 +1,16 @@
-import { InputRule } from "prosemirror-inputrules";
 import nameToEmoji from "gemoji/name-to-emoji.json";
-import Node from "./Node";
+import Token from "markdown-it/lib/token";
+import { InputRule } from "prosemirror-inputrules";
+import { NodeSpec } from "prosemirror-model";
 import emojiRule from "../rules/emoji";
+import Node from "./Node";
 
 export default class Emoji extends Node {
   get name() {
     return "emoji";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         style: {
@@ -32,7 +34,7 @@ export default class Emoji extends Node {
           }),
         },
       ],
-      toDOM: node => {
+      toDOM: (node) => {
         if (nameToEmoji[node.attrs["data-name"]]) {
           const text = document.createTextNode(
             nameToEmoji[node.attrs["data-name"]]
@@ -57,7 +59,7 @@ export default class Emoji extends Node {
   }
 
   commands({ type }) {
-    return attrs => (state, dispatch) => {
+    return (attrs) => (state, dispatch) => {
       const { selection } = state;
       const position = selection.$cursor
         ? selection.$cursor.pos
@@ -100,7 +102,7 @@ export default class Emoji extends Node {
   parseMarkdown() {
     return {
       node: "emoji",
-      getAttrs: tok => {
+      getAttrs: (tok: Token) => {
         return { "data-name": tok.markup.trim() };
       },
     };

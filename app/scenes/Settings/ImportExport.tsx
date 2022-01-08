@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { parseOutlineExport, Item } from "@shared/utils/zip";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
@@ -17,7 +18,6 @@ import Subheading from "~/components/Subheading";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import { uploadFile } from "~/utils/uploadFile";
 import FileOperationListItem from "./components/FileOperationListItem";
 

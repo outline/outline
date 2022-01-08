@@ -2,6 +2,7 @@ import { PluginSimple } from "markdown-it";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
+import { EditorView } from "prosemirror-view";
 import Editor from "../";
 import Mark from "../marks/Mark";
 import Node from "../nodes/Node";
@@ -158,7 +159,7 @@ export default class ExtensionManager {
     );
   }
 
-  commands({ schema, view }) {
+  commands({ schema, view }: { schema: Schema; view: EditorView }) {
     return this.extensions
       .filter((extension) => extension.commands)
       .reduce((allCommands, extension) => {

@@ -1,3 +1,4 @@
+import { NodeSpec } from "prosemirror-model";
 import Node from "./Node";
 
 export default class TableRow extends Node {
@@ -5,7 +6,7 @@ export default class TableRow extends Node {
     return "tr";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "(th | td)*",
       tableRole: "row",

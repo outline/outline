@@ -25,6 +25,7 @@ import { useMenuState, MenuButton } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import Document from "~/models/Document";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -48,7 +49,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import {
   documentHistoryUrl,
   documentUrl,

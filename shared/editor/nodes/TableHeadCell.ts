@@ -1,6 +1,8 @@
-import { DecorationSet, Decoration } from "prosemirror-view";
+import Token from "markdown-it/lib/token";
+import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { isColumnSelected, getCellsInRow } from "prosemirror-utils";
+import { DecorationSet, Decoration } from "prosemirror-view";
 import Node from "./Node";
 
 export default class TableHeadCell extends Node {
@@ -8,7 +10,7 @@ export default class TableHeadCell extends Node {
     return "th";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "paragraph+",
       tableRole: "header_cell",
@@ -38,7 +40,7 @@ export default class TableHeadCell extends Node {
   parseMarkdown() {
     return {
       block: "th",
-      getAttrs: tok => ({ alignment: tok.info }),
+      getAttrs: (tok: Token) => ({ alignment: tok.info }),
     };
   }
 
@@ -46,7 +48,7 @@ export default class TableHeadCell extends Node {
     return [
       new Plugin({
         props: {
-          decorations: state => {
+          decorations: (state) => {
             const { doc, selection } = state;
             const decorations: Decoration[] = [];
             const cells = getCellsInRow(0)(selection);
@@ -67,7 +69,7 @@ export default class TableHeadCell extends Node {
                     }
                     const grip = document.createElement("a");
                     grip.className = className;
-                    grip.addEventListener("mousedown", event => {
+                    grip.addEventListener("mousedown", (event) => {
                       event.preventDefault();
                       event.stopImmediatePropagation();
                       this.options.onSelectColumn(index, state);

@@ -1,4 +1,5 @@
 import { wrappingInputRule } from "prosemirror-inputrules";
+import { NodeSpec } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
 import Node from "./Node";
 
@@ -7,7 +8,7 @@ export default class CheckboxList extends Node {
     return "checkbox_list";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       group: "block",
       content: "checkbox_item+",

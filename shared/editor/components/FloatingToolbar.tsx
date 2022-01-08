@@ -22,7 +22,15 @@ const defaultPosition = {
   visible: false,
 };
 
-function usePosition({ menuRef, isSelectingText, props }) {
+function usePosition({
+  menuRef,
+  isSelectingText,
+  props,
+}: {
+  menuRef: React.RefObject<HTMLDivElement>;
+  isSelectingText: boolean;
+  props: Props;
+}) {
   const { view, active } = props;
   const { selection } = view.state;
   const { width: menuWidth, height: menuHeight } = useComponentSize(menuRef);
@@ -129,7 +137,7 @@ function usePosition({ menuRef, isSelectingText, props }) {
   }
 }
 
-function FloatingToolbar(props) {
+function FloatingToolbar(props: Props) {
   const menuRef = props.forwardedRef || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
 

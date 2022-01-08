@@ -1,5 +1,5 @@
-import Node from "./Node";
-import { Decoration, DecorationSet } from "prosemirror-view";
+import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
+import { Plugin, TextSelection } from "prosemirror-state";
 import {
   addColumnAfter,
   addColumnBefore,
@@ -21,15 +21,17 @@ import {
   getCellsInColumn,
   moveRow,
 } from "prosemirror-utils";
-import { Plugin, TextSelection } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
+import Node from "./Node";
 
 export default class Table extends Node {
   get name() {
     return "table";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "tr+",
       tableRole: "table",
@@ -115,7 +117,7 @@ export default class Table extends Node {
     };
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.renderTable(node);
     state.closeBlock(node);
   }
@@ -129,7 +131,7 @@ export default class Table extends Node {
       tableEditing(),
       new Plugin({
         props: {
-          decorations: state => {
+          decorations: (state) => {
             const { doc } = state;
             const decorations: Decoration[] = [];
             let index = 0;

@@ -1,8 +1,13 @@
+import copy from "copy-to-clipboard";
+import Token from "markdown-it/lib/token";
+import { textblockTypeInputRule } from "prosemirror-inputrules";
+import { NodeSpec } from "prosemirror-model";
+import { Selection, TextSelection, Transaction } from "prosemirror-state";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
-import css from "refractor/lang/css";
 import clike from "refractor/lang/clike";
 import csharp from "refractor/lang/csharp";
+import css from "refractor/lang/css";
 import go from "refractor/lang/go";
 import java from "refractor/lang/java";
 import javascript from "refractor/lang/javascript";
@@ -11,22 +16,19 @@ import markup from "refractor/lang/markup";
 import objectivec from "refractor/lang/objectivec";
 import perl from "refractor/lang/perl";
 import php from "refractor/lang/php";
-import python from "refractor/lang/python";
 import powershell from "refractor/lang/powershell";
+import python from "refractor/lang/python";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
 import sql from "refractor/lang/sql";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
 
-import { Selection, TextSelection, Transaction } from "prosemirror-state";
-import { textblockTypeInputRule } from "prosemirror-inputrules";
-import copy from "copy-to-clipboard";
-import Prism, { LANGUAGES } from "../plugins/Prism";
 import toggleBlockType from "../commands/toggleBlockType";
+import Prism, { LANGUAGES } from "../plugins/Prism";
 import isInCode from "../queries/isInCode";
-import Node from "./Node";
 import { ToastType } from "../types";
+import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
 const DEFAULT_LANGUAGE = "javascript";
@@ -62,7 +64,7 @@ export default class CodeFence extends Node {
     return "code_fence";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         language: {
@@ -88,7 +90,7 @@ export default class CodeFence extends Node {
           },
         },
       ],
-      toDOM: node => {
+      toDOM: (node) => {
         const button = document.createElement("button");
         button.innerText = "Copy";
         button.type = "button";
@@ -109,15 +111,15 @@ export default class CodeFence extends Node {
         return [
           "div",
           { class: "code-block", "data-language": node.attrs.language },
-          ["div", { contentEditable: false }, select, button],
-          ["pre", ["code", { spellCheck: false }, 0]],
+          ["div", { contentEditable: "false" }, select, button],
+          ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
       },
     };
   }
 
   commands({ type, schema }) {
-    return attrs =>
+    return (attrs) =>
       toggleBlockType(type, schema.nodes.paragraph, {
         language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
         ...attrs,
@@ -158,7 +160,7 @@ export default class CodeFence extends Node {
     };
   }
 
-  handleCopyToClipboard = event => {
+  handleCopyToClipboard = (event) => {
     const { view } = this.editor;
     const element = event.target;
     const { top, left } = element.getBoundingClientRect();
@@ -178,7 +180,7 @@ export default class CodeFence extends Node {
     }
   };
 
-  handleLanguageChange = event => {
+  handleLanguageChange = (event) => {
     const { view } = this.editor;
     const { tr } = view.state;
     const element = event.target;
@@ -222,7 +224,7 @@ export default class CodeFence extends Node {
   parseMarkdown() {
     return {
       block: "code_block",
-      getAttrs: tok => ({ language: tok.info }),
+      getAttrs: (tok: Token) => ({ language: tok.info }),
     };
   }
 }

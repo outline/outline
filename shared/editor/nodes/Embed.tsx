@@ -1,6 +1,7 @@
+import { NodeSpec } from "prosemirror-model";
 import * as React from "react";
-import Node from "./Node";
 import embedsRule from "../rules/embeds";
+import Node from "./Node";
 
 const cache = {};
 
@@ -9,7 +10,7 @@ export default class Embed extends Node {
     return "embed";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "inline*",
       group: "block",
@@ -39,9 +40,9 @@ export default class Embed extends Node {
           },
         },
       ],
-      toDOM: node => [
+      toDOM: (node) => [
         "iframe",
-        { class: "embed", src: node.attrs.href, contentEditable: false },
+        { class: "embed", src: node.attrs.href, contentEditable: "false" },
         0,
       ],
     };
@@ -87,7 +88,7 @@ export default class Embed extends Node {
   }
 
   commands({ type }) {
-    return attrs => (state, dispatch) => {
+    return (attrs) => (state, dispatch) => {
       dispatch(
         state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
       );
@@ -106,7 +107,7 @@ export default class Embed extends Node {
   parseMarkdown() {
     return {
       node: "embed",
-      getAttrs: token => ({
+      getAttrs: (token) => ({
         href: token.attrGet("href"),
       }),
     };

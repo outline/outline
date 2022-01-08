@@ -1,15 +1,15 @@
-import { Plugin, Selection } from "prosemirror-state";
 import copy from "copy-to-clipboard";
-import { Decoration, DecorationSet } from "prosemirror-view";
-import { Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
-import { MarkdownSerializerState } from "prosemirror-markdown";
+import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
+import { Plugin, Selection } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
-import toggleBlockType from "../commands/toggleBlockType";
 import splitHeading from "../commands/splitHeading";
+import toggleBlockType from "../commands/toggleBlockType";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
-import Node from "./Node";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { ToastType } from "../types";
+import Node from "./Node";
 
 export default class Heading extends Node {
   className = "heading-name";
@@ -25,7 +25,7 @@ export default class Heading extends Node {
     };
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         level: {
@@ -39,17 +39,17 @@ export default class Heading extends Node {
       group: "block",
       defining: true,
       draggable: false,
-      parseDOM: this.options.levels.map(level => ({
+      parseDOM: this.options.levels.map((level: number) => ({
         tag: `h${level}`,
         attrs: { level },
         contentElement: ".heading-content",
       })),
-      toDOM: node => {
+      toDOM: (node) => {
         const anchor = document.createElement("button");
         anchor.innerText = "#";
         anchor.type = "button";
         anchor.className = "heading-anchor";
-        anchor.addEventListener("click", event => this.handleCopyLink(event));
+        anchor.addEventListener("click", (event) => this.handleCopyLink(event));
 
         const fold = document.createElement("button");
         fold.innerText = "";
@@ -59,7 +59,7 @@ export default class Heading extends Node {
         fold.className = `heading-fold ${
           node.attrs.collapsed ? "collapsed" : ""
         }`;
-        fold.addEventListener("mousedown", event =>
+        fold.addEventListener("mousedown", (event) =>
           this.handleFoldContent(event)
         );
 
@@ -68,7 +68,7 @@ export default class Heading extends Node {
           [
             "span",
             {
-              contentEditable: false,
+              contentEditable: "false",
               class: `heading-actions ${
                 node.attrs.collapsed ? "collapsed" : ""
               }`,
@@ -109,7 +109,7 @@ export default class Heading extends Node {
     };
   }
 
-  handleFoldContent = event => {
+  handleFoldContent = (event) => {
     event.preventDefault();
 
     const { view } = this.editor;
@@ -153,7 +153,7 @@ export default class Heading extends Node {
     }
   };
 
-  handleCopyLink = event => {
+  handleCopyLink = (event) => {
     // this is unfortunate but appears to be the best way to grab the anchor
     // as it's added directly to the dom by a decoration.
     const anchor = event.currentTarget.parentNode.parentNode.previousSibling;
@@ -198,7 +198,7 @@ export default class Heading extends Node {
   }
 
   get plugins() {
-    const getAnchors = doc => {
+    const getAnchors = (doc: ProsemirrorNode) => {
       const decorations: Decoration[] = [];
       const previouslySeen = {};
 
@@ -240,7 +240,7 @@ export default class Heading extends Node {
       return DecorationSet.create(doc, decorations);
     };
 
-    const plugin = new Plugin({
+    const plugin: Plugin = new Plugin({
       state: {
         init: (config, state) => {
           return getAnchors(state.doc);
@@ -250,7 +250,7 @@ export default class Heading extends Node {
         },
       },
       props: {
-        decorations: state => plugin.getState(state),
+        decorations: (state) => plugin.getState(state),
       },
     });
 
@@ -258,7 +258,7 @@ export default class Heading extends Node {
   }
 
   inputRules({ type }: { type: NodeType }) {
-    return this.options.levels.map(level =>
+    return this.options.levels.map((level: number) =>
       textblockTypeInputRule(new RegExp(`^(#{1,${level}})\\s$`), type, () => ({
         level,
       }))

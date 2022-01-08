@@ -9,13 +9,12 @@ import {
   Plugin,
   TextSelection,
 } from "prosemirror-state";
-import { DecorationSet, Decoration } from "prosemirror-view";
 import { findParentNodeClosestToPos } from "prosemirror-utils";
-
-import Node from "./Node";
-import isList from "../queries/isList";
-import isInList from "../queries/isInList";
+import { DecorationSet, Decoration } from "prosemirror-view";
 import getParentListItem from "../queries/getParentListItem";
+import isInList from "../queries/isInList";
+import isList from "../queries/isList";
+import Node from "./Node";
 
 export default class ListItem extends Node {
   get name() {
@@ -57,7 +56,7 @@ export default class ListItem extends Node {
               case "mouseover": {
                 const result = findParentNodeClosestToPos(
                   newState.doc.resolve(action.pos),
-                  node =>
+                  (node) =>
                     node.type.name === this.name ||
                     node.type.name === "checkbox_item"
                 );
@@ -68,7 +67,7 @@ export default class ListItem extends Node {
 
                 const list = findParentNodeClosestToPos(
                   newState.doc.resolve(action.pos),
-                  node => isList(node, this.editor.schema)
+                  (node) => isList(node, this.editor.schema)
                 );
 
                 if (!list) {
@@ -109,7 +108,7 @@ export default class ListItem extends Node {
               case "mouseout": {
                 const result = findParentNodeClosestToPos(
                   newState.doc.resolve(action.pos),
-                  node =>
+                  (node) =>
                     node.type.name === this.name ||
                     node.type.name === "checkbox_item"
                 );
@@ -122,7 +121,7 @@ export default class ListItem extends Node {
                   set.find(
                     result.pos,
                     result.pos + result.node.nodeSize,
-                    spec => spec.hover
+                    (spec) => spec.hover
                   )
                 );
               }

@@ -12,10 +12,10 @@ import {
   PinIcon,
 } from "outline-icons";
 import * as React from "react";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import DocumentTemplatize from "~/scenes/DocumentTemplatize";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
-import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import history from "~/utils/history";
 import { homePath, newDocumentPath } from "~/utils/routeHelpers";
 
