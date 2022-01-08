@@ -78,6 +78,11 @@ function DocumentHeader({
   const { team } = auth;
   const isMobile = useMobile();
 
+  // We cache this value for as long as the component is mounted so that if you
+  // apply a template there is still the option to replace it until the user
+  // navigates away from the doc
+  const [isNew] = React.useState(document.isPersistedOnce);
+
   const handleSave = React.useCallback(() => {
     onSave({
       done: true,
@@ -204,16 +209,14 @@ function DocumentHeader({
               <Status>{t("Saving")}…</Status>
             )}
             <Collaborators document={document} />
-            {(isEditing || team?.collaborativeEditing) &&
-              !isTemplate &&
-              document.revision < 3 && (
-                <Action>
-                  <TemplatesMenu
-                    document={document}
-                    onSelectTemplate={onSelectTemplate}
-                  />
-                </Action>
-              )}
+            {(isEditing || team?.collaborativeEditing) && !isTemplate && isNew && (
+              <Action>
+                <TemplatesMenu
+                  document={document}
+                  onSelectTemplate={onSelectTemplate}
+                />
+              </Action>
+            )}
             {!isEditing && (!isMobile || !isTemplate) && (
               <Action>
                 <ShareButton document={document} />
