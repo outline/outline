@@ -47,7 +47,7 @@ For a manual self-hosted production installation these are the recommended steps
 1. Setup the database with `yarn db:migrate`. Production assumes an SSL connection to the database by default, if
    Postgres is on the same machine and is not SSL you can migrate with `yarn db:migrate --env=production-ssl-disabled`, for example:
 
-   `docker run --rm --env-file=.env outlinewiki/outline yarn db:migrate`
+   `docker run --rm outlinewiki/outline yarn db:migrate`
 
 1. Start the container:
 
