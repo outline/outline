@@ -55,9 +55,11 @@ class Layout extends React.Component<Props> {
   keyboardShortcutsOpen = false;
 
   goToSearch = (ev: KeyboardEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    history.push(searchUrl());
+    if (!ev.metaKey && !ev.ctrlKey) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      history.push(searchUrl());
+    }
   };
 
   goToNewDocument = () => {
