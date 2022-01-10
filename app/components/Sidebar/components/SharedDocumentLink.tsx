@@ -64,17 +64,16 @@ function DocumentLink(
     [expanded]
   );
 
+  // since we don't have access to the collection sort here, we just put any drafts at the
+  // front of the list. this is slightly inconsisten with the logged-in behavior, but
+  // it's probably better to emphasize the draft nature of the document in a shared context
   const nodeChildren = React.useMemo(() => {
     if (
-      collection &&
       activeDocument?.isDraft &&
       activeDocument?.isActive &&
       activeDocument?.parentDocumentId === node.id
     ) {
-      return sortNavigationNodes(
-        [activeDocument?.asNavigationNode, ...node.children],
-        collection.sort
-      );
+      return [activeDocument?.asNavigationNode, ...node.children];
     }
 
     return node.children;
@@ -83,7 +82,6 @@ function DocumentLink(
     activeDocument?.isDraft,
     activeDocument?.parentDocumentId,
     activeDocument?.asNavigationNode,
-    collection,
     node,
   ]);
 
@@ -113,6 +111,9 @@ function DocumentLink(
         scrollIntoViewIfNeeded={!document?.isStarred}
         isDraft={isDraft}
         ref={ref}
+        isActive={() => {
+          return !!isActiveDocument;
+        }}
       />
       {expanded &&
         nodeChildren.map((childNode, index) => (
