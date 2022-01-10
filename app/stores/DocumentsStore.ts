@@ -11,10 +11,10 @@ import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import env from "~/env";
 import {
-  NavigationNode,
   FetchOptions,
   PaginationParams,
   SearchResult,
+  NavigationNode,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
 

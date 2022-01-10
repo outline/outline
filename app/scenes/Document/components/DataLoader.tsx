@@ -36,8 +36,6 @@ type Props = RootStore &
     children: (arg0: any) => React.ReactNode;
   };
 
-const sharedTreeCache = {};
-
 @observer
 class DataLoader extends React.Component<Props> {
   sharedTree: NavigationNode | null | undefined;
@@ -192,7 +190,6 @@ class DataLoader extends React.Component<Props> {
       );
       this.sharedTree = response.sharedTree;
       this.document = response.document;
-      sharedTreeCache[this.document.id] = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
         await this.loadRevision();

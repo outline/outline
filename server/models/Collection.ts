@@ -1,6 +1,7 @@
 import { find, findIndex, concat, remove, uniq } from "lodash";
 import randomstring from "randomstring";
 import isUUID from "validator/lib/isUUID";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import slugify from "@server/utils/slugify";
 import { Op, DataTypes, sequelize } from "../sequelize";
@@ -484,7 +485,6 @@ Collection.prototype.getDocumentTree = function (documentId: string) {
       }
 
       if (document.id === documentId) {
-        console.log({ document });
         result = document;
       } else {
         loopChildren(document.children);
@@ -492,8 +492,17 @@ Collection.prototype.getDocumentTree = function (documentId: string) {
     });
   };
 
+  // Technically, sorting the children is presenter-layer work...
+  // but the only place it's used passes straight into an API response
+  // so the extra indirection is not worthwhile
+  // TODO: gonna need some TS error supression here or something
   loopChildren(this.documentStructure);
-  return result;
+  return result
+    ? {
+        ...result,
+        children: sortNavigationNodes(result.children, this.sort),
+      }
+    : undefined;
 };
 
 Collection.prototype.getDocumentParents = function (
