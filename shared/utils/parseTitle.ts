@@ -14,7 +14,7 @@ export default function parseTitle(text = "") {
   // find and extract first emoji
   const matches = regex.exec(title);
   const firstEmoji = matches ? matches[0] : null;
-  const startsWithEmoji = firstEmoji && title.startsWith(firstEmoji);
+  const startsWithEmoji = firstEmoji && title.startsWith(`${firstEmoji} `);
   const emoji = startsWithEmoji ? firstEmoji : undefined;
 
   return {

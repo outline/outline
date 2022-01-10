@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
@@ -9,6 +10,7 @@ import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import ContentEditable from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
+import useDimensions from "~/hooks/useDimensions";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
@@ -44,7 +46,6 @@ const EditableTitle = React.forwardRef(
     const { t } = useTranslation();
     const can = policies.abilities(document.id);
     const { emoji } = parseTitle(value);
-    const startsWithEmojiAndSpace = !!(emoji && value.startsWith(`${emoji} `));
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 
@@ -88,31 +89,46 @@ const EditableTitle = React.forwardRef(
       [onGoToNextInput, onSave]
     );
 
+    const [measureRef, dimensions] = useDimensions([value]);
+    const emojiWidth = dimensions.width;
+
     return (
-      <Title
-        onChange={onChange}
-        onKeyDown={handleKeyDown}
-        placeholder={
-          document.isTemplate
-            ? t("Start your template…")
-            : t("Start with a title…")
-        }
-        value={normalizedTitle}
-        $startsWithEmojiAndSpace={startsWithEmojiAndSpace}
-        $isStarred={document.isStarred}
-        autoFocus={!value}
-        maxLength={MAX_TITLE_LENGTH}
-        readOnly={readOnly}
-        dir="auto"
-        ref={ref}
-      >
-        {(can.star || can.unstar) && starrable !== false && (
-          <StarButton document={document} size={32} />
-        )}
-      </Title>
+      <>
+        <VisuallyHidden>
+          <MeasureEmoji ref={measureRef}>
+            {emoji ? <>{emoji}&nbsp;</> : undefined}
+          </MeasureEmoji>
+        </VisuallyHidden>
+        <Title
+          onChange={onChange}
+          onKeyDown={handleKeyDown}
+          placeholder={
+            document.isTemplate
+              ? t("Start your template…")
+              : t("Start with a title…")
+          }
+          value={normalizedTitle}
+          $emojiWidth={emojiWidth}
+          $isStarred={document.isStarred}
+          autoFocus={!value}
+          maxLength={MAX_TITLE_LENGTH}
+          readOnly={readOnly}
+          dir="auto"
+          ref={ref}
+        >
+          {(can.star || can.unstar) && starrable !== false && (
+            <StarButton document={document} size={32} />
+          )}
+        </Title>
+      </>
     );
   }
 );
+
+const MeasureEmoji = styled.span`
+  line-height: 1.25;
+  font-size: 2.25em;
+`;
 
 const StarButton = styled(Star)`
   position: relative;
@@ -121,8 +137,8 @@ const StarButton = styled(Star)`
 `;
 
 type TitleProps = {
-  $startsWithEmojiAndSpace: boolean;
   $isStarred: boolean;
+  $emojiWidth: number;
 };
 
 const Title = styled(ContentEditable)<TitleProps>`
@@ -150,8 +166,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
-    margin-left: ${(props: TitleProps) =>
-      props.$startsWithEmojiAndSpace ? "-1.2em" : 0};
+    margin-left: ${(props: TitleProps) => -props.$emojiWidth}px;
   `};
 
   ${AnimatedStar} {
