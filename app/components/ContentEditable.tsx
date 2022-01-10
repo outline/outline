@@ -42,7 +42,7 @@ const ContentEditable = React.forwardRef(
   ) => {
     const innerRef = React.useRef<HTMLSpanElement>(null);
     const ref = forwardedRef || innerRef;
-    const [innerHTML, setInnerHTML] = React.useState<string>(value);
+    const [innerValue, setInnerValue] = React.useState<string>(value);
     const lastValue = React.useRef("");
 
     const wrappedEvent = (
@@ -75,7 +75,7 @@ const ContentEditable = React.forwardRef(
 
     React.useEffect(() => {
       if (value !== ref.current?.innerText) {
-        setInnerHTML(value);
+        setInnerValue(value);
       }
     }, [value, ref]);
 
@@ -88,12 +88,12 @@ const ContentEditable = React.forwardRef(
           onBlur={wrappedEvent(onBlur)}
           onKeyDown={wrappedEvent(onKeyDown)}
           data-placeholder={placeholder}
+          suppressContentEditableWarning
           role="textbox"
-          dangerouslySetInnerHTML={{
-            __html: innerHTML,
-          }}
           {...rest}
-        />
+        >
+          {innerValue}
+        </Content>
         {children}
       </div>
     );
