@@ -17,8 +17,7 @@ function Branding({ href = env.URL }: Props) {
 }
 
 const Link = styled.a`
-  // sidebar z-index is 900
-  z-index: 901;
+  z-index: ${(props) => props.theme.depths.sidebar + 1};
   position: fixed;
   bottom: 0;
   left: 0;
