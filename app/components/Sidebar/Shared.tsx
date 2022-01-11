@@ -24,7 +24,6 @@ function MainSidebar({ rootNode, shareId }: Props) {
             depth={1}
             node={rootNode}
             activeDocument={documents.active}
-            prefetchDocument={documents.prefetchDocument}
           />
         </Section>
       </Scrollable>
