@@ -1,6 +1,11 @@
 import copy from "copy-to-clipboard";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
-import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
+import {
+  Node as ProsemirrorNode,
+  NodeSpec,
+  NodeType,
+  Schema,
+} from "prosemirror-model";
 import { Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
@@ -103,7 +108,7 @@ export default class Heading extends Node {
     };
   }
 
-  commands({ type, schema }) {
+  commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, any>) => {
       return toggleBlockType(type, schema.nodes.paragraph, attrs);
     };

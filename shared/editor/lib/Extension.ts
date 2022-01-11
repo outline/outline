@@ -1,37 +1,17 @@
 import { PluginSimple } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { NodeType, Schema } from "prosemirror-model";
+import { NodeType, MarkType, Schema } from "prosemirror-model";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
 import Editor from "../";
 
-export type Command = (
-  attrs: any
-) => (state: EditorState, dispatch: (tr: Transaction) => void) => any;
+export type Command =
+  | ((state: EditorState, dispatch: (tr: Transaction) => void) => boolean)
+  | ((
+      attrs?: Record<string, any>
+    ) => (state: EditorState, dispatch: (tr: Transaction) => void) => boolean);
 
-export interface ExtensionInterface {
-  name: string;
-
-  type: string;
-
-  plugins: Plugin[];
-
-  rulePlugins: PluginSimple[];
-
-  keys: (options: {
-    type?: NodeType;
-    schema: Schema;
-  }) => { [key: string]: Command };
-
-  inputRules: (options: { type?: NodeType; schema: Schema }) => InputRule[];
-
-  commands: (options: {
-    type?: NodeType;
-    schema: Schema;
-  }) => Record<string, Command> | Command;
-}
-
-export default class Extension implements ExtensionInterface {
-  options: Record<string, any>;
+export default class Extension {
+  options: any;
   editor: Editor;
 
   constructor(options: Record<string, any> = {}) {
@@ -65,15 +45,24 @@ export default class Extension implements ExtensionInterface {
     return {};
   }
 
-  keys(_: { schema: Schema }) {
+  keys(_options: {
+    type?: NodeType | MarkType;
+    schema: Schema;
+  }): Record<string, Command> {
     return {};
   }
 
-  inputRules(_: { schema: Schema }) {
+  inputRules(_options: {
+    type?: NodeType | MarkType;
+    schema: Schema;
+  }): InputRule[] {
     return [];
   }
 
-  commands(_: { schema: Schema }) {
+  commands(_options: {
+    type?: NodeType | MarkType;
+    schema: Schema;
+  }): Record<string, Command> | Command {
     return {};
   }
 }

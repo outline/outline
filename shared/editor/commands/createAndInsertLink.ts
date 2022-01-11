@@ -1,6 +1,6 @@
 import { Node } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
 import { ToastType } from "../types";
 
 function findPlaceholderLink(doc: Node, href: string) {
@@ -38,7 +38,7 @@ const createAndInsertLink = async function (
   title: string,
   href: string,
   options: {
-    dictionary: typeof baseDictionary;
+    dictionary: Dictionary;
     onCreateLink: (title: string) => Promise<string>;
     onShowToast?: (message: string, code: string) => void;
   }

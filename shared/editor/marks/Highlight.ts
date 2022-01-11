@@ -1,25 +1,26 @@
 import { toggleMark } from "prosemirror-commands";
+import { MarkSpec, MarkType } from "prosemirror-model";
 import markInputRule from "../lib/markInputRule";
-import Mark from "./Mark";
 import markRule from "../rules/mark";
+import Mark from "./Mark";
 
 export default class Highlight extends Mark {
   get name() {
     return "highlight";
   }
 
-  get schema() {
+  get schema(): MarkSpec {
     return {
       parseDOM: [{ tag: "mark" }],
       toDOM: () => ["mark"],
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: MarkType }) {
     return [markInputRule(/(?:==)([^=]+)(?:==)$/, type)];
   }
 
-  keys({ type }) {
+  keys({ type }: { type: MarkType }) {
     return {
       "Mod-Ctrl-h": toggleMark(type),
     };
@@ -29,7 +30,7 @@ export default class Highlight extends Mark {
     return [markRule({ delim: "==", mark: "highlight" })];
   }
 
-  get toMarkdown() {
+  toMarkdown() {
     return {
       open: "==",
       close: "==",

@@ -1,15 +1,15 @@
-import * as React from "react";
 import { EditorView } from "prosemirror-view";
-import LinkEditor, { SearchResult } from "./LinkEditor";
-import FloatingToolbar from "./FloatingToolbar";
+import * as React from "react";
 import createAndInsertLink from "../commands/createAndInsertLink";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
+import FloatingToolbar from "./FloatingToolbar";
+import LinkEditor, { SearchResult } from "./LinkEditor";
 
 type Props = {
   isActive: boolean;
   view: EditorView;
   tooltip: typeof React.Component | React.FC<any>;
-  dictionary: typeof baseDictionary;
+  dictionary: Dictionary;
   onCreateLink?: (title: string) => Promise<string>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
   onClickLink: (href: string, event: MouseEvent) => void;
@@ -45,7 +45,7 @@ export default class LinkToolbar extends React.Component<Props> {
     window.removeEventListener("mousedown", this.handleClickOutside);
   }
 
-  handleClickOutside = ev => {
+  handleClickOutside = (ev) => {
     if (
       ev.target &&
       this.menuRef.current &&

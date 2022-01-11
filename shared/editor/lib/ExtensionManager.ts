@@ -1,6 +1,6 @@
 import { PluginSimple } from "markdown-it";
 import { keymap } from "prosemirror-keymap";
-import { MarkdownParser } from "prosemirror-markdown";
+import { MarkdownParser, TokenConfig } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
 import Editor from "../";
@@ -11,9 +11,9 @@ import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 
 export default class ExtensionManager {
-  extensions: Extension[];
+  extensions: (Node | Mark | Extension)[];
 
-  constructor(extensions: Extension[] = [], editor?: Editor) {
+  constructor(extensions: (Node | Mark | Extension)[] = [], editor?: Editor) {
     if (editor) {
       extensions.forEach((extension) => {
         extension.bindEditor(editor);
@@ -64,11 +64,11 @@ export default class ExtensionManager {
     rules,
     plugins,
   }: {
-    schema: any;
+    schema: Schema;
     rules?: Record<string, any>;
     plugins?: PluginSimple[];
   }): MarkdownParser {
-    const tokens: Record<string, any> = this.extensions
+    const tokens: Record<string, TokenConfig> = this.extensions
       .filter(
         (extension) => extension.type === "mark" || extension.type === "node"
       )
@@ -119,12 +119,12 @@ export default class ExtensionManager {
     const extensionKeymaps = this.extensions
       .filter((extension) => ["extension"].includes(extension.type))
       .filter((extension) => extension.keys)
-      .map((extension) => extension.keys({ schema }));
+      .map((extension: Extension) => extension.keys({ schema }));
 
-    const nodeMarkKeymaps = this.extensions
+    const nodeKeymaps = this.extensions
       .filter((extension) => ["node", "mark"].includes(extension.type))
       .filter((extension) => extension.keys)
-      .map((extension) =>
+      .map((extension: Node | Mark) =>
         extension.keys({
           type: schema[`${extension.type}s`][extension.name],
           schema,
@@ -133,7 +133,7 @@ export default class ExtensionManager {
 
     return [
       ...extensionKeymaps,
-      ...nodeMarkKeymaps,
+      ...nodeKeymaps,
     ].map((keys: Record<string, any>) => keymap(keys));
   }
 

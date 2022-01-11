@@ -72,3 +72,5 @@ export default function useDictionary() {
     };
   }, [t]);
 }
+
+export type Dictionary = ReturnType<typeof useDictionary>;

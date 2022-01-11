@@ -88,15 +88,15 @@ function usePosition({
     selectionBounds.right = selectionBounds.left = selectionBounds.left - 18;
   }
 
-  const isImageSelection =
-    selection.node && selection.node.type.name === "image";
+  const isImageSelection = selection.node?.type.name === "image";
+
   // Images need their own positioning to get the toolbar in the center
   if (isImageSelection) {
     const element = view.nodeDOM(selection.from);
 
     // Images are wrapped which impacts positioning - need to traverse through
     // p > span > div.image
-    const imageElement = element.getElementsByTagName("img")[0];
+    const imageElement = element?.getElementsByTagName("img")[0];
     const { left, top, width } = imageElement.getBoundingClientRect();
 
     return {

@@ -1,4 +1,6 @@
 import { setBlockType } from "prosemirror-commands";
+import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 
 export default class Paragraph extends Node {
@@ -6,7 +8,7 @@ export default class Paragraph extends Node {
     return "paragraph";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "inline*",
       group: "block",
@@ -15,17 +17,17 @@ export default class Paragraph extends Node {
     };
   }
 
-  keys({ type }) {
+  keys({ type }: { type: NodeType }) {
     return {
       "Shift-Ctrl-0": setBlockType(type),
     };
   }
 
-  commands({ type }) {
+  commands({ type }: { type: NodeType }) {
     return () => setBlockType(type);
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // render empty paragraphs as hard breaks to ensure that newlines are
     // persisted between reloads (this breaks from markdown tradition)
     if (

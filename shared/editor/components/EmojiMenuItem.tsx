@@ -6,13 +6,12 @@ const Emoji = styled.span`
   font-size: 16px;
 `;
 
-const EmojiTitle = ({
-  emoji,
-  title,
-}: {
+type Props = {
   emoji: React.ReactNode;
   title: React.ReactNode;
-}) => {
+};
+
+const EmojiTitle = ({ emoji, title }: Props) => {
   return (
     <p>
       <Emoji className="emoji">{emoji}</Emoji>

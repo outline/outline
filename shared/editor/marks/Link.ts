@@ -1,11 +1,24 @@
+import Token from "markdown-it/lib/token";
 import { toggleMark } from "prosemirror-commands";
-import { Plugin } from "prosemirror-state";
 import { InputRule } from "prosemirror-inputrules";
+import { MarkdownSerializerState } from "prosemirror-markdown";
+import {
+  MarkSpec,
+  MarkType,
+  Node,
+  Mark as ProsemirrorMark,
+} from "prosemirror-model";
+import { Transaction, EditorState, Plugin } from "prosemirror-state";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
-function isPlainURL(link, parent, index, side) {
+function isPlainURL(
+  link: ProsemirrorMark,
+  parent: Node,
+  index: number,
+  side: -1 | 1
+) {
   if (link.attrs.title || !/^\w+:/.test(link.attrs.href)) {
     return false;
   }
@@ -32,7 +45,7 @@ export default class Link extends Mark {
     return "link";
   }
 
-  get schema() {
+  get schema(): MarkSpec {
     return {
       attrs: {
         href: {
@@ -48,7 +61,7 @@ export default class Link extends Mark {
           }),
         },
       ],
-      toDOM: node => [
+      toDOM: (node) => [
         "a",
         {
           ...node.attrs,
@@ -59,7 +72,7 @@ export default class Link extends Mark {
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: MarkType }) {
     return [
       new InputRule(LINK_INPUT_REGEX, (state, match, start, end) => {
         const [okay, alt, href] = match;
@@ -78,13 +91,13 @@ export default class Link extends Mark {
     ];
   }
 
-  commands({ type }) {
+  commands({ type }: { type: MarkType }) {
     return ({ href } = { href: "" }) => toggleMark(type, { href });
   }
 
-  keys({ type }) {
+  keys({ type }: { type: MarkType }) {
     return {
-      "Mod-k": (state, dispatch) => {
+      "Mod-k": (state: EditorState, dispatch: (tr: Transaction) => void) => {
         if (state.selection.empty) {
           this.options.onKeyboardShortcut();
           return true;
@@ -143,12 +156,22 @@ export default class Link extends Mark {
     ];
   }
 
-  get toMarkdown() {
+  toMarkdown() {
     return {
-      open(_state, mark, parent, index) {
+      open(
+        _state: MarkdownSerializerState,
+        mark: ProsemirrorMark,
+        parent: Node,
+        index: number
+      ) {
         return isPlainURL(mark, parent, index, 1) ? "<" : "[";
       },
-      close(state, mark, parent, index) {
+      close(
+        state: MarkdownSerializerState,
+        mark: ProsemirrorMark,
+        parent: Node,
+        index: number
+      ) {
         return isPlainURL(mark, parent, index, -1)
           ? ">"
           : "](" +
@@ -162,7 +185,7 @@ export default class Link extends Mark {
   parseMarkdown() {
     return {
       mark: "link",
-      getAttrs: tok => ({
+      getAttrs: (tok: Token) => ({
         href: tok.attrGet("href"),
         title: tok.attrGet("title") || null,
       }),

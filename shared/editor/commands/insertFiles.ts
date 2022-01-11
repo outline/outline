@@ -1,6 +1,6 @@
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
@@ -8,19 +8,21 @@ import { ToastType } from "../types";
 
 let uploadId = 0;
 
+export type Options = {
+  dictionary: Dictionary;
+  replaceExisting?: boolean;
+  uploadImage: (file: File) => Promise<string>;
+  onImageUploadStart?: () => void;
+  onImageUploadStop?: () => void;
+  onShowToast?: (message: string, code: string) => void;
+};
+
 const insertFiles = function (
   view: EditorView,
-  event: Event,
+  event: Event | React.ChangeEvent<HTMLInputElement>,
   pos: number,
   files: File[],
-  options: {
-    dictionary: typeof baseDictionary;
-    replaceExisting?: boolean;
-    uploadImage: (file: File) => Promise<string>;
-    onImageUploadStart?: () => void;
-    onImageUploadStop?: () => void;
-    onShowToast?: (message: string, code: string) => void;
-  }
+  options: Options
 ): void {
   // filter to only include image files
   const images = files.filter((file) => /image/i.test(file.type));

@@ -1,5 +1,9 @@
-import { NodeSpec } from "prosemirror-model";
+import Token from "markdown-it/lib/token";
+import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
+import { ComponentProps } from "../lib/ComponentView";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import Node from "./Node";
 
@@ -52,7 +56,7 @@ export default class Embed extends Node {
     return [embedsRule(this.options.embeds)];
   }
 
-  component({ isEditable, isSelected, theme, node }) {
+  component({ isEditable, isSelected, theme, node }: ComponentProps) {
     const { embeds } = this.editor.props;
 
     // matches are cached in module state to avoid re running loops and regex
@@ -87,8 +91,11 @@ export default class Embed extends Node {
     );
   }
 
-  commands({ type }) {
-    return (attrs) => (state, dispatch) => {
+  commands({ type }: { type: NodeType }) {
+    return (attrs: Record<string, any>) => (
+      state: EditorState,
+      dispatch: (tr: Transaction) => void
+    ) => {
       dispatch(
         state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
       );
@@ -96,10 +103,14 @@ export default class Embed extends Node {
     };
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
     state.write(
-      "[" + state.esc(node.attrs.href) + "](" + state.esc(node.attrs.href) + ")"
+      "[" +
+        state.esc(node.attrs.href, false) +
+        "](" +
+        state.esc(node.attrs.href, false) +
+        ")"
     );
     state.write("\n\n");
   }
@@ -107,7 +118,7 @@ export default class Embed extends Node {
   parseMarkdown() {
     return {
       node: "embed",
-      getAttrs: (token) => ({
+      getAttrs: (token: Token) => ({
         href: token.attrGet("href"),
       }),
     };

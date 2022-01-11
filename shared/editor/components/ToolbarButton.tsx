@@ -17,6 +17,7 @@ export default styled.button<Props>`
   outline: none;
   pointer-events: all;
   position: relative;
+  color: ${(props) => props.theme.toolbarItem};
 
   &:first-child {
     margin-left: 0;
@@ -40,5 +41,5 @@ export default styled.button<Props>`
     bottom: -4px;
   }
 
-  ${props => props.active && "opacity: 1;"};
+  ${(props) => props.active && "opacity: 1;"};
 `;

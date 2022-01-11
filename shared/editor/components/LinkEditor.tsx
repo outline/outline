@@ -9,8 +9,8 @@ import { Mark } from "prosemirror-model";
 import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import styled, { withTheme } from "styled-components";
-import baseDictionary from "../dictionary";
+import styled from "styled-components";
+import { Dictionary } from "../hooks/useDictionary";
 import isUrl from "../lib/isUrl";
 import Flex from "./Flex";
 import Input from "./Input";
@@ -28,7 +28,7 @@ type Props = {
   from: number;
   to: number;
   tooltip: typeof React.Component | React.FC<any>;
-  dictionary: typeof baseDictionary;
+  dictionary: Dictionary;
   onRemoveLink?: () => void;
   onCreateLink?: (title: string) => Promise<void>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
@@ -38,7 +38,10 @@ type Props = {
     from: number;
     to: number;
   }) => void;
-  onClickLink: (href: string, event: MouseEvent) => void;
+  onClickLink: (
+    href: string,
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => void;
   onShowToast?: (message: string, code: string) => void;
   view: EditorView;
 };
@@ -172,8 +175,9 @@ class LinkEditor extends React.Component<Props, State> {
       }
 
       case "ArrowDown":
-        if (event.shiftKey) return;
       case "Tab": {
+        if (event.shiftKey) return;
+
         event.preventDefault();
         event.stopPropagation();
         const { selectedIndex, value } = this.state;
@@ -193,7 +197,9 @@ class LinkEditor extends React.Component<Props, State> {
     this.setState({ selectedIndex });
   };
 
-  handleChange = async (event): Promise<void> => {
+  handleChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const value = event.target.value;
 
     this.setState({
@@ -223,7 +229,7 @@ class LinkEditor extends React.Component<Props, State> {
     setTimeout(() => this.save(this.state.value, this.state.value), 0);
   };
 
-  handleOpenLink = (event): void => {
+  handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
     this.props.onClickLink(this.href, event);
   };
@@ -255,7 +261,9 @@ class LinkEditor extends React.Component<Props, State> {
     view.focus();
   };
 
-  handleSelectLink = (url: string, title: string) => (event) => {
+  handleSelectLink = (url: string, title: string) => (
+    event: React.MouseEvent
+  ) => {
     event.preventDefault();
     this.save(url, title);
 
@@ -272,7 +280,7 @@ class LinkEditor extends React.Component<Props, State> {
   };
 
   render() {
-    const { dictionary, theme } = this.props;
+    const { dictionary } = this.props;
     const { value, selectedIndex } = this.state;
     const results =
       this.state.results[value.trim()] ||
@@ -310,15 +318,15 @@ class LinkEditor extends React.Component<Props, State> {
 
         <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
           <Tooltip tooltip={dictionary.openLink} placement="top">
-            <OpenIcon color={theme.toolbarItem} />
+            <OpenIcon color="currentColor" />
           </Tooltip>
         </ToolbarButton>
         <ToolbarButton onClick={this.handleRemoveLink}>
           <Tooltip tooltip={dictionary.removeLink} placement="top">
             {this.initialValue ? (
-              <TrashIcon color={theme.toolbarItem} />
+              <TrashIcon color="currentColor" />
             ) : (
-              <CloseIcon color={theme.toolbarItem} />
+              <CloseIcon color="currentColor" />
             )}
           </Tooltip>
         </ToolbarButton>
@@ -330,7 +338,7 @@ class LinkEditor extends React.Component<Props, State> {
                 key={result.url}
                 title={result.title}
                 subtitle={result.subtitle}
-                icon={<DocumentIcon color={theme.toolbarItem} />}
+                icon={<DocumentIcon color="currentColor" />}
                 onMouseOver={() => this.handleFocusLink(index)}
                 onClick={this.handleSelectLink(result.url, result.title)}
                 selected={index === selectedIndex}
@@ -342,7 +350,7 @@ class LinkEditor extends React.Component<Props, State> {
                 key="create"
                 title={suggestedLinkTitle}
                 subtitle={dictionary.createNewDoc}
-                icon={<PlusIcon color={theme.toolbarItem} />}
+                icon={<PlusIcon color="currentColor" />}
                 onMouseOver={() => this.handleFocusLink(results.length)}
                 onClick={() => {
                   this.handleCreateLink(suggestedLinkTitle);
@@ -393,4 +401,4 @@ const SearchResults = styled.ol`
   }
 `;
 
-export default withTheme(LinkEditor);
+export default LinkEditor;

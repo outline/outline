@@ -1,4 +1,4 @@
-import { Node as PMNode, Mark } from "prosemirror-model";
+import { Node as ProsemirrorNode, Mark } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import Node from "../nodes/Node";
 
@@ -6,7 +6,7 @@ export default function getMarkAttrs(state: EditorState, type: Node) {
   const { from, to } = state.selection;
   let marks: Mark[] = [];
 
-  state.doc.nodesBetween(from, to, (node: PMNode) => {
+  state.doc.nodesBetween(from, to, (node: ProsemirrorNode) => {
     marks = [...marks, ...node.marks];
 
     if (node.content) {

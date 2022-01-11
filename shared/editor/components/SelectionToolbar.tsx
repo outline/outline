@@ -1,10 +1,12 @@
 import some from "lodash/some";
-import { TextSelection } from "prosemirror-state";
+import { Fragment, Node, Schema } from "prosemirror-model";
+import { NodeSelection, TextSelection } from "prosemirror-state";
+import { CellSelection } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import createAndInsertLink from "../commands/createAndInsertLink";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
 import filterExcessSeparators from "../lib/filterExcessSeparators";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -23,7 +25,7 @@ import LinkEditor, { SearchResult } from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 
 type Props = {
-  dictionary: typeof baseDictionary;
+  dictionary: Dictionary;
   tooltip: typeof React.Component | React.FC<any>;
   rtl: boolean;
   isTemplate: boolean;
@@ -37,19 +39,24 @@ type Props = {
   view: EditorView;
 };
 
-function isVisible(props) {
+function isVisible(props: Props) {
   const { view } = props;
   const { selection } = view.state;
 
   if (!selection) return false;
   if (selection.empty) return false;
-  if (selection.node && selection.node.type.name === "hr") {
+  if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
     return true;
   }
-  if (selection.node && selection.node.type.name === "image") {
+  if (
+    selection instanceof NodeSelection &&
+    selection.node.type.name === "image"
+  ) {
     return true;
   }
-  if (selection.node) return false;
+  if (selection instanceof NodeSelection) {
+    return false;
+  }
 
   const slice = selection.content();
   const fragment = slice.content;
@@ -172,8 +179,10 @@ export default class SelectionToolbar extends React.Component<Props> {
       return null;
     }
 
-    const colIndex = getColumnIndex(state.selection);
-    const rowIndex = getRowIndex(state.selection);
+    const colIndex = getColumnIndex(
+      (state.selection as unknown) as CellSelection
+    );
+    const rowIndex = getRowIndex((state.selection as unknown) as CellSelection);
     const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
     const link = isMarkActive(state.schema.marks.link)(state);
     const range = getMarkRange(selection.$from, state.schema.marks.link);

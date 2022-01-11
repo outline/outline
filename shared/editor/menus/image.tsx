@@ -7,13 +7,13 @@ import {
   AlignImageCenterIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
 import isNodeActive from "../queries/isNodeActive";
 import { MenuItem } from "../types";
 
 export default function imageMenuItems(
   state: EditorState,
-  dictionary: typeof baseDictionary
+  dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
   const isLeftAligned = isNodeActive(schema.nodes.image, {

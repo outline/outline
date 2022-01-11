@@ -1,9 +1,11 @@
-import { NodeSpec } from "prosemirror-model";
+import Token from "markdown-it/lib/token";
+import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import {
   splitListItem,
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
 import Node from "./Node";
 
@@ -63,7 +65,11 @@ export default class CheckboxItem extends Node {
     return [checkboxRule];
   }
 
-  handleChange = (event) => {
+  handleChange = (event: Event) => {
+    if (!(event.target instanceof HTMLInputElement)) {
+      return;
+    }
+
     const { view } = this.editor;
     const { tr } = view.state;
     const { top, left } = event.target.getBoundingClientRect();
@@ -77,7 +83,7 @@ export default class CheckboxItem extends Node {
     }
   };
 
-  keys({ type }) {
+  keys({ type }: { type: NodeType }) {
     return {
       Enter: splitListItem(type),
       Tab: sinkListItem(type),
@@ -87,7 +93,7 @@ export default class CheckboxItem extends Node {
     };
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(node.attrs.checked ? "[x] " : "[ ] ");
     state.renderContent(node);
   }
@@ -95,7 +101,7 @@ export default class CheckboxItem extends Node {
   parseMarkdown() {
     return {
       block: "checkbox_item",
-      getAttrs: (tok) => ({
+      getAttrs: (tok: Token) => ({
         checked: tok.attrGet("checked") ? true : undefined,
       }),
     };

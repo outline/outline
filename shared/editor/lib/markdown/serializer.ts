@@ -60,12 +60,18 @@ export class MarkdownSerializer {
 // methods related to markdown serialization. Instances are passed to
 // node and mark serialization methods (see `toMarkdown`).
 export class MarkdownSerializerState {
+  inTable = false;
+  inTightList = false;
+  closed = false;
+  delim = "";
+
   constructor(nodes, marks, options) {
     this.nodes = nodes;
     this.marks = marks;
     this.delim = this.out = "";
     this.closed = false;
     this.inTightList = false;
+    this.inTable = false;
     // :: Object
     // The options passed to the serializer.
     //   tightLists:: ?bool

@@ -1,14 +1,15 @@
+import { MarkSpec } from "prosemirror-model";
 import { Plugin, TextSelection } from "prosemirror-state";
 import getMarkRange from "../queries/getMarkRange";
-import Mark from "./Mark";
 import markRule from "../rules/mark";
+import Mark from "./Mark";
 
 export default class Placeholder extends Mark {
   get name() {
     return "placeholder";
   }
 
-  get schema() {
+  get schema(): MarkSpec {
     return {
       parseDOM: [{ tag: "span.template-placeholder" }],
       toDOM: () => ["span", { class: "template-placeholder" }],
@@ -19,7 +20,7 @@ export default class Placeholder extends Mark {
     return [markRule({ delim: "!!", mark: "placeholder" })];
   }
 
-  get toMarkdown() {
+  toMarkdown() {
     return {
       open: "!!",
       close: "!!",

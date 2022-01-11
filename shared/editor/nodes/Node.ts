@@ -1,28 +1,15 @@
+import { InputRule } from "prosemirror-inputrules";
+import { TokenConfig } from "prosemirror-markdown";
 import {
   Node as ProsemirrorNode,
   NodeSpec,
   NodeType,
   Schema,
 } from "prosemirror-model";
-import Extension, { ExtensionInterface, Command } from "../lib/Extension";
+import Extension, { Command } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
-export interface NodeInterface extends ExtensionInterface {
-  schema: NodeSpec;
-
-  markdownToken?: string;
-
-  keys: (options: {
-    type: NodeType;
-    schema: Schema;
-  }) => { [key: string]: Command };
-
-  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode): void;
-
-  parseMarkdown(): any;
-}
-
-export default abstract class Node extends Extension implements NodeInterface {
+export default abstract class Node extends Extension {
   get type() {
     return "node";
   }
@@ -35,11 +22,26 @@ export default abstract class Node extends Extension implements NodeInterface {
     return "";
   }
 
-  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+  inputRules(_options: { type: NodeType; schema: Schema }): InputRule[] {
+    return [];
+  }
+
+  keys(_options: { type: NodeType; schema: Schema }): Record<string, Command> {
+    return {};
+  }
+
+  commands(_options: {
+    type: NodeType;
+    schema: Schema;
+  }): Record<string, Command> | Command {
+    return {};
+  }
+
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode): void {
     console.error("toMarkdown not implemented", state, node);
   }
 
-  parseMarkdown() {
-    return;
+  parseMarkdown(): TokenConfig {
+    return {};
   }
 }

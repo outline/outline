@@ -1,12 +1,12 @@
-import { EditorState } from "prosemirror-state";
 import { PageBreakIcon, HorizontalRuleIcon } from "outline-icons";
+import { EditorState } from "prosemirror-state";
+import { Dictionary } from "../hooks/useDictionary";
 import isNodeActive from "../queries/isNodeActive";
 import { MenuItem } from "../types";
-import baseDictionary from "../dictionary";
 
 export default function dividerMenuItems(
   state: EditorState,
-  dictionary: typeof baseDictionary
+  dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
 

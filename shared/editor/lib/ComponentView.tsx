@@ -1,23 +1,26 @@
+import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { ThemeProvider } from "styled-components";
+import { DefaultTheme, ThemeProvider } from "styled-components";
 import Editor from "../";
 import Extension from "../lib/Extension";
-import Node from "../nodes/Node";
 
-type Component = (options: {
-  node: Node;
+export type ComponentProps = {
+  theme: DefaultTheme;
+  node: ProsemirrorNode;
   isSelected: boolean;
   isEditable: boolean;
   getPos: () => number;
-}) => React.ReactElement;
+};
+
+type Component = (props: ComponentProps) => React.ReactElement;
 
 export default class ComponentView {
   component: Component;
   editor: Editor;
   extension: Extension;
-  node: Node;
+  node: ProsemirrorNode;
   view: EditorView;
   getPos: () => number;
   decorations: DecorationSet;
@@ -37,7 +40,7 @@ export default class ComponentView {
     }: {
       editor: Editor;
       extension: Extension;
-      node: Node;
+      node: ProsemirrorNode;
       view: EditorView;
       getPos: () => number;
       decorations: DecorationSet;
@@ -74,7 +77,7 @@ export default class ComponentView {
     );
   }
 
-  update(node: Node) {
+  update(node: ProsemirrorNode) {
     if (node.type !== this.node.type) {
       return false;
     }

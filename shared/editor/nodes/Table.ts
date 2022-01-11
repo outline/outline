@@ -1,5 +1,10 @@
-import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
-import { Plugin, TextSelection } from "prosemirror-state";
+import { NodeSpec, Node as ProsemirrorNode, Schema } from "prosemirror-model";
+import {
+  EditorState,
+  Plugin,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import {
   addColumnAfter,
   addColumnBefore,
@@ -56,9 +61,15 @@ export default class Table extends Node {
     return [tablesRule];
   }
 
-  commands({ schema }) {
+  commands({ schema }: { schema: Schema }) {
     return {
-      createTable: ({ rowsCount, colsCount }) => (state, dispatch) => {
+      createTable: ({
+        rowsCount,
+        colsCount,
+      }: {
+        rowsCount: number;
+        colsCount: number;
+      }) => (state: EditorState, dispatch: (tr: Transaction) => void) => {
         const offset = state.tr.selection.anchor + 1;
         const nodes = createTable(schema, rowsCount, colsCount);
         const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
@@ -66,21 +77,32 @@ export default class Table extends Node {
 
         tr.setSelection(TextSelection.near(resolvedPos));
         dispatch(tr);
+        return true;
       },
-      setColumnAttr: ({ index, alignment }) => (state, dispatch) => {
+      setColumnAttr: ({
+        index,
+        alignment,
+      }: {
+        index: number;
+        alignment: string;
+      }) => (state: EditorState, dispatch: (tr: Transaction) => void) => {
         const cells = getCellsInColumn(index)(state.selection) || [];
         let transaction = state.tr;
         cells.forEach(({ pos }) => {
-          transaction = transaction.setNodeMarkup(pos, null, {
+          transaction = transaction.setNodeMarkup(pos, undefined, {
             alignment,
           });
         });
         dispatch(transaction);
+        return true;
       },
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowAfter: ({ index }) => (state, dispatch) => {
+      addRowAfter: ({ index }: { index: number }) => (
+        state: EditorState,
+        dispatch: (tr: Transaction) => void
+      ) => {
         if (index === 0) {
           // A little hack to avoid cloning the heading row by cloning the row
           // beneath and then moving it to the right index.
@@ -89,6 +111,7 @@ export default class Table extends Node {
         } else {
           dispatch(addRowAt(index + 1, true)(state.tr));
         }
+        return true;
       },
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
@@ -104,7 +127,7 @@ export default class Table extends Node {
     return {
       Tab: goToNextCell(1),
       "Shift-Tab": goToNextCell(-1),
-      Enter: (state, dispatch) => {
+      Enter: (state: EditorState, dispatch: (tr: Transaction) => void) => {
         if (!isInTable(state)) return false;
 
         // TODO: Adding row at the end for now, can we find the current cell

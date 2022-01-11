@@ -7,15 +7,15 @@ import {
   InsertRightIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import { Dictionary } from "../hooks/useDictionary";
 import isNodeActive from "../queries/isNodeActive";
 import { MenuItem } from "../types";
-import baseDictionary from "../dictionary";
 
 export default function tableColMenuItems(
   state: EditorState,
   index: number,
   rtl: boolean,
-  dictionary: typeof baseDictionary
+  dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
 

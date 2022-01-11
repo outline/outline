@@ -6,7 +6,8 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import getDataTransferFiles from "../../utils/getDataTransferFiles";
 import insertFiles from "../commands/insertFiles";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
+import { Command } from "../lib/Extension";
 import filterExcessSeparators from "../lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem, ToastType } from "../types";
 import Input from "./Input";
@@ -24,8 +25,8 @@ const defaultPosition = {
 export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
-  commands: Record<string, any>;
-  dictionary: typeof baseDictionary;
+  commands: Record<string, Command>;
+  dictionary: Dictionary;
   view: EditorView;
   search: string;
   uploadImage?: (file: File) => Promise<string>;
@@ -173,7 +174,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
   };
 
-  insertItem = (item) => {
+  insertItem = (item: any) => {
     switch (item.name) {
       case "image":
         return this.triggerImagePick();
@@ -254,11 +255,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
   };
 
-  triggerLinkInput = (item) => {
+  triggerLinkInput = (item: EmbedDescriptor) => {
     this.setState({ insertItem: item });
   };
 
-  handleImagePicked = (event) => {
+  handleImagePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = getDataTransferFiles(event);
 
     const {
@@ -298,10 +299,10 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     this.props.onClearSearch();
   };
 
-  insertBlock(item) {
+  insertBlock(item: MenuItem) {
     this.clearSearch();
 
-    const command = this.props.commands[item.name];
+    const command = item.name ? this.props.commands[item.name] : undefined;
 
     if (command) {
       command(item.attrs);

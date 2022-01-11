@@ -1,7 +1,9 @@
 import nameToEmoji from "gemoji/name-to-emoji.json";
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
-import { NodeSpec } from "prosemirror-model";
+import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
+import { EditorState, TextSelection, Transaction } from "prosemirror-state";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
 import Node from "./Node";
 
@@ -58,12 +60,20 @@ export default class Emoji extends Node {
     return [emojiRule];
   }
 
-  commands({ type }) {
-    return (attrs) => (state, dispatch) => {
+  commands({ type }: { type: NodeType }) {
+    return (attrs: Record<string, string>) => (
+      state: EditorState,
+      dispatch: (tr: Transaction) => void
+    ) => {
       const { selection } = state;
-      const position = selection.$cursor
-        ? selection.$cursor.pos
-        : selection.$to.pos;
+      const position =
+        selection instanceof TextSelection
+          ? selection.$cursor?.pos
+          : selection.$to.pos;
+      if (position === undefined) {
+        return false;
+      }
+
       const node = type.create(attrs);
       const transaction = state.tr.insert(position, node);
       dispatch(transaction);
@@ -71,9 +81,9 @@ export default class Emoji extends Node {
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: NodeType }): InputRule[] {
     return [
-      new InputRule(/^\:([a-zA-Z0-9_+-]+)\:$/, (state, match, start, end) => {
+      new InputRule(/^:([a-zA-Z0-9_+-]+):$/, (state, match, start, end) => {
         const [okay, markup] = match;
         const { tr } = state;
         if (okay) {
@@ -92,7 +102,7 @@ export default class Emoji extends Node {
     ];
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];
     if (name) {
       state.write(`:${name}:`);

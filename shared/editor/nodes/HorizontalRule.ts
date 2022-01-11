@@ -1,4 +1,8 @@
+import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
+import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import { EditorState, Transaction } from "prosemirror-state";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 
 export default class HorizontalRule extends Node {
@@ -6,7 +10,7 @@ export default class HorizontalRule extends Node {
     return "hr";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       attrs: {
         markup: {
@@ -15,7 +19,7 @@ export default class HorizontalRule extends Node {
       },
       group: "block",
       parseDOM: [{ tag: "hr" }],
-      toDOM: node => {
+      toDOM: (node) => {
         return [
           "hr",
           { class: node.attrs.markup === "***" ? "page-break" : "" },
@@ -24,8 +28,11 @@ export default class HorizontalRule extends Node {
     };
   }
 
-  commands({ type }) {
-    return attrs => (state, dispatch) => {
+  commands({ type }: { type: NodeType }) {
+    return (attrs: Record<string, any>) => (
+      state: EditorState,
+      dispatch: (tr: Transaction) => void
+    ) => {
       dispatch(
         state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
       );
@@ -33,16 +40,16 @@ export default class HorizontalRule extends Node {
     };
   }
 
-  keys({ type }) {
+  keys({ type }: { type: NodeType }) {
     return {
-      "Mod-_": (state, dispatch) => {
+      "Mod-_": (state: EditorState, dispatch: (tr: Transaction) => void) => {
         dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
         return true;
       },
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: NodeType }) {
     return [
       new InputRule(/^(?:---|___\s|\*\*\*\s)$/, (state, match, start, end) => {
         const { tr } = state;
@@ -57,7 +64,7 @@ export default class HorizontalRule extends Node {
     ];
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(`\n${node.attrs.markup}`);
     state.closeBlock(node);
   }
@@ -65,7 +72,7 @@ export default class HorizontalRule extends Node {
   parseMarkdown() {
     return {
       node: "hr",
-      getAttrs: tok => ({
+      getAttrs: (tok: Token) => ({
         markup: tok.markup,
       }),
     };

@@ -1,6 +1,8 @@
-import { wrappingInputRule } from "prosemirror-inputrules";
+import { InputRule, wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
+import { EditorState } from "prosemirror-state";
 import toggleWrap from "../commands/toggleWrap";
+import { Command } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import isNodeActive from "../queries/isNodeActive";
 import Node from "./Node";
@@ -20,11 +22,11 @@ export default class Blockquote extends Node {
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }): InputRule[] {
     return [wrappingInputRule(/^\s*>\s$/, type)];
   }
 
-  commands({ type }) {
+  commands({ type }): Command[] {
     return () => toggleWrap(type);
   }
 
@@ -32,7 +34,7 @@ export default class Blockquote extends Node {
     return {
       "Ctrl->": toggleWrap(type),
       "Mod-]": toggleWrap(type),
-      "Shift-Enter": (state, dispatch) => {
+      "Shift-Enter": (state: EditorState, dispatch) => {
         if (!isNodeActive(type)(state)) {
           return false;
         }

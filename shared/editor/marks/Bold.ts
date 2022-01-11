@@ -1,4 +1,6 @@
 import { toggleMark } from "prosemirror-commands";
+import { InputRule } from "prosemirror-inputrules";
+import { MarkSpec, MarkType } from "prosemirror-model";
 import markInputRule from "../lib/markInputRule";
 import Mark from "./Mark";
 
@@ -7,29 +9,25 @@ export default class Bold extends Mark {
     return "strong";
   }
 
-  get schema() {
+  get schema(): MarkSpec {
     return {
-      parseDOM: [
-        { tag: "b" },
-        { tag: "strong" },
-        { style: "font-style", getAttrs: value => value === "bold" },
-      ],
+      parseDOM: [{ tag: "b" }, { tag: "strong" }],
       toDOM: () => ["strong"],
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: MarkType }): InputRule[] {
     return [markInputRule(/(?:\*\*)([^*]+)(?:\*\*)$/, type)];
   }
 
-  keys({ type }) {
+  keys({ type }: { type: MarkType }) {
     return {
       "Mod-b": toggleMark(type),
       "Mod-B": toggleMark(type),
     };
   }
 
-  get toMarkdown() {
+  toMarkdown() {
     return {
       open: "**",
       close: "**",

@@ -1,4 +1,7 @@
+import { NodeSpec, NodeType } from "prosemirror-model";
+import { EditorState, Transaction } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import breakRule from "../rules/breaks";
 import Node from "./Node";
 
@@ -7,7 +10,7 @@ export default class HardBreak extends Node {
     return "br";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       inline: true,
       group: "inline",
@@ -23,16 +26,19 @@ export default class HardBreak extends Node {
     return [breakRule];
   }
 
-  commands({ type }) {
-    return () => (state, dispatch) => {
+  commands({ type }: { type: NodeType }) {
+    return () => (state: EditorState, dispatch: (tr: Transaction) => void) => {
       dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
       return true;
     };
   }
 
-  keys({ type }) {
+  keys({ type }: { type: NodeType }) {
     return {
-      "Shift-Enter": (state, dispatch) => {
+      "Shift-Enter": (
+        state: EditorState,
+        dispatch: (tr: Transaction) => void
+      ) => {
         if (!isInTable(state)) return false;
         dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
         return true;
@@ -40,7 +46,7 @@ export default class HardBreak extends Node {
     };
   }
 
-  toMarkdown(state) {
+  toMarkdown(state: MarkdownSerializerState) {
     state.write(" \\n ");
   }
 

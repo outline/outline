@@ -1,3 +1,4 @@
+import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import {
   splitListItem,
   sinkListItem,
@@ -11,6 +12,7 @@ import {
 } from "prosemirror-state";
 import { findParentNodeClosestToPos } from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import getParentListItem from "../queries/getParentListItem";
 import isInList from "../queries/isInList";
 import isList from "../queries/isList";
@@ -21,7 +23,7 @@ export default class ListItem extends Node {
     return "list_item";
   }
 
-  get schema() {
+  get schema(): NodeSpec {
     return {
       content: "paragraph block*",
       defining: true,
@@ -190,14 +192,17 @@ export default class ListItem extends Node {
     ];
   }
 
-  keys({ type }) {
+  keys({ type }: { type: NodeType }) {
     return {
       Enter: splitListItem(type),
       Tab: sinkListItem(type),
       "Shift-Tab": liftListItem(type),
       "Mod-]": sinkListItem(type),
       "Mod-[": liftListItem(type),
-      "Shift-Enter": (state, dispatch) => {
+      "Shift-Enter": (
+        state: EditorState,
+        dispatch: (tr: Transaction) => void
+      ) => {
         if (!isInList(state)) return false;
         if (!state.selection.empty) return false;
 
@@ -205,7 +210,10 @@ export default class ListItem extends Node {
         dispatch(tr.split(selection.to));
         return true;
       },
-      "Alt-ArrowUp": (state, dispatch) => {
+      "Alt-ArrowUp": (
+        state: EditorState,
+        dispatch: (tr: Transaction) => void
+      ) => {
         if (!state.selection.empty) return false;
         const result = getParentListItem(state);
         if (!result) return false;
@@ -232,7 +240,10 @@ export default class ListItem extends Node {
         );
         return true;
       },
-      "Alt-ArrowDown": (state, dispatch) => {
+      "Alt-ArrowDown": (
+        state: EditorState,
+        dispatch: (tr: Transaction) => void
+      ) => {
         if (!state.selection.empty) return false;
         const result = getParentListItem(state);
         if (!result) return false;
@@ -262,7 +273,7 @@ export default class ListItem extends Node {
     };
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.renderContent(node);
   }
 

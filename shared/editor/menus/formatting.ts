@@ -14,7 +14,7 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
 import isInList from "../queries/isInList";
 import isMarkActive from "../queries/isMarkActive";
 import isNodeActive from "../queries/isNodeActive";
@@ -23,7 +23,7 @@ import { MenuItem } from "../types";
 export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
-  dictionary: typeof baseDictionary
+  dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
   const isTable = isInTable(state);

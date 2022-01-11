@@ -1,16 +1,17 @@
 import { toggleMark } from "prosemirror-commands";
-import markInputRule from "../lib/markInputRule";
+import { MarkSpec, MarkType, Node } from "prosemirror-model";
 import moveLeft from "../commands/moveLeft";
 import moveRight from "../commands/moveRight";
+import markInputRule from "../lib/markInputRule";
 import Mark from "./Mark";
 
-function backticksFor(node, side) {
+function backticksFor(node: Node, side: -1 | 1) {
   const ticks = /`+/g;
   let match: RegExpMatchArray | null;
   let len = 0;
 
   if (node.isText) {
-    while ((match = ticks.exec(node.text))) {
+    while ((match = ticks.exec(node.text || ""))) {
       len = Math.max(len, match[0].length);
     }
   }
@@ -30,19 +31,19 @@ export default class Code extends Mark {
     return "code_inline";
   }
 
-  get schema() {
+  get schema(): MarkSpec {
     return {
       excludes: "_",
       parseDOM: [{ tag: "code", preserveWhitespace: true }],
-      toDOM: () => ["code", { spellCheck: false }],
+      toDOM: () => ["code", { spellCheck: "false" }],
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: MarkType }) {
     return [markInputRule(/(?:^|[^`])(`([^`]+)`)$/, type)];
   }
 
-  keys({ type }) {
+  keys({ type }: { type: MarkType }) {
     // Note: This key binding only works on non-Mac platforms
     // https://github.com/ProseMirror/prosemirror/issues/515
     return {
@@ -52,7 +53,7 @@ export default class Code extends Mark {
     };
   }
 
-  get toMarkdown() {
+  toMarkdown() {
     return {
       open(_state, _mark, parent, index) {
         return backticksFor(parent.child(index), -1);

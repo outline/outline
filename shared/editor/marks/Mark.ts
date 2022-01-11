@@ -1,26 +1,45 @@
 import { toggleMark } from "prosemirror-commands";
-import Extension from "../lib/Extension";
+import { InputRule } from "prosemirror-inputrules";
+import { TokenConfig } from "prosemirror-markdown";
+import {
+  MarkSpec,
+  MarkType,
+  Node as ProsemirrorNode,
+  Schema,
+} from "prosemirror-model";
+import Extension, { Command } from "../lib/Extension";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
 export default abstract class Mark extends Extension {
   get type() {
     return "mark";
   }
 
-  abstract get schema();
+  get schema(): MarkSpec {
+    return {};
+  }
 
   get markdownToken(): string {
     return "";
   }
 
-  get toMarkdown(): Record<string, any> {
+  keys(_options: { type: MarkType; schema: Schema }): Record<string, Command> {
     return {};
   }
 
-  parseMarkdown() {
+  inputRules(_options: { type: MarkType; schema: Schema }): InputRule[] {
+    return [];
+  }
+
+  toMarkdown(_state: MarkdownSerializerState, _node: ProsemirrorNode) {
     return {};
   }
 
-  commands({ type }) {
+  parseMarkdown(): TokenConfig {
+    return {};
+  }
+
+  commands({ type }: { type: MarkType; schema: Schema }): Command {
     return () => toggleMark(type);
   }
 }

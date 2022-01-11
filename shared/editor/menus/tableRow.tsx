@@ -1,12 +1,12 @@
-import { EditorState } from "prosemirror-state";
 import { TrashIcon, InsertAboveIcon, InsertBelowIcon } from "outline-icons";
+import { EditorState } from "prosemirror-state";
+import { Dictionary } from "../hooks/useDictionary";
 import { MenuItem } from "../types";
-import baseDictionary from "../dictionary";
 
 export default function tableRowMenuItems(
   state: EditorState,
   index: number,
-  dictionary: typeof baseDictionary
+  dictionary: Dictionary
 ): MenuItem[] {
   return [
     {

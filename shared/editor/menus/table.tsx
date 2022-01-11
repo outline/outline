@@ -1,10 +1,8 @@
 import { TrashIcon } from "outline-icons";
-import baseDictionary from "../dictionary";
+import { Dictionary } from "../hooks/useDictionary";
 import { MenuItem } from "../types";
 
-export default function tableMenuItems(
-  dictionary: typeof baseDictionary
-): MenuItem[] {
+export default function tableMenuItems(dictionary: Dictionary): MenuItem[] {
   return [
     {
       name: "deleteTable",
