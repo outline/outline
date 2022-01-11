@@ -1,5 +1,6 @@
 import { Location } from "history";
 import { observer } from "mobx-react";
+import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
@@ -7,6 +8,7 @@ import breakpoint from "styled-components-breakpoint";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Sidebar from "~/components/Sidebar/Shared";
 import useStores from "~/hooks/useStores";
@@ -26,7 +28,6 @@ type Props = RouteComponentProps<{
 
 function SharedDocumentScene(props: Props) {
   const { ui } = useStores();
-  const sidebarCollapsed = ui.sidebarCollapsed;
 
   const theme = useTheme();
   const [response, setResponse] = React.useState<{
@@ -36,6 +37,8 @@ function SharedDocumentScene(props: Props) {
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
+
+  const sidebarCollapsed = ui.sidebarCollapsed || !response?.sharedTree;
 
   // ensure the wider page color always matches the theme
   React.useEffect(() => {
@@ -55,7 +58,7 @@ function SharedDocumentScene(props: Props) {
       }
     }
     fetchData();
-  }, [documents, documentSlug, shareId]);
+  }, [documents, documentSlug, shareId, ui]);
 
   if (error) {
     return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
@@ -67,6 +70,13 @@ function SharedDocumentScene(props: Props) {
 
   return (
     <Container auto>
+      <MobileMenuButton
+        onClick={ui.toggleMobileSidebar}
+        icon={<MenuIcon />}
+        iconColor="currentColor"
+        neutral
+      />
+
       {response.sharedTree && (
         <Sidebar rootNode={response.sharedTree} shareId={shareId} />
       )}
@@ -90,7 +100,7 @@ function SharedDocumentScene(props: Props) {
           shareId={shareId}
           readOnly
         />
-      </Content>{" "}
+      </Content>
     </Container>
   );
 }
@@ -102,6 +112,21 @@ const Container = styled(Flex)`
   position: relative;
   width: 100%;
   min-height: 100%;
+`;
+
+const MobileMenuButton = styled(Button)`
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: ${(props) => props.theme.depths.sidebar - 1};
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
+
+  @media print {
+    display: none;
+  }
 `;
 
 const Content = styled(Flex)<{
