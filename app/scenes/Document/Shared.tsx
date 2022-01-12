@@ -36,7 +36,6 @@ function SharedDocumentScene(props: Props) {
   const { shareId, documentSlug } = props.match.params;
 
   // ensure the wider page color always matches the theme
-  // TODO: I don't know what this does
   React.useEffect(() => {
     window.document.body.style.background = theme.background;
   }, [theme]);
