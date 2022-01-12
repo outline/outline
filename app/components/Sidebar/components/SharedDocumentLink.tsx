@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
@@ -64,9 +63,10 @@ function DocumentLink(
     [expanded]
   );
 
-  // since we don't have access to the collection sort here, we just put any drafts at the
-  // front of the list. this is slightly inconsisten with the logged-in behavior, but
-  // it's probably better to emphasize the draft nature of the document in a shared context
+  // since we don't have access to the collection sort here, we just put any
+  // drafts at the front of the list. this is slightly inconsistent with the
+  // logged-in behavior, but it's probably better to emphasize the draft state
+  // of the document in a shared context
   const nodeChildren = React.useMemo(() => {
     if (
       activeDocument?.isDraft &&
