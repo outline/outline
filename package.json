@@ -146,7 +146,7 @@
     "prosemirror-tables": "^1.1.1",
     "prosemirror-transform": "1.2.5",
     "prosemirror-utils": "^0.9.6",
-    "prosemirror-view": "1.18.1",
+    "prosemirror-view": "1.22.0",
     "query-string": "^7.0.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",

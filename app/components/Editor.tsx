@@ -21,7 +21,7 @@ import { isInternalUrl, isHash } from "~/utils/urls";
 const SharedEditor = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "editor" */
+      /* webpackChunkName: "shared-editor" */
       "@shared/editor"
     )
 );
