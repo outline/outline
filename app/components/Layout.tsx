@@ -22,7 +22,7 @@ type Props = {
 
 function Layout({ title, children, sidebar, rightRail }: Props) {
   const { ui } = useStores();
-  const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
+  const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
 
   return (
     <Container column auto>
@@ -44,12 +44,14 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
 
       {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-      <MobileMenuButton
-        onClick={ui.toggleMobileSidebar}
-        icon={<MenuIcon />}
-        iconColor="currentColor"
-        neutral
-      />
+      {sidebar && (
+        <MobileMenuButton
+          onClick={ui.toggleMobileSidebar}
+          icon={<MenuIcon />}
+          iconColor="currentColor"
+          neutral
+        />
+      )}
 
       <Container auto>
         {sidebar}
