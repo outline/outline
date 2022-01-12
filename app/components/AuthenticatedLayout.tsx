@@ -1,25 +1,15 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { MenuIcon } from "outline-icons";
 import * as React from "react";
-import { Helmet } from "react-helmet";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import RootStore from "~/stores/RootStore";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
-import Button from "~/components/Button";
-import Flex from "~/components/Flex";
 import Layout from "~/components/Layout";
-import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
-import SkipNavContent from "~/components/SkipNavContent";
-import SkipNavLink from "~/components/SkipNavLink";
 import history from "~/utils/history";
-import { isModKey } from "~/utils/keyboard";
 import {
   searchUrl,
   matchDocumentSlug as slug,
@@ -99,6 +89,7 @@ class AuthenticatedLayout extends React.Component<Props> {
         <RegisterKeyDown trigger="t" handler={this.goToSearch} />
         <RegisterKeyDown trigger="/" handler={this.goToSearch} />
         {this.props.children}
+        <CommandBar />
       </Layout>
     );
   }
