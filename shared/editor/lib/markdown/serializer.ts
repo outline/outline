@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
 
@@ -49,7 +50,7 @@ export class MarkdownSerializer {
   // :: (Node, ?Object) → string
   // Serialize the content of the given node to
   // [CommonMark](http://commonmark.org/).
-  serialize(content, options) {
+  serialize(content, options?: { tightLists?: boolean }) {
     const state = new MarkdownSerializerState(this.nodes, this.marks, options);
     state.renderContent(content);
     return state.out;
@@ -194,7 +195,7 @@ export class MarkdownSerializerState {
         node &&
         node.isText &&
         marks.some((mark) => {
-          const info = this.marks[mark.type.name];
+          const info = this.marks[mark.type.name]();
           return info && info.expelEnclosingWhitespace;
         })
       ) {
@@ -209,7 +210,7 @@ export class MarkdownSerializerState {
       }
 
       const inner = marks.length && marks[marks.length - 1],
-        noEsc = inner && this.marks[inner.type.name].escape === false;
+        noEsc = inner && this.marks[inner.type.name]().escape === false;
       const len = marks.length - (noEsc ? 1 : 0);
 
       // Try to reorder 'mixable' marks, such as em and strong, which
@@ -218,10 +219,10 @@ export class MarkdownSerializerState {
       // active.
       outer: for (let i = 0; i < len; i++) {
         const mark = marks[i];
-        if (!this.marks[mark.type.name].mixable) break;
+        if (!this.marks[mark.type.name]().mixable) break;
         for (let j = 0; j < active.length; j++) {
           const other = active[j];
-          if (!this.marks[other.type.name].mixable) break;
+          if (!this.marks[other.type.name]().mixable) break;
           if (mark.eq(other)) {
             if (i > j)
               marks = marks
@@ -364,7 +365,7 @@ export class MarkdownSerializerState {
   // content. If `startOfLine` is true, also escape characters that
   // has special meaning only at the start of the line.
   esc(str = "", startOfLine) {
-    str = str.replace(/[`*\\~\[\]]/g, "\\$&");
+    str = str.replace(/[`*\\~[\]]/g, "\\$&");
     if (startOfLine) {
       str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
     }
@@ -393,7 +394,7 @@ export class MarkdownSerializerState {
   // : (Mark, bool, string?) → string
   // Get the markdown string for a given opening or closing mark.
   markString(mark, open, parent, index) {
-    const info = this.marks[mark.type.name];
+    const info = this.marks[mark.type.name]();
     const value = open ? info.open : info.close;
     return typeof value === "string" ? value : value(this, mark, parent, index);
   }

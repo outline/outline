@@ -3,10 +3,10 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser, TokenConfig } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import Editor from "../";
+import { Editor } from "../";
 import Mark from "../marks/Mark";
 import Node from "../nodes/Node";
-import Extension from "./Extension";
+import Extension, { CommandFactory } from "./Extension";
 import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 
@@ -141,7 +141,7 @@ export default class ExtensionManager {
     const extensionInputRules = this.extensions
       .filter((extension) => ["extension"].includes(extension.type))
       .filter((extension) => extension.inputRules)
-      .map((extension) => extension.inputRules({ schema }));
+      .map((extension: Extension) => extension.inputRules({ schema }));
 
     const nodeMarkInputRules = this.extensions
       .filter((extension) => ["node", "mark"].includes(extension.type))
@@ -165,6 +165,8 @@ export default class ExtensionManager {
       .reduce((allCommands, extension) => {
         const { name, type } = extension;
         const commands = {};
+
+        // @ts-expect-error FIXME
         const value = extension.commands({
           schema,
           ...(["node", "mark"].includes(type)
@@ -174,7 +176,10 @@ export default class ExtensionManager {
             : {}),
         });
 
-        const apply = (callback, attrs) => {
+        const apply = (
+          callback: CommandFactory,
+          attrs: Record<string, any>
+        ) => {
           if (!view.editable) {
             return false;
           }
@@ -182,12 +187,13 @@ export default class ExtensionManager {
           return callback(attrs)(view.state, view.dispatch, view);
         };
 
-        const handle = (_name, _value) => {
+        const handle = (_name: string, _value: CommandFactory) => {
           if (Array.isArray(_value)) {
-            commands[_name] = (attrs) =>
+            commands[_name] = (attrs: Record<string, any>) =>
               _value.forEach((callback) => apply(callback, attrs));
           } else if (typeof _value === "function") {
-            commands[_name] = (attrs) => apply(_value, attrs);
+            commands[_name] = (attrs: Record<string, any>) =>
+              apply(_value, attrs);
           }
         };
 

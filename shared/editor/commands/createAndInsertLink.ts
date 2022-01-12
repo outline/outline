@@ -1,6 +1,6 @@
 import { Node } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import { Dictionary } from "../hooks/useDictionary";
+import { Dictionary } from "../../hooks/useDictionary";
 import { ToastType } from "../types";
 
 function findPlaceholderLink(doc: Node, href: string) {
@@ -16,7 +16,6 @@ function findPlaceholderLink(doc: Node, href: string) {
           // any of the links to other docs?
           if (mark.attrs.href === href) {
             result = { node, pos };
-            if (result) return false;
           }
         }
       });

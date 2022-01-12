@@ -4,16 +4,14 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
+import { Dictionary } from "../../hooks/useDictionary";
 import getDataTransferFiles from "../../utils/getDataTransferFiles";
 import insertFiles from "../commands/insertFiles";
-import { Dictionary } from "../hooks/useDictionary";
-import { Command } from "../lib/Extension";
+import { CommandFactory } from "../lib/Extension";
 import filterExcessSeparators from "../lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem, ToastType } from "../types";
 import Input from "./Input";
 import VisuallyHidden from "./VisuallyHidden";
-
-const SSR = typeof window === "undefined";
 
 const defaultPosition = {
   left: -1000,
@@ -25,7 +23,7 @@ const defaultPosition = {
 export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
-  commands: Record<string, Command>;
+  commands: Record<string, CommandFactory>;
   dictionary: Dictionary;
   view: EditorView;
   search: string;
@@ -73,9 +71,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   componentDidMount() {
-    if (!SSR) {
-      window.addEventListener("keydown", this.handleKeyDown);
-    }
+    window.addEventListener("keydown", this.handleKeyDown);
   }
 
   shouldComponentUpdate(nextProps: Props, nextState: State) {
@@ -101,9 +97,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   componentWillUnmount() {
-    if (!SSR) {
-      window.removeEventListener("keydown", this.handleKeyDown);
-    }
+    window.removeEventListener("keydown", this.handleKeyDown);
   }
 
   handleKeyDown = (event: KeyboardEvent) => {
@@ -365,8 +359,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     if (
       !props.isActive ||
       !paragraph.node ||
-      !paragraph.node.getBoundingClientRect ||
-      SSR
+      !paragraph.node.getBoundingClientRect
     ) {
       return defaultPosition;
     }

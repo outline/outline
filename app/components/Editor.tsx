@@ -3,20 +3,22 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import { Optional } from "utility-types";
 import { Props as EditorProps } from "@shared/editor";
-import useDictionary from "@shared/editor/hooks/useDictionary";
 import { EmbedDescriptor } from "@shared/editor/types";
 import embeds from "@shared/embeds";
+import useDictionary from "@shared/hooks/useDictionary";
+import useMediaQuery from "@shared/hooks/useMediaQuery";
 import { light } from "@shared/theme";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Tooltip from "~/components/Tooltip";
-import useMediaQuery from "~/hooks/useMediaQuery";
 import useToasts from "~/hooks/useToasts";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import { uploadFile } from "~/utils/uploadFile";
 import { isInternalUrl, isHash } from "~/utils/urls";
 
-const RichMarkdownEditor = React.lazy(
+// TODO: This entire component can be removed now that Editor is in the codebase
+
+const SharedEditor = React.lazy(
   () =>
     import(
       /* webpackChunkName: "editor" */
@@ -114,7 +116,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
   );
 }
 
-const StyledEditor = styled(RichMarkdownEditor)<{ grow?: boolean }>`
+const StyledEditor = styled(SharedEditor)<{ grow?: boolean }>`
   flex-grow: ${(props) => (props.grow ? 1 : 0)};
   justify-content: start;
 

@@ -1,6 +1,12 @@
 import { wrappingInputRule } from "prosemirror-inputrules";
-import { NodeSpec } from "prosemirror-model";
+import {
+  Schema,
+  NodeType,
+  NodeSpec,
+  Node as ProsemirrorModel,
+} from "prosemirror-model";
 import toggleList from "../commands/toggleList";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 
 export default class BulletList extends Node {
@@ -17,21 +23,21 @@ export default class BulletList extends Node {
     };
   }
 
-  commands({ type, schema }) {
+  commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return () => toggleList(type, schema.nodes.list_item);
   }
 
-  keys({ type, schema }) {
+  keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-8": toggleList(type, schema.nodes.list_item),
     };
   }
 
-  inputRules({ type }) {
+  inputRules({ type }: { type: NodeType }) {
     return [wrappingInputRule(/^\s*([-+*])\s$/, type)];
   }
 
-  toMarkdown(state, node) {
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorModel) {
     state.renderList(node, "  ", () => (node.attrs.bullet || "*") + " ");
   }
 

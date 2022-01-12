@@ -1,11 +1,17 @@
 import { toggleMark } from "prosemirror-commands";
-import { MarkSpec, MarkType, Node } from "prosemirror-model";
+import {
+  MarkSpec,
+  MarkType,
+  Node as ProsemirrorNode,
+  Mark as ProsemirrorMark,
+} from "prosemirror-model";
 import moveLeft from "../commands/moveLeft";
 import moveRight from "../commands/moveRight";
 import markInputRule from "../lib/markInputRule";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Mark from "./Mark";
 
-function backticksFor(node: Node, side: -1 | 1) {
+function backticksFor(node: ProsemirrorNode, side: -1 | 1) {
   const ticks = /`+/g;
   let match: RegExpMatchArray | null;
   let len = 0;
@@ -55,10 +61,20 @@ export default class Code extends Mark {
 
   toMarkdown() {
     return {
-      open(_state, _mark, parent, index) {
+      open(
+        _state: MarkdownSerializerState,
+        _mark: ProsemirrorMark,
+        parent: ProsemirrorNode,
+        index: number
+      ) {
         return backticksFor(parent.child(index), -1);
       },
-      close(_state, _mark, parent, index) {
+      close(
+        _state: MarkdownSerializerState,
+        _mark: ProsemirrorMark,
+        parent: ProsemirrorNode,
+        index: number
+      ) {
         return backticksFor(parent.child(index - 1), 1);
       },
       escape: false,

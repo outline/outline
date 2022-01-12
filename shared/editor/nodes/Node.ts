@@ -6,7 +6,7 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import Extension, { Command } from "../lib/Extension";
+import Extension, { Command, CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
 export default abstract class Node extends Extension {
@@ -33,7 +33,7 @@ export default abstract class Node extends Extension {
   commands(_options: {
     type: NodeType;
     schema: Schema;
-  }): Record<string, Command> | Command {
+  }): Record<string, CommandFactory> | CommandFactory {
     return {};
   }
 
@@ -41,7 +41,7 @@ export default abstract class Node extends Extension {
     console.error("toMarkdown not implemented", state, node);
   }
 
-  parseMarkdown(): TokenConfig {
-    return {};
+  parseMarkdown(): TokenConfig | void {
+    return undefined;
   }
 }

@@ -13,6 +13,6 @@ export default function rules({
     linkify: false,
     ...rules,
   });
-  plugins.forEach(plugin => markdownIt.use(plugin));
+  plugins.forEach((plugin) => markdownIt.use(plugin));
   return markdownIt;
 }

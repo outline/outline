@@ -1,6 +1,6 @@
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Dictionary } from "../hooks/useDictionary";
+import { Dictionary } from "../../hooks/useDictionary";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";

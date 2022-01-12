@@ -1,3 +1,4 @@
+/* eslint-disable no-irregular-whitespace */
 import styled from "styled-components";
 
 export const StyledEditor = styled("div")<{

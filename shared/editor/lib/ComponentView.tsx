@@ -1,9 +1,9 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorView, DecorationSet } from "prosemirror-view";
+import { EditorView, Decoration } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { DefaultTheme, ThemeProvider } from "styled-components";
-import Editor from "../";
+import { Editor } from "../";
 import Extension from "../lib/Extension";
 
 export type ComponentProps = {
@@ -23,7 +23,10 @@ export default class ComponentView {
   node: ProsemirrorNode;
   view: EditorView;
   getPos: () => number;
-  decorations: DecorationSet;
+  decorations: Decoration<{
+    [key: string]: any;
+  }>[];
+
   isSelected = false;
   dom: HTMLElement | null;
 
@@ -43,7 +46,9 @@ export default class ComponentView {
       node: ProsemirrorNode;
       view: EditorView;
       getPos: () => number;
-      decorations: DecorationSet;
+      decorations: Decoration<{
+        [key: string]: any;
+      }>[];
     }
   ) {
     this.component = component;

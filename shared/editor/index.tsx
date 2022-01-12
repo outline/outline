@@ -5,12 +5,13 @@ import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
 import { inputRules, InputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
-import { MarkdownParser, MarkdownSerializer } from "prosemirror-markdown";
-import { Schema, NodeSpec, MarkSpec, Slice, Node } from "prosemirror-model";
+import { MarkdownParser } from "prosemirror-markdown";
+import { Schema, NodeSpec, MarkSpec, Node } from "prosemirror-model";
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { selectColumn, selectRow, selectTable } from "prosemirror-utils";
-import { DecorationSet, EditorView } from "prosemirror-view";
+import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
+import { DefaultTheme, ThemeProps } from "styled-components";
 import BlockMenu from "./components/BlockMenu";
 import EmojiMenu from "./components/EmojiMenu";
 import Flex from "./components/Flex";
@@ -18,10 +19,12 @@ import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
 import Tooltip from "./components/Tooltip";
+import WithTheme from "./components/WithTheme";
 import ComponentView from "./lib/ComponentView";
 import Extension from "./lib/Extension";
 import ExtensionManager from "./lib/ExtensionManager";
 import headingToSlug from "./lib/headingToSlug";
+import { MarkdownSerializer } from "./lib/markdown/serializer";
 
 // marks
 import Bold from "./marks/Bold";
@@ -137,7 +140,10 @@ export type Props = {
   onImageUploadStop?: () => void;
   onCreateLink?: (title: string) => Promise<string>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
-  onClickLink: (href: string, event: MouseEvent) => void;
+  onClickLink: (
+    href: string,
+    event: MouseEvent | React.MouseEvent<HTMLButtonElement>
+  ) => void;
   onHoverLink?: (event: MouseEvent) => boolean;
   onClickHashtag?: (tag: string, event: MouseEvent) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
@@ -158,11 +164,10 @@ type State = {
   emojiMenuOpen: boolean;
 };
 
-type Step = {
-  slice?: Slice;
-};
-
-class RichMarkdownEditor extends React.PureComponent<Props, State> {
+export class Editor extends React.PureComponent<
+  Props & ThemeProps<DefaultTheme>,
+  State
+> {
   static defaultProps = {
     defaultValue: "",
     dir: "auto",
@@ -207,7 +212,9 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
       node: Node,
       view: EditorView,
       getPos: () => number,
-      decorations: DecorationSet
+      decorations: Decoration<{
+        [key: string]: any;
+      }>[]
     ) => ComponentView;
   };
 
@@ -444,7 +451,9 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
           node: Node,
           view: EditorView,
           getPos: () => number,
-          decorations: DecorationSet
+          decorations: Decoration<{
+            [key: string]: any;
+          }>[]
         ) => {
           return new ComponentView(extension.component, {
             editor: this,
@@ -534,7 +543,7 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
 
     const isEditingCheckbox = (tr: Transaction) => {
       return tr.steps.some(
-        (step: Step) =>
+        (step: any) =>
           step.slice?.content?.firstChild?.type.name ===
           this.schema.nodes.checkbox_item.name
       );
@@ -810,4 +819,12 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
   }
 }
 
-export default RichMarkdownEditor;
+const EditorWithTheme = React.forwardRef<Editor, Props>((props: Props, ref) => {
+  return (
+    <WithTheme>
+      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+    </WithTheme>
+  );
+});
+
+export default EditorWithTheme;

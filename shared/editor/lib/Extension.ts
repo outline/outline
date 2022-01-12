@@ -2,13 +2,21 @@ import { PluginSimple } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
-import Editor from "../";
+import { EditorView } from "prosemirror-view";
+import { Editor } from "../";
 
-export type Command =
-  | ((state: EditorState, dispatch: (tr: Transaction) => void) => boolean)
-  | ((
-      attrs?: Record<string, any>
-    ) => (state: EditorState, dispatch: (tr: Transaction) => void) => boolean);
+export type Command = (
+  state: EditorState,
+  dispatch: (tr: Transaction) => void
+) => boolean;
+
+export type CommandFactory = (
+  attrs?: Record<string, any>
+) => (
+  state: EditorState,
+  dispatch: (tr: Transaction) => void,
+  view: EditorView
+) => boolean;
 
 export default class Extension {
   options: any;
@@ -62,7 +70,7 @@ export default class Extension {
   commands(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
-  }): Record<string, Command> | Command {
+  }): Record<string, CommandFactory> | CommandFactory {
     return {};
   }
 }

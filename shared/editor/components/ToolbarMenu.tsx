@@ -1,13 +1,14 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import { CommandFactory } from "../lib/Extension";
 import { MenuItem } from "../types";
 import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
 
 type Props = {
-  tooltip: typeof React.Component | React.FC<any>;
-  commands: Record<string, any>;
+  tooltip: typeof React.Component | React.FC;
+  commands: Record<string, CommandFactory>;
   view: EditorView;
   items: MenuItem[];
 };

@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
 import escape from "lodash/escape";
+import { Node } from "prosemirror-model";
 import slugify from "slugify";
 
 // Slugify, escape, and remove periods from headings so that they are

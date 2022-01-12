@@ -14,7 +14,7 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
-import { Dictionary } from "../hooks/useDictionary";
+import { Dictionary } from "../../hooks/useDictionary";
 import isInList from "../queries/isInList";
 import isMarkActive from "../queries/isMarkActive";
 import isNodeActive from "../queries/isNodeActive";

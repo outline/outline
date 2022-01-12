@@ -16,13 +16,14 @@ import {
   InfoIcon,
   LinkIcon,
 } from "outline-icons";
+import { Dictionary } from "../../hooks/useDictionary";
 import { MenuItem } from "../types";
 
 const SSR = typeof window === "undefined";
 const isMac = !SSR && window.navigator.platform === "MacIntel";
 const mod = isMac ? "⌘" : "ctrl";
 
-export default function blockMenuItems(dictionary): MenuItem[] {
+export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
   return [
     {
       name: "heading",

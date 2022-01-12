@@ -1,6 +1,6 @@
 import { PageBreakIcon, HorizontalRuleIcon } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import { Dictionary } from "../hooks/useDictionary";
+import { Dictionary } from "../../hooks/useDictionary";
 import isNodeActive from "../queries/isNodeActive";
 import { MenuItem } from "../types";
 

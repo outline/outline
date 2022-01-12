@@ -106,7 +106,7 @@ function getDecorations({ doc, name }: { doc: Node; name: string }) {
   return DecorationSet.create(doc, decorations);
 }
 
-export default function Prism({ name }) {
+export default function Prism({ name }: { name: string }) {
   let highlighted = false;
 
   return new Plugin({

@@ -10,7 +10,7 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import { Dictionary } from "../hooks/useDictionary";
+import { Dictionary } from "../../hooks/useDictionary";
 import isUrl from "../lib/isUrl";
 import Flex from "./Flex";
 import Input from "./Input";
@@ -234,7 +234,7 @@ class LinkEditor extends React.Component<Props, State> {
     this.props.onClickLink(this.href, event);
   };
 
-  handleCreateLink = (value: string) => {
+  handleCreateLink = async (value: string) => {
     this.discardInputValue = true;
     const { onCreateLink } = this.props;
 

@@ -1,12 +1,11 @@
 import some from "lodash/some";
-import { Fragment, Node, Schema } from "prosemirror-model";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
+import { Dictionary } from "../../hooks/useDictionary";
 import createAndInsertLink from "../commands/createAndInsertLink";
-import { Dictionary } from "../hooks/useDictionary";
 import filterExcessSeparators from "../lib/filterExcessSeparators";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -33,7 +32,10 @@ type Props = {
   onOpen: () => void;
   onClose: () => void;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
-  onClickLink: (href: string, event: MouseEvent) => void;
+  onClickLink: (
+    href: string,
+    event: MouseEvent | React.MouseEvent<HTMLButtonElement>
+  ) => void;
   onCreateLink?: (title: string) => Promise<string>;
   onShowToast?: (msg: string, code: string) => void;
   view: EditorView;
@@ -60,7 +62,7 @@ function isVisible(props: Props) {
 
   const slice = selection.content();
   const fragment = slice.content;
-  const nodes = fragment.content;
+  const nodes = (fragment as any).content;
 
   return some(nodes, (n) => n.content.size);
 }
@@ -91,7 +93,7 @@ export default class SelectionToolbar extends React.Component<Props> {
 
   handleClickOutside = (ev: MouseEvent): void => {
     if (
-      ev.target instanceof Node &&
+      ev.target instanceof HTMLElement &&
       this.menuRef.current &&
       this.menuRef.current.contains(ev.target)
     ) {

@@ -7,7 +7,12 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Selection, TextSelection, Transaction } from "prosemirror-state";
+import {
+  EditorState,
+  Selection,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
 import clike from "refractor/lang/clike";
@@ -135,7 +140,10 @@ export default class CodeFence extends Node {
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
-      "Shift-Enter": (state, dispatch) => {
+      "Shift-Enter": (
+        state: EditorState,
+        dispatch: (tr: Transaction) => void
+      ) => {
         if (!isInCode(state)) return false;
         const {
           tr,
@@ -156,7 +164,7 @@ export default class CodeFence extends Node {
         dispatch(tr.insertText(newText, selection.from, selection.to));
         return true;
       },
-      Tab: (state, dispatch) => {
+      Tab: (state: EditorState, dispatch: (tr: Transaction) => void) => {
         if (!isInCode(state)) return false;
 
         const { tr, selection } = state;
@@ -169,6 +177,9 @@ export default class CodeFence extends Node {
   handleCopyToClipboard = (event: MouseEvent) => {
     const { view } = this.editor;
     const element = event.target;
+    if (!(element instanceof HTMLButtonElement)) {
+      return;
+    }
     const { top, left } = element.getBoundingClientRect();
     const result = view.posAtCoords({ top, left });
 

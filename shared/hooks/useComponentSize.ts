@@ -1,8 +1,7 @@
-import ResizeObserver from "resize-observer-polyfill";
 import { useState, useEffect } from "react";
 
 export default function useComponentSize(
-  ref
+  ref: React.RefObject<HTMLElement>
 ): { width: number; height: number } {
   const [size, setSize] = useState({
     width: 0,
@@ -10,7 +9,7 @@ export default function useComponentSize(
   });
 
   useEffect(() => {
-    const sizeObserver = new ResizeObserver(entries => {
+    const sizeObserver = new ResizeObserver((entries) => {
       entries.forEach(({ target }) => {
         if (
           size.width !== target.clientWidth ||
@@ -20,7 +19,10 @@ export default function useComponentSize(
         }
       });
     });
-    sizeObserver.observe(ref.current);
+
+    if (ref.current) {
+      sizeObserver.observe(ref.current);
+    }
 
     return () => sizeObserver.disconnect();
   }, [ref]);

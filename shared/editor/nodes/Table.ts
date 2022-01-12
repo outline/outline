@@ -11,10 +11,8 @@ import {
   deleteColumn,
   deleteRow,
   deleteTable,
-  fixTables,
   goToNextCell,
   isInTable,
-  setCellAttr,
   tableEditing,
   toggleHeaderCell,
   toggleHeaderColumn,
@@ -118,8 +116,6 @@ export default class Table extends Node {
       toggleHeaderColumn: () => toggleHeaderColumn,
       toggleHeaderRow: () => toggleHeaderRow,
       toggleHeaderCell: () => toggleHeaderCell,
-      setCellAttr: () => setCellAttr,
-      fixTables: () => fixTables,
     };
   }
 

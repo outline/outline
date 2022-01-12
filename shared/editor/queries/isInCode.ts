@@ -1,5 +1,5 @@
-import isMarkActive from "./isMarkActive";
 import { EditorState } from "prosemirror-state";
+import isMarkActive from "./isMarkActive";
 
 export default function isInCode(state: EditorState): boolean {
   if (state.schema.nodes.code_block) {

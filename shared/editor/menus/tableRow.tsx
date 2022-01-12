@@ -1,6 +1,6 @@
 import { TrashIcon, InsertAboveIcon, InsertBelowIcon } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import { Dictionary } from "../hooks/useDictionary";
+import { Dictionary } from "../../hooks/useDictionary";
 import { MenuItem } from "../types";
 
 export default function tableRowMenuItems(

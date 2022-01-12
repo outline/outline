@@ -89,7 +89,7 @@ export default class Notice extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: any) => toggleWrap(type, attrs);
+    return (attrs: Record<string, any>) => toggleWrap(type, attrs);
   }
 
   handleStyleChange = (event: InputEvent) => {

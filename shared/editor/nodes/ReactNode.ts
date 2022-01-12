@@ -1,3 +1,4 @@
+import { ComponentProps } from "../lib/ComponentView";
 import Node from "./Node";
 
 export default abstract class ReactNode extends Node {
@@ -5,6 +6,5 @@ export default abstract class ReactNode extends Node {
     node,
     isSelected,
     isEditable,
-    innerRef,
-  }): React.ReactElement;
+  }: Omit<ComponentProps, "theme">): React.ReactElement;
 }

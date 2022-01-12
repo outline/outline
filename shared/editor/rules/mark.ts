@@ -115,7 +115,7 @@ export default function (options: { delim: string; mark: string }) {
       //
       // So, we have to move all those markers after subsequent s_close tags.
       while (loneMarkers.length) {
-        i = loneMarkers.pop();
+        i = loneMarkers.pop() as number;
         j = i + 1;
 
         while (
@@ -144,10 +144,13 @@ export default function (options: { delim: string; mark: string }) {
       postProcess(state, state.delimiters);
 
       for (curr = 0; curr < max; curr++) {
-        if (tokensMeta[curr] && tokensMeta[curr].delimiters) {
-          postProcess(state, tokensMeta[curr].delimiters);
+        const delimiters = tokensMeta[curr]?.delimiters;
+        if (tokensMeta[curr] && delimiters) {
+          postProcess(state, delimiters);
         }
       }
+
+      return false;
     });
   };
 }

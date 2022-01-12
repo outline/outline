@@ -11,6 +11,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
+import { Command } from "../lib/Extension";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { ToastType } from "../types";
@@ -114,8 +115,11 @@ export default class Heading extends Node {
     };
   }
 
-  handleFoldContent = (event) => {
+  handleFoldContent = (event: MouseEvent) => {
     event.preventDefault();
+    if (!(event.target instanceof HTMLButtonElement)) {
+      return;
+    }
 
     const { view } = this.editor;
     const hadFocus = view.hasFocus();
@@ -158,11 +162,15 @@ export default class Heading extends Node {
     }
   };
 
-  handleCopyLink = (event) => {
+  handleCopyLink = (event: MouseEvent) => {
     // this is unfortunate but appears to be the best way to grab the anchor
     // as it's added directly to the dom by a decoration.
-    const anchor = event.currentTarget.parentNode.parentNode.previousSibling;
-    if (!anchor.className.includes(this.className)) {
+    const anchor =
+      event.currentTarget instanceof HTMLButtonElement &&
+      (event.currentTarget.parentNode?.parentNode
+        ?.previousSibling as HTMLElement);
+
+    if (!anchor || !anchor.className.includes(this.className)) {
       throw new Error("Did not find anchor as previous sibling of heading");
     }
     const hash = `#${anchor.id}`;
@@ -180,9 +188,9 @@ export default class Heading extends Node {
     }
   };
 
-  keys({ type, schema }) {
+  keys({ type, schema }: { type: NodeType; schema: Schema }) {
     const options = this.options.levels.reduce(
-      (items, level) => ({
+      (items: Record<string, Command>, level: number) => ({
         ...items,
         ...{
           [`Shift-Ctrl-${level}`]: toggleBlockType(

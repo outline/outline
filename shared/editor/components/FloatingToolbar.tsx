@@ -1,12 +1,12 @@
+import { NodeSelection } from "prosemirror-state";
+import { CellSelection } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import useComponentSize from "../hooks/useComponentSize";
-import useMediaQuery from "../hooks/useMediaQuery";
-import useViewportHeight from "../hooks/useViewportHeight";
-
-const SSR = typeof window === "undefined";
+import useComponentSize from "../../hooks/useComponentSize";
+import useMediaQuery from "../../hooks/useMediaQuery";
+import useViewportHeight from "../../hooks/useViewportHeight";
 
 type Props = {
   active?: boolean;
@@ -37,7 +37,7 @@ function usePosition({
   const viewportHeight = useViewportHeight();
   const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
-  if (!active || !menuWidth || !menuHeight || SSR || isSelectingText) {
+  if (!active || !menuWidth || !menuHeight || isSelectingText) {
     return defaultPosition;
   }
 
@@ -74,12 +74,18 @@ function usePosition({
   };
 
   // tables are an oddity, and need their own positioning logic
-  const isColSelection = selection.isColSelection && selection.isColSelection();
-  const isRowSelection = selection.isRowSelection && selection.isRowSelection();
+  const isColSelection =
+    selection instanceof CellSelection &&
+    selection.isColSelection &&
+    selection.isColSelection();
+  const isRowSelection =
+    selection instanceof CellSelection &&
+    selection.isRowSelection &&
+    selection.isRowSelection();
 
   if (isColSelection) {
     const { node: element } = view.domAtPos(selection.from);
-    const { width } = element.getBoundingClientRect();
+    const { width } = (element as HTMLElement).getBoundingClientRect();
     selectionBounds.top -= 20;
     selectionBounds.right = selectionBounds.left + width;
   }
@@ -88,7 +94,8 @@ function usePosition({
     selectionBounds.right = selectionBounds.left = selectionBounds.left - 18;
   }
 
-  const isImageSelection = selection.node?.type.name === "image";
+  const isImageSelection =
+    selection instanceof NodeSelection && selection.node?.type.name === "image";
 
   // Images need their own positioning to get the toolbar in the center
   if (isImageSelection) {
@@ -96,7 +103,9 @@ function usePosition({
 
     // Images are wrapped which impacts positioning - need to traverse through
     // p > span > div.image
-    const imageElement = element?.getElementsByTagName("img")[0];
+    const imageElement = (element as HTMLElement).getElementsByTagName(
+      "img"
+    )[0];
     const { left, top, width } = imageElement.getBoundingClientRect();
 
     return {

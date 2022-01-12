@@ -1,7 +1,7 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { Dictionary } from "../../hooks/useDictionary";
 import createAndInsertLink from "../commands/createAndInsertLink";
-import { Dictionary } from "../hooks/useDictionary";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
 
@@ -12,7 +12,10 @@ type Props = {
   dictionary: Dictionary;
   onCreateLink?: (title: string) => Promise<string>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
-  onClickLink: (href: string, event: MouseEvent) => void;
+  onClickLink: (
+    href: string,
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => void;
   onShowToast?: (msg: string, code: string) => void;
   onClose: () => void;
 };
@@ -45,11 +48,11 @@ export default class LinkToolbar extends React.Component<Props> {
     window.removeEventListener("mousedown", this.handleClickOutside);
   }
 
-  handleClickOutside = (ev) => {
+  handleClickOutside = (event: Event) => {
     if (
-      ev.target &&
+      event.target instanceof HTMLElement &&
       this.menuRef.current &&
-      this.menuRef.current.contains(ev.target)
+      this.menuRef.current.contains(event.target)
     ) {
       return;
     }
