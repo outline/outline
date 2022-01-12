@@ -12,7 +12,7 @@ type Props = {
   shareId: string;
 };
 
-function MainSidebar({ rootNode, shareId }: Props) {
+function SharedSidebar({ rootNode, shareId }: Props) {
   const { documents } = useStores();
 
   return (
@@ -32,4 +32,4 @@ function MainSidebar({ rootNode, shareId }: Props) {
   );
 }
 
-export default observer(MainSidebar);
+export default observer(SharedSidebar);
