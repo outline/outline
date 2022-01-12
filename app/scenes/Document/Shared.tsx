@@ -68,7 +68,7 @@ function SharedDocumentScene(props: Props) {
   ) : undefined;
 
   return (
-    <Layout sidebar={sidebar}>
+    <Layout title={response.document.title} sidebar={sidebar}>
       <Document
         abilities={EMPTY_OBJECT}
         document={response.document}
