@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
 import semver from "semver";
-import { EDITOR_VERSION } from "@shared/editor";
+import EDITOR_VERSION from "@shared/editor/version";
 import { EditorUpdateError } from "@server/errors";
 
 export default function editor() {

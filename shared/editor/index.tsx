@@ -79,8 +79,6 @@ export { schema, parser, serializer, renderToHtml } from "./server";
 
 export { default as Extension } from "./lib/Extension";
 
-export const EDITOR_VERSION = "11.21.3";
-
 export type Props = {
   id?: string;
   value?: string;
