@@ -70,7 +70,7 @@ export default class SlackProcessor {
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
-    if (!document) return;
+    if (!document || !team) return;
 
     // never send notifications for draft documents
     if (!document.publishedAt) return;

@@ -1,62 +1,81 @@
 import crypto from "crypto";
-import { DataTypes, sequelize } from "../sequelize";
+import {
+  Table,
+  ForeignKey,
+  Model,
+  Column,
+  PrimaryKey,
+  IsUUID,
+  CreatedAt,
+  BelongsTo,
+  IsIn,
+  Default,
+  DataType,
+} from "sequelize-typescript";
+import Team from "./Team";
+import User from "./User";
+import Fix from "./decorators/Fix";
 
-const NotificationSetting = sequelize.define(
-  "notification_setting",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    event: {
-      type: DataTypes.STRING,
-      validate: {
-        isIn: [
-          [
-            "documents.publish",
-            "documents.update",
-            "collections.create",
-            "emails.onboarding",
-            "emails.features",
-          ],
-        ],
-      },
-    },
-  },
-  {
-    timestamps: true,
-    updatedAt: false,
-    getterMethods: {
-      unsubscribeUrl: function () {
-        const token = NotificationSetting.getUnsubscribeToken(this.userId);
-        return `${process.env.URL}/api/notificationSettings.unsubscribe?token=${token}&id=${this.id}`;
-      },
-      unsubscribeToken: function () {
-        return NotificationSetting.getUnsubscribeToken(this.userId);
-      },
-    },
+@Table({
+  tableName: "notification_settings",
+  modelName: "notification_setting",
+  updatedAt: false,
+})
+@Fix
+class NotificationSetting extends Model {
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(DataType.UUIDV4)
+  @Column
+  id: string;
+
+  @CreatedAt
+  createdAt: Date;
+
+  @IsIn([
+    [
+      "documents.publish",
+      "documents.update",
+      "collections.create",
+      "emails.onboarding",
+      "emails.features",
+    ],
+  ])
+  @Column(DataType.STRING)
+  event: string;
+
+  // getters
+
+  get unsubscribeUrl() {
+    const token = NotificationSetting.getUnsubscribeToken(this.userId);
+    return `${process.env.URL}/api/notificationSettings.unsubscribe?token=${token}&id=${this.id}`;
   }
-);
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'userId' implicitly has an 'any' type.
-NotificationSetting.getUnsubscribeToken = (userId) => {
-  const hash = crypto.createHash("sha256");
-  hash.update(`${userId}-${process.env.SECRET_KEY}`);
-  return hash.digest("hex");
-};
+  get unsubscribeToken() {
+    return NotificationSetting.getUnsubscribeToken(this.userId);
+  }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-NotificationSetting.associate = (models) => {
-  NotificationSetting.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-    onDelete: "cascade",
-  });
-  NotificationSetting.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-};
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  userId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column(DataType.UUID)
+  teamId: string;
+
+  static getUnsubscribeToken = (userId: string) => {
+    const hash = crypto.createHash("sha256");
+    hash.update(`${userId}-${process.env.SECRET_KEY}`);
+    return hash.digest("hex");
+  };
+}
 
 export default NotificationSetting;

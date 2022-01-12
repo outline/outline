@@ -1,6 +1,7 @@
 import path from "path";
-// @ts-expect-error ts-migrate(2724) FIXME: '"jszip"' has no exported member named 'ZipObject'... Remove this comment to see the full error message
-import JSZip, { ZipObject } from "jszip";
+import JSZip, { JSZipObject } from "jszip";
+
+type ItemType = "collection" | "document" | "attachment";
 
 export type Item = {
   path: string;
@@ -8,9 +9,8 @@ export type Item = {
   name: string;
   depth: number;
   metadata: Record<string, any>;
-  type: "collection" | "document" | "attachment";
-
-  item: ZipObject;
+  type: ItemType;
+  item: JSZipObject;
 };
 
 export async function parseOutlineExport(
@@ -47,7 +47,7 @@ export async function parseOutlineExport(
       );
     }
 
-    let type;
+    let type: ItemType | undefined;
 
     if (depth === 0 && item.dir && name) {
       type = "collection";
@@ -70,7 +70,6 @@ export async function parseOutlineExport(
       dir,
       name,
       depth,
-      // @ts-expect-error ts-migrate(2322) FIXME: Type 'string' is not assignable to type '"collecti... Remove this comment to see the full error message
       type,
       metadata,
       item,

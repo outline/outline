@@ -1,48 +1,65 @@
-import { DataTypes, sequelize } from "../sequelize";
+import {
+  Table,
+  ForeignKey,
+  Model,
+  Column,
+  PrimaryKey,
+  IsUUID,
+  CreatedAt,
+  BelongsTo,
+  DataType,
+  Default,
+} from "sequelize-typescript";
+import Team from "./Team";
+import User from "./User";
+import Fix from "./decorators/Fix";
 
-const SearchQuery = sequelize.define(
-  "search_queries",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    source: {
-      type: DataTypes.ENUM("slack", "app", "api"),
-      allowNull: false,
-    },
-    query: {
-      type: DataTypes.STRING,
+@Table({
+  tableName: "search_queries",
+  modelName: "search_query",
+  updatedAt: false,
+})
+@Fix
+class SearchQuery extends Model {
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(DataType.UUIDV4)
+  @Column(DataType.UUID)
+  id: string;
 
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'val' implicitly has an 'any' type.
-      set(val) {
-        this.setDataValue("query", val.substring(0, 255));
-      },
+  @CreatedAt
+  createdAt: Date;
 
-      allowNull: false,
-    },
-    results: {
-      type: DataTypes.NUMBER,
-      allowNull: false,
-    },
-  },
-  {
-    timestamps: true,
-    updatedAt: false,
+  @Column(DataType.ENUM("slack", "app", "api"))
+  source: string;
+
+  @Column
+  results: number;
+
+  @Column(DataType.STRING)
+  set query(value: string) {
+    this.setDataValue("query", value.substring(0, 255));
   }
-);
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-SearchQuery.associate = (models) => {
-  SearchQuery.belongsTo(models.User, {
-    as: "user",
-    foreignKey: "userId",
-  });
-  SearchQuery.belongsTo(models.Team, {
-    as: "team",
-    foreignKey: "teamId",
-  });
-};
+  get query() {
+    return this.getDataValue("query");
+  }
+
+  // associations
+
+  @BelongsTo(() => User, "userId")
+  user: User;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  userId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column(DataType.UUID)
+  teamId: string;
+}
 
 export default SearchQuery;

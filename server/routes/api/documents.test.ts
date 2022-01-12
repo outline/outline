@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import {
   Document,
@@ -23,6 +22,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#documents.info", () => {
   it("should return published document", async () => {
     const { user, document } = await seed();
@@ -190,7 +190,7 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(childDocument.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(collection.documentStructure[0]);
+      expect(body.data.sharedTree).toEqual(collection.documentStructure?.[0]);
       await share.reload();
       expect(share.lastAccessedAt).toBeTruthy();
     });
@@ -457,6 +457,7 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(400);
   });
 });
+
 describe("#documents.export", () => {
   it("should return published document", async () => {
     const { user, document } = await seed();
@@ -656,6 +657,7 @@ describe("#documents.export", () => {
     expect(res.status).toEqual(400);
   });
 });
+
 describe("#documents.list", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
@@ -843,68 +845,7 @@ describe("#documents.list", () => {
     expect(body).toMatchSnapshot();
   });
 });
-describe("#documents.pinned", () => {
-  it("should return pinned documents", async () => {
-    const { user, document } = await seed();
-    document.pinnedById = user.id;
-    await document.save();
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: document.collectionId,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(document.id);
-  });
 
-  it("should return pinned documents in private collections member of", async () => {
-    const { user, collection, document } = await seed();
-    collection.permission = null;
-    await collection.save();
-    document.pinnedById = user.id;
-    await document.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
-      permission: "read_write",
-    });
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: document.collectionId,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(document.id);
-  });
-
-  it("should not return pinned documents in private collections not a member of", async () => {
-    const collection = await buildCollection({
-      permission: null,
-    });
-    const user = await buildUser({
-      teamId: collection.teamId,
-    });
-    const res = await server.post("/api/documents.pinned", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: collection.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.pinned");
-    expect(res.status).toEqual(401);
-  });
-});
 describe("#documents.drafts", () => {
   it("should return unpublished documents", async () => {
     const { user, document } = await seed();
@@ -936,6 +877,7 @@ describe("#documents.drafts", () => {
     expect(body.data.length).toEqual(0);
   });
 });
+
 describe("#documents.search_titles", () => {
   it("should return case insensitive results for partial query", async () => {
     const user = await buildUser();
@@ -986,6 +928,7 @@ describe("#documents.search_titles", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#documents.search", () => {
   it("should return results", async () => {
     const { user } = await seed();
@@ -1339,8 +1282,7 @@ describe("#documents.search", () => {
     expect(body).toMatchSnapshot();
   });
 
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(done: DoneCallback) => Promise<... Remove this comment to see the full error message
-  it("should save search term, hits and source", async (done) => {
+  it("should save search term, hits and source", async () => {
     const { user } = await seed();
     await server.post("/api/documents.search", {
       body: {
@@ -1348,21 +1290,25 @@ describe("#documents.search", () => {
         query: "my term",
       },
     });
-    // setTimeout is needed here because SearchQuery is saved asynchronously
-    // in order to not slow down the response time.
-    setTimeout(async () => {
-      const searchQuery = await SearchQuery.findAll({
-        where: {
-          query: "my term",
-        },
-      });
-      expect(searchQuery.length).toBe(1);
-      expect(searchQuery[0].results).toBe(0);
-      expect(searchQuery[0].source).toBe("app");
-      done();
-    }, 100);
+
+    return new Promise((resolve) => {
+      // setTimeout is needed here because SearchQuery is saved asynchronously
+      // in order to not slow down the response time.
+      setTimeout(async () => {
+        const searchQuery = await SearchQuery.findAll({
+          where: {
+            query: "my term",
+          },
+        });
+        expect(searchQuery.length).toBe(1);
+        expect(searchQuery[0].results).toBe(0);
+        expect(searchQuery[0].source).toBe("app");
+        resolve(undefined);
+      }, 100);
+    });
   });
 });
+
 describe("#documents.archived", () => {
   it("should return archived documents", async () => {
     const { user } = await seed();
@@ -1387,7 +1333,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete();
+    await document.delete(user.id);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -1423,6 +1369,7 @@ describe("#documents.archived", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#documents.viewed", () => {
   it("should return empty result if no views", async () => {
     const { user } = await seed();
@@ -1438,7 +1385,7 @@ describe("#documents.viewed", () => {
 
   it("should return recently viewed documents", async () => {
     const { user, document } = await seed();
-    await View.increment({
+    await View.incrementOrCreate({
       documentId: document.id,
       userId: user.id,
     });
@@ -1456,7 +1403,7 @@ describe("#documents.viewed", () => {
 
   it("should not return recently viewed but deleted documents", async () => {
     const { user, document } = await seed();
-    await View.increment({
+    await View.incrementOrCreate({
       documentId: document.id,
       userId: user.id,
     });
@@ -1473,7 +1420,7 @@ describe("#documents.viewed", () => {
 
   it("should not return recently viewed documents in collection not a member of", async () => {
     const { user, document, collection } = await seed();
-    await View.increment({
+    await View.incrementOrCreate({
       documentId: document.id,
       userId: user.id,
     });
@@ -1496,6 +1443,7 @@ describe("#documents.viewed", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#documents.starred", () => {
   it("should return empty result if no stars", async () => {
     const { user } = await seed();
@@ -1534,39 +1482,7 @@ describe("#documents.starred", () => {
     expect(body).toMatchSnapshot();
   });
 });
-describe("#documents.pin", () => {
-  it("should pin the document", async () => {
-    const { user, document } = await seed();
-    const res = await server.post("/api/documents.pin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.pinned).toEqual(true);
-  });
 
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.pin");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.pin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
 describe("#documents.move", () => {
   it("should move the document", async () => {
     const { user, document } = await seed();
@@ -1617,10 +1533,11 @@ describe("#documents.move", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#documents.restore", () => {
   it("should allow restore of trashed documents", async () => {
     const { user, document } = await seed();
-    await document.destroy(user.id);
+    await document.destroy();
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -1638,7 +1555,7 @@ describe("#documents.restore", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.destroy(user.id);
+    await document.destroy();
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -1654,7 +1571,7 @@ describe("#documents.restore", () => {
 
   it("should not allow restore of documents in deleted collection", async () => {
     const { user, document, collection } = await seed();
-    await document.destroy(user.id);
+    await document.destroy();
     await collection.destroy();
     const res = await server.post("/api/documents.restore", {
       body: {
@@ -1668,7 +1585,7 @@ describe("#documents.restore", () => {
   it("should not allow restore of trashed documents to collection user cannot access", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection();
-    await document.destroy(user.id);
+    await document.destroy();
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -1807,41 +1724,7 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 });
-describe("#documents.unpin", () => {
-  it("should unpin the document", async () => {
-    const { user, document } = await seed();
-    document.pinnedBy = user;
-    await document.save();
-    const res = await server.post("/api/documents.unpin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.pinned).toEqual(false);
-  });
 
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.unpin");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.unpin", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
 describe("#documents.star", () => {
   it("should star the document", async () => {
     const { user, document } = await seed();
@@ -1876,6 +1759,7 @@ describe("#documents.star", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#documents.unstar", () => {
   it("should unstar the document", async () => {
     const { user, document } = await seed();
@@ -1913,6 +1797,7 @@ describe("#documents.unstar", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#documents.import", () => {
   it("should error if no file is passed", async () => {
     const user = await buildUser();
@@ -1934,6 +1819,7 @@ describe("#documents.import", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#documents.create", () => {
   it("should create as a new document", async () => {
     const { user, collection } = await seed();
@@ -1949,8 +1835,8 @@ describe("#documents.create", () => {
     const body = await res.json();
     const newDocument = await Document.findByPk(body.data.id);
     expect(res.status).toEqual(200);
-    expect(newDocument.parentDocumentId).toBe(null);
-    expect(newDocument.collectionId).toBe(collection.id);
+    expect(newDocument!.parentDocumentId).toBe(null);
+    expect(newDocument!.collectionId).toBe(collection.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
@@ -2019,6 +1905,7 @@ describe("#documents.create", () => {
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 });
+
 describe("#documents.update", () => {
   it("should update document details in the root", async () => {
     const { user, document } = await seed();
@@ -2028,7 +1915,7 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
       },
     });
     const body = await res.json();
@@ -2056,7 +1943,7 @@ describe("#documents.update", () => {
         id: template.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: template.revision,
+        lastRevision: template.revisionCount,
         publish: true,
       },
     });
@@ -2087,7 +1974,7 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
         publish: true,
       },
     });
@@ -2101,14 +1988,14 @@ describe("#documents.update", () => {
 
   it("should not edit archived document", async () => {
     const { user, document } = await seed();
-    await document.archive();
+    await document.archive(user.id);
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2175,7 +2062,7 @@ describe("#documents.update", () => {
         token: admin.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
       },
     });
     const body = await res.json();
@@ -2199,7 +2086,7 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2214,7 +2101,7 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2227,7 +2114,7 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Additional text",
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
         append: true,
       },
     });
@@ -2243,7 +2130,7 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
         title: "Updated Title",
         append: true,
       },
@@ -2259,7 +2146,7 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
         title: "Updated Title",
         text: "",
       },
@@ -2275,7 +2162,7 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revision,
+        lastRevision: document.revisionCount,
         title: document.title,
         text: document.text,
       },
@@ -2311,6 +2198,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#documents.archive", () => {
   it("should allow archiving document", async () => {
     const { user, document } = await seed();
@@ -2336,6 +2224,7 @@ describe("#documents.archive", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#documents.delete", () => {
   it("should allow deleting document", async () => {
     const { user, document } = await seed();
@@ -2378,6 +2267,7 @@ describe("#documents.delete", () => {
     const { user, document, collection } = await seed();
     // delete collection without hooks to trigger document deletion
     await collection.destroy({
+      // @ts-expect-error type is incorrect here
       hooks: false,
     });
     const res = await server.post("/api/documents.delete", {
@@ -2403,6 +2293,7 @@ describe("#documents.delete", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#documents.unpublish", () => {
   it("should unpublish a document", async () => {
     const { user, document } = await seed();
@@ -2418,12 +2309,12 @@ describe("#documents.unpublish", () => {
     expect(body.data.publishedAt).toBeNull();
 
     const reloaded = await Document.unscoped().findByPk(document.id);
-    expect(reloaded.userId).toEqual(user.id);
+    expect(reloaded!.createdById).toEqual(user.id);
   });
 
   it("should unpublish another users document", async () => {
     const { user, collection } = await seed();
-    let document = await buildDocument({
+    const document = await buildDocument({
       teamId: user.teamId,
       collectionId: collection.id,
     });
@@ -2437,8 +2328,9 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
-    document = await Document.unscoped().findByPk(document.id);
-    expect(document.userId).toEqual(user.id);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded!.createdById).toEqual(user.id);
   });
 
   it("should fail to unpublish a draft document", async () => {
@@ -2456,7 +2348,7 @@ describe("#documents.unpublish", () => {
 
   it("should fail to unpublish a deleted document", async () => {
     const { user, document } = await seed();
-    await document.delete();
+    await document.delete(user.id);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),
@@ -2468,7 +2360,7 @@ describe("#documents.unpublish", () => {
 
   it("should fail to unpublish an archived document", async () => {
     const { user, document } = await seed();
-    await document.archive();
+    await document.archive(user.id);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),

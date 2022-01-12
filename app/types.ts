@@ -68,8 +68,10 @@ export type MenuItem =
 export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
-  activeCollectionId: string | null | undefined;
-  activeDocumentId: string | null | undefined;
+  activeCollectionId: string | undefined;
+  activeDocumentId: string | undefined;
+  currentUserId: string | undefined;
+  currentTeamId: string | undefined;
   location: Location;
   stores: RootStore;
   event?: Event;

@@ -38,7 +38,6 @@ describe("#naturalSort", () => {
         name: "Mark",
       },
     ];
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(item: any) => any' is not assig... Remove this comment to see the full error message
     expect(naturalSort(items, (item) => item.name)).toEqual([
       {
         name: "Joan",

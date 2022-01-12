@@ -1,8 +1,16 @@
+import Router from "koa-router";
 import { signin } from "@shared/utils/routeHelpers";
 import { requireDirectory } from "@server/utils/fs";
 
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
-const providers = [];
+interface AuthenicationProvider {
+  id: string;
+  name: string;
+  enabled: boolean;
+  authUrl: string;
+  router: Router;
+}
+
+const providers: AuthenicationProvider[] = [];
 
 requireDirectory(__dirname).forEach(([module, id]) => {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'config' does not exist on type 'unknown'... Remove this comment to see the full error message
@@ -35,5 +43,4 @@ requireDirectory(__dirname).forEach(([module, id]) => {
   }
 });
 
-// @ts-expect-error ts-migrate(7005) FIXME: Variable 'providers' implicitly has an 'any[]' typ... Remove this comment to see the full error message
 export default providers;

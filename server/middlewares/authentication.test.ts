@@ -1,5 +1,5 @@
 import randomstring from "randomstring";
-import { ApiKey } from "@server/models";
+import ApiKey from "@server/models/ApiKey";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import auth from "./authentication";

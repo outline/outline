@@ -1,68 +1,89 @@
+import { Op } from "sequelize";
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  DataType,
+  Default,
+  ForeignKey,
+  HasMany,
+  Table,
+  Model,
+  IsUUID,
+  PrimaryKey,
+} from "sequelize-typescript";
 import { ValidationError } from "../errors";
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'providers' implicitly has type 'any[]' i... Remove this comment to see the full error message
-import providers from "../routes/auth/providers";
-import { DataTypes, Op, sequelize } from "../sequelize";
+import Team from "./Team";
+import UserAuthentication from "./UserAuthentication";
+import Fix from "./decorators/Fix";
 
-const AuthenticationProvider = sequelize.define(
-  "authentication_providers",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      validate: {
-        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'providers' implicitly has an 'any[]' typ... Remove this comment to see the full error message
-        isIn: [providers.map((p) => p.id)],
+@Table({
+  tableName: "authentication_providers",
+  modelName: "authentication_provider",
+  updatedAt: false,
+})
+@Fix
+class AuthenticationProvider extends Model {
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(DataType.UUIDV4)
+  @Column(DataType.UUID)
+  id: string;
+
+  @Column
+  name: string;
+
+  @Default(true)
+  @Column
+  enabled: boolean;
+
+  @Column
+  providerId: string;
+
+  @CreatedAt
+  createdAt: Date;
+
+  // associations
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column(DataType.UUID)
+  teamId: string;
+
+  @HasMany(() => UserAuthentication, "providerId")
+  userAuthentications: UserAuthentication[];
+
+  // instance methods
+
+  disable = async () => {
+    const res = await (this
+      .constructor as typeof AuthenticationProvider).findAndCountAll({
+      where: {
+        teamId: this.teamId,
+        enabled: true,
+        id: {
+          [Op.ne]: this.id,
+        },
       },
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    providerId: {
-      type: DataTypes.STRING,
-    },
-  },
-  {
-    timestamps: true,
-    updatedAt: false,
-  }
-);
-
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'models' implicitly has an 'any' type.
-AuthenticationProvider.associate = (models) => {
-  AuthenticationProvider.belongsTo(models.Team);
-  AuthenticationProvider.hasMany(models.UserAuthentication);
-};
-
-AuthenticationProvider.prototype.disable = async function () {
-  const res = await AuthenticationProvider.findAndCountAll({
-    where: {
-      teamId: this.teamId,
-      enabled: true,
-      id: {
-        [Op.ne]: this.id,
-      },
-    },
-    limit: 1,
-  });
-
-  if (res.count >= 1) {
-    return this.update({
-      enabled: false,
+      limit: 1,
     });
-  } else {
-    throw ValidationError("At least one authentication provider is required");
-  }
-};
 
-AuthenticationProvider.prototype.enable = async function () {
-  return this.update({
-    enabled: true,
-  });
-};
+    if (res.count >= 1) {
+      return this.update({
+        enabled: false,
+      });
+    } else {
+      throw ValidationError("At least one authentication provider is required");
+    }
+  };
+
+  enable = () => {
+    return this.update({
+      enabled: true,
+    });
+  };
+}
 
 export default AuthenticationProvider;

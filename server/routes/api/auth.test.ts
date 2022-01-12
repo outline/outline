@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import webService from "@server/services/web";
 import { buildUser, buildTeam } from "@server/test/factories";
@@ -8,6 +7,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
@@ -44,6 +44,7 @@ describe("#auth.info", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#auth.config", () => {
   it("should return available SSO providers", async () => {
     const res = await server.post("/api/auth.config");

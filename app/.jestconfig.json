@@ -22,5 +22,6 @@
   ],
   "setupFilesAfterEnv": [
     "./app/test/setup.ts"
-  ]
+  ],
+  "testEnvironment": "jsdom"
 }

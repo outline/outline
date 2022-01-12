@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { CollectionUser } from "@server/models";
 import webService from "@server/services/web";
@@ -9,6 +8,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#shares.list", () => {
   it("should only return shares created by user", async () => {
     const { user, admin, document } = await seed();
@@ -133,6 +133,7 @@ describe("#shares.list", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#shares.create", () => {
   it("should allow creating a share record for document", async () => {
     const { user, document } = await seed();
@@ -183,7 +184,7 @@ describe("#shares.create", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await share.revoke();
+    await share.revoke(user.id);
     const res = await server.post("/api/shares.create", {
       body: {
         token: user.getJwtToken(),
@@ -284,6 +285,7 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#shares.info", () => {
   it("should allow reading share by id", async () => {
     const { user, document } = await seed();
@@ -375,7 +377,7 @@ describe("#shares.info", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await share.revoke();
+    await share.revoke(user.id);
     const res = await server.post("/api/shares.info", {
       body: {
         token: user.getJwtToken(),
@@ -551,6 +553,7 @@ describe("#shares.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#shares.update", () => {
   it("should allow user to update a share", async () => {
     const { user, document } = await seed();
@@ -647,6 +650,7 @@ describe("#shares.update", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#shares.revoke", () => {
   it("should allow author to revoke a share", async () => {
     const { user, document } = await seed();

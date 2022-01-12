@@ -90,7 +90,7 @@ if (SLACK_CLIENT_ID) {
     }),
     async (ctx) => {
       const { code, state, error } = ctx.request.query;
-      const user = ctx.state.user;
+      const { user } = ctx.state;
       assertPresent(code || error, "code is required");
 
       if (error) {
@@ -104,9 +104,9 @@ if (SLACK_CLIENT_ID) {
       if (!user) {
         if (state) {
           try {
-            const team = await Team.findByPk(state);
+            const team = await Team.findByPk(state as string);
             return ctx.redirect(
-              `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+              `${team!.url}/auth${ctx.request.path}?${ctx.request.querystring}`
             );
           } catch (err) {
             return ctx.redirect(
@@ -151,7 +151,7 @@ if (SLACK_CLIENT_ID) {
     }),
     async (ctx) => {
       const { code, error, state } = ctx.request.query;
-      const user = ctx.state.user;
+      const { user } = ctx.state;
       assertPresent(code || error, "code is required");
 
       const collectionId = state;
@@ -167,10 +167,10 @@ if (SLACK_CLIENT_ID) {
       // appropriate subdomain to complete the oauth flow
       if (!user) {
         try {
-          const collection = await Collection.findByPk(state);
-          const team = await Team.findByPk(collection.teamId);
+          const collection = await Collection.findByPk(state as string);
+          const team = await Team.findByPk(collection!.teamId);
           return ctx.redirect(
-            `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+            `${team!.url}/auth${ctx.request.path}?${ctx.request.querystring}`
           );
         } catch (err) {
           return ctx.redirect(

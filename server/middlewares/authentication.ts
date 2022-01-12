@@ -89,7 +89,7 @@ export default function auth(
           paranoid: false,
         });
         throw UserSuspendedError({
-          adminEmail: suspendingAdmin.email,
+          adminEmail: suspendingAdmin?.email || undefined,
         });
       }
 

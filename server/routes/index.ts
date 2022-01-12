@@ -8,6 +8,7 @@ import serve from "koa-static";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
+import { NotFoundError } from "@server/errors";
 import Share from "@server/models/Share";
 import { opensearchResponse } from "@server/utils/opensearch";
 import prefetchTags from "@server/utils/prefetchTags";
@@ -99,7 +100,12 @@ koa.use(
 if (process.env.NODE_ENV === "production") {
   router.get("/static/*", async (ctx) => {
     try {
-      await send(ctx, ctx.path.substring(8), {
+      const pathname = ctx.path.substring(8);
+      if (!pathname) {
+        throw NotFoundError();
+      }
+
+      await send(ctx, pathname, {
         root: path.join(__dirname, "../../app/"),
         setHeaders: (res) => {
           res.setHeader("Service-Worker-Allowed", "/");
@@ -145,6 +151,7 @@ router.get("/robots.txt", (ctx) => {
 
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
+
   ctx.body = opensearchResponse();
 });
 

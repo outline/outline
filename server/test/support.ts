@@ -1,13 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
+import { sequelize } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
-import { sequelize } from "../sequelize";
 
 const sql = sequelize.getQueryInterface();
 const tables = Object.keys(sequelize.models).map((model) => {
   const n = sequelize.models[model].getTableName();
-  return sql.queryGenerator.quoteTable(typeof n === "string" ? n : n.tableName);
+  return (sql.queryGenerator as any).quoteTable(
+    typeof n === "string" ? n : n.tableName
+  );
 });
-const flushQuery = `TRUNCATE ${tables.join(", ")}`;
+const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
 
 export function flushdb() {
   return sequelize.query(flushQuery);

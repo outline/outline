@@ -1,6 +1,5 @@
 import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
-import { Collection, Document } from "@server/models";
 import {
   buildUser,
   buildGroup,
@@ -10,9 +9,12 @@ import {
 } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
 import slugify from "@server/utils/slugify";
+import Collection from "./Collection";
+import Document from "./Document";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("#url", () => {
   test("should return correct url for the collection", () => {
     const collection = new Collection({
@@ -21,6 +23,7 @@ describe("#url", () => {
     expect(collection.url).toBe(`/collection/untitled-${collection.urlId}`);
   });
 });
+
 describe("getDocumentParents", () => {
   test("should return array of parent document ids", async () => {
     const parent = await buildDocument();
@@ -31,7 +34,7 @@ describe("getDocumentParents", () => {
       ],
     });
     const result = collection.getDocumentParents(document.id);
-    expect(result.length).toBe(1);
+    expect(result?.length).toBe(1);
     expect(result[0]).toBe(parent.id);
   });
 
@@ -44,7 +47,7 @@ describe("getDocumentParents", () => {
       ],
     });
     const result = collection.getDocumentParents(parent.id);
-    expect(result.length).toBe(0);
+    expect(result?.length).toBe(0);
   });
 
   test("should not error if documentStructure is empty", async () => {
@@ -55,6 +58,7 @@ describe("getDocumentParents", () => {
     expect(result).toBe(undefined);
   });
 });
+
 describe("getDocumentTree", () => {
   test("should return document tree", async () => {
     const document = await buildDocument();
@@ -79,6 +83,7 @@ describe("getDocumentTree", () => {
     expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
   });
 });
+
 describe("isChildDocument", () => {
   test("should return false with unexpected data", async () => {
     const document = await buildDocument();
@@ -128,6 +133,7 @@ describe("isChildDocument", () => {
     expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
   });
 });
+
 describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
     const { collection } = await seed();
@@ -138,8 +144,8 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: null,
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure.length).toBe(2);
-    expect(collection.documentStructure[1].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(2);
+    expect(collection.documentStructure![1].id).toBe(id);
   });
 
   test("should add with an index", async () => {
@@ -151,8 +157,8 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: null,
     });
     await collection.addDocumentToStructure(newDocument, 1);
-    expect(collection.documentStructure.length).toBe(2);
-    expect(collection.documentStructure[1].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(2);
+    expect(collection.documentStructure![1].id).toBe(id);
   });
 
   test("should add as a child if with parent", async () => {
@@ -164,10 +170,10 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: document.id,
     });
     await collection.addDocumentToStructure(newDocument, 1);
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].id).toBe(document.id);
-    expect(collection.documentStructure[0].children.length).toBe(1);
-    expect(collection.documentStructure[0].children[0].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].id).toBe(document.id);
+    expect(collection.documentStructure![0].children.length).toBe(1);
+    expect(collection.documentStructure![0].children[0].id).toBe(id);
   });
 
   test("should add as a child if with parent with index", async () => {
@@ -185,10 +191,10 @@ describe("#addDocumentToStructure", () => {
     });
     await collection.addDocumentToStructure(newDocument);
     await collection.addDocumentToStructure(secondDocument, 0);
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].id).toBe(document.id);
-    expect(collection.documentStructure[0].children.length).toBe(2);
-    expect(collection.documentStructure[0].children[0].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].id).toBe(document.id);
+    expect(collection.documentStructure![0].children.length).toBe(2);
+    expect(collection.documentStructure![0].children[0].id).toBe(id);
   });
   describe("options: documentJson", () => {
     test("should append supplied json over document's own", async () => {
@@ -201,27 +207,32 @@ describe("#addDocumentToStructure", () => {
       });
       await collection.addDocumentToStructure(newDocument, undefined, {
         documentJson: {
+          id,
+          title: "Parent",
+          url: "parent",
           children: [
             {
               id,
               title: "Totally fake",
               children: [],
+              url: "totally-fake",
             },
           ],
         },
       });
-      expect(collection.documentStructure[1].children.length).toBe(1);
-      expect(collection.documentStructure[1].children[0].id).toBe(id);
+      expect(collection.documentStructure![1].children.length).toBe(1);
+      expect(collection.documentStructure![1].children[0].id).toBe(id);
     });
   });
 });
+
 describe("#updateDocument", () => {
   test("should update root document's data", async () => {
     const { collection, document } = await seed();
     document.title = "Updated title";
     await document.save();
     await collection.updateDocument(document);
-    expect(collection.documentStructure[0].title).toBe("Updated title");
+    expect(collection.documentStructure![0].title).toBe("Updated title");
   });
 
   test("should update child document's data", async () => {
@@ -241,11 +252,12 @@ describe("#updateDocument", () => {
     await newDocument.save();
     await collection.updateDocument(newDocument);
     const reloaded = await Collection.findByPk(collection.id);
-    expect(reloaded.documentStructure[0].children[0].title).toBe(
+    expect(reloaded!.documentStructure![0].children[0].title).toBe(
       "Updated title"
     );
   });
 });
+
 describe("#removeDocument", () => {
   test("should save if removing", async () => {
     const { collection, document } = await seed();
@@ -257,7 +269,7 @@ describe("#removeDocument", () => {
   test("should remove documents from root", async () => {
     const { collection, document } = await seed();
     await collection.deleteDocument(document);
-    expect(collection.documentStructure.length).toBe(0);
+    expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -281,10 +293,10 @@ describe("#removeDocument", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure[0].children.length).toBe(1);
+    expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
     await collection.deleteDocument(document);
-    expect(collection.documentStructure.length).toBe(0);
+    expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
         collectionId: collection.id,
@@ -308,13 +320,13 @@ describe("#removeDocument", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure.length).toBe(1);
-    expect(collection.documentStructure[0].children.length).toBe(1);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
     await collection.deleteDocument(newDocument);
     const reloaded = await Collection.findByPk(collection.id);
-    expect(reloaded.documentStructure.length).toBe(1);
-    expect(reloaded.documentStructure[0].children.length).toBe(0);
+    expect(reloaded!.documentStructure!.length).toBe(1);
+    expect(reloaded!.documentStructure![0].children.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
         collectionId: collection.id,
@@ -323,6 +335,7 @@ describe("#removeDocument", () => {
     expect(collectionDocuments.count).toBe(1);
   });
 });
+
 describe("#membershipUserIds", () => {
   test("should return collection and group memberships", async () => {
     const team = await buildTeam();
@@ -330,8 +343,7 @@ describe("#membershipUserIds", () => {
     // Make 6 users
     const users = await Promise.all(
       Array(6)
-        // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments, but got 0.
-        .fill()
+        .fill(undefined)
         .map(() =>
           buildUser({
             teamId,
@@ -350,42 +362,42 @@ describe("#membershipUserIds", () => {
       teamId,
     });
     const createdById = users[0].id;
-    await group1.addUser(users[0], {
+    await group1.$add("user", users[0], {
       through: {
         createdById,
       },
     });
-    await group1.addUser(users[1], {
+    await group1.$add("user", users[1], {
       through: {
         createdById,
       },
     });
-    await group2.addUser(users[2], {
+    await group2.$add("user", users[2], {
       through: {
         createdById,
       },
     });
-    await group2.addUser(users[3], {
+    await group2.$add("user", users[3], {
       through: {
         createdById,
       },
     });
-    await collection.addUser(users[4], {
+    await collection.$add("user", users[4], {
       through: {
         createdById,
       },
     });
-    await collection.addUser(users[5], {
+    await collection.$add("user", users[5], {
       through: {
         createdById,
       },
     });
-    await collection.addGroup(group1, {
+    await collection.$add("group", group1, {
       through: {
         createdById,
       },
     });
-    await collection.addGroup(group2, {
+    await collection.$add("group", group2, {
       through: {
         createdById,
       },
@@ -394,18 +406,19 @@ describe("#membershipUserIds", () => {
     expect(membershipUserIds.length).toBe(6);
   });
 });
+
 describe("#findByPk", () => {
   test("should return collection with collection Id", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id);
-    expect(response.id).toBe(collection.id);
+    expect(response!.id).toBe(collection.id);
   });
 
   test("should return collection when urlId is present", async () => {
     const collection = await buildCollection();
     const id = `${slugify(collection.name)}-${collection.urlId}`;
     const response = await Collection.findByPk(id);
-    expect(response.id).toBe(collection.id);
+    expect(response!.id).toBe(collection.id);
   });
 
   test("should return undefined when incorrect uuid type", async () => {

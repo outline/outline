@@ -1,10 +1,8 @@
+import { sequelize } from "@server/database/sequelize";
 import { FileOperation, Event, User } from "@server/models";
-import { sequelize } from "../sequelize";
 
 export default async function fileOperationDeleter(
-  // @ts-expect-error ts-migrate(2749) FIXME: 'FileOperation' refers to a value, but is being us... Remove this comment to see the full error message
   fileOp: FileOperation,
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User,
   ip: string
 ) {
@@ -19,6 +17,7 @@ export default async function fileOperationDeleter(
         name: "fileOperations.delete",
         teamId: user.teamId,
         actorId: user.id,
+        // @ts-expect-error dataValues does exist
         data: fileOp.dataValues,
         ip,
       },

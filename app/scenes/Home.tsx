@@ -9,18 +9,27 @@ import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import PinnedDocuments from "~/components/PinnedDocuments";
 import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, ui } = useStores();
+  const { documents, pins, policies, ui } = useStores();
+  const team = useCurrentTeam();
   const user = useCurrentUser();
   const userId = user?.id;
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    pins.fetchPage();
+  }, [pins]);
+
+  const canManageTeam = policies.abilities(team.id).manage;
 
   return (
     <Scene
@@ -39,6 +48,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
+      <PinnedDocuments pins={pins.home} canUpdate={canManageTeam} />
       <Tabs>
         <Tab to="/home" exact>
           {t("Recently viewed")}

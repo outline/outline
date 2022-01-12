@@ -1,7 +1,6 @@
 import { View } from "@server/models";
 import { presentUser } from "../presenters";
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'View' refers to a value, but is being used as a t... Remove this comment to see the full error message
 export default function present(view: View) {
   return {
     id: view.id,

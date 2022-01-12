@@ -2,18 +2,8 @@ import { buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import teamCreator from "./teamCreator";
 
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    putObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
 beforeEach(() => flushdb());
+
 describe("teamCreator", () => {
   it("should create team and authentication provider", async () => {
     const result = await teamCreator({
@@ -73,7 +63,7 @@ describe("teamCreator", () => {
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
     expect(isNewTeam).toEqual(false);
-    const providers = await team.getAuthenticationProviders();
+    const providers = await team.$get("authenticationProviders");
     expect(providers.length).toEqual(2);
   });
 

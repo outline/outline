@@ -1,4 +1,5 @@
-import { Attachment } from "@server/models";
+import { Document } from "@server/models";
+import Attachment from "@server/models/Attachment";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
 import presentUser from "./user";
@@ -25,8 +26,8 @@ async function replaceImageAttachments(text: string) {
 }
 
 export default async function present(
-  document: any,
-  options: Options | null | undefined
+  document: Document,
+  options: Options | null | undefined = {}
 ) {
   options = {
     isPublic: false,
@@ -36,7 +37,8 @@ export default async function present(
   const text = options.isPublic
     ? await replaceImageAttachments(document.text)
     : document.text;
-  const data = {
+
+  const data: Record<string, any> = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
@@ -58,7 +60,6 @@ export default async function present(
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
-    pinned: undefined,
     collectionId: undefined,
     parentDocumentId: undefined,
     lastViewedAt: undefined,
@@ -69,13 +70,9 @@ export default async function present(
   }
 
   if (!options.isPublic) {
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'boolean' is not assignable to type 'undefine... Remove this comment to see the full error message
-    data.pinned = !!document.pinnedById;
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'UserPresentation | null | undefined' is not ... Remove this comment to see the full error message
     data.createdBy = presentUser(document.createdBy);
-    // @ts-expect-error ts-migrate(2322) FIXME: Type 'UserPresentation | null | undefined' is not ... Remove this comment to see the full error message
     data.updatedBy = presentUser(document.updatedBy);
     data.collaboratorIds = document.collaboratorIds;
   }

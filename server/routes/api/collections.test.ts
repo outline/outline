@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { Document, CollectionUser, CollectionGroup } from "@server/models";
 import webService from "@server/services/web";
@@ -15,6 +14,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#collections.list", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.list");
@@ -93,12 +93,12 @@ describe("#collections.list", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
     });
-    await collection.addGroup(group, {
+    await collection.$add("group", group, {
       through: {
         permission: "read",
         createdById: user.id,
@@ -116,6 +116,7 @@ describe("#collections.list", () => {
     expect(body.policies[0].abilities.read).toEqual(true);
   });
 });
+
 describe("#collections.import", () => {
   it("should error if no attachmentId is passed", async () => {
     const user = await buildUser();
@@ -134,6 +135,7 @@ describe("#collections.import", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
 describe("#collections.move", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.move");
@@ -265,6 +267,7 @@ describe("#collections.move", () => {
     expect(movedCollectionC.data.index < "b").toBeTruthy();
   });
 });
+
 describe("#collections.export", () => {
   it("should not allow export of private collection not a member", async () => {
     const { admin } = await seed();
@@ -309,12 +312,12 @@ describe("#collections.export", () => {
     const group = await buildGroup({
       teamId: admin.teamId,
     });
-    await group.addUser(admin, {
+    await group.$add("user", admin, {
       through: {
         createdById: admin.id,
       },
     });
-    await collection.addGroup(group, {
+    await collection.$add("group", group, {
       through: {
         permission: "read_write",
         createdById: admin.id,
@@ -364,6 +367,7 @@ describe("#collections.export", () => {
     expect(body.data.fileOperation.state).toBe("creating");
   });
 });
+
 describe("#collections.export_all", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.export_all");
@@ -392,6 +396,7 @@ describe("#collections.export_all", () => {
     expect(res.status).toEqual(200);
   });
 });
+
 describe("#collections.add_user", () => {
   it("should add user to collection", async () => {
     const user = await buildUser();
@@ -410,7 +415,7 @@ describe("#collections.add_user", () => {
         userId: anotherUser.id,
       },
     });
-    const users = await collection.getUsers();
+    const users = await collection.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(2);
   });
@@ -455,6 +460,7 @@ describe("#collections.add_user", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.add_group", () => {
   it("should add group to collection", async () => {
     const user = await buildAdmin();
@@ -473,7 +479,7 @@ describe("#collections.add_group", () => {
         groupId: group.id,
       },
     });
-    const groups = await collection.getGroups();
+    const groups = await collection.$get("groups");
     expect(groups.length).toEqual(1);
     expect(res.status).toEqual(200);
   });
@@ -519,6 +525,7 @@ describe("#collections.add_group", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.remove_group", () => {
   it("should remove group from collection", async () => {
     const user = await buildAdmin();
@@ -537,7 +544,7 @@ describe("#collections.remove_group", () => {
         groupId: group.id,
       },
     });
-    let users = await collection.getGroups();
+    let users = await collection.$get("groups");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/collections.remove_group", {
       body: {
@@ -546,7 +553,7 @@ describe("#collections.remove_group", () => {
         groupId: group.id,
       },
     });
-    users = await collection.getGroups();
+    users = await collection.$get("groups");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(0);
   });
@@ -591,6 +598,7 @@ describe("#collections.remove_group", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.remove_user", () => {
   it("should remove user from collection", async () => {
     const user = await buildUser();
@@ -616,7 +624,7 @@ describe("#collections.remove_user", () => {
         userId: anotherUser.id,
       },
     });
-    const users = await collection.getUsers();
+    const users = await collection.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
   });
@@ -661,6 +669,7 @@ describe("#collections.remove_user", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.users", () => {
   it("should return users in private collection", async () => {
     const { collection, user } = await seed();
@@ -702,6 +711,7 @@ describe("#collections.users", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.group_memberships", () => {
   it("should return groups in private collection", async () => {
     const user = await buildUser();
@@ -850,6 +860,7 @@ describe("#collections.group_memberships", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.memberships", () => {
   it("should return members in private collection", async () => {
     const { collection, user } = await seed();
@@ -952,6 +963,7 @@ describe("#collections.memberships", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.info", () => {
   it("should return collection", async () => {
     const { user, collection } = await seed();
@@ -1019,6 +1031,7 @@ describe("#collections.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#collections.create", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.create");
@@ -1163,6 +1176,7 @@ describe("#collections.create", () => {
     expect(createdCollection.data.index < "b").toBeTruthy();
   });
 });
+
 describe("#collections.update", () => {
   it("should require authentication", async () => {
     const collection = await buildCollection();
@@ -1317,12 +1331,12 @@ describe("#collections.update", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
     });
-    await collection.addGroup(group, {
+    await collection.$add("group", group, {
       through: {
         permission: "read_write",
         createdById: user.id,
@@ -1393,6 +1407,7 @@ describe("#collections.update", () => {
     expect(res.status).toEqual(400);
   });
 });
+
 describe("#collections.delete", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/collections.delete");
@@ -1484,12 +1499,12 @@ describe("#collections.delete", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await group.addUser(user, {
+    await group.$add("user", user, {
       through: {
         createdById: user.id,
       },
     });
-    await collection.addGroup(group, {
+    await collection.$add("group", group, {
       through: {
         permission: "read_write",
         createdById: user.id,

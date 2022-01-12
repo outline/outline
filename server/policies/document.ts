@@ -1,8 +1,7 @@
 import invariant from "invariant";
 import { Document, Revision, User, Team } from "@server/models";
-import policy from "./policy";
-
-const { allow, cannot } = policy;
+import { NavigationNode } from "~/types";
+import { allow, _cannot as cannot } from "./cancan";
 
 allow(User, "createDocument", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) return false;
@@ -10,6 +9,8 @@ allow(User, "createDocument", Team, (user, team) => {
 });
 
 allow(User, ["read", "download"], Document, (user, document) => {
+  if (!document) return false;
+
   // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
     return false;
@@ -19,6 +20,7 @@ allow(User, ["read", "download"], Document, (user, document) => {
 });
 
 allow(User, ["star", "unstar"], Document, (user, document) => {
+  if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
@@ -31,8 +33,13 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
 });
 
 allow(User, "share", Document, (user, document) => {
+  if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
 
   if (cannot(user, "share", document.collection)) {
     return false;
@@ -42,6 +49,7 @@ allow(User, "share", Document, (user, document) => {
 });
 
 allow(User, "update", Document, (user, document) => {
+  if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
 
@@ -53,6 +61,7 @@ allow(User, "update", Document, (user, document) => {
 });
 
 allow(User, "createChildDocument", Document, (user, document) => {
+  if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
@@ -66,6 +75,7 @@ allow(User, "createChildDocument", Document, (user, document) => {
 });
 
 allow(User, "move", Document, (user, document) => {
+  if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (!document.publishedAt) return false;
@@ -78,6 +88,7 @@ allow(User, "move", Document, (user, document) => {
 });
 
 allow(User, ["pin", "unpin"], Document, (user, document) => {
+  if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
   if (document.template) return false;
@@ -90,9 +101,20 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, "delete", Document, (user, document) => {
-  if (user.isViewer) return false;
+allow(User, ["pinToHome"], Document, (user, document) => {
+  if (!document) return false;
+  if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  if (document.template) return false;
+  if (!document.publishedAt) return false;
+
+  return user.teamId === document.teamId && user.isAdmin;
+});
+
+allow(User, "delete", Document, (user, document) => {
+  if (!document) return false;
+  if (document.deletedAt) return false;
+  if (user.isViewer) return false;
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -112,8 +134,9 @@ allow(User, "delete", Document, (user, document) => {
 });
 
 allow(User, "permanentDelete", Document, (user, document) => {
-  if (user.isViewer) return false;
+  if (!document) return false;
   if (!document.deletedAt) return false;
+  if (user.isViewer) return false;
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -124,8 +147,9 @@ allow(User, "permanentDelete", Document, (user, document) => {
 });
 
 allow(User, "restore", Document, (user, document) => {
-  if (user.isViewer) return false;
+  if (!document) return false;
   if (!document.deletedAt) return false;
+  if (user.isViewer) return false;
 
   if (document.collection && cannot(user, "update", document.collection)) {
     return false;
@@ -135,6 +159,7 @@ allow(User, "restore", Document, (user, document) => {
 });
 
 allow(User, "archive", Document, (user, document) => {
+  if (!document) return false;
   if (!document.publishedAt) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
@@ -147,6 +172,7 @@ allow(User, "archive", Document, (user, document) => {
 });
 
 allow(User, "unarchive", Document, (user, document) => {
+  if (!document) return false;
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
@@ -161,10 +187,11 @@ allow(
   Document,
   "restore",
   Revision,
-  (document, revision) => document.id === revision.documentId
+  (document, revision) => document.id === revision?.documentId
 );
 
 allow(User, "unpublish", Document, (user, document) => {
+  if (!document) return false;
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
@@ -174,16 +201,14 @@ allow(User, "unpublish", Document, (user, document) => {
   if (cannot(user, "update", document.collection)) return false;
   const documentID = document.id;
 
-  // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'documents' implicitly has an 'any' type... Remove this comment to see the full error message
-  const hasChild = (documents) =>
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
+  const hasChild = (documents: NavigationNode[]): boolean =>
     documents.some((doc) => {
       if (doc.id === documentID) return doc.children.length > 0;
       return hasChild(doc.children);
     });
 
   return (
-    !hasChild(document.collection.documentStructure) &&
+    !hasChild(document.collection.documentStructure || []) &&
     user.teamId === document.teamId
   );
 });

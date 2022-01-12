@@ -18,9 +18,10 @@ import {
 } from "~/types";
 import { client } from "~/utils/ApiClient";
 
-type FetchParams = PaginationParams & { collectionId: string };
-
-type FetchPageParams = PaginationParams & { template?: boolean };
+type FetchPageParams = PaginationParams & {
+  template?: boolean;
+  collectionId?: string;
+};
 
 export type SearchParams = {
   offset?: number;
@@ -126,13 +127,6 @@ export default class DocumentsStore extends BaseStore<Document> {
       ),
       "updatedAt",
       "desc"
-    );
-  }
-
-  pinnedInCollection(collectionId: string): Document[] {
-    return filter(
-      this.recentlyUpdatedInCollection(collectionId),
-      (document) => document.pinned
     );
   }
 
@@ -265,8 +259,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
       this.backlinks.set(
         documentId,
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'doc' implicitly has an 'any' type.
-        data.map((doc) => doc.id)
+        data.map((doc: Partial<Document>) => doc.id)
       );
     });
   };
@@ -302,7 +295,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   fetchNamedPage = async (
     request = "list",
     options: FetchPageParams | undefined
-  ): Promise<Document[] | undefined> => {
+  ): Promise<Document[]> => {
     this.isFetching = true;
 
     try {
@@ -384,11 +377,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchPinned = (options?: FetchParams): Promise<any> => {
-    return this.fetchNamedPage("pinned", options);
-  };
-
-  @action
   fetchOwned = (options?: PaginationParams): Promise<any> => {
     return this.fetchNamedPage("list", options);
   };
@@ -418,15 +406,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     invariant(res && res.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
-    res.data.forEach((result) => this.add(result.document));
+    res.data.forEach((result: SearchResult) => this.add(result.document));
     this.addPolicies(res.policies);
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
     const results: SearchResult[] = compact(
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'result' implicitly has an 'any' type.
-      res.data.map((result) => {
+      res.data.map((result: SearchResult) => {
         const document = this.data.get(result.document.id);
         if (!document) return null;
         return {
@@ -749,18 +735,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
-  };
-
-  pin = (document: Document) => {
-    return client.post("/documents.pin", {
-      id: document.id,
-    });
-  };
-
-  unpin = (document: Document) => {
-    return client.post("/documents.unpin", {
-      id: document.id,
-    });
   };
 
   star = async (document: Document) => {

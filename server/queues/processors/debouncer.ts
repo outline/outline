@@ -1,4 +1,4 @@
-import { Document } from "@server/models";
+import Document from "@server/models/Document";
 import { globalEventQueue } from "../../queues";
 import { Event } from "../../types";
 
@@ -17,7 +17,7 @@ export default class DebounceProcessor {
 
       case "documents.update.delayed": {
         const document = await Document.findByPk(event.documentId, {
-          fields: ["updatedAt"],
+          attributes: ["updatedAt"],
         });
 
         // If the document has been deleted then prevent further processing

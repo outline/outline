@@ -1,10 +1,11 @@
 import fs from "fs";
+import invariant from "invariant";
+import Logger from "@server/logging/logger";
+import mailer from "@server/mailer";
 import { FileOperation, Collection, Event, Team, User } from "@server/models";
+import { Event as TEvent } from "@server/types";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
-import Logger from "../../logging/logger";
-import mailer from "../../mailer";
-import { Event as TEvent } from "../../types";
 
 export default class ExportsProcessor {
   async on(event: TEvent) {
@@ -13,8 +14,14 @@ export default class ExportsProcessor {
       case "collections.export_all": {
         const { actorId, teamId } = event;
         const team = await Team.findByPk(teamId);
+        invariant(team, "team operation not found");
+
         const user = await User.findByPk(actorId);
+        invariant(user, "user operation not found");
+
         const exportData = await FileOperation.findByPk(event.modelId);
+        invariant(exportData, "exportData not found");
+
         const collectionIds =
           // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type 'Co... Remove this comment to see the full error message
           event.collectionId || (await user.collectionIds());
@@ -91,7 +98,6 @@ export default class ExportsProcessor {
   }
 
   async updateFileOperation(
-    // @ts-expect-error ts-migrate(2749) FIXME: 'FileOperation' refers to a value, but is being us... Remove this comment to see the full error message
     fileOperation: FileOperation,
     actorId: string,
     teamId: string,
@@ -102,6 +108,7 @@ export default class ExportsProcessor {
       name: "fileOperations.update",
       teamId,
       actorId,
+      // @ts-expect-error dataValues exists
       data: fileOperation.dataValues,
     });
   }

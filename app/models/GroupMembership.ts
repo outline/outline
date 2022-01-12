@@ -1,4 +1,5 @@
 import BaseModel from "./BaseModel";
+import User from "./User";
 
 class GroupMembership extends BaseModel {
   id: string;
@@ -6,6 +7,8 @@ class GroupMembership extends BaseModel {
   userId: string;
 
   groupId: string;
+
+  user: User;
 }
 
 export default GroupMembership;

@@ -1,5 +1,5 @@
+import { Op } from "sequelize";
 import { Document, Backlink, Team } from "@server/models";
-import { Op } from "@server/sequelize";
 import parseDocumentIds from "@server/utils/parseDocumentIds";
 import slugify from "@server/utils/slugify";
 import { DocumentEvent, RevisionEvent } from "../../types";
@@ -105,7 +105,6 @@ export default class BacklinksProcessor {
           ],
         });
         await Promise.all(
-          // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'backlink' implicitly has an 'any' type.
           backlinks.map(async (backlink) => {
             const previousUrl = `/doc/${slugify(previousTitle)}-${
               document.urlId

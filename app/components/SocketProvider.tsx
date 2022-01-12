@@ -71,6 +71,7 @@ class SocketProvider extends React.Component<Props> {
       documents,
       collections,
       groups,
+      pins,
       memberships,
       policies,
       presence,
@@ -258,6 +259,18 @@ class SocketProvider extends React.Component<Props> {
       if (event.teamIds) {
         await auth.fetch();
       }
+    });
+
+    this.socket.on("pins.create", (event: any) => {
+      pins.add(event);
+    });
+
+    this.socket.on("pins.update", (event: any) => {
+      pins.add(event);
+    });
+
+    this.socket.on("pins.delete", (event: any) => {
+      pins.remove(event.modelId);
     });
 
     this.socket.on("documents.star", (event: any) => {

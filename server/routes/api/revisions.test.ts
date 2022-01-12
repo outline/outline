@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { Revision } from "@server/models";
 import webService from "@server/services/web";
@@ -9,6 +8,7 @@ const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
+
 describe("#revisions.info", () => {
   it("should return a document revision", async () => {
     const { user, document } = await seed();
@@ -38,6 +38,7 @@ describe("#revisions.info", () => {
     expect(res.status).toEqual(403);
   });
 });
+
 describe("#revisions.list", () => {
   it("should return a document's revisions", async () => {
     const { user, document } = await seed();

@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
@@ -93,6 +94,8 @@ router.post("hooks.interactive", async (ctx) => {
   }
 
   const team = await Team.findByPk(document.teamId);
+  invariant(team, "team not found");
+
   // respond with a public message that will be posted in the original channel
   ctx.body = {
     response_type: "in_channel",

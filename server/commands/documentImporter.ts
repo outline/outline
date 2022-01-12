@@ -1,7 +1,5 @@
 import fs from "fs";
 import path from "path";
-import File from "formidable/lib/file";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'jopl... Remove this comment to see the full error message
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
@@ -21,6 +19,7 @@ const turndownService = new TurndownService({
   bulletListMarker: "-",
   headingStyle: "atx",
 });
+
 // Use the GitHub-flavored markdown plugin to parse
 // strikethoughs and tables
 turndownService
@@ -32,6 +31,7 @@ turndownService
       return "\n";
     },
   });
+
 interface ImportableFile {
   type: string;
   getMarkdown: (file: any) => Promise<string>;
@@ -144,7 +144,6 @@ export default async function documentImporter({
   user,
   ip,
 }: {
-  // @ts-expect-error ts-migrate(2749) FIXME: 'User' refers to a value, but is being used as a t... Remove this comment to see the full error message
   user: User;
   file: File;
   ip: string;

@@ -83,7 +83,10 @@ export const assertValueInArray = (
   }
 };
 
-export const assertIndexCharacters = (value: string, message?: string) => {
+export const assertIndexCharacters = (
+  value: string,
+  message = "index must be between x20 to x7E ASCII"
+) => {
   if (!validateIndexCharacters(value)) {
     throw ValidationError(message);
   }

@@ -47,8 +47,7 @@ export default function init() {
         name: event.name,
         modelId: event.modelId,
       });
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'error' implicitly has an 'any' type.
-      processor.on(event).catch((error) => {
+      processor.on(event).catch((error: Error) => {
         Logger.error(
           `Error processing ${event.name} in ${event.service}`,
           error,

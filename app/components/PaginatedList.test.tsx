@@ -64,8 +64,7 @@ describe("PaginatedList", () => {
   });
 
   it("calls fetch when options prop changes", async () => {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 1-3 arguments, but got 0.
-    const fetchedItems = Array(DEFAULT_PAGINATION_LIMIT).fill();
+    const fetchedItems = Array(DEFAULT_PAGINATION_LIMIT).fill(undefined);
     const fetch = jest.fn().mockReturnValue(Promise.resolve(fetchedItems));
     const list = shallow(
       <PaginatedList

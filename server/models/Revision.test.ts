@@ -1,9 +1,10 @@
-import { Revision } from "@server/models";
 import { buildDocument } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
+import Revision from "./Revision";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
+
 describe("#findLatest", () => {
   test("should return latest revision", async () => {
     const document = await buildDocument({
@@ -18,7 +19,7 @@ describe("#findLatest", () => {
     await document.save();
     await Revision.createFromDocument(document);
     const revision = await Revision.findLatest(document.id);
-    expect(revision.title).toBe("Changed 2");
-    expect(revision.text).toBe("Content");
+    expect(revision?.title).toBe("Changed 2");
+    expect(revision?.text).toBe("Content");
   });
 });

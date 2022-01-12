@@ -1,7 +1,6 @@
 import { Share } from "@server/models";
 import { presentUser } from ".";
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'Share' refers to a value, but is being used as a ... Remove this comment to see the full error message
 export default function present(share: Share, isAdmin = false) {
   const data = {
     id: share.id,
@@ -12,7 +11,7 @@ export default function present(share: Share, isAdmin = false) {
     url: `${share.team.url}/share/${share.id}`,
     createdBy: presentUser(share.user),
     includeChildDocuments: share.includeChildDocuments,
-    lastAccessedAt: share.lastAccessedAt,
+    lastAccessedAt: share.lastAccessedAt || undefined,
     createdAt: share.createdAt,
     updatedAt: share.updatedAt,
   };

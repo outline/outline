@@ -1,30 +1,19 @@
-import { Collection, UserAuthentication } from "@server/models";
+import mailer from "@server/mailer";
+import Collection from "@server/models/Collection";
+import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
-import mailer from "../mailer";
 import accountProvisioner from "./accountProvisioner";
 
-jest.mock("../mailer");
-jest.mock("aws-sdk", () => {
-  const mS3 = {
-    createPresignedPost: jest.fn(),
-    putObject: jest.fn().mockReturnThis(),
-    promise: jest.fn(),
-  };
-  return {
-    S3: jest.fn(() => mS3),
-    Endpoint: jest.fn(),
-  };
-});
 beforeEach(() => {
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'mockReset' does not exist on type '(type... Remove this comment to see the full error message
-  mailer.sendTemplate.mockReset();
   return flushdb();
 });
+
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
   it("should create a new user and team", async () => {
+    const spy = jest.spyOn(mailer, "sendTemplate");
     const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
       ip,
       user: {
@@ -48,7 +37,7 @@ describe("accountProvisioner", () => {
         scopes: ["read"],
       },
     });
-    const authentications = await user.getAuthentications();
+    const authentications = await user.$get("authentications");
     const auth = authentications[0];
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);
@@ -58,19 +47,22 @@ describe("accountProvisioner", () => {
     expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
     expect(isNewTeam).toEqual(true);
-    expect(mailer.sendTemplate).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalled();
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(1);
+
+    spy.mockRestore();
   });
 
   it("should update exising user and authentication", async () => {
+    const spy = jest.spyOn(mailer, "sendTemplate");
     const existingTeam = await buildTeam();
-    const providers = await existingTeam.getAuthenticationProviders();
+    const providers = await existingTeam.$get("authenticationProviders");
     const authenticationProvider = providers[0];
     const existing = await buildUser({
       teamId: existingTeam.id,
     });
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const authentication = authentications[0];
     const newEmail = "test@example.com";
     const newUsername = "tname";
@@ -98,21 +90,23 @@ describe("accountProvisioner", () => {
       },
     });
     const auth = await UserAuthentication.findByPk(authentication.id);
-    expect(auth.accessToken).toEqual("123");
-    expect(auth.scopes.length).toEqual(1);
-    expect(auth.scopes[0]).toEqual("read");
+    expect(auth?.accessToken).toEqual("123");
+    expect(auth?.scopes.length).toEqual(1);
+    expect(auth?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
     expect(user.username).toEqual(newUsername);
     expect(isNewTeam).toEqual(false);
     expect(isNewUser).toEqual(false);
-    expect(mailer.sendTemplate).not.toHaveBeenCalled();
+    expect(spy).not.toHaveBeenCalled();
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(0);
+
+    spy.mockRestore();
   });
 
   it("should throw an error when authentication provider is disabled", async () => {
     const existingTeam = await buildTeam();
-    const providers = await existingTeam.getAuthenticationProviders();
+    const providers = await existingTeam.$get("authenticationProviders");
     const authenticationProvider = providers[0];
     await authenticationProvider.update({
       enabled: false,
@@ -120,7 +114,7 @@ describe("accountProvisioner", () => {
     const existing = await buildUser({
       teamId: existingTeam.id,
     });
-    const authentications = await existing.getAuthentications();
+    const authentications = await existing.$get("authentications");
     const authentication = authentications[0];
     let error;
 
@@ -129,7 +123,7 @@ describe("accountProvisioner", () => {
         ip,
         user: {
           name: existing.name,
-          email: existing.email,
+          email: existing.email!,
           avatarUrl: existing.avatarUrl,
         },
         team: {
@@ -155,8 +149,9 @@ describe("accountProvisioner", () => {
   });
 
   it("should create a new user in an existing team", async () => {
+    const spy = jest.spyOn(mailer, "sendTemplate");
     const team = await buildTeam();
-    const authenticationProviders = await team.getAuthenticationProviders();
+    const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const { user, isNewUser } = await accountProvisioner({
       ip,
@@ -181,7 +176,7 @@ describe("accountProvisioner", () => {
         scopes: ["read"],
       },
     });
-    const authentications = await user.getAuthentications();
+    const authentications = await user.$get("authentications");
     const auth = authentications[0];
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);
@@ -189,9 +184,11 @@ describe("accountProvisioner", () => {
     expect(user.email).toEqual("jenny@example.com");
     expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
-    expect(mailer.sendTemplate).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalled();
     // should provision welcome collection
     const collectionCount = await Collection.count();
     expect(collectionCount).toEqual(1);
+
+    spy.mockRestore();
   });
 });

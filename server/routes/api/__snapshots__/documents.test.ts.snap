@@ -26,15 +26,6 @@ Object {
 }
 `;
 
-exports[`#documents.pin should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`#documents.restore should require authentication 1`] = `
 Object {
   "error": "authentication_required",
@@ -63,15 +54,6 @@ Object {
 `;
 
 exports[`#documents.starred should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#documents.unpin should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",

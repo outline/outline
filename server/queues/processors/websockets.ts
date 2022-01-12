@@ -1,12 +1,14 @@
 import { subHours } from "date-fns";
+import { Op } from "sequelize";
 import {
   Document,
   Collection,
   Group,
   CollectionGroup,
   GroupUser,
+  Pin,
 } from "@server/models";
-import { Op } from "@server/sequelize";
+import { presentPin } from "@server/presenters";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
@@ -19,6 +21,10 @@ export default class WebsocketsProcessor {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });
+        if (!document) {
+          return;
+        }
+
         const channel = document.publishedAt
           ? `collection-${document.collectionId}`
           : `user-${event.actorId}`;
@@ -42,6 +48,9 @@ export default class WebsocketsProcessor {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });
+        if (!document) {
+          return;
+        }
 
         if (!document.publishedAt) {
           return socketio.to(`user-${document.createdById}`).emit("entities", {
@@ -81,12 +90,13 @@ export default class WebsocketsProcessor {
           });
       }
 
-      case "documents.pin":
-      case "documents.unpin":
       case "documents.update": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });
+        if (!document) {
+          return;
+        }
         const channel = document.publishedAt
           ? `collection-${document.collectionId}`
           : `user-${event.actorId}`;
@@ -103,6 +113,9 @@ export default class WebsocketsProcessor {
 
       case "documents.create": {
         const document = await Document.findByPk(event.documentId);
+        if (!document) {
+          return;
+        }
         return socketio.to(`user-${event.actorId}`).emit("entities", {
           event: event.name,
           documentIds: [
@@ -133,7 +146,6 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
-        // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'document' implicitly has an 'any' type.
         documents.forEach((document) => {
           socketio.to(`collection-${document.collectionId}`).emit("entities", {
             event: event.name,
@@ -162,6 +174,9 @@ export default class WebsocketsProcessor {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
+        if (!collection) {
+          return;
+        }
         socketio
           .to(
             collection.permission
@@ -194,6 +209,9 @@ export default class WebsocketsProcessor {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
+        if (!collection) {
+          return;
+        }
         return socketio.to(`team-${collection.teamId}`).emit("entities", {
           event: event.name,
           collectionIds: [
@@ -270,6 +288,9 @@ export default class WebsocketsProcessor {
 
       case "collections.add_group": {
         const group = await Group.findByPk(event.data.groupId);
+        if (!group) {
+          return;
+        }
 
         // the users being added are not yet in the websocket channel for the collection
         // so they need to be notified separately
@@ -293,6 +314,10 @@ export default class WebsocketsProcessor {
 
       case "collections.remove_group": {
         const group = await Group.findByPk(event.data.groupId);
+        if (!group) {
+          return;
+        }
+
         const membershipUserIds = await Collection.membershipUserIds(
           event.collectionId
         );
@@ -334,11 +359,41 @@ export default class WebsocketsProcessor {
           .emit("fileOperations.update", event.data);
       }
 
+      case "pins.create":
+      case "pins.update": {
+        const pin = await Pin.findByPk(event.modelId);
+        if (!pin) {
+          return;
+        }
+        return socketio
+          .to(
+            pin.collectionId
+              ? `collection-${pin.collectionId}`
+              : `team-${pin.teamId}`
+          )
+          .emit(event.name, presentPin(pin));
+      }
+
+      case "pins.delete": {
+        return socketio
+          .to(
+            event.collectionId
+              ? `collection-${event.collectionId}`
+              : `team-${event.teamId}`
+          )
+          .emit(event.name, {
+            modelId: event.modelId,
+          });
+      }
+
       case "groups.create":
       case "groups.update": {
         const group = await Group.findByPk(event.modelId, {
           paranoid: false,
         });
+        if (!group) {
+          return;
+        }
         return socketio.to(`team-${group.teamId}`).emit("entities", {
           event: event.name,
           groupIds: [
@@ -438,6 +493,10 @@ export default class WebsocketsProcessor {
         const group = await Group.findByPk(event.modelId, {
           paranoid: false,
         });
+        if (!group) {
+          return;
+        }
+
         socketio.to(`team-${group.teamId}`).emit("entities", {
           event: event.name,
           groupIds: [

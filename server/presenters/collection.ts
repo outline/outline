@@ -1,7 +1,6 @@
 import { sortNavigationNodes } from "@shared/utils/collections";
-import { Collection } from "@server/models";
+import Collection from "@server/models/Collection";
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'Collection' refers to a value, but is being used ... Remove this comment to see the full error message
 export default function present(collection: Collection) {
   const data = {
     id: collection.id,

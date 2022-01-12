@@ -63,7 +63,6 @@ const InputSelect = (props: Props) => {
     gutter: 0,
     modal: true,
     selectedValue: value,
-    animated: 200,
   });
 
   const popOver = useSelectPopover({
@@ -180,13 +179,12 @@ const InputSelect = (props: Props) => {
                         }
                   }
                 >
-                  {select.visible || select.animating
+                  {select.visible
                     ? options.map((option) => (
                         <StyledSelectOption
                           {...select}
                           value={option.value}
                           key={option.value}
-                          $animating={select.animating}
                           ref={
                             select.selectedValue === option.value
                               ? selectedRef
@@ -214,7 +212,7 @@ const InputSelect = (props: Props) => {
         </SelectPopover>
       </Wrapper>
       {note && <HelpText small>{note}</HelpText>}
-      {(select.visible || select.animating) && <Backdrop />}
+      {select.visible && <Backdrop />}
     </>
   );
 };
@@ -236,6 +234,10 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   display: block;
   width: 100%;
 
+  &:hover:not(:disabled) {
+    background: ${(props) => props.theme.buttonNeutralBackground};
+  }
+
   ${(props) =>
     props.nude &&
     css`
@@ -255,14 +257,8 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   }
 `;
 
-export const StyledSelectOption = styled(SelectOption)<{ $animating: boolean }>`
+export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
-
-  ${(props) =>
-    props.$animating &&
-    css`
-      pointer-events: none;
-    `}
 `;
 
 const Wrapper = styled.label<{ short?: boolean }>`

@@ -2,18 +2,17 @@ import Router from "koa-router";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, Revision } from "@server/models";
-import policy from "@server/policies";
+import { authorize } from "@server/policies";
 import { presentRevision } from "@server/presenters";
 import { assertPresent, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-const { authorize } = policy;
 const router = new Router();
 
 router.post("revisions.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const revision = await Revision.findByPk(id);
 
   if (!revision) {
@@ -38,11 +37,12 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
   assertSort(sort, Revision);
   assertPresent(documentId, "documentId is required");
 
-  const user = ctx.state.user;
+  const { user } = ctx.state;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
   authorize(user, "read", document);
+
   const revisions = await Revision.findAll({
     where: {
       documentId: document.id,
@@ -52,9 +52,9 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
   const data = await Promise.all(
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'revision' implicitly has an 'any' type.
     revisions.map((revision) => presentRevision(revision))
   );
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,

@@ -1,4 +1,3 @@
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'fetc... Remove this comment to see the full error message
 import TestServer from "fetch-test-server";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
 import webService from "@server/services/web";
@@ -13,6 +12,7 @@ afterAll(() => server.close());
 jest.mock("../../utils/slack", () => ({
   post: jest.fn(),
 }));
+
 describe("#hooks.unfurl", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
@@ -45,6 +45,7 @@ describe("#hooks.unfurl", () => {
     expect(Slack.post).toHaveBeenCalled();
   });
 });
+
 describe("#hooks.slack", () => {
   it("should return no matches", async () => {
     const { user, team } = await seed();
@@ -126,8 +127,8 @@ describe("#hooks.slack", () => {
       "This title *contains* a search term"
     );
   });
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '(done: DoneCallback) => Promise<... Remove this comment to see the full error message
-  it("should save search term, hits and source", async (done) => {
+
+  it("should save search term, hits and source", async () => {
     const { user, team } = await seed();
     await server.post("/api/hooks.slack", {
       body: {
@@ -137,19 +138,22 @@ describe("#hooks.slack", () => {
         text: "contains",
       },
     });
-    // setTimeout is needed here because SearchQuery is saved asynchronously
-    // in order to not slow down the response time.
-    setTimeout(async () => {
-      const searchQuery = await SearchQuery.findAll({
-        where: {
-          query: "contains",
-        },
-      });
-      expect(searchQuery.length).toBe(1);
-      expect(searchQuery[0].results).toBe(0);
-      expect(searchQuery[0].source).toBe("slack");
-      done();
-    }, 100);
+
+    return new Promise((resolve) => {
+      // setTimeout is needed here because SearchQuery is saved asynchronously
+      // in order to not slow down the response time.
+      setTimeout(async () => {
+        const searchQuery = await SearchQuery.findAll({
+          where: {
+            query: "contains",
+          },
+        });
+        expect(searchQuery.length).toBe(1);
+        expect(searchQuery[0].results).toBe(0);
+        expect(searchQuery[0].source).toBe("slack");
+        resolve(undefined);
+      }, 100);
+    });
   });
 
   it("should respond with help content for help keyword", async () => {
@@ -259,6 +263,7 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(401);
   });
 });
+
 describe("#hooks.interactive", () => {
   it("should respond with replacement message", async () => {
     const { user, team } = await seed();

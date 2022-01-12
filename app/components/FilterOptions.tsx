@@ -1,4 +1,3 @@
-import { find } from "lodash";
 import * as React from "react";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
@@ -34,11 +33,8 @@ const FilterOptions = ({
     modal: true,
   });
   const selected =
-    find(options, {
-      key: activeKey,
-    }) || options[0];
+    options.find((option) => option.key === activeKey) || options[0];
 
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'label' does not exist on type 'number | ... Remove this comment to see the full error message
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
 
   return (

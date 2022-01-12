@@ -1,6 +1,5 @@
-import { ApiKey } from "@server/models";
+import ApiKey from "@server/models/ApiKey";
 
-// @ts-expect-error ts-migrate(2749) FIXME: 'ApiKey' refers to a value, but is being used as a... Remove this comment to see the full error message
 export default function present(key: ApiKey) {
   return {
     id: key.id,

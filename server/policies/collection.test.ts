@@ -4,6 +4,7 @@ import { flushdb } from "@server/test/support";
 import { serialize } from "./index";
 
 beforeEach(() => flushdb());
+
 describe("read_write permission", () => {
   it("should allow read write permissions for team member", async () => {
     const team = await buildTeam();
@@ -25,7 +26,7 @@ describe("read_write permission", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    let collection = await buildCollection({
+    const collection = await buildCollection({
       teamId: team.id,
       permission: "read_write",
     });
@@ -36,15 +37,16 @@ describe("read_write permission", () => {
       permission: "read",
     });
     // reload to get membership
-    collection = await Collection.scope({
+    const reloaded = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collection.id);
-    const abilities = serialize(user, collection);
+    const abilities = serialize(user, reloaded);
     expect(abilities.read).toEqual(true);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
 });
+
 describe("read permission", () => {
   it("should allow read permissions for team member", async () => {
     const team = await buildTeam();
@@ -66,7 +68,7 @@ describe("read permission", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    let collection = await buildCollection({
+    const collection = await buildCollection({
       teamId: team.id,
       permission: "read",
     });
@@ -77,15 +79,16 @@ describe("read permission", () => {
       permission: "read_write",
     });
     // reload to get membership
-    collection = await Collection.scope({
+    const reloaded = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collection.id);
-    const abilities = serialize(user, collection);
+    const abilities = serialize(user, reloaded);
     expect(abilities.read).toEqual(true);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
   });
 });
+
 describe("no permission", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();
@@ -107,7 +110,7 @@ describe("no permission", () => {
     const user = await buildUser({
       teamId: team.id,
     });
-    let collection = await buildCollection({
+    const collection = await buildCollection({
       teamId: team.id,
       permission: null,
     });
@@ -118,10 +121,10 @@ describe("no permission", () => {
       permission: "read_write",
     });
     // reload to get membership
-    collection = await Collection.scope({
+    const reloaded = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collection.id);
-    const abilities = serialize(user, collection);
+    const abilities = serialize(user, reloaded);
     expect(abilities.read).toEqual(true);
     expect(abilities.update).toEqual(true);
     expect(abilities.share).toEqual(true);
