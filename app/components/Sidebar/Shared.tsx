@@ -20,6 +20,7 @@ function MainSidebar({ rootNode, shareId }: Props) {
       <Scrollable flex topShadow>
         <Section>
           <DocumentLink
+            index={0}
             shareId={shareId}
             depth={1}
             node={rootNode}
