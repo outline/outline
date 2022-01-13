@@ -1,13 +1,13 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import { CommandFactory } from "../lib/Extension";
-import { MenuItem } from "../types";
+import { CommandFactory } from "@shared/editor/lib/Extension";
+import { MenuItem } from "@shared/editor/types";
 import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
+import Tooltip from "./Tooltip";
 
 type Props = {
-  tooltip: typeof React.Component | React.FC;
   commands: Record<string, CommandFactory>;
   view: EditorView;
   items: MenuItem[];
@@ -21,7 +21,6 @@ function ToolbarMenu(props: Props) {
   const theme = useTheme();
   const { view, items } = props;
   const { state } = view;
-  const Tooltip = props.tooltip;
 
   return (
     <FlexibleWrapper>
@@ -41,7 +40,7 @@ function ToolbarMenu(props: Props) {
             onClick={() => item.name && props.commands[item.name](item.attrs)}
             active={isActive}
           >
-            <Tooltip tooltip={item.tooltip} placement="top">
+            <Tooltip tooltip={item.tooltip}>
               <Icon color={theme.toolbarItem} />
             </Tooltip>
           </ToolbarButton>

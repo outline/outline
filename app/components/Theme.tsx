@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { ThemeProvider } from "styled-components";
-import useMediaQuery from "@shared/hooks/useMediaQuery";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import { dark, light, lightMobile, darkMobile } from "@shared/theme";
 import useStores from "~/hooks/useStores";
 import GlobalStyles from "~/styles/globals";

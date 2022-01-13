@@ -7,9 +7,9 @@ import {
   AlignImageCenterIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import { Dictionary } from "../../hooks/useDictionary";
-import isNodeActive from "../queries/isNodeActive";
-import { MenuItem } from "../types";
+import isNodeActive from "@shared/editor/queries/isNodeActive";
+import { MenuItem } from "@shared/editor/types";
+import { Dictionary } from "~/hooks/useDictionary";
 
 export default function imageMenuItems(
   state: EditorState,

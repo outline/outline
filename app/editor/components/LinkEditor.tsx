@@ -10,12 +10,13 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import { Dictionary } from "../../hooks/useDictionary";
-import isUrl from "../lib/isUrl";
+import isUrl from "@shared/editor/lib/isUrl";
+import { Dictionary } from "~/hooks/useDictionary";
 import Flex from "./Flex";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
 import ToolbarButton from "./ToolbarButton";
+import Tooltip from "./Tooltip";
 
 export type SearchResult = {
   title: string;
@@ -27,7 +28,6 @@ type Props = {
   mark?: Mark;
   from: number;
   to: number;
-  tooltip: typeof React.Component | React.FC<any>;
   dictionary: Dictionary;
   onRemoveLink?: () => void;
   onCreateLink?: (title: string) => Promise<void>;
@@ -287,9 +287,7 @@ class LinkEditor extends React.Component<Props, State> {
       this.state.results[this.state.previousValue] ||
       [];
 
-    const Tooltip = this.props.tooltip;
     const looksLikeUrl = value.match(/^https?:\/\//i);
-
     const suggestedLinkTitle = this.suggestedLinkTitle;
 
     const showCreateLink =
@@ -317,12 +315,12 @@ class LinkEditor extends React.Component<Props, State> {
         />
 
         <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
-          <Tooltip tooltip={dictionary.openLink} placement="top">
+          <Tooltip tooltip={dictionary.openLink}>
             <OpenIcon color="currentColor" />
           </Tooltip>
         </ToolbarButton>
         <ToolbarButton onClick={this.handleRemoveLink}>
-          <Tooltip tooltip={dictionary.removeLink} placement="top">
+          <Tooltip tooltip={dictionary.removeLink}>
             {this.initialValue ? (
               <TrashIcon color="currentColor" />
             ) : (

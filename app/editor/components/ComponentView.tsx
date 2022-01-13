@@ -2,17 +2,10 @@ import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, Decoration } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { DefaultTheme, ThemeProvider } from "styled-components";
-import { Editor } from "../";
-import Extension from "../lib/Extension";
-
-export type ComponentProps = {
-  theme: DefaultTheme;
-  node: ProsemirrorNode;
-  isSelected: boolean;
-  isEditable: boolean;
-  getPos: () => number;
-};
+import { ThemeProvider } from "styled-components";
+import Extension from "@shared/editor/lib/Extension";
+import { ComponentProps } from "@shared/editor/types";
+import { Editor } from "~/editor";
 
 type Component = (props: ComponentProps) => React.ReactElement;
 

@@ -1,4 +1,4 @@
-import flattenDeep from "lodash/flattenDeep";
+import { flattenDeep } from "lodash";
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";

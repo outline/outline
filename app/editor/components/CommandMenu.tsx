@@ -1,15 +1,15 @@
-import capitalize from "lodash/capitalize";
+import { capitalize } from "lodash";
 import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import { Dictionary } from "../../hooks/useDictionary";
-import getDataTransferFiles from "../../utils/getDataTransferFiles";
-import insertFiles from "../commands/insertFiles";
-import { CommandFactory } from "../lib/Extension";
-import filterExcessSeparators from "../lib/filterExcessSeparators";
-import { EmbedDescriptor, MenuItem, ToastType } from "../types";
+import insertFiles from "@shared/editor/commands/insertFiles";
+import { CommandFactory } from "@shared/editor/lib/Extension";
+import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
+import { EmbedDescriptor, MenuItem, ToastType } from "@shared/editor/types";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
 import VisuallyHidden from "./VisuallyHidden";
 

@@ -4,9 +4,9 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import useComponentSize from "../../hooks/useComponentSize";
-import useMediaQuery from "../../hooks/useMediaQuery";
-import useViewportHeight from "../../hooks/useViewportHeight";
+import useComponentSize from "~/hooks/useComponentSize";
+import useMediaQuery from "~/hooks/useMediaQuery";
+import useViewportHeight from "~/hooks/useViewportHeight";
 
 type Props = {
   active?: boolean;

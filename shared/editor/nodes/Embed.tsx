@@ -2,9 +2,9 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
-import { ComponentProps } from "../lib/ComponentView";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
+import { ComponentProps } from "../types";
 import Node from "./Node";
 
 const cache = {};

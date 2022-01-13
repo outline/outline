@@ -14,9 +14,9 @@ import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
 import getDataTransferFiles from "../../utils/getDataTransferFiles";
 import insertFiles, { Options } from "../commands/insertFiles";
-import { ComponentProps } from "../lib/ComponentView";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
+import { ComponentProps } from "../types";
 import Node from "./Node";
 
 /**

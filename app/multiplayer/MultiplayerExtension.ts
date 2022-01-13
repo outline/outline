@@ -7,7 +7,7 @@ import {
   redo,
 } from "y-prosemirror";
 import * as Y from "yjs";
-import { Extension } from "@shared/editor";
+import { Extension } from "~/editor";
 
 export default class MultiplayerExtension extends Extension {
   get name() {

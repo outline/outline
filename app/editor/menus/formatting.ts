@@ -14,11 +14,11 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
-import { Dictionary } from "../../hooks/useDictionary";
-import isInList from "../queries/isInList";
-import isMarkActive from "../queries/isMarkActive";
-import isNodeActive from "../queries/isNodeActive";
-import { MenuItem } from "../types";
+import isInList from "@shared/editor/queries/isInList";
+import isMarkActive from "@shared/editor/queries/isMarkActive";
+import isNodeActive from "@shared/editor/queries/isNodeActive";
+import { MenuItem } from "@shared/editor/types";
+import { Dictionary } from "~/hooks/useDictionary";
 
 export default function formattingMenuItems(
   state: EditorState,

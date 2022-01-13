@@ -1,4 +1,4 @@
-import useMediaQuery from "@shared/hooks/useMediaQuery";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import { base } from "@shared/theme";
 
 export default function useMobile(): boolean {

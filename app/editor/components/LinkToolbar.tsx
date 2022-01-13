@@ -1,14 +1,13 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import { Dictionary } from "../../hooks/useDictionary";
-import createAndInsertLink from "../commands/createAndInsertLink";
+import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
+import { Dictionary } from "~/hooks/useDictionary";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
 
 type Props = {
   isActive: boolean;
   view: EditorView;
-  tooltip: typeof React.Component | React.FC<any>;
   dictionary: Dictionary;
   onCreateLink?: (title: string) => Promise<string>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;

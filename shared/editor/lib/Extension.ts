@@ -3,7 +3,7 @@ import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Editor } from "../";
+import { Editor } from "../../../app/editor";
 
 export type Command = (
   state: EditorState,

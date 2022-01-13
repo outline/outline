@@ -12,8 +12,61 @@ import { selectColumn, selectRow, selectTable } from "prosemirror-utils";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
-import { Dictionary } from "@shared/hooks/useDictionary";
+import Extension from "@shared/editor/lib/Extension";
+import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import headingToSlug from "@shared/editor/lib/headingToSlug";
+import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
+
+// marks
+import Bold from "@shared/editor/marks/Bold";
+import Code from "@shared/editor/marks/Code";
+import Highlight from "@shared/editor/marks/Highlight";
+import Italic from "@shared/editor/marks/Italic";
+import Link from "@shared/editor/marks/Link";
+import TemplatePlaceholder from "@shared/editor/marks/Placeholder";
+import Strikethrough from "@shared/editor/marks/Strikethrough";
+import Underline from "@shared/editor/marks/Underline";
+
+// nodes
+import Blockquote from "@shared/editor/nodes/Blockquote";
+import BulletList from "@shared/editor/nodes/BulletList";
+import CheckboxItem from "@shared/editor/nodes/CheckboxItem";
+import CheckboxList from "@shared/editor/nodes/CheckboxList";
+import CodeBlock from "@shared/editor/nodes/CodeBlock";
+import CodeFence from "@shared/editor/nodes/CodeFence";
+import Doc from "@shared/editor/nodes/Doc";
+import Embed from "@shared/editor/nodes/Embed";
+import Emoji from "@shared/editor/nodes/Emoji";
+import HardBreak from "@shared/editor/nodes/HardBreak";
+import Heading from "@shared/editor/nodes/Heading";
+import HorizontalRule from "@shared/editor/nodes/HorizontalRule";
+import Image from "@shared/editor/nodes/Image";
+import ListItem from "@shared/editor/nodes/ListItem";
+import Notice from "@shared/editor/nodes/Notice";
+import OrderedList from "@shared/editor/nodes/OrderedList";
+import Paragraph from "@shared/editor/nodes/Paragraph";
+import ReactNode from "@shared/editor/nodes/ReactNode";
+import Table from "@shared/editor/nodes/Table";
+import TableCell from "@shared/editor/nodes/TableCell";
+import TableHeadCell from "@shared/editor/nodes/TableHeadCell";
+import TableRow from "@shared/editor/nodes/TableRow";
+import Text from "@shared/editor/nodes/Text";
+
+// plugins
+import BlockMenuTrigger from "@shared/editor/plugins/BlockMenuTrigger";
+import EmojiTrigger from "@shared/editor/plugins/EmojiTrigger";
+import Folding from "@shared/editor/plugins/Folding";
+import History from "@shared/editor/plugins/History";
+import Keys from "@shared/editor/plugins/Keys";
+import MaxLength from "@shared/editor/plugins/MaxLength";
+import PasteHandler from "@shared/editor/plugins/PasteHandler";
+import Placeholder from "@shared/editor/plugins/Placeholder";
+import SmartText from "@shared/editor/plugins/SmartText";
+import TrailingNode from "@shared/editor/plugins/TrailingNode";
+import { EmbedDescriptor, ToastType } from "@shared/editor/types";
+import { Dictionary } from "~/hooks/useDictionary";
 import BlockMenu from "./components/BlockMenu";
+import ComponentView from "./components/ComponentView";
 import EmojiMenu from "./components/EmojiMenu";
 import Flex from "./components/Flex";
 import { SearchResult } from "./components/LinkEditor";
@@ -21,62 +74,9 @@ import LinkToolbar from "./components/LinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
 import Tooltip from "./components/Tooltip";
 import WithTheme from "./components/WithTheme";
-import ComponentView from "./lib/ComponentView";
-import Extension from "./lib/Extension";
-import ExtensionManager from "./lib/ExtensionManager";
-import headingToSlug from "./lib/headingToSlug";
-import { MarkdownSerializer } from "./lib/markdown/serializer";
-
-// marks
-import Bold from "./marks/Bold";
-import Code from "./marks/Code";
-import Highlight from "./marks/Highlight";
-import Italic from "./marks/Italic";
-import Link from "./marks/Link";
-import TemplatePlaceholder from "./marks/Placeholder";
-import Strikethrough from "./marks/Strikethrough";
-import Underline from "./marks/Underline";
-
-// nodes
-import Blockquote from "./nodes/Blockquote";
-import BulletList from "./nodes/BulletList";
-import CheckboxItem from "./nodes/CheckboxItem";
-import CheckboxList from "./nodes/CheckboxList";
-import CodeBlock from "./nodes/CodeBlock";
-import CodeFence from "./nodes/CodeFence";
-import Doc from "./nodes/Doc";
-import Embed from "./nodes/Embed";
-import Emoji from "./nodes/Emoji";
-import HardBreak from "./nodes/HardBreak";
-import Heading from "./nodes/Heading";
-import HorizontalRule from "./nodes/HorizontalRule";
-import Image from "./nodes/Image";
-import ListItem from "./nodes/ListItem";
-import Notice from "./nodes/Notice";
-import OrderedList from "./nodes/OrderedList";
-import Paragraph from "./nodes/Paragraph";
-import ReactNode from "./nodes/ReactNode";
-import Table from "./nodes/Table";
-import TableCell from "./nodes/TableCell";
-import TableHeadCell from "./nodes/TableHeadCell";
-import TableRow from "./nodes/TableRow";
-import Text from "./nodes/Text";
-
-// plugins
-import BlockMenuTrigger from "./plugins/BlockMenuTrigger";
-import EmojiTrigger from "./plugins/EmojiTrigger";
-import Folding from "./plugins/Folding";
-import History from "./plugins/History";
-import Keys from "./plugins/Keys";
-import MaxLength from "./plugins/MaxLength";
-import PasteHandler from "./plugins/PasteHandler";
-import Placeholder from "./plugins/Placeholder";
-import SmartText from "./plugins/SmartText";
-import TrailingNode from "./plugins/TrailingNode";
 import { StyledEditor } from "./styles/editor";
-import { EmbedDescriptor, ToastType } from "./types";
 
-export { default as Extension } from "./lib/Extension";
+export { default as Extension } from "@shared/editor/lib/Extension";
 
 export type Props = {
   id?: string;
@@ -111,7 +111,6 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   embeds: EmbedDescriptor[];
   onShowToast?: (message: string, code: ToastType) => void;
-  tooltip: typeof React.Component | React.FC<any>;
   className?: string;
   style?: React.CSSProperties;
 };
@@ -690,7 +689,6 @@ export class Editor extends React.PureComponent<
       readOnly,
       readOnlyWriteCheckboxes,
       style,
-      tooltip,
       className,
       dictionary,
       onKeyDown,
@@ -727,7 +725,6 @@ export class Editor extends React.PureComponent<
               onSearchLink={this.props.onSearchLink}
               onClickLink={this.props.onClickLink}
               onCreateLink={this.props.onCreateLink}
-              tooltip={tooltip}
             />
             <LinkToolbar
               view={this.view}
@@ -738,7 +735,6 @@ export class Editor extends React.PureComponent<
               onClickLink={this.props.onClickLink}
               onShowToast={this.props.onShowToast}
               onClose={this.handleCloseLinkMenu}
-              tooltip={tooltip}
             />
             <EmojiMenu
               view={this.view}

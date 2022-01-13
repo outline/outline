@@ -16,8 +16,8 @@ import {
   InfoIcon,
   LinkIcon,
 } from "outline-icons";
-import { Dictionary } from "../../hooks/useDictionary";
-import { MenuItem } from "../types";
+import { MenuItem } from "@shared/editor/types";
+import { Dictionary } from "~/hooks/useDictionary";
 
 const SSR = typeof window === "undefined";
 const isMac = !SSR && window.navigator.platform === "MacIntel";

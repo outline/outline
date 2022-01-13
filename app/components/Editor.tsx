@@ -2,14 +2,13 @@ import { lighten } from "polished";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import { Optional } from "utility-types";
-import { Props as EditorProps } from "@shared/editor";
+import embeds from "@shared/editor/embeds";
 import { EmbedDescriptor } from "@shared/editor/types";
-import embeds from "@shared/embeds";
-import useDictionary from "@shared/hooks/useDictionary";
-import useMediaQuery from "@shared/hooks/useMediaQuery";
 import { light } from "@shared/theme";
 import ErrorBoundary from "~/components/ErrorBoundary";
-import Tooltip from "~/components/Tooltip";
+import { Props as EditorProps } from "~/editor";
+import useDictionary from "~/hooks/useDictionary";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import useToasts from "~/hooks/useToasts";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
@@ -22,7 +21,7 @@ const SharedEditor = React.lazy(
   () =>
     import(
       /* webpackChunkName: "shared-editor" */
-      "@shared/editor"
+      "~/editor"
     )
 );
 
@@ -30,7 +29,7 @@ const EMPTY_ARRAY: EmbedDescriptor[] = [];
 
 export type Props = Optional<
   EditorProps,
-  "placeholder" | "defaultValue" | "tooltip" | "onClickLink" | "embeds"
+  "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "dictionary"
 > & {
   shareId?: string | undefined;
   disableEmbeds?: boolean;
@@ -106,7 +105,6 @@ function Editor(props: Props, ref: React.Ref<any>) {
         embeds={props.disableEmbeds ? EMPTY_ARRAY : embeds}
         dictionary={dictionary}
         {...props}
-        tooltip={EditorTooltip}
         onClickLink={onClickLink}
         placeholder={props.placeholder || ""}
         defaultValue={props.defaultValue || ""}
@@ -222,21 +220,6 @@ const StyledEditor = styled(SharedEditor)<{ grow?: boolean }>`
   &.show-cursor-names .ProseMirror-yjs-cursor > div {
     opacity: 1;
   }
-`;
-
-type TooltipProps = {
-  children: React.ReactNode;
-  tooltip: string;
-};
-
-const EditorTooltip = ({ children, tooltip, ...props }: TooltipProps) => (
-  <Tooltip offset="0, 16" delay={150} tooltip={tooltip} {...props}>
-    <TooltipContent>{children}</TooltipContent>
-  </Tooltip>
-);
-
-const TooltipContent = styled.span`
-  outline: none;
 `;
 
 export default React.forwardRef<typeof Editor, Props>(Editor);

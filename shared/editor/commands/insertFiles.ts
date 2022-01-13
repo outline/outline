@@ -1,6 +1,5 @@
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Dictionary } from "../../hooks/useDictionary";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
@@ -9,7 +8,7 @@ import { ToastType } from "../types";
 let uploadId = 0;
 
 export type Options = {
-  dictionary: Dictionary;
+  dictionary: any;
   replaceExisting?: boolean;
   uploadImage: (file: File) => Promise<string>;
   onImageUploadStart?: () => void;

@@ -1,4 +1,4 @@
-import { ComponentProps } from "../lib/ComponentView";
+import { ComponentProps } from "../types";
 import Node from "./Node";
 
 export default abstract class ReactNode extends Node {

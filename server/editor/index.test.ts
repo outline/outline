@@ -1,4 +1,4 @@
-import { parser } from "./server";
+import { parser } from ".";
 
 test("renders an empty doc", () => {
   const ast = parser.parse("");

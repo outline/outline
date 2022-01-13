@@ -1,5 +1,7 @@
+import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
+import { DefaultTheme } from "styled-components";
 
 export enum ToastType {
   Error = "error",
@@ -22,4 +24,12 @@ export type MenuItem = {
 export type EmbedDescriptor = MenuItem & {
   matcher: (url: string) => boolean | [] | RegExpMatchArray;
   component: typeof React.Component | React.FC<any>;
+};
+
+export type ComponentProps = {
+  theme: DefaultTheme;
+  node: ProsemirrorNode;
+  isSelected: boolean;
+  isEditable: boolean;
+  getPos: () => number;
 };
