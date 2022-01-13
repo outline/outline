@@ -478,7 +478,7 @@ export default class DocumentsStore extends BaseStore<Document> {
           return {
             document: doc,
           };
-        } else if (this.sharedTreeCache.has(options.shareId))
+        } else if (this.sharedTreeCache.has(options.shareId)) {
           return {
             document: doc,
             sharedTree: this.sharedTreeCache.get(options.shareId),
