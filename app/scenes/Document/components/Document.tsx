@@ -340,6 +340,14 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
+  onFileUploadStart = () => {
+    this.isUploading = true;
+  };
+
+  onFileUploadStop = () => {
+    this.isUploading = false;
+  };
+
   onChange = (getEditorText: () => string) => {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;

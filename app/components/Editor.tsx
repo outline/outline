@@ -53,6 +53,16 @@ function Editor(props: Props, ref: React.Ref<any>) {
     },
     [id]
   );
+ 
+  const onUpload = React.useCallback(
+    async (file: File) => {
+      const result = await uploadFile(file, {
+        documentId: id,
+      });
+      return result.url;
+    },
+    [id]
+  );
 
   const onClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
@@ -100,6 +110,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
       <StyledEditor
         ref={ref}
         uploadImage={onUploadImage}
+        uploadFile={onUpload}
         onShowToast={onShowToast}
         embeds={props.disableEmbeds ? EMPTY_ARRAY : embeds}
         dictionary={dictionary}
