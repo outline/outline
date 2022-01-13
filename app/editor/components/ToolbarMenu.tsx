@@ -15,6 +15,7 @@ type Props = {
 
 const FlexibleWrapper = styled.div`
   display: flex;
+  gap: 8px;
 `;
 
 function ToolbarMenu(props: Props) {
@@ -35,15 +36,15 @@ function ToolbarMenu(props: Props) {
         const isActive = item.active ? item.active(state) : false;
 
         return (
-          <ToolbarButton
-            key={index}
-            onClick={() => item.name && props.commands[item.name](item.attrs)}
-            active={isActive}
-          >
-            <Tooltip tooltip={item.tooltip}>
+          <Tooltip tooltip={item.tooltip}>
+            <ToolbarButton
+              key={index}
+              onClick={() => item.name && props.commands[item.name](item.attrs)}
+              active={isActive}
+            >
               <Icon color={theme.toolbarItem} />
-            </Tooltip>
-          </ToolbarButton>
+            </ToolbarButton>
+          </Tooltip>
         );
       })}
     </FlexibleWrapper>

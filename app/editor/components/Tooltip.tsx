@@ -7,8 +7,8 @@ type Props = {
   tooltip?: string;
 };
 
-const WrappedTooltip = ({ children, tooltip, ...props }: Props) => (
-  <Tooltip offset="0, 16" delay={150} tooltip={tooltip} {...props}>
+const WrappedTooltip = ({ children, tooltip }: Props) => (
+  <Tooltip offset="0, 8" delay={150} tooltip={tooltip} placement="top">
     <TooltipContent>{children}</TooltipContent>
   </Tooltip>
 );

@@ -314,20 +314,20 @@ class LinkEditor extends React.Component<Props, State> {
           autoFocus={this.href === ""}
         />
 
-        <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
-          <Tooltip tooltip={dictionary.openLink}>
+        <Tooltip tooltip={dictionary.openLink}>
+          <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
             <OpenIcon color="currentColor" />
-          </Tooltip>
-        </ToolbarButton>
-        <ToolbarButton onClick={this.handleRemoveLink}>
-          <Tooltip tooltip={dictionary.removeLink}>
+          </ToolbarButton>
+        </Tooltip>
+        <Tooltip tooltip={dictionary.removeLink}>
+          <ToolbarButton onClick={this.handleRemoveLink}>
             {this.initialValue ? (
               <TrashIcon color="currentColor" />
             ) : (
               <CloseIcon color="currentColor" />
             )}
-          </Tooltip>
-        </ToolbarButton>
+          </ToolbarButton>
+        </Tooltip>
 
         {showResults && (
           <SearchResults id="link-search-results">
@@ -372,6 +372,7 @@ const Wrapper = styled(Flex)`
   margin-right: -8px;
   min-width: 336px;
   pointer-events: all;
+  gap: 8px;
 `;
 
 const SearchResults = styled.ol`

@@ -15,9 +15,10 @@ function Theme({ children }: Props) {
   const theme = ui.resolvedTheme === "dark" ? dark : light;
   const mobileTheme = ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.tablet}px)`);
+  const isPrinting = useMediaQuery("print");
 
   return (
-    <ThemeProvider theme={isMobile ? mobileTheme : theme}>
+    <ThemeProvider theme={isPrinting ? light : isMobile ? mobileTheme : theme}>
       <>
         <GlobalStyles />
         {children}

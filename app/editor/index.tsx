@@ -73,7 +73,6 @@ import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
 import EditorContainer from "./components/Styles";
-import Tooltip from "./components/Tooltip";
 import WithTheme from "./components/WithTheme";
 
 export { default as Extension } from "@shared/editor/lib/Extension";
@@ -145,7 +144,6 @@ export class Editor extends React.PureComponent<
     },
     embeds: [],
     extensions: [],
-    tooltip: Tooltip,
   };
 
   state = {
