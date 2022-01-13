@@ -17,7 +17,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
 
   return (
     <Sidebar>
-      <Scrollable flex topShadow>
+      <Scrollable flex>
         <Section>
           <DocumentLink
             index={0}
