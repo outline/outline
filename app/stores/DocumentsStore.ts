@@ -474,15 +474,16 @@ export default class DocumentsStore extends BaseStore<Document> {
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
 
       if (doc && policy && !options.force) {
-        if (!options.shareId)
+        if (!options.shareId) {
           return {
             document: doc,
           };
-        else if (this.sharedTreeCache.has(options.shareId))
+        } else if (this.sharedTreeCache.has(options.shareId))
           return {
             document: doc,
             sharedTree: this.sharedTreeCache.get(options.shareId),
           };
+        }
       }
 
       const res = await client.post("/documents.info", {
