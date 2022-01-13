@@ -1,4 +1,4 @@
-import { Search } from "js-search";
+import FuzzySearch from "fuzzy-search";
 import { last } from "lodash";
 import { observer } from "mobx-react";
 import { useMemo, useState } from "react";
@@ -29,8 +29,6 @@ function DocumentMove({ document, onRequestClose }: Props) {
 
   const searchIndex = useMemo(() => {
     const paths = collections.pathsToDocuments;
-    const index = new Search("id");
-    index.addIndex("title");
 
     // Build index
     const indexeableDocuments: DocumentPath[] = [];
@@ -43,8 +41,10 @@ function DocumentMove({ document, onRequestClose }: Props) {
       }
     });
 
-    index.addDocuments(indexeableDocuments);
-    return index;
+    return new FuzzySearch<DocumentPath>(indexeableDocuments, ["title"], {
+      caseSensitive: false,
+      sort: true,
+    });
   }, [documents, collections.pathsToDocuments]);
 
   const results = useMemo(() => {
@@ -53,10 +53,9 @@ function DocumentMove({ document, onRequestClose }: Props) {
 
     if (collections.isLoaded) {
       if (searchTerm) {
-        results = searchIndex.search(searchTerm) as DocumentPath[];
+        results = searchIndex.search(searchTerm);
       } else {
-        // @ts-expect-error it's there, but it's not in typings
-        results = searchIndex._documents;
+        results = searchIndex.haystack;
       }
     }
 
@@ -107,8 +106,15 @@ function DocumentMove({ document, onRequestClose }: Props) {
     return null;
   };
 
-  // @ts-expect-error ts-migrate(7031) FIXME: Binding element 'index' implicitly has an 'any' ty... Remove this comment to see the full error message
-  const row = ({ index, data, style }) => {
+  const row = ({
+    index,
+    data,
+    style,
+  }: {
+    index: number;
+    data: DocumentPath[];
+    style: React.CSSProperties;
+  }) => {
     const result = data[index];
     return (
       <PathToDocument
