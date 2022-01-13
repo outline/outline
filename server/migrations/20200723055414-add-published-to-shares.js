@@ -1,20 +1,18 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('shares', 'published', {
+    await queryInterface.addColumn("shares", "published", {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     });
-
     await queryInterface.sequelize.query(`
       update shares
       set "published" = true
     `);
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('shares', 'published');
-  }
+    await queryInterface.removeColumn("shares", "published");
+  },
 };

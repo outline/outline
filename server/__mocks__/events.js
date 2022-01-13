@@ -1,4 +1,0 @@
-// @flow
-export default {
-  add: () => {},
-};

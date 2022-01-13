@@ -7,14 +7,10 @@
     "<rootDir>/shared"
   ],
   "moduleNameMapper": {
-    "^shared/(.*)$": "<rootDir>/shared/$1",
+    "^~/(.*)$": "<rootDir>/app/$1",
+    "^@shared/(.*)$": "<rootDir>/shared/$1",
     "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
   },
-  "moduleFileExtensions": [
-    "js",
-    "jsx",
-    "json"
-  ],
   "moduleDirectories": [
     "node_modules"
   ],
@@ -25,6 +21,7 @@
     "<rootDir>/__mocks__/window.js"
   ],
   "setupFilesAfterEnv": [
-    "./app/test/setup.js"
-  ]
+    "./app/test/setup.ts"
+  ],
+  "testEnvironment": "jsdom"
 }

@@ -41,8 +41,8 @@ jobs:
           name: lint
           command: yarn lint
       - run:
-          name: flow
-          command: yarn flow check --max-workers 4
+          name: typescript
+          command: yarn tsc
       - run:
           name: test
           command: yarn test

@@ -1,12 +1,12 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('teams', 'documentEmbeds', {
+    await queryInterface.addColumn("teams", "documentEmbeds", {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: true
+      defaultValue: true,
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('teams', 'documentEmbeds');
-  }
-}
+    await queryInterface.removeColumn("teams", "documentEmbeds");
+  },
+};

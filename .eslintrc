@@ -1,20 +1,44 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "extraFileExtensions": [".json"],
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "extends": [
-    "react-app",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:flowtype/recommended",
-    "plugin:react-hooks/recommended"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended"
   ],
   "plugins": [
-    "prettier",
-    "flowtype"
+    "@typescript-eslint",
+    "eslint-plugin-import",
+    "eslint-plugin-node",
+    "eslint-plugin-react",
+    "eslint-plugin-react-hooks",
+    "import"
   ],
   "rules": {
     "eqeqeq": 2,
-    "no-unused-vars": 2,
     "no-mixed-operators": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "args": "after-used",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "padding-line-between-statements": ["error", { "blankLine": "always", "prev": "*", "next": "export" }],
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    "import/newline-after-import": 2,
     "import/order": [
       "error",
       {
@@ -23,52 +47,47 @@
         },
         "pathGroups": [
           {
-            "pattern": "shared/**",
+            "pattern": "@shared/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "stores",
+            "pattern": "@server/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "stores/**",
+            "pattern": "~/stores",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "models/**",
+            "pattern": "~/stores/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "scenes/**",
+            "pattern": "~/models/**",
             "group": "external",
             "position": "after"
           },
           {
-            "pattern": "components/**",
+            "pattern": "~/scenes/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "~/components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "~/**",
             "group": "external",
             "position": "after"
           }
         ]
       }
-    ],
-    "flowtype/require-valid-file-annotation": [
-      2,
-      "always",
-      {
-        "annotationStyle": "line"
-      }
-    ],
-    "flowtype/space-after-type-colon": [
-      2,
-      "always"
-    ],
-    "flowtype/space-before-type-colon": [
-      2,
-      "never"
     ],
     "prettier/prettier": [
       "error",
@@ -84,20 +103,12 @@
       "pragma": "React",
       "version": "detect"
     },
-    "import/resolver": {
-      "node": {
-        "paths": [
-          "app",
-          "."
-        ]
-      }
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
     },
-    "flowtype": {
-      "onlyFilesWithFlowAnnotation": false
+    "import/resolver": {
+      "typescript": {}
     }
-  },
-  "env": {
-    "jest": true
   },
   "globals": {
     "EDITOR_VERSION": true

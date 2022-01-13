@@ -8,9 +8,10 @@
 </p>
 <p align="center">
   <a href="https://circleci.com/gh/outline/outline" rel="nofollow"><img src="https://circleci.com/gh/outline/outline.svg?style=shield&amp;circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a"></a>
-  <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat"></a>
-  <a href="https://github.com/styled-components/styled-components"><img src="https://img.shields.io/badge/style-%F0%9F%92%85%20styled--components-orange.svg"></a>
-  <a href="https://translate.getoutline.com/project/outline"><img src="https://badges.crowdin.net/outline/localized.svg"></a>
+  <a href="http://www.typescriptlang.org" rel="nofollow"><img src="https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg" alt="TypeScript"></a>
+  <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat" alt="Prettier"></a>
+  <a href="https://github.com/styled-components/styled-components"><img src="https://img.shields.io/badge/style-%F0%9F%92%85%20styled--components-orange.svg" alt="Styled Components"></a>
+  <a href="https://translate.getoutline.com/project/outline" alt="Localized"><img src="https://badges.crowdin.net/outline/localized.svg"></a>
 </p>
 
 This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
@@ -50,13 +51,14 @@ For a manual self-hosted production installation these are the recommended steps
 
 1. Start the container:
 
-   `docker run outlinewiki/outline`
+   `docker run --env-file=.env outlinewiki/outline`
 
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
    > Port number can be changed using the `PORT` environment variable
 
 1. (Optional) You can add an `nginx` or other reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
+2. (Optional) If you setup your redis or postgres outside docker container you could use additional flag `--net="host"` for docker. In this case you will be able to use `localhost` as host in your `.env` file for redis and postgres.
 
 ### Terraform
 
@@ -86,7 +88,7 @@ For contributing features and fixes you can quickly get an environment running u
 
 1. Install these dependencies if you don't already have them
    1. [Docker for Desktop](https://www.docker.com)
-   1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
+   1. [Node.js](https://nodejs.org/) (v16 LTS preferred)
    1. [Yarn](https://yarnpkg.com)
 1. Clone this repo
 1. Register a Slack app at https://api.slack.com/apps
@@ -100,6 +102,13 @@ For contributing features and fixes you can quickly get an environment running u
    1. Add `https://my_ngrok_address/auth/slack.callback` as an Oauth redirect URL and update the `URL` env var to match
    1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
+
+### Testing
+
+The `Makefile` has other useful scripts, including some test automation.
+
+1. To run the entire test suite, run `make test`
+1. During development, it's often useful, to re-run some tests every time a file is changed. Use `make watch` to start the test daemon and follow the instructions in the console
 
 # Contributing
 

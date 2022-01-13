@@ -3,11 +3,11 @@ services:
   redis:
     image: redis
     ports:
-      - "6479:6379"
+      - "127.0.0.1:6479:6379"
   postgres:
     image: postgres
     ports:
-      - "5532:5432"
+      - "127.0.0.1:5532:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
@@ -15,22 +15,6 @@ services:
   s3:
     image: lphoward/fake-s3
     ports:
-      - "4569:4569"
+      - "127.0.0.1:4569:4569"
     volumes:
       - ./fakes3:/fakes3_root
-  outline:
-    image: outline:v001
-    command: yarn dev
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        pull: 1
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/opt/outline
-    depends_on:
-      - postgres
-      - redis
-      - s3

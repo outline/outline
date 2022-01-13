@@ -1,23 +1,19 @@
 {
   "presets": [
     "@babel/preset-react",
-    "@babel/preset-flow",
     [
       "@babel/preset-env",
       {
-        "corejs": {
-          "version": "3",
-          "proposals": true
-        },
         "targets": {
-          "node": "12"
-        },
-        "useBuiltIns": "usage"
+          "node": "14"
+        }
       }
-    ]
+    ],
+    "@babel/preset-typescript"
   ],
   "plugins": [
-    "transform-class-properties",
+    "babel-plugin-transform-typescript-metadata",
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
     [
       "transform-inline-environment-variables",
       {
@@ -26,6 +22,7 @@
           "SOURCE_VERSION"
         ]
       }
-    ]
+    ],
+    "tsconfig-paths-module-resolver"
   ]
 }

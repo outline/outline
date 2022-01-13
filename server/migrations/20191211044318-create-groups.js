@@ -6,45 +6,43 @@ module.exports = {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
       },
       name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "teams"
-        }
+          model: "teams",
+        },
       },
       createdById: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users"
-        }
+          model: "users",
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       deletedAt: {
         type: Sequelize.DATE,
-        allowNull: true
-      }
+        allowNull: true,
+      },
     });
-
     await queryInterface.addIndex("groups", ["teamId"]);
     await queryInterface.addIndex("groups", ["deletedAt"]);
   },
-
   down: async (queryInterface, Sequelize) => {
     return queryInterface.dropTable("groups");
-  }
+  },
 };

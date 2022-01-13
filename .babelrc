@@ -1,7 +1,7 @@
 {
   "presets": [
     "@babel/preset-react",
-    "@babel/preset-flow",
+    "@babel/preset-typescript",
     [
       "@babel/preset-env",
       {
@@ -25,5 +25,17 @@
     "@babel/plugin-transform-destructuring",
     "@babel/plugin-transform-regenerator",
     "transform-class-properties"
-  ]
+  ],
+  "env": {
+    "production": {
+      "plugins": [
+        [
+          "styled-components",
+          {
+            "displayName": false
+          }
+        ]
+      ]
+    }
+  }
 }
