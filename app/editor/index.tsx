@@ -1,4 +1,4 @@
-/* global window File Promise */
+/* global File Promise */
 import { PluginSimple } from "markdown-it";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
@@ -78,53 +78,95 @@ import WithTheme from "./components/WithTheme";
 export { default as Extension } from "@shared/editor/lib/Extension";
 
 export type Props = {
+  /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
+  /** The editor content, should only be changed if you wish to reset the content */
   value?: string;
+  /** The initial editor content */
   defaultValue: string;
+  /** Placeholder displayed when the editor is empty */
   placeholder: string;
+  /** Additional extensions to load into the editor */
   extensions?: Extension[];
+  /** If the editor should be focused on mount */
   autoFocus?: boolean;
+  /** If the editor should not allow editing */
   readOnly?: boolean;
+  /** If the editor should still allow editing checkboxes when it is readOnly */
   readOnlyWriteCheckboxes?: boolean;
+  /** A dictionary of translated strings used in the editor */
   dictionary: Dictionary;
-  dir?: string;
+  /** The reading direction of the text content, if known */
+  dir?: "rtl" | "ltr";
+  /** If the editor should vertically grow to fill available space */
   grow?: boolean;
+  /** If the editor should display template options such as inserting placeholders */
   template?: boolean;
+  /** An enforced maximum content length */
   maxLength?: number;
+  /** Heading id to scroll to when the editor has loaded */
   scrollTo?: string;
+  /** Callback for handling uploaded images, should return the url of uploaded file */
   uploadImage?: (file: File) => Promise<string>;
+  /** Callback when editor is blurred, as native input */
   onBlur?: () => void;
+  /** Callback when editor is focused, as native input */
   onFocus?: () => void;
+  /** Callback when user uses save key combo */
   onSave?: (options: { done: boolean }) => void;
+  /** Callback when user uses cancel key combo */
   onCancel?: () => void;
+  /** Callback when user changes editor content */
   onChange?: (value: () => string) => void;
+  /** Callback when a file upload begins */
   onImageUploadStart?: () => void;
+  /** Callback when a file upload ends */
   onImageUploadStop?: () => void;
+  /** Callback when a link is created, should return url to created document */
   onCreateLink?: (title: string) => Promise<string>;
+  /** Callback when user searches for documents from link insert interface */
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
+  /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
+  /** Callback when user hovers on any link in the document */
   onHoverLink?: (event: MouseEvent) => boolean;
+  /** Callback when user clicks on any hashtag in the document */
   onClickHashtag?: (tag: string, event: MouseEvent) => void;
+  /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+  /** Collection of embed types to render in the document */
   embeds: EmbedDescriptor[];
+  /** Callback when a toast message is triggered (eg "link copied") */
   onShowToast?: (message: string, code: ToastType) => void;
   className?: string;
   style?: React.CSSProperties;
 };
 
 type State = {
+  /** If the document text has been detected as using RTL script */
   isRTL: boolean;
+  /** If the editor is currently focused */
   isEditorFocused: boolean;
+  /** If the toolbar for a text selection is visible */
   selectionMenuOpen: boolean;
+  /** If the block insert menu is visible (triggered with /) */
   blockMenuOpen: boolean;
+  /** If the insert link toolbar is visible */
   linkMenuOpen: boolean;
+  /** The search term currently filtering the block menu */
   blockMenuSearch: string;
+  /** If the emoji insert menu is visible */
   emojiMenuOpen: boolean;
 };
 
+/**
+ * The shared editor at the root of all rich editable text in Outline. Do not
+ * use this component directly, it should by lazy loaded. Use
+ * ~/components/Editor instead.
+ */
 export class Editor extends React.PureComponent<
   Props & ThemeProps<DefaultTheme>,
   State
@@ -138,9 +180,6 @@ export class Editor extends React.PureComponent<
     },
     onImageUploadStop: () => {
       // no default behavior
-    },
-    onClickLink: (href: string) => {
-      window.open(href, "_blank");
     },
     embeds: [],
     extensions: [],
