@@ -1,8 +1,8 @@
 import { Node, Fragment } from "prosemirror-model";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
-import { parser, schema } from "@shared/editor";
 import embeds from "@shared/embeds";
+import { parser, schema } from "@server/editor";
 
 export default function markdownToYDoc(
   markdown: string,

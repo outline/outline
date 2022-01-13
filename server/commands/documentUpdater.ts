@@ -3,7 +3,7 @@ import { uniq } from "lodash";
 import { Node } from "prosemirror-model";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
-import { schema, serializer } from "@shared/editor";
+import { schema, serializer } from "@server/editor";
 import { Document, Event } from "@server/models";
 
 export default async function documentUpdater({

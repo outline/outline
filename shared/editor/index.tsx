@@ -75,8 +75,6 @@ import TrailingNode from "./plugins/TrailingNode";
 import { StyledEditor } from "./styles/editor";
 import { EmbedDescriptor, ToastType } from "./types";
 
-export { schema, parser, serializer, renderToHtml } from "./server";
-
 export { default as Extension } from "./lib/Extension";
 
 export type Props = {
