@@ -3,6 +3,7 @@ import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
+import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
@@ -11,7 +12,6 @@ import { EmbedDescriptor, MenuItem, ToastType } from "@shared/editor/types";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
-import VisuallyHidden from "./VisuallyHidden";
 
 const defaultPosition = {
   left: -1000,
