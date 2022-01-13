@@ -1,21 +1,15 @@
-import { lighten } from "polished";
 import * as React from "react";
-import styled, { useTheme } from "styled-components";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
 import { EmbedDescriptor } from "@shared/editor/types";
-import { light } from "@shared/theme";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
-import useMediaQuery from "~/hooks/useMediaQuery";
 import useToasts from "~/hooks/useToasts";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import { uploadFile } from "~/utils/uploadFile";
 import { isInternalUrl, isHash } from "~/utils/urls";
-
-// TODO: This entire component can be removed now that Editor is in the codebase
 
 const SharedEditor = React.lazy(
   () =>
@@ -40,9 +34,7 @@ export type Props = Optional<
 
 function Editor(props: Props, ref: React.Ref<any>) {
   const { id, shareId } = props;
-  const theme = useTheme();
   const { showToast } = useToasts();
-  const isPrinting = useMediaQuery("print");
   const dictionary = useDictionary();
 
   const onUploadImage = React.useCallback(
@@ -98,7 +90,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
 
   return (
     <ErrorBoundary reloadOnChunkMissing>
-      <StyledEditor
+      <SharedEditor
         ref={ref}
         uploadImage={onUploadImage}
         onShowToast={onShowToast}
@@ -108,118 +100,9 @@ function Editor(props: Props, ref: React.Ref<any>) {
         onClickLink={onClickLink}
         placeholder={props.placeholder || ""}
         defaultValue={props.defaultValue || ""}
-        theme={isPrinting ? light : theme}
       />
     </ErrorBoundary>
   );
 }
-
-const StyledEditor = styled(SharedEditor)<{ grow?: boolean }>`
-  flex-grow: ${(props) => (props.grow ? 1 : 0)};
-  justify-content: start;
-
-  > div {
-    background: transparent;
-  }
-
-  & * {
-    box-sizing: content-box;
-  }
-
-  .notice-block.tip,
-  .notice-block.warning {
-    font-weight: 500;
-  }
-
-  .heading-anchor {
-    box-sizing: border-box;
-  }
-
-  .heading-name {
-    pointer-events: none;
-    display: block;
-    position: relative;
-    top: -60px;
-    visibility: hidden;
-  }
-
-  .heading-name:first-child,
-  .heading-name:first-child + .ProseMirror-yjs-cursor {
-    & + h1,
-    & + h2,
-    & + h3,
-    & + h4 {
-      margin-top: 0;
-    }
-  }
-
-  p {
-    a {
-      color: ${(props) => props.theme.text};
-      border-bottom: 1px solid ${(props) => lighten(0.5, props.theme.text)};
-      text-decoration: none !important;
-      font-weight: 500;
-
-      &:hover {
-        border-bottom: 1px solid ${(props) => props.theme.text};
-        text-decoration: none;
-      }
-    }
-  }
-
-  .ProseMirror {
-    & > .ProseMirror-yjs-cursor {
-      display: none;
-    }
-
-    .ProseMirror-yjs-cursor {
-      position: relative;
-      margin-left: -1px;
-      margin-right: -1px;
-      border-left: 1px solid black;
-      border-right: 1px solid black;
-      height: 1em;
-      word-break: normal;
-
-      &:after {
-        content: "";
-        display: block;
-        position: absolute;
-        left: -8px;
-        right: -8px;
-        top: 0;
-        bottom: 0;
-      }
-      > div {
-        opacity: 0;
-        transition: opacity 100ms ease-in-out;
-        position: absolute;
-        top: -1.8em;
-        font-size: 13px;
-        background-color: rgb(250, 129, 0);
-        font-style: normal;
-        line-height: normal;
-        user-select: none;
-        white-space: nowrap;
-        color: white;
-        padding: 2px 6px;
-        font-weight: 500;
-        border-radius: 4px;
-        pointer-events: none;
-        left: -1px;
-      }
-
-      &:hover {
-        > div {
-          opacity: 1;
-        }
-      }
-    }
-  }
-
-  &.show-cursor-names .ProseMirror-yjs-cursor > div {
-    opacity: 1;
-  }
-`;
 
 export default React.forwardRef<typeof Editor, Props>(Editor);

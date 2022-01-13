@@ -72,9 +72,9 @@ import Flex from "./components/Flex";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
+import EditorContainer from "./components/Styles";
 import Tooltip from "./components/Tooltip";
 import WithTheme from "./components/WithTheme";
-import { StyledEditor } from "./styles/editor";
 
 export { default as Extension } from "@shared/editor/lib/Extension";
 
@@ -89,6 +89,7 @@ export type Props = {
   readOnlyWriteCheckboxes?: boolean;
   dictionary: Dictionary;
   dir?: string;
+  grow?: boolean;
   template?: boolean;
   maxLength?: number;
   scrollTo?: string;
@@ -688,6 +689,7 @@ export class Editor extends React.PureComponent<
       dir,
       readOnly,
       readOnlyWriteCheckboxes,
+      grow,
       style,
       className,
       dictionary,
@@ -705,9 +707,10 @@ export class Editor extends React.PureComponent<
         dir={dir}
         column
       >
-        <StyledEditor
+        <EditorContainer
           dir={dir}
           rtl={isRTL}
+          grow={grow}
           readOnly={readOnly}
           readOnlyWriteCheckboxes={readOnlyWriteCheckboxes}
           ref={(ref) => (this.element = ref)}

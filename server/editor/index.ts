@@ -1,6 +1,5 @@
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import render from "@shared/editor/lib/renderToHtml";
 
 // marks
 import Bold from "@shared/editor/marks/Bold";
@@ -35,6 +34,7 @@ import TableCell from "@shared/editor/nodes/TableCell";
 import TableHeadCell from "@shared/editor/nodes/TableHeadCell";
 import TableRow from "@shared/editor/nodes/TableRow";
 import Text from "@shared/editor/nodes/Text";
+import render from "./renderToHtml";
 
 const extensions = new ExtensionManager([
   new Doc(),

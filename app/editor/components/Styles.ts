@@ -1,11 +1,15 @@
 /* eslint-disable no-irregular-whitespace */
+import { lighten } from "polished";
 import styled from "styled-components";
 
-export const StyledEditor = styled("div")<{
+const EditorStyles = styled.div<{
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  grow?: boolean;
 }>`
+  flex-grow: ${(props) => (props.grow ? 1 : 0)};
+  justify-content: start;
   color: ${(props) => props.theme.text};
   background: ${(props) => props.theme.background};
   font-family: ${(props) => props.theme.fontFamily};
@@ -13,6 +17,14 @@ export const StyledEditor = styled("div")<{
   font-size: 1em;
   line-height: 1.7em;
   width: 100%;
+
+  > div {
+    background: transparent;
+  }
+
+  & * {
+    box-sizing: content-box;
+  }
 
   .ProseMirror {
     position: relative;
@@ -23,6 +35,58 @@ export const StyledEditor = styled("div")<{
     -webkit-font-variant-ligatures: none;
     font-variant-ligatures: none;
     font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+
+    & > .ProseMirror-yjs-cursor {
+      display: none;
+    }
+
+    .ProseMirror-yjs-cursor {
+      position: relative;
+      margin-left: -1px;
+      margin-right: -1px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      height: 1em;
+      word-break: normal;
+
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        left: -8px;
+        right: -8px;
+        top: 0;
+        bottom: 0;
+      }
+      > div {
+        opacity: 0;
+        transition: opacity 100ms ease-in-out;
+        position: absolute;
+        top: -1.8em;
+        font-size: 13px;
+        background-color: rgb(250, 129, 0);
+        font-style: normal;
+        line-height: normal;
+        user-select: none;
+        white-space: nowrap;
+        color: white;
+        padding: 2px 6px;
+        font-weight: 500;
+        border-radius: 4px;
+        pointer-events: none;
+        left: -1px;
+      }
+
+      &:hover {
+        > div {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  &.show-cursor-names .ProseMirror-yjs-cursor > div {
+    opacity: 1;
   }
 
   pre {
@@ -162,9 +226,24 @@ export const StyledEditor = styled("div")<{
 
   .heading-name {
     color: ${(props) => props.theme.text};
+    pointer-events: none;
+    display: block;
+    position: relative;
+    top: -60px;
+    visibility: hidden;
 
     &:hover {
       text-decoration: none;
+    }
+  }
+
+  .heading-name:first-child,
+  .heading-name:first-child + .ProseMirror-yjs-cursor {
+    & + h1,
+    & + h2,
+    & + h3,
+    & + h4 {
+      margin-top: 0;
     }
   }
 
@@ -237,6 +316,10 @@ export const StyledEditor = styled("div")<{
     &:hover {
       opacity: 1;
     }
+  }
+
+  .heading-anchor {
+    box-sizing: border-box;
   }
 
   .heading-actions {
@@ -326,6 +409,11 @@ export const StyledEditor = styled("div")<{
     }
   }
 
+  .notice-block.tip,
+  .notice-block.warning {
+    font-weight: 500;
+  }
+
   .notice-block .content {
     flex-grow: 1;
     min-width: 0;
@@ -401,6 +489,18 @@ export const StyledEditor = styled("div")<{
 
     span:first-child + br:last-child {
       display: none;
+    }
+
+    a {
+      color: ${(props) => props.theme.text};
+      border-bottom: 1px solid ${(props) => lighten(0.5, props.theme.text)};
+      text-decoration: none !important;
+      font-weight: 500;
+
+      &:hover {
+        border-bottom: 1px solid ${(props) => props.theme.text};
+        text-decoration: none;
+      }
     }
   }
 
@@ -1016,3 +1116,5 @@ export const StyledEditor = styled("div")<{
     }
   }
 `;
+
+export default EditorStyles;
