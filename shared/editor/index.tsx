@@ -12,6 +12,7 @@ import { selectColumn, selectRow, selectTable } from "prosemirror-utils";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
+import { Dictionary } from "@shared/hooks/useDictionary";
 import BlockMenu from "./components/BlockMenu";
 import EmojiMenu from "./components/EmojiMenu";
 import Flex from "./components/Flex";
@@ -83,49 +84,14 @@ export type Props = {
   defaultValue: string;
   placeholder: string;
   extensions?: Extension[];
-  disableExtensions?: (
-    | "strong"
-    | "code_inline"
-    | "highlight"
-    | "em"
-    | "link"
-    | "placeholder"
-    | "strikethrough"
-    | "underline"
-    | "blockquote"
-    | "bullet_list"
-    | "checkbox_item"
-    | "checkbox_list"
-    | "code_block"
-    | "code_fence"
-    | "embed"
-    | "br"
-    | "heading"
-    | "hr"
-    | "image"
-    | "list_item"
-    | "container_notice"
-    | "ordered_list"
-    | "paragraph"
-    | "table"
-    | "td"
-    | "th"
-    | "tr"
-    | "emoji"
-  )[];
   autoFocus?: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
-  dictionary?: any;
-  dark?: boolean;
+  dictionary: Dictionary;
   dir?: string;
   template?: boolean;
-  headingsOffset?: number;
   maxLength?: number;
   scrollTo?: string;
-  handleDOMEvents?: {
-    [name: string]: (view: EditorView, event: Event) => boolean;
-  };
   uploadImage?: (file: File) => Promise<string>;
   onBlur?: () => void;
   onFocus?: () => void;
@@ -340,7 +306,6 @@ export class Editor extends React.PureComponent<
           new Heading({
             dictionary,
             onShowToast: this.props.onShowToast,
-            offset: this.props.headingsOffset,
           }),
           new HorizontalRule(),
           new Image({
@@ -404,15 +369,7 @@ export class Editor extends React.PureComponent<
           new MaxLength({
             maxLength: this.props.maxLength,
           }),
-        ].filter((extension) => {
-          // Optionaly disable extensions
-          if (this.props.disableExtensions) {
-            return !(this.props.disableExtensions as string[]).includes(
-              extension.name
-            );
-          }
-          return true;
-        }),
+        ],
         ...(this.props.extensions || []),
       ],
       this
@@ -550,7 +507,6 @@ export class Editor extends React.PureComponent<
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
-      handleDOMEvents: this.props.handleDOMEvents,
       dispatchTransaction: function (transaction) {
         // callback is bound to have the view instance as its this binding
         const { state, transactions } = this.state.applyTransaction(
