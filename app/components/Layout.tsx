@@ -7,10 +7,9 @@ import breakpoint from "styled-components-breakpoint";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
-import RegisterKeyDown from "~/components/RegisterKeyDown";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
-import useKeyDown, { KeyFilter } from "~/hooks/useKeyDown";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
