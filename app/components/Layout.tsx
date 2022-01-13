@@ -10,6 +10,7 @@ import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
+import useKeyDown, { KeyFilter } from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
@@ -24,17 +25,14 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
 
+  useKeyDown(".", (event) => {
+    if (isModKey(event)) {
+      ui.toggleCollapsedSidebar();
+    }
+  });
+
   return (
     <Container column auto>
-      <RegisterKeyDown
-        trigger="."
-        handler={(event) => {
-          if (isModKey(event)) {
-            ui.toggleCollapsedSidebar();
-          }
-        }}
-      />
-
       <Helmet>
         <title>{title ? title : "Outline"}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
