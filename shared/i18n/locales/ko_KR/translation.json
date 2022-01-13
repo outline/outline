@@ -446,7 +446,7 @@
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "As an admin you can also <2>enable email sign-in</2>.",
   "Want a link to share directly with your team?": "직접 공유할 수 있는 링크를 원하십니까?",
-  "Email": "Email",
+  "Email": "이메일",
   "Full name": "이름",
   "Remove invite": "Remove invite",
   "Add another": "사용자 추가 초대",
