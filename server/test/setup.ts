@@ -8,9 +8,9 @@ process.env.SLACK_KEY = "123";
 process.env.DEPLOYMENT = "";
 process.env.ALLOWED_DOMAINS = "allowed-domain.com";
 
-// NOTE: this import must come after the ENV var override above
+// NOTE: this require must come after the ENV var override above
 // so that sequelize uses the test config variables
-import "@server/database/sequelize";
+require("@server/database/sequelize");
 
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");
