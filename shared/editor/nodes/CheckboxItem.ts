@@ -33,13 +33,14 @@ export default class CheckboxItem extends Node {
         },
       ],
       toDOM: (node) => {
-        const input = document.createElement("input");
-        input.type = "checkbox";
+        const input = document.createElement("span");
         input.tabIndex = -1;
-        input.addEventListener("change", this.handleChange);
+        input.className = "checkbox";
+        input.setAttribute("role", "checkbox");
+        input.addEventListener("click", this.handleClick);
 
         if (node.attrs.checked) {
-          input.checked = true;
+          input.ariaChecked = "true";
         }
 
         return [
@@ -65,8 +66,8 @@ export default class CheckboxItem extends Node {
     return [checkboxRule];
   }
 
-  handleChange = (event: Event) => {
-    if (!(event.target instanceof HTMLInputElement)) {
+  handleClick = (event: Event) => {
+    if (!(event.target instanceof HTMLSpanElement)) {
       return;
     }
 
@@ -77,7 +78,7 @@ export default class CheckboxItem extends Node {
 
     if (result) {
       const transaction = tr.setNodeMarkup(result.inside, undefined, {
-        checked: event.target.checked,
+        checked: !event.target.ariaChecked,
       });
       view.dispatch(transaction);
     }

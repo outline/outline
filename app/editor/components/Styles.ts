@@ -596,15 +596,24 @@ const EditorStyles = styled.div<{
     ${(props) => (props.rtl ? "right" : "left")}: 0;
   }
 
-  ul.checkbox_list li input {
+  ul.checkbox_list li .checkbox {
+    display: inline-block;
     cursor: pointer;
     pointer-events: ${(props) =>
       props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"};
     opacity: ${(props) =>
       props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
-    margin: ${(props) => (props.rtl ? "0.5em 0 0 0.5em" : "0.5em 0.5em 0 0")};
+    margin: ${(props) => (props.rtl ? "0 0 0 0.5em" : "0 0.5em 0 0")};
     width: 14px;
     height: 14px;
+    position: relative;
+    top: 2px;
+
+    background: grey;
+
+    &[aria-checked=true] {
+      background: green;
+    }
   }
 
   li p:first-child {
