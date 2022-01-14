@@ -59,6 +59,7 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
           justify="center"
           $isResizing={ui.sidebarIsResizing}
           $sidebarCollapsed={sidebarCollapsed}
+          $hasSidebar={!!sidebar}
           style={
             sidebarCollapsed
               ? undefined
@@ -102,6 +103,7 @@ const MobileMenuButton = styled(Button)`
 const Content = styled(Flex)<{
   $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
+  $hasSidebar?: boolean;
 }>`
   margin: 0;
   transition: ${(props) =>
@@ -117,6 +119,7 @@ const Content = styled(Flex)<{
 
   ${breakpoint("tablet")`
     ${(props: any) =>
+      props.$hasSidebar &&
       props.$sidebarCollapsed &&
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
