@@ -36,12 +36,9 @@ export default class CheckboxItem extends Node {
         const input = document.createElement("span");
         input.tabIndex = -1;
         input.className = "checkbox";
+        input.ariaChecked = node.attrs.checked.toString();
         input.setAttribute("role", "checkbox");
         input.addEventListener("click", this.handleClick);
-
-        if (node.attrs.checked) {
-          input.ariaChecked = "true";
-        }
 
         return [
           "li",
@@ -78,7 +75,7 @@ export default class CheckboxItem extends Node {
 
     if (result) {
       const transaction = tr.setNodeMarkup(result.inside, undefined, {
-        checked: !event.target.ariaChecked,
+        checked: event.target.ariaChecked !== "true",
       });
       view.dispatch(transaction);
     }
