@@ -10,7 +10,7 @@ export type MenuItemButton = {
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuItemWithChildren = {
@@ -22,7 +22,7 @@ export type MenuItemWithChildren = {
   hover?: boolean;
 
   items: MenuItem[];
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuSeparator = {
@@ -43,7 +43,7 @@ export type MenuInternalLink = {
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuExternalLink = {
@@ -54,7 +54,7 @@ export type MenuExternalLink = {
   selected?: boolean;
   disabled?: boolean;
   level?: number;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuItem =
