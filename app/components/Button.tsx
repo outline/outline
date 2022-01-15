@@ -6,7 +6,7 @@ import styled from "styled-components";
 const RealButton = styled.button<{
   fullwidth?: boolean;
   borderOnHover?: boolean;
-  neutral?: boolean;
+  $neutral?: boolean;
   danger?: boolean;
   iconColor?: string;
 }>`
@@ -55,7 +55,7 @@ const RealButton = styled.button<{
   }
 
   ${(props) =>
-    props.neutral &&
+    props.$neutral &&
     `
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
@@ -158,7 +158,7 @@ const Button = <T extends React.ElementType = "button">(
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton type={type || "button"} ref={ref} neutral={neutral} {...rest}>
+    <RealButton type={type || "button"} ref={ref} $neutral={neutral} {...rest}>
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
