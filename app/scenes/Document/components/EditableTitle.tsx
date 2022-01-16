@@ -86,29 +86,27 @@ const EditableTitle = React.forwardRef(
     );
 
     return (
-      <>
-        <Title
-          onChange={onChange}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            document.isTemplate
-              ? t("Start your template…")
-              : t("Start with a title…")
-          }
-          value={normalizedTitle}
-          $emojiWidth={document.emojiWidth}
-          $isStarred={document.isStarred}
-          autoFocus={!value}
-          maxLength={MAX_TITLE_LENGTH}
-          readOnly={readOnly}
-          dir="auto"
-          ref={ref}
-        >
-          {(can.star || can.unstar) && starrable !== false && (
-            <StarButton document={document} size={32} />
-          )}
-        </Title>
-      </>
+      <Title
+        onChange={onChange}
+        onKeyDown={handleKeyDown}
+        placeholder={
+          document.isTemplate
+            ? t("Start your template…")
+            : t("Start with a title…")
+        }
+        value={normalizedTitle}
+        $emojiWidth={document.emojiWidth}
+        $isStarred={document.isStarred}
+        autoFocus={!value}
+        maxLength={MAX_TITLE_LENGTH}
+        readOnly={readOnly}
+        dir="auto"
+        ref={ref}
+      >
+        {(can.star || can.unstar) && starrable !== false && (
+          <StarButton document={document} size={32} />
+        )}
+      </Title>
     );
   }
 );
