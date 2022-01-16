@@ -1,8 +1,9 @@
-import useKeyDown, { KeyFilter } from "~/hooks/useKeyDown";
+import useKeyDown, { KeyFilter, Options } from "~/hooks/useKeyDown";
 
 type Props = {
   trigger: KeyFilter;
   handler: (event: KeyboardEvent) => void;
+  options?: Options;
 };
 
 /**
@@ -10,7 +11,7 @@ type Props = {
  * class components that have not yet been converted to functions. Do not use
  * this method in functional components.
  */
-export default function RegisterKeyDown({ trigger, handler }: Props) {
-  useKeyDown(trigger, handler);
+export default function RegisterKeyDown({ trigger, handler, options }: Props) {
+  useKeyDown(trigger, handler, options);
   return null;
 }

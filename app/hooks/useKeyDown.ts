@@ -1,12 +1,22 @@
 import * as React from "react";
 import isTextInput from "~/utils/isTextInput";
-
-export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
+import { isModKey } from "~/utils/keyboard";
 
 type Callback = (event: KeyboardEvent) => void;
 
+export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
+
+export type Options = {
+  allowInInput?: boolean;
+};
+
+type RegisteredCallback = {
+  callback: Callback;
+  options?: Options;
+};
+
 // Registered keyboard event callbacks
-let callbacks: Callback[] = [];
+let callbacks: RegisteredCallback[] = [];
 
 // Track if IME input suggestions are open so we can ignore keydown shortcuts
 // in this case, they should never be triggered from mobile keyboards.
@@ -25,7 +35,11 @@ const createKeyPredicate = (keyFilter: KeyFilter) =>
     ? (_event: KeyboardEvent) => true
     : (_event: KeyboardEvent) => false;
 
-export default function useKeyDown(key: KeyFilter, fn: Callback): void {
+export default function useKeyDown(
+  key: KeyFilter,
+  fn: Callback,
+  options?: Options
+): void {
   const predicate = createKeyPredicate(key);
 
   React.useEffect(() => {
@@ -35,9 +49,13 @@ export default function useKeyDown(key: KeyFilter, fn: Callback): void {
       }
     };
 
-    callbacks.push(handler);
+    callbacks.push({
+      callback: handler,
+      options,
+    });
+
     return () => {
-      callbacks = callbacks.filter((cb) => cb !== handler);
+      callbacks = callbacks.filter((cb) => cb.callback !== handler);
     };
   }, []);
 }
@@ -48,17 +66,17 @@ window.addEventListener("keydown", (event) => {
   }
 
   // reverse so that the last registered callbacks get executed first
-  for (const callback of callbacks.reverse()) {
+  for (const registered of callbacks.reverse()) {
     if (event.defaultPrevented === true) {
       break;
     }
 
     if (
       !isTextInput(event.target as HTMLElement) ||
-      event.ctrlKey ||
-      event.metaKey
+      registered.options?.allowInInput ||
+      isModKey(event)
     ) {
-      callback(event);
+      registered.callback(event);
     }
   }
 });
