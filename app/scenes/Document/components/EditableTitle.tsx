@@ -1,17 +1,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Portal } from "react-portal";
-import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { light } from "@shared/theme";
-import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import ContentEditable from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
-import useDimensions from "~/hooks/useDimensions";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
@@ -46,7 +42,6 @@ const EditableTitle = React.forwardRef(
     const { policies } = useStores();
     const { t } = useTranslation();
     const can = policies.abilities(document.id);
-    const { emoji } = parseTitle(value);
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 
@@ -90,18 +85,8 @@ const EditableTitle = React.forwardRef(
       [onGoToNextInput, onSave]
     );
 
-    const [measureRef, dimensions] = useDimensions([value]);
-    const emojiWidth = dimensions.width;
-
     return (
       <>
-        <Portal>
-          <VisuallyHidden>
-            <MeasureEmoji ref={measureRef}>
-              {emoji ? <>{emoji}&nbsp;</> : undefined}
-            </MeasureEmoji>
-          </VisuallyHidden>
-        </Portal>
         <Title
           onChange={onChange}
           onKeyDown={handleKeyDown}
@@ -111,7 +96,7 @@ const EditableTitle = React.forwardRef(
               : t("Start with a title…")
           }
           value={normalizedTitle}
-          $emojiWidth={emojiWidth}
+          $emojiWidth={document.emojiWidth}
           $isStarred={document.isStarred}
           autoFocus={!value}
           maxLength={MAX_TITLE_LENGTH}
@@ -127,11 +112,6 @@ const EditableTitle = React.forwardRef(
     );
   }
 );
-
-const MeasureEmoji = styled.span`
-  line-height: 1.25;
-  font-size: 2.25em;
-`;
 
 const StarButton = styled(Star)`
   position: relative;
