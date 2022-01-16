@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { Portal } from "react-portal";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -94,11 +95,13 @@ const EditableTitle = React.forwardRef(
 
     return (
       <>
-        <VisuallyHidden>
-          <MeasureEmoji ref={measureRef}>
-            {emoji ? <>{emoji}&nbsp;</> : undefined}
-          </MeasureEmoji>
-        </VisuallyHidden>
+        <Portal>
+          <VisuallyHidden>
+            <MeasureEmoji ref={measureRef}>
+              {emoji ? <>{emoji}&nbsp;</> : undefined}
+            </MeasureEmoji>
+          </VisuallyHidden>
+        </Portal>
         <Title
           onChange={onChange}
           onKeyDown={handleKeyDown}

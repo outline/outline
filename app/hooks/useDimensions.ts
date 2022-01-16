@@ -51,6 +51,8 @@ function useDimensions(deps: React.DependencyList = []): [any, UseMeasureRect] {
     const bounding = element?.getBoundingClientRect();
     if (!bounding) return;
 
+    console.log("first mount", bounding, element?.innerText);
+
     setRect({
       x: bounding.x,
       y: bounding.y,
