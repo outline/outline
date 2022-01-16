@@ -107,6 +107,7 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
   font-size: 16px;
   cursor: default;
   user-select: none;
+  white-space: nowrap;
 
   svg:not(:last-child) {
     margin-right: 4px;
