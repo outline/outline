@@ -96,6 +96,7 @@ export default class Document extends BaseModel {
     }
   }
 
+  @computed
   get emoji() {
     const { emoji } = parseTitle(this.title);
     return emoji;
