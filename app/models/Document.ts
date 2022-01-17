@@ -103,29 +103,6 @@ export default class Document extends BaseModel {
   }
 
   /**
-   * Measures the width of the document's emoji in the title
-   */
-  @computed
-  get emojiWidth(): number {
-    const element = document.createElement("span");
-    if (!this.emoji) {
-      return 0;
-    }
-
-    element.innerText = `${this.emoji}\u00A0`;
-    element.style.visibility = "hidden";
-    element.style.position = "absolute";
-    element.style.left = "-9999px";
-    element.style.lineHeight = "1.25";
-    element.style.fontSize = "2.25em";
-    element.style.width = "max-content";
-    document.body?.appendChild(element);
-    const width = window.getComputedStyle(element).width;
-    document.body?.removeChild(element);
-    return parseInt(width, 10);
-  }
-
-  /**
    * Best-guess the text direction of the document based on the language the
    * title is written in. Note: wrapping as a computed getter means that it will
    * only be called directly when the title changes.
