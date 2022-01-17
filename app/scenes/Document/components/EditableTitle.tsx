@@ -26,6 +26,9 @@ type Props = {
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
 };
 
+const lineHeight = "1.25";
+const fontSize = "2.25em";
+
 const EditableTitle = React.forwardRef(
   (
     {
@@ -85,6 +88,28 @@ const EditableTitle = React.forwardRef(
       [onGoToNextInput, onSave]
     );
 
+    /**
+     * Measures the width of the document's emoji in the title
+     */
+    const emojiWidth = React.useMemo(() => {
+      const element = window.document.createElement("span");
+      if (!document.emoji) {
+        return 0;
+      }
+
+      element.innerText = `${document.emoji}\u00A0`;
+      element.style.visibility = "hidden";
+      element.style.position = "absolute";
+      element.style.left = "-9999px";
+      element.style.lineHeight = lineHeight;
+      element.style.fontSize = fontSize;
+      element.style.width = "max-content";
+      window.document.body?.appendChild(element);
+      const width = window.getComputedStyle(element).width;
+      window.document.body?.removeChild(element);
+      return parseInt(width, 10);
+    }, [document.emoji]);
+
     return (
       <Title
         onChange={onChange}
@@ -95,7 +120,7 @@ const EditableTitle = React.forwardRef(
             : t("Start with a title…")
         }
         value={normalizedTitle}
-        $emojiWidth={document.emojiWidth}
+        $emojiWidth={emojiWidth}
         $isStarred={document.isStarred}
         autoFocus={!value}
         maxLength={MAX_TITLE_LENGTH}
@@ -123,14 +148,14 @@ type TitleProps = {
 };
 
 const Title = styled(ContentEditable)<TitleProps>`
-  line-height: 1.25;
+  line-height: ${lineHeight};
   margin-top: 1em;
   margin-bottom: 0.5em;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
   color: ${(props) => props.theme.text};
   -webkit-text-fill-color: ${(props) => props.theme.text};
-  font-size: 2.25em;
+  font-size: ${fontSize};
   font-weight: 500;
   outline: none;
   border: 0;
