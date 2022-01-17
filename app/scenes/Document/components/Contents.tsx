@@ -96,8 +96,8 @@ const Sticky = styled.div`
 
   box-shadow: 1px 0 0 ${(props) => props.theme.divider};
   margin-top: 40px;
-  margin-right: 32px;
-  width: 224px;
+  margin-right: 52px;
+  width: 204px;
   min-height: 40px;
   overflow-y: auto;
 `;
