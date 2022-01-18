@@ -23,14 +23,13 @@ function Starred() {
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
-  const { documents } = useStores();
+  const { stars, documents } = useStores();
   const { t } = useTranslation();
-  const { fetchStarred, starred } = documents;
 
   const fetchResults = React.useCallback(async () => {
     try {
       setIsFetching(true);
-      await fetchStarred({
+      await stars.fetchPage({
         limit: STARRED_PAGINATION_LIMIT,
         offset,
       });
@@ -42,7 +41,7 @@ function Starred() {
     } finally {
       setIsFetching(false);
     }
-  }, [fetchStarred, offset, showToast, t]);
+  }, [stars, offset, showToast, t]);
 
   useEffect(() => {
     let stateInLocal;
@@ -61,16 +60,16 @@ function Starred() {
   }, [expanded]);
 
   useEffect(() => {
-    setOffset(starred.length);
+    setOffset(stars.orderedData.length);
 
-    if (starred.length <= STARRED_PAGINATION_LIMIT) {
+    if (stars.orderedData.length <= STARRED_PAGINATION_LIMIT) {
       setShow("Nothing");
-    } else if (starred.length >= upperBound) {
+    } else if (stars.orderedData.length >= upperBound) {
       setShow("More");
-    } else if (starred.length < upperBound) {
+    } else if (stars.orderedData.length < upperBound) {
       setShow("Less");
     }
-  }, [starred, upperBound]);
+  }, [stars.orderedData, upperBound]);
 
   useEffect(() => {
     if (offset === 0) {
@@ -106,8 +105,10 @@ function Starred() {
     [expanded]
   );
 
-  const content = starred.slice(0, upperBound).map((document) => {
-    return (
+  const content = stars.orderedData.slice(0, upperBound).map((star) => {
+    const document = documents.get(star.documentId);
+
+    return document ? (
       <StarredLink
         key={document.id}
         documentId={document.id}
@@ -116,10 +117,10 @@ function Starred() {
         title={document.title}
         depth={2}
       />
-    );
+    ) : null;
   });
 
-  if (!starred.length) {
+  if (!stars.orderedData.length) {
     return null;
   }
 
@@ -148,7 +149,7 @@ function Starred() {
                 depth={2}
               />
             )}
-            {(isFetching || fetchError) && !starred.length && (
+            {(isFetching || fetchError) && !stars.orderedData.length && (
               <Flex column>
                 <PlaceholderCollections />
               </Flex>

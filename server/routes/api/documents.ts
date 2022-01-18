@@ -312,6 +312,7 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.list instead
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;

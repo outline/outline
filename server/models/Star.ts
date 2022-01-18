@@ -13,6 +13,11 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "stars", modelName: "star" })
 @Fix
 class Star extends BaseModel {
+  @Column
+  index: string | null;
+
+  // associations
+
   @BelongsTo(() => User, "userId")
   user: User;
 
