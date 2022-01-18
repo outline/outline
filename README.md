@@ -51,13 +51,14 @@ For a manual self-hosted production installation these are the recommended steps
 
 1. Start the container:
 
-   `docker run outlinewiki/outline`
+   `docker run --env-file=.env outlinewiki/outline`
 
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
    > Port number can be changed using the `PORT` environment variable
 
 1. (Optional) You can add an `nginx` or other reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
+2. (Optional) If you setup your redis or postgres outside docker container you could use additional flag `--net="host"` for docker. In this case you will be able to use `localhost` as host in your `.env` file for redis and postgres.
 
 ### Terraform
 

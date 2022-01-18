@@ -96,6 +96,7 @@ export default class Document extends BaseModel {
     }
   }
 
+  @computed
   get emoji() {
     const { emoji } = parseTitle(this.title);
     return emoji;
@@ -109,7 +110,7 @@ export default class Document extends BaseModel {
   @computed
   get dir(): "rtl" | "ltr" {
     const element = document.createElement("p");
-    element.innerHTML = this.title;
+    element.innerText = this.title;
     element.style.visibility = "hidden";
     element.dir = "auto";
 

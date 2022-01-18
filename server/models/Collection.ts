@@ -26,9 +26,10 @@ import {
   DataType,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import slugify from "@server/utils/slugify";
-import { NavigationNode } from "~/types";
+import { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
@@ -38,6 +39,9 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+
+// without this indirection, the app crashes on starup
+type Sort = CollectionSort;
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -157,7 +161,7 @@ class Collection extends ParanoidModel {
   @Column({
     type: DataType.JSONB,
     validate: {
-      isSort(value: any) {
+      isSort(value: Sort) {
         if (
           typeof value !== "object" ||
           !value.direction ||
@@ -177,10 +181,7 @@ class Collection extends ParanoidModel {
       },
     },
   })
-  sort: {
-    field: string;
-    direction: "asc" | "desc";
-  };
+  sort: Sort | null;
 
   // getters
 
@@ -352,7 +353,13 @@ class Collection extends ParanoidModel {
     });
   }
 
-  getDocumentTree = function (documentId: string): NavigationNode {
+  getDocumentTree = (documentId: string): NavigationNode | null => {
+    if (!this.documentStructure) return null;
+    const sort: Sort = this.sort || {
+      field: "title",
+      direction: "asc",
+    };
+
     let result!: NavigationNode;
 
     const loopChildren = (documents: NavigationNode[]) => {
@@ -373,9 +380,14 @@ class Collection extends ParanoidModel {
       });
     };
 
+    // Technically, sorting the children is presenter-layer work...
+    // but the only place it's used passes straight into an API response
+    // so the extra indirection is not worthwhile
     loopChildren(this.documentStructure);
-
-    return result;
+    return {
+      ...result,
+      children: sortNavigationNodes(result.children, sort),
+    };
   };
 
   deleteDocument = async function (document: Document) {

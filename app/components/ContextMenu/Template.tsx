@@ -7,7 +7,7 @@ import {
   MenuButton,
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import MenuIconWrapper from "~/components/MenuIconWrapper";
 import { actionToMenuItem } from "~/actions";
@@ -46,16 +46,15 @@ const Submenu = React.forwardRef(
     ref: React.LegacyRef<HTMLButtonElement>
   ) => {
     const { t } = useTranslation();
-    const menu = useMenuState({
-      modal: true,
-    });
+    const theme = useTheme();
+    const menu = useMenuState();
 
     return (
       <>
         <MenuButton ref={ref} {...menu} {...rest}>
           {(props) => (
             <MenuAnchor {...props}>
-              {title} <Disclosure color="currentColor" />
+              {title} <Disclosure color={theme.textTertiary} />
             </MenuAnchor>
           )}
         </MenuButton>

@@ -44,7 +44,6 @@ export default async function present(
     urlId: document.urlId,
     title: document.title,
     text,
-    emoji: document.emoji,
     tasks: document.tasks,
     createdAt: document.createdAt,
     createdBy: undefined,

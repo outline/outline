@@ -76,6 +76,7 @@ describe("getDocumentTree", () => {
         { ...parent.toJSON(), children: [document.toJSON()] },
       ],
     });
+
     expect(collection.getDocumentTree(parent.id)).toEqual({
       ...parent.toJSON(),
       children: [document.toJSON()],

@@ -16,7 +16,7 @@ type Props = {
   as?: string | React.ComponentType<any>;
   hide?: () => void;
   level?: number;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 const MenuItem = ({
@@ -73,7 +73,11 @@ const MenuItem = ({
               &nbsp;
             </>
           )}
-          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
+          {icon && (
+            <MenuIconWrapper>
+              {React.cloneElement(icon, { color: "currentColor" })}
+            </MenuIconWrapper>
+          )}
           {children}
         </MenuAnchor>
       )}
@@ -103,6 +107,7 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
   font-size: 16px;
   cursor: default;
   user-select: none;
+  white-space: nowrap;
 
   svg:not(:last-child) {
     margin-right: 4px;
