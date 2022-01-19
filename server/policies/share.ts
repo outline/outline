@@ -10,6 +10,7 @@ allow(User, "update", Share, (user, share) => {
 
   // only the user who can share the document publicly can update the share.
   if (cannot(user, "share", share.document)) return false;
+
   return user.teamId === share.teamId;
 });
 

@@ -168,6 +168,7 @@ router.post("shares.update", auth(), async (ctx) => {
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "share", team);
+
   // fetch the share with document and collection.
   const share = await Share.scope({
     method: ["withCollection", user.id],

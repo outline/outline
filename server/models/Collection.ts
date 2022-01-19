@@ -360,7 +360,7 @@ class Collection extends ParanoidModel {
       direction: "asc",
     };
 
-    let result!: NavigationNode;
+    let result!: NavigationNode | undefined;
 
     const loopChildren = (documents: NavigationNode[]) => {
       if (result) {
@@ -384,6 +384,10 @@ class Collection extends ParanoidModel {
     // but the only place it's used passes straight into an API response
     // so the extra indirection is not worthwhile
     loopChildren(this.documentStructure);
+
+    // if the document is a draft loopChildren will not find it in the structure
+    if (!result) return null;
+
     return {
       ...result,
       children: sortNavigationNodes(result.children, sort),
