@@ -38,7 +38,6 @@ import { isCustomDomain } from "~/utils/domains";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
-  editDocumentUrl,
   documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
