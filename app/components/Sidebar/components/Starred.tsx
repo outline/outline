@@ -1,12 +1,15 @@
+import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
-import { useEffect } from "react";
+import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Section from "./Section";
 import SidebarLink from "./SidebarLink";
@@ -43,7 +46,7 @@ function Starred() {
     }
   }, [stars, offset, showToast, t]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     let stateInLocal;
 
     try {
@@ -59,7 +62,7 @@ function Starred() {
     }
   }, [expanded]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setOffset(stars.orderedData.length);
 
     if (stars.orderedData.length <= STARRED_PAGINATION_LIMIT) {
@@ -71,7 +74,7 @@ function Starred() {
     }
   }, [stars.orderedData, upperBound]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (offset === 0) {
       fetchResults();
     }
@@ -105,12 +108,24 @@ function Starred() {
     [expanded]
   );
 
+  // Drop to reorder document
+  const [{ isOverReorder }, dropToReorder] = useDrop({
+    accept: "star",
+    drop: async (item: Star) => {
+      item?.save({ index: fractionalIndex(null, stars.orderedData[0].index) });
+    },
+    collect: (monitor) => ({
+      isOverReorder: !!monitor.isOver(),
+    }),
+  });
+
   const content = stars.orderedData.slice(0, upperBound).map((star) => {
     const document = documents.get(star.documentId);
 
     return document ? (
       <StarredLink
-        key={document.id}
+        key={star.id}
+        star={star}
         documentId={document.id}
         collectionId={document.collectionId}
         to={document.url}
@@ -134,6 +149,11 @@ function Starred() {
         />
         {expanded && (
           <>
+            <DropCursor
+              isActiveDrop={isOverReorder}
+              innerRef={dropToReorder}
+              position="top"
+            />
             {content}
             {show === "More" && !isFetching && (
               <SidebarLink

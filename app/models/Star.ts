@@ -13,6 +13,16 @@ class Star extends BaseModel {
 
   createdAt: string;
   updatedAt: string;
+
+  next(): Star | undefined {
+    const index = this.store.orderedData.indexOf(this);
+    return this.store.orderedData[index + 1];
+  }
+
+  previous(): Star | undefined {
+    const index = this.store.orderedData.indexOf(this);
+    return this.store.orderedData[index + 1];
+  }
 }
 
 export default Star;

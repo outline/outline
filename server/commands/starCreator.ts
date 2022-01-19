@@ -39,14 +39,14 @@ export default async function starCreator({
       limit: 1,
       order: [
         // using LC_COLLATE:"C" because we need byte order to drive the sorting
-        // find only the last star so we can create an index after it
-        Sequelize.literal('"star"."index" collate "C" DESC'),
-        ["updatedAt", "ASC"],
+        // find only the first star so we can create an index before it
+        Sequelize.literal('"star"."index" collate "C"'),
+        ["updatedAt", "DESC"],
       ],
     });
 
-    // create a star at the end of the list
-    index = fractionalIndex(stars.length ? stars[0].index : null, null);
+    // create a star at the beginning of the list
+    index = fractionalIndex(null, stars.length ? stars[0].index : null);
   }
 
   const transaction = await sequelize.transaction();
