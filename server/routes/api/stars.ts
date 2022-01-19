@@ -11,6 +11,7 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import { starIndexing } from "@server/utils/indexing";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -61,6 +62,15 @@ router.post("stars.list", auth(), pagination(), async (ctx) => {
     }),
     user.collectionIds(),
   ]);
+
+  const nullIndex = stars.findIndex((star) => star.index === null);
+
+  if (nullIndex !== -1) {
+    const indexedStars = await starIndexing(user.id);
+    stars.forEach((star) => {
+      star.index = indexedStars[star.id];
+    });
+  }
 
   const documents = await Document.defaultScopeWithUser(user.id).findAll({
     where: {

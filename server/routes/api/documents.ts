@@ -865,6 +865,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.create instead
 router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -899,6 +900,7 @@ router.post("documents.star", auth(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.delete instead
 router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
