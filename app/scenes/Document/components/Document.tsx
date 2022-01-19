@@ -466,9 +466,20 @@ class DocumentScene extends React.Component<Props> {
                     !this.isUploading &&
                     !team?.collaborativeEditing
                   }
-                  message={t(
-                    `You have unsaved changes.\nAre you sure you want to discard them?`
-                  )}
+                  message={(location, action) => {
+                    if (
+                      // a URL replace matching the current document indicates a title change
+                      // no guard is needed for this transition
+                      action === "REPLACE" &&
+                      location.pathname === editDocumentUrl(document)
+                    ) {
+                      return true;
+                    }
+
+                    return t(
+                      `You have unsaved changes.\nAre you sure you want to discard them?`
+                    ) as string;
+                  }}
                 />
                 <Prompt
                   when={this.isUploading && !this.isEditorDirty}
