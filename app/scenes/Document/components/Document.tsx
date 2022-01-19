@@ -38,6 +38,7 @@ import { isCustomDomain } from "~/utils/domains";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
+  editDocumentUrl,
   documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
@@ -471,14 +472,14 @@ class DocumentScene extends React.Component<Props> {
                       // a URL replace matching the current document indicates a title change
                       // no guard is needed for this transition
                       action === "REPLACE" &&
-                      location.pathname.includes(document.url)
+                      location.pathname === editDocumentUrl(document)
                     ) {
                       return true;
                     }
 
                     return t(
                       `You have unsaved changes.\nAre you sure you want to discard them?`
-                    ).toString();
+                    ) as string;
                   }}
                 />
                 <Prompt
