@@ -21,11 +21,15 @@ export function getSSLOptions() {
   try {
     return {
       key:
-        env.SSL_KEY ||
+        (env.SSL_KEY
+          ? Buffer.from(env.SSL_KEY, "base64").toString("ascii")
+          : undefined) ||
         safeReadFile("private.key") ||
         safeReadFile("private.pem"),
       cert:
-        env.SSL_CERT ||
+        (env.SSL_CERT
+          ? Buffer.from(env.SSL_CERT, "base64").toString("ascii")
+          : undefined) ||
         safeReadFile("public.cert") ||
         safeReadFile("public.pem"),
     };
