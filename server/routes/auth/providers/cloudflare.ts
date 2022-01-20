@@ -54,7 +54,7 @@ const strategy = new CloudflareStrategy(
           providerId: teamDomainName,
         },
         authentication: {
-          providerId: identity.account_id,
+          providerId: identity.id,
           scopes,
         },
       });
