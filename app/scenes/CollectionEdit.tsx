@@ -41,7 +41,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
 
       try {
         await collection.save({
-          name: name.trim(),
+          name,
           icon,
           color,
           sort,
