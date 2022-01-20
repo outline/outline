@@ -286,15 +286,6 @@ class SocketProvider extends React.Component<Props> {
       stars.remove(event.modelId);
     });
 
-    // deprecated in favor of stars namespaced events. Remove in v0.63.0+
-    this.socket.on("documents.star", (event: any) => {
-      documents.starredIds.set(event.documentId, true);
-    });
-
-    this.socket.on("documents.unstar", (event: any) => {
-      documents.starredIds.set(event.documentId, false);
-    });
-
     this.socket.on("documents.permanent_delete", (event: any) => {
       documents.remove(event.documentId);
     });
