@@ -29,6 +29,8 @@ export default async function starDestroyer({
   const transaction = t || (await sequelize.transaction());
 
   try {
+    await star.destroy({ transaction });
+
     await Event.create(
       {
         name: "stars.delete",
@@ -41,8 +43,6 @@ export default async function starDestroyer({
       },
       { transaction }
     );
-
-    await star.destroy({ transaction });
 
     await transaction.commit();
   } catch (err) {

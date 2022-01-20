@@ -65,17 +65,19 @@ export default async function starCreator({
     });
     star = response[0];
 
-    await Event.create(
-      {
-        name: "stars.create",
-        modelId: star.id,
-        userId: user.id,
-        actorId: user.id,
-        documentId,
-        ip,
-      },
-      { transaction }
-    );
+    if (response[1]) {
+      await Event.create(
+        {
+          name: "stars.create",
+          modelId: star.id,
+          userId: user.id,
+          actorId: user.id,
+          documentId,
+          ip,
+        },
+        { transaction }
+      );
+    }
 
     await transaction.commit();
   } catch (err) {
