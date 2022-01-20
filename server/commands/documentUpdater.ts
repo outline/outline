@@ -1,9 +1,9 @@
 import invariant from "invariant";
 import { uniq } from "lodash";
 import { Node } from "prosemirror-model";
-import { schema, serializer } from "rich-markdown-editor";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
+import { schema, serializer } from "@server/editor";
 import { Document, Event } from "@server/models";
 
 export default async function documentUpdater({

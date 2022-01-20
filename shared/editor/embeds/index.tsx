@@ -1,6 +1,6 @@
 import * as React from "react";
-import { EmbedDescriptor } from "rich-markdown-editor/dist/types";
 import styled from "styled-components";
+import { EmbedDescriptor } from "@shared/editor/types";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Bilibili from "./Bilibili";

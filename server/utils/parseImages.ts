@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import { parser } from "rich-markdown-editor";
+import { parser } from "@server/editor";
 
 export default function parseImages(text: string): string[] {
   const value = parser.parse(text);

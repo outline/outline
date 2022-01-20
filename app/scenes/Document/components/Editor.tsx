@@ -9,8 +9,8 @@ import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import HoverPreview from "~/components/HoverPreview";
 import { documentHistoryUrl } from "~/utils/routeHelpers";
+import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import EditableTitle from "./EditableTitle";
-import MultiplayerEditor from "./MultiplayerEditor";
 
 type Props = EditorProps &
   WithTranslation & {

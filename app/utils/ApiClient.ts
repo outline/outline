@@ -2,6 +2,7 @@ import retry from "fetch-retry";
 import invariant from "invariant";
 import { map, trim } from "lodash";
 import { getCookie } from "tiny-cookie";
+import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
 import download from "./download";
 import {
