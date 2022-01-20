@@ -261,17 +261,12 @@ export default class Document extends BaseModel {
 
   @action
   star = async () => {
-    await this.store.rootStore.stars.create({
-      documentId: this.id,
-    });
+    return this.store.star(this);
   };
 
   @action
   unstar = async () => {
-    const star = this.store.rootStore.stars.orderedData.find(
-      (star) => star.documentId === this.id
-    );
-    await star?.delete();
+    return this.store.unstar(this);
   };
 
   @action

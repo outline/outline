@@ -709,6 +709,19 @@ export default class DocumentsStore extends BaseStore<Document> {
     if (collection) collection.refresh();
   };
 
+  star = async (document: Document) => {
+    await this.rootStore.stars.create({
+      documentId: document.id,
+    });
+  };
+
+  unstar = async (document: Document) => {
+    const star = this.rootStore.stars.orderedData.find(
+      (star) => star.documentId === document.id
+    );
+    await star?.delete();
+  };
+
   getByUrl = (url = ""): Document | null | undefined => {
     return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
   };
