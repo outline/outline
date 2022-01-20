@@ -165,7 +165,7 @@ function SharePopover({
         <HelpText>{t("Only team members with permission can view")}</HelpText>
       )}
 
-      {canPublish && share?.published && (
+      {canPublish && share?.published && !document.isDraft && (
         <SwitchWrapper>
           <Switch
             id="includeChildDocuments"
