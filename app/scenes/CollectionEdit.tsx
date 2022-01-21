@@ -74,7 +74,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
   };
 
   const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    setName(ev.target.value.trim());
+    setName(ev.target.value);
   };
 
   const handleChange = (color: string, icon: string) => {

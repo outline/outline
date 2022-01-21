@@ -536,7 +536,7 @@ router.post("collections.update", auth(), async (ctx) => {
   let sharingChanged = false;
 
   if (name !== undefined) {
-    collection.name = name;
+    collection.name = name.trim();
   }
 
   if (description !== undefined) {
