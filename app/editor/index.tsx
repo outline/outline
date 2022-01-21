@@ -139,6 +139,8 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */
   embeds: EmbedDescriptor[];
+  /** Whether embeds should be rendered without an iframe */
+  embedsDisabled?: boolean;
   /** Callback when a toast message is triggered (eg "link copied") */
   onShowToast?: (message: string, code: ToastType) => void;
   className?: string;

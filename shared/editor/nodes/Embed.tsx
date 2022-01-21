@@ -2,6 +2,7 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
+import Simple from "../embeds/components/Simple";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import { ComponentProps } from "../types";
@@ -57,28 +58,42 @@ export default class Embed extends Node {
   }
 
   component({ isEditable, isSelected, theme, node }: ComponentProps) {
-    const { embeds } = this.editor.props;
+    const { embeds, embedsDisabled } = this.editor.props;
 
     // matches are cached in module state to avoid re running loops and regex
-    // here. Unfortuantely this function is not compatible with React.memo or
+    // here. Unfortunately this function is not compatible with React.memo or
     // we would use that instead.
     const hit = cache[node.attrs.href];
     let Component = hit ? hit.Component : undefined;
     let matches = hit ? hit.matches : undefined;
+    let embed = hit ? hit.embed : undefined;
 
     if (!Component) {
-      for (const embed of embeds) {
-        const m = embed.matcher(node.attrs.href);
+      for (const e of embeds) {
+        const m = e.matcher(node.attrs.href);
         if (m) {
-          Component = embed.component;
+          Component = e.component;
           matches = m;
-          cache[node.attrs.href] = { Component, matches };
+          embed = e;
+          cache[node.attrs.href] = { Component, embed, matches };
         }
       }
     }
 
     if (!Component) {
       return null;
+    }
+
+    if (embedsDisabled) {
+      return (
+        <Simple
+          attrs={{ href: node.attrs.href, matches }}
+          embed={embed}
+          isEditable={isEditable}
+          isSelected={isSelected}
+          theme={theme}
+        />
+      );
     }
 
     return (

@@ -104,7 +104,7 @@ function CollectionDescription({ collection }: Props) {
                 autoFocus={isEditing}
                 onBlur={handleStopEditing}
                 maxLength={1000}
-                disableEmbeds
+                embedsDisabled
                 readOnlyWriteCheckboxes
                 grow
               />

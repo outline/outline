@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
-import { EmbedDescriptor } from "@shared/editor/types";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
@@ -19,14 +18,12 @@ const SharedEditor = React.lazy(
     )
 );
 
-const EMPTY_ARRAY: EmbedDescriptor[] = [];
-
 export type Props = Optional<
   EditorProps,
   "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "dictionary"
 > & {
   shareId?: string | undefined;
-  disableEmbeds?: boolean;
+  embedsDisabled?: boolean;
   grow?: boolean;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => any;
@@ -94,7 +91,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
         ref={ref}
         uploadImage={onUploadImage}
         onShowToast={onShowToast}
-        embeds={props.disableEmbeds ? EMPTY_ARRAY : embeds}
+        embeds={embeds}
         dictionary={dictionary}
         {...props}
         onClickLink={onClickLink}
