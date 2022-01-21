@@ -18,15 +18,20 @@ import CollectionIcon from "./CollectionIcon";
 import Tooltip from "./Tooltip";
 
 type Props = {
+  /** The pin record */
   pin: Pin | undefined;
+  /** The document related to the pin */
   document: Document;
+  /** Whether the user has permission to delete or reorder the pin */
   canUpdatePin?: boolean;
+  /** Whether this pin can be reordered by dragging */
+  isDraggable?: boolean;
 };
 
 function DocumentCard(props: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
-  const { document, pin, canUpdatePin } = props;
+  const { document, pin, canUpdatePin, isDraggable } = props;
   const collection = collections.get(document.collectionId);
   const {
     attributes,
@@ -105,9 +110,11 @@ function DocumentCard(props: Props) {
                 </PinButton>
               </Tooltip>
             )}
-            <DragHandle $isDragging={isDragging} {...listeners}>
-              :::
-            </DragHandle>
+            {isDraggable && (
+              <DragHandle $isDragging={isDragging} {...listeners}>
+                :::
+              </DragHandle>
+            )}
           </Actions>
         )}
       </AnimatePresence>

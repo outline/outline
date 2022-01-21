@@ -101,6 +101,7 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
                   key={documentId}
                   document={document}
                   canUpdatePin={canUpdate}
+                  isDraggable={items.length > 1}
                   pin={pin}
                   {...rest}
                 />
