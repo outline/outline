@@ -7,8 +7,7 @@ import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { light } from "@shared/theme";
 import Document from "~/models/Document";
 import ContentEditable from "~/components/ContentEditable";
-import Star, { AnimatedStar } from "~/components/Star";
-import useStores from "~/hooks/useStores";
+import { AnimatedStar } from "~/components/Star";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -31,20 +30,10 @@ const fontSize = "2.25em";
 
 const EditableTitle = React.forwardRef(
   (
-    {
-      value,
-      document,
-      readOnly,
-      onChange,
-      onSave,
-      onGoToNextInput,
-      starrable,
-    }: Props,
+    { value, document, readOnly, onChange, onSave, onGoToNextInput }: Props,
     ref: React.RefObject<HTMLSpanElement>
   ) => {
-    const { policies } = useStores();
     const { t } = useTranslation();
-    const can = policies.abilities(document.id);
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 
@@ -127,20 +116,10 @@ const EditableTitle = React.forwardRef(
         readOnly={readOnly}
         dir="auto"
         ref={ref}
-      >
-        {(can.star || can.unstar) && starrable !== false && (
-          <StarButton document={document} size={32} />
-        )}
-      </Title>
+      />
     );
   }
 );
-
-const StarButton = styled(Star)`
-  position: relative;
-  top: 4px;
-  left: 4px;
-`;
 
 type TitleProps = {
   $isStarred: boolean;
@@ -164,6 +143,10 @@ const Title = styled(ContentEditable)<TitleProps>`
 
   > span {
     outline: none;
+    display: block;
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid ${(props) => props.theme.smokeDark};
   }
 
   &::placeholder {
