@@ -94,7 +94,7 @@ function SettingsSidebar() {
                 label={t("Security")}
               />
             )}
-            {can.update && env.DEPLOYMENT !== "hosted" && (
+            {can.update && (
               <SidebarLink
                 to="/settings/features"
                 icon={<BeakerIcon color="currentColor" />}
