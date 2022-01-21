@@ -79,7 +79,7 @@ const DropzoneContainer = styled.div<{ isDragActive?: boolean }>`
         background: ${theme.background};
         border-radius: 8px;
         border: 1px dashed ${theme.divider};
-        box-shadow: 0 0 0 100px white;
+        box-shadow: 0 0 0 100px ${theme.background};
         z-index: 1;
       }
 
