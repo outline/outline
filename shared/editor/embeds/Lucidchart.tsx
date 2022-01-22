@@ -4,8 +4,8 @@ import { EmbedProps as Props } from ".";
 
 export default class Lucidchart extends React.Component<Props> {
   static ENABLED = [
-    /^https?:\/\/(www\.|app\.)?lucidchart.com\/documents\/(embeddedchart|view)\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\/.*)?$/,
-    /^https?:\/\/(www\.|app\.)?lucid.app\/lucidchart\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/(embeddedchart|view)(?:\/.*)?$/,
+    /^https?:\/\/(www\.|app\.)?lucidchart.com\/documents\/(embeddedchart|view|edit)\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:.*)?$/,
+    /^https?:\/\/(www\.|app\.)?lucid.app\/lucidchart\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/(embeddedchart|view|edit)(?:.*)?$/,
   ];
 
   render() {
