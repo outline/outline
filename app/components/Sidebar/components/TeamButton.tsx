@@ -58,6 +58,10 @@ const TeamName = styled.div`
   white-space: nowrap;
   text-decoration: none;
   font-size: 16px;
+
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 100%;
 `;
 
 const Wrapper = styled.div`
