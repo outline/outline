@@ -147,7 +147,9 @@ export default class Document extends BaseModel {
 
   @computed
   get isStarred(): boolean {
-    return !!this.store.starredIds.get(this.id);
+    return !!this.store.rootStore.stars.orderedData.find(
+      (star) => star.documentId === this.id
+    );
   }
 
   @computed
@@ -258,7 +260,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  star = () => {
+  star = async () => {
     return this.store.star(this);
   };
 

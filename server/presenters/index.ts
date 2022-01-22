@@ -16,6 +16,7 @@ import presentRevision from "./revision";
 import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
 import presentSlackAttachment from "./slackAttachment";
+import presentStar from "./star";
 import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
@@ -32,6 +33,7 @@ export {
   presentCollection,
   presentShare,
   presentSearchQuery,
+  presentStar,
   presentTeam,
   presentGroup,
   presentIntegration,

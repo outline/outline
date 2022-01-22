@@ -72,6 +72,7 @@ class SocketProvider extends React.Component<Props> {
       collections,
       groups,
       pins,
+      stars,
       memberships,
       policies,
       presence,
@@ -273,12 +274,16 @@ class SocketProvider extends React.Component<Props> {
       pins.remove(event.modelId);
     });
 
-    this.socket.on("documents.star", (event: any) => {
-      documents.starredIds.set(event.documentId, true);
+    this.socket.on("stars.create", (event: any) => {
+      stars.add(event);
     });
 
-    this.socket.on("documents.unstar", (event: any) => {
-      documents.starredIds.set(event.documentId, false);
+    this.socket.on("stars.update", (event: any) => {
+      stars.add(event);
+    });
+
+    this.socket.on("stars.delete", (event: any) => {
+      stars.remove(event.modelId);
     });
 
     this.socket.on("documents.permanent_delete", (event: any) => {

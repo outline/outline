@@ -312,6 +312,7 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.list instead
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
@@ -864,6 +865,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.create instead
 router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -898,6 +900,7 @@ router.post("documents.star", auth(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.delete instead
 router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");

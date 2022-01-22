@@ -5,6 +5,7 @@ import {
   User,
   Event,
   Document,
+  Star,
   Collection,
   Group,
   GroupUser,
@@ -40,6 +41,30 @@ export async function buildShare(overrides: Partial<Share> = {}) {
 
   return Share.create({
     published: true,
+    ...overrides,
+  });
+}
+
+export async function buildStar(overrides: Partial<Star> = {}) {
+  let user;
+
+  if (overrides.userId) {
+    user = await User.findByPk(overrides.userId);
+  } else {
+    user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      createdById: overrides.userId,
+      teamId: user?.teamId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  return Star.create({
+    index: "h",
     ...overrides,
   });
 }

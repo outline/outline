@@ -17,6 +17,7 @@ import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
 import SearchesStore from "./SearchesStore";
 import SharesStore from "./SharesStore";
+import StarsStore from "./StarsStore";
 import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
@@ -42,6 +43,7 @@ export default class RootStore {
   searches: SearchesStore;
   shares: SharesStore;
   ui: UiStore;
+  stars: StarsStore;
   users: UsersStore;
   views: ViewsStore;
   toasts: ToastsStore;
@@ -67,6 +69,7 @@ export default class RootStore {
     this.revisions = new RevisionsStore(this);
     this.searches = new SearchesStore(this);
     this.shares = new SharesStore(this);
+    this.stars = new StarsStore(this);
     this.ui = new UiStore();
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
@@ -92,6 +95,7 @@ export default class RootStore {
     this.revisions.clear();
     this.searches.clear();
     this.shares.clear();
+    this.stars.clear();
     this.fileOperations.clear();
     // this.ui omitted to keep ui settings between sessions
     this.users.clear();

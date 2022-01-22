@@ -1,12 +1,15 @@
+import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
-import { useEffect } from "react";
+import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import DropCursor from "./DropCursor";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Section from "./Section";
 import SidebarLink from "./SidebarLink";
@@ -23,14 +26,13 @@ function Starred() {
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
-  const { documents } = useStores();
+  const { stars, documents } = useStores();
   const { t } = useTranslation();
-  const { fetchStarred, starred } = documents;
 
   const fetchResults = React.useCallback(async () => {
     try {
       setIsFetching(true);
-      await fetchStarred({
+      await stars.fetchPage({
         limit: STARRED_PAGINATION_LIMIT,
         offset,
       });
@@ -42,9 +44,9 @@ function Starred() {
     } finally {
       setIsFetching(false);
     }
-  }, [fetchStarred, offset, showToast, t]);
+  }, [stars, offset, showToast, t]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     let stateInLocal;
 
     try {
@@ -60,19 +62,19 @@ function Starred() {
     }
   }, [expanded]);
 
-  useEffect(() => {
-    setOffset(starred.length);
+  React.useEffect(() => {
+    setOffset(stars.orderedData.length);
 
-    if (starred.length <= STARRED_PAGINATION_LIMIT) {
+    if (stars.orderedData.length <= STARRED_PAGINATION_LIMIT) {
       setShow("Nothing");
-    } else if (starred.length >= upperBound) {
+    } else if (stars.orderedData.length >= upperBound) {
       setShow("More");
-    } else if (starred.length < upperBound) {
+    } else if (stars.orderedData.length < upperBound) {
       setShow("Less");
     }
-  }, [starred, upperBound]);
+  }, [stars.orderedData, upperBound]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (offset === 0) {
       fetchResults();
     }
@@ -106,20 +108,34 @@ function Starred() {
     [expanded]
   );
 
-  const content = starred.slice(0, upperBound).map((document) => {
-    return (
+  // Drop to reorder document
+  const [{ isOverReorder }, dropToReorder] = useDrop({
+    accept: "star",
+    drop: async (item: Star) => {
+      item?.save({ index: fractionalIndex(null, stars.orderedData[0].index) });
+    },
+    collect: (monitor) => ({
+      isOverReorder: !!monitor.isOver(),
+    }),
+  });
+
+  const content = stars.orderedData.slice(0, upperBound).map((star) => {
+    const document = documents.get(star.documentId);
+
+    return document ? (
       <StarredLink
-        key={document.id}
+        key={star.id}
+        star={star}
         documentId={document.id}
         collectionId={document.collectionId}
         to={document.url}
         title={document.title}
         depth={2}
       />
-    );
+    ) : null;
   });
 
-  if (!starred.length) {
+  if (!stars.orderedData.length) {
     return null;
   }
 
@@ -133,6 +149,11 @@ function Starred() {
         />
         {expanded && (
           <>
+            <DropCursor
+              isActiveDrop={isOverReorder}
+              innerRef={dropToReorder}
+              position="top"
+            />
             {content}
             {show === "More" && !isFetching && (
               <SidebarLink
@@ -148,7 +169,7 @@ function Starred() {
                 depth={2}
               />
             )}
-            {(isFetching || fetchError) && !starred.length && (
+            {(isFetching || fetchError) && !stars.orderedData.length && (
               <Flex column>
                 <PlaceholderCollections />
               </Flex>
