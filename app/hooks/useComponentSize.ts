@@ -4,8 +4,8 @@ export default function useComponentSize(
   ref: React.RefObject<HTMLElement>
 ): { width: number; height: number } {
   const [size, setSize] = useState({
-    width: 0,
-    height: 0,
+    width: ref.current?.clientWidth || 0,
+    height: ref.current?.clientHeight || 0,
   });
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import { MenuItem } from "@shared/editor/types";
 import ToolbarButton from "./ToolbarButton";
@@ -14,12 +14,12 @@ type Props = {
 };
 
 const FlexibleWrapper = styled.div`
+  color: ${(props) => props.theme.toolbarItem};
   display: flex;
   gap: 8px;
 `;
 
 function ToolbarMenu(props: Props) {
-  const theme = useTheme();
   const { view, items } = props;
   const { state } = view;
 
@@ -36,13 +36,12 @@ function ToolbarMenu(props: Props) {
         const isActive = item.active ? item.active(state) : false;
 
         return (
-          <Tooltip tooltip={item.tooltip}>
+          <Tooltip tooltip={item.tooltip} key={index}>
             <ToolbarButton
-              key={index}
               onClick={() => item.name && props.commands[item.name](item.attrs)}
               active={isActive}
             >
-              <Icon color={theme.toolbarItem} />
+              <Icon color="currentColor" />
             </ToolbarButton>
           </Tooltip>
         );
