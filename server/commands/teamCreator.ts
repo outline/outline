@@ -57,8 +57,8 @@ export default async function teamCreator({
     const teamCount = await Team.count();
 
     // If the self-hosted installation has a single team and the domain for the
-    // new team matches one in the allowed domains env variable then assign the
-    // authentication provider to the existing team
+    // new team is allowed then assign the authentication provider to the
+    // existing team
     if (teamCount === 1 && domain && isDomainAllowed(domain)) {
       const team = await Team.findOne();
       invariant(team, "Team should exist");
