@@ -46,7 +46,9 @@ function SharePopover({
     !document.isTemplate &&
     auth.team?.sharing &&
     documentAbilities.share;
-  const isPubliclyShared = (share && share.published) || sharedParent;
+  const isPubliclyShared =
+    (share && share.published) ||
+    (sharedParent && sharedParent.published && !document.isDraft);
 
   useKeyDown("Escape", onRequestClose);
 
@@ -117,7 +119,7 @@ function SharePopover({
         {t("Share this document")}
       </Heading>
 
-      {sharedParent && (
+      {sharedParent && !document.isDraft && (
         <Notice>
           <Trans
             defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
