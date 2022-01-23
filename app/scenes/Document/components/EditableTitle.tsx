@@ -48,6 +48,10 @@ const EditableTitle = React.forwardRef(
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 
+    const handleClick = React.useCallback(() => {
+      ref.current?.focus();
+    }, [ref]);
+
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent) => {
         if (event.key === "Enter") {
@@ -112,6 +116,7 @@ const EditableTitle = React.forwardRef(
 
     return (
       <Title
+        onClick={handleClick}
         onChange={onChange}
         onKeyDown={handleKeyDown}
         placeholder={
@@ -139,7 +144,14 @@ const EditableTitle = React.forwardRef(
 const StarButton = styled(Star)`
   position: relative;
   top: 4px;
-  left: 4px;
+  left: 10px;
+  overflow: hidden;
+  width: 24px;
+
+  svg {
+    position: relative;
+    left: -4px;
+  }
 `;
 
 type TitleProps = {
@@ -161,6 +173,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   border: 0;
   padding: 0;
   resize: none;
+  cursor: text;
 
   > span {
     outline: none;
