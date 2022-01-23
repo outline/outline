@@ -37,7 +37,13 @@ function usePosition({
   const viewportHeight = useViewportHeight();
   const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
-  if (!active || !menuWidth || !menuHeight || isSelectingText) {
+  if (
+    !active ||
+    !menuWidth ||
+    !menuHeight ||
+    !menuRef.current ||
+    isSelectingText
+  ) {
     return defaultPosition;
   }
 
@@ -146,54 +152,54 @@ function usePosition({
   }
 }
 
-function FloatingToolbar(props: Props) {
-  const menuRef = props.forwardedRef || React.createRef<HTMLDivElement>();
-  const [isSelectingText, setSelectingText] = React.useState(false);
+const FloatingToolbar = React.forwardRef(
+  (props: Props, forwardedRef: React.RefObject<HTMLDivElement>) => {
+    const menuRef = forwardedRef || React.createRef<HTMLDivElement>();
+    const [isSelectingText, setSelectingText] = React.useState(false);
 
-  const position = usePosition({
-    menuRef,
-    isSelectingText,
-    props,
-  });
+    const position = usePosition({
+      menuRef,
+      isSelectingText,
+      props,
+    });
 
-  React.useEffect(() => {
-    const handleMouseDown = () => {
-      if (!props.active) {
-        setSelectingText(true);
-      }
-    };
+    React.useEffect(() => {
+      const handleMouseDown = () => {
+        if (!props.active) {
+          setSelectingText(true);
+        }
+      };
 
-    const handleMouseUp = () => {
-      setSelectingText(false);
-    };
+      const handleMouseUp = () => {
+        setSelectingText(false);
+      };
 
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mousedown", handleMouseDown);
+      window.addEventListener("mouseup", handleMouseUp);
 
-    return () => {
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [props.active]);
+      return () => {
+        window.removeEventListener("mousedown", handleMouseDown);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }, [props.active]);
 
-  // only render children when state is updated to visible
-  // to prevent gaining input focus before calculatePosition runs
-  return (
-    <Portal>
-      <Wrapper
-        active={props.active && position.visible}
-        ref={menuRef}
-        offset={position.offset}
-        style={{
-          top: `${position.top}px`,
-          left: `${position.left}px`,
-        }}
-      >
-        {position.visible && props.children}
-      </Wrapper>
-    </Portal>
-  );
-}
+    return (
+      <Portal>
+        <Wrapper
+          active={props.active && position.visible}
+          ref={menuRef}
+          offset={position.offset}
+          style={{
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+          }}
+        >
+          {props.children}
+        </Wrapper>
+      </Portal>
+    );
+  }
+);
 
 const Wrapper = styled.div<{
   active?: boolean;
@@ -259,9 +265,4 @@ const Wrapper = styled.div<{
   }
 `;
 
-export default React.forwardRef(function FloatingToolbarWithForwardedRef(
-  props: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
-  return <FloatingToolbar {...props} forwardedRef={ref} />;
-});
+export default FloatingToolbar;
