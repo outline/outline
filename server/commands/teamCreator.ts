@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import Logger from "@server/logging/logger";
 import { Team, AuthenticationProvider } from "@server/models";
-import { getAllowedDomains } from "@server/utils/authentication";
+import { isDomainAllowed } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { MaximumTeamsError } from "../errors";
 
@@ -59,7 +59,7 @@ export default async function teamCreator({
     // If the self-hosted installation has a single team and the domain for the
     // new team matches one in the allowed domains env variable then assign the
     // authentication provider to the existing team
-    if (teamCount === 1 && domain && getAllowedDomains().includes(domain)) {
+    if (teamCount === 1 && domain && isDomainAllowed(domain)) {
       const team = await Team.findOne();
       invariant(team, "Team should exist");
 
