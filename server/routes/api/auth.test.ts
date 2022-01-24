@@ -9,8 +9,6 @@ beforeEach(() => flushdb());
 afterAll(() => server.close());
 
 describe("#auth.info", () => {
-  process.env.DEPLOYMENT = "hosted";
-
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -49,6 +47,8 @@ describe("#auth.info", () => {
 
 describe("#auth.config", () => {
   it("should return available SSO providers", async () => {
+    process.env.DEPLOYMENT = "hosted";
+
     const res = await server.post("/api/auth.config");
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -59,6 +59,8 @@ describe("#auth.config", () => {
 
   it("should return available providers for team subdomain", async () => {
     process.env.URL = "http://localoutline.com";
+    process.env.DEPLOYMENT = "hosted";
+
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
@@ -81,6 +83,8 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team custom domain", async () => {
+    process.env.DEPLOYMENT = "hosted";
+
     await buildTeam({
       guestSignin: false,
       domain: "docs.mycompany.com",
@@ -104,6 +108,8 @@ describe("#auth.config", () => {
 
   it("should return email provider for team when guest signin enabled", async () => {
     process.env.URL = "http://localoutline.com";
+    process.env.DEPLOYMENT = "hosted";
+
     await buildTeam({
       guestSignin: true,
       subdomain: "example",
@@ -128,6 +134,8 @@ describe("#auth.config", () => {
 
   it("should not return provider when disabled", async () => {
     process.env.URL = "http://localoutline.com";
+    process.env.DEPLOYMENT = "hosted";
+
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
