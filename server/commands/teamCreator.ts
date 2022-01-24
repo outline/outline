@@ -1,9 +1,6 @@
 import Logger from "@server/logging/logger";
 import { Team, AuthenticationProvider } from "@server/models";
-import {
-  isDomainAllowed,
-  getAllowedDomains,
-} from "@server/utils/authentication";
+import { isDomainAllowed } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { MaximumTeamsError } from "../errors";
 
@@ -59,10 +56,10 @@ export default async function teamCreator({
     const team = await Team.findOne();
 
     if (team) {
-      // If there is an allowed list of domains and the domain is within it then
-      // we want to assign to the existing team, otherwise we prevent the
-      // creation of another team on self-hosted instances.
-      if (domain && isDomainAllowed(domain) && getAllowedDomains().length > 0) {
+      // If the domain is allowed then we want to assign to the existing team,
+      // otherwise we prevent the creation of another team on self-hosted
+      // instances.
+      if (domain && isDomainAllowed(domain)) {
         authP = await team.$create<AuthenticationProvider>(
           "authenticationProvider",
           authenticationProvider
