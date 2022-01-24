@@ -39,6 +39,10 @@ const EditorStyles = styled.div<{
       display: none;
     }
 
+    & > :first-child {
+      margin-top: 0;
+    }
+
     .ProseMirror-yjs-cursor {
       position: relative;
       margin-left: -1px;
