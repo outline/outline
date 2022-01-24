@@ -12,6 +12,11 @@ export function getAllowedDomains(): string[] {
   return env ? env.split(",") : [];
 }
 
+export function isDomainAllowed(domain: string): boolean {
+  const allowedDomains = getAllowedDomains();
+  return allowedDomains.includes(domain) || allowedDomains.length === 0;
+}
+
 export async function signIn(
   ctx: Context,
   user: User,
