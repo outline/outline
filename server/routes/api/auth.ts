@@ -10,18 +10,19 @@ import providers from "../auth/providers";
 
 const router = new Router();
 
-function filterProviders(team: Team) {
+function filterProviders(team?: Team) {
   return providers
     .sort((provider) => (provider.id === "email" ? 1 : -1))
     .filter((provider) => {
       // guest sign-in is an exception as it does not have an authentication
       // provider using passport, instead it exists as a boolean option on the team
       if (provider.id === "email") {
-        return team && team.guestSignin;
+        return team?.guestSignin;
       }
 
       return (
         !team ||
+        process.env.DEPLOYMENT !== "hosted" ||
         find(team.authenticationProviders, {
           name: provider.id,
           enabled: true,
@@ -40,10 +41,9 @@ router.post("auth.config", async (ctx) => {
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (process.env.DEPLOYMENT !== "hosted") {
-    const teams = await Team.scope("withAuthenticationProviders").findAll();
+    const team = await Team.findOne();
 
-    if (teams.length === 1) {
-      const team = teams[0];
+    if (team) {
       ctx.body = {
         data: {
           name: team.name,
@@ -103,7 +103,6 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       providers: filterProviders(),
     },
   };

@@ -191,4 +191,81 @@ describe("accountProvisioner", () => {
 
     spy.mockRestore();
   });
+
+  describe("self hosted", () => {
+    it("should fail if existing team and domain not in allowed list", async () => {
+      process.env.DEPLOYMENT = "";
+      let error;
+      const team = await buildTeam();
+
+      try {
+        await accountProvisioner({
+          ip,
+          user: {
+            name: "Jenny Tester",
+            email: "jenny@example.com",
+            avatarUrl: "https://example.com/avatar.png",
+            username: "jtester",
+          },
+          team: {
+            name: team.name,
+            avatarUrl: team.avatarUrl,
+            subdomain: "example",
+          },
+          authenticationProvider: {
+            name: "google",
+            providerId: "example.com",
+          },
+          authentication: {
+            providerId: "123456789",
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error.message).toEqual(
+        "The maximum number of teams has been reached"
+      );
+    });
+
+    it("should always use existing team if self-hosted", async () => {
+      process.env.DEPLOYMENT = "";
+
+      const team = await buildTeam();
+      const { user, isNewUser } = await accountProvisioner({
+        ip,
+        user: {
+          name: "Jenny Tester",
+          email: "jenny@example.com",
+          avatarUrl: "https://example.com/avatar.png",
+          username: "jtester",
+        },
+        team: {
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          subdomain: "example",
+          domain: "allowed-domain.com",
+        },
+        authenticationProvider: {
+          name: "google",
+          providerId: "allowed-domain.com",
+        },
+        authentication: {
+          providerId: "123456789",
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      expect(user.teamId).toEqual(team.id);
+      expect(user.username).toEqual("jtester");
+      expect(isNewUser).toEqual(true);
+
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(2);
+    });
+  });
 });

@@ -20,6 +20,7 @@ jest.mock("aws-sdk", () => {
   const mS3 = {
     createPresignedPost: jest.fn(),
     deleteObject: jest.fn().mockReturnThis(),
+    putObject: jest.fn().mockReturnThis(),
     promise: jest.fn(),
   };
   return {
