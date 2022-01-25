@@ -175,6 +175,11 @@ function DocumentHeader({
         }
         actions={
           <>
+            {isMobile && (
+              <TocWrapper>
+                <TableOfContentsMenu headings={headings} />
+              </TocWrapper>
+            )}
             {appearanceAction}
             {canEdit ? editAction : <div />}
           </>

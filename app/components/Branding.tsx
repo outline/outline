@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import env from "~/env";
 import OutlineLogo from "./OutlineLogo";
 
@@ -20,7 +21,10 @@ const Link = styled.a`
   z-index: ${(props) => props.theme.depths.sidebar + 1};
   position: fixed;
   bottom: 0;
-  left: 0;
+
+  ${breakpoint("tablet")`
+    left: 0;
+  `};
 
   font-weight: 600;
   font-size: 14px;
