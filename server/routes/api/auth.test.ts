@@ -60,6 +60,7 @@ describe("#auth.config", () => {
   it("should return available providers for team subdomain", async () => {
     process.env.URL = "http://localoutline.com";
     process.env.DEPLOYMENT = "hosted";
+    process.env.SUBDOMAINS_ENABLED = "true";
 
     await buildTeam({
       guestSignin: false,
