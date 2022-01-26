@@ -39,7 +39,13 @@ const EditorStyles = styled.div<{
       display: none;
     }
 
-    & > :first-child {
+    & > * {
+      margin-top: .5em;
+      margin-bottom: .5em;
+    }
+
+    & > :first-child,
+    & > button:first-child + * {
       margin-top: 0;
     }
 
@@ -101,7 +107,6 @@ const EditorStyles = styled.div<{
   }
 
   .image {
-    margin: .5em 0;
     text-align: center;
     max-width: 100%;
     clear: both;
@@ -490,7 +495,7 @@ const EditorStyles = styled.div<{
   }
 
   p {
-    margin: 0.5em 0;
+    margin: 0;
 
     span:first-child + br:last-child {
       display: none;
