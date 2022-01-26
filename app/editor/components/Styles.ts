@@ -540,7 +540,8 @@ const EditorStyles = styled.div<{
   ul.checkbox_list {
     list-style: none;
     padding: 0;
-    margin: ${(props) => (props.rtl ? "0 -24px 0 0" : "0 0 0 -24px")};
+    margin-left: ${(props) => (props.rtl ? "0" : "-24px")};
+    margin-right: ${(props) => (props.rtl ? "-24px" : "0")};
   }
 
   ul li,

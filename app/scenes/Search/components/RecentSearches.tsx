@@ -8,6 +8,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import { searchUrl } from "~/utils/routeHelpers";
 
 function RecentSearches() {
@@ -90,7 +91,7 @@ const RecentSearch = styled(Link)`
   padding: 1px 4px;
   border-radius: 4px;
 
-  &:hover {
+  &: ${hover} {
     color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.secondaryBackground};
 

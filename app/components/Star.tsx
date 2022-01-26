@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Document from "~/models/Document";
+import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
 type Props = {
@@ -56,7 +57,7 @@ export const AnimatedStar = styled(StarredIcon)`
   flex-shrink: 0;
   transition: all 100ms ease-in-out;
 
-  &:hover {
+  &: ${hover} {
     transform: scale(1.1);
   }
   &:active {

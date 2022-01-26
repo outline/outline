@@ -84,6 +84,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (!prevProps.isActive && this.props.isActive) {
+      // reset scroll position to top when opening menu as the contents are
+      // hidden, not unrendered
+      if (this.menuRef.current) {
+        this.menuRef.current.scroll({ top: 0 });
+      }
       const position = this.calculatePosition(this.props);
 
       this.setState({
@@ -485,16 +490,25 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
                     </ListItem>
                   );
                 }
-                const selected = index === this.state.selectedIndex && isActive;
 
                 if (!item.title) {
                   return null;
                 }
 
+                const handlePointer = () => {
+                  if (this.state.selectedIndex !== index) {
+                    this.setState({ selectedIndex: index });
+                  }
+                };
+
                 return (
-                  <ListItem key={index}>
+                  <ListItem
+                    key={index}
+                    onPointerMove={handlePointer}
+                    onPointerDown={handlePointer}
+                  >
                     {this.props.renderMenuItem(item as any, index, {
-                      selected,
+                      selected: index === this.state.selectedIndex,
                       onClick: () => this.insertItem(item),
                     })}
                   </ListItem>

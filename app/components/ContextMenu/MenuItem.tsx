@@ -3,6 +3,7 @@ import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { hover } from "~/styles";
 import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {
@@ -123,7 +124,7 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
       ? "pointer-events: none;"
       : `
 
-  &:hover,  
+  &:${hover},
   &:focus,
   &.focus-visible {
     color: ${props.theme.white};

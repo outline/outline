@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import styled from "styled-components";
-import { githubIssuesUrl } from "@shared/utils/routeHelpers";
+import { githubIssuesUrl } from "@shared/utils/urlHelpers";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import HelpText from "~/components/HelpText";
