@@ -21,12 +21,13 @@ function Features() {
     collaborativeEditing: team.collaborativeEditing,
   });
 
-  const showSuccessMessage = React.useCallback(
-    debounce(() => {
-      showToast(t("Settings saved"), {
-        type: "success",
-      });
-    }, 250),
+  const showSuccessMessage = React.useMemo(
+    () =>
+      debounce(() => {
+        showToast(t("Settings saved"), {
+          type: "success",
+        });
+      }, 250),
     [t, showToast]
   );
 
