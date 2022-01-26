@@ -79,13 +79,17 @@ const Wrapper = styled(Flex)`
   position: sticky;
   top: 0;
   z-index: ${(props) => props.theme.depths.header};
-  background: ${(props) => transparentize(0.2, props.theme.background)};
+  background: ${(props) => props.theme.background};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
-  backdrop-filter: blur(20px);
   min-height: 56px;
   justify-content: flex-start;
+
+  @supports (backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px);
+    background: ${(props) => transparentize(0.2, props.theme.background)};
+  }
 
   @media print {
     display: none;
@@ -93,7 +97,7 @@ const Wrapper = styled(Flex)`
 
   ${breakpoint("tablet")`
     padding: 16px 16px 0;
-    justify-content: "center";
+    justify-content: center;
   `};
 `;
 
