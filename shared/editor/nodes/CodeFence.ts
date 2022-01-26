@@ -89,6 +89,7 @@ export default class CodeFence extends Node {
       defining: true,
       draggable: false,
       parseDOM: [
+        { tag: "code" },
         { tag: "pre", preserveWhitespace: "full" },
         {
           tag: ".code-block",

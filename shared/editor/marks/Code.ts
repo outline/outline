@@ -40,8 +40,8 @@ export default class Code extends Mark {
   get schema(): MarkSpec {
     return {
       excludes: "_",
-      parseDOM: [{ tag: "code", preserveWhitespace: true }],
-      toDOM: () => ["code", { spellCheck: "false" }],
+      parseDOM: [{ tag: "code.inline", preserveWhitespace: true }],
+      toDOM: () => ["code", { class: "inline", spellCheck: "false" }],
     };
   }
 
