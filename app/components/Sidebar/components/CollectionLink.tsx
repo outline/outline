@@ -81,7 +81,12 @@ function CollectionLink({
       const { id, collectionId } = item;
       if (monitor.didDrop()) return;
       if (!collection) return;
-      if (collection.id === collectionId) return;
+
+      const document = documents.get(id);
+      if (collection.id === collectionId && !document?.parentDocumentId) {
+        return;
+      }
+
       const prevCollection = collections.get(collectionId);
 
       if (

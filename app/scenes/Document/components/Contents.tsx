@@ -97,6 +97,7 @@ const Sticky = styled.div`
   box-shadow: 1px 0 0 ${(props) => props.theme.divider};
   margin-top: 40px;
   margin-right: 52px;
+  min-width: 204px;
   width: 204px;
   min-height: 40px;
   overflow-y: auto;
@@ -113,8 +114,6 @@ const Heading = styled.h3`
 const Empty = styled(HelpText)`
   margin: 1em 0 4em;
   padding-right: 2em;
-  min-width: 16em;
-  width: 16em;
   font-size: 14px;
 `;
 
@@ -142,8 +141,6 @@ const Link = styled.a`
 `;
 
 const List = styled.ol`
-  min-width: 14em;
-  width: 14em;
   padding: 0;
   list-style: none;
 `;

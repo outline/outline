@@ -3,8 +3,8 @@ import { NodeSelection, TextSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import { Portal } from "react-portal";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
+import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import getColumnIndex from "@shared/editor/queries/getColumnIndex";
 import getMarkRange from "@shared/editor/queries/getMarkRange";
@@ -27,7 +27,7 @@ type Props = {
   dictionary: Dictionary;
   rtl: boolean;
   isTemplate: boolean;
-  commands: Record<string, any>;
+  commands: Record<string, CommandFactory>;
   onOpen: () => void;
   onClose: () => void;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
@@ -229,27 +229,25 @@ export default class SelectionToolbar extends React.Component<Props> {
     }
 
     return (
-      <Portal>
-        <FloatingToolbar
-          view={view}
-          active={isVisible(this.props)}
-          ref={this.menuRef}
-        >
-          {link && range ? (
-            <LinkEditor
-              dictionary={dictionary}
-              mark={range.mark}
-              from={range.from}
-              to={range.to}
-              onCreateLink={onCreateLink ? this.handleOnCreateLink : undefined}
-              onSelectLink={this.handleOnSelectLink}
-              {...rest}
-            />
-          ) : (
-            <ToolbarMenu items={items} {...rest} />
-          )}
-        </FloatingToolbar>
-      </Portal>
+      <FloatingToolbar
+        view={view}
+        active={isVisible(this.props)}
+        ref={this.menuRef}
+      >
+        {link && range ? (
+          <LinkEditor
+            dictionary={dictionary}
+            mark={range.mark}
+            from={range.from}
+            to={range.to}
+            onCreateLink={onCreateLink ? this.handleOnCreateLink : undefined}
+            onSelectLink={this.handleOnSelectLink}
+            {...rest}
+          />
+        ) : (
+          <ToolbarMenu items={items} {...rest} />
+        )}
+      </FloatingToolbar>
     );
   }
 }

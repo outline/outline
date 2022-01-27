@@ -16,7 +16,11 @@ export default class Blockquote extends Node {
       content: "block+",
       group: "block",
       defining: true,
-      parseDOM: [{ tag: "blockquote" }],
+      parseDOM: [
+        { tag: "blockquote" },
+        // Dropbox Paper parsing, yes their quotes are actually lists
+        { tag: "ul.listtype-quote", contentElement: "li" },
+      ],
       toDOM: () => ["blockquote", 0],
     };
   }

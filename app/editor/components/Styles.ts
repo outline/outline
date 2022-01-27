@@ -14,7 +14,7 @@ const EditorStyles = styled.div<{
   font-family: ${(props) => props.theme.fontFamily};
   font-weight: ${(props) => props.theme.fontWeight};
   font-size: 1em;
-  line-height: 1.7em;
+  line-height: 1.6em;
   width: 100%;
 
   > div {
@@ -37,6 +37,16 @@ const EditorStyles = styled.div<{
 
     & > .ProseMirror-yjs-cursor {
       display: none;
+    }
+
+    & > * {
+      margin-top: .5em;
+      margin-bottom: .5em;
+    }
+
+    & > :first-child,
+    & > button:first-child + * {
+      margin-top: 0;
     }
 
     .ProseMirror-yjs-cursor {
@@ -406,11 +416,14 @@ const EditorStyles = styled.div<{
     a:not(.heading-name) {
       text-decoration: underline;
     }
-  }
 
-  .notice-block.tip,
-  .notice-block.warning {
-    font-weight: 500;
+    p:first-child {
+      margin-top: 0;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
   }
 
   .notice-block .content {
@@ -423,8 +436,6 @@ const EditorStyles = styled.div<{
     height: 24px;
     align-self: flex-start;
     margin-${(props) => (props.rtl ? "left" : "right")}: 4px;
-    position: relative;
-    top: 1px;
   }
 
   .notice-block.tip {
@@ -529,7 +540,8 @@ const EditorStyles = styled.div<{
   ul.checkbox_list {
     list-style: none;
     padding: 0;
-    margin: ${(props) => (props.rtl ? "0 -24px 0 0" : "0 0 0 -24px")};
+    margin-left: ${(props) => (props.rtl ? "0" : "-24px")};
+    margin-right: ${(props) => (props.rtl ? "-24px" : "0")};
   }
 
   ul li,
@@ -739,6 +751,7 @@ const EditorStyles = styled.div<{
     background: ${(props) => props.theme.codeBackground};
     border-radius: 4px;
     border: 1px solid ${(props) => props.theme.codeBorder};
+    margin: .5em 0;
 
     -webkit-font-smoothing: initial;
     font-family: ${(props) => props.theme.fontFamilyMono};
@@ -756,7 +769,6 @@ const EditorStyles = styled.div<{
     -ms-hyphens: none;
     hyphens: none;
     color: ${(props) => props.theme.code};
-    margin: 0;
 
     code {
       font-size: 13px;

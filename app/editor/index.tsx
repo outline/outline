@@ -12,7 +12,7 @@ import { selectColumn, selectRow, selectTable } from "prosemirror-utils";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
-import Extension from "@shared/editor/lib/Extension";
+import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import headingToSlug from "@shared/editor/lib/headingToSlug";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
@@ -221,7 +221,7 @@ export class Editor extends React.PureComponent<
 
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
-  commands: Record<string, any>;
+  commands: Record<string, CommandFactory>;
   rulePlugins: PluginSimple[];
 
   componentDidMount() {

@@ -241,7 +241,18 @@ export type PinEvent = {
   name: "pins.create" | "pins.update" | "pins.delete";
   teamId: string;
   modelId: string;
+  documentId: string;
   collectionId?: string;
+  actorId: string;
+  ip: string;
+};
+
+export type StarEvent = {
+  name: "stars.create" | "stars.update" | "stars.delete";
+  teamId: string;
+  modelId: string;
+  documentId: string;
+  userId: string;
   actorId: string;
   ip: string;
 };
@@ -250,6 +261,7 @@ export type Event =
   | UserEvent
   | DocumentEvent
   | PinEvent
+  | StarEvent
   | CollectionEvent
   | CollectionImportEvent
   | CollectionExportAllEvent

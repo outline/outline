@@ -19,10 +19,21 @@ allow(User, ["read", "download"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["star", "unstar"], Document, (user, document) => {
+allow(User, "star", Document, (user, document) => {
   if (!document) return false;
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  if (document.template) return false;
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "read", document.collection)) return false;
+  return user.teamId === document.teamId;
+});
+
+allow(User, "unstar", Document, (user, document) => {
+  if (!document) return false;
   if (document.template) return false;
   invariant(
     document.collection,

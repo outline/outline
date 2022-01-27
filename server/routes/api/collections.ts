@@ -25,7 +25,7 @@ import {
   presentCollectionGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import collectionIndexing from "@server/utils/collectionIndexing";
+import { collectionIndexing } from "@server/utils/indexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
   assertUuid,
@@ -623,12 +623,12 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
-  const nullIndexCollection = collections.findIndex(
+  const nullIndex = collections.findIndex(
     (collection) => collection.index === null
   );
 
-  if (nullIndexCollection !== -1) {
-    const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
+  if (nullIndex !== -1) {
+    const indexedCollections = await collectionIndexing(user.teamId);
     collections.forEach((collection) => {
       collection.index = indexedCollections[collection.id];
     });

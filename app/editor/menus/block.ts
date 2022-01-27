@@ -18,10 +18,7 @@ import {
 } from "outline-icons";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
-
-const SSR = typeof window === "undefined";
-const isMac = !SSR && window.navigator.platform === "MacIntel";
-const mod = isMac ? "⌘" : "ctrl";
+import { metaDisplay } from "~/utils/keyboard";
 
 export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
   return [
@@ -84,7 +81,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "blockquote",
       title: dictionary.quote,
       icon: BlockQuoteIcon,
-      shortcut: `${mod} ]`,
+      shortcut: `${metaDisplay} ]`,
     },
     {
       name: "code_block",
@@ -97,7 +94,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "hr",
       title: dictionary.hr,
       icon: HorizontalRuleIcon,
-      shortcut: `${mod} _`,
+      shortcut: `${metaDisplay} _`,
       keywords: "horizontal rule break line",
     },
     {
@@ -117,7 +114,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "link",
       title: dictionary.link,
       icon: LinkIcon,
-      shortcut: `${mod} k`,
+      shortcut: `${metaDisplay} k`,
       keywords: "link url uri href",
     },
     {

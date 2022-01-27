@@ -32,7 +32,7 @@ export function githubIssuesUrl(): string {
 }
 
 export function twitterUrl(): string {
-  return "https://twitter.com/outlinewiki";
+  return "https://twitter.com/getoutline";
 }
 
 export function mailToUrl(): string {

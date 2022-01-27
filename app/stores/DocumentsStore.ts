@@ -44,9 +44,6 @@ export default class DocumentsStore extends BaseStore<Document> {
   searchCache: Map<string, SearchResult[]> = new Map();
 
   @observable
-  starredIds: Map<string, boolean> = new Map();
-
-  @observable
   backlinks: Map<string, string[]> = new Map();
 
   @observable
@@ -172,14 +169,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.searchCache.get(query) || [];
   }
 
-  get starred(): Document[] {
-    return orderBy(
-      this.all.filter((d) => d.isStarred),
-      "updatedAt",
-      "desc"
-    );
-  }
-
   @computed
   get archived(): Document[] {
     return orderBy(this.orderedData, "archivedAt", "desc").filter(
@@ -192,11 +181,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
-
-  @computed
-  get starredAlphabetical(): Document[] {
-    return naturalSort(this.starred, "title");
   }
 
   @computed
@@ -623,19 +607,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.add(res.data);
   };
 
-  _add = this.add;
-
-  @action
-  add = (item: Record<string, any>): Document => {
-    const document = this._add(item);
-
-    if (item.starred !== undefined) {
-      this.starredIds.set(document.id, item.starred);
-    }
-
-    return document;
-  };
-
   @action
   removeCollectionDocuments(collectionId: string) {
     const documents = this.inCollection(collectionId);
@@ -739,27 +710,16 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   star = async (document: Document) => {
-    this.starredIds.set(document.id, true);
-
-    try {
-      return await client.post("/documents.star", {
-        id: document.id,
-      });
-    } catch (err) {
-      this.starredIds.set(document.id, false);
-    }
+    await this.rootStore.stars.create({
+      documentId: document.id,
+    });
   };
 
   unstar = async (document: Document) => {
-    this.starredIds.set(document.id, false);
-
-    try {
-      return await client.post("/documents.unstar", {
-        id: document.id,
-      });
-    } catch (err) {
-      this.starredIds.set(document.id, true);
-    }
+    const star = this.rootStore.stars.orderedData.find(
+      (star) => star.documentId === document.id
+    );
+    await star?.delete();
   };
 
   getByUrl = (url = ""): Document | null | undefined => {

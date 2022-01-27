@@ -544,6 +544,7 @@ const Caption = styled.p`
   background: none;
   resize: none;
   user-select: text;
+  margin: 0 !important;
   cursor: text;
 
   &:empty:not(:focus) {
