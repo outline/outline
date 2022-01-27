@@ -11,6 +11,7 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
@@ -138,7 +139,7 @@ class DataLoader extends React.Component<Props> {
 
         return {
           title: document.title,
-          subtitle: `Updated ${time}`,
+          subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
         };
       }),
