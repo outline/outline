@@ -27,8 +27,8 @@ export const SigninEmail = ({ token, teamUrl }: Props) => {
       <Header />
 
       <Body>
-        <Heading>Magic signin link</Heading>
-        <p>Click the button below to signin to Outline.</p>
+        <Heading>Magic Sign-in Link</Heading>
+        <p>Click the button below to sign in to Outline.</p>
         <EmptySpace height={10} />
         <p>
           <Button
@@ -40,7 +40,7 @@ export const SigninEmail = ({ token, teamUrl }: Props) => {
         <EmptySpace height={10} />
         <p>
           If your magic link expired you can request a new one from your team’s
-          signin page at: <a href={teamUrl}>{teamUrl}</a>
+          sign-in page at: <a href={teamUrl}>{teamUrl}</a>
         </p>
       </Body>
 
