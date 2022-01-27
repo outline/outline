@@ -1,4 +1,3 @@
-import { debounce } from "lodash";
 import { observer } from "mobx-react";
 import { BeakerIcon } from "outline-icons";
 import { useState } from "react";
@@ -21,24 +20,17 @@ function Features() {
     collaborativeEditing: team.collaborativeEditing,
   });
 
-  const showSuccessMessage = React.useCallback(
-    debounce(() => {
-      showToast(t("Settings saved"), {
-        type: "success",
-      });
-    }, 250),
-    [t, showToast]
-  );
-
   const handleChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
       const newData = { ...data, [ev.target.name]: ev.target.checked };
       setData(newData);
 
       await auth.updateTeam(newData);
-      showSuccessMessage();
+      showToast(t("Settings saved"), {
+        type: "success",
+      });
     },
-    [auth, data, showSuccessMessage]
+    [auth, data, showToast, t]
   );
 
   return (
