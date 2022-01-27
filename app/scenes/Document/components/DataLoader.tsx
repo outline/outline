@@ -133,10 +133,6 @@ class DataLoader extends React.Component<Props> {
 
     return sortBy(
       results.map((document: Document) => {
-        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
-          addSuffix: true,
-        });
-
         return {
           title: document.title,
           subtitle: <DocumentBreadcrumb document={document} onlyText />,
