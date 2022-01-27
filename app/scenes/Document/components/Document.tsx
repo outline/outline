@@ -668,6 +668,8 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   max-width: 100vw;
   width: 100%;
 
+  padding-bottom: 16px;
+
   ${breakpoint("tablet")`
     margin: 4px auto 12px;
     max-width: ${(props: MaxWidthProps) =>
