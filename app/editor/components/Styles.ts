@@ -690,6 +690,17 @@ const EditorStyles = styled.div<{
     }
   }
 
+  .code-actions,
+  .notice-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    z-index: 1;
+    top: 8px;
+    ${(props) => (props.rtl ? "left" : "right")}: 8px;
+  }
+
   .code-block,
   .notice-block {
     position: relative;
@@ -701,25 +712,9 @@ const EditorStyles = styled.div<{
       border-width: 1px;
       font-size: 13px;
       display: none;
-      position: absolute;
       border-radius: 4px;
-      padding: 2px;
-      z-index: 1;
-      top: 4px;
-    }
-
-    &.code-block {
-      select,
-      button {
-        right: 4px;
-      }
-    }
-
-    &.notice-block {
-      select,
-      button {
-        ${(props) => (props.rtl ? "left" : "right")}: 4px;
-      }
+      padding: 2px 4px;
+      height: 18px;
     }
 
     button {
@@ -732,12 +727,14 @@ const EditorStyles = styled.div<{
       }
 
       button {
-        display: ${(props) => (props.readOnly ? "inline" : "none")};
+        display: inline;
       }
     }
 
     select:focus,
-    select:active {
+    select:active,
+    button:focus,
+    button:active {
       display: inline;
     }
   }
