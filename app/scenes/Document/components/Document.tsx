@@ -617,11 +617,11 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
+            {isShare && !isCustomDomain() && (
+              <Branding href="//www.getoutline.com?ref=sharelink" />
+            )}
           </Container>
         </Background>
-        {isShare && !isCustomDomain() && (
-          <Branding href="//www.getoutline.com?ref=sharelink" />
-        )}
         {!isShare && (
           <>
             <KeyboardShortcutsButton />
@@ -667,8 +667,6 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   transition: padding 100ms;
   max-width: 100vw;
   width: 100%;
-
-  padding-bottom: 48px;
 
   ${breakpoint("tablet")`
     margin: 4px auto 12px;

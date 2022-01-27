@@ -34,7 +34,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
 }
 
 const ScrollContainer = styled(Scrollable)`
-  padding-bottom: 36px;
+  padding-bottom: 12px;
 `;
 
 export default observer(SharedSidebar);
