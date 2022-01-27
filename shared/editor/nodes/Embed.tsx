@@ -25,7 +25,7 @@ export default class Embed extends Node {
       },
       parseDOM: [
         {
-          tag: "iframe[class=embed]",
+          tag: "iframe.embed",
           getAttrs: (dom: HTMLIFrameElement) => {
             const { embeds } = this.editor.props;
             const href = dom.getAttribute("src") || "";
@@ -42,6 +42,14 @@ export default class Embed extends Node {
             }
 
             return {};
+          },
+        },
+        {
+          tag: "a.disabled-embed",
+          getAttrs: (dom: HTMLAnchorElement) => {
+            return {
+              href: dom.getAttribute("href") || "",
+            };
           },
         },
       ],

@@ -99,8 +99,8 @@ export default class ComponentView {
     }
   }
 
-  stopEvent() {
-    return true;
+  stopEvent(event: Event) {
+    return event.type !== "mousedown" && !event.type.startsWith("drag");
   }
 
   destroy() {
