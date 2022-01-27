@@ -698,6 +698,10 @@ const EditorStyles = styled.div<{
     position: absolute;
     z-index: 1;
     top: 8px;
+    right: 8px;
+  }
+
+  .notice-actions {
     ${(props) => (props.rtl ? "left" : "right")}: 8px;
   }
 

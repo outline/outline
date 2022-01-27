@@ -64,7 +64,7 @@ export default class Notice extends Node {
         });
 
         const actions = document.createElement("div");
-        actions.className = "code-actions";
+        actions.className = "notice-actions";
         actions.appendChild(select);
 
         let component;
