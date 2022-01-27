@@ -117,14 +117,14 @@ export default class Heading extends Node {
 
   handleFoldContent = (event: MouseEvent) => {
     event.preventDefault();
-    if (!(event.target instanceof HTMLButtonElement)) {
+    if (!(event.currentTarget instanceof HTMLButtonElement)) {
       return;
     }
 
     const { view } = this.editor;
     const hadFocus = view.hasFocus();
     const { tr } = view.state;
-    const { top, left } = event.target.getBoundingClientRect();
+    const { top, left } = event.currentTarget.getBoundingClientRect();
     const result = view.posAtCoords({ top, left });
 
     if (result) {
