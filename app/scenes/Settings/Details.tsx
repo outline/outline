@@ -67,7 +67,7 @@ function Details() {
     await auth.updateTeam({
       avatarUrl,
     });
-    showToast(t("Profile picture updated"), {
+    showToast(t("Logo updated"), {
       type: "success",
     });
   };
