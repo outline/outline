@@ -548,7 +548,7 @@ const Caption = styled.p`
   cursor: text;
 
   &:empty:not(:focus) {
-    visibility: hidden;
+    display: none;
   }
 
   &:empty:before {
@@ -570,6 +570,6 @@ const ImageWrapper = styled.span`
   }
 
   &.ProseMirror-selectednode + ${Caption} {
-    visibility: visible;
+    display: inherit;
   }
 `;
