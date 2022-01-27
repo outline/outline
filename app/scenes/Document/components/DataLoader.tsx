@@ -92,11 +92,12 @@ class DataLoader extends React.Component<Props> {
     }
   }
 
+  get isEditRoute() {
+    return this.props.match.path === matchDocumentEdit;
+  }
+
   get isEditing() {
-    return (
-      this.props.match.path === matchDocumentEdit ||
-      this.props.auth?.team?.collaborativeEditing
-    );
+    return this.isEditRoute || this.props.auth?.team?.collaborativeEditing;
   }
 
   onSearchLink = async (term: string) => {
@@ -208,7 +209,7 @@ class DataLoader extends React.Component<Props> {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!can.update && this.isEditing) {
+      if (!can.update && this.isEditRoute) {
         history.push(document.url);
         return;
       }
