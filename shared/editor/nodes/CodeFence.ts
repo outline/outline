@@ -111,6 +111,11 @@ export default class CodeFence extends Node {
         const select = document.createElement("select");
         select.addEventListener("change", this.handleLanguageChange);
 
+        const actions = document.createElement("div");
+        actions.className = "code-actions";
+        actions.appendChild(select);
+        actions.appendChild(button);
+
         this.languageOptions.forEach(([key, label]) => {
           const option = document.createElement("option");
           const value = key === "none" ? "" : key;
@@ -123,7 +128,7 @@ export default class CodeFence extends Node {
         return [
           "div",
           { class: "code-block", "data-language": node.attrs.language },
-          ["div", { contentEditable: "false" }, select, button],
+          ["div", { contentEditable: "false" }, actions],
           ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
       },
