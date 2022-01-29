@@ -3,6 +3,7 @@ import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
+import { assertUuid } from "@server/validation";
 
 const router = new Router();
 
@@ -43,6 +44,7 @@ router.post("team.update", auth(), async (ctx) => {
   }
 
   if (preferredCollectionId !== undefined) {
+    assertUuid(preferredCollectionId, "preferredCollectionId must be uuid");
     team.preferredCollectionId = preferredCollectionId;
   }
 
