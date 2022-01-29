@@ -97,7 +97,6 @@ const Profile = () => {
           required
           short
         />
-        <br />
         <InputSelect
           label={t("Language")}
           options={languageOptions}

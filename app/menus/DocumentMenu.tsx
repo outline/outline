@@ -38,7 +38,7 @@ import Separator from "~/components/ContextMenu/Separator";
 import Template from "~/components/ContextMenu/Template";
 import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
-import Toggle from "~/components/Toggle";
+import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
 import {
   pinDocument,
@@ -453,10 +453,12 @@ function DocumentMenu({
             <Separator />
             <Style>
               <ToggleMenuItem
+                width={26}
+                height={14}
                 label={t("Full width")}
                 checked={document.fullWidth}
                 onChange={(ev) => {
-                  document.fullWidth = ev.target.checked;
+                  document.fullWidth = ev.currentTarget.checked;
                   document.save();
                 }}
               />
@@ -526,8 +528,8 @@ function DocumentMenu({
   );
 }
 
-const ToggleMenuItem = styled(Toggle)`
-  span {
+const ToggleMenuItem = styled(Switch)`
+  * {
     font-weight: normal;
     color: ${(props) => props.theme.textSecondary};
   }

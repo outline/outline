@@ -6,7 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import Scene from "~/components/Scene";
-import Toggle from "~/components/Toggle";
+import Switch from "~/components/Switch";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -44,7 +44,7 @@ function Features() {
           the experience for all team members.
         </Trans>
       </HelpText>
-      <Toggle
+      <Switch
         label={t("Collaborative editing")}
         name="collaborativeEditing"
         checked={data.collaborativeEditing}
