@@ -1,5 +1,6 @@
 import { PluginSimple } from "markdown-it";
 import createMarkdown from "@shared/editor/lib/markdown/rules";
+import attachmentsRule from "@shared/editor/rules/attachments";
 import breakRule from "@shared/editor/rules/breaks";
 import checkboxRule from "@shared/editor/rules/checkboxes";
 import embedsRule from "@shared/editor/rules/embeds";
@@ -18,6 +19,7 @@ const defaultRules = [
   underlinesRule,
   tablesRule,
   noticesRule,
+  attachmentsRule,
   emojiRule,
 ];
 

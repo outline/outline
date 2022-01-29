@@ -27,9 +27,9 @@ export type Props<T extends MenuItem = MenuItem> = {
   dictionary: Dictionary;
   view: EditorView;
   search: string;
-  uploadImage?: (file: File) => Promise<string>;
-  onImageUploadStart?: () => void;
-  onImageUploadStop?: () => void;
+  uploadFile?: (file: File) => Promise<string>;
+  onFileUploadStart?: () => void;
+  onFileUploadStop?: () => void;
   onShowToast?: (message: string, id: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: () => void;
@@ -176,7 +176,8 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerImagePick();
+      case "container_attachment":
+        return this.triggerFilePick();
       case "embed":
         return this.triggerLinkInput(item);
       case "link": {
@@ -248,7 +249,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
   };
 
-  triggerImagePick = () => {
+  triggerFilePick = () => {
     if (this.inputRef.current) {
       this.inputRef.current.click();
     }
@@ -258,14 +259,14 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     this.setState({ insertItem: item });
   };
 
-  handleImagePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = getDataTransferFiles(event);
 
     const {
       view,
-      uploadImage,
-      onImageUploadStart,
-      onImageUploadStop,
+      uploadFile,
+      onFileUploadStart,
+      onFileUploadStop,
       onShowToast,
     } = this.props;
     const { state } = view;
@@ -273,15 +274,15 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
     this.clearSearch();
 
-    if (!uploadImage) {
-      throw new Error("uploadImage prop is required to replace images");
+    if (!uploadFile) {
+      throw new Error("uploadFile prop is required to replace files");
     }
 
     if (parent) {
       insertFiles(view, event, parent.pos, files, {
-        uploadImage,
-        onImageUploadStart,
-        onImageUploadStop,
+        uploadFile,
+        onFileUploadStart,
+        onFileUploadStop,
         onShowToast,
         dictionary: this.props.dictionary,
       });
@@ -399,7 +400,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     const {
       embeds = [],
       search = "",
-      uploadImage,
+      uploadFile,
       commands,
       filterable = true,
     } = this.props;
@@ -435,7 +436,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       }
 
       // If no image upload callback has been passed, filter the image block out
-      if (!uploadImage && item.name === "image") return false;
+      if (!uploadFile && item.name === "image") return false;
 
       // some items (defaultHidden) are not visible until a search query exists
       if (!search) return !item.defaultHidden;
@@ -454,7 +455,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   render() {
-    const { dictionary, isActive, uploadImage } = this.props;
+    const { dictionary, isActive, uploadFile } = this.props;
     const items = this.filtered;
     const { insertItem, ...positioning } = this.state;
 
@@ -521,12 +522,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
               )}
             </List>
           )}
-          {uploadImage && (
+          {uploadFile && (
             <VisuallyHidden>
               <input
                 type="file"
                 ref={this.inputRef}
-                onChange={this.handleImagePicked}
+                onChange={this.handleFilePicked}
                 accept="image/*"
               />
             </VisuallyHidden>

@@ -36,7 +36,7 @@ const uploadPlugin = (options: Options) =>
         paste(view, event: ClipboardEvent): boolean {
           if (
             (view.props.editable && !view.props.editable(view.state)) ||
-            !options.uploadImage
+            !options.uploadFile
           ) {
             return false;
           }
@@ -46,8 +46,7 @@ const uploadPlugin = (options: Options) =>
           // check if we actually pasted any files
           const files = Array.prototype.slice
             .call(event.clipboardData.items)
-            .map((dt: any) => dt.getAsFile())
-            .filter((file: File) => file);
+            .map((dt: DataTransferItem) => dt.getAsFile());
 
           if (files.length === 0) return false;
 
@@ -63,15 +62,13 @@ const uploadPlugin = (options: Options) =>
         drop(view, event: DragEvent): boolean {
           if (
             (view.props.editable && !view.props.editable(view.state)) ||
-            !options.uploadImage
+            !options.uploadFile
           ) {
             return false;
           }
 
           // filter to only include image files
-          const files = getDataTransferFiles(event).filter((file) =>
-            /image/i.test(file.type)
-          );
+          const files = getDataTransferFiles(event);
           if (files.length === 0) {
             return false;
           }
@@ -413,14 +410,14 @@ export default class Image extends Node {
       replaceImage: () => (state: EditorState) => {
         const { view } = this.editor;
         const {
-          uploadImage,
-          onImageUploadStart,
-          onImageUploadStop,
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
           onShowToast,
         } = this.editor.props;
 
-        if (!uploadImage) {
-          throw new Error("uploadImage prop is required to replace images");
+        if (!uploadFile) {
+          throw new Error("uploadFile prop is required to replace images");
         }
 
         // create an input element and click to trigger picker
@@ -430,9 +427,9 @@ export default class Image extends Node {
         inputElement.onchange = (event: Event) => {
           const files = getDataTransferFiles(event);
           insertFiles(view, event, state.selection.from, files, {
-            uploadImage,
-            onImageUploadStart,
-            onImageUploadStop,
+            uploadFile,
+            onFileUploadStart,
+            onFileUploadStop,
             onShowToast,
             dictionary: this.options.dictionary,
             replaceExisting: true,

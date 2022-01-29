@@ -10,9 +10,9 @@ let uploadId = 0;
 export type Options = {
   dictionary: any;
   replaceExisting?: boolean;
-  uploadImage: (file: File) => Promise<string>;
-  onImageUploadStart?: () => void;
-  onImageUploadStop?: () => void;
+  uploadFile?: (file: File) => Promise<string>;
+  onFileUploadStart?: () => void;
+  onFileUploadStop?: () => void;
   onShowToast?: (message: string, code: string) => void;
 };
 
@@ -23,44 +23,38 @@ const insertFiles = function (
   files: File[],
   options: Options
 ): void {
-  // filter to only include image files
-  const images = files.filter((file) => /image/i.test(file.type));
-  if (images.length === 0) return;
-
   const {
     dictionary,
-    uploadImage,
-    onImageUploadStart,
-    onImageUploadStop,
+    uploadFile,
+    onFileUploadStart,
+    onFileUploadStop,
     onShowToast,
   } = options;
 
-  if (!uploadImage) {
-    console.warn(
-      "uploadImage callback must be defined to handle image uploads."
-    );
+  if (!uploadFile) {
+    console.warn("uploadFile callback must be defined to handle uploads.");
     return;
   }
 
-  // okay, we have some dropped images and a handler – lets stop this
+  // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
   event.preventDefault();
 
-  // let the user know we're starting to process the images
-  if (onImageUploadStart) onImageUploadStart();
+  // let the user know we're starting to process the files
+  if (onFileUploadStart) onFileUploadStart();
 
   const { schema } = view.state;
 
-  // we'll use this to track of how many images have succeeded or failed
+  // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
 
-  // the user might have dropped multiple images at once, we need to loop
-  for (const file of images) {
+  // the user might have dropped multiple files at once, we need to loop
+  for (const file of files) {
     const id = `upload-${uploadId++}`;
 
     const { tr } = view.state;
 
-    // insert a placeholder at this position, or mark an existing image as being
+    // insert a placeholder at this position, or mark an existing file as being
     // replaced
     tr.setMeta(uploadPlaceholderPlugin, {
       add: {
@@ -72,10 +66,10 @@ const insertFiles = function (
     });
     view.dispatch(tr);
 
-    // start uploading the image file to the server. Using "then" syntax
+    // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
-    uploadImage(file)
+    uploadFile(file)
       .then((src) => {
         // otherwise, insert it at the placeholder's position, and remove
         // the placeholder itself
@@ -85,19 +79,33 @@ const insertFiles = function (
           const result = findPlaceholder(view.state, id);
 
           // if the content around the placeholder has been deleted
-          // then forget about inserting this image
+          // then forget about inserting this file
           if (result === null) {
             return;
           }
 
+          // TODO: check if image
+          const isImage = /image/i.test(file.type);
+
           const [from, to] = result;
           view.dispatch(
             view.state.tr
-              .replaceWith(from, to || from, schema.nodes.image.create({ src }))
+              .replaceWith(
+                from,
+                to || from,
+                isImage
+                  ? schema.nodes.image.create({ src })
+                  : schema.nodes.attachment.create({
+                      src,
+                      type: file.type,
+                      name: file.name,
+                      size: file.size,
+                    })
+              )
               .setMeta(uploadPlaceholderPlugin, { remove: { id } })
           );
 
-          // If the users selection is still at the image then make sure to select
+          // If the users selection is still at the file then make sure to select
           // the entire node once done. Otherwise, if the selection has moved
           // elsewhere then we don't want to modify it
           if (view.state.selection.from === from) {
@@ -133,8 +141,8 @@ const insertFiles = function (
         complete++;
 
         // once everything is done, let the user know
-        if (complete === images.length && onImageUploadStop) {
-          onImageUploadStop();
+        if (complete === files.length && onFileUploadStop) {
+          onFileUploadStop();
         }
       });
   }
