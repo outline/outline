@@ -33,13 +33,13 @@ const PreferredCollection = ({
         value: collection.id,
       },
     ],
-    [{ label: "Home", value: "home" }]
+    [{ label: t("Home"), value: "home" }]
   );
 
   return (
     <InputSelect
       value={preferredCollectionId ? preferredCollectionId : "home"}
-      label="Collection"
+      label={t("Collection")}
       options={options}
       labelRenderer={(options) => {
         if (options.value === "home") {
@@ -110,7 +110,9 @@ const PreferredCollection = ({
       }}
       onChange={onPreferredCollectionChange}
       ariaLabel={t("Perferred collection")}
-      note="Users will be redirect to the selected collection when they sign in."
+      note={t(
+        "Users will be redirect to the selected collection when they sign in."
+      )}
       short
     />
   );

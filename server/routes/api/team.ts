@@ -44,7 +44,8 @@ router.post("team.update", auth(), async (ctx) => {
   }
 
   if (preferredCollectionId !== undefined) {
-    assertUuid(preferredCollectionId, "preferredCollectionId must be uuid");
+    if (preferredCollectionId !== null)
+      assertUuid(preferredCollectionId, "preferredCollectionId must be uuid");
     team.preferredCollectionId = preferredCollectionId;
   }
 
