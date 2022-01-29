@@ -392,7 +392,7 @@ class DocumentScene extends React.Component<Props> {
     const team = auth.team;
     const isShare = !!shareId;
     const value = revision ? revision.text : document.text;
-    const disableEmbeds =
+    const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
     const headings = this.editor.current
       ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
@@ -570,7 +570,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                   <Editor
                     id={document.id}
-                    key={disableEmbeds ? "disabled" : "enabled"}
+                    key={embedsDisabled ? "disabled" : "enabled"}
                     innerRef={this.editor}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
@@ -580,7 +580,7 @@ class DocumentScene extends React.Component<Props> {
                     document={document}
                     value={readOnly ? value : undefined}
                     defaultValue={value}
-                    disableEmbeds={disableEmbeds}
+                    embedsDisabled={embedsDisabled}
                     onSynced={this.onSynced}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}

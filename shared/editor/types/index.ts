@@ -22,6 +22,7 @@ export type MenuItem = {
 };
 
 export type EmbedDescriptor = MenuItem & {
+  icon: React.FC<any>;
   matcher: (url: string) => boolean | [] | RegExpMatchArray;
   component: typeof React.Component | React.FC<any>;
 };

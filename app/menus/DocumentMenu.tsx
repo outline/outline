@@ -410,20 +410,14 @@ function DocumentMenu({
               type: "button",
               title: t("Enable embeds"),
               onClick: document.enableEmbeds,
-              visible:
-                !!showToggleEmbeds &&
-                document.embedsDisabled &&
-                !team.collaborativeEditing,
+              visible: !!showToggleEmbeds && document.embedsDisabled,
               icon: <BuildingBlocksIcon />,
             },
             {
               type: "button",
               title: t("Disable embeds"),
               onClick: document.disableEmbeds,
-              visible:
-                !!showToggleEmbeds &&
-                !document.embedsDisabled &&
-                !team.collaborativeEditing,
+              visible: !!showToggleEmbeds && !document.embedsDisabled,
               icon: <BuildingBlocksIcon />,
             },
             {
