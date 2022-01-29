@@ -1,5 +1,6 @@
+import { SelectStateReturn } from "@renderlesskit/react";
 import { CheckmarkIcon, HomeIcon } from "outline-icons";
-import React from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
@@ -23,8 +24,6 @@ const PreferredCollection = ({
 }: PreferredCollectionProps) => {
   const { t } = useTranslation();
 
-  if (fetching) return null;
-
   const options = collections.reduce(
     (acc, collection) => [
       ...acc,
@@ -36,78 +35,63 @@ const PreferredCollection = ({
     [{ label: t("Home"), value: "home" }]
   );
 
+  const renderLabel = useCallback(
+    (option: { label: string; value: string }) => {
+      const collection = collections.find((c) => c.id === option.value);
+
+      const Icon = collection ? (
+        <CollectionIcon collection={collection} />
+      ) : (
+        <HomeIcon color="currentColor" />
+      );
+
+      return (
+        <Flex align="center">
+          <IconWrapper>{Icon}</IconWrapper>
+          {option.label}
+        </Flex>
+      );
+    },
+    [collections]
+  );
+
+  const renderOption = useCallback(
+    (option: { label: string; value: string }, select: SelectStateReturn) => {
+      const collection = collections.find((c) => c.id === option.value);
+
+      const Icon = collection ? (
+        <CollectionIcon collection={collection} />
+      ) : (
+        <HomeIcon color="currentColor" />
+      );
+
+      return (
+        <Flex align="center">
+          {option.value === select.selectedValue ? (
+            <CheckmarkIcon color="currentColor" />
+          ) : (
+            <>
+              <Spacer />
+              &nbsp;
+            </>
+          )}
+          <IconWrapper>{Icon}</IconWrapper>
+          {option.label}
+        </Flex>
+      );
+    },
+    [collections]
+  );
+
+  if (fetching) return null;
+
   return (
     <InputSelect
       value={preferredCollectionId ? preferredCollectionId : "home"}
       label={t("Collection")}
       options={options}
-      labelRenderer={(options) => {
-        if (options.value === "home") {
-          return (
-            <Flex align="center">
-              <IconWrapper>
-                <HomeIcon color="currentColor" />
-              </IconWrapper>
-              {options.label}
-            </Flex>
-          );
-        }
-        const collection = collections.find((c) => c.id === options.value);
-        if (!collection) return;
-        return (
-          <Flex align="center">
-            <IconWrapper>
-              <CollectionIcon
-                color={collection.color}
-                collection={collection}
-              />
-            </IconWrapper>
-            {options.label}
-          </Flex>
-        );
-      }}
-      renderer={(options, select) => {
-        if (options.value === "home") {
-          return (
-            <Flex align="center">
-              {options.value === select.selectedValue ? (
-                <>
-                  <CheckmarkIcon color="currentColor" />
-                </>
-              ) : (
-                <>
-                  <Spacer />
-                  &nbsp;
-                </>
-              )}
-              <IconWrapper>
-                <HomeIcon color="currentColor" />
-              </IconWrapper>
-              {options.label}
-            </Flex>
-          );
-        }
-        const collection = collections.find((c) => c.id === options.value);
-        if (!collection) return;
-        return (
-          <Flex align="center">
-            {options.value === select.selectedValue ? (
-              <>
-                <CheckmarkIcon color="currentColor" />
-              </>
-            ) : (
-              <>
-                <Spacer />
-                &nbsp;
-              </>
-            )}
-            <IconWrapper>
-              <CollectionIcon collection={collection} />
-            </IconWrapper>
-            {options.label}
-          </Flex>
-        );
-      }}
+      renderLabel={renderLabel}
+      renderOption={renderOption}
       onChange={onPreferredCollectionChange}
       ariaLabel={t("Perferred collection")}
       note={t(

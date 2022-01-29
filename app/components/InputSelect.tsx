@@ -36,8 +36,8 @@ export type Props = {
   options: Option[];
   note?: React.ReactNode;
   onChange: (value: string | null) => void;
-  renderer?: (option: Option, select: SelectStateReturn) => React.ReactNode;
-  labelRenderer?: (option: Option) => React.ReactNode;
+  renderOption?: (option: Option, select: SelectStateReturn) => React.ReactNode;
+  renderLabel?: (option: Option) => React.ReactNode;
 };
 
 const getOptionFromValue = (
@@ -60,8 +60,8 @@ const InputSelect = (props: Props) => {
     disabled,
     note,
     icon,
-    renderer,
-    labelRenderer,
+    renderOption,
+    renderLabel,
   } = props;
 
   const select = useSelectState({
@@ -150,8 +150,8 @@ const InputSelect = (props: Props) => {
               >
                 {!option ? (
                   <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
-                ) : labelRenderer ? (
-                  labelRenderer(option)
+                ) : renderLabel ? (
+                  renderLabel(option)
                 ) : (
                   option.label
                 )}
@@ -206,8 +206,8 @@ const InputSelect = (props: Props) => {
                               : undefined
                           }
                         >
-                          {renderer ? (
-                            renderer(option, select)
+                          {renderOption ? (
+                            renderOption(option, select)
                           ) : select.selectedValue === option.value ? (
                             <>
                               <CheckmarkIcon color="currentColor" />
