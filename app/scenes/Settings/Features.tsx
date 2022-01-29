@@ -32,7 +32,7 @@ function Features() {
       if (publicCollections.length === 0 && !fetching && !fetchError) {
         try {
           setFetching(true);
-          const publicCollections = await collections.fetchAccesibleTeam({
+          const publicCollections = await collections.fetchPublicCollections({
             limit: 100,
           });
           setPublicCollections(publicCollections);

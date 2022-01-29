@@ -165,7 +165,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
-  fetchAccesibleTeam = async (
+  fetchPublicCollections = async (
     params: PaginationParams | undefined
   ): Promise<Collection[]> => {
     this.isFetching = true;
