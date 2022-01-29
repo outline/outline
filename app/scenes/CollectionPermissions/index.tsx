@@ -203,10 +203,9 @@ function CollectionPermissions({ collection }: Props) {
       <InputSelectPermission
         onChange={handleChangePermission}
         value={collection.permission || ""}
-        short
         nude
       />
-      <PermissionExplainer>
+      <PermissionExplainer small>
         {!collection.permission && (
           <Trans
             defaults="The <em>{{ collectionName }}</em> collection is private. Team members have no access to it by default."
@@ -248,20 +247,21 @@ function CollectionPermissions({ collection }: Props) {
         onChange={handleSharingChange}
         checked={sharing && teamSharingEnabled}
         disabled={!teamSharingEnabled}
+        note={
+          teamSharingEnabled ? (
+            <Trans>
+              When enabled, documents can be shared publicly on the internet.
+            </Trans>
+          ) : (
+            <Trans>
+              Public sharing is currently disabled in the team security
+              settings.
+            </Trans>
+          )
+        }
       />
-      <HelpText>
-        {teamSharingEnabled ? (
-          <Trans>
-            When enabled, documents can be shared publicly on the internet.
-          </Trans>
-        ) : (
-          <Trans>
-            Public sharing is currently disabled in the team security settings.
-          </Trans>
-        )}
-      </HelpText>
       <Labeled label={t("Additional access")}>
-        <Actions>
+        <Actions gap={8}>
           <Button
             type="button"
             onClick={handleAddGroupModalOpen}
@@ -269,7 +269,7 @@ function CollectionPermissions({ collection }: Props) {
             neutral
           >
             {t("Add groups")}
-          </Button>{" "}
+          </Button>
           <Button
             type="button"
             onClick={handleAddMemberModalOpen}
@@ -358,7 +358,7 @@ const PermissionExplainer = styled(HelpText)`
   margin-bottom: 24px;
 `;
 
-const Actions = styled.div`
+const Actions = styled(Flex)`
   margin-bottom: 12px;
 `;
 

@@ -14,11 +14,11 @@ import MemberMenu from "~/menus/MemberMenu";
 
 type Props = {
   user: User;
-  membership?: Membership | null | undefined;
+  membership?: Membership | undefined;
   canEdit: boolean;
-  onAdd?: () => any;
-  onRemove?: () => any;
-  onUpdate?: (permission: string) => any;
+  onAdd?: () => void;
+  onRemove?: () => void;
+  onUpdate?: (permission: string) => void;
 };
 
 const MemberListItem = ({
@@ -62,7 +62,7 @@ const MemberListItem = ({
       }
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
-        <Flex align="center">
+        <Flex align="center" gap={8}>
           {onUpdate && (
             <Select
               label={t("Permissions")}
@@ -77,7 +77,6 @@ const MemberListItem = ({
           )}
           {canEdit && (
             <>
-              <Spacer />
               {onRemove && <MemberMenu onRemove={onRemove} />}
               {onAdd && (
                 <Button onClick={onAdd} neutral>
@@ -92,14 +91,12 @@ const MemberListItem = ({
   );
 };
 
-const Spacer = styled.div`
-  width: 8px;
-`;
-
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;
+  box-shadow: none;
+  color: ${(props) => props.theme.textSecondary};
 
   select {
     margin: 0;
