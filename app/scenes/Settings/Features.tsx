@@ -11,7 +11,7 @@ import Switch from "~/components/Switch";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import CollectionsInputSelect from "./components/CollectionsInputSelect";
+import PreferredCollection from "./components/PreferredCollection";
 
 function Features() {
   const { auth, collections } = useStores();
@@ -116,7 +116,7 @@ function Features() {
           </Trans>
         }
       />
-      <CollectionsInputSelect
+      <PreferredCollection
         collections={publicCollections}
         fetching={fetching}
         onPreferredCollectionChange={onPreferredCollectionChange}

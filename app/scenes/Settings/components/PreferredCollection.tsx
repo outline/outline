@@ -8,19 +8,19 @@ import Flex from "~/components/Flex";
 import InputSelect from "~/components/InputSelect";
 import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
 
-type CollectionsInputSelect = {
+type PreferredCollectionProps = {
   collections: Collection[];
   fetching: boolean;
   onPreferredCollectionChange: (value: string) => void;
   preferredCollectionId: string | null;
 };
 
-const CollectionsInputSelect = ({
+const PreferredCollection = ({
   collections,
   fetching,
   onPreferredCollectionChange,
   preferredCollectionId,
-}: CollectionsInputSelect) => {
+}: PreferredCollectionProps) => {
   const { t } = useTranslation();
 
   if (fetching) return null;
@@ -122,4 +122,4 @@ const Spacer = styled.div`
   flex-shrink: 0;
 `;
 
-export default CollectionsInputSelect;
+export default PreferredCollection;
