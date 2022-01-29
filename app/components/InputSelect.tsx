@@ -195,34 +195,29 @@ const InputSelect = (props: Props) => {
                   }
                 >
                   {select.visible
-                    ? options.map((option) => (
-                        <StyledSelectOption
-                          {...select}
-                          value={option.value}
-                          key={option.value}
-                          ref={
-                            select.selectedValue === option.value
-                              ? selectedRef
-                              : undefined
-                          }
-                        >
-                          {renderOption ? (
-                            renderOption(option, select)
-                          ) : select.selectedValue === option.value ? (
-                            <>
-                              <CheckmarkIcon color="currentColor" />
-                              &nbsp;
-                              {option.label}
-                            </>
-                          ) : (
-                            <>
-                              <Spacer />
-                              &nbsp;
-                              {option.label}
-                            </>
-                          )}
-                        </StyledSelectOption>
-                      ))
+                    ? options.map((option) => {
+                        const isSelected =
+                          select.selectedValue === option.value;
+                        const Icon = isSelected ? CheckmarkIcon : Spacer;
+                        return (
+                          <StyledSelectOption
+                            {...select}
+                            value={option.value}
+                            key={option.value}
+                            ref={isSelected ? selectedRef : undefined}
+                          >
+                            {renderOption ? (
+                              renderOption(option, select)
+                            ) : (
+                              <>
+                                <Icon />
+                                &nbsp;
+                                {option.label}
+                              </>
+                            )}
+                          </StyledSelectOption>
+                        );
+                      })
                     : null}
                 </Background>
               </Positioner>
