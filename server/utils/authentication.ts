@@ -101,6 +101,23 @@ export async function signIn(
       httpOnly: false,
       expires,
     });
+
+    const preferredCollectionId = team.preferredCollectionId;
+
+    if (preferredCollectionId) {
+      const collection = await Collection.findOne({
+        where: {
+          id: preferredCollectionId,
+          teamId: team.id,
+        },
+      });
+
+      if (collection) {
+        ctx.redirect(`${team.url}${collection.url}`);
+        return;
+      }
+    }
+
     const [collection, view] = await Promise.all([
       Collection.findFirstCollectionForUser(user),
       View.findOne({
