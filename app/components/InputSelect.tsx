@@ -4,6 +4,7 @@ import {
   useSelectState,
   useSelectPopover,
   SelectPopover,
+  SelectStateReturn,
 } from "@renderlesskit/react";
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
@@ -35,6 +36,8 @@ export type Props = {
   options: Option[];
   note?: React.ReactNode;
   onChange: (value: string | null) => void;
+  renderer?: (option: Option, select: SelectStateReturn) => React.ReactNode;
+  labelRenderer?: (option: Option) => React.ReactNode;
 };
 
 const getOptionFromValue = (
@@ -57,6 +60,8 @@ const InputSelect = (props: Props) => {
     disabled,
     note,
     icon,
+    renderer,
+    labelRenderer,
   } = props;
 
   const select = useSelectState({
@@ -132,19 +137,27 @@ const InputSelect = (props: Props) => {
           ))}
 
         <Select {...select} disabled={disabled} ref={buttonRef}>
-          {(props) => (
-            <StyledButton
-              neutral
-              disclosure
-              className={className}
-              icon={icon}
-              {...props}
-            >
-              {getOptionFromValue(options, select.selectedValue)?.label || (
-                <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
-              )}
-            </StyledButton>
-          )}
+          {(props) => {
+            const option = getOptionFromValue(options, select.selectedValue);
+
+            return (
+              <StyledButton
+                neutral
+                disclosure
+                className={className}
+                icon={icon}
+                {...props}
+              >
+                {!option ? (
+                  <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
+                ) : labelRenderer ? (
+                  labelRenderer(option)
+                ) : (
+                  option.label
+                )}
+              </StyledButton>
+            );
+          }}
         </Select>
         <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
           {(
@@ -193,17 +206,21 @@ const InputSelect = (props: Props) => {
                               : undefined
                           }
                         >
-                          {select.selectedValue !== undefined && (
+                          {renderer ? (
+                            renderer(option, select)
+                          ) : select.selectedValue === option.value ? (
                             <>
-                              {select.selectedValue === option.value ? (
-                                <CheckmarkIcon color="currentColor" />
-                              ) : (
-                                <Spacer />
-                              )}
+                              <CheckmarkIcon color="currentColor" />
                               &nbsp;
+                              {option.label}
+                            </>
+                          ) : (
+                            <>
+                              <Spacer />
+                              &nbsp;
+                              {option.label}
                             </>
                           )}
-                          {option.label}
                         </StyledSelectOption>
                       ))
                     : null}

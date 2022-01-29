@@ -29,6 +29,10 @@ class Team extends BaseModel {
 
   @Field
   @observable
+  preferredCollectionId: string | null;
+
+  @Field
+  @observable
   guestSignin: boolean;
 
   @Field

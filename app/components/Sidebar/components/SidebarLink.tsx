@@ -99,7 +99,7 @@ function SidebarLink(
 }
 
 // accounts for whitespace around icon
-const IconWrapper = styled.span`
+export const IconWrapper = styled.span`
   margin-left: -4px;
   margin-right: 4px;
   height: 24px;

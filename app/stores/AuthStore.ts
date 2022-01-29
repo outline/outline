@@ -228,6 +228,7 @@ export default class AuthStore {
     avatarUrl?: string | null | undefined;
     sharing?: boolean;
     collaborativeEditing?: boolean;
+    preferredCollectionId?: string | null;
     subdomain?: string | null | undefined;
   }) => {
     this.isSaving = true;
