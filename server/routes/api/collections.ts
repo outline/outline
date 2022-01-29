@@ -611,14 +611,27 @@ router.post("collections.update", auth(), async (ctx) => {
 
 router.post("collections.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
+  const {
+    listTeamAccessibleCollection,
+  }: {
+    listTeamAccessibleCollection?: boolean;
+  } = ctx.body;
+
   const collectionIds = await user.collectionIds();
+
+  let where: WhereOptions<Collection> = {
+    teamId: user.teamId,
+    id: collectionIds,
+  };
+
+  if (listTeamAccessibleCollection) {
+    where = { ...where, permission: ["read_write", "read"] };
+  }
+
   const collections = await Collection.scope({
     method: ["withMembership", user.id],
   }).findAll({
-    where: {
-      teamId: user.teamId,
-      id: collectionIds,
-    },
+    where,
     order: [["updatedAt", "DESC"]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
