@@ -95,7 +95,7 @@ const PreferredCollection = ({
       onChange={onPreferredCollectionChange}
       ariaLabel={t("Perferred collection")}
       note={t(
-        "Users will be redirect to the selected collection when they sign in."
+        "We will redirect users to the selected collection when they sign in."
       )}
       short
     />
