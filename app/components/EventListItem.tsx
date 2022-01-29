@@ -14,6 +14,7 @@ import Event from "~/models/Event";
 import Avatar from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
+import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryUrl } from "~/utils/routeHelpers";
 
@@ -25,6 +26,8 @@ type Props = {
 
 const EventListItem = ({ event, latest, document }: Props) => {
   const { t } = useTranslation();
+  const { policies } = useStores();
+  const can = policies.abilities(document.id);
   const opts = {
     userName: event.actor.name,
   };
@@ -87,7 +90,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
     <ListItem
       small
       exact
-      to={to}
+      to={document.isDeleted ? undefined : to}
       title={
         <Time
           dateTime={event.createdAt}
@@ -105,7 +108,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
         </Subtitle>
       }
       actions={
-        isRevision && event.modelId ? (
+        isRevision && event.modelId && can.update ? (
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }
