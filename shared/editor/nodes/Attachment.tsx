@@ -1,9 +1,14 @@
 import Token from "markdown-it/lib/token";
-import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
+import { DownloadIcon } from "outline-icons";
+import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import * as React from "react";
 import { bytesToHumanReadable } from "../../utils/files";
 import toggleWrap from "../commands/toggleWrap";
+import FileExtension from "../components/FileExtension";
+import Widget from "../components/Widget";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/attachments";
+import { ComponentProps } from "../types";
 import Node from "./Node";
 
 export default class Attachment extends Node {
@@ -27,24 +32,45 @@ export default class Attachment extends Node {
       atom: true,
       parseDOM: [
         {
-          tag: "div.attachment-block",
-          getAttrs: (dom: HTMLDivElement) => ({
-            //
-          }),
+          priority: 100,
+          tag: "a.attachment",
+          getAttrs: (dom: HTMLAnchorElement) => {
+            return {
+              title: dom.innerText,
+              href: dom.getAttribute("href"),
+              size: parseInt(dom.dataset.size || "0", 10),
+            };
+          },
         },
       ],
       toDOM: (node) => {
         return [
           "a",
           {
-            class: `attachment-block`,
+            class: `attachment`,
             href: node.attrs.href,
-            download: "true",
+            download: node.attrs.title,
+            "data-size": node.attrs.size,
           },
-          `${node.attrs.title} (${bytesToHumanReadable(node.attrs.size)})`,
+          node.attrs.title,
         ];
       },
     };
+  }
+
+  component({ isSelected, theme, node }: ComponentProps) {
+    return (
+      <Widget
+        icon={<FileExtension extension={node.attrs.title.split(".").pop()} />}
+        href={node.attrs.href}
+        title={node.attrs.title}
+        context={bytesToHumanReadable(node.attrs.size)}
+        isSelected={isSelected}
+        theme={theme}
+      >
+        <DownloadIcon color="currentColor" size={20} />
+      </Widget>
+    );
   }
 
   commands({ type }: { type: NodeType }) {

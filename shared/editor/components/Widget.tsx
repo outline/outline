@@ -1,32 +1,39 @@
-import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import styled, { DefaultTheme, ThemeProps } from "styled-components";
-import { EmbedProps as Props } from "../";
 
-export default function Simple(props: Props & ThemeProps<DefaultTheme>) {
+type Props = {
+  icon: React.ReactNode;
+  title: React.ReactNode;
+  context?: React.ReactNode;
+  href: string;
+  isSelected: boolean;
+  children?: React.ReactNode;
+};
+
+export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
   return (
     <Wrapper
       className={
-        props.isSelected
-          ? "ProseMirror-selectednode disabled-embed"
-          : "disabled-embed"
+        props.isSelected ? "ProseMirror-selectednode widget" : "widget"
       }
-      href={props.attrs.href}
+      href={props.href}
       target="_blank"
       rel="noreferrer nofollow"
     >
-      {props.embed.icon(undefined)}
+      {props.icon}
       <Preview>
-        <Title>{props.embed.title}</Title>
-        <Subtitle>{props.attrs.href.replace(/^https?:\/\//, "")}</Subtitle>
-        <StyledOpenIcon color="currentColor" size={20} />
+        <Title>{props.title}</Title>
+        <Subtitle>{props.context}</Subtitle>
+        <Children>{props.children}</Children>
       </Preview>
     </Wrapper>
   );
 }
 
-const StyledOpenIcon = styled(OpenIcon)`
+const Children = styled.div`
   margin-left: auto;
+  height: 20px;
+  opacity: 0;
 `;
 
 const Title = styled.strong`
@@ -47,14 +54,15 @@ const Preview = styled.div`
 const Subtitle = styled.span`
   font-size: 13px;
   color: ${(props) => props.theme.textTertiary} !important;
+  line-height: 0;
 `;
 
 const Wrapper = styled.a`
   display: inline-flex;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
   color: ${(props) => props.theme.text} !important;
-  background: ${(props) => props.theme.secondaryBackground};
+  outline: 1px solid ${(props) => props.theme.divider};
   white-space: nowrap;
   border-radius: 8px;
   padding: 6px 8px;
@@ -65,6 +73,10 @@ const Wrapper = styled.a`
   overflow: hidden;
 
   &:hover {
-    outline: 2px solid ${(props) => props.theme.divider};
+    background: ${(props) => props.theme.secondaryBackground};
+
+    ${Children} {
+      opacity: 1;
+    }
   }
 `;

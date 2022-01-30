@@ -133,7 +133,7 @@ const EditorStyles = styled.div<{
     }
   }
 
-  .attachment-block,
+  .attachment,
   .file.placeholder {
     display: block;
     background: ${(props) => props.theme.secondaryBackground};

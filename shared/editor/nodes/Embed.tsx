@@ -2,7 +2,7 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
-import Simple from "../embeds/components/Simple";
+import DisabledEmbed from "../components/DisabledEmbed";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import { ComponentProps } from "../types";
@@ -94,7 +94,7 @@ export default class Embed extends Node {
 
     if (embedsDisabled) {
       return (
-        <Simple
+        <DisabledEmbed
           attrs={{ href: node.attrs.href, matches }}
           embed={embed}
           isEditable={isEditable}

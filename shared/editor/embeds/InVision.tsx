@@ -1,6 +1,6 @@
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
-import Frame from "./components/Frame";
+import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const IFRAME_REGEX = /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;

@@ -46,6 +46,7 @@ const uploadPlugin = (options: Options) =>
           // check if we actually pasted any files
           const files = Array.prototype.slice
             .call(event.clipboardData.items)
+            .filter((dt: DataTransferItem) => dt.kind !== "string")
             .map((dt: DataTransferItem) => dt.getAsFile());
 
           if (files.length === 0) return false;

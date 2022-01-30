@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { EmbedDescriptor } from "@shared/editor/types";
+import Image from "../components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Bilibili from "./Bilibili";
@@ -34,7 +35,6 @@ import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
-import Image from "./components/Image";
 
 export type EmbedProps = {
   isSelected: boolean;
