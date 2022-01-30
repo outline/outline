@@ -31,7 +31,7 @@ const uploadPlaceholder = new Plugin({
             );
             set = set.add(tr.doc, [deco]);
           }
-        } else {
+        } else if (action.add.file.type.startsWith("image/")) {
           const element = document.createElement("div");
           element.className = "image placeholder";
 
@@ -39,6 +39,15 @@ const uploadPlaceholder = new Plugin({
           img.src = URL.createObjectURL(action.add.file);
 
           element.appendChild(img);
+
+          const deco = Decoration.widget(action.add.pos, element, {
+            id: action.add.id,
+          });
+          set = set.add(tr.doc, [deco]);
+        } else {
+          const element = document.createElement("div");
+          element.className = "file placeholder";
+          element.innerText = action.add.file.name;
 
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,

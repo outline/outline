@@ -1,4 +1,5 @@
 import { computed } from "mobx";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import BaseModal from "./BaseModel";
 import Collection from "./Collection";
 import User from "./User";
@@ -20,13 +21,7 @@ class FileOperation extends BaseModal {
 
   @computed
   get sizeInMB(): string {
-    const inKB = this.size / 1024;
-
-    if (inKB < 1024) {
-      return inKB.toFixed(2) + "KB";
-    }
-
-    return (inKB / 1024).toFixed(2) + "MB";
+    return bytesToHumanReadable(this.size);
   }
 }
 

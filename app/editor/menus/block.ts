@@ -106,10 +106,10 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       attrs: { markup: "***" },
     },
     {
-      name: "container_attachment",
+      name: "attachment",
       title: dictionary.file,
       icon: DocumentIcon,
-      keywords: "upload attachment",
+      keywords: "file upload attachment",
     },
     {
       name: "image",

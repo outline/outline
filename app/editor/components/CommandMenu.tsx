@@ -176,8 +176,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-      case "container_attachment":
-        return this.triggerFilePick();
+        return this.triggerFilePick("image/*");
+      case "attachment":
+        return this.triggerFilePick("*");
       case "embed":
         return this.triggerLinkInput(item);
       case "link": {
@@ -249,8 +250,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
   };
 
-  triggerFilePick = () => {
+  triggerFilePick = (accept: string) => {
     if (this.inputRef.current) {
+      if (accept) {
+        this.inputRef.current.accept = accept;
+      }
       this.inputRef.current.click();
     }
   };
@@ -528,7 +532,6 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
                 type="file"
                 ref={this.inputRef}
                 onChange={this.handleFilePicked}
-                accept="image/*"
               />
             </VisuallyHidden>
           )}

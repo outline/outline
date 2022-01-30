@@ -317,7 +317,8 @@ export class Editor extends React.PureComponent<
   createExtensions() {
     const { dictionary } = this.props;
 
-    // adding nodes here? Update schema.ts for serialization on the server
+    // adding nodes here? Update server/editor/renderToHtml.ts for serialization
+    // on the server
     return new ExtensionManager(
       [
         ...[

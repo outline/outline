@@ -133,6 +133,17 @@ const EditorStyles = styled.div<{
     }
   }
 
+  .attachment-block,
+  .file.placeholder {
+    display: block;
+    background: ${(props) => props.theme.secondaryBackground};
+    white-space: nowrap;
+    border-radius: 8px;
+    padding: 6px 8px;
+    max-width: 840px;
+    width: 100%;
+  }
+
   .image-replacement-uploading {
     img {
       opacity: 0.5;

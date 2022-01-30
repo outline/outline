@@ -71,11 +71,46 @@ const insertFiles = function (
     // happening in the background in parallel.
     uploadFile(file)
       .then((src) => {
-        // otherwise, insert it at the placeholder's position, and remove
-        // the placeholder itself
-        const newImg = new Image();
+        if (file.type.startsWith("image/")) {
+          const newImg = new Image();
+          newImg.onload = () => {
+            const result = findPlaceholder(view.state, id);
 
-        newImg.onload = () => {
+            // if the content around the placeholder has been deleted
+            // then forget about inserting this file
+            if (result === null) {
+              return;
+            }
+
+            const [from, to] = result;
+            view.dispatch(
+              view.state.tr
+                .replaceWith(
+                  from,
+                  to || from,
+                  schema.nodes.image.create({ src })
+                )
+                .setMeta(uploadPlaceholderPlugin, { remove: { id } })
+            );
+
+            // If the users selection is still at the file then make sure to select
+            // the entire node once done. Otherwise, if the selection has moved
+            // elsewhere then we don't want to modify it
+            if (view.state.selection.from === from) {
+              view.dispatch(
+                view.state.tr.setSelection(
+                  new NodeSelection(view.state.doc.resolve(from))
+                )
+              );
+            }
+          };
+
+          newImg.onerror = (error) => {
+            throw error;
+          };
+
+          newImg.src = src;
+        } else {
           const result = findPlaceholder(view.state, id);
 
           // if the content around the placeholder has been deleted
@@ -84,23 +119,17 @@ const insertFiles = function (
             return;
           }
 
-          // TODO: check if image
-          const isImage = /image/i.test(file.type);
-
           const [from, to] = result;
           view.dispatch(
             view.state.tr
               .replaceWith(
                 from,
                 to || from,
-                isImage
-                  ? schema.nodes.image.create({ src })
-                  : schema.nodes.attachment.create({
-                      src,
-                      type: file.type,
-                      name: file.name,
-                      size: file.size,
-                    })
+                schema.nodes.attachment.create({
+                  href: src,
+                  title: file.name,
+                  size: file.size,
+                })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id } })
           );
@@ -115,13 +144,7 @@ const insertFiles = function (
               )
             );
           }
-        };
-
-        newImg.onerror = (error) => {
-          throw error;
-        };
-
-        newImg.src = src;
+        }
       })
       .catch((error) => {
         console.error(error);

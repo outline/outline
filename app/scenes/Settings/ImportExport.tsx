@@ -18,7 +18,7 @@ import Subheading from "~/components/Subheading";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { uploadFile } from "~/utils/uploadFile";
+import { uploadFile } from "~/utils/files";
 import FileOperationListItem from "./components/FileOperationListItem";
 
 function ImportExport() {
