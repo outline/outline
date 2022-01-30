@@ -73,7 +73,13 @@ describe("#team.update", () => {
   });
 
   it("should update preferred collection", async () => {
-    const { admin, collection } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
